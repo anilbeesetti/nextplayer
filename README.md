@@ -1,1 +1,1 @@
-# NextMediaPlayer
+# NextPlayer
