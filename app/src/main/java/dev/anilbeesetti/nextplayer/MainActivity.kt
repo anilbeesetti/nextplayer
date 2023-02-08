@@ -40,16 +40,18 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     LazyColumn {
-                        items(mediaList) {
+                        items(mediaList) { mediaItem ->
                             Column(
                                 modifier = Modifier
                                     .padding(20.dp)
                                     .clickable {
-                                        val intent = Intent(context, PlayerActivity::class.java)
+                                        val intent = Intent(context, PlayerActivity::class.java).also {
+                                            it.putExtra("data", mediaItem.data)
+                                        }
                                         context.startActivity(intent)
                                     }
                             ) {
-                                Text(text = it.title)
+                                Text(text = mediaItem.title)
                             }
                         }
                     }
