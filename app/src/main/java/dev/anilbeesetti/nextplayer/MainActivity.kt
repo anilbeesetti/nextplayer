@@ -1,10 +1,12 @@
 package dev.anilbeesetti.nextplayer
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -38,11 +40,18 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     LazyColumn {
-                        items(mediaList) {
+                        items(mediaList) { mediaItem ->
                             Column(
-                                modifier = Modifier.padding(20.dp)
+                                modifier = Modifier
+                                    .padding(20.dp)
+                                    .clickable {
+                                        val intent = Intent(context, PlayerActivity::class.java).also {
+                                            it.putExtra("data", mediaItem.data)
+                                        }
+                                        context.startActivity(intent)
+                                    }
                             ) {
-                                Text(text = it.title)
+                                Text(text = mediaItem.title)
                             }
                         }
                     }
