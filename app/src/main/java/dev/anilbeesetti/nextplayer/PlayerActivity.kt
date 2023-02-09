@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -9,6 +10,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.databinding.ActivityPlayerBinding
 
 class PlayerActivity : ComponentActivity() {
@@ -39,6 +41,18 @@ class PlayerActivity : ComponentActivity() {
     private fun initializePlayer() {
         player = ExoPlayer.Builder(this).build().also { player ->
             binding.playerView.player = player
+            binding.playerView.setControllerVisibilityListener(
+                PlayerView.ControllerVisibilityListener { visibility ->
+                    when (visibility) {
+                        View.VISIBLE -> {
+                            this.showSystemBars()
+                        }
+                        View.GONE -> {
+                            this.hideSystemBars()
+                        }
+                    }
+                }
+            )
             data?.let { player.addMediaItem(MediaItem.fromUri(it)) }
             player.playWhenReady = true
             player.prepare()
