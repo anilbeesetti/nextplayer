@@ -18,6 +18,8 @@ class PlayerActivity : ComponentActivity() {
     private lateinit var binding: ActivityPlayerBinding
     private var player: Player? = null
     private var data: String? = null
+    private var playWhenReady = true
+    private var playbackPosition = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -54,13 +56,19 @@ class PlayerActivity : ComponentActivity() {
                 }
             )
             data?.let { player.addMediaItem(MediaItem.fromUri(it)) }
-            player.playWhenReady = true
+
+            player.playWhenReady = playWhenReady
+            player.seekTo(playbackPosition)
             player.prepare()
         }
     }
 
     private fun releasePlayer() {
-        player?.release()
+        player?.let { player ->
+            playWhenReady = player.playWhenReady
+            playbackPosition = player.currentPosition
+            player.release()
+        }
     }
 }
 
