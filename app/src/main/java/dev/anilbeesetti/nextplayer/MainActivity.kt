@@ -1,9 +1,11 @@
 package dev.anilbeesetti.nextplayer
 
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -23,6 +25,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.ui.theme.NextPlayerTheme
 
+
+private const val TAG = "MainActivity"
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,18 +46,16 @@ class MainActivity : ComponentActivity() {
                 ) {
                     LazyColumn {
                         items(mediaList) { mediaItem ->
-                            Column(
-                                modifier = Modifier
-                                    .padding(20.dp)
-                                    .clickable {
-                                        val intent = Intent(context, PlayerActivity::class.java).also {
+                            MediaItem(
+                                media = mediaItem,
+                                onClick = {
+                                    val intent =
+                                        Intent(context, PlayerActivity::class.java).also {
                                             it.putExtra("data", mediaItem.data)
                                         }
-                                        context.startActivity(intent)
-                                    }
-                            ) {
-                                Text(text = mediaItem.title)
-                            }
+                                    context.startActivity(intent)
+                                }
+                            )
                         }
                     }
                 }
@@ -60,6 +63,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
 
 fun scanMedia(context: Context): List<MediaItem> {
 
@@ -75,7 +81,10 @@ fun scanMedia(context: Context): List<MediaItem> {
         MediaStore.Video.Media._ID,
         MediaStore.Video.Media.TITLE,
         MediaStore.Video.Media.DURATION,
-        MediaStore.Video.Media.DATA
+        MediaStore.Video.Media.DATA,
+        MediaStore.Video.Media.HEIGHT,
+        MediaStore.Video.Media.WIDTH,
+        MediaStore.Video.Media.DISPLAY_NAME
     )
 
     // Perform the query
@@ -91,9 +100,26 @@ fun scanMedia(context: Context): List<MediaItem> {
                 cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
             val data =
                 cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))
+            val width =
+                cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
+            val height =
+                cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.HEIGHT))
+            val displayName =
+                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME))
 
-            mediaList.add(MediaItem(id, title, duration, data))
+            mediaList.add(
+                MediaItem(
+                    id = id,
+                    title = title,
+                    duration = duration,
+                    data = data,
+                    displayName = displayName,
+                    width = width,
+                    height = height
+                )
+            )
         }
+
         cursor.close()
     }
 
@@ -104,5 +130,8 @@ data class MediaItem(
     val id: Long,
     val title: String,
     val duration: Int,
-    val data: String
+    val data: String,
+    val displayName: String,
+    val width: Int,
+    val height: Int
 )
