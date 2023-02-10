@@ -14,12 +14,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,7 +54,15 @@ fun MediaItem(
                     .widthIn(max = 420.dp)
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f),
-                content = {}
+                content = {
+                    GlideImage(
+                        imageModel = { media.data },
+                        imageOptions = ImageOptions(
+                            contentScale = ContentScale.Crop,
+                            alignment = Alignment.Center
+                        )
+                    )
+                }
             )
             Column(
                 modifier = Modifier
