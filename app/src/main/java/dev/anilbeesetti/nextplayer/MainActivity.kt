@@ -46,19 +46,16 @@ class MainActivity : ComponentActivity() {
                 ) {
                     LazyColumn {
                         items(mediaList) { mediaItem ->
-                            Column(
-                                modifier = Modifier
-                                    .padding(20.dp)
-                                    .clickable {
-                                        val intent =
-                                            Intent(context, PlayerActivity::class.java).also {
-                                                it.putExtra("data", mediaItem.data)
-                                            }
-                                        context.startActivity(intent)
-                                    }
-                            ) {
-                                Text(text = mediaItem.title)
-                            }
+                            MediaItem(
+                                media = mediaItem,
+                                onClick = {
+                                    val intent =
+                                        Intent(context, PlayerActivity::class.java).also {
+                                            it.putExtra("data", mediaItem.data)
+                                        }
+                                    context.startActivity(intent)
+                                }
+                            )
                         }
                     }
                 }
@@ -66,6 +63,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
 
 fun scanMedia(context: Context): List<MediaItem> {
 
