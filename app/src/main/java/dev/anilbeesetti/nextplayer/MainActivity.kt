@@ -1,20 +1,18 @@
 package dev.anilbeesetti.nextplayer
 
-import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,7 +21,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import dev.anilbeesetti.nextplayer.ui.theme.NextPlayerTheme
 
 
@@ -45,20 +43,28 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(vertical = 15.dp)
-                    ) {
-                        items(mediaList) { mediaItem ->
-                            MediaItem(
-                                media = mediaItem,
-                                onClick = {
-                                    val intent =
-                                        Intent(context, PlayerActivity::class.java).also {
-                                            it.putExtra("data", mediaItem.data)
-                                        }
-                                    context.startActivity(intent)
-                                }
-                            )
+                    Column {
+                        CenterAlignedTopAppBar(
+                            title = {
+                                Text(
+                                    text = "Next Player",
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        )
+                        LazyColumn() {
+                            items(mediaList) { mediaItem ->
+                                MediaItem(
+                                    media = mediaItem,
+                                    onClick = {
+                                        val intent =
+                                            Intent(context, PlayerActivity::class.java).also {
+                                                it.putExtra("data", mediaItem.data)
+                                            }
+                                        context.startActivity(intent)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -66,8 +72,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
 
 
 fun scanMedia(context: Context): List<MediaItem> {
