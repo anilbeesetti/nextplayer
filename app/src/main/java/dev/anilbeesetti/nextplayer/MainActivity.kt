@@ -21,13 +21,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import dev.anilbeesetti.nextplayer.ui.theme.NextPlayerTheme
-
-
-private const val TAG = "MainActivity"
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                         CenterAlignedTopAppBar(
                             title = {
                                 Text(
-                                    text = "Next Player",
+                                    text = stringResource(id = R.string.app_name),
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -65,10 +65,12 @@ class MainActivity : ComponentActivity() {
                                 MediaItem(
                                     media = mediaItem,
                                     onClick = {
-                                        val intent =
-                                            Intent(context, PlayerActivity::class.java).also {
-                                                it.putExtra("data", mediaItem.data)
-                                            }
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            File(mediaItem.data).toUri(),
+                                            context,
+                                            PlayerActivity::class.java
+                                        )
                                         context.startActivity(intent)
                                     }
                                 )
