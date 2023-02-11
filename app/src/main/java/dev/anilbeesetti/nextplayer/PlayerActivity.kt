@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -12,6 +13,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.databinding.ActivityPlayerBinding
+import java.io.File
 
 class PlayerActivity : ComponentActivity() {
 
@@ -55,7 +57,7 @@ class PlayerActivity : ComponentActivity() {
                     }
                 }
             )
-            data?.let { player.addMediaItem(MediaItem.fromUri(it)) }
+            data?.let { player.addMediaItem(MediaItem.fromUri(File(it).toUri())) }
 
             player.playWhenReady = playWhenReady
             player.seekTo(playbackPosition)
