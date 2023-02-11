@@ -1,10 +1,10 @@
 package dev.anilbeesetti.nextplayer
 
 import android.app.Activity
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
-import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -13,13 +13,12 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.databinding.ActivityPlayerBinding
-import java.io.File
 
 class PlayerActivity : ComponentActivity() {
 
     private lateinit var binding: ActivityPlayerBinding
     private var player: Player? = null
-    private var data: String? = null
+    private var data: Uri? = null
     private var playWhenReady = true
     private var playbackPosition = 0L
 
@@ -27,7 +26,7 @@ class PlayerActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
 
-        data = intent.getStringExtra("data")
+        data = intent.data
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
     }
@@ -57,7 +56,7 @@ class PlayerActivity : ComponentActivity() {
                     }
                 }
             )
-            data?.let { player.addMediaItem(MediaItem.fromUri(File(it).toUri())) }
+            data?.let { player.addMediaItem(MediaItem.fromUri(it)) }
 
             player.playWhenReady = playWhenReady
             player.seekTo(playbackPosition)
