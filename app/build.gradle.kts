@@ -64,6 +64,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
 
+    implementation(libs.accompanist.permissions)
+
     // Media3
     implementation(libs.bundles.media3)
 
@@ -71,6 +73,7 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
 
     testImplementation(libs.junit4)
 

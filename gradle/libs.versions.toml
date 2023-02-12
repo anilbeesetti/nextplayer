@@ -1,4 +1,5 @@
 [versions]
+accompanist = "0.29.1-alpha"
 androidGradlePlugin = "7.4.1"
 androidMaterial = "1.8.0"
 androidxActivity = "1.6.1"
@@ -23,6 +24,7 @@ landscapist = "2.1.3"
 
 
 [libraries]
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
