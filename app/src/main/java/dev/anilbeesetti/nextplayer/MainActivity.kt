@@ -26,10 +26,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.ui.theme.NextPlayerTheme
 import java.io.File
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var mediaManager: MediaManager
+
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +50,7 @@ class MainActivity : ComponentActivity() {
                 val mediaList = remember { mutableStateListOf<MediaItem>() }
 
                 LaunchedEffect(key1 = Unit) {
-                    mediaList.addAll(scanMedia(context))
+                    mediaList.addAll(mediaManager.getVideos())
                 }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
