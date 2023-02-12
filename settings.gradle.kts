@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "NextPlayer"
-include ':app'
+include(":app")
