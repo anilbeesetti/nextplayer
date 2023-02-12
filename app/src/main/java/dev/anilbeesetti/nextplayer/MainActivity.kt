@@ -16,9 +16,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -26,16 +25,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.ui.theme.NextPlayerTheme
 import java.io.File
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject lateinit var mediaManager: MediaManager
-
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,11 +43,9 @@ class MainActivity : ComponentActivity() {
             NextPlayerTheme {
 
                 val context = LocalContext.current
-                val mediaList = remember { mutableStateListOf<MediaItem>() }
+                val viewModel = hiltViewModel<MediaPickerViewModel>()
+                val mediaPickerUiState by viewModel.mediaPickerUiState.collectAsState()
 
-                LaunchedEffect(key1 = Unit) {
-                    mediaList.addAll(mediaManager.getVideos())
-                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -68,7 +62,7 @@ class MainActivity : ComponentActivity() {
                         LazyColumn(
                             contentPadding = PaddingValues(vertical = 10.dp)
                         ) {
-                            items(mediaList) { mediaItem ->
+                            items(mediaPickerUiState.videos) { mediaItem ->
                                 MediaItem(
                                     media = mediaItem,
                                     onClick = {
