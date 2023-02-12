@@ -10,7 +10,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
     private val mediaManager: MediaManager
-): ViewModel() {
+) : ViewModel() {
 
     private val _mediaPickerUiState = MutableStateFlow(MediaPickerUiState())
     val mediaPickerUiState = _mediaPickerUiState.asStateFlow()

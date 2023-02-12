@@ -68,3 +68,15 @@ class MediaManager @Inject constructor(
     }
 
 }
+
+
+
+data class MediaItem(
+    val id: Long,
+    val title: String,
+    val duration: Int,
+    val data: String,
+    val displayName: String,
+    val width: Int,
+    val height: Int
+)
