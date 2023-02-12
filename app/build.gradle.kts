@@ -1,6 +1,8 @@
+@file:Suppress("DSL_SCOPE_VIOLATION") // False positive
+
 plugins {
-    id ("com.android.application")
-    id ("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -28,18 +30,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
     buildFeatures {
         compose = true
         viewBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.2.0"
+        kotlinCompilerExtensionVersion = "1.4.2"
     }
     packagingOptions {
         resources {
@@ -49,38 +51,28 @@ android {
 }
 
 dependencies {
+    // compose bom
+    implementation(platform(libs.androidx.compose.bom))
 
-    val composeVersion = "1.3.3"
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.bundles.compose)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.github.skydoves.landscapist.glide)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.google.android.material)
 
-    implementation ("androidx.core:core-ktx:1.9.0")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
-    implementation ("androidx.activity:activity-compose:1.6.1")
-    implementation ("androidx.compose.ui:ui:$composeVersion")
-    implementation ("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation ("androidx.compose.material3:material3:1.1.0-alpha05")
-    implementation ("com.google.android.material:material:1.8.0")
-    implementation ("androidx.appcompat:appcompat:1.6.1")
-    implementation ("androidx.compose.material:material-icons-extended:1.3.1")
-    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation ("androidx.navigation:navigation-fragment-ktx:2.5.3")
-    implementation ("androidx.navigation:navigation-ui-ktx:2.5.3")
+    // Media3
+    implementation(libs.bundles.media3)
 
-    implementation ("com.github.skydoves:landscapist-glide:2.1.3")
+    testImplementation(libs.junit4)
 
-    testImplementation ("junit:junit:4.13.2")
-    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation ("androidx.compose.ui:ui-test-junit4:$composeVersion")
-    debugImplementation ("androidx.compose.ui:ui-tooling:$composeVersion")
-    debugImplementation ("androidx.compose.ui:ui-test-manifest:$composeVersion")
+    androidTestImplementation(platform(libs.androidx.compose.bom))
 
-    val media3Version = "1.0.0-beta03"
-
-    // For media playback using ExoPlayer
-    implementation ("androidx.media3:media3-exoplayer:$media3Version")
-    // For building media playback UIs
-    implementation ("androidx.media3:media3-ui:$media3Version")
-    // Common functionality used across multiple media libraries
-    implementation ("androidx.media3:media3-common:$media3Version")
+    androidTestImplementation(libs.androidx.test.ext)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.compose.ui.test)
+    debugImplementation(libs.androidx.compose.ui.tooling.preview)
+    debugImplementation(libs.androidx.compose.ui.testManifest)
 
 }

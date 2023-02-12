@@ -1,0 +1,58 @@
+[versions]
+androidGradlePlugin = "7.4.1"
+androidMaterial = "1.8.0"
+androidxActivity = "1.6.1"
+androidxAppCompat = "1.5.1"
+androidxComposeBom = "2023.01.00"
+androidxComposeCompiler = "1.3.2"
+androidxConstraintLayout = "2.1.4"
+androidxCore = "1.9.0"
+androidxEspresso = "3.5.1"
+androidxLifecycle = "2.5.1"
+androidxLifecycleCompose = "2.6.0-alpha02"
+androidxMedia3 = "1.0.0-beta03"
+androidxNavigation = "2.5.3"
+androidxTestCore = "1.5.0"
+androidxTestExt = "1.1.4"
+junit4 = "4.13.2"
+kotlin = "1.8.10"
+composeCompiler = "1.4.2"
+landscapist = "2.1.3"
+
+
+[libraries]
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidxConstraintLayout" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle"}
+androidx-lifecycle-runtimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycleCompose" }
+androidx-lifecycle-viewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "androidxMedia3" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
+androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
+github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist"}
+google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial"}
+junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
+
+
+[bundles]
+compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-compose-material3", "androidx-compose-material-iconsExtended"]
+media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media3-ui"]
+
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
