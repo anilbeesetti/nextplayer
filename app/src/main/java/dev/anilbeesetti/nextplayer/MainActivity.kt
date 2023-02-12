@@ -14,16 +14,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.ui.theme.NextPlayerTheme
 import java.io.File
@@ -43,6 +47,20 @@ class MainActivity : ComponentActivity() {
                 val context = LocalContext.current
                 val viewModel = hiltViewModel<MediaPickerViewModel>()
                 val mediaPickerUiState by viewModel.mediaPickerUiState.collectAsState()
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                DisposableEffect(key1 = lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            viewModel.scanMedia()
+                        }
+                    }
+
+                    lifecycleOwner.lifecycle.addObserver(observer)
+
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                }
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
