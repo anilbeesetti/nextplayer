@@ -15,7 +15,7 @@ class MediaPickerViewModel @Inject constructor(
     private val _mediaPickerUiState = MutableStateFlow(MediaPickerUiState())
     val mediaPickerUiState = _mediaPickerUiState.asStateFlow()
 
-    init {
+    fun scanMedia() {
         _mediaPickerUiState.update {
             it.copy(videos = mediaManager.getVideos())
         }
