@@ -14,6 +14,7 @@ androidxMedia3 = "1.0.0-beta03"
 androidxNavigation = "2.5.3"
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.4"
+hilt = "2.45"
 junit4 = "4.13.2"
 kotlin = "1.8.10"
 composeCompiler = "1.4.2"
@@ -44,6 +45,8 @@ androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espres
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist"}
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial"}
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 
 
@@ -55,4 +58,6 @@ media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
