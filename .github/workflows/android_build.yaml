@@ -1,0 +1,26 @@
+name: Android Build
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Build apk and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set Up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: temurin
+
+      - name: Build Project
+        run: ./gradlew assembleDebug
+
+      - name: Run Tests
+        run: ./gradlew test
+
+      - name: Lint Checks
+        run: ./gradlew ktlintCheck
