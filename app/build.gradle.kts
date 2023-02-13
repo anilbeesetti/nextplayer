@@ -74,7 +74,6 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-
     testImplementation(libs.junit4)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -84,5 +83,4 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test)
     debugImplementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.testManifest)
-
 }

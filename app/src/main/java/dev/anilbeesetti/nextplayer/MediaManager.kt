@@ -66,10 +66,7 @@ class MediaManager @Inject constructor(
 
         return mediaList
     }
-
 }
-
-
 
 data class MediaItem(
     val id: Long,

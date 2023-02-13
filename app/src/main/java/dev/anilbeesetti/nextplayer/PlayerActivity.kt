@@ -76,14 +76,12 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
-    private fun playbackStateListener() = object: Player.Listener {
+    private fun playbackStateListener() = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
         }
     }
 }
-
-
 
 /**
  * Hide system bars
