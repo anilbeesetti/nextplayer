@@ -22,6 +22,8 @@ class PlayerActivity : ComponentActivity() {
     private var playWhenReady = true
     private var playbackPosition = 0L
 
+    private val playbackStateListener: Player.Listener = playbackStateListener()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
@@ -60,6 +62,7 @@ class PlayerActivity : ComponentActivity() {
 
             player.playWhenReady = playWhenReady
             player.seekTo(playbackPosition)
+            player.addListener(playbackStateListener)
             player.prepare()
         }
     }
@@ -68,10 +71,19 @@ class PlayerActivity : ComponentActivity() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
             playbackPosition = player.currentPosition
+            player.removeListener(playbackStateListener)
             player.release()
         }
     }
+
+    private fun playbackStateListener() = object: Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            binding.playerView.keepScreenOn = isPlaying
+        }
+    }
 }
+
+
 
 /**
  * Hide system bars
