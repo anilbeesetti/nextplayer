@@ -15,28 +15,6 @@
         android:theme="@style/Theme.NextPlayer"
         tools:targetApi="31">
         <activity
-            android:name=".PlayerActivity"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|keyboardHidden|navigation"
-            android:exported="true"
-            android:label="@string/title_activity_player"
-            android:theme="@style/Theme.NextPlayer">
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="file" />
-                <data android:scheme="content" />
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="*" />
-
-                <data android:mimeType="video/*"/>
-            </intent-filter>
-        </activity>
-        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.NextPlayer">
