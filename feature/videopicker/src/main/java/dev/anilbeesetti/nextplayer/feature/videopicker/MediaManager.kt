@@ -4,13 +4,15 @@ import android.content.Context
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MediaManager @Inject constructor(
     @ApplicationContext val context: Context
 ) {
 
-    fun getVideos(): List<MediaItem> {
-        val mediaList = mutableListOf<MediaItem>()
+    suspend fun getVideos(): List<VideoItem> = withContext(Dispatchers.IO) {
+        val videoItems = mutableListOf<VideoItem>()
         // Create a content resolver
         val contentResolver = context.contentResolver
 
@@ -48,8 +50,8 @@ class MediaManager @Inject constructor(
                 val displayName =
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME))
 
-                mediaList.add(
-                    MediaItem(
+                videoItems.add(
+                    VideoItem(
                         id = id,
                         title = title,
                         duration = duration,
@@ -64,11 +66,11 @@ class MediaManager @Inject constructor(
             cursor.close()
         }
 
-        return mediaList
+        return@withContext videoItems
     }
 }
 
-data class MediaItem(
+data class VideoItem(
     val id: Long,
     val title: String,
     val duration: Int,
