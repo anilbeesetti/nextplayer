@@ -46,7 +46,7 @@ import java.io.File
 @Composable
 fun VideoPicker(
     viewModel: MediaPickerViewModel = hiltViewModel(),
-    onVideoItemClick: (uri:Uri) -> Unit
+    onVideoItemClick: (uri: Uri) -> Unit
 ) {
     val context = LocalContext.current
     val mediaPickerUiState by viewModel.mediaPickerUiState.collectAsState()
