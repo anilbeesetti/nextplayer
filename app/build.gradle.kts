@@ -1,5 +1,4 @@
-@file:Suppress("DSL_SCOPE_VIOLATION") // False positive
-
+@Suppress("DSL_SCOPE_VIOLATION") // False positive
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -40,7 +39,6 @@ android {
     }
     buildFeatures {
         compose = true
-        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.2"
@@ -53,21 +51,20 @@ android {
 }
 
 dependencies {
+
+    implementation(project(":feature:player"))
+
     // compose bom
     implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.bundles.compose)
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.github.skydoves.landscapist.glide)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
 
     implementation(libs.accompanist.permissions)
-
-    // Media3
-    implementation(libs.bundles.media3)
 
     // hilt
     implementation(libs.hilt.android)

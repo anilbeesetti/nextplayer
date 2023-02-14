@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer
+package dev.anilbeesetti.nextplayer.feature.player
 
 import android.app.Activity
 import android.net.Uri
@@ -12,7 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import dev.anilbeesetti.nextplayer.databinding.ActivityPlayerBinding
+import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 
 class PlayerActivity : ComponentActivity() {
 
