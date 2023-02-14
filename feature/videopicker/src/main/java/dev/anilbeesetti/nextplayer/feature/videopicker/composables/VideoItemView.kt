@@ -1,5 +1,6 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker
+package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,14 +22,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Device
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import dev.anilbeesetti.nextplayer.feature.videopicker.VideoItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MediaItem(
-    media: MediaItem,
+fun VideoItemView(
+    videoItem: VideoItem,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -55,13 +60,15 @@ fun MediaItem(
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f),
                 content = {
-                    GlideImage(
-                        imageModel = { media.data },
-                        imageOptions = ImageOptions(
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.Center
+                    if (videoItem.data.isNotEmpty()) {
+                        GlideImage(
+                            imageModel = { videoItem.data },
+                            imageOptions = ImageOptions(
+                                contentScale = ContentScale.Crop,
+                                alignment = Alignment.Center
+                            )
                         )
-                    )
+                    }
                 }
             )
             Column(
@@ -71,12 +78,40 @@ fun MediaItem(
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = media.title,
+                    text = videoItem.title,
                     maxLines = 2,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
                     overflow = TextOverflow.Ellipsis,
                 )
             }
         }
+    }
+}
+
+@Composable
+fun Greeting() {
+    Column(
+        modifier = Modifier.padding(10.dp)
+    ) {
+        Text(text = "Hello World")
+    }
+}
+
+@Preview(showBackground = false, widthDp = 400)
+@Composable
+fun VideoItemPreview() {
+    Surface {
+        VideoItemView(
+            videoItem = VideoItem(
+                id = 8,
+                title = "Avengers Endgame (2019) BluRay x264.mp4",
+                duration = 1000,
+                data = "",
+                displayName = "Avengers Endgame (2019) BluRay x264",
+                width = 1920,
+                height = 1080
+            ),
+            onClick = {}
+        )
     }
 }

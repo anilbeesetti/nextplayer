@@ -8,20 +8,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
-class MediaPickerViewModel @Inject constructor(
+class VideoPickerViewModel @Inject constructor(
     private val mediaManager: MediaManager
 ) : ViewModel() {
 
-    private val _mediaPickerUiState = MutableStateFlow(MediaPickerUiState())
-    val mediaPickerUiState = _mediaPickerUiState.asStateFlow()
+    private val _videoPickerUiState = MutableStateFlow(VideoPickerUiState())
+    val videoPickerUiState = _videoPickerUiState.asStateFlow()
 
     fun scanMedia() {
-        _mediaPickerUiState.update {
-            it.copy(videos = mediaManager.getVideos())
+        _videoPickerUiState.update {
+            it.copy(videoItems = mediaManager.getVideos())
         }
     }
 }
 
-data class MediaPickerUiState(
-    val videos: List<MediaItem> = emptyList()
+data class VideoPickerUiState(
+    val videoItems: List<VideoItem> = emptyList()
 )
