@@ -3,9 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.videopicker
 import android.content.Context
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 class MediaManager @Inject constructor(
     @ApplicationContext val context: Context

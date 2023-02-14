@@ -37,7 +37,6 @@ fun VideoPicker(
         onVideoItemClick = onVideoItemClick,
         onResumeEvent = viewModel::scanMedia
     )
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
