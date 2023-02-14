@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer
+package dev.anilbeesetti.nextplayer.feature.videopicker
 
 import android.content.Context
 import android.provider.MediaStore

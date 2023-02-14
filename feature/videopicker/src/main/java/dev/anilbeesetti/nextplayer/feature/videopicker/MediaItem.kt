@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer
+package dev.anilbeesetti.nextplayer.feature.videopicker
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable

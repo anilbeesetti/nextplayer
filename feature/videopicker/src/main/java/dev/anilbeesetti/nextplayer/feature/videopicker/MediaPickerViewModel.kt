@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer
+package dev.anilbeesetti.nextplayer.feature.videopicker
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

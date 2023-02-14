@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 rootProject.name = "NextPlayer"
 include(":app")
 include(":feature:player")
+include(":feature:videopicker")
