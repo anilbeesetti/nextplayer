@@ -1,6 +1,8 @@
 name: Android Build
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
 concurrency:
   group: build-${{ github.ref }}
