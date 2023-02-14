@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -39,11 +40,13 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import java.io.File
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun VideoPicker(
-    viewModel: MediaPickerViewModel = hiltViewModel()
+    viewModel: MediaPickerViewModel = hiltViewModel(),
+    onVideoItemClick: (uri:Uri) -> Unit
 ) {
     val context = LocalContext.current
     val mediaPickerUiState by viewModel.mediaPickerUiState.collectAsState()
@@ -83,9 +86,7 @@ fun VideoPicker(
                     items(mediaPickerUiState.videos) { mediaItem ->
                         MediaItem(
                             media = mediaItem,
-                            onClick = {
-                               // open player activity
-                            }
+                            onClick = { onVideoItemClick(File(mediaItem.data).toUri()) }
                         )
                     }
                 }
