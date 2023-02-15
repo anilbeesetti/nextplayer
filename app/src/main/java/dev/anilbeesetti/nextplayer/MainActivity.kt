@@ -106,7 +106,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @OptIn(ExperimentalPermissionsApi::class)
 val PermissionStatus.isPermanentlyDeniedOrPermissionIsNotRequested: Boolean
     get() = !this.shouldShowRationale && !this.isGranted
