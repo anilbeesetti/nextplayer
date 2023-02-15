@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -19,7 +20,11 @@ class MediaManager @Inject constructor(
         val contentResolver = context.contentResolver
 
         // Define the content URI for video files
-        val uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        val collectionUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        }
 
         // Define the columns to retrieve
         val projection = arrayOf(
@@ -33,7 +38,7 @@ class MediaManager @Inject constructor(
         )
 
         // Perform the query
-        val cursor = contentResolver.query(uri, projection, null, null, null)
+        val cursor = contentResolver.query(collectionUri, projection, null, null, null)
 
         // Iterate through the cursor to retrieve the video data
         if (cursor != null) {
@@ -43,8 +48,6 @@ class MediaManager @Inject constructor(
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE))
                 val duration =
                     cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
-                val data =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))
                 val width =
                     cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
                 val height =
@@ -61,7 +64,7 @@ class MediaManager @Inject constructor(
                         width = width,
                         height = height,
                         contentUri = ContentUris.withAppendedId(
-                            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                            collectionUri,
                             id
                         )
                     )
