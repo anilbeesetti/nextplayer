@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,7 +22,7 @@ fun VideoItemsPickerView(
         items(videoItems) { mediaItem ->
             VideoItemView(
                 videoItem = mediaItem,
-                onClick = { onVideoItemClick(File(mediaItem.data).toUri()) }
+                onClick = { onVideoItemClick(mediaItem.contentUri) }
             )
         }
     }

@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker
 
+import android.content.ContentUris
 import android.content.Context
+import android.net.Uri
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -53,12 +55,15 @@ class MediaManager @Inject constructor(
                 videoItems.add(
                     VideoItem(
                         id = id,
-                        title = title,
+                        nameWithExtension = title,
                         duration = duration,
-                        data = data,
                         displayName = displayName,
                         width = width,
-                        height = height
+                        height = height,
+                        contentUri = ContentUris.withAppendedId(
+                            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                            id
+                        )
                     )
                 )
             }
@@ -72,10 +77,10 @@ class MediaManager @Inject constructor(
 
 data class VideoItem(
     val id: Long,
-    val title: String,
     val duration: Int,
-    val data: String,
+    val contentUri: Uri,
     val displayName: String,
+    val nameWithExtension: String,
     val width: Int,
     val height: Int
 )
