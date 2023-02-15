@@ -1,18 +1,17 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
+import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
 
 class PlayerActivity : ComponentActivity() {
 
@@ -80,25 +79,5 @@ class PlayerActivity : ComponentActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
         }
-    }
-}
-
-/**
- * Hide system bars
- */
-fun Activity.hideSystemBars() {
-    WindowCompat.getInsetsController(window, window.decorView).apply {
-        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        hide(WindowInsetsCompat.Type.systemBars())
-    }
-}
-
-/**
- * Show system bars
- */
-fun Activity.showSystemBars() {
-    WindowCompat.getInsetsController(window, window.decorView).apply {
-        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        show(WindowInsetsCompat.Type.systemBars())
     }
 }
