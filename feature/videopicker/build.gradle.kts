@@ -43,8 +43,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
 
-    implementation(libs.accompanist.permissions)
-
     // hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)

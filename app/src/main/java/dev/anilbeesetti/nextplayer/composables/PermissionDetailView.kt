@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.composables
+package dev.anilbeesetti.nextplayer.composables
 
 import android.content.Intent
 import android.net.Uri
@@ -20,10 +20,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.feature.videopicker.R
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import dev.anilbeesetti.nextplayer.R
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun PermissionDetailView() {
+fun PermissionDetailView(
+    permissionState: PermissionState
+) {
     val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -39,7 +44,7 @@ fun PermissionDetailView() {
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = stringResource(id = R.string.permission_settings),
+            text = stringResource(id = R.string.permission_settings, permissionState.permission),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 5.dp)
