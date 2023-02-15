@@ -6,9 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import dev.anilbeesetti.nextplayer.feature.videopicker.VideoItem
-import java.io.File
 
 @Composable
 fun VideoItemsPickerView(
@@ -21,7 +19,7 @@ fun VideoItemsPickerView(
         items(videoItems) { mediaItem ->
             VideoItemView(
                 videoItem = mediaItem,
-                onClick = { onVideoItemClick(File(mediaItem.data).toUri()) }
+                onClick = { onVideoItemClick(mediaItem.contentUri) }
             )
         }
     }

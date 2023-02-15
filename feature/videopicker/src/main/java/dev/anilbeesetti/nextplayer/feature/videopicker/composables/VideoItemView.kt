@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,9 +58,9 @@ fun VideoItemView(
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f),
                 content = {
-                    if (videoItem.data.isNotEmpty()) {
+                    if (videoItem.contentUri != Uri.EMPTY) {
                         GlideImage(
-                            imageModel = { videoItem.data },
+                            imageModel = { videoItem.contentUri },
                             imageOptions = ImageOptions(
                                 contentScale = ContentScale.Crop,
                                 alignment = Alignment.Center
@@ -75,7 +76,7 @@ fun VideoItemView(
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = videoItem.title,
+                    text = videoItem.nameWithExtension,
                     maxLines = 2,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
                     overflow = TextOverflow.Ellipsis,
@@ -101,9 +102,9 @@ fun VideoItemPreview() {
         VideoItemView(
             videoItem = VideoItem(
                 id = 8,
-                title = "Avengers Endgame (2019) BluRay x264.mp4",
+                contentUri = Uri.EMPTY,
+                nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
                 duration = 1000,
-                data = "",
                 displayName = "Avengers Endgame (2019) BluRay x264",
                 width = 1920,
                 height = 1080

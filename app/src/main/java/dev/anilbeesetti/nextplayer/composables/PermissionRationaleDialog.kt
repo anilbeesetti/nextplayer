@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.composables
+package dev.anilbeesetti.nextplayer.composables
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
-import dev.anilbeesetti.nextplayer.feature.videopicker.R
+import dev.anilbeesetti.nextplayer.R
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -25,7 +25,7 @@ fun PermissionRationaleDialog(
             )
         },
         text = {
-            Text(text = stringResource(id = R.string.permission_info))
+            Text(text = stringResource(id = R.string.permission_info, permissionState.permission))
         },
         confirmButton = {
             Button(onClick = { permissionState.launchPermissionRequest() }) {
