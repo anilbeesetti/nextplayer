@@ -15,5 +15,4 @@ interface RepositoryModule {
     fun bindsVideoRepository(
         videoRepository: VideoRepositoryImpl
     ): VideoRepository
-
 }

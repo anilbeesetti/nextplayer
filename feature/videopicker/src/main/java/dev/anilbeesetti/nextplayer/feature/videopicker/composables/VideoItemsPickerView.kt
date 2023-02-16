@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
 
-
 @Composable
 fun VideoItemsPickerView(
     videoItems: List<VideoItem>,
