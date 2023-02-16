@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker
+package dev.anilbeesetti.nextplayer.core.data.util
 
 import android.content.ContentUris
 import android.content.Context

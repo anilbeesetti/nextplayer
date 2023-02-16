@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import dev.anilbeesetti.nextplayer.feature.videopicker.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
