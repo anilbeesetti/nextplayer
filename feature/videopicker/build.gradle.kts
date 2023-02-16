@@ -33,6 +33,8 @@ android {
 
 dependencies {
 
+    implementation(project(":core:data"))
+
     // compose bom
     implementation(platform(libs.androidx.compose.bom))
 
