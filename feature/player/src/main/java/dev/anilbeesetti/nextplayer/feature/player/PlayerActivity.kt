@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -7,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.view.WindowCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
@@ -79,5 +82,20 @@ class PlayerActivity : ComponentActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
         }
+
+        @SuppressLint("SourceLockedOrientationActivity")
+        override fun onVideoSizeChanged(videoSize: VideoSize) {
+            requestedOrientation = if (videoSize.isPortrait) {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+        }
     }
 }
+
+private val VideoSize.isPortrait: Boolean
+    get() {
+        val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
+        return if (isRotated) this.width > this.height else this.height > this.width
+    }
