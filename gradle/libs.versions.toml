@@ -16,12 +16,13 @@ androidxMedia3 = "1.0.0-beta03"
 androidxNavigation = "2.5.3"
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.4"
+composeCompiler = "1.4.2"
 hilt = "2.45"
 junit4 = "4.13.2"
 kotlin = "1.8.10"
 ktlint = "11.1.0"
-composeCompiler = "1.4.2"
 landscapist = "2.1.3"
+room = "2.5.0"
 
 
 [libraries]
@@ -46,6 +47,9 @@ androidx-media3-common = { group = "androidx.media3", name = "media3-common", ve
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist"}
