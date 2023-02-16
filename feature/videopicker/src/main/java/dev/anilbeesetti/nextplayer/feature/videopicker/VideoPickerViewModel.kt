@@ -3,29 +3,19 @@ package dev.anilbeesetti.nextplayer.feature.videopicker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 @HiltViewModel
 class VideoPickerViewModel @Inject constructor(
-    private val mediaManager: MediaManager
+    mediaManager: MediaManager
 ) : ViewModel() {
 
-    private val _videoPickerUiState = MutableStateFlow(VideoPickerUiState())
-    val videoPickerUiState = _videoPickerUiState.asStateFlow()
-
-    fun scanMedia() {
-        viewModelScope.launch {
-            _videoPickerUiState.update {
-                it.copy(videoItems = mediaManager.getVideos())
-            }
-        }
-    }
+    val videoItems = mediaManager.getVideosFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 }
-
-data class VideoPickerUiState(
-    val videoItems: List<VideoItem> = emptyList()
-)
