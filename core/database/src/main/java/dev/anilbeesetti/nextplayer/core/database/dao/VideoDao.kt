@@ -14,5 +14,4 @@ interface VideoDao {
 
     @Query("SELECT * FROM VideoEntity WHERE id = :id")
     suspend fun get(id: Long): VideoEntity?
-
 }
