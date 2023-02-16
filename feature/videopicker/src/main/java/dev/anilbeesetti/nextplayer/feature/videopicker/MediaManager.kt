@@ -8,10 +8,10 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import javax.inject.Inject
 
 class MediaManager @Inject constructor(
     @ApplicationContext val context: Context
@@ -48,7 +48,6 @@ class MediaManager @Inject constructor(
 
         awaitClose { contentResolver.unregisterContentObserver(observer) }
     }.distinctUntilChanged()
-
 }
 
 private val COLLECTION_URI
@@ -69,19 +68,19 @@ private val VIDEO_PROJECTION
         MediaStore.Video.Media.DISPLAY_NAME
     )
 
-private inline val Cursor.toVideoItem
-    get() = VideoItem(
-        id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID)),
-        duration = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-        contentUri = ContentUris.withAppendedId(
-            COLLECTION_URI,
-            getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
-        ),
-        displayName = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
-        nameWithExtension = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)),
-        width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
-        height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
-    )
+private inline val Cursor.toVideoItem: VideoItem
+    get() {
+        val id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+        return VideoItem(
+            id = id,
+            duration = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
+            contentUri = ContentUris.withAppendedId(COLLECTION_URI, id),
+            displayName = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
+            nameWithExtension = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)),
+            width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
+            height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
+        )
+    }
 
 data class VideoItem(
     val id: Long,
