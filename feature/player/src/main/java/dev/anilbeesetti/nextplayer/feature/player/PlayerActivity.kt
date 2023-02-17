@@ -20,11 +20,11 @@ import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import javax.inject.Inject
 
 private const val TAG = "PlayerActivity"
 
@@ -99,7 +99,8 @@ class PlayerActivity : ComponentActivity() {
                 player.setMediaItems(
                     mediaItems,
                     currentMediaItemIndex,
-                    C.TIME_UNSET)
+                    C.TIME_UNSET
+                )
 
                 lifecycleScope.launch {
                     val position = path?.let { videoRepository.getPosition(it) }
