@@ -13,7 +13,7 @@ class VideoPickerViewModel @Inject constructor(
     videoRepository: VideoRepository
 ) : ViewModel() {
 
-    val videoItems = videoRepository.getVideos()
+    val videoItems = videoRepository.getVideoItemsFlow()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
