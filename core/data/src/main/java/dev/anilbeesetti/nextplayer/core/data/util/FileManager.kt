@@ -11,11 +11,11 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import javax.inject.Inject
-import javax.inject.Singleton
 
 private const val TAG = "FileManager"
 
@@ -128,9 +128,7 @@ class FileManager @Inject constructor(
 
         awaitClose { contentResolver.unregisterContentObserver(observer) }
     }.distinctUntilChanged()
-
 }
-
 
 private val COLLECTION_URI
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -148,7 +146,6 @@ private val VIDEO_PROJECTION
         MediaStore.Video.Media.WIDTH,
         MediaStore.Video.Media.DISPLAY_NAME
     )
-
 
 private inline val Cursor.toVideoItem: VideoItem
     get() {
@@ -173,4 +170,3 @@ data class VideoItem(
     val width: Int,
     val height: Int
 )
-

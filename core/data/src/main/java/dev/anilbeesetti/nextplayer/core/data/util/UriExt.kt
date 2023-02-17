@@ -20,7 +20,6 @@ val Uri.isDownloadsDocument: Boolean
 val Uri.isMediaDocument: Boolean
     get() = "com.android.providers.media.documents" == authority
 
-
 /**
  * Whether the Uri authority is Google Photos.
  */
