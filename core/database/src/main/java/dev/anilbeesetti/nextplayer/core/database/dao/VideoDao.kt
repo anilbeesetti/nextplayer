@@ -12,6 +12,6 @@ interface VideoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(videoEntity: VideoEntity)
 
-    @Query("SELECT * FROM VideoEntity WHERE id = :id")
-    suspend fun get(id: Long): VideoEntity?
+    @Query("SELECT * FROM VideoEntity WHERE path = :path")
+    suspend fun get(path: String): VideoEntity?
 }
