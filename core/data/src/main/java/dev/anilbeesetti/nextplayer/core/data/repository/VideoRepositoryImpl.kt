@@ -5,11 +5,10 @@ import dev.anilbeesetti.nextplayer.core.data.util.FileManager
 import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class VideoRepositoryImpl @Inject constructor(
     private val fileManager: FileManager,
@@ -27,14 +26,12 @@ class VideoRepositoryImpl @Inject constructor(
         return videoDao.get(path)?.playbackPosition
     }
 
-    override fun updatePosition(path: String, position: Long) {
-        scope.launch {
-            videoDao.upsert(
-                VideoEntity(
-                    path = path,
-                    playbackPosition = position
-                )
+    override suspend fun updatePosition(path: String, position: Long) {
+        videoDao.upsert(
+            VideoEntity(
+                path = path,
+                playbackPosition = position
             )
-        }
+        )
     }
 }
