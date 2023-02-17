@@ -3,13 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
-import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.media3.common.C
@@ -27,7 +23,6 @@ import java.io.File
 import javax.inject.Inject
 
 private const val TAG = "PlayerActivity"
-
 
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
