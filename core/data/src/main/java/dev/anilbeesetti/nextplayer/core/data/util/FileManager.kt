@@ -9,15 +9,12 @@ import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-
-private const val TAG = "FileManager"
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class FileManager @Inject constructor(
@@ -35,12 +32,6 @@ class FileManager @Inject constructor(
                         .dropLastWhile { it.isEmpty() }
                         .toTypedArray()
                     val type = split[0]
-                    Log.d(TAG, "getPath: $uri, $docId, $split, $type")
-                    Log.d(TAG, "getPath: ${split[1]}")
-                    Log.d(
-                        TAG,
-                        "getPath: ${Environment.getExternalStorageDirectory().path + "/" + split[1]}"
-                    )
                     if ("primary".equals(type, ignoreCase = true)) {
                         return Environment.getExternalStorageDirectory().path + "/" + split[1]
                     }
@@ -48,7 +39,10 @@ class FileManager @Inject constructor(
                     // TODO handle non-primary volumes
                 }
                 uri.isDownloadsDocument -> {
-                    return context.contentResolver.getDataColumn(uri, null, null)
+                    val docId = DocumentsContract.getDocumentId(uri)
+                    val id = docId.split(":")[1]
+                    val contentUri = ContentUris.withAppendedId(DOWNLOAD_COLLECTION_URI, id.toLong())
+                    return context.contentResolver.getDataColumn(contentUri, null, null)
                 }
                 uri.isMediaDocument -> {
                     val docId = DocumentsContract.getDocumentId(uri)
@@ -84,7 +78,7 @@ class FileManager @Inject constructor(
     fun getAllVideosDataColumn(): List<String> {
         val videos = mutableListOf<String>()
 
-        val cursor = context.contentResolver.query(COLLECTION_URI, arrayOf(MediaStore.Video.Media.DATA), null, null, null)
+        val cursor = context.contentResolver.query(VIDEO_COLLECTION_URI, arrayOf(MediaStore.Video.Media.DATA), null, null, null)
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 videos.add(
@@ -105,7 +99,7 @@ class FileManager @Inject constructor(
             val videoItems = mutableListOf<VideoItem>()
 
             // Perform the query
-            val cursor = contentResolver.query(COLLECTION_URI, VIDEO_PROJECTION, null, null, null)
+            val cursor = contentResolver.query(VIDEO_COLLECTION_URI, VIDEO_PROJECTION, null, null, null)
 
             // Iterate through the cursor to retrieve the video data
             if (cursor != null) {
@@ -124,17 +118,24 @@ class FileManager @Inject constructor(
         }
 
         updateVideos()
-        contentResolver.registerContentObserver(COLLECTION_URI, true, observer)
+        contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
 
         awaitClose { contentResolver.unregisterContentObserver(observer) }
     }.distinctUntilChanged()
 }
 
-private val COLLECTION_URI
+private val VIDEO_COLLECTION_URI
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
     } else {
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+    }
+
+private val DOWNLOAD_COLLECTION_URI
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    } else {
+        Uri.parse("content://downloads/public_downloads")
     }
 
 private val VIDEO_PROJECTION
@@ -153,7 +154,7 @@ private inline val Cursor.toVideoItem: VideoItem
         return VideoItem(
             id = id,
             duration = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-            contentUri = ContentUris.withAppendedId(COLLECTION_URI, id),
+            contentUri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
             displayName = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
             nameWithExtension = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)),
             width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
