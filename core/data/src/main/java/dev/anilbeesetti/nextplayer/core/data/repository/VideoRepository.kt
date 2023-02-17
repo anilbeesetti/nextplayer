@@ -14,4 +14,8 @@ interface VideoRepository {
     fun getAllVideoPaths(): List<String>
 
     fun getPath(contentUri: Uri): String?
+
+    suspend fun getPosition(path: String): Long?
+
+    fun updatePosition(path: String, position: Long)
 }
