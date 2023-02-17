@@ -8,6 +8,7 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -19,6 +20,9 @@ import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -28,9 +32,10 @@ private const val TAG = "PlayerActivity"
 class PlayerActivity : ComponentActivity() {
 
     private lateinit var binding: ActivityPlayerBinding
-    @Inject lateinit var videoRepository: VideoRepository
+    @Inject
+    lateinit var videoRepository: VideoRepository
     private var videosList: List<String> = emptyList()
-    private var data: String? = null
+    private var path: String? = null
     private var player: Player? = null
     private var dataUri: Uri? = null
     private var playWhenReady = true
@@ -47,7 +52,7 @@ class PlayerActivity : ComponentActivity() {
         dataUri?.let {
             if (it.scheme == "content") {
                 videosList = videoRepository.getAllVideoPaths()
-                data = videoRepository.getPath(it)
+                path = videoRepository.getPath(it)
             }
         }
 
@@ -81,7 +86,7 @@ class PlayerActivity : ComponentActivity() {
                 }
             )
 
-            val currentMediaItemIndex = videosList.indexOfFirst { it == data }
+            val currentMediaItemIndex = videosList.indexOfFirst { it == path }
             if (currentMediaItemIndex != -1) {
                 val mediaItems: MutableList<MediaItem> = mutableListOf()
                 videosList.forEach {
@@ -91,13 +96,25 @@ class PlayerActivity : ComponentActivity() {
 
                     mediaItems.add(mediaItem)
                 }
-                player.setMediaItems(mediaItems, currentMediaItemIndex, C.TIME_UNSET)
+                player.setMediaItems(
+                    mediaItems,
+                    currentMediaItemIndex,
+                    C.TIME_UNSET)
+
+                lifecycleScope.launch {
+                    val position = path?.let { videoRepository.getPosition(it) }
+                    if (position != null) {
+                        withContext(Dispatchers.Main) {
+                            player.seekTo(position)
+                        }
+                    }
+                }
             } else {
                 dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
+                player.seekTo(playbackPosition)
             }
 
             player.playWhenReady = playWhenReady
-            player.seekTo(playbackPosition)
             player.addListener(playbackStateListener)
             player.prepare()
         }
@@ -107,6 +124,7 @@ class PlayerActivity : ComponentActivity() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
             playbackPosition = player.currentPosition
+            path?.let { videoRepository.updatePosition(it, player.currentPosition) }
             player.removeListener(playbackStateListener)
             player.release()
         }
