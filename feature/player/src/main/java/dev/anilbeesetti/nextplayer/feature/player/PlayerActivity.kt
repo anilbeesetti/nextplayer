@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.core.net.toUri
@@ -67,6 +68,20 @@ class PlayerActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+
+        val nextButton =
+            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
+        val prevButton =
+            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
+
+        nextButton.setOnClickListener {
+            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.seekToNext()
+        }
+        prevButton.setOnClickListener {
+            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.seekToPrevious()
         }
     }
 
