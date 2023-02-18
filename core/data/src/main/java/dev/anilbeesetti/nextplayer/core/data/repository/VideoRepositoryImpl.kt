@@ -9,7 +9,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 
 class VideoRepositoryImpl @Inject constructor(
     private val fileManager: FileManager,
@@ -27,14 +26,12 @@ class VideoRepositoryImpl @Inject constructor(
         return videoDao.get(path)?.playbackPosition
     }
 
-    override fun updatePosition(path: String, position: Long) {
-        scope.launch {
-            videoDao.upsert(
-                VideoEntity(
-                    path = path,
-                    playbackPosition = position
-                )
+    override suspend fun updatePosition(path: String, position: Long) {
+        videoDao.upsert(
+            VideoEntity(
+                path = path,
+                playbackPosition = position
             )
-        }
+        )
     }
 }

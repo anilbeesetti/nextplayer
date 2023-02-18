@@ -17,5 +17,5 @@ interface VideoRepository {
 
     suspend fun getPosition(path: String): Long?
 
-    fun updatePosition(path: String, position: Long)
+    suspend fun updatePosition(path: String, position: Long)
 }

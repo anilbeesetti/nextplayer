@@ -5,10 +5,14 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -16,26 +20,23 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
 import java.io.File
-import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
-private const val TAG = "PlayerActivity"
 
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
     private lateinit var binding: ActivityPlayerBinding
-    @Inject
-    lateinit var videoRepository: VideoRepository
+
+    private val viewModel: PlayerViewModel by viewModels()
+
+    private val END_POSITION_OFFSET = 5L
+
     private var videosList: List<String> = emptyList()
-    private var path: String? = null
     private var player: Player? = null
     private var dataUri: Uri? = null
     private var playWhenReady = true
@@ -51,13 +52,37 @@ class PlayerActivity : ComponentActivity() {
 
         dataUri?.let {
             if (it.scheme == "content") {
-                videosList = videoRepository.getAllVideoPaths()
-                path = videoRepository.getPath(it)
+                viewModel.setCurrentMedia(viewModel.getPath(it))
+                videosList = viewModel.getVideos()
             }
         }
 
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.playbackPosition.collectLatest {
+                    if (it != null && it != C.TIME_UNSET) {
+                        player?.seekTo(it)
+                    }
+                }
+            }
+        }
+
+        val nextButton =
+            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
+        val prevButton =
+            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
+
+        nextButton.setOnClickListener {
+            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.seekToNext()
+        }
+        prevButton.setOnClickListener {
+            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.seekToPrevious()
+        }
     }
 
     override fun onStart() {
@@ -86,30 +111,20 @@ class PlayerActivity : ComponentActivity() {
                 }
             )
 
-            val currentMediaItemIndex = videosList.indexOfFirst { it == path }
+            val currentMediaItemIndex =
+                videosList.indexOfFirst { it == viewModel.currentPlaybackPath }
+
             if (currentMediaItemIndex != -1) {
                 val mediaItems: MutableList<MediaItem> = mutableListOf()
                 videosList.forEach {
                     val mediaItem = MediaItem.Builder()
                         .setUri(File(it).toUri())
+                        .setMediaId(it)
                         .build()
 
                     mediaItems.add(mediaItem)
                 }
-                player.setMediaItems(
-                    mediaItems,
-                    currentMediaItemIndex,
-                    C.TIME_UNSET
-                )
-
-                lifecycleScope.launch {
-                    val position = path?.let { videoRepository.getPosition(it) }
-                    if (position != null) {
-                        withContext(Dispatchers.Main) {
-                            player.seekTo(position)
-                        }
-                    }
-                }
+                player.setMediaItems(mediaItems, currentMediaItemIndex, C.TIME_UNSET)
             } else {
                 dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
                 player.seekTo(playbackPosition)
@@ -125,7 +140,11 @@ class PlayerActivity : ComponentActivity() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
             playbackPosition = player.currentPosition
-            path?.let { videoRepository.updatePosition(it, player.currentPosition) }
+            if (player.currentPosition >= player.duration - END_POSITION_OFFSET) {
+                viewModel.updatePosition(C.TIME_UNSET)
+            } else {
+                viewModel.updatePosition(player.currentPosition)
+            }
             player.removeListener(playbackStateListener)
             player.release()
         }
@@ -143,6 +162,24 @@ class PlayerActivity : ComponentActivity() {
             } else {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            viewModel.setCurrentMedia(mediaItem?.mediaId)
+        }
+
+        @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
+                oldPosition.mediaItem?.let {
+                    viewModel.updatePosition(it.mediaId, C.TIME_UNSET)
+                }
+            }
+            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
         }
     }
 }
