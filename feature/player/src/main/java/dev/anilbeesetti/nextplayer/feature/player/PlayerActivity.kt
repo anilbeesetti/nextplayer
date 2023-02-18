@@ -27,8 +27,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
 
-private const val TAG = "PlayerActivity"
-
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
@@ -63,7 +61,7 @@ class PlayerActivity : ComponentActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.playbackPosition.collectLatest {
-                    if (it != null) {
+                    if (it != null && it != C.TIME_UNSET) {
                         player?.seekTo(it)
                     }
                 }
@@ -162,6 +160,20 @@ class PlayerActivity : ComponentActivity() {
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             viewModel.setCurrentMedia(mediaItem?.mediaId)
+        }
+
+        @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
+                oldPosition.mediaItem?.let {
+                    viewModel.updatePosition(it.mediaId, C.TIME_UNSET)
+                }
+            }
+            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
         }
     }
 }

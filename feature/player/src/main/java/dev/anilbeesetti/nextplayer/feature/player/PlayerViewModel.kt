@@ -32,6 +32,10 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch { currentPlaybackPath?.let { videoRepository.updatePosition(it, position) } }
     }
 
+    fun updatePosition(path: String, position: Long) {
+        viewModelScope.launch { videoRepository.updatePosition(path, position) }
+    }
+
     fun getPath(uri: Uri): String? {
         return videoRepository.getPath(uri)
     }
