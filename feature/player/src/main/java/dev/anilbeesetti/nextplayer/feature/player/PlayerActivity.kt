@@ -34,6 +34,8 @@ class PlayerActivity : ComponentActivity() {
 
     private val viewModel: PlayerViewModel by viewModels()
 
+    private val END_POSITION_OFFSET = 5L
+
     private var videosList: List<String> = emptyList()
     private var player: Player? = null
     private var dataUri: Uri? = null
@@ -138,7 +140,11 @@ class PlayerActivity : ComponentActivity() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
             playbackPosition = player.currentPosition
-            viewModel.updatePosition(player.currentPosition)
+            if (player.currentPosition >= player.duration - END_POSITION_OFFSET) {
+                viewModel.updatePosition(C.TIME_UNSET)
+            } else {
+                viewModel.updatePosition(player.currentPosition)
+            }
             player.removeListener(playbackStateListener)
             player.release()
         }
