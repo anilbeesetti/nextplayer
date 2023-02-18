@@ -19,7 +19,6 @@ interface VideoRepository {
      */
     fun getLocalPlayerItems(): List<PlayerItem>
 
-
     /**
      * Get path from content uri
      * @param contentUri content uri of the video
@@ -27,14 +26,12 @@ interface VideoRepository {
      */
     fun getPath(contentUri: Uri): String?
 
-
     /**
      * Get position from path
      * @param path path of the video
      * @return position in milliseconds
      */
     suspend fun getPosition(path: String): Long?
-
 
     /**
      * Update position of the video

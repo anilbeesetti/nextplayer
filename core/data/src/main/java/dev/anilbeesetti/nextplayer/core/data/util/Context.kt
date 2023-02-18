@@ -15,7 +15,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-
 private val VIDEO_COLLECTION_URI
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
@@ -145,7 +144,6 @@ fun Context.queryVideoItemsAsFlow(
     awaitClose { contentResolver.unregisterContentObserver(observer) }
 }.distinctUntilChanged()
 
-
 /**
  * query all video items from media store
  * @param selection selection of the query
@@ -219,4 +217,3 @@ private inline val Cursor.toVideoItem: VideoItem
             height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
         )
     }
-

@@ -10,8 +10,8 @@ import dev.anilbeesetti.nextplayer.core.data.util.queryLocalPlayerItems
 import dev.anilbeesetti.nextplayer.core.data.util.queryVideoItemsAsFlow
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 class VideoRepositoryImpl @Inject constructor(
     private val videoDao: VideoDao,
