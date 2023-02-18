@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 
 @Composable
 fun VideoItemsPickerView(
