@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C

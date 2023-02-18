@@ -10,11 +10,11 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class FileManager @Inject constructor(
@@ -188,7 +188,6 @@ data class VideoItem(
     val width: Int,
     val height: Int
 )
-
 
 data class PlayerItem(
     val mediaPath: String,
