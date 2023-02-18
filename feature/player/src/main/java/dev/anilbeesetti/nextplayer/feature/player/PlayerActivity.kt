@@ -36,7 +36,6 @@ class PlayerActivity : ComponentActivity() {
     private val viewModel: PlayerViewModel by viewModels()
 
     private var videosList: List<String> = emptyList()
-    private var path: String? = null
     private var player: Player? = null
     private var dataUri: Uri? = null
     private var playWhenReady = true
@@ -52,25 +51,23 @@ class PlayerActivity : ComponentActivity() {
 
         dataUri?.let {
             if (it.scheme == "content") {
-                path = viewModel.getPath(it)
-                viewModel.setCurrentMedia(path)
+                viewModel.setCurrentMedia(viewModel.getPath(it))
                 videosList = viewModel.getVideos()
             }
         }
 
+        binding = ActivityPlayerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.position.collectLatest {
+                viewModel.playbackPosition.collectLatest {
                     if (it != null) {
                         player?.seekTo(it)
                     }
                 }
             }
         }
-
-
-        binding = ActivityPlayerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
     }
 
     override fun onStart() {
@@ -99,7 +96,9 @@ class PlayerActivity : ComponentActivity() {
                 }
             )
 
-            val currentMediaItemIndex = videosList.indexOfFirst { it == path }
+            val currentMediaItemIndex =
+                videosList.indexOfFirst { it == viewModel.currentPlaybackPath }
+
             if (currentMediaItemIndex != -1) {
                 val mediaItems: MutableList<MediaItem> = mutableListOf()
                 videosList.forEach {
@@ -126,6 +125,7 @@ class PlayerActivity : ComponentActivity() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
             playbackPosition = player.currentPosition
+            viewModel.updatePosition(player.currentPosition)
             player.removeListener(playbackStateListener)
             player.release()
         }
