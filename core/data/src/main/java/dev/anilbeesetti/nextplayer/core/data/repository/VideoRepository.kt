@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
+import dev.anilbeesetti.nextplayer.core.data.util.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
 import kotlinx.coroutines.flow.Flow
 
@@ -11,7 +12,7 @@ interface VideoRepository {
      */
     fun getVideoItemsFlow(): Flow<List<VideoItem>>
 
-    fun getAllVideoPaths(): List<String>
+    fun getLocalPlayerItems(): List<PlayerItem>
 
     fun getPath(contentUri: Uri): String?
 

@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.util.FileManager
+import dev.anilbeesetti.nextplayer.core.data.util.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
@@ -18,7 +19,7 @@ class VideoRepositoryImpl @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO)
     override fun getVideoItemsFlow(): Flow<List<VideoItem>> = fileManager.getVideoItemsFlow()
 
-    override fun getAllVideoPaths(): List<String> = fileManager.getAllVideosDataColumn()
+    override fun getLocalPlayerItems(): List<PlayerItem> = fileManager.getLocalPlayerItems()
 
     override fun getPath(contentUri: Uri): String? = fileManager.getPath(contentUri)
 
