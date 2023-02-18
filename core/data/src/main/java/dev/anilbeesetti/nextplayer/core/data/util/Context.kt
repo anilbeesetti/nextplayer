@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import androidx.core.text.isDigitsOnly
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import kotlinx.coroutines.channels.awaitClose
@@ -56,12 +57,17 @@ fun Context.getPath(uri: Uri): String? {
             }
             uri.isDownloadsDocument -> {
                 val docId = DocumentsContract.getDocumentId(uri)
-                val id = docId.split(":")[1]
-                val contentUri = ContentUris.withAppendedId(
-                    Uri.parse("content://downloads/public_downloads"),
-                    id.toLong()
-                )
-                return getDataColumn(contentUri, null, null)
+                if (docId.isDigitsOnly()) {
+                    return try {
+                        val contentUri = ContentUris.withAppendedId(
+                            Uri.parse("content://downloads/public_downloads"),
+                            docId.toLong()
+                        )
+                        getDataColumn(contentUri, null, null)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
             }
             uri.isMediaDocument -> {
                 val docId = DocumentsContract.getDocumentId(uri)
