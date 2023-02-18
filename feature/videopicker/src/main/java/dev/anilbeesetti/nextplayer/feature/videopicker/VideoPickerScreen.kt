@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItemsPickerView
 
 @Composable
