@@ -41,7 +41,8 @@ class FileManager @Inject constructor(
                 uri.isDownloadsDocument -> {
                     val docId = DocumentsContract.getDocumentId(uri)
                     val id = docId.split(":")[1]
-                    val contentUri = ContentUris.withAppendedId(DOWNLOAD_COLLECTION_URI, id.toLong())
+                    val contentUri =
+                        ContentUris.withAppendedId(DOWNLOAD_COLLECTION_URI, id.toLong())
                     return context.contentResolver.getDataColumn(contentUri, null, null)
                 }
                 uri.isMediaDocument -> {
@@ -61,7 +62,13 @@ class FileManager @Inject constructor(
                     val selectionArgs = arrayOf(
                         split[1]
                     )
-                    return contentUri?.let { context.contentResolver.getDataColumn(it, selection, selectionArgs) }
+                    return contentUri?.let {
+                        context.contentResolver.getDataColumn(
+                            it,
+                            selection,
+                            selectionArgs
+                        )
+                    }
                 }
             }
         } else if ("content".equals(uri.scheme, ignoreCase = true)) {
@@ -75,20 +82,29 @@ class FileManager @Inject constructor(
         return null
     }
 
-    fun getAllVideosDataColumn(): List<String> {
-        val videos = mutableListOf<String>()
+    fun getLocalPlayerItems(): List<PlayerItem> {
+        val playerItems = mutableListOf<PlayerItem>()
 
-        val cursor = context.contentResolver.query(VIDEO_COLLECTION_URI, arrayOf(MediaStore.Video.Media.DATA), null, null, null)
+        val cursor = context.contentResolver.query(
+            VIDEO_COLLECTION_URI,
+            arrayOf(MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION),
+            null,
+            null,
+            null
+        )
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                videos.add(
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))
+                playerItems.add(
+                    PlayerItem(
+                        mediaPath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
+                        duration = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
+                    )
                 )
             }
             cursor.close()
         }
 
-        return videos
+        return playerItems
     }
 
     fun getVideoItemsFlow() = callbackFlow<List<VideoItem>> {
@@ -99,7 +115,8 @@ class FileManager @Inject constructor(
             val videoItems = mutableListOf<VideoItem>()
 
             // Perform the query
-            val cursor = contentResolver.query(VIDEO_COLLECTION_URI, VIDEO_PROJECTION, null, null, null)
+            val cursor =
+                contentResolver.query(VIDEO_COLLECTION_URI, VIDEO_PROJECTION, null, null, null)
 
             // Iterate through the cursor to retrieve the video data
             if (cursor != null) {
@@ -170,4 +187,9 @@ data class VideoItem(
     val nameWithExtension: String,
     val width: Int,
     val height: Int
+)
+
+data class PlayerItem(
+    val mediaPath: String,
+    val duration: Long
 )

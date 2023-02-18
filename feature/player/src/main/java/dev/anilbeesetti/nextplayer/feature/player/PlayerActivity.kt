@@ -34,13 +34,9 @@ class PlayerActivity : ComponentActivity() {
 
     private val viewModel: PlayerViewModel by viewModels()
 
-    private val END_POSITION_OFFSET = 5L
-
-    private var videosList: List<String> = emptyList()
     private var player: Player? = null
     private var dataUri: Uri? = null
     private var playWhenReady = true
-    private var playbackPosition = 0L
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
 
@@ -52,8 +48,7 @@ class PlayerActivity : ComponentActivity() {
 
         dataUri?.let {
             if (it.scheme == "content") {
-                viewModel.setCurrentMedia(viewModel.getPath(it))
-                videosList = viewModel.getVideos()
+                viewModel.initMedia(it)
             }
         }
 
@@ -111,23 +106,20 @@ class PlayerActivity : ComponentActivity() {
                 }
             )
 
-            val currentMediaItemIndex =
-                videosList.indexOfFirst { it == viewModel.currentPlaybackPath }
-
-            if (currentMediaItemIndex != -1) {
+            if (viewModel.currentPlayerItemIndex != -1) {
                 val mediaItems: MutableList<MediaItem> = mutableListOf()
-                videosList.forEach {
+                viewModel.currentPlayerItems.forEach { playerItem ->
                     val mediaItem = MediaItem.Builder()
-                        .setUri(File(it).toUri())
-                        .setMediaId(it)
+                        .setUri(File(playerItem.mediaPath).toUri())
+                        .setMediaId(playerItem.mediaPath)
                         .build()
 
                     mediaItems.add(mediaItem)
                 }
-                player.setMediaItems(mediaItems, currentMediaItemIndex, C.TIME_UNSET)
+                player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
             } else {
                 dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
-                player.seekTo(playbackPosition)
+                player.seekTo(viewModel.playbackPosition.value ?: C.TIME_UNSET)
             }
 
             player.playWhenReady = playWhenReady
@@ -139,12 +131,7 @@ class PlayerActivity : ComponentActivity() {
     private fun releasePlayer() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
-            playbackPosition = player.currentPosition
-            if (player.currentPosition >= player.duration - END_POSITION_OFFSET) {
-                viewModel.updatePosition(C.TIME_UNSET)
-            } else {
-                viewModel.updatePosition(player.currentPosition)
-            }
+            viewModel.updatePosition(player.currentPosition)
             player.removeListener(playbackStateListener)
             player.release()
         }
@@ -179,7 +166,6 @@ class PlayerActivity : ComponentActivity() {
                     viewModel.updatePosition(it.mediaId, C.TIME_UNSET)
                 }
             }
-            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
         }
     }
 }
