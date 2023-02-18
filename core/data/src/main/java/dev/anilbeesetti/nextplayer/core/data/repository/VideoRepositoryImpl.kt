@@ -5,10 +5,10 @@ import dev.anilbeesetti.nextplayer.core.data.util.FileManager
 import dev.anilbeesetti.nextplayer.core.data.util.VideoItem
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
 
 class VideoRepositoryImpl @Inject constructor(
     private val fileManager: FileManager,

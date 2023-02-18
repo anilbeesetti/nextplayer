@@ -23,9 +23,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
+import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.io.File
 
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
