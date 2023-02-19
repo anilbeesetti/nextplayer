@@ -1,11 +1,16 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItemsPickerView
 
 @Composable
@@ -13,21 +18,34 @@ fun VideoPickerScreen(
     viewModel: VideoPickerViewModel = hiltViewModel(),
     onVideoItemClick: (uri: Uri) -> Unit
 ) {
-    val videoItems by viewModel.videoItems.collectAsState()
+    val uiState by viewModel.videoItems.collectAsState()
 
     VideoPickerScreen(
-        videoItems = videoItems,
+        uiState = uiState,
         onVideoItemClick = onVideoItemClick
     )
 }
 
 @Composable
 internal fun VideoPickerScreen(
-    videoItems: List<VideoItem>,
+    uiState: VideoPickerUiState,
     onVideoItemClick: (uri: Uri) -> Unit
 ) {
-    VideoItemsPickerView(
-        videoItems = videoItems,
-        onVideoItemClick = onVideoItemClick
-    )
+    when (uiState) {
+        is VideoPickerUiState.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        is VideoPickerUiState.Success -> {
+            VideoItemsPickerView(
+                videoItems = uiState.videoItems,
+                onVideoItemClick = onVideoItemClick
+            )
+        }
+    }
 }
