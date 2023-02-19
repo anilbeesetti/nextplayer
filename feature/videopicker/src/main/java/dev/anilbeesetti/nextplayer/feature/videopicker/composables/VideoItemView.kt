@@ -49,7 +49,6 @@ fun VideoItemView(
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-
             Surface(
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 shape = MaterialTheme.shapes.small,
@@ -78,8 +77,10 @@ fun VideoItemView(
                 Text(
                     text = videoItem.nameWithExtension,
                     maxLines = 2,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
-                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Normal
+                    ),
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

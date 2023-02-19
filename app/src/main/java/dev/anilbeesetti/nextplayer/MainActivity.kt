@@ -82,7 +82,10 @@ class MainActivity : ComponentActivity() {
                                 VideoPickerScreen(
                                     onVideoItemClick = { uri ->
                                         val intent = Intent(
-                                            Intent.ACTION_VIEW, uri, this@MainActivity, PlayerActivity::class.java
+                                            Intent.ACTION_VIEW,
+                                            uri,
+                                            this@MainActivity,
+                                            PlayerActivity::class.java
                                         )
                                         startActivity(intent)
                                     }
