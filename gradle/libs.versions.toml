@@ -21,7 +21,7 @@ hilt = "2.45"
 junit4 = "4.13.2"
 kotlin = "1.8.10"
 kotlinxCoroutines = "1.6.4"
-ktlint = "11.1.0"
+ktlint = "11.2.0"
 landscapist = "2.1.3"
 room = "2.5.0"
 
