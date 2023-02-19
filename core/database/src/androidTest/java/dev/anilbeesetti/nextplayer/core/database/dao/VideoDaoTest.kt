@@ -22,7 +22,7 @@ class VideoDaoTest {
 
         db = Room.inMemoryDatabaseBuilder(
             context,
-            MediaDatabase::class.java,
+            MediaDatabase::class.java
         ).build()
         videoDao = db.videoDao()
     }
@@ -84,6 +84,4 @@ class VideoDaoTest {
 
         assert(result == null)
     }
-
-
 }
