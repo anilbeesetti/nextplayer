@@ -42,7 +42,6 @@ fun Context.getPath(uri: Uri): String? {
     if (DocumentsContract.isDocumentUri(this, uri)) {
         when {
             uri.isExternalStorageDocument -> {
-
                 val docId = DocumentsContract.getDocumentId(uri)
                 val split = docId
                     .split(":".toRegex())
@@ -88,10 +87,11 @@ fun Context.getPath(uri: Uri): String? {
             }
         }
     } else if ("content".equals(uri.scheme, ignoreCase = true)) {
-        return if (uri.isGooglePhotosUri)
+        return if (uri.isGooglePhotosUri) {
             uri.lastPathSegment
-        else
+        } else {
             getDataColumn(uri, null, null)
+        }
     } else if ("file".equals(uri.scheme, ignoreCase = true)) {
         return uri.path
     }
@@ -196,8 +196,12 @@ fun Context.queryLocalPlayerItems(): List<PlayerItem> {
         while (cursor.moveToNext()) {
             playerItems.add(
                 PlayerItem(
-                    mediaPath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
-                    duration = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
+                    mediaPath = cursor.getString(
+                        cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
+                    ),
+                    duration = cursor.getLong(
+                        cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+                    )
                 )
             )
         }

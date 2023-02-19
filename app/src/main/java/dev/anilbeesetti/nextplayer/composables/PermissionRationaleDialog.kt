@@ -21,7 +21,7 @@ fun PermissionRationaleDialog(
         modifier = modifier,
         title = {
             Text(
-                text = stringResource(R.string.permission_request),
+                text = stringResource(R.string.permission_request)
             )
         },
         text = {

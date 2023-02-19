@@ -24,7 +24,7 @@ fun VideoPickerScreen(
 @Composable
 internal fun VideoPickerScreen(
     videoItems: List<VideoItem>,
-    onVideoItemClick: (uri: Uri) -> Unit,
+    onVideoItemClick: (uri: Uri) -> Unit
 ) {
     VideoItemsPickerView(
         videoItems = videoItems,
