@@ -1,19 +1,14 @@
-@Suppress("DSL_SCOPE_VIOLATION") // False positive
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.kapt)
+    id("nextplayer.android.application")
+    id("nextplayer.android.application.compose")
+    id("nextplayer.android.hilt")
 }
 
 android {
     namespace = "dev.anilbeesetti.nextplayer"
-    compileSdk = 33
 
     defaultConfig {
         applicationId = "dev.anilbeesetti.nextplayer"
-        minSdk = 24
-        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
 
@@ -40,19 +35,6 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.2"
-    }
     packagingOptions {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
@@ -65,9 +47,6 @@ dependencies {
     implementation(project(":feature:videopicker"))
     implementation(project(":feature:player"))
 
-    // compose bom
-    implementation(platform(libs.androidx.compose.bom))
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.bundles.compose)
@@ -76,12 +55,7 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
-    // hilt
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-
-    androidTestImplementation(platform(libs.androidx.compose.bom))
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
