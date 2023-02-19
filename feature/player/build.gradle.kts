@@ -1,29 +1,11 @@
-@Suppress("DSL_SCOPE_VIOLATION") // False positive
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
-    alias(libs.plugins.hilt)
+    id("nextplayer.android.library")
+    id("nextplayer.android.hilt")
 }
 
 android {
     namespace = "dev.anilbeesetti.nextplayer.feature.player"
-    compileSdk = 33
 
-    defaultConfig {
-        minSdk = 24
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         viewBinding = true
     }
@@ -43,10 +25,6 @@ dependencies {
 
     // Media3
     implementation(libs.bundles.media3)
-
-    // hilt
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
