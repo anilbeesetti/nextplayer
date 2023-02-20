@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.composables
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,14 +22,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
 import dev.anilbeesetti.nextplayer.R
+import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionDetailView(
-    permissionState: PermissionState
+    text: String,
 ) {
     val context = LocalContext.current
     Column(
@@ -44,7 +45,7 @@ fun PermissionDetailView(
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = stringResource(id = R.string.permission_settings, permissionState.permission),
+            text = text,
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 5.dp)
@@ -59,6 +60,19 @@ fun PermissionDetailView(
             }
         ) {
             Text(text = stringResource(R.string.open_settings))
+        }
+    }
+}
+
+
+@DayNightPreview
+@Composable
+fun PermissionDetailViewPreview() {
+    NextPlayerTheme {
+        Surface {
+            PermissionDetailView(
+                text = stringResource(id = R.string.permission_settings, Manifest.permission.READ_EXTERNAL_STORAGE)
+            )
         }
     }
 }
