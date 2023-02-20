@@ -13,8 +13,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +38,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -68,42 +70,59 @@ class MainActivity : ComponentActivity() {
                         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                     }
 
-                    Column {
-                        CenterAlignedTopAppBar(
-                            title = {
-                                Text(
-                                    text = stringResource(id = R.string.app_name),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        )
-                        when {
-                            storagePermissionState.status.isGranted -> {
-                                VideoPickerScreen(
-                                    onVideoItemClick = { uri ->
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            uri,
-                                            this@MainActivity,
-                                            PlayerActivity::class.java
-                                        )
-                                        startActivity(intent)
-                                    }
-                                )
-                            }
-                            storagePermissionState.status.shouldShowRationale -> {
-                                PermissionRationaleDialog(
-                                    permissionState = storagePermissionState
-                                )
-                            }
-                            storagePermissionState.status.isPermanentlyDeniedOrPermissionIsNotRequested -> {
-                                PermissionDetailView(
-                                    permissionState = storagePermissionState
-                                )
-                            }
-                        }
-                    }
+                    HomeScreen(
+                        permission = storagePermissionState.permission,
+                        permissionStatus = storagePermissionState.status,
+                        onGrantPermissionClick = { storagePermissionState.launchPermissionRequest() }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+private fun HomeScreen(
+    permission: String,
+    permissionStatus: PermissionStatus,
+    onGrantPermissionClick: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Column {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = stringResource(id = R.string.app_name),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        )
+        when {
+            permissionStatus.isGranted -> {
+                VideoPickerScreen(
+                    onVideoItemClick = { uri ->
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            uri,
+                            context,
+                            PlayerActivity::class.java
+                        )
+                        context.startActivity(intent)
+                    }
+                )
+            }
+            permissionStatus.shouldShowRationale -> {
+                PermissionRationaleDialog(
+                    text = stringResource(id = R.string.permission_info, permission),
+                    onConfirmButtonClick = onGrantPermissionClick
+                )
+            }
+            permissionStatus.isPermanentlyDeniedOrPermissionIsNotRequested -> {
+                PermissionDetailView(
+                    text = stringResource(id = R.string.permission_settings, permission)
+                )
             }
         }
     }

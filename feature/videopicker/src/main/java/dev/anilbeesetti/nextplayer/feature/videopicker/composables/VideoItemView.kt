@@ -22,11 +22,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -87,30 +88,23 @@ fun VideoItemView(
     }
 }
 
-@Composable
-fun Greeting() {
-    Column(
-        modifier = Modifier.padding(10.dp)
-    ) {
-        Text(text = "Hello World")
-    }
-}
-
-@Preview(showBackground = false, widthDp = 400)
+@DayNightPreview
 @Composable
 fun VideoItemPreview() {
-    Surface {
-        VideoItemView(
-            videoItem = VideoItem(
-                id = 8,
-                contentUri = Uri.EMPTY,
-                nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
-                duration = 1000,
-                displayName = "Avengers Endgame (2019) BluRay x264",
-                width = 1920,
-                height = 1080
-            ),
-            onClick = {}
-        )
+    NextPlayerTheme {
+        Surface {
+            VideoItemView(
+                videoItem = VideoItem(
+                    id = 8,
+                    contentUri = Uri.EMPTY,
+                    nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
+                    duration = 1000,
+                    displayName = "Avengers Endgame (2019) BluRay x264",
+                    width = 1920,
+                    height = 1080
+                ),
+                onClick = {}
+            )
+        }
     }
 }

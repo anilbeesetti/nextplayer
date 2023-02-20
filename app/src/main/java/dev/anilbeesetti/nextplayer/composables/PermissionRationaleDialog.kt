@@ -1,20 +1,22 @@
 package dev.anilbeesetti.nextplayer.composables
 
+import android.Manifest
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
 import dev.anilbeesetti.nextplayer.R
+import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionRationaleDialog(
-    permissionState: PermissionState,
-    modifier: Modifier = Modifier
+    text: String,
+    modifier: Modifier = Modifier,
+    onConfirmButtonClick: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = {},
@@ -25,12 +27,28 @@ fun PermissionRationaleDialog(
             )
         },
         text = {
-            Text(text = stringResource(id = R.string.permission_info, permissionState.permission))
+            Text(text = text)
         },
         confirmButton = {
-            Button(onClick = { permissionState.launchPermissionRequest() }) {
+            Button(onClick = onConfirmButtonClick) {
                 Text(stringResource(R.string.grant_permission))
             }
         }
     )
+}
+
+@DayNightPreview
+@Composable
+fun PermissionRationaleDialogPreview() {
+    NextPlayerTheme {
+        Surface {
+            PermissionRationaleDialog(
+                text = stringResource(
+                    id = R.string.permission_info,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ),
+                onConfirmButtonClick = {}
+            )
+        }
+    }
 }
