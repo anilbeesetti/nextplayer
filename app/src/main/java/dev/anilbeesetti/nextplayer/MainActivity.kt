@@ -29,9 +29,9 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
 import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
-import dev.anilbeesetti.nextplayer.ui.theme.NextPlayerTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
