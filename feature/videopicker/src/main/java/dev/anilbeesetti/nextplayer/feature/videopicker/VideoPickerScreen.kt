@@ -21,7 +21,6 @@ import dev.anilbeesetti.nextplayer.core.ui.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItemsPickerView
 
-
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable

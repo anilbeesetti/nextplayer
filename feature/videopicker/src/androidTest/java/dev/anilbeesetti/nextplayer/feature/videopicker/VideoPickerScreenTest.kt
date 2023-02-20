@@ -11,12 +11,10 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import org.junit.Rule
 import org.junit.Test
 
-
 class VideoPickerScreenTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-
 
     @Test
     fun circularProgressIndicatorIsDisplayed_whenLoading() {
@@ -62,7 +60,6 @@ class VideoPickerScreenTest {
     }
 }
 
-
 val videoItemsTestData = listOf(
     VideoItem(
         id = 1,
@@ -71,7 +68,7 @@ val videoItemsTestData = listOf(
         duration = 1000,
         width = 100,
         height = 100,
-        nameWithExtension = "Video 1.mp4",
+        nameWithExtension = "Video 1.mp4"
     ),
     VideoItem(
         id = 2,
@@ -80,6 +77,6 @@ val videoItemsTestData = listOf(
         duration = 2000,
         width = 200,
         height = 200,
-        nameWithExtension = "Video 2.mp4",
-    ),
+        nameWithExtension = "Video 2.mp4"
+    )
 )
