@@ -28,7 +28,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
 fun PermissionDetailView(
-    text: String,
+    text: String
 ) {
     val context = LocalContext.current
     Column(
@@ -64,14 +64,16 @@ fun PermissionDetailView(
     }
 }
 
-
 @DayNightPreview
 @Composable
 fun PermissionDetailViewPreview() {
     NextPlayerTheme {
         Surface {
             PermissionDetailView(
-                text = stringResource(id = R.string.permission_settings, Manifest.permission.READ_EXTERNAL_STORAGE)
+                text = stringResource(
+                    id = R.string.permission_settings,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
             )
         }
     }

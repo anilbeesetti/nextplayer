@@ -43,7 +43,10 @@ fun PermissionRationaleDialogPreview() {
     NextPlayerTheme {
         Surface {
             PermissionRationaleDialog(
-                text = stringResource(id = R.string.permission_info, Manifest.permission.READ_EXTERNAL_STORAGE),
+                text = stringResource(
+                    id = R.string.permission_info,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ),
                 onConfirmButtonClick = {}
             )
         }

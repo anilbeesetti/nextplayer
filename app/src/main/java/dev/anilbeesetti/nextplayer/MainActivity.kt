@@ -81,7 +81,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 private fun HomeScreen(
@@ -89,7 +88,6 @@ private fun HomeScreen(
     permissionStatus: PermissionStatus,
     onGrantPermissionClick: () -> Unit
 ) {
-
     val context = LocalContext.current
 
     Column {

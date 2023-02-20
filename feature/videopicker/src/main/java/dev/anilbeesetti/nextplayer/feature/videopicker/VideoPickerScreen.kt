@@ -57,12 +57,11 @@ internal fun VideoPickerScreen(
     }
 }
 
-
 @DevicePreviews
 @Composable
 fun VideoPickerScreenPreview(
     @PreviewParameter(VideoPickerPreviewParameterProvider::class)
-    videoItems: List<VideoItem>,
+    videoItems: List<VideoItem>
 ) {
     BoxWithConstraints {
         NextPlayerTheme {
