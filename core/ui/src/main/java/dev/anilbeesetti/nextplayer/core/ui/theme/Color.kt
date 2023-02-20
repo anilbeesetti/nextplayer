@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.ui.theme
+package dev.anilbeesetti.nextplayer.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

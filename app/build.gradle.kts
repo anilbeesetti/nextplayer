@@ -44,6 +44,7 @@ android {
 
 dependencies {
 
+    implementation(project(":core:ui"))
     implementation(project(":feature:videopicker"))
     implementation(project(":feature:player"))
 
