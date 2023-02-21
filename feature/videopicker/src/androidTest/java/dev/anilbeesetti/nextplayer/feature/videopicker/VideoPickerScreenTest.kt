@@ -16,6 +16,9 @@ class VideoPickerScreenTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
+    /**
+     * This test is to check if the CircularProgressIndicator is displayed when the [VideoPickerUiState.Loading] is passed.
+     */
     @Test
     fun circularProgressIndicatorIsDisplayed_whenLoading() {
         composeTestRule.setContent {
@@ -30,6 +33,9 @@ class VideoPickerScreenTest {
         composeTestRule.onNodeWithTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG).assertExists()
     }
 
+    /**
+     * This test is to check if the video items are displayed when the [VideoPickerUiState.Success] is passed.
+     */
     @Test
     fun videoItemsAreDisplayed_whenSuccess() {
         composeTestRule.setContent {
