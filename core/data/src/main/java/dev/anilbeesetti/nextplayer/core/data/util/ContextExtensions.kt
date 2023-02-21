@@ -2,36 +2,12 @@ package dev.anilbeesetti.nextplayer.core.data.util
 
 import android.content.ContentUris
 import android.content.Context
-import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.core.text.isDigitsOnly
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-
-private val VIDEO_COLLECTION_URI
-    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-    } else {
-        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-    }
-
-private val VIDEO_PROJECTION
-    get() = arrayOf(
-        MediaStore.Video.Media._ID,
-        MediaStore.Video.Media.TITLE,
-        MediaStore.Video.Media.DATA,
-        MediaStore.Video.Media.DURATION,
-        MediaStore.Video.Media.HEIGHT,
-        MediaStore.Video.Media.WIDTH,
-        MediaStore.Video.Media.DISPLAY_NAME
-    )
 
 /**
  * get path from uri
@@ -124,75 +100,3 @@ private fun Context.getDataColumn(
     }
     return null
 }
-
-/**
- * query all video items from media store
- * @param selection selection of the query
- * @param selectionArgs selection arguments of the query
- * @param sortOrder sort order of the query
- * @return flow of list of video items
- * @see VideoItem
- */
-fun Context.queryVideoItemsAsFlow(
-    selection: String? = null,
-    selectionArgs: Array<String>? = null,
-    sortOrder: String? = null
-) = callbackFlow {
-    val observer = object : ContentObserver(null) {
-        override fun onChange(selfChange: Boolean) {
-            trySend(queryVideoItems(selection, selectionArgs, sortOrder))
-        }
-    }
-    contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
-    // initial value
-    trySend(queryVideoItems(selection, selectionArgs, sortOrder))
-    // close
-    awaitClose { contentResolver.unregisterContentObserver(observer) }
-}.distinctUntilChanged()
-
-/**
- * query all video items from media store
- * @param selection selection of the query
- * @param selectionArgs selection arguments of the query
- * @param sortOrder sort order of the query
- * @return list of video items
- * @see VideoItem
- */
-fun Context.queryVideoItems(
-    selection: String? = null,
-    selectionArgs: Array<String>? = null,
-    sortOrder: String? = null
-): List<VideoItem> {
-    val videoItems = mutableListOf<VideoItem>()
-    contentResolver.query(
-        VIDEO_COLLECTION_URI,
-        VIDEO_PROJECTION,
-        selection,
-        selectionArgs,
-        sortOrder
-    )?.use { cursor ->
-        while (cursor.moveToNext()) {
-            videoItems.add(cursor.toVideoItem)
-        }
-    }
-    return videoItems
-}
-
-/**
- * convert cursor to video item
- * @see VideoItem
- */
-private inline val Cursor.toVideoItem: VideoItem
-    get() {
-        val id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
-        return VideoItem(
-            id = id,
-            path = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
-            duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-            contentUri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
-            displayName = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
-            nameWithExtension = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)),
-            width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
-            height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
-        )
-    }

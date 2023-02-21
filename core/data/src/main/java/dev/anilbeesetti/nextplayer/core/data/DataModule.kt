@@ -6,13 +6,21 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepositoryImpl
+import dev.anilbeesetti.nextplayer.core.data.medialibrary.LocalMediaLibrary
+import dev.anilbeesetti.nextplayer.core.data.medialibrary.MediaLibrary
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface RepositoryModule {
+interface DataModule {
 
     @Binds
     fun bindsVideoRepository(
         videoRepository: VideoRepositoryImpl
     ): VideoRepository
+
+
+    @Binds
+    fun bindsMediaLibrary(
+        mediaLibrary: LocalMediaLibrary
+    ): MediaLibrary
 }
