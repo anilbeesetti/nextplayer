@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.medialibrary.MediaSource
+import dev.anilbeesetti.nextplayer.core.data.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
@@ -8,7 +8,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 
-class VideoRepositoryImpl @Inject constructor(
+class LocalVideoRepository @Inject constructor(
     private val videoDao: VideoDao,
     private val mediaSource: MediaSource
 ) : VideoRepository {

@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.data.medialibrary
+package dev.anilbeesetti.nextplayer.core.data.mediasource
 
 import android.content.ContentUris
 import android.content.Context

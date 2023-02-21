@@ -27,6 +27,9 @@ class VideoDaoTest {
         videoDao = db.videoDao()
     }
 
+    /**
+     * Test to check if the [VideoDao.upsert] method inserts a [VideoEntity] into the database.
+     */
     @Test
     fun videoDao_inserts_videoEntity() = runTest {
         val videoEntity = VideoEntity(
@@ -40,6 +43,9 @@ class VideoDaoTest {
         assert(result == videoEntity)
     }
 
+    /**
+     * Test to check if the [VideoDao.upsert] method updates a [VideoEntity] in the database.
+     */
     @Test
     fun videoDao_updates_videoEntity() = runTest {
         val videoEntity = VideoEntity(
@@ -59,6 +65,9 @@ class VideoDaoTest {
         assert(result == updatedVideoEntity)
     }
 
+    /**
+     * Test to check if the [VideoDao.get] method returns the [VideoEntity] from the database.
+     */
     @Test
     fun videoDao_gets_videoEntity_from_path() = runTest {
         val videoEntity = VideoEntity(
@@ -72,6 +81,9 @@ class VideoDaoTest {
         assert(result == videoEntity)
     }
 
+    /**
+     * Test to check if the [VideoDao.get] method returns null if the path does not exist in the database.
+     */
     @Test
     fun videoDao_gets_null_if_path_does_not_exist_in_database() = runTest {
         val videoEntity = VideoEntity(
