@@ -63,6 +63,7 @@ class VideoPickerScreenTest {
 val videoItemsTestData = listOf(
     VideoItem(
         id = 1,
+        path = "/storage/emulated/0/DCIM/Camera/Video 1.mp4",
         displayName = "Video 1",
         contentUri = Uri.parse("content://media/external/video/media/1"),
         duration = 1000,
@@ -72,6 +73,7 @@ val videoItemsTestData = listOf(
     ),
     VideoItem(
         id = 2,
+        path = "/storage/emulated/0/DCIM/Camera/Video 2.mp4",
         displayName = "Video 2",
         contentUri = Uri.parse("content://media/external/video/media/2"),
         duration = 2000,
