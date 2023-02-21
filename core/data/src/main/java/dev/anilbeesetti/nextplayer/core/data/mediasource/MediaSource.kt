@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.data.medialibrary
+package dev.anilbeesetti.nextplayer.core.data.mediasource
 
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import kotlinx.coroutines.flow.Flow

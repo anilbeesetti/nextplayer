@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.medialibrary.MediaSource
+import dev.anilbeesetti.nextplayer.core.data.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
