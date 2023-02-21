@@ -1,15 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -36,8 +35,8 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun initMedia(uri: Uri) {
-        setCurrentMedia(getPath(uri))
+    fun initMedia(path: String?) {
+        setCurrentMedia(path)
         currentPlayerItems.addAll(videoRepository.getLocalPlayerItems())
     }
 
@@ -56,9 +55,5 @@ class PlayerViewModel @Inject constructor(
 
     fun updatePosition(path: String, position: Long) {
         viewModelScope.launch { videoRepository.updatePosition(path, position) }
-    }
-
-    fun getPath(uri: Uri): String? {
-        return videoRepository.getPath(uri)
     }
 }
