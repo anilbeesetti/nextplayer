@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.media.AudioManager
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
+import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
@@ -19,6 +21,7 @@ class PlayerGestureHelper(
 ) {
 
     private var swipeGestureValueTrackerVolume = -1f
+    private var swipeGestureValueTrackerBrightness = -1f
 
 
     private val tapGestureDetector = GestureDetector(
@@ -71,7 +74,15 @@ class PlayerGestureHelper(
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, toSet, 0)
 
                 } else {
-                    // TODO
+                    val brightnessRange = BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL
+                    if (swipeGestureValueTrackerBrightness == -1f) swipeGestureValueTrackerBrightness =
+                        activity.window.attributes.screenBrightness
+
+                    swipeGestureValueTrackerBrightness =
+                        (swipeGestureValueTrackerBrightness + ratioChange).coerceIn(brightnessRange)
+                    val layoutParams = activity.window.attributes
+                    layoutParams.screenBrightness = swipeGestureValueTrackerBrightness
+                    activity.window.attributes = layoutParams
                 }
                 return true
             }
