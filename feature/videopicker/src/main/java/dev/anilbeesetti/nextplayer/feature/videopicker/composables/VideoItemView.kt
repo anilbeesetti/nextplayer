@@ -96,6 +96,7 @@ fun VideoItemPreview() {
             VideoItemView(
                 videoItem = VideoItem(
                     id = 8,
+                    path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
                     contentUri = Uri.EMPTY,
                     nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
                     duration = 1000,

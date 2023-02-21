@@ -10,7 +10,6 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.core.text.isDigitsOnly
-import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
@@ -27,6 +26,7 @@ private val VIDEO_PROJECTION
     get() = arrayOf(
         MediaStore.Video.Media._ID,
         MediaStore.Video.Media.TITLE,
+        MediaStore.Video.Media.DATA,
         MediaStore.Video.Media.DURATION,
         MediaStore.Video.Media.HEIGHT,
         MediaStore.Video.Media.WIDTH,
@@ -179,38 +179,6 @@ fun Context.queryVideoItems(
 }
 
 /**
- * query local player items from media store
- * @return list of player items
- * @see PlayerItem
- */
-fun Context.queryLocalPlayerItems(): List<PlayerItem> {
-    val playerItems = mutableListOf<PlayerItem>()
-
-    contentResolver.query(
-        VIDEO_COLLECTION_URI,
-        arrayOf(MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION),
-        null,
-        null,
-        null
-    )?.use { cursor ->
-        while (cursor.moveToNext()) {
-            playerItems.add(
-                PlayerItem(
-                    mediaPath = cursor.getString(
-                        cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
-                    ),
-                    duration = cursor.getLong(
-                        cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-                    )
-                )
-            )
-        }
-    }
-
-    return playerItems
-}
-
-/**
  * convert cursor to video item
  * @see VideoItem
  */
@@ -219,7 +187,8 @@ private inline val Cursor.toVideoItem: VideoItem
         val id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
         return VideoItem(
             id = id,
-            duration = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
+            path = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
+            duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
             contentUri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
             displayName = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
             nameWithExtension = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)),

@@ -4,7 +4,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
-import dev.anilbeesetti.nextplayer.core.data.util.queryLocalPlayerItems
+import dev.anilbeesetti.nextplayer.core.data.util.queryVideoItems
 import dev.anilbeesetti.nextplayer.core.data.util.queryVideoItemsAsFlow
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
@@ -17,7 +17,9 @@ class VideoRepositoryImpl @Inject constructor(
 ) : VideoRepository {
     override fun getVideoItemsFlow(): Flow<List<VideoItem>> = context.queryVideoItemsAsFlow()
 
-    override fun getLocalPlayerItems(): List<PlayerItem> = context.queryLocalPlayerItems()
+    override fun getLocalPlayerItems(): List<PlayerItem> {
+        return context.queryVideoItems().map { it.toPlayerItem() }
+    }
 
     override suspend fun getPosition(path: String): Long? {
         return videoDao.get(path)?.playbackPosition
@@ -31,4 +33,11 @@ class VideoRepositoryImpl @Inject constructor(
             )
         )
     }
+}
+
+fun VideoItem.toPlayerItem(): PlayerItem {
+    return PlayerItem(
+        path = path,
+        duration = duration,
+    )
 }

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface VideoRepository {
 
     /**
-     * Get videos flow
+     * Get list of [VideoItem]s as flow
      * @return flow of list of video items
      */
     fun getVideoItemsFlow(): Flow<List<VideoItem>>

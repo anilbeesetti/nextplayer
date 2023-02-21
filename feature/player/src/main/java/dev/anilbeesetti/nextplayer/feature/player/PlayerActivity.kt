@@ -107,8 +107,8 @@ class PlayerActivity : ComponentActivity() {
                 val mediaItems: MutableList<MediaItem> = mutableListOf()
                 viewModel.currentPlayerItems.forEach { playerItem ->
                     val mediaItem = MediaItem.Builder()
-                        .setUri(File(playerItem.mediaPath).toUri())
-                        .setMediaId(playerItem.mediaPath)
+                        .setUri(File(playerItem.path).toUri())
+                        .setMediaId(playerItem.path)
                         .build()
 
                     mediaItems.add(mediaItem)

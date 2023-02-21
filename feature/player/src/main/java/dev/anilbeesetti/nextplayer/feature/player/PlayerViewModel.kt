@@ -26,7 +26,7 @@ class PlayerViewModel @Inject constructor(
     var currentPlayerItems: MutableList<PlayerItem> = mutableListOf()
 
     val currentPlayerItemIndex: Int
-        get() = currentPlayerItems.indexOfFirst { it.mediaPath == currentPlaybackPath }
+        get() = currentPlayerItems.indexOfFirst { it.path == currentPlaybackPath }
 
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath = path
