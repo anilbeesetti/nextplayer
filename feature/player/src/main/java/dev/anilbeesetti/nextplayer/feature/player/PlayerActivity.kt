@@ -20,6 +20,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.data.util.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
@@ -46,11 +47,7 @@ class PlayerActivity : ComponentActivity() {
 
         dataUri = intent.data
 
-        dataUri?.let {
-            if (it.scheme == "content") {
-                viewModel.initMedia(it)
-            }
-        }
+        dataUri?.let { viewModel.initMedia(getPath(it)) }
 
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -110,8 +107,8 @@ class PlayerActivity : ComponentActivity() {
                 val mediaItems: MutableList<MediaItem> = mutableListOf()
                 viewModel.currentPlayerItems.forEach { playerItem ->
                     val mediaItem = MediaItem.Builder()
-                        .setUri(File(playerItem.mediaPath).toUri())
-                        .setMediaId(playerItem.mediaPath)
+                        .setUri(File(playerItem.path).toUri())
+                        .setMediaId(playerItem.path)
                         .build()
 
                     mediaItems.add(mediaItem)

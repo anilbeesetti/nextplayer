@@ -14,7 +14,8 @@ import android.net.Uri
  */
 data class VideoItem(
     val id: Long,
-    val duration: Int,
+    val path: String,
+    val duration: Long,
     val contentUri: Uri,
     val displayName: String,
     val nameWithExtension: String,

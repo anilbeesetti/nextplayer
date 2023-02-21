@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
@@ -27,7 +26,7 @@ class PlayerViewModel @Inject constructor(
     var currentPlayerItems: MutableList<PlayerItem> = mutableListOf()
 
     val currentPlayerItemIndex: Int
-        get() = currentPlayerItems.indexOfFirst { it.mediaPath == currentPlaybackPath }
+        get() = currentPlayerItems.indexOfFirst { it.path == currentPlaybackPath }
 
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath = path
@@ -36,8 +35,8 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun initMedia(uri: Uri) {
-        setCurrentMedia(getPath(uri))
+    fun initMedia(path: String?) {
+        setCurrentMedia(path)
         currentPlayerItems.addAll(videoRepository.getLocalPlayerItems())
     }
 
@@ -56,9 +55,5 @@ class PlayerViewModel @Inject constructor(
 
     fun updatePosition(path: String, position: Long) {
         viewModelScope.launch { videoRepository.updatePosition(path, position) }
-    }
-
-    fun getPath(uri: Uri): String? {
-        return videoRepository.getPath(uri)
     }
 }

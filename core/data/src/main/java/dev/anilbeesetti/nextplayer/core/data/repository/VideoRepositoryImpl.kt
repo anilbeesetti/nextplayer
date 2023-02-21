@@ -1,13 +1,8 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import android.content.Context
-import android.net.Uri
-import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.data.medialibrary.MediaSource
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
-import dev.anilbeesetti.nextplayer.core.data.util.getPath
-import dev.anilbeesetti.nextplayer.core.data.util.queryLocalPlayerItems
-import dev.anilbeesetti.nextplayer.core.data.util.queryVideoItemsAsFlow
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import javax.inject.Inject
@@ -15,13 +10,13 @@ import kotlinx.coroutines.flow.Flow
 
 class VideoRepositoryImpl @Inject constructor(
     private val videoDao: VideoDao,
-    @ApplicationContext private val context: Context
+    private val mediaSource: MediaSource
 ) : VideoRepository {
-    override fun getVideoItemsFlow(): Flow<List<VideoItem>> = context.queryVideoItemsAsFlow()
+    override fun getVideoItemsFlow(): Flow<List<VideoItem>> = mediaSource.getVideoItemsFlow()
 
-    override fun getLocalPlayerItems(): List<PlayerItem> = context.queryLocalPlayerItems()
-
-    override fun getPath(contentUri: Uri): String? = context.getPath(contentUri)
+    override fun getLocalPlayerItems(): List<PlayerItem> {
+        return mediaSource.getVideoItems().map { it.toPlayerItem() }
+    }
 
     override suspend fun getPosition(path: String): Long? {
         return videoDao.get(path)?.playbackPosition
@@ -35,4 +30,11 @@ class VideoRepositoryImpl @Inject constructor(
             )
         )
     }
+}
+
+fun VideoItem.toPlayerItem(): PlayerItem {
+    return PlayerItem(
+        path = path,
+        duration = duration
+    )
 }
