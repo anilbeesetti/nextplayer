@@ -22,6 +22,7 @@ import androidx.media3.ui.PlayerView
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.data.util.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
 import java.io.File
@@ -34,6 +35,8 @@ class PlayerActivity : ComponentActivity() {
     private lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
+
+    private var playerGestureHelper: PlayerGestureHelper? = null
 
     private var player: Player? = null
     private var dataUri: Uri? = null
@@ -61,6 +64,10 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
         }
+
+        playerGestureHelper = PlayerGestureHelper(
+            playerView = binding.playerView
+        )
 
         val nextButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
