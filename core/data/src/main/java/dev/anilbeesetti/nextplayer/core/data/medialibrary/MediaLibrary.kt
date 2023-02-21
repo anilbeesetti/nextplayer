@@ -19,7 +19,6 @@ interface MediaLibrary {
         sortOrder: String? = null
     ): Flow<List<VideoItem>>
 
-
     /**
      * Get list of [VideoItem]s
      * @return list of video items
@@ -29,5 +28,4 @@ interface MediaLibrary {
         selectionArgs: Array<String>? = null,
         sortOrder: String? = null
     ): List<VideoItem>
-
 }

@@ -8,11 +8,11 @@ import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import javax.inject.Inject
 
 class LocalMediaLibrary @Inject constructor(
     @ApplicationContext private val context: Context
@@ -56,7 +56,6 @@ class LocalMediaLibrary @Inject constructor(
     }
 }
 
-
 private val VIDEO_COLLECTION_URI
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
@@ -74,7 +73,6 @@ private val VIDEO_PROJECTION
         MediaStore.Video.Media.WIDTH,
         MediaStore.Video.Media.DISPLAY_NAME
     )
-
 
 /**
  * convert cursor to video item
