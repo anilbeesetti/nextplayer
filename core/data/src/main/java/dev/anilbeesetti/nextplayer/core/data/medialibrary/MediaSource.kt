@@ -3,7 +3,7 @@ package dev.anilbeesetti.nextplayer.core.data.medialibrary
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import kotlinx.coroutines.flow.Flow
 
-interface MediaLibrary {
+interface MediaSource {
 
     /**
      * Get list of [VideoItem]s as flow

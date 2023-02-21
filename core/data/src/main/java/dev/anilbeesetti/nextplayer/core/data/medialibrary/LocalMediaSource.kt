@@ -14,9 +14,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-class LocalMediaLibrary @Inject constructor(
+class LocalMediaSource @Inject constructor(
     @ApplicationContext private val context: Context
-) : MediaLibrary {
+) : MediaSource {
 
     override fun getVideoItemsFlow(
         selection: String?,

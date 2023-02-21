@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.medialibrary.MediaLibrary
+import dev.anilbeesetti.nextplayer.core.data.medialibrary.MediaSource
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.Flow
 
 class VideoRepositoryImpl @Inject constructor(
     private val videoDao: VideoDao,
-    private val mediaLibrary: MediaLibrary
+    private val mediaSource: MediaSource
 ) : VideoRepository {
-    override fun getVideoItemsFlow(): Flow<List<VideoItem>> = mediaLibrary.getVideoItemsFlow()
+    override fun getVideoItemsFlow(): Flow<List<VideoItem>> = mediaSource.getVideoItemsFlow()
 
     override fun getLocalPlayerItems(): List<PlayerItem> {
-        return mediaLibrary.getVideoItems().map { it.toPlayerItem() }
+        return mediaSource.getVideoItems().map { it.toPlayerItem() }
     }
 
     override suspend fun getPosition(path: String): Long? {
