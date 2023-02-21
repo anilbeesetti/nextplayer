@@ -6,10 +6,9 @@ import android.view.MotionEvent
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 
-
 @SuppressLint("ClickableViewAccessibility")
 class PlayerGestureHelper(
-    private val playerView: PlayerView,
+    private val playerView: PlayerView
 ) {
 
     private val tapGestureDetector = GestureDetector(
@@ -40,7 +39,6 @@ class PlayerGestureHelper(
                     tapGestureDetector.onTouchEvent(motionEvent)
                 }
                 2 -> {
-
                 }
             }
             true

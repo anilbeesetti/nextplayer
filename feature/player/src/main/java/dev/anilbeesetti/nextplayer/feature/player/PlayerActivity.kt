@@ -66,7 +66,7 @@ class PlayerActivity : ComponentActivity() {
         }
 
         playerGestureHelper = PlayerGestureHelper(
-            playerView = binding.playerView,
+            playerView = binding.playerView
         )
 
         val nextButton =
