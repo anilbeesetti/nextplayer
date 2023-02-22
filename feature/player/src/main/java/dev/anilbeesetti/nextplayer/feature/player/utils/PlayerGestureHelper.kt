@@ -18,8 +18,8 @@ class PlayerGestureHelper(
     private val audioManager: AudioManager
 ) {
 
-    private var swipeGestureValueTrackerVolume = -1f
-    private var swipeGestureValueTrackerBrightness = -1f
+    private var swipeGestureVolumeTrackerValue = -1f
+    private var swipeGestureBrightnessTrackerValue = -1f
 
 
     private val tapGestureDetector = GestureDetector(
@@ -63,24 +63,24 @@ class PlayerGestureHelper(
 
                 if (firstEvent.x.toInt() > viewCenterX) {
                     val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    if (swipeGestureValueTrackerVolume == -1f) swipeGestureValueTrackerVolume =
+                    if (swipeGestureVolumeTrackerValue == -1f) swipeGestureVolumeTrackerValue =
                         currentVolume.toFloat()
 
                     val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     val change = ratioChange * maxVolume
-                    swipeGestureValueTrackerVolume = (swipeGestureValueTrackerVolume + change).coerceIn(0f, maxVolume.toFloat())
+                    swipeGestureVolumeTrackerValue = (swipeGestureVolumeTrackerValue + change).coerceIn(0f, maxVolume.toFloat())
 
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, swipeGestureValueTrackerVolume.toInt(), 0)
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, swipeGestureVolumeTrackerValue.toInt(), 0)
 
                 } else {
                     val brightnessRange = BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL
-                    if (swipeGestureValueTrackerBrightness == -1f) swipeGestureValueTrackerBrightness =
+                    if (swipeGestureBrightnessTrackerValue == -1f) swipeGestureBrightnessTrackerValue =
                         activity.window.attributes.screenBrightness
 
-                    swipeGestureValueTrackerBrightness =
-                        (swipeGestureValueTrackerBrightness + ratioChange).coerceIn(brightnessRange)
+                    swipeGestureBrightnessTrackerValue =
+                        (swipeGestureBrightnessTrackerValue + ratioChange).coerceIn(brightnessRange)
                     val layoutParams = activity.window.attributes
-                    layoutParams.screenBrightness = swipeGestureValueTrackerBrightness
+                    layoutParams.screenBrightness = swipeGestureBrightnessTrackerValue
                     activity.window.attributes = layoutParams
                 }
                 return true
@@ -100,5 +100,10 @@ class PlayerGestureHelper(
             }
             true
         }
+    }
+
+
+    companion object {
+        const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
     }
 }
