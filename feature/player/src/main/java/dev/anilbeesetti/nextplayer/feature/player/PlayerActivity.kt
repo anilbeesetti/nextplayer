@@ -66,7 +66,9 @@ class PlayerActivity : ComponentActivity() {
         }
 
         playerGestureHelper = PlayerGestureHelper(
-            playerView = binding.playerView
+            activity = this,
+            playerView = binding.playerView,
+            audioManager = getSystemService(android.media.AudioManager::class.java)
         )
 
         val nextButton =
