@@ -26,6 +26,8 @@ dependencies {
     // Media3
     implementation(libs.bundles.media3)
 
+    implementation(libs.timber)
+
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)

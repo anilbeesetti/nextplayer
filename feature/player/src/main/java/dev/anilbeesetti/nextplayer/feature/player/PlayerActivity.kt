@@ -28,6 +28,7 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
 import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
@@ -50,6 +51,8 @@ class PlayerActivity : ComponentActivity() {
 
         dataUri = intent.data
 
+        Timber.d("data: $dataUri")
+
         dataUri?.let { viewModel.initMedia(getPath(it)) }
 
         binding = ActivityPlayerBinding.inflate(layoutInflater)
@@ -59,6 +62,7 @@ class PlayerActivity : ComponentActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.playbackPosition.collectLatest {
                     if (it != null && it != C.TIME_UNSET) {
+                        Timber.d("Setting position: $it")
                         player?.seekTo(it)
                     }
                 }
@@ -97,6 +101,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun initializePlayer() {
+        Timber.d("Initializing player")
         player = ExoPlayer.Builder(this).build().also { player ->
             binding.playerView.player = player
             binding.playerView.setControllerVisibilityListener(
@@ -135,8 +140,10 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun releasePlayer() {
+        Timber.d("Releasing player")
         player?.let { player ->
             playWhenReady = player.playWhenReady
+            Timber.d("saving position: ${player.currentPosition}")
             viewModel.updatePosition(player.currentPosition)
             player.removeListener(playbackStateListener)
             player.release()
