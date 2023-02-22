@@ -9,9 +9,7 @@ import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-
-
-const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
+import kotlin.math.abs
 
 @SuppressLint("ClickableViewAccessibility")
 class PlayerGestureHelper(
@@ -57,6 +55,8 @@ class PlayerGestureHelper(
             ): Boolean {
 
                 val viewCenterX = playerView.measuredWidth / 2
+
+                if (abs(distanceY / distanceX) < 2) return false
 
                 val distanceFull = playerView.measuredHeight * FULL_SWIPE_RANGE_SCREEN_RATIO
                 val ratioChange = distanceY / distanceFull
