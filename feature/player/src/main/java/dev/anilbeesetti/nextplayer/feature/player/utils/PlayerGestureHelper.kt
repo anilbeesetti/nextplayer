@@ -22,7 +22,6 @@ class PlayerGestureHelper(
     private var swipeGestureVolumeTrackerValue = -1f
     private var swipeGestureBrightnessTrackerValue = -1f
 
-
     private val tapGestureDetector = GestureDetector(
         playerView.context,
         @UnstableApi object : GestureDetector.SimpleOnGestureListener() {
@@ -44,7 +43,6 @@ class PlayerGestureHelper(
         }
     )
 
-
     private val volumeAndBrightnessGestureDetector = GestureDetector(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
@@ -54,7 +52,6 @@ class PlayerGestureHelper(
                 distanceX: Float,
                 distanceY: Float
             ): Boolean {
-
                 val viewCenterX = playerView.measuredWidth / 2
 
                 if (abs(distanceY / distanceX) < 2) return false
@@ -64,22 +61,34 @@ class PlayerGestureHelper(
 
                 if (firstEvent.x.toInt() > viewCenterX) {
                     val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    if (swipeGestureVolumeTrackerValue == -1f) swipeGestureVolumeTrackerValue =
-                        currentVolume.toFloat()
+                    if (swipeGestureVolumeTrackerValue == -1f) {
+                        swipeGestureVolumeTrackerValue =
+                            currentVolume.toFloat()
+                    }
 
                     val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     val change = ratioChange * maxVolume
-                    swipeGestureVolumeTrackerValue = (swipeGestureVolumeTrackerValue + change).coerceIn(0f, maxVolume.toFloat())
+                    swipeGestureVolumeTrackerValue = (swipeGestureVolumeTrackerValue + change)
+                        .coerceIn(
+                            minimumValue = 0f,
+                            maximumValue = maxVolume.toFloat()
+                        )
 
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, swipeGestureVolumeTrackerValue.toInt(), 0)
-
+                    audioManager.setStreamVolume(
+                        AudioManager.STREAM_MUSIC,
+                        swipeGestureVolumeTrackerValue.toInt(),
+                        0
+                    )
                 } else {
                     val brightnessRange = BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL
                     if (swipeGestureBrightnessTrackerValue == -1f) {
                         val brightness = activity.window.attributes.screenBrightness
                         swipeGestureBrightnessTrackerValue = when (brightness) {
                             in brightnessRange -> brightness
-                            else -> Settings.System.getFloat(activity.contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
+                            else -> Settings.System.getFloat(
+                                activity.contentResolver,
+                                Settings.System.SCREEN_BRIGHTNESS
+                            ) / 255
                         }
                     }
 
@@ -110,7 +119,6 @@ class PlayerGestureHelper(
             true
         }
     }
-
 
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f

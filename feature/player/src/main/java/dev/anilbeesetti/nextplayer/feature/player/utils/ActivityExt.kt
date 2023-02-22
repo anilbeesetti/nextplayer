@@ -25,7 +25,6 @@ fun Activity.showSystemBars() {
     }
 }
 
-
 /**
 * Must call this function after any configuration done to activity to keep system bars behaviour
 */
