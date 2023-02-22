@@ -88,6 +88,9 @@ class PlayerGestureHelper(
                     val layoutParams = activity.window.attributes
                     layoutParams.screenBrightness = swipeGestureBrightnessTrackerValue
                     activity.window.attributes = layoutParams
+
+                    // fix a bug which makes the action bar reappear after changing the brightness
+                    activity.swipeToShowStatusBars()
                 }
                 return true
             }
