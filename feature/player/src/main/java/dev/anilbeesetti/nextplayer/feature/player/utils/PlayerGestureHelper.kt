@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
 import android.media.AudioManager
+import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
@@ -74,8 +75,13 @@ class PlayerGestureHelper(
 
                 } else {
                     val brightnessRange = BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL
-                    if (swipeGestureBrightnessTrackerValue == -1f) swipeGestureBrightnessTrackerValue =
-                        activity.window.attributes.screenBrightness
+                    if (swipeGestureBrightnessTrackerValue == -1f) {
+                        val brightness = activity.window.attributes.screenBrightness
+                        swipeGestureBrightnessTrackerValue = when (brightness) {
+                            in brightnessRange -> brightness
+                            else -> Settings.System.getFloat(activity.contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
+                        }
+                    }
 
                     swipeGestureBrightnessTrackerValue =
                         (swipeGestureBrightnessTrackerValue + ratioChange).coerceIn(brightnessRange)
