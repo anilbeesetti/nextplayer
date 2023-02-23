@@ -18,8 +18,12 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.TrackSelectionDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.data.util.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.data.util.getPath
@@ -32,6 +36,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@UnstableApi
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
@@ -46,10 +51,13 @@ class PlayerActivity : ComponentActivity() {
     private var playWhenReady = true
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
+    private lateinit var trackSelector: DefaultTrackSelector
 
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
+
+        trackSelector = DefaultTrackSelector(this)
 
         dataUri = intent.data
 
@@ -64,6 +72,8 @@ class PlayerActivity : ComponentActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.back_button)
         val videoTitleTextView =
             binding.playerView.findViewById<TextView>(R.id.video_name)
+        val audioTrackButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
         val nextButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
         val prevButton =
@@ -98,6 +108,30 @@ class PlayerActivity : ComponentActivity() {
             audioManager = getSystemService(android.media.AudioManager::class.java)
         )
 
+        audioTrackButton.setOnClickListener {
+            val mappedTrackInfo =
+                trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
+
+            var audioRenderer: Int? = null
+            for (i in 0 until mappedTrackInfo.rendererCount) {
+                if (isRendererType(mappedTrackInfo, i, C.TRACK_TYPE_AUDIO)) {
+                    audioRenderer = i
+                }
+            }
+
+            if (audioRenderer == null) return@setOnClickListener
+
+            player?.let {
+                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
+                    this,
+                    resources.getString(R.string.select_audio_track),
+                    it,
+                    C.TRACK_TYPE_AUDIO
+                )
+                val trackSelectionDialog = trackSelectionDialogBuilder.build()
+                trackSelectionDialog.show()
+            }
+        }
         nextButton.setOnClickListener {
             player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
             player?.seekToNext()
@@ -123,41 +157,49 @@ class PlayerActivity : ComponentActivity() {
 
     private fun initializePlayer() {
         Timber.d("Initializing player")
-        player = ExoPlayer.Builder(this).build().also { player ->
-            binding.playerView.player = player
-            binding.playerView.setControllerVisibilityListener(
-                PlayerView.ControllerVisibilityListener { visibility ->
-                    when (visibility) {
-                        View.VISIBLE -> {
-                            this.showSystemBars()
-                        }
-                        View.GONE -> {
-                            this.hideSystemBars()
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters()
+                .setPreferredAudioLanguage("en")
+                .setPreferredTextLanguage("en")
+        )
+        player = ExoPlayer.Builder(this)
+            .setTrackSelector(trackSelector)
+            .build()
+            .also { player ->
+                binding.playerView.player = player
+                binding.playerView.setControllerVisibilityListener(
+                    PlayerView.ControllerVisibilityListener { visibility ->
+                        when (visibility) {
+                            View.VISIBLE -> {
+                                this.showSystemBars()
+                            }
+                            View.GONE -> {
+                                this.hideSystemBars()
+                            }
                         }
                     }
-                }
-            )
+                )
 
-            if (viewModel.currentPlayerItemIndex != -1) {
-                val mediaItems: MutableList<MediaItem> = mutableListOf()
-                viewModel.currentPlayerItems.forEach { playerItem ->
-                    val mediaItem = MediaItem.Builder()
-                        .setUri(File(playerItem.path).toUri())
-                        .setMediaId(playerItem.path)
-                        .build()
+                if (viewModel.currentPlayerItemIndex != -1) {
+                    val mediaItems: MutableList<MediaItem> = mutableListOf()
+                    viewModel.currentPlayerItems.forEach { playerItem ->
+                        val mediaItem = MediaItem.Builder()
+                            .setUri(File(playerItem.path).toUri())
+                            .setMediaId(playerItem.path)
+                            .build()
 
-                    mediaItems.add(mediaItem)
+                        mediaItems.add(mediaItem)
+                    }
+                    player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
+                } else {
+                    dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
+                    player.seekTo(viewModel.playbackPosition.value ?: C.TIME_UNSET)
                 }
-                player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
-            } else {
-                dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
-                player.seekTo(viewModel.playbackPosition.value ?: C.TIME_UNSET)
+
+                player.playWhenReady = playWhenReady
+                player.addListener(playbackStateListener)
+                player.prepare()
             }
-
-            player.playWhenReady = playWhenReady
-            player.addListener(playbackStateListener)
-            player.prepare()
-        }
     }
 
     private fun releasePlayer() {
@@ -201,6 +243,19 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun isRendererType(
+        mappedTrackInfo: MappingTrackSelector.MappedTrackInfo,
+        rendererIndex: Int,
+        type: Int
+    ): Boolean {
+        val trackGroupArray = mappedTrackInfo.getTrackGroups(rendererIndex)
+        if (trackGroupArray.length == 0) {
+            return false
+        }
+        val trackType = mappedTrackInfo.getRendererType(rendererIndex)
+        return type == trackType
     }
 }
 

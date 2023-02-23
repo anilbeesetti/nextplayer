@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.NextPlayer" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="NextPlayer" parent="Base.Theme.NextPlayer"/>
+
+    <style name="Base.Theme.NextPlayer" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor">
             @android:color/transparent
         </item>
         <item name="android:navigationBarColor">
             @android:color/transparent
         </item>
+
+        <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="dialogCornerRadius">28dp</item>
     </style>
 </resources>

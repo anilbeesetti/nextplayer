@@ -1,4 +1,5 @@
 <resources>
     <string name="title_activity_player">Next Player Activity</string>
     <string name="player_controls_exit">exit</string>
+    <string name="select_audio_track">Select audio track</string>
 </resources>
