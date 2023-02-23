@@ -18,7 +18,9 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.data.util.getFilenameFromUri
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@UnstableApi
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
@@ -46,6 +49,7 @@ class PlayerActivity : ComponentActivity() {
     private var playWhenReady = true
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
+    private val trackSelector = DefaultTrackSelector(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -123,7 +127,10 @@ class PlayerActivity : ComponentActivity() {
 
     private fun initializePlayer() {
         Timber.d("Initializing player")
-        player = ExoPlayer.Builder(this).build().also { player ->
+        player = ExoPlayer.Builder(this)
+            .setTrackSelector(trackSelector)
+            .build()
+            .also { player ->
             binding.playerView.player = player
             binding.playerView.setControllerVisibilityListener(
                 PlayerView.ControllerVisibilityListener { visibility ->
