@@ -69,7 +69,6 @@ class PlayerActivity : ComponentActivity() {
         val prevButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
 
-
         videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
 
         lifecycleScope.launch {

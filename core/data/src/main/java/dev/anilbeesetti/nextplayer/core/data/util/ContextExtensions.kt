@@ -103,7 +103,6 @@ private fun Context.getDataColumn(
     return null
 }
 
-
 fun Context.getFilenameFromUri(uri: Uri): String {
     return if (uri.scheme == "file") {
         File(uri.toString()).name
@@ -129,4 +128,3 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
     }
     return null
 }
-
