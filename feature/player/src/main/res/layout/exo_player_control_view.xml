@@ -29,6 +29,21 @@
                 android:padding="12dp"
                 android:src="@drawable/ic_arrow_left" />
 
+            <Space
+                android:layout_width="16dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/video_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="16dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textColor="@android:color/white"
+                tools:text="The Avengers Endgame" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
