@@ -20,16 +20,16 @@ class PlayerViewModel @Inject constructor(
     var playbackPosition = MutableStateFlow<Long?>(null)
         private set
 
-    var currentPlaybackPath: String? = null
+    var currentPlaybackPath = MutableStateFlow<String?>(null)
         private set
 
     var currentPlayerItems: MutableList<PlayerItem> = mutableListOf()
 
     val currentPlayerItemIndex: Int
-        get() = currentPlayerItems.indexOfFirst { it.path == currentPlaybackPath }
+        get() = currentPlayerItems.indexOfFirst { it.path == currentPlaybackPath.value }
 
     fun setCurrentMedia(path: String?) {
-        currentPlaybackPath = path
+        currentPlaybackPath.value = path
         viewModelScope.launch {
             playbackPosition.value = path?.let { videoRepository.getPosition(it) }
         }
@@ -43,7 +43,7 @@ class PlayerViewModel @Inject constructor(
     fun updatePosition(position: Long) {
         playbackPosition.value = position
         viewModelScope.launch {
-            currentPlaybackPath?.let {
+            currentPlaybackPath.value?.let {
                 if (position >= currentPlayerItems[currentPlayerItemIndex].duration - END_POSITION_OFFSET) {
                     videoRepository.updatePosition(it, C.TIME_UNSET)
                 } else {
