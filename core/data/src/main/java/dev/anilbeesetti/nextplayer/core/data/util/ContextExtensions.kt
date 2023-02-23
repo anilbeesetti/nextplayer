@@ -7,7 +7,9 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import androidx.core.text.isDigitsOnly
+import java.io.File
 
 /**
  * get path from uri
@@ -100,3 +102,31 @@ private fun Context.getDataColumn(
     }
     return null
 }
+
+
+fun Context.getFilenameFromUri(uri: Uri): String {
+    return if (uri.scheme == "file") {
+        File(uri.toString()).name
+    } else {
+        getFilenameFromContentUri(uri) ?: uri.lastPathSegment ?: ""
+    }
+}
+
+fun Context.getFilenameFromContentUri(uri: Uri): String? {
+    val projection = arrayOf(
+        OpenableColumns.DISPLAY_NAME
+    )
+
+    try {
+        val cursor = contentResolver.query(uri, projection, null, null, null)
+        cursor?.use {
+            if (cursor.moveToFirst()) {
+                return cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+            }
+        }
+    } catch (e: Exception) {
+        return null
+    }
+    return null
+}
+

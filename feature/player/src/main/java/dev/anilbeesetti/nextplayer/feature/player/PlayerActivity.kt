@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.core.net.toUri
@@ -20,6 +21,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.data.util.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.data.util.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
@@ -58,12 +60,34 @@ class PlayerActivity : ComponentActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val backButton =
+            binding.playerView.findViewById<ImageButton>(R.id.back_button)
+        val videoTitleTextView =
+            binding.playerView.findViewById<TextView>(R.id.video_name)
+        val nextButton =
+            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
+        val prevButton =
+            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
+
+
+        videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.playbackPosition.collectLatest {
-                    if (it != null && it != C.TIME_UNSET) {
-                        Timber.d("Setting position: $it")
-                        player?.seekTo(it)
+                launch {
+                    viewModel.playbackPosition.collectLatest {
+                        if (it != null && it != C.TIME_UNSET) {
+                            Timber.d("Setting position: $it")
+                            player?.seekTo(it)
+                        }
+                    }
+                }
+
+                launch {
+                    viewModel.currentPlaybackPath.collectLatest {
+                        if (it != null) {
+                            videoTitleTextView.text = File(it).name
+                        }
                     }
                 }
             }
@@ -75,11 +99,6 @@ class PlayerActivity : ComponentActivity() {
             audioManager = getSystemService(android.media.AudioManager::class.java)
         )
 
-        val nextButton =
-            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
-        val prevButton =
-            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
-
         nextButton.setOnClickListener {
             player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
             player?.seekToNext()
@@ -88,10 +107,6 @@ class PlayerActivity : ComponentActivity() {
             player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
             player?.seekToPrevious()
         }
-
-        val backButton =
-            binding.playerView.findViewById<ImageButton>(R.id.back_button)
-
         backButton.setOnClickListener {
             finish()
         }
