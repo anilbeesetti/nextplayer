@@ -88,6 +88,13 @@ class PlayerActivity : ComponentActivity() {
             player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
             player?.seekToPrevious()
         }
+
+        val backButton =
+            binding.playerView.findViewById<ImageButton>(R.id.back_button)
+
+        backButton.setOnClickListener {
+            finish()
+        }
     }
 
     override fun onStart() {
