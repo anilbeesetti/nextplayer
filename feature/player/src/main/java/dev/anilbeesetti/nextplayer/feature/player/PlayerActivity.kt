@@ -21,7 +21,9 @@ import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.TrackSelectionDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.data.util.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.data.util.getPath
@@ -49,11 +51,13 @@ class PlayerActivity : ComponentActivity() {
     private var playWhenReady = true
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val trackSelector = DefaultTrackSelector(this)
+    private lateinit var trackSelector: DefaultTrackSelector
 
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
+
+        trackSelector = DefaultTrackSelector(this)
 
         dataUri = intent.data
 
@@ -68,6 +72,8 @@ class PlayerActivity : ComponentActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.back_button)
         val videoTitleTextView =
             binding.playerView.findViewById<TextView>(R.id.video_name)
+        val audioTrackButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
         val nextButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
         val prevButton =
@@ -102,6 +108,30 @@ class PlayerActivity : ComponentActivity() {
             audioManager = getSystemService(android.media.AudioManager::class.java)
         )
 
+        audioTrackButton.setOnClickListener {
+            val mappedTrackInfo =
+                trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
+
+            var audioRenderer: Int? = null
+            for (i in 0 until mappedTrackInfo.rendererCount) {
+                if (isRendererType(mappedTrackInfo, i, C.TRACK_TYPE_AUDIO)) {
+                    audioRenderer = i
+                }
+            }
+
+            if (audioRenderer == null) return@setOnClickListener
+
+            player?.let {
+                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
+                    this,
+                    resources.getString(R.string.select_audio_track),
+                    it,
+                    C.TRACK_TYPE_AUDIO
+                )
+                val trackSelectionDialog = trackSelectionDialogBuilder.build()
+                trackSelectionDialog.show()
+            }
+        }
         nextButton.setOnClickListener {
             player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
             player?.seekToNext()
@@ -127,6 +157,11 @@ class PlayerActivity : ComponentActivity() {
 
     private fun initializePlayer() {
         Timber.d("Initializing player")
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters()
+                .setPreferredAudioLanguage("en")
+                .setPreferredTextLanguage("en")
+        )
         player = ExoPlayer.Builder(this)
             .setTrackSelector(trackSelector)
             .build()
@@ -208,6 +243,19 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun isRendererType(
+        mappedTrackInfo: MappingTrackSelector.MappedTrackInfo,
+        rendererIndex: Int,
+        type: Int
+    ): Boolean {
+        val trackGroupArray = mappedTrackInfo.getTrackGroups(rendererIndex)
+        if (trackGroupArray.length == 0) {
+            return false
+        }
+        val trackType = mappedTrackInfo.getRendererType(rendererIndex)
+        return type == trackType
     }
 }
 
