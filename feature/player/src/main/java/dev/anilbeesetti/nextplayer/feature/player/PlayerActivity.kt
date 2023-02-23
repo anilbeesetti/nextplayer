@@ -166,40 +166,40 @@ class PlayerActivity : ComponentActivity() {
             .setTrackSelector(trackSelector)
             .build()
             .also { player ->
-            binding.playerView.player = player
-            binding.playerView.setControllerVisibilityListener(
-                PlayerView.ControllerVisibilityListener { visibility ->
-                    when (visibility) {
-                        View.VISIBLE -> {
-                            this.showSystemBars()
-                        }
-                        View.GONE -> {
-                            this.hideSystemBars()
+                binding.playerView.player = player
+                binding.playerView.setControllerVisibilityListener(
+                    PlayerView.ControllerVisibilityListener { visibility ->
+                        when (visibility) {
+                            View.VISIBLE -> {
+                                this.showSystemBars()
+                            }
+                            View.GONE -> {
+                                this.hideSystemBars()
+                            }
                         }
                     }
-                }
-            )
+                )
 
-            if (viewModel.currentPlayerItemIndex != -1) {
-                val mediaItems: MutableList<MediaItem> = mutableListOf()
-                viewModel.currentPlayerItems.forEach { playerItem ->
-                    val mediaItem = MediaItem.Builder()
-                        .setUri(File(playerItem.path).toUri())
-                        .setMediaId(playerItem.path)
-                        .build()
+                if (viewModel.currentPlayerItemIndex != -1) {
+                    val mediaItems: MutableList<MediaItem> = mutableListOf()
+                    viewModel.currentPlayerItems.forEach { playerItem ->
+                        val mediaItem = MediaItem.Builder()
+                            .setUri(File(playerItem.path).toUri())
+                            .setMediaId(playerItem.path)
+                            .build()
 
-                    mediaItems.add(mediaItem)
+                        mediaItems.add(mediaItem)
+                    }
+                    player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
+                } else {
+                    dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
+                    player.seekTo(viewModel.playbackPosition.value ?: C.TIME_UNSET)
                 }
-                player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
-            } else {
-                dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
-                player.seekTo(viewModel.playbackPosition.value ?: C.TIME_UNSET)
+
+                player.playWhenReady = playWhenReady
+                player.addListener(playbackStateListener)
+                player.prepare()
             }
-
-            player.playWhenReady = playWhenReady
-            player.addListener(playbackStateListener)
-            player.prepare()
-        }
     }
 
     private fun releasePlayer() {
