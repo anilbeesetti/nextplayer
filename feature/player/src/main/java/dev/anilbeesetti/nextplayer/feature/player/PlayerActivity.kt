@@ -74,6 +74,8 @@ class PlayerActivity : ComponentActivity() {
             binding.playerView.findViewById<TextView>(R.id.video_name)
         val audioTrackButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
+        val subtitleTrackButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
         val nextButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
         val prevButton =
@@ -132,6 +134,32 @@ class PlayerActivity : ComponentActivity() {
                 trackSelectionDialog.show()
             }
         }
+
+        subtitleTrackButton.setOnClickListener {
+            val mappedTrackInfo =
+                trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
+
+            var subtitleRenderer: Int? = null
+            for (i in 0 until mappedTrackInfo.rendererCount) {
+                if (isRendererType(mappedTrackInfo, i, C.TRACK_TYPE_TEXT)) {
+                    subtitleRenderer = i
+                }
+            }
+
+            if (subtitleRenderer == null) return@setOnClickListener
+
+            player?.let {
+                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
+                    this,
+                    resources.getString(R.string.select_subtitle_track),
+                    it,
+                    C.TRACK_TYPE_TEXT
+                )
+                val trackSelectionDialog = trackSelectionDialogBuilder.build()
+                trackSelectionDialog.show()
+            }
+        }
+
         nextButton.setOnClickListener {
             player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
             player?.seekToNext()
