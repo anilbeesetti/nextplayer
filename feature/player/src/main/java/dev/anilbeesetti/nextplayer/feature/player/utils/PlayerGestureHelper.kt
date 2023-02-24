@@ -5,6 +5,7 @@ import android.media.AudioManager
 import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.media3.common.util.UnstableApi
@@ -79,6 +80,14 @@ class PlayerGestureHelper(
                         swipeGestureVolumeTrackerValue.toInt(),
                         0
                     )
+
+                    activity.binding.gestureVolumeLayout.visibility = View.VISIBLE
+                    activity.binding.gestureVolumeProgressBar.max = maxVolume
+                    activity.binding.gestureVolumeProgressBar.progress = swipeGestureVolumeTrackerValue.toInt()
+                    val volumePercentage = (swipeGestureVolumeTrackerValue / maxVolume.toFloat()).times(100).toInt()
+                    val volumeText = "$volumePercentage%"
+                    activity.binding.gestureVolumeText.text = volumeText
+
                 } else {
                     val brightnessRange = BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL
                     if (swipeGestureBrightnessTrackerValue == -1f) {
@@ -100,6 +109,13 @@ class PlayerGestureHelper(
 
                     // fix a bug which makes the action bar reappear after changing the brightness
                     activity.swipeToShowStatusBars()
+
+                    activity.binding.gestureBrightnessLayout.visibility = View.VISIBLE
+                    activity.binding.gestureBrightnessProgressBar.max = BRIGHTNESS_OVERRIDE_FULL.times(100).toInt()
+                    activity.binding.gestureBrightnessProgressBar.progress = layoutParams.screenBrightness.times(100).toInt()
+                    val brightnessPercentage = (layoutParams.screenBrightness / BRIGHTNESS_OVERRIDE_FULL).times(100).toInt()
+                    val brightnessText = "$brightnessPercentage%"
+                    activity.binding.gestureBrightnessText.text = brightnessText
                 }
                 return true
             }
