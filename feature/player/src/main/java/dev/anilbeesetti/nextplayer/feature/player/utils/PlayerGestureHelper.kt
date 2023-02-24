@@ -84,7 +84,8 @@ class PlayerGestureHelper(
                         0
                     )
 
-                    val volumePercentage = (swipeGestureVolumeTrackerValue / maxVolume.toFloat()).times(100).toInt()
+                    val volumePercentage = (swipeGestureVolumeTrackerValue / maxVolume.toFloat())
+                        .times(100).toInt()
                     val volumeText = "$volumePercentage%"
 
                     activity.binding.gestureVolumeLayout.visibility = View.VISIBLE
@@ -115,12 +116,15 @@ class PlayerGestureHelper(
                     // fixes a bug which makes the action bar reappear after changing the brightness
                     activity.swipeToShowStatusBars()
 
-                    val brightnessPercentage = (layoutParams.screenBrightness / BRIGHTNESS_OVERRIDE_FULL).times(100).toInt()
+                    val brightnessPercentage = (layoutParams.screenBrightness / BRIGHTNESS_OVERRIDE_FULL)
+                        .times(100).toInt()
                     val brightnessText = "$brightnessPercentage%"
 
                     activity.binding.gestureBrightnessLayout.visibility = View.VISIBLE
-                    activity.binding.gestureBrightnessProgressBar.max = BRIGHTNESS_OVERRIDE_FULL.times(100).toInt()
-                    activity.binding.gestureBrightnessProgressBar.progress = layoutParams.screenBrightness.times(100).toInt()
+                    activity.binding.gestureBrightnessProgressBar.max = BRIGHTNESS_OVERRIDE_FULL
+                        .times(100).toInt()
+                    activity.binding.gestureBrightnessProgressBar.progress = layoutParams.screenBrightness
+                        .times(100).toInt()
                     activity.binding.gestureBrightnessText.text = brightnessText
 
                     swipeGestureBrightnessOpen = true
