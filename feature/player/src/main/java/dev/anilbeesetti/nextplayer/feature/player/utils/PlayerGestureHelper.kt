@@ -37,6 +37,7 @@ class PlayerGestureHelper(
             }
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
+                playerView.controllerAutoShow = playerView.isControllerFullyVisible
                 if (playerView.player?.isPlaying == true) {
                     playerView.player?.pause()
                 } else {
