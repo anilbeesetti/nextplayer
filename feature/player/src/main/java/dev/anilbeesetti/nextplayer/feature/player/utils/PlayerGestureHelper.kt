@@ -18,6 +18,7 @@ import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
+@UnstableApi
 @SuppressLint("ClickableViewAccessibility")
 class PlayerGestureHelper(
     private val activity: PlayerActivity,
@@ -28,6 +29,8 @@ class PlayerGestureHelper(
     private var swipeGestureVolumeTrackerValue = -1f
     private var swipeGestureBrightnessTrackerValue = -1f
     private var seeking = false
+    private var seekStart = 0L
+    private var position = 0L
     private var seekChange = 0L
 
     private var swipeGestureVolumeOpen = false
@@ -35,7 +38,7 @@ class PlayerGestureHelper(
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
-        @UnstableApi object : GestureDetector.SimpleOnGestureListener() {
+        object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                 playerView.apply {
                     if (!isControllerFullyVisible) showController() else hideController()
@@ -57,7 +60,7 @@ class PlayerGestureHelper(
 
     private val seekGestureDetector = GestureDetector(
         playerView.context,
-        @UnstableApi object : GestureDetector.SimpleOnGestureListener() {
+        object : GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(
                 firstEvent: MotionEvent,
                 currentEvent: MotionEvent,
@@ -70,10 +73,12 @@ class PlayerGestureHelper(
 
                 if (!seeking) {
                     seekChange = 0L
+                    seekStart = playerView.player?.currentPosition ?: 0L
+                    playerView.player?.pause()
+                    playerView.controllerAutoShow = false
                     seeking = true
                 }
 
-                val currentPosition = playerView.player?.currentPosition ?: 0L
                 val distanceDiff =
                     0.5f.coerceAtLeast(abs(pxToDp(distanceX) / 4).coerceAtMost(10.0f))
 
@@ -84,7 +89,8 @@ class PlayerGestureHelper(
                             player.setSeekParameters(SeekParameters.PREVIOUS_SYNC)
                         }
                         seekChange -= change.toLong()
-                        player.seekTo(currentPosition - change.toLong())
+                        position = seekStart + seekChange
+                        player.seekTo( position)
                     }
                 } else {
                     playerView.player?.let { player ->
@@ -92,7 +98,8 @@ class PlayerGestureHelper(
                             player.setSeekParameters(SeekParameters.NEXT_SYNC)
                         }
                         seekChange += change.toLong()
-                        player.seekTo(currentPosition + change.toLong())
+                        position = seekStart + seekChange
+                        player.seekTo(position)
                     }
                 }
                 activity.binding.progressScrubberLayout.visibility = View.VISIBLE
@@ -223,6 +230,8 @@ class PlayerGestureHelper(
             activity.binding.progressScrubberLayout.apply {
                 if (visibility == View.VISIBLE) {
                     visibility = View.GONE
+                    playerView.player?.play()
+                    playerView.controllerAutoShow = true
                     seeking = false
                 }
             }
