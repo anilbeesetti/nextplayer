@@ -79,7 +79,7 @@ class PlayerGestureHelper(
                 }
 
                 val distanceDiff =
-                    0.5f.coerceAtLeast(abs(pxToDp(distanceX) / 4).coerceAtMost(10.0f))
+                    0.5f.coerceAtLeast(abs(Utils.pxToDp(distanceX) / 4).coerceAtMost(10.0f))
 
                 val change = distanceDiff * SEEK_STEP_MS
                 if (distanceX > 0L) {
@@ -102,7 +102,7 @@ class PlayerGestureHelper(
                     }
                 }
                 activity.binding.progressScrubberLayout.visibility = View.VISIBLE
-                activity.binding.seekProgressText.text = formatMillisSign(seekChange)
+                activity.binding.seekProgressText.text = Utils.formatMillisSign(seekChange)
                 return true
             }
         }
@@ -265,28 +265,5 @@ class PlayerGestureHelper(
 fun Player.setSeekParameters(seekParameters: SeekParameters) {
     when (this) {
         is ExoPlayer -> this.setSeekParameters(seekParameters)
-    }
-}
-
-fun pxToDp(px: Float): Float {
-    return px / Resources.getSystem().displayMetrics.density
-}
-
-fun formatMillis(millis: Long): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(hours)
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes)
-    return if (hours > 0) {
-        String.format("%02d:%02d:%02d", hours, minutes, seconds)
-    } else {
-        String.format("%02d:%02d", minutes, seconds)
-    }
-}
-
-fun formatMillisSign(millis: Long): String {
-    return if (millis >= 0) {
-        "+${formatMillis(millis)}"
-    } else {
-        "-${formatMillis(abs(millis))}"
     }
 }
