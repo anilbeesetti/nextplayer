@@ -9,7 +9,8 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
     entities = [
         VideoEntity::class
     ],
-    version = 1
+    version = 1,
+    exportSchema = true
 )
 abstract class MediaDatabase : RoomDatabase() {
 

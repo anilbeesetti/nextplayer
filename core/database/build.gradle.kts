@@ -5,6 +5,12 @@ plugins {
 
 android {
     namespace = "dev.anilbeesetti.nextplayer.core.database"
+
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
 }
 
 dependencies {
