@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
-import android.content.res.Resources
 import android.media.AudioManager
 import android.provider.Settings
 import android.view.GestureDetector
@@ -15,7 +14,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 @UnstableApi

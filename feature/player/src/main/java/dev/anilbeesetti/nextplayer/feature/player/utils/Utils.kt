@@ -28,5 +28,4 @@ object Utils {
             "-${formatMillis(abs(millis))}"
         }
     }
-
 }
