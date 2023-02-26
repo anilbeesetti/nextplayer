@@ -69,12 +69,12 @@ class PlayerGestureHelper(
             ): Boolean {
                 if (abs(distanceX / distanceY) < 2) return false
                 if (swipeGestureVolumeOpen || swipeGestureBrightnessOpen) return false
+                playerView.controllerAutoShow = playerView.isControllerFullyVisible
 
                 if (!seeking) {
                     seekChange = 0L
                     seekStart = playerView.player?.currentPosition ?: 0L
                     playerView.player?.pause()
-                    playerView.controllerAutoShow = false
                     seeking = true
                 }
 
