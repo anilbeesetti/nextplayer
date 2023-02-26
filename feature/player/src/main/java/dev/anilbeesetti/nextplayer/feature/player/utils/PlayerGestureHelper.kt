@@ -57,7 +57,6 @@ class PlayerGestureHelper(
         }
     )
 
-
     private val seekGestureDetector = GestureDetector(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
@@ -67,7 +66,6 @@ class PlayerGestureHelper(
                 distanceX: Float,
                 distanceY: Float
             ): Boolean {
-
                 if (abs(distanceX / distanceY) < 2) return false
                 if (swipeGestureVolumeOpen || swipeGestureBrightnessOpen) return false
 
@@ -90,7 +88,7 @@ class PlayerGestureHelper(
                         }
                         seekChange -= change.toLong()
                         position = seekStart + seekChange
-                        player.seekTo( position)
+                        player.seekTo(position)
                     }
                 } else {
                     playerView.player?.let { player ->
@@ -261,7 +259,6 @@ class PlayerGestureHelper(
         const val HIDE_DELAY_MILLIS = 1000L
     }
 }
-
 
 @UnstableApi
 fun Player.setSeekParameters(seekParameters: SeekParameters) {
