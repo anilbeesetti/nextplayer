@@ -9,14 +9,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -29,11 +27,8 @@ class PlayerGestureHelper(
 
     private var swipeGestureVolumeTrackerValue = -1f
     private var swipeGestureBrightnessTrackerValue = -1f
-    private var seekGestureTrackerValue = 0f
     private var seeking = false
-    private var seekStart = 0L
     private var seekChange = 0L
-    private var position = 0L
 
     private var swipeGestureVolumeOpen = false
     private var swipeGestureBrightnessOpen = false
@@ -74,7 +69,6 @@ class PlayerGestureHelper(
                 if (swipeGestureVolumeOpen || swipeGestureBrightnessOpen) return false
 
                 if (!seeking) {
-                    seekStart = playerView.player?.currentPosition ?: 0L
                     seekChange = 0L
                     seeking = true
                 }
@@ -90,7 +84,6 @@ class PlayerGestureHelper(
                             player.setSeekParameters(SeekParameters.PREVIOUS_SYNC)
                         }
                         seekChange -= change.toLong()
-                        position = seekStart + seekChange
                         player.seekTo(currentPosition - change.toLong())
                     }
                 } else {
@@ -99,11 +92,11 @@ class PlayerGestureHelper(
                             player.setSeekParameters(SeekParameters.NEXT_SYNC)
                         }
                         seekChange += change.toLong()
-                        position = seekStart + seekChange
                         player.seekTo(currentPosition + change.toLong())
                     }
                 }
-                Timber.d(formatMillisSign(seekChange) + " " + formatMillis(playerView.player?.currentPosition ?: 0L))
+                activity.binding.progressScrubberLayout.visibility = View.VISIBLE
+                activity.binding.seekProgressText.text = formatMillisSign(seekChange)
                 return true
             }
         }
@@ -224,6 +217,13 @@ class PlayerGestureHelper(
                     removeCallbacks(hideBrightnessGestureIndicator)
                     postDelayed(hideBrightnessGestureIndicator, HIDE_DELAY_MILLIS)
                     swipeGestureBrightnessOpen = false
+                }
+            }
+
+            activity.binding.progressScrubberLayout.apply {
+                if (visibility == View.VISIBLE) {
+                    visibility = View.GONE
+                    seeking = false
                 }
             }
             seeking = false
