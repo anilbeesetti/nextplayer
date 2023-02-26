@@ -78,7 +78,6 @@ class PlayerGestureHelper(
                     seeking = true
                 }
 
-
                 val distanceDiff =
                     0.5f.coerceAtLeast(abs(pxToDp(distanceX) / 4).coerceAtMost(10.0f))
 
