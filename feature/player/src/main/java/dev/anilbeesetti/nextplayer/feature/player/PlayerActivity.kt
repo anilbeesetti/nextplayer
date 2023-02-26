@@ -40,7 +40,7 @@ import timber.log.Timber
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
-    private lateinit var binding: ActivityPlayerBinding
+    lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
 
