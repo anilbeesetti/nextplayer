@@ -3,8 +3,10 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.ComponentActivity
@@ -54,8 +56,15 @@ class PlayerActivity : ComponentActivity() {
     private lateinit var trackSelector: DefaultTrackSelector
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // The window is always allowed to extend into the DisplayCutout areas on the short edges of the screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
 
         trackSelector = DefaultTrackSelector(this)
 
