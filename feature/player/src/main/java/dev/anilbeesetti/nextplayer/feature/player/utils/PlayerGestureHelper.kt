@@ -13,6 +13,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import kotlin.math.abs
 
@@ -100,7 +101,7 @@ class PlayerGestureHelper(
                     }
                 }
                 activity.binding.progressScrubberLayout.visibility = View.VISIBLE
-                activity.binding.seekProgressText.text = Utils.formatMillisSign(seekChange)
+                activity.binding.seekProgressText.text = Utils.formatDurationMillisSign(seekChange)
                 return true
             }
         }
