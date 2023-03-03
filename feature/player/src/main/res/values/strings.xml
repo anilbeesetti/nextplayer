@@ -3,4 +3,5 @@
     <string name="player_controls_exit">exit</string>
     <string name="select_audio_track">Select audio track</string>
     <string name="select_subtitle_track">Select subtitle track</string>
+    <string name="cant_play_video">Can\'t play this video</string>
 </resources>
