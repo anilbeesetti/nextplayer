@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.mediasource
 
+import android.provider.MediaStore
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import kotlinx.coroutines.flow.Flow
 
@@ -16,7 +17,7 @@ interface MediaSource {
     fun getVideoItemsFlow(
         selection: String? = null,
         selectionArgs: Array<String>? = null,
-        sortOrder: String? = null
+        sortOrder: String? = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
     ): Flow<List<VideoItem>>
 
     /**
