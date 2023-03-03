@@ -64,6 +64,31 @@ class VideoPickerScreenTest {
             .assertExists()
             .assertHasClickAction()
     }
+
+    /**
+     * This test is to check if the no videos found text is displayed,
+     * when the [VideoPickerUiState.Success] with empty list is passed.
+     */
+    @Test
+    fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyList() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                VideoPickerScreen(
+                    uiState = VideoPickerUiState.Success(
+                        videoItems = emptyList()
+                    ),
+                    onVideoItemClick = {}
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(
+                composeTestRule.activity.getString(R.string.no_videos_found),
+                substring = true
+            )
+            .assertExists()
+    }
 }
 
 val videoItemsTestData = listOf(
