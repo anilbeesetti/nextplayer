@@ -28,6 +28,7 @@ import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
 import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -83,8 +84,30 @@ fun VideoItemView(
                     ),
                     overflow = TextOverflow.Ellipsis
                 )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    InfoChip(text = formatMillis(videoItem.duration))
+                }
             }
         }
+    }
+}
+
+fun formatMillis(millis: Long): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(millis)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(hours)
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(
+        hours
+    )
+    return if (hours > 0) {
+        String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format("%02d:%02d", minutes, seconds)
     }
 }
 
