@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.common.extensions
 
-
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
