@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
@@ -26,6 +27,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TrackSelectionDialogBuilder
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.data.util.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.data.util.getPath
@@ -279,6 +281,22 @@ class PlayerActivity : ComponentActivity() {
                     viewModel.updatePosition(it.mediaId, C.TIME_UNSET)
                 }
             }
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
+            val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
+                .setTitle("Error")
+                .setMessage(R.string.cant_play_video)
+                .setPositiveButton("OK") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setOnDismissListener {
+                    if (player?.hasNextMediaItem() == true) player?.seekToNext() else finish()
+                }
+                .create()
+
+            alertDialog.show()
         }
     }
 
