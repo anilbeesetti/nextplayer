@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
@@ -293,11 +292,7 @@ class PlayerActivity : ComponentActivity() {
                     dialog.dismiss()
                 }
                 .setOnDismissListener {
-                    if (player?.hasNextMediaItem() == true) {
-                        player?.seekToNext()
-                    } else {
-                        finish()
-                    }
+                    if (player?.hasNextMediaItem() == true) player?.seekToNext() else finish()
                 }
                 .create()
 
