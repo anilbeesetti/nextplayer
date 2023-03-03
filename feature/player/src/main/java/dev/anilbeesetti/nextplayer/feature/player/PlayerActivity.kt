@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-@UnstableApi
+@SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
