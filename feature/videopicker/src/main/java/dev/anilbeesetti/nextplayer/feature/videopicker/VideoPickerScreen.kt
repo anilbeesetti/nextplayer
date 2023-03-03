@@ -58,7 +58,7 @@ internal fun VideoPickerScreen(
             }
             is VideoPickerUiState.Success -> {
                 if (uiState.videoItems.isEmpty()) {
-                    Column{
+                    Column {
                         Text(
                             text = stringResource(id = R.string.no_videos_found),
                             style = MaterialTheme.typography.titleLarge
