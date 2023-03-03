@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.data.util
+package dev.anilbeesetti.nextplayer.core.common.extensions
 
 import android.content.ContentUris
 import android.content.Context
@@ -103,6 +103,11 @@ private fun Context.getDataColumn(
     return null
 }
 
+/**
+ * get filename from uri
+ * @param uri uri of the file
+ * @return filename of the file
+ */
 fun Context.getFilenameFromUri(uri: Uri): String {
     return if (uri.scheme == "file") {
         File(uri.toString()).name
@@ -111,6 +116,11 @@ fun Context.getFilenameFromUri(uri: Uri): String {
     }
 }
 
+/**
+ * get filename from content uri
+ * @param uri uri of the file
+ * @return filename of the file
+ */
 fun Context.getFilenameFromContentUri(uri: Uri): String? {
     val projection = arrayOf(
         OpenableColumns.DISPLAY_NAME

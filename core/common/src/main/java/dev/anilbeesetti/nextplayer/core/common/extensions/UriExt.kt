@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.data.util
+package dev.anilbeesetti.nextplayer.core.common.extensions
 
 import android.net.Uri
 
