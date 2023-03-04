@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-class FakePreferencesRepository: PreferencesRepository {
+class FakePreferencesRepository : PreferencesRepository {
 
     val appPreferences = MutableStateFlow(AppPreferences())
 

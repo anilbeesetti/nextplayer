@@ -25,5 +25,4 @@ interface PreferencesRepository {
      * @param sortBy The sort by to be set.
      */
     suspend fun setSortBy(sortBy: SortBy)
-
 }

@@ -4,12 +4,12 @@ import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 class AppPreferencesRepository @Inject constructor(
     private val preferencesDataSource: AppPreferencesDataSource
-): PreferencesRepository {
+) : PreferencesRepository {
     override val preferences: Flow<AppPreferences>
         get() = preferencesDataSource.preferencesFlow
 

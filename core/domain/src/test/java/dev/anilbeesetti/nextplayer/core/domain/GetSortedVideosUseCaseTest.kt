@@ -17,7 +17,6 @@ class GetSortedVideosUseCaseTest {
 
     val getSortedVideosUseCase = GetSortedVideosUseCase(videoRepository, preferencesRepository)
 
-
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {
         preferencesRepository.setSortBy(SortBy.TITLE)
@@ -65,9 +64,7 @@ class GetSortedVideosUseCaseTest {
 
         assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.duration })
     }
-
 }
-
 
 /**
  * Sorted video items by title in ascending order and duration in ascending order.
