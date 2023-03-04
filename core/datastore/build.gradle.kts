@@ -1,6 +1,8 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("nextplayer.android.library")
     id("nextplayer.android.hilt")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -10,7 +12,10 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.timber)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
