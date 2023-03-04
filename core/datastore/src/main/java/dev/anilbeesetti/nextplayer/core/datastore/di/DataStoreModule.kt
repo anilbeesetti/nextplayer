@@ -13,7 +13,6 @@ import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.AppPreferencesSerializer
 import javax.inject.Singleton
 
-
 private const val APP_PREFERENCES_DATASTORE_FILE = "app_preferences.json"
 
 @Module
@@ -30,5 +29,4 @@ object DataStoreModule {
             produceFile = { applicationContext.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) }
         )
     }
-
 }

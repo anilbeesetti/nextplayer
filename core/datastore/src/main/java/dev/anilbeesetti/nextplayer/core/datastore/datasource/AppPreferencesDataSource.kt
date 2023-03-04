@@ -4,11 +4,11 @@ import androidx.datastore.core.DataStore
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
-import timber.log.Timber
 import javax.inject.Inject
+import timber.log.Timber
 
 class AppPreferencesDataSource @Inject constructor(
-    private val appPreferences: DataStore<AppPreferences>,
+    private val appPreferences: DataStore<AppPreferences>
 ) {
 
     val preferencesFlow = appPreferences.data

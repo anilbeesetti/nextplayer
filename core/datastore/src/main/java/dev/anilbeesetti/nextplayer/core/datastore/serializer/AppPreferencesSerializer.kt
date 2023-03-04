@@ -3,10 +3,10 @@ package dev.anilbeesetti.nextplayer.core.datastore.serializer
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.io.OutputStream
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 
 object AppPreferencesSerializer : Serializer<AppPreferences> {
     override val defaultValue: AppPreferences
