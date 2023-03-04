@@ -1,17 +1,16 @@
 package dev.anilbeesetti.nextplayer.core.ui
 
-import android.net.Uri
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 
-class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoItem>> {
-    override val values: Sequence<List<VideoItem>>
+class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>> {
+    override val values: Sequence<List<Video>>
         get() = sequenceOf(
             listOf(
-                VideoItem(
+                Video(
                     id = 1,
                     path = "/storage/emulated/0/Download/The Shawshank Redemption (1994) 720p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "The Shawshank Redemption (1994) 720p BluRay x264.mp4",
                     duration = 1200,
                     displayName = "The Shawshank Redemption (1994) 720p BluRay x264",
@@ -19,10 +18,10 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoI
                     height = 720
                 ),
 
-                VideoItem(
+                Video(
                     id = 2,
                     path = "/storage/emulated/0/Download/The Godfather (1972) 1080p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "The Godfather (1972) 1080p BluRay x264.mp4",
                     duration = 1400,
                     displayName = "The Godfather (1972) 1080p BluRay x264",
@@ -30,10 +29,10 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoI
                     height = 1080
                 ),
 
-                VideoItem(
+                Video(
                     id = 3,
                     path = "/storage/emulated/0/Download/The Dark Knight (2008) 2160p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "The Dark Knight (2008) 2160p BluRay x264.mp4",
                     duration = 1500,
                     displayName = "The Dark Knight (2008) 2160p BluRay x264",
@@ -41,10 +40,10 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoI
                     height = 2160
                 ),
 
-                VideoItem(
+                Video(
                     id = 4,
                     path = "/storage/emulated/0/Download/The Godfather: Part II (1974) 720p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "The Godfather: Part II (1974) 720p BluRay x264.mp4",
                     duration = 1350,
                     displayName = "The Godfather: Part II (1974) 720p BluRay x264",
@@ -52,10 +51,10 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoI
                     height = 720
                 ),
 
-                VideoItem(
+                Video(
                     id = 5,
                     path = "/storage/emulated/0/Download/The Lord of the Rings: The Fellowship of the Ring (2001) 1080p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "The Lord of the Rings: The Fellowship of the Ring (2001) 1080p BluRay x264.mp4",
                     duration = 1800,
                     displayName = "The Lord of the Rings: The Fellowship of the Ring (2001) 1080p BluRay x264",
@@ -63,10 +62,10 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoI
                     height = 1080
                 ),
 
-                VideoItem(
+                Video(
                     id = 6,
                     path = "/storage/emulated/0/Download/The Lord of the Rings: The Two Towers (2002) 1080p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "The Lord of the Rings: The Two Towers (2002) 1080p BluRay x264.mp4",
                     duration = 2000,
                     displayName = "The Lord of the Rings: The Two Towers (2002) 1080p BluRay x264",
@@ -74,10 +73,10 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoI
                     height = 1080
                 ),
 
-                VideoItem(
+                Video(
                     id = 7,
                     path = "/storage/emulated/0/Download/The Lord of the Rings: The Return of the King (2003) 1080p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "The Lord of the Rings: The Return of the King (2003) 1080p BluRay x264.mp4",
                     duration = 2100,
                     displayName = "The Lord of the Rings: The Return of the King (2003) 1080p BluRay x264",
@@ -85,10 +84,10 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<VideoI
                     height = 1080
                 ),
 
-                VideoItem(
+                Video(
                     id = 8,
                     path = "/storage/emulated/0/Download/Pulp Fiction (1994) 720p BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "Star Wars: Episode IV - A New Hope (1977) 2160p BluRay x264.mp4",
                     duration = 1500,
                     displayName = "Star Wars: Episode IV - A New Hope (1977) 2160p BluRay x264",

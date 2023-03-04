@@ -1,13 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker
 
-import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 import org.junit.Rule
 import org.junit.Test
 
@@ -42,7 +41,7 @@ class VideoPickerScreenTest {
             BoxWithConstraints {
                 VideoPickerScreen(
                     uiState = VideoPickerUiState.Success(
-                        videoItems = videoItemsTestData
+                        videos = videoItemsTestData
                     ),
                     onVideoItemClick = {}
                 )
@@ -75,7 +74,7 @@ class VideoPickerScreenTest {
             BoxWithConstraints {
                 VideoPickerScreen(
                     uiState = VideoPickerUiState.Success(
-                        videoItems = emptyList()
+                        videos = emptyList()
                     ),
                     onVideoItemClick = {}
                 )
@@ -92,21 +91,21 @@ class VideoPickerScreenTest {
 }
 
 val videoItemsTestData = listOf(
-    VideoItem(
+    Video(
         id = 1,
         path = "/storage/emulated/0/DCIM/Camera/Video 1.mp4",
         displayName = "Video 1",
-        contentUri = Uri.EMPTY,
+        uriString = "",
         duration = 1000,
         width = 100,
         height = 100,
         nameWithExtension = "Video 1.mp4"
     ),
-    VideoItem(
+    Video(
         id = 2,
         path = "/storage/emulated/0/DCIM/Camera/Video 2.mp4",
         displayName = "Video 2",
-        contentUri = Uri.EMPTY,
+        uriString = "",
         duration = 2000,
         width = 200,
         height = 200,
