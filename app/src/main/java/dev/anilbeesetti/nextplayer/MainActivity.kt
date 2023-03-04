@@ -1,25 +1,23 @@
 package dev.anilbeesetti.nextplayer
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -31,6 +29,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
 import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextPlayerMainTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
@@ -38,7 +37,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalPermissionsApi::class)
+    @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -70,11 +69,18 @@ class MainActivity : ComponentActivity() {
                         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                     }
 
-                    HomeScreen(
-                        permission = storagePermissionState.permission,
-                        permissionStatus = storagePermissionState.status,
-                        onGrantPermissionClick = { storagePermissionState.launchPermissionRequest() }
-                    )
+                    if (storagePermissionState.status.isGranted) {
+                        Column {
+                            NextPlayerMainTopAppBar(titleRes = R.string.app_name)
+                            VideoPickerScreen(onVideoItemClick = { startPlayerActivity(it) })
+                        }
+                    } else {
+                        PermissionScreen(
+                            permission = storagePermissionState.permission,
+                            permissionStatus = storagePermissionState.status,
+                            onGrantPermissionClick = { storagePermissionState.launchPermissionRequest() }
+                        )
+                    }
                 }
             }
         }
@@ -83,51 +89,27 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
-private fun HomeScreen(
+fun PermissionScreen(
     permission: String,
     permissionStatus: PermissionStatus,
     onGrantPermissionClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     Column {
-        CenterAlignedTopAppBar(
-            title = {
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        )
-        when {
-            permissionStatus.isGranted -> {
-                VideoPickerScreen(
-                    onVideoItemClick = { uri ->
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            uri,
-                            context,
-                            PlayerActivity::class.java
-                        )
-                        context.startActivity(intent)
-                    }
-                )
-            }
-            permissionStatus.shouldShowRationale -> {
-                PermissionRationaleDialog(
-                    text = stringResource(id = R.string.permission_info, permission),
-                    onConfirmButtonClick = onGrantPermissionClick
-                )
-            }
-            permissionStatus.isPermanentlyDeniedOrPermissionIsNotRequested -> {
-                PermissionDetailView(
-                    text = stringResource(id = R.string.permission_settings, permission)
-                )
-            }
+        NextPlayerMainTopAppBar(titleRes = R.string.app_name)
+        if (permissionStatus.shouldShowRationale) {
+            PermissionRationaleDialog(
+                text = stringResource(id = R.string.permission_info, permission),
+                onConfirmButtonClick = onGrantPermissionClick
+            )
+        } else {
+            PermissionDetailView(
+                text = stringResource(id = R.string.permission_settings, permission)
+            )
         }
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
-val PermissionStatus.isPermanentlyDeniedOrPermissionIsNotRequested: Boolean
-    get() = !this.shouldShowRationale && !this.isGranted
+fun Context.startPlayerActivity(uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW, uri, this, PlayerActivity::class.java)
+    startActivity(intent)
+}
