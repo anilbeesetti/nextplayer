@@ -59,9 +59,9 @@ fun VideoItemView(
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f),
                 content = {
-                    if (videoItem.contentUri != Uri.EMPTY) {
+                    if (videoItem.uriString.isNotEmpty()) {
                         GlideImage(
-                            imageModel = { videoItem.contentUri },
+                            imageModel = { videoItem.uriString },
                             imageOptions = ImageOptions(
                                 contentScale = ContentScale.Crop,
                                 alignment = Alignment.Center
@@ -107,7 +107,7 @@ fun VideoItemPreview() {
                 videoItem = VideoItem(
                     id = 8,
                     path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
-                    contentUri = Uri.EMPTY,
+                    uriString = "",
                     nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
                     duration = 1000,
                     displayName = "Avengers Endgame (2019) BluRay x264",

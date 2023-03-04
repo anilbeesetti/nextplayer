@@ -19,7 +19,7 @@ fun VideoItemsPickerView(
         items(videoItems) { videoItem ->
             VideoItemView(
                 videoItem = videoItem,
-                onClick = { onVideoItemClick(videoItem.contentUri) }
+                onClick = { onVideoItemClick(videoItem.uri) }
             )
         }
     }

@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker
 
-import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
@@ -96,7 +95,7 @@ val videoItemsTestData = listOf(
         id = 1,
         path = "/storage/emulated/0/DCIM/Camera/Video 1.mp4",
         displayName = "Video 1",
-        contentUri = Uri.EMPTY,
+        uriString = "",
         duration = 1000,
         width = 100,
         height = 100,
@@ -106,7 +105,7 @@ val videoItemsTestData = listOf(
         id = 2,
         path = "/storage/emulated/0/DCIM/Camera/Video 2.mp4",
         displayName = "Video 2",
-        contentUri = Uri.EMPTY,
+        uriString = "",
         duration = 2000,
         width = 200,
         height = 200,

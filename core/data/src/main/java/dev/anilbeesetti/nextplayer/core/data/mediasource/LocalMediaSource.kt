@@ -85,7 +85,7 @@ private inline val Cursor.toVideoItem: VideoItem
             id = id,
             path = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
             duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-            contentUri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
+            uriString = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id).toString(),
             displayName = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
             nameWithExtension = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)),
             width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
