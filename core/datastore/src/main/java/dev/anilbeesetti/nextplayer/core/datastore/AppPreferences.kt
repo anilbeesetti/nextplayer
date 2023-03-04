@@ -4,14 +4,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AppPreferences(
-    val sortBy: SortBy = SortBy.Title,
-    val sortOrder: SortOrder = SortOrder.Ascending
+    val sortBy: SortBy = SortBy.TITLE,
+    val sortOrder: SortOrder = SortOrder.ASCENDING
 )
 
 enum class SortBy {
-    Title, Length
+    TITLE, DURATION
 }
 
 enum class SortOrder {
-    Ascending, Descending
+    ASCENDING, DESCENDING
 }
