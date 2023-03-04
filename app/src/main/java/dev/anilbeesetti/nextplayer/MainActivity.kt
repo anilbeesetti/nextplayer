@@ -87,7 +87,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 fun PermissionScreen(

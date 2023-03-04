@@ -26,7 +26,7 @@ fun NextPlayerMainTopAppBar(
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
-    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors()
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -38,10 +38,9 @@ fun NextPlayerMainTopAppBar(
         navigationIcon = navigationIcon,
         actions = actions,
         colors = colors,
-        modifier = modifier,
+        modifier = modifier
     )
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
@@ -64,6 +63,6 @@ private fun NextPlayerMainTopAppBarPreview() {
                     contentDescription = "More"
                 )
             }
-        },
+        }
     )
 }
