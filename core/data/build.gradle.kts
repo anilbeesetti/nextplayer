@@ -10,7 +10,7 @@ android {
 dependencies {
 
     implementation(project(":core:database"))
-    implementation(project(":core:datastore"))
+    api(project(":core:datastore"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
