@@ -7,7 +7,7 @@ import android.database.Cursor
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +22,7 @@ class LocalMediaSource @Inject constructor(
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
-    ): Flow<List<VideoItem>> = callbackFlow {
+    ): Flow<List<Video>> = callbackFlow {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
                 trySend(getVideoItems(selection, selectionArgs, sortOrder))
@@ -39,8 +39,8 @@ class LocalMediaSource @Inject constructor(
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
-    ): List<VideoItem> {
-        val videoItems = mutableListOf<VideoItem>()
+    ): List<Video> {
+        val videos = mutableListOf<Video>()
         context.contentResolver.query(
             VIDEO_COLLECTION_URI,
             VIDEO_PROJECTION,
@@ -49,10 +49,10 @@ class LocalMediaSource @Inject constructor(
             sortOrder
         )?.use { cursor ->
             while (cursor.moveToNext()) {
-                videoItems.add(cursor.toVideoItem)
+                videos.add(cursor.toVideo)
             }
         }
-        return videoItems
+        return videos
     }
 }
 
@@ -76,12 +76,12 @@ private val VIDEO_PROJECTION
 
 /**
  * convert cursor to video item
- * @see VideoItem
+ * @see Video
  */
-private inline val Cursor.toVideoItem: VideoItem
+private inline val Cursor.toVideo: Video
     get() {
         val id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
-        return VideoItem(
+        return Video(
             id = id,
             path = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
             duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),

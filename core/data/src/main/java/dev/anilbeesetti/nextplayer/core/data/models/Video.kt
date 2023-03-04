@@ -12,7 +12,7 @@ import android.net.Uri
  * @param width width of the video
  * @param height height of the video
  */
-data class VideoItem(
+data class Video(
     val id: Long,
     val path: String,
     val duration: Long,

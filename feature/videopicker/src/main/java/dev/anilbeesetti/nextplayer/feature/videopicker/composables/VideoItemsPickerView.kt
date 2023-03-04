@@ -6,20 +6,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 
 @Composable
 fun VideoItemsPickerView(
-    videoItems: List<VideoItem>,
+    videos: List<Video>,
     onVideoItemClick: (uri: Uri) -> Unit
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 10.dp)
     ) {
-        items(videoItems) { videoItem ->
+        items(videos) { video ->
             VideoItemView(
-                videoItem = videoItem,
-                onClick = { onVideoItemClick(videoItem.uri) }
+                video = video,
+                onClick = { onVideoItemClick(video.uri) }
             )
         }
     }

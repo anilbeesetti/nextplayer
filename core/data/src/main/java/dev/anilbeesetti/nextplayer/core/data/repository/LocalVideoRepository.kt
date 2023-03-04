@@ -2,7 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.data.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import javax.inject.Inject
@@ -12,7 +12,7 @@ class LocalVideoRepository @Inject constructor(
     private val videoDao: VideoDao,
     private val mediaSource: MediaSource
 ) : VideoRepository {
-    override fun getVideoItemsFlow(): Flow<List<VideoItem>> = mediaSource.getVideoItemsFlow()
+    override fun getVideosFlow(): Flow<List<Video>> = mediaSource.getVideoItemsFlow()
 
     override fun getLocalPlayerItems(): List<PlayerItem> {
         return mediaSource.getVideoItems().map { it.toPlayerItem() }
@@ -32,7 +32,7 @@ class LocalVideoRepository @Inject constructor(
     }
 }
 
-fun VideoItem.toPlayerItem(): PlayerItem {
+fun Video.toPlayerItem(): PlayerItem {
     return PlayerItem(
         path = path,
         duration = duration

@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.VideoPickerPreviewParameterProvider
@@ -57,7 +57,7 @@ internal fun VideoPickerScreen(
                 )
             }
             is VideoPickerUiState.Success -> {
-                if (uiState.videoItems.isEmpty()) {
+                if (uiState.videos.isEmpty()) {
                     Column {
                         Text(
                             text = stringResource(id = R.string.no_videos_found),
@@ -66,7 +66,7 @@ internal fun VideoPickerScreen(
                     }
                 } else {
                     VideoItemsPickerView(
-                        videoItems = uiState.videoItems,
+                        videos = uiState.videos,
                         onVideoItemClick = onVideoItemClick
                     )
                 }
@@ -79,14 +79,14 @@ internal fun VideoPickerScreen(
 @Composable
 fun VideoPickerScreenPreview(
     @PreviewParameter(VideoPickerPreviewParameterProvider::class)
-    videoItems: List<VideoItem>
+    videos: List<Video>
 ) {
     BoxWithConstraints {
         NextPlayerTheme {
             Surface {
                 VideoPickerScreen(
                     uiState = VideoPickerUiState.Success(
-                        videoItems = videoItems
+                        videos = videos
                     ),
                     onVideoItemClick = {}
                 )
@@ -102,7 +102,7 @@ fun VideoPickerNoVideosFoundPreview() {
         Surface {
             VideoPickerScreen(
                 uiState = VideoPickerUiState.Success(
-                    videoItems = emptyList()
+                    videos = emptyList()
                 ),
                 onVideoItemClick = {}
             )

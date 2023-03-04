@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,14 +25,14 @@ import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun VideoItemView(
-    videoItem: VideoItem,
+    video: Video,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -59,9 +58,9 @@ fun VideoItemView(
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f),
                 content = {
-                    if (videoItem.uriString.isNotEmpty()) {
+                    if (video.uriString.isNotEmpty()) {
                         GlideImage(
-                            imageModel = { videoItem.uriString },
+                            imageModel = { video.uriString },
                             imageOptions = ImageOptions(
                                 contentScale = ContentScale.Crop,
                                 alignment = Alignment.Center
@@ -77,7 +76,7 @@ fun VideoItemView(
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = videoItem.nameWithExtension,
+                    text = video.nameWithExtension,
                     maxLines = 2,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Normal
@@ -91,7 +90,7 @@ fun VideoItemView(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InfoChip(text = Utils.formatDurationMillis(videoItem.duration))
+                    InfoChip(text = Utils.formatDurationMillis(video.duration))
                 }
             }
         }
@@ -104,7 +103,7 @@ fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
             VideoItemView(
-                videoItem = VideoItem(
+                video = Video(
                     id = 8,
                     path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
                     uriString = "",

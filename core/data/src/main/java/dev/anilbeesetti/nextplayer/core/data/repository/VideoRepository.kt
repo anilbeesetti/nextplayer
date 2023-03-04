@@ -1,16 +1,16 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
-import dev.anilbeesetti.nextplayer.core.data.models.VideoItem
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 import kotlinx.coroutines.flow.Flow
 
 interface VideoRepository {
 
     /**
-     * Get list of [VideoItem]s as flow
+     * Get list of [Video]s as flow
      * @return flow of list of video items
      */
-    fun getVideoItemsFlow(): Flow<List<VideoItem>>
+    fun getVideosFlow(): Flow<List<Video>>
 
     /**
      * Get local player items
