@@ -26,7 +26,7 @@ class GetSortedVideosUseCaseTest {
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedBy { it.displayName })
+        assertEquals(sortedVideos, testVideoItems.sortedBy { it.displayName.lowercase() })
     }
 
     @Test
@@ -38,7 +38,7 @@ class GetSortedVideosUseCaseTest {
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.displayName })
+        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.displayName.lowercase() })
     }
 
     @Test
@@ -64,6 +64,54 @@ class GetSortedVideosUseCaseTest {
 
         assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.duration })
     }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByPathAscending() = runTest {
+        preferencesRepository.setSortBy(SortBy.PATH)
+        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedBy { it.path.lowercase() })
+    }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByPathDescending() = runTest {
+        preferencesRepository.setSortBy(SortBy.PATH)
+        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.path.lowercase() })
+    }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByResolutionAscending() = runTest {
+        preferencesRepository.setSortBy(SortBy.RESOLUTION)
+        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedBy { it.width * it.height })
+    }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByResolutionDescending() = runTest {
+        preferencesRepository.setSortBy(SortBy.RESOLUTION)
+        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.width * it.height })
+    }
 }
 
 /**
@@ -85,7 +133,7 @@ val testVideoItems = listOf(
         displayName = "B",
         duration = 2000,
         uriString = "content://media/external/video/media/2",
-        height = 1920,
+        height = 1930,
         nameWithExtension = "B.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/B.mp4"
@@ -95,7 +143,7 @@ val testVideoItems = listOf(
         displayName = "C",
         duration = 3000,
         uriString = "content://media/external/video/media/3",
-        height = 1920,
+        height = 1940,
         nameWithExtension = "C.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/C.mp4"
@@ -105,7 +153,7 @@ val testVideoItems = listOf(
         displayName = "D",
         duration = 4000,
         uriString = "content://media/external/video/media/4",
-        height = 1920,
+        height = 1950,
         nameWithExtension = "D.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/D.mp4"
@@ -115,7 +163,7 @@ val testVideoItems = listOf(
         displayName = "E",
         duration = 5000,
         uriString = "content://media/external/video/media/5",
-        height = 1920,
+        height = 1960,
         nameWithExtension = "E.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/E.mp4"
@@ -125,7 +173,7 @@ val testVideoItems = listOf(
         displayName = "F",
         duration = 6000,
         uriString = "content://media/external/video/media/6",
-        height = 1920,
+        height = 1970,
         nameWithExtension = "F.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/F.mp4"
@@ -135,7 +183,7 @@ val testVideoItems = listOf(
         displayName = "G",
         duration = 7000,
         uriString = "content://media/external/video/media/7",
-        height = 1920,
+        height = 1980,
         nameWithExtension = "G.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/G.mp4"
@@ -145,7 +193,7 @@ val testVideoItems = listOf(
         displayName = "H",
         duration = 8000,
         uriString = "content://media/external/video/media/8",
-        height = 1920,
+        height = 1990,
         nameWithExtension = "H.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/H.mp4"
@@ -155,7 +203,7 @@ val testVideoItems = listOf(
         displayName = "I",
         duration = 9000,
         uriString = "content://media/external/video/media/9",
-        height = 1920,
+        height = 2160,
         nameWithExtension = "I.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/I.mp4"
@@ -165,7 +213,7 @@ val testVideoItems = listOf(
         displayName = "J",
         duration = 10000,
         uriString = "content://media/external/video/media/10",
-        height = 1920,
+        height = 2170,
         nameWithExtension = "J.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/J.mp4"

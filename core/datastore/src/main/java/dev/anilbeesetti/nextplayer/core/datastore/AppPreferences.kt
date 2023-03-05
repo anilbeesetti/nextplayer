@@ -9,7 +9,7 @@ data class AppPreferences(
 )
 
 enum class SortBy {
-    TITLE, DURATION
+    TITLE, DURATION, PATH, RESOLUTION
 }
 
 enum class SortOrder {

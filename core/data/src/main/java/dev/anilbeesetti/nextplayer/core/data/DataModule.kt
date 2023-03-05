@@ -6,7 +6,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.anilbeesetti.nextplayer.core.data.mediasource.LocalMediaSource
 import dev.anilbeesetti.nextplayer.core.data.mediasource.MediaSource
+import dev.anilbeesetti.nextplayer.core.data.repository.AppPreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalVideoRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 
 @Module
@@ -17,6 +19,11 @@ interface DataModule {
     fun bindsVideoRepository(
         videoRepository: LocalVideoRepository
     ): VideoRepository
+
+    @Binds
+    fun bindsPreferencesRepository(
+        preferencesRepository: AppPreferencesRepository
+    ): PreferencesRepository
 
     @Binds
     fun bindsMediaSource(

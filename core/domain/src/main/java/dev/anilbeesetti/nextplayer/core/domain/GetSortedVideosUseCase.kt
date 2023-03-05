@@ -22,14 +22,18 @@ class GetSortedVideosUseCase @Inject constructor(
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> videoItems.sortedBy { it.displayName }
+                        SortBy.TITLE -> videoItems.sortedBy { it.displayName.lowercase() }
                         SortBy.DURATION -> videoItems.sortedBy { it.duration }
+                        SortBy.PATH -> videoItems.sortedBy { it.path.lowercase() }
+                        SortBy.RESOLUTION -> videoItems.sortedBy { it.width * it.height }
                     }
                 }
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> videoItems.sortedByDescending { it.displayName }
+                        SortBy.TITLE -> videoItems.sortedByDescending { it.displayName.lowercase() }
                         SortBy.DURATION -> videoItems.sortedByDescending { it.duration }
+                        SortBy.PATH -> videoItems.sortedByDescending { it.path.lowercase() }
+                        SortBy.RESOLUTION -> videoItems.sortedByDescending { it.width * it.height }
                     }
                 }
             }
