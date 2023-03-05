@@ -23,7 +23,7 @@ kotlin = "1.8.10"
 kotlinxCoroutines = "1.6.4"
 kotlinxSerializationJson = "1.5.0"
 ktlint = "11.3.1"
-landscapist = "2.1.5"
+glide = "1.0.0-alpha.1"
 room = "2.5.0"
 timber = "5.0.1"
 
@@ -58,7 +58,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
-github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist"}
+glide-compose = { group = "com.github.bumptech.glide", name = "compose", version.ref = "glide"}
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial"}
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
