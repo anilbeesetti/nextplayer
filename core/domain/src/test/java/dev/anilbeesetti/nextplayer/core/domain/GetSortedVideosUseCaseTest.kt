@@ -26,7 +26,7 @@ class GetSortedVideosUseCaseTest {
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedBy { it.displayName })
+        assertEquals(sortedVideos, testVideoItems.sortedBy { it.displayName.lowercase() })
     }
 
     @Test
@@ -38,7 +38,7 @@ class GetSortedVideosUseCaseTest {
 
         val sortedVideos = getSortedVideosUseCase().first()
 
-        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.displayName })
+        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.displayName.lowercase() })
     }
 
     @Test
@@ -63,6 +63,54 @@ class GetSortedVideosUseCaseTest {
         val sortedVideos = getSortedVideosUseCase().first()
 
         assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.duration })
+    }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByPathAscending() = runTest {
+        preferencesRepository.setSortBy(SortBy.PATH)
+        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedBy { it.path.lowercase() })
+    }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByPathDescending() = runTest {
+        preferencesRepository.setSortBy(SortBy.PATH)
+        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.path.lowercase() })
+    }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByResolutionAscending() = runTest {
+        preferencesRepository.setSortBy(SortBy.RESOLUTION)
+        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedBy { it.width * it.height })
+    }
+
+    @Test
+    fun testGetSortedVideosUseCase_whenSortByResolutionDescending() = runTest {
+        preferencesRepository.setSortBy(SortBy.RESOLUTION)
+        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+
+        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+
+        val sortedVideos = getSortedVideosUseCase().first()
+
+        assertEquals(sortedVideos, testVideoItems.sortedByDescending { it.width * it.height })
     }
 }
 
