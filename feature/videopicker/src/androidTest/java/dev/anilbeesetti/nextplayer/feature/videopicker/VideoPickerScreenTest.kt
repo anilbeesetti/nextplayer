@@ -25,7 +25,6 @@ class VideoPickerScreenTest {
             BoxWithConstraints {
                 VideoPickerScreen(
                     videosState = VideosState.Loading,
-                    uiState = VideoPickerViewState(),
                     preferences = AppPreferences()
                 )
             }
@@ -45,7 +44,6 @@ class VideoPickerScreenTest {
                     videosState = VideosState.Success(
                         videos = videoItemsTestData
                     ),
-                    uiState = VideoPickerViewState(),
                     preferences = AppPreferences()
                 )
             }
@@ -79,7 +77,6 @@ class VideoPickerScreenTest {
                     videosState = VideosState.Success(
                         videos = emptyList()
                     ),
-                    uiState = VideoPickerViewState(),
                     preferences = AppPreferences()
                 )
             }

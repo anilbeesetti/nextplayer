@@ -57,27 +57,27 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 @Composable
 fun VideoPickerScreen(
     viewModel: VideoPickerViewModel = hiltViewModel(),
+    showMenu: Boolean,
+    showMenuDialog: (Boolean) -> Unit = {},
     onVideoItemClick: (uri: Uri) -> Unit
 ) {
     val videosState by viewModel.videoItems.collectAsState()
-    val uiState by viewModel.uiState.collectAsState()
     val preferences by viewModel.preferences.collectAsState()
 
     VideoPickerScreen(
         videosState = videosState,
-        uiState = uiState,
+        showDialog = showMenu,
         preferences = preferences,
         onVideoItemClick = onVideoItemClick,
-        showMenuDialog = viewModel::showMenuDialog,
+        showMenuDialog = showMenuDialog,
         updateSortBy = viewModel::updateSortBy
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun VideoPickerScreen(
     videosState: VideosState,
-    uiState: VideoPickerViewState,
+    showDialog: Boolean = false,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
     showMenuDialog: (Boolean) -> Unit = {},
@@ -110,7 +110,7 @@ internal fun VideoPickerScreen(
                 }
             }
         }
-        if (uiState.showMenuDialog) {
+        if (showDialog) {
             MenuDialog(
                 preferences = preferences,
                 showMenuDialog = showMenuDialog,
@@ -217,7 +217,6 @@ fun VideoPickerScreenPreview(
                     videosState = VideosState.Success(
                         videos = videos
                     ),
-                    uiState = VideoPickerViewState(),
                     preferences = AppPreferences(),
                     onVideoItemClick = {},
                     showMenuDialog = {}
@@ -272,7 +271,6 @@ fun VideoPickerNoVideosFoundPreview() {
                 videosState = VideosState.Success(
                     videos = emptyList()
                 ),
-                uiState = VideoPickerViewState(),
                 preferences = AppPreferences(),
                 onVideoItemClick = {},
                 showMenuDialog = {}
@@ -288,7 +286,6 @@ fun VideoPickerLoadingPreview() {
         Surface {
             VideoPickerScreen(
                 videosState = VideosState.Loading,
-                uiState = VideoPickerViewState(),
                 preferences = AppPreferences(),
                 onVideoItemClick = {},
                 showMenuDialog = {}
