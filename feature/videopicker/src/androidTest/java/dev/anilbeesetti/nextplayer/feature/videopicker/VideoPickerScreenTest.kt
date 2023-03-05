@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import dev.anilbeesetti.nextplayer.core.data.models.Video
+import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import org.junit.Rule
 import org.junit.Test
 
@@ -16,15 +17,16 @@ class VideoPickerScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     /**
-     * This test is to check if the CircularProgressIndicator is displayed when the [VideoPickerUiState.Loading] is passed.
+     * This test is to check if the CircularProgressIndicator is displayed when the [VideosState.Loading] is passed.
      */
     @Test
     fun circularProgressIndicatorIsDisplayed_whenLoading() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 VideoPickerScreen(
-                    uiState = VideoPickerUiState.Loading,
-                    onVideoItemClick = {}
+                    videosState = VideosState.Loading,
+                    uiState = VideoPickerViewState(),
+                    preferences = AppPreferences()
                 )
             }
         }
@@ -33,17 +35,18 @@ class VideoPickerScreenTest {
     }
 
     /**
-     * This test is to check if the video items are displayed when the [VideoPickerUiState.Success] is passed.
+     * This test is to check if the video items are displayed when the [VideosState.Success] is passed.
      */
     @Test
     fun videoItemsAreDisplayed_whenSuccess() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 VideoPickerScreen(
-                    uiState = VideoPickerUiState.Success(
+                    videosState = VideosState.Success(
                         videos = videoItemsTestData
                     ),
-                    onVideoItemClick = {}
+                    uiState = VideoPickerViewState(),
+                    preferences = AppPreferences()
                 )
             }
         }
@@ -66,17 +69,18 @@ class VideoPickerScreenTest {
 
     /**
      * This test is to check if the no videos found text is displayed,
-     * when the [VideoPickerUiState.Success] with empty list is passed.
+     * when the [VideosState.Success] with empty list is passed.
      */
     @Test
     fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyList() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 VideoPickerScreen(
-                    uiState = VideoPickerUiState.Success(
+                    videosState = VideosState.Success(
                         videos = emptyList()
                     ),
-                    onVideoItemClick = {}
+                    uiState = VideoPickerViewState(),
+                    preferences = AppPreferences()
                 )
             }
         }
