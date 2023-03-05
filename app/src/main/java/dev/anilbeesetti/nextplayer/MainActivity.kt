@@ -80,7 +80,6 @@ class MainActivity : ComponentActivity() {
 
                     if (storagePermissionState.status.isGranted) {
                         Column {
-
                             var showMenu by remember {
                                 mutableStateOf(false)
                             }
@@ -107,7 +106,7 @@ class MainActivity : ComponentActivity() {
                             VideoPickerScreen(
                                 onVideoItemClick = { startPlayerActivity(it) },
                                 showMenu = showMenu,
-                                showMenuDialog = { showMenu = it },
+                                showMenuDialog = { showMenu = it }
                             )
                         }
                     } else {

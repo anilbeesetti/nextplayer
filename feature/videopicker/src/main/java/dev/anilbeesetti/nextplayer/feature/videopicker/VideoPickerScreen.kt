@@ -83,7 +83,7 @@ internal fun VideoPickerScreen(
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
     showMenuDialog: (Boolean) -> Unit = {},
-    updateSortBy: (SortBy) -> Unit = {},
+    updateSortBy: (SortBy) -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -124,7 +124,11 @@ internal fun VideoPickerScreen(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MenuDialog(preferences: AppPreferences, showMenuDialog: (Boolean) -> Unit, updateSortBy: (SortBy) -> Unit) {
+fun MenuDialog(
+    preferences: AppPreferences,
+    showMenuDialog: (Boolean) -> Unit,
+    updateSortBy: (SortBy) -> Unit
+) {
     Dialog(
         onDismissRequest = { showMenuDialog(false) },
         content = {
@@ -139,7 +143,6 @@ fun MenuDialog(preferences: AppPreferences, showMenuDialog: (Boolean) -> Unit, u
                     modifier = Modifier
                         .padding(vertical = 16.dp, horizontal = 24.dp)
                 ) {
-
                     var sortBy by remember { mutableStateOf(preferences.sortBy) }
 
                     Column {
@@ -157,42 +160,43 @@ fun MenuDialog(preferences: AppPreferences, showMenuDialog: (Boolean) -> Unit, u
                                 text = "Title",
                                 icon = Icons.Rounded.Title,
                                 isSelected = sortBy == SortBy.TITLE,
-                                onClick = { sortBy = SortBy.TITLE },
+                                onClick = { sortBy = SortBy.TITLE }
                             )
                             TextIconToggleButton(
                                 text = "Duration",
                                 icon = Icons.Rounded.Straighten,
                                 isSelected = sortBy == SortBy.DURATION,
-                                onClick = { sortBy = SortBy.DURATION },
+                                onClick = { sortBy = SortBy.DURATION }
                             )
                             TextIconToggleButton(
                                 text = "Path",
                                 icon = Icons.Rounded.LocationOn,
                                 isSelected = sortBy == SortBy.PATH,
-                                onClick = { sortBy = SortBy.PATH },
+                                onClick = { sortBy = SortBy.PATH }
                             )
                             TextIconToggleButton(
                                 text = "Resolution",
                                 icon = Icons.Rounded.HighQuality,
                                 isSelected = sortBy == SortBy.RESOLUTION,
-                                onClick = { sortBy = SortBy.RESOLUTION },
+                                onClick = { sortBy = SortBy.RESOLUTION }
                             )
                         }
-
                     }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
+                        horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(onClick = { showMenuDialog(false) }) {
                             Text(text = "CANCEL")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(onClick = {
-                            showMenuDialog(false)
-                            updateSortBy(sortBy)
-                        }) {
+                        TextButton(
+                            onClick = {
+                                showMenuDialog(false)
+                                updateSortBy(sortBy)
+                            }
+                        ) {
                             Text(text = "DONE")
                         }
                     }
@@ -202,7 +206,7 @@ fun MenuDialog(preferences: AppPreferences, showMenuDialog: (Boolean) -> Unit, u
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             dismissOnBackPress = true,
-            dismissOnClickOutside = true,
+            dismissOnClickOutside = true
         )
     )
 }
