@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.rounded.HighQuality
@@ -135,7 +137,7 @@ fun MenuDialog(preferences: AppPreferences, showMenuDialog: (Boolean) -> Unit, u
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(vertical = 16.dp, horizontal = 24.dp)
                 ) {
 
                     var sortBy by remember { mutableStateOf(preferences.sortBy) }
@@ -146,7 +148,7 @@ fun MenuDialog(preferences: AppPreferences, showMenuDialog: (Boolean) -> Unit, u
                             Text(text = "Sort")
                         }
                         Row(
-                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 16.dp)
@@ -186,6 +188,7 @@ fun MenuDialog(preferences: AppPreferences, showMenuDialog: (Boolean) -> Unit, u
                         TextButton(onClick = { showMenuDialog(false) }) {
                             Text(text = "CANCEL")
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
                         TextButton(onClick = {
                             showMenuDialog(false)
                             updateSortBy(sortBy)
