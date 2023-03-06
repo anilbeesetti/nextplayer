@@ -6,15 +6,19 @@ import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 private const val END_POSITION_OFFSET = 5L
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val videoRepository: VideoRepository
+    private val videoRepository: VideoRepository,
+    private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase
 ) : ViewModel() {
 
     var playbackPosition = MutableStateFlow<Long?>(null)
@@ -37,7 +41,11 @@ class PlayerViewModel @Inject constructor(
 
     fun initMedia(path: String?) {
         setCurrentMedia(path)
-        currentPlayerItems.addAll(videoRepository.getLocalPlayerItems())
+        runBlocking {
+            currentPlayerItems.addAll(
+                getSortedPlayerItemsUseCase.invoke().first()
+            )
+        }
     }
 
     fun updatePosition(position: Long) {
