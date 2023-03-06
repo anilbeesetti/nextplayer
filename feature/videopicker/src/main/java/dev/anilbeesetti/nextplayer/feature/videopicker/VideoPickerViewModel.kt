@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
+import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,9 +36,10 @@ class VideoPickerViewModel @Inject constructor(
             initialValue = AppPreferences()
         )
 
-    fun updateSortBy(sortBy: SortBy) {
+    fun updateMenu(sortBy: SortBy, sortOrder: SortOrder) {
         viewModelScope.launch {
             preferencesRepository.setSortBy(sortBy)
+            preferencesRepository.setSortOrder(sortOrder)
         }
     }
 }

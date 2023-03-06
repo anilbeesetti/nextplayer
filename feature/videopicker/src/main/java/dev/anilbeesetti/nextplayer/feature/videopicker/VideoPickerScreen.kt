@@ -24,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
+import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
 import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.VideoPickerPreviewParameterProvider
@@ -50,7 +51,7 @@ fun VideoPickerScreen(
         preferences = preferences,
         onVideoItemClick = onVideoItemClick,
         showMenuDialog = showMenuDialog,
-        updateSortBy = viewModel::updateSortBy
+        updatePreferences = viewModel::updateMenu
     )
 }
 
@@ -61,7 +62,7 @@ internal fun VideoPickerScreen(
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
     showMenuDialog: (Boolean) -> Unit = {},
-    updateSortBy: (SortBy) -> Unit = {}
+    updatePreferences: (SortBy, SortOrder) -> Unit = { _, _ -> }
 ) {
     Box(
         modifier = Modifier
@@ -94,7 +95,7 @@ internal fun VideoPickerScreen(
             MenuDialog(
                 preferences = preferences,
                 showMenuDialog = showMenuDialog,
-                updateSortBy = updateSortBy
+                update = updatePreferences
             )
         }
     }

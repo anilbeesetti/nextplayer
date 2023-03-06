@@ -2,4 +2,8 @@
 <resources>
 
     <string name="no_videos_found">No videos found</string>
+    <string name="ascending">Ascending</string>
+    <string name="descending">Descending</string>
+    <string name="cancel">CANCEL</string>
+    <string name="done">DONE</string>
 </resources>
