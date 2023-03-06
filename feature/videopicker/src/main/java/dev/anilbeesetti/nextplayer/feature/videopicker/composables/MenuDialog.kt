@@ -22,7 +22,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SelectableChipBorder
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -69,44 +68,15 @@ fun MenuDialog(
                     var selectedSortBy by remember { mutableStateOf(preferences.sortBy) }
                     var selectedSortOrder by remember { mutableStateOf(preferences.sortOrder) }
 
-
                     Column {
-                        val textStyle = MaterialTheme.typography.headlineSmall
-                        ProvideTextStyle(value = textStyle) {
-                            Text(text = "Sort")
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp)
-                        ) {
-                            TextIconToggleButton(
-                                text = "Title",
-                                icon = Icons.Rounded.Title,
-                                isSelected = selectedSortBy == SortBy.TITLE,
-                                onClick = { selectedSortBy = SortBy.TITLE }
-                            )
-                            TextIconToggleButton(
-                                text = "Duration",
-                                icon = Icons.Rounded.Straighten,
-                                isSelected = selectedSortBy == SortBy.DURATION,
-                                onClick = { selectedSortBy = SortBy.DURATION }
-                            )
-                            TextIconToggleButton(
-                                text = "Path",
-                                icon = Icons.Rounded.LocationOn,
-                                isSelected = selectedSortBy == SortBy.PATH,
-                                onClick = { selectedSortBy = SortBy.PATH }
-                            )
-                            TextIconToggleButton(
-                                text = "Resolution",
-                                icon = Icons.Rounded.HighQuality,
-                                isSelected = selectedSortBy == SortBy.RESOLUTION,
-                                onClick = { selectedSortBy = SortBy.RESOLUTION }
-                            )
-                        }
-
+                        Text(
+                            text = stringResource(R.string.sort),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        SortOptions(
+                            selectedSortBy = selectedSortBy,
+                            onOptionSelected = { selectedSortBy = it }
+                        )
 
                         SegmentedFilterChip(
                             labelOne = {
@@ -142,24 +112,17 @@ fun MenuDialog(
                             }
                         )
                     }
-                    Row(
+                    CancelDoneButtons(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = { showMenuDialog(false) }) {
-                            Text(text = stringResource(R.string.cancel))
+                        onCancelClick = {
+                            showMenuDialog(false)
+                        },
+                        onDoneClick = {
+                            update(selectedSortBy, selectedSortOrder)
+                            showMenuDialog(false)
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(
-                            onClick = {
-                                showMenuDialog(false)
-                                update(selectedSortBy, selectedSortOrder)
-                            }
-                        ) {
-                            Text(text = stringResource(R.string.done))
-                        }
-                    }
+                    )
                 }
             }
         },
@@ -171,6 +134,64 @@ fun MenuDialog(
     )
 }
 
+@Composable
+private fun SortOptions(
+    selectedSortBy: SortBy,
+    onOptionSelected: (SortBy) -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        TextIconToggleButton(
+            text = "Title",
+            icon = Icons.Rounded.Title,
+            isSelected = selectedSortBy == SortBy.TITLE,
+            onClick = { onOptionSelected(SortBy.TITLE) }
+        )
+        TextIconToggleButton(
+            text = "Duration",
+            icon = Icons.Rounded.Straighten,
+            isSelected = selectedSortBy == SortBy.DURATION,
+            onClick = { onOptionSelected(SortBy.DURATION) }
+        )
+        TextIconToggleButton(
+            text = "Path",
+            icon = Icons.Rounded.LocationOn,
+            isSelected = selectedSortBy == SortBy.PATH,
+            onClick = { onOptionSelected(SortBy.PATH) }
+        )
+        TextIconToggleButton(
+            text = "Resolution",
+            icon = Icons.Rounded.HighQuality,
+            isSelected = selectedSortBy == SortBy.RESOLUTION,
+            onClick = { onOptionSelected(SortBy.RESOLUTION) }
+        )
+    }
+}
+
+@Composable
+private fun CancelDoneButtons(
+    modifier: Modifier = Modifier,
+    onCancelClick: () -> Unit = {},
+    onDoneClick: () -> Unit = {},
+    arrangement: Arrangement.Horizontal = Arrangement.End
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = arrangement
+    ) {
+        TextButton(onClick = onCancelClick) {
+            Text(text = stringResource(R.string.cancel))
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        TextButton(onClick = onDoneClick) {
+            Text(text = stringResource(R.string.done))
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -189,7 +210,7 @@ fun SegmentedFilterChip(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
     ) {
         FilterChip(
             modifier = Modifier.weight(1f),

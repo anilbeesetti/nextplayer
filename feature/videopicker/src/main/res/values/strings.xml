@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="no_videos_found">No videos found</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
-    <string name="cancel">CANCEL</string>
-    <string name="done">DONE</string>
+    <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
+    <string name="sort">Sort</string>
 </resources>
