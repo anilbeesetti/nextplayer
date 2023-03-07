@@ -9,7 +9,7 @@
             @android:color/transparent
         </item>
 
-        <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/CustomAlertDialog</item>
         <item name="dialogCornerRadius">28dp</item>
 
         <item name="colorPrimary">@color/md_theme_light_primary</item>
@@ -38,5 +38,9 @@
         <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
         <item name="colorOnSurfaceInverse">@color/md_theme_light_inverseOnSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
+    </style>
+
+    <style name="CustomAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@color/md_theme_light_surface</item>
     </style>
 </resources>
