@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +52,7 @@ fun VideoItemView(
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer,
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
                 shape = MaterialTheme.shapes.small,
                 modifier = Modifier
                     .widthIn(max = 420.dp)
