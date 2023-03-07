@@ -1,11 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
+import android.content.res.Resources
 import android.media.AudioManager
+import android.os.Build
 import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.media3.common.Player
@@ -66,6 +69,9 @@ class PlayerGestureHelper(
                 distanceX: Float,
                 distanceY: Float
             ): Boolean {
+                // Excludes area where app gestures conflicting with system gestures
+                if (inExclusionArea(firstEvent)) return false
+
                 if (abs(distanceX / distanceY) < 2) return false
                 if (swipeGestureVolumeOpen || swipeGestureBrightnessOpen) return false
                 playerView.controllerAutoShow = playerView.isControllerFullyVisible
@@ -116,6 +122,9 @@ class PlayerGestureHelper(
                 distanceX: Float,
                 distanceY: Float
             ): Boolean {
+                // Excludes area where app gestures conflicting with system gestures
+                if (inExclusionArea(firstEvent)) return false
+
                 val viewCenterX = playerView.measuredWidth / 2
 
                 if (abs(distanceY / distanceX) < 2) return false
@@ -237,6 +246,30 @@ class PlayerGestureHelper(
         }
     }
 
+    /**
+     * Check if [firstEvent] is in the gesture exclusion area
+     */
+    private fun inExclusionArea(firstEvent: MotionEvent): Boolean {
+        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val insets = playerView.rootWindowInsets
+                .getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
+
+            if ((firstEvent.x < insets.left) || (firstEvent.x > (screenWidth - insets.right)) ||
+                (firstEvent.y < insets.top) || (firstEvent.y > (screenHeight - insets.bottom))
+            )
+                return true
+        } else if (firstEvent.y < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
+            firstEvent.y > screenHeight - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
+            firstEvent.x < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL) ||
+            firstEvent.x > screenWidth - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
+        )
+            return true
+        return false
+    }
+
     init {
         playerView.setOnTouchListener { _, motionEvent ->
             when (motionEvent.pointerCount) {
@@ -255,6 +288,8 @@ class PlayerGestureHelper(
 
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
+        const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
+        const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
         const val SEEK_STEP_MS = 1000L
         const val HIDE_DELAY_MILLIS = 1000L
     }
@@ -266,3 +301,6 @@ fun Player.setSeekParameters(seekParameters: SeekParameters) {
         is ExoPlayer -> this.setSeekParameters(seekParameters)
     }
 }
+
+
+fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
