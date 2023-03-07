@@ -259,14 +259,18 @@ class PlayerGestureHelper(
 
             if ((firstEvent.x < insets.left) || (firstEvent.x > (screenWidth - insets.right)) ||
                 (firstEvent.y < insets.top) || (firstEvent.y > (screenHeight - insets.bottom))
-            )
+            ) {
                 return true
+            }
         } else if (firstEvent.y < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
-            firstEvent.y > screenHeight - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
+            firstEvent.y > screenHeight - playerView.resources
+                .pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
             firstEvent.x < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL) ||
-            firstEvent.x > screenWidth - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
-        )
+            firstEvent.x > screenWidth - playerView.resources
+                .pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
+        ) {
             return true
+        }
         return false
     }
 
@@ -279,6 +283,7 @@ class PlayerGestureHelper(
                     seekGestureDetector.onTouchEvent(motionEvent)
                 }
                 2 -> {
+                    // Do nothing for now
                 }
             }
             releaseAction(motionEvent)
@@ -301,6 +306,5 @@ fun Player.setSeekParameters(seekParameters: SeekParameters) {
         is ExoPlayer -> this.setSeekParameters(seekParameters)
     }
 }
-
 
 fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
