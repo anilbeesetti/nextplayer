@@ -11,6 +11,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -19,6 +20,9 @@ import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import kotlin.math.abs
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -37,6 +41,9 @@ class PlayerGestureHelper(
 
     private var swipeGestureVolumeOpen = false
     private var swipeGestureBrightnessOpen = false
+
+    private var hideVolumeGestureJob: Job? = null
+    private var hideBrightnessGestureJob: Job? = null
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
@@ -134,6 +141,7 @@ class PlayerGestureHelper(
                 val ratioChange = distanceY / distanceFull
 
                 if (firstEvent.x.toInt() > viewCenterX) {
+                    hideVolumeGestureJob?.cancel()
                     val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                     if (swipeGestureVolumeTrackerValue == -1f) {
                         swipeGestureVolumeTrackerValue =
@@ -166,6 +174,7 @@ class PlayerGestureHelper(
 
                     swipeGestureVolumeOpen = true
                 } else {
+                    hideBrightnessGestureJob?.cancel()
                     val brightnessRange = BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL
                     if (swipeGestureBrightnessTrackerValue == -1f) {
                         val brightness = activity.window.attributes.screenBrightness
@@ -207,29 +216,25 @@ class PlayerGestureHelper(
         }
     )
 
-    private val hideVolumeGestureIndicator = Runnable {
-        activity.binding.gestureVolumeLayout.visibility = View.GONE
-    }
-
-    private val hideBrightnessGestureIndicator = Runnable {
-        activity.binding.gestureBrightnessLayout.visibility = View.GONE
-    }
-
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
             // hide the volume indicator
             activity.binding.gestureVolumeLayout.apply {
                 if (visibility == View.VISIBLE) {
-                    removeCallbacks(hideVolumeGestureIndicator)
-                    postDelayed(hideVolumeGestureIndicator, HIDE_DELAY_MILLIS)
+                    hideVolumeGestureJob = activity.lifecycleScope.launch {
+                        delay(HIDE_DELAY_MILLIS)
+                        visibility = View.GONE
+                    }
                     swipeGestureVolumeOpen = false
                 }
             }
             // hide the brightness indicator
             activity.binding.gestureBrightnessLayout.apply {
                 if (visibility == View.VISIBLE) {
-                    removeCallbacks(hideBrightnessGestureIndicator)
-                    postDelayed(hideBrightnessGestureIndicator, HIDE_DELAY_MILLIS)
+                    hideBrightnessGestureJob = activity.lifecycleScope.launch {
+                        delay(HIDE_DELAY_MILLIS)
+                        visibility = View.GONE
+                    }
                     swipeGestureBrightnessOpen = false
                 }
             }

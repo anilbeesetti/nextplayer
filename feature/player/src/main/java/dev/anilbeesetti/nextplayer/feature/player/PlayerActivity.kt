@@ -195,6 +195,8 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        binding.gestureVolumeLayout.visibility = View.GONE
+        binding.gestureBrightnessLayout.visibility = View.GONE
         releasePlayer()
         super.onStop()
     }
