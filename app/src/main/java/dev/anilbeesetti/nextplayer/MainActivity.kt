@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
             NextPlayerTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     val storagePermissionState = rememberPermissionState(
                         permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
