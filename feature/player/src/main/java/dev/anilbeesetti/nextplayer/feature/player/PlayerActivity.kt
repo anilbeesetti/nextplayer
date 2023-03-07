@@ -140,6 +140,9 @@ class PlayerActivity : ComponentActivity() {
                     it,
                     C.TRACK_TYPE_AUDIO
                 )
+
+                trackSelectionDialogBuilder.setShowDisableOption(true)
+
                 val trackSelectionDialog = trackSelectionDialogBuilder.build()
                 trackSelectionDialog.show()
             }
@@ -165,6 +168,9 @@ class PlayerActivity : ComponentActivity() {
                     it,
                     C.TRACK_TYPE_TEXT
                 )
+
+                trackSelectionDialogBuilder.setShowDisableOption(true)
+
                 val trackSelectionDialog = trackSelectionDialogBuilder.build()
                 trackSelectionDialog.show()
             }
