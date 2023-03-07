@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        android:paddingHorizontal="16dp"
+        android:layout_marginHorizontal="8dp"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -32,7 +32,7 @@
                 android:src="@drawable/ic_arrow_left" />
 
             <Space
-                android:layout_width="8dp"
+                android:layout_width="16dp"
                 android:layout_height="0dp" />
 
             <TextView
@@ -65,6 +65,10 @@
                 android:padding="12dp"
                 android:src="@drawable/ic_audio_track"
                 app:tint="@android:color/white" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="0dp" />
 
             <ImageButton
                 android:id="@+id/btn_subtitle_track"
