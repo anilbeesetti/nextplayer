@@ -31,8 +31,6 @@ val ffmpegSetup by tasks.registering(Exec::class) {
     commandLine("bash", "setup.sh")
 }
 
-tasks.preBuild.dependsOn(ffmpegSetup)
-
 dependencies {
     implementation("androidx.media3:media3-exoplayer:1.0.0-rc02")
     implementation("com.google.errorprone:error_prone_annotations:2.18.0")
