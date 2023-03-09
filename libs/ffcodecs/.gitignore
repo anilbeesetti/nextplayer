@@ -1,1 +1,3 @@
-/build
+**/output
+**/build
+**/ffmpeg-6.0
