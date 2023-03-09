@@ -24,7 +24,8 @@ android {
 }
 
 dependencies {
-    implementation("androidx.media3:media3-decoder:1.0.0-rc02")
+    implementation("androidx.media3:media3-exoplayer:1.0.0-rc02")
+    implementation("com.google.errorprone:error_prone_annotations:2.18.0")
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.annotation:annotation:1.6.0")
     compileOnly("org.checkerframework:checker-qual:3.18.0")
