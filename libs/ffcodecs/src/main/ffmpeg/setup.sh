@@ -5,6 +5,7 @@ BASE_DIR=$(cd "$(dirname "$0")" && pwd)
 NDK_HOME=$HOME/Android/Sdk/ndk/23.1.7779620
 FFMPEG_VERSION=6.0
 ANDROID_ABIS="x86 x86_64 armeabi-v7a arm64-v8a"
+ENABLED_DECODERS="vorbis opus flac alac pcm_mulaw pcm_alaw mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd"
 HOST_PLATFORM="linux-x86_64"
 BUILD_DIR=$BASE_DIR/build
 OUTPUT_DIR=$BASE_DIR/output
@@ -24,6 +25,11 @@ cd "$FFMPEG_DIR" || exit 1
 
 TOOLCHAIN_PREFIX="${NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}/bin"
 EXTRA_BUILD_CONFIGURATION_FLAGS=""
+COMMON_OPTIONS=""
+
+for decoder in $ENABLED_DECODERS; do
+    COMMON_OPTIONS="${COMMON_OPTIONS} --enable-decoder=${decoder}"
+done
 
 rm -rf "$BUILD_DIR"
 rm -rf "$OUTPUT_DIR"
@@ -85,7 +91,8 @@ for ABI in $ANDROID_ABIS; do
         --disable-symver \
         --enable-swresample \
         --extra-ldexeflags=-pie \
-        ${EXTRA_BUILD_CONFIGURATION_FLAGS}
+        ${EXTRA_BUILD_CONFIGURATION_FLAGS} \
+        ${COMMON_OPTIONS}
 
     # Build FFmpeg
     echo "Building FFmpeg for $ARCH..."
