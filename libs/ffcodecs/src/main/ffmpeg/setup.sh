@@ -31,81 +31,81 @@ for decoder in $ENABLED_DECODERS; do
     COMMON_OPTIONS="${COMMON_OPTIONS} --enable-decoder=${decoder}"
 done
 
-rm -rf "$BUILD_DIR"
-rm -rf "$OUTPUT_DIR"
+if [[ ! -d "$OUTPUT_DIR" ]]; then
 
-# Build FFmpeg for each architecture and platform
-for ABI in $ANDROID_ABIS; do
+    # Build FFmpeg for each architecture and platform
+    for ABI in $ANDROID_ABIS; do
 
-    # Set up environment variables
-    case $ABI in
-    armeabi-v7a)
-        TOOLCHAIN=armv7a-linux-androideabi16-clang
-        CPU=armv7-a
-        ARCH=arm
-        ;;
-    arm64-v8a)
-        TOOLCHAIN=aarch64-linux-android21-clang
-        CPU=armv8-a
-        ARCH=aarch64
-        ;;
-    x86)
-        TOOLCHAIN=i686-linux-android16-clang
-        CPU=i686
-        ARCH=i686
-        EXTRA_BUILD_CONFIGURATION_FLAGS=--disable-asm
-        ;;
-    x86_64)
-        TOOLCHAIN=x86_64-linux-android21-clang
-        CPU=x86_64
-        ARCH=x86_64
-        ;;
-    *)
-        echo "Unsupported architecture: $ABI"
-        exit 1
-        ;;
-    esac
+        # Set up environment variables
+        case $ABI in
+        armeabi-v7a)
+            TOOLCHAIN=armv7a-linux-androideabi16-clang
+            CPU=armv7-a
+            ARCH=arm
+            ;;
+        arm64-v8a)
+            TOOLCHAIN=aarch64-linux-android21-clang
+            CPU=armv8-a
+            ARCH=aarch64
+            ;;
+        x86)
+            TOOLCHAIN=i686-linux-android16-clang
+            CPU=i686
+            ARCH=i686
+            EXTRA_BUILD_CONFIGURATION_FLAGS=--disable-asm
+            ;;
+        x86_64)
+            TOOLCHAIN=x86_64-linux-android21-clang
+            CPU=x86_64
+            ARCH=x86_64
+            ;;
+        *)
+            echo "Unsupported architecture: $ABI"
+            exit 1
+            ;;
+        esac
 
-    # Configure FFmpeg build
-    ./configure \
-        --prefix=$BUILD_DIR/$ABI \
-        --enable-cross-compile \
-        --arch=$ARCH \
-        --cpu=$CPU \
-        --cc="${TOOLCHAIN_PREFIX}/$TOOLCHAIN" \
-        --nm="${TOOLCHAIN_PREFIX}/llvm-nm" \
-        --ar="${TOOLCHAIN_PREFIX}/llvm-ar" \
-        --ranlib="${TOOLCHAIN_PREFIX}/llvm-ranlib" \
-        --strip="${TOOLCHAIN_PREFIX}/llvm-strip" \
-        --target-os=android \
-        --enable-shared \
-        --disable-static \
-        --disable-doc \
-        --disable-programs \
-        --disable-everything \
-        --disable-avdevice \
-        --disable-avformat \
-        --disable-swscale \
-        --disable-postproc \
-        --disable-avfilter \
-        --disable-symver \
-        --enable-swresample \
-        --extra-ldexeflags=-pie \
-        ${EXTRA_BUILD_CONFIGURATION_FLAGS} \
-        ${COMMON_OPTIONS}
+        # Configure FFmpeg build
+        ./configure \
+            --prefix=$BUILD_DIR/$ABI \
+            --enable-cross-compile \
+            --arch=$ARCH \
+            --cpu=$CPU \
+            --cc="${TOOLCHAIN_PREFIX}/$TOOLCHAIN" \
+            --nm="${TOOLCHAIN_PREFIX}/llvm-nm" \
+            --ar="${TOOLCHAIN_PREFIX}/llvm-ar" \
+            --ranlib="${TOOLCHAIN_PREFIX}/llvm-ranlib" \
+            --strip="${TOOLCHAIN_PREFIX}/llvm-strip" \
+            --target-os=android \
+            --enable-shared \
+            --disable-static \
+            --disable-doc \
+            --disable-programs \
+            --disable-everything \
+            --disable-avdevice \
+            --disable-avformat \
+            --disable-swscale \
+            --disable-postproc \
+            --disable-avfilter \
+            --disable-symver \
+            --enable-swresample \
+            --extra-ldexeflags=-pie \
+            ${EXTRA_BUILD_CONFIGURATION_FLAGS} \
+            ${COMMON_OPTIONS}
 
-    # Build FFmpeg
-    echo "Building FFmpeg for $ARCH..."
-    make clean
-    make -j"$JOBS"
-    make install
+        # Build FFmpeg
+        echo "Building FFmpeg for $ARCH..."
+        make clean
+        make -j"$JOBS"
+        make install
 
-    OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
-    mkdir -p "${OUTPUT_LIB}"
-    cp "${BUILD_DIR}"/"${ABI}"/lib/*.so "${OUTPUT_LIB}"
+        OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
+        mkdir -p "${OUTPUT_LIB}"
+        cp "${BUILD_DIR}"/"${ABI}"/lib/*.so "${OUTPUT_LIB}"
 
-    OUTPUT_HEADERS=${OUTPUT_DIR}/include/${ABI}
-    mkdir -p "${OUTPUT_HEADERS}"
-    cp -r "${BUILD_DIR}"/"${ABI}"/include/* "${OUTPUT_HEADERS}"
+        OUTPUT_HEADERS=${OUTPUT_DIR}/include/${ABI}
+        mkdir -p "${OUTPUT_HEADERS}"
+        cp -r "${BUILD_DIR}"/"${ABI}"/include/* "${OUTPUT_HEADERS}"
 
-done
+    done
+fi

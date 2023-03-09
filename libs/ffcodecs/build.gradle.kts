@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.factory.dependsOn
+
 plugins {
     id("nextplayer.android.library")
 }
@@ -22,6 +24,14 @@ android {
         }
     }
 }
+
+// Gradle task to setup ffmpeg
+val ffmpegSetup by tasks.registering(Exec::class) {
+    workingDir = file("src/main/ffmpeg")
+    commandLine("bash", "setup.sh")
+}
+
+tasks.preBuild.dependsOn(ffmpegSetup)
 
 dependencies {
     implementation("androidx.media3:media3-exoplayer:1.0.0-rc02")
