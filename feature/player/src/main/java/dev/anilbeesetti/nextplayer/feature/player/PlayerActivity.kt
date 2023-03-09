@@ -24,6 +24,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
+import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -48,6 +49,7 @@ class PlayerActivity : ComponentActivity() {
     private val viewModel: PlayerViewModel by viewModels()
 
     private var playerGestureHelper: PlayerGestureHelper? = null
+    private lateinit var mediaSession: MediaSession
 
     private var player: Player? = null
     private var dataUri: Uri? = null
@@ -226,6 +228,8 @@ class PlayerActivity : ComponentActivity() {
                     }
                 )
 
+                mediaSession = MediaSession.Builder(this, player).build()
+
                 if (viewModel.currentPlayerItemIndex != -1) {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
@@ -257,6 +261,7 @@ class PlayerActivity : ComponentActivity() {
             player.removeListener(playbackStateListener)
             player.release()
         }
+        mediaSession.release()
     }
 
     private fun playbackStateListener() = object : Player.Listener {
