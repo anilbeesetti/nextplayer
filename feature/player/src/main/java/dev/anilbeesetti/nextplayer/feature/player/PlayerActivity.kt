@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
@@ -24,6 +26,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
+import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -34,10 +37,10 @@ import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBind
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
-import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -48,6 +51,7 @@ class PlayerActivity : ComponentActivity() {
     private val viewModel: PlayerViewModel by viewModels()
 
     private var playerGestureHelper: PlayerGestureHelper? = null
+    private lateinit var mediaSession: MediaSession
 
     private var player: Player? = null
     private var dataUri: Uri? = null
@@ -226,6 +230,8 @@ class PlayerActivity : ComponentActivity() {
                     }
                 )
 
+                mediaSession = MediaSession.Builder(this, player).build()
+
                 if (viewModel.currentPlayerItemIndex != -1) {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
@@ -257,6 +263,7 @@ class PlayerActivity : ComponentActivity() {
             player.removeListener(playbackStateListener)
             player.release()
         }
+        mediaSession.release()
     }
 
     private fun playbackStateListener() = object : Player.Listener {
