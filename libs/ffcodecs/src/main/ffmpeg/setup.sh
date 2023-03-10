@@ -2,7 +2,7 @@
 
 # Variables
 BASE_DIR=$(cd "$(dirname "$0")" && pwd)
-NDK_HOME=$HOME/Android/Sdk/ndk/23.1.7779620
+NDK_HOME=$ANDROID_NDK_HOME
 FFMPEG_VERSION=6.0
 ANDROID_ABIS="x86 x86_64 armeabi-v7a arm64-v8a"
 ENABLED_DECODERS="vorbis opus flac alac pcm_mulaw pcm_alaw mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd"

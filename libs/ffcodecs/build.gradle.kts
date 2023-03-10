@@ -15,6 +15,12 @@ android {
                 cppFlags("")
             }
         }
+
+        ndk {
+            abiFilters += listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
+        }
+
+        ndkVersion = "23.1.7779620"
     }
 
     externalNativeBuild {
@@ -28,8 +34,12 @@ android {
 // Gradle task to setup ffmpeg
 val ffmpegSetup by tasks.registering(Exec::class) {
     workingDir = file("src/main/ffmpeg")
+    // export ndk path and run bash script
+    environment("ANDROID_NDK_HOME", android.ndkDirectory.absolutePath)
     commandLine("bash", "setup.sh")
 }
+
+tasks.preBuild.dependsOn(ffmpegSetup)
 
 dependencies {
     implementation("androidx.media3:media3-exoplayer:1.0.0-rc02")
