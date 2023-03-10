@@ -27,6 +27,8 @@ TOOLCHAIN_PREFIX="${NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}/bin"
 EXTRA_BUILD_CONFIGURATION_FLAGS=""
 COMMON_OPTIONS=""
 
+ls -la "${TOOLCHAIN_PREFIX}"
+
 for decoder in $ENABLED_DECODERS; do
     COMMON_OPTIONS="${COMMON_OPTIONS} --enable-decoder=${decoder}"
 done
@@ -39,23 +41,23 @@ if [[ ! -d "$OUTPUT_DIR" ]]; then
         # Set up environment variables
         case $ABI in
         armeabi-v7a)
-            TOOLCHAIN=armv7a-linux-androideabi16-clang
+            TOOLCHAIN=armv7a-linux-androideabi16-
             CPU=armv7-a
             ARCH=arm
             ;;
         arm64-v8a)
-            TOOLCHAIN=aarch64-linux-android21-clang
+            TOOLCHAIN=aarch64-linux-android21-
             CPU=armv8-a
             ARCH=aarch64
             ;;
         x86)
-            TOOLCHAIN=i686-linux-android16-clang
+            TOOLCHAIN=i686-linux-android16-
             CPU=i686
             ARCH=i686
             EXTRA_BUILD_CONFIGURATION_FLAGS=--disable-asm
             ;;
         x86_64)
-            TOOLCHAIN=x86_64-linux-android21-clang
+            TOOLCHAIN=x86_64-linux-android21-
             CPU=x86_64
             ARCH=x86_64
             ;;
@@ -71,7 +73,7 @@ if [[ ! -d "$OUTPUT_DIR" ]]; then
             --enable-cross-compile \
             --arch=$ARCH \
             --cpu=$CPU \
-            --cc="${TOOLCHAIN_PREFIX}/$TOOLCHAIN" \
+            --cross-prefix="${TOOLCHAIN_PREFIX}/$TOOLCHAIN" \
             --nm="${TOOLCHAIN_PREFIX}/llvm-nm" \
             --ar="${TOOLCHAIN_PREFIX}/llvm-ar" \
             --ranlib="${TOOLCHAIN_PREFIX}/llvm-ranlib" \
