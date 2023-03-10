@@ -8,12 +8,12 @@ import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.data.models.Video
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import java.io.File
 
 class LocalMediaSource @Inject constructor(
     @ApplicationContext private val context: Context
@@ -70,7 +70,7 @@ private val VIDEO_PROJECTION
         MediaStore.Video.Media.DATA,
         MediaStore.Video.Media.DURATION,
         MediaStore.Video.Media.HEIGHT,
-        MediaStore.Video.Media.WIDTH,
+        MediaStore.Video.Media.WIDTH
     )
 
 /**
