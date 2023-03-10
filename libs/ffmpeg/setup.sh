@@ -11,18 +11,27 @@ BUILD_DIR=$BASE_DIR/build
 OUTPUT_DIR=$BASE_DIR/output
 FFMPEG_DIR=$BASE_DIR/ffmpeg-$FFMPEG_VERSION
 JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || sysctl -n hw.pysicalcpu || echo 4)
+
+# Set up host platform variables
 case "$OSTYPE" in
-  darwin*)  HOST_PLATFORM="darwin-x86_64" ;;
-  linux*)   HOST_PLATFORM="linux-x86_64" ;;
+    darwin*) HOST_PLATFORM="darwin-x86_64" ;;
+    linux*) HOST_PLATFORM="linux-x86_64" ;;
+    msys)
+        case "$(uname -m)" in
+        x86_64) HOST_PLATFORM="windows-x86_64" ;;
+        i686) HOST_PLATFORM="windows" ;;
+        esac
+        ;;
 esac
 
 cd "$BASE_DIR" || exit 1
 
+# Download FFmpeg source code if it doesn't exist
 if [[ ! -d "$FFMPEG_DIR" ]]; then
     # Download FFmpeg source code
     echo "Downloading FFmpeg source code of version $FFMPEG_VERSION..."
     curl -O https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.gz
-    tar -zxvf ffmpeg-$FFMPEG_VERSION.tar.gz
+    tar -zxf ffmpeg-$FFMPEG_VERSION.tar.gz
     rm ffmpeg-$FFMPEG_VERSION.tar.gz
 fi
 cd "$FFMPEG_DIR" || exit 1
@@ -33,6 +42,7 @@ COMMON_OPTIONS=""
 
 ls -la "${TOOLCHAIN_PREFIX}"
 
+# Add enabled decoders to FFmpeg build configuration
 for decoder in $ENABLED_DECODERS; do
     COMMON_OPTIONS="${COMMON_OPTIONS} --enable-decoder=${decoder}"
 done

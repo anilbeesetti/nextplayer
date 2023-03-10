@@ -33,7 +33,7 @@ android {
 
 // Gradle task to setup ffmpeg
 val ffmpegSetup by tasks.registering(Exec::class) {
-    workingDir = file("src/main/ffmpeg")
+    workingDir = file("../ffmpeg")
     // export ndk path and run bash script
     environment("ANDROID_NDK_HOME", android.ndkDirectory.absolutePath)
     commandLine("bash", "setup.sh")
