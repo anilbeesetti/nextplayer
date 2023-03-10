@@ -10,7 +10,11 @@ HOST_PLATFORM="linux-x86_64"
 BUILD_DIR=$BASE_DIR/build
 OUTPUT_DIR=$BASE_DIR/output
 FFMPEG_DIR=$BASE_DIR/ffmpeg-$FFMPEG_VERSION
-JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || sysctl -n hw.pysicalcpu || echo 4)
+case "$OSTYPE" in
+  darwin*)  HOST_PLATFORM="darwin-x86_64" ;;
+  linux*)   HOST_PLATFORM="linux-x86_64" ;;
+esac
 
 cd "$BASE_DIR" || exit 1
 
