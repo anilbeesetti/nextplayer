@@ -31,3 +31,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# ffmpeg
+libs/ffmpeg/build
+libs/ffmpeg/output
+libs/ffmpeg/ffmpeg-6.0
