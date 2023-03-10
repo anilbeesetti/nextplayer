@@ -13,6 +13,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import java.io.File
 
 class LocalMediaSource @Inject constructor(
     @ApplicationContext private val context: Context
@@ -66,12 +67,10 @@ private val VIDEO_COLLECTION_URI
 private val VIDEO_PROJECTION
     get() = arrayOf(
         MediaStore.Video.Media._ID,
-        MediaStore.Video.Media.TITLE,
         MediaStore.Video.Media.DATA,
         MediaStore.Video.Media.DURATION,
         MediaStore.Video.Media.HEIGHT,
         MediaStore.Video.Media.WIDTH,
-        MediaStore.Video.Media.DISPLAY_NAME
     )
 
 /**
@@ -81,14 +80,19 @@ private val VIDEO_PROJECTION
 private inline val Cursor.toVideo: Video
     get() {
         val id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+        val path = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))
+        val duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
+        val width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
+        val height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
+        val file = File(path)
         return Video(
             id = id,
-            path = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
-            duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
+            path = path,
+            duration = duration,
             uriString = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id).toString(),
-            displayName = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
-            nameWithExtension = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)),
-            width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
-            height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
+            displayName = file.nameWithoutExtension,
+            nameWithExtension = file.name,
+            width = width,
+            height = height
         )
     }
