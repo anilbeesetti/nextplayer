@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.data.mediasource
+package dev.anilbeesetti.nextplayer.core.media.mediasource
 
 import android.content.ContentUris
 import android.content.Context
@@ -7,8 +7,7 @@ import android.database.Cursor
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.anilbeesetti.nextplayer.core.data.models.Video
-import java.io.File
+import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +22,7 @@ class LocalMediaSource @Inject constructor(
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
-    ): Flow<List<Video>> = callbackFlow {
+    ): Flow<List<MediaVideo>> = callbackFlow {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
                 trySend(getVideoItems(selection, selectionArgs, sortOrder))
@@ -40,8 +39,8 @@ class LocalMediaSource @Inject constructor(
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
-    ): List<Video> {
-        val videos = mutableListOf<Video>()
+    ): List<MediaVideo> {
+        val mediaVideos = mutableListOf<MediaVideo>()
         context.contentResolver.query(
             VIDEO_COLLECTION_URI,
             VIDEO_PROJECTION,
@@ -50,10 +49,10 @@ class LocalMediaSource @Inject constructor(
             sortOrder
         )?.use { cursor ->
             while (cursor.moveToNext()) {
-                videos.add(cursor.toVideo)
+                mediaVideos.add(cursor.toMediaVideo)
             }
         }
-        return videos
+        return mediaVideos
     }
 }
 
@@ -75,24 +74,17 @@ private val VIDEO_PROJECTION
 
 /**
  * convert cursor to video item
- * @see Video
+ * @see MediaVideo
  */
-private inline val Cursor.toVideo: Video
+private inline val Cursor.toMediaVideo: MediaVideo
     get() {
         val id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
-        val path = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))
-        val duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
-        val width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
-        val height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH))
-        val file = File(path)
-        return Video(
+        return MediaVideo(
             id = id,
-            path = path,
-            duration = duration,
-            uriString = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id).toString(),
-            displayName = file.nameWithoutExtension,
-            nameWithExtension = file.name,
-            width = width,
-            height = height
+            data = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
+            duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
+            uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
+            width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
+            height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.HEIGHT))
         )
     }

@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import kotlinx.coroutines.flow.Flow
 
@@ -11,12 +10,6 @@ interface VideoRepository {
      * @return flow of list of video items
      */
     fun getVideosFlow(): Flow<List<Video>>
-
-    /**
-     * Get local player items
-     * @return list of player items
-     */
-    fun getLocalPlayerItems(): List<PlayerItem>
 
     /**
      * Get position from path
