@@ -15,7 +15,12 @@ class FakeVideoRepository : VideoRepository {
     }
 
     override fun getLocalPlayerItems(): List<PlayerItem> {
-        return videoItems.map { it.toPlayerItem() }
+        return videoItems.map { video ->
+            PlayerItem(
+                path = video.path,
+                duration = video.duration
+            )
+        }
     }
 
     override suspend fun getPosition(path: String): Long? {

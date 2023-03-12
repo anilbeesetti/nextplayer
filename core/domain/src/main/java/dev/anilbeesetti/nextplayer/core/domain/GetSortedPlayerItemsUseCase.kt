@@ -12,6 +12,11 @@ class GetSortedPlayerItemsUseCase @Inject constructor(
 
     operator fun invoke(): Flow<List<PlayerItem>> = getSortedVideosUseCase.invoke()
         .map { videos ->
-            videos.map { it.toPlayerItem() }
+            videos.map { video ->
+                PlayerItem(
+                    path = video.path,
+                    duration = video.duration
+                )
+            }
         }
 }

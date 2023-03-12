@@ -4,17 +4,14 @@ plugins {
 }
 
 android {
-    namespace = "dev.anilbeesetti.nextplayer.core.data"
+    namespace = "dev.anilbeesetti.nextplayer.core.media"
 }
 
 dependencies {
 
     implementation(project(":core:database"))
-    implementation(project(":core:media"))
-    api(project(":core:datastore"))
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
