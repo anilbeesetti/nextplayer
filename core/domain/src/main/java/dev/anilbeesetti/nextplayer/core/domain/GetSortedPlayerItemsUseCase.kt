@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 class GetSortedPlayerItemsUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase
@@ -19,4 +19,3 @@ class GetSortedPlayerItemsUseCase @Inject constructor(
             }
         }
 }
-
