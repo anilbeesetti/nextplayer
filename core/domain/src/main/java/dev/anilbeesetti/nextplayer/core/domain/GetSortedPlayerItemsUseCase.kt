@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
-import dev.anilbeesetti.nextplayer.core.data.repository.toPlayerItem
+import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -12,6 +11,11 @@ class GetSortedPlayerItemsUseCase @Inject constructor(
 
     operator fun invoke(): Flow<List<PlayerItem>> = getSortedVideosUseCase.invoke()
         .map { videos ->
-            videos.map { it.toPlayerItem() }
+            videos.map { video ->
+                PlayerItem(
+                    path = video.path,
+                    duration = video.duration
+                )
+            }
         }
 }

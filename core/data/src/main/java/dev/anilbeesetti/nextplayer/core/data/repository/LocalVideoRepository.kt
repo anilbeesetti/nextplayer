@@ -1,21 +1,24 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.mediasource.MediaSource
-import dev.anilbeesetti.nextplayer.core.data.models.PlayerItem
+import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
+import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
+import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class LocalVideoRepository @Inject constructor(
     private val videoDao: VideoDao,
     private val mediaSource: MediaSource
 ) : VideoRepository {
-    override fun getVideosFlow(): Flow<List<Video>> = mediaSource.getVideoItemsFlow()
-
-    override fun getLocalPlayerItems(): List<PlayerItem> {
-        return mediaSource.getVideoItems().map { it.toPlayerItem() }
+    override fun getVideosFlow(): Flow<List<Video>> {
+        return mediaSource.getVideoItemsFlow()
+            .map { mediaList ->
+                mediaList.map(MediaVideo::toVideo)
+            }
     }
 
     override suspend fun getPosition(path: String): Long? {
@@ -30,11 +33,4 @@ class LocalVideoRepository @Inject constructor(
             )
         )
     }
-}
-
-fun Video.toPlayerItem(): PlayerItem {
-    return PlayerItem(
-        path = path,
-        duration = duration
-    )
 }
