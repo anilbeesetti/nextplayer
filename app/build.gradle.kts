@@ -22,6 +22,11 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        getByName("debug") {
+            isDebuggable = true
+            applicationIdSuffix = ".debug"
+        }
     }
 
     splits {
