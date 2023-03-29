@@ -34,13 +34,13 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
-import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
+import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint

@@ -25,6 +25,5 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String? {
             append(" - ")
             append(Locale(language).displayLanguage)
         }
-
     }
 }
