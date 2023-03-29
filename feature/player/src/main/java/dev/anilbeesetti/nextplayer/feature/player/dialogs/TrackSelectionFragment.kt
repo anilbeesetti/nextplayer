@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player
+package dev.anilbeesetti.nextplayer.feature.player.dialogs
 
 import android.app.Dialog
 import android.os.Bundle
@@ -8,6 +8,8 @@ import androidx.media3.common.TrackGroup
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
+import dev.anilbeesetti.nextplayer.feature.player.R
 import java.util.Locale
 
 @UnstableApi
