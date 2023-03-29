@@ -14,7 +14,7 @@ android {
     }
 
     buildTypes {
-        getByName("release") {
+        release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -23,7 +23,7 @@ android {
             )
         }
 
-        getByName("debug") {
+        debug {
             isDebuggable = true
             applicationIdSuffix = ".debug"
         }
