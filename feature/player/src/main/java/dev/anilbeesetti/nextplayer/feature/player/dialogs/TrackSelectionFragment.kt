@@ -25,13 +25,16 @@ class TrackSelectionFragment(
                    val trackNames = audioTracks.filter { it.isSupported }.mapIndexed { index, trackGroup ->
                        trackGroup.mediaTrackGroup.getName(type, index)
                    }.toTypedArray()
+                   val selectedTrackIndex = audioTracks.indexOfFirst { it.isSelected }
                    MaterialAlertDialogBuilder(activity)
                        .setTitle(getString(R.string.select_audio_track))
                        .setSingleChoiceItems(
                            trackNames,
-                           audioTracks.indexOfFirst { it.isSelected }
+                           selectedTrackIndex
                        ) { dialog, trackIndex ->
-                           viewModel.switchTrack(type, trackIndex)
+                            if (selectedTrackIndex != trackIndex) {
+                                 viewModel.switchTrack(type, trackIndex)
+                            }
                            dialog.dismiss()
                        }
                        .create()
@@ -43,13 +46,16 @@ class TrackSelectionFragment(
                    val trackNames = textTracks.filter { it.isSupported }.mapIndexed { index, trackGroup ->
                        trackGroup.mediaTrackGroup.getName(type, index)
                    }.toTypedArray()
+                   val selectedTrackIndex = textTracks.indexOfFirst { it.isSelected }
                    MaterialAlertDialogBuilder(activity)
                        .setTitle(getString(R.string.select_subtitle_track))
                        .setSingleChoiceItems(
                            trackNames,
-                           textTracks.indexOfFirst { it.isSelected }
+                           selectedTrackIndex
                        ) { dialog, trackIndex ->
-                           viewModel.switchTrack(type, trackIndex)
+                           if (selectedTrackIndex != trackIndex) {
+                               viewModel.switchTrack(type, trackIndex)
+                           }
                            dialog.dismiss()
                        }
                        .create()
