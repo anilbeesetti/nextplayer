@@ -35,10 +35,15 @@ class PlayerViewModel @Inject constructor(
     var currentAudioTrackIndex = MutableStateFlow(-1)
         private set
 
+    var currentSubtitleTrackIndex = MutableStateFlow(-1)
+        private set
+
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath.value = path
         viewModelScope.launch {
             playbackPosition.value = path?.let { videoRepository.getPosition(it) }
+            currentAudioTrackIndex.value = -1
+            currentSubtitleTrackIndex.value = -1
         }
     }
 
@@ -71,6 +76,7 @@ class PlayerViewModel @Inject constructor(
     fun switchTrackToIndex(trackType: @C.TrackType Int, trackIndex: Int) {
         when (trackType) {
             C.TRACK_TYPE_AUDIO -> currentAudioTrackIndex.value = trackIndex
+            C.TRACK_TYPE_TEXT -> currentSubtitleTrackIndex.value = trackIndex
         }
     }
 }

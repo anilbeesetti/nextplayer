@@ -129,6 +129,25 @@ class PlayerActivity : AppCompatActivity() {
                 }
 
                 launch {
+                    viewModel.currentSubtitleTrackIndex.collectLatest { subtitleTrackIndex ->
+                        if (subtitleTrackIndex != -1) {
+                            Timber.d("Setting subtitle track: $subtitleTrackIndex")
+                            player?.let { player ->
+                                val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
+                                val trackSelectionOverride = TrackSelectionOverride(
+                                    tracks[subtitleTrackIndex].mediaTrackGroup,
+                                    0
+                                )
+                                player.trackSelectionParameters = player.trackSelectionParameters
+                                    .buildUpon()
+                                    .setOverrideForType(trackSelectionOverride)
+                                    .build()
+                            }
+                        }
+                    }
+                }
+
+                launch {
                     viewModel.currentPlaybackPath.collectLatest {
                         if (it != null) {
                             videoTitleTextView.text = File(it).name
@@ -179,17 +198,10 @@ class PlayerActivity : AppCompatActivity() {
             if (subtitleRenderer == null) return@setOnClickListener
 
             player?.let {
-                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
-                    this,
-                    resources.getString(R.string.select_subtitle_track),
-                    it,
-                    C.TRACK_TYPE_TEXT
+                TrackSelectionFragment(C.TRACK_TYPE_TEXT, it.currentTracks, viewModel).show(
+                    supportFragmentManager,
+                    "TrackSelectionDialog"
                 )
-
-                trackSelectionDialogBuilder.setShowDisableOption(true)
-
-                val trackSelectionDialog = trackSelectionDialogBuilder.build()
-                trackSelectionDialog.show()
             }
         }
 
