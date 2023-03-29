@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
@@ -21,7 +22,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackGroup
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
@@ -40,6 +45,7 @@ import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Locale
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -136,18 +142,26 @@ class PlayerActivity : ComponentActivity() {
 
             if (audioRenderer == null) return@setOnClickListener
 
-            player?.let {
-                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
-                    this,
-                    resources.getString(R.string.select_audio_track),
-                    it,
-                    C.TRACK_TYPE_AUDIO
-                )
-
-                trackSelectionDialogBuilder.setShowDisableOption(true)
-
-                val trackSelectionDialog = trackSelectionDialogBuilder.build()
-                trackSelectionDialog.show()
+            player?.let { player1 ->
+                val tracks = player1.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+                val trackNames = tracks.filter { it.isSupported }.mapIndexed { index, trackGroup ->
+                    trackGroup.mediaTrackGroup.getName(index)
+                }.toTypedArray()
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Select Audio Track")
+                    .setSingleChoiceItems(
+                        trackNames,
+                        tracks.indexOfFirst { it.isSelected }
+                    ) { dialog, trackIndex ->
+                        player1.trackSelectionParameters = player1.trackSelectionParameters
+                            .buildUpon()
+                            .setOverrideForType(
+                                TrackSelectionOverride(tracks[trackIndex].mediaTrackGroup, 0)
+                            )
+                            .build()
+                        dialog.dismiss()
+                    }
+                    .show()
             }
         }
 
@@ -353,3 +367,25 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
+
+
+@UnstableApi
+fun TrackGroup.getName(index: Int): String? {
+    val format = this.getFormat(0)
+    val language = format.language
+    val label = format.label
+    return buildString {
+        if (label != null) {
+            append(label)
+        }
+        if (language != null && language != "und") {
+            if (label != null) {
+                append(" - ")
+            }
+            append(Locale(language).displayLanguage)
+        }
+        if (isEmpty()) {
+            append("Audio Track #${index + 1}")
+        }
+    }
+}
