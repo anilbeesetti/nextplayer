@@ -73,7 +73,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch { videoRepository.updatePosition(path, position) }
     }
 
-    fun switchTrackToIndex(trackType: @C.TrackType Int, trackIndex: Int) {
+    fun switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
         when (trackType) {
             C.TRACK_TYPE_AUDIO -> currentAudioTrackIndex.value = trackIndex
             C.TRACK_TYPE_TEXT -> currentSubtitleTrackIndex.value = trackIndex

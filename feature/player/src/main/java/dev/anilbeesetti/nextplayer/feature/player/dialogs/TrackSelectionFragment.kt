@@ -4,13 +4,12 @@ import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.media3.common.C
-import androidx.media3.common.TrackGroup
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.feature.player.R
-import java.util.Locale
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 
 @UnstableApi
 class TrackSelectionFragment(
@@ -32,7 +31,7 @@ class TrackSelectionFragment(
                            trackNames,
                            audioTracks.indexOfFirst { it.isSelected }
                        ) { dialog, trackIndex ->
-                           viewModel.switchTrackToIndex(type, trackIndex)
+                           viewModel.switchTrack(type, trackIndex)
                            dialog.dismiss()
                        }
                        .create()
@@ -50,7 +49,7 @@ class TrackSelectionFragment(
                            trackNames,
                            textTracks.indexOfFirst { it.isSelected }
                        ) { dialog, trackIndex ->
-                           viewModel.switchTrackToIndex(type, trackIndex)
+                           viewModel.switchTrack(type, trackIndex)
                            dialog.dismiss()
                        }
                        .create()
@@ -60,30 +59,5 @@ class TrackSelectionFragment(
                throw IllegalArgumentException("Track type not supported. Track type must be either TRACK_TYPE_AUDIO or TRACK_TYPE_TEXT")
            }
        }
-    }
-}
-
-@UnstableApi
-fun TrackGroup.getName(trackType: @C.TrackType Int,index: Int): String? {
-    val format = this.getFormat(0)
-    val language = format.language
-    val label = format.label
-    return buildString {
-        if (label != null) {
-            append(label)
-        }
-        if (language != null && language != "und") {
-            if (label != null) {
-                append(" - ")
-            }
-            append(Locale(language).displayLanguage)
-        }
-        if (isEmpty()) {
-            if (trackType == C.TRACK_TYPE_TEXT) {
-                append("Subtitle Track #${index + 1}")
-            } else {
-                append("Audio Track #${index + 1}")
-            }
-        }
     }
 }
