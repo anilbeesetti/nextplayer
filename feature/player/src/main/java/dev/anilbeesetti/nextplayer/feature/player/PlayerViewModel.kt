@@ -32,6 +32,9 @@ class PlayerViewModel @Inject constructor(
     val currentPlayerItemIndex: Int
         get() = currentPlayerItems.indexOfFirst { it.path == currentPlaybackPath.value }
 
+    var currentAudioTrackIndex = MutableStateFlow(-1)
+        private set
+
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath.value = path
         viewModelScope.launch {
@@ -63,5 +66,11 @@ class PlayerViewModel @Inject constructor(
 
     fun updatePosition(path: String, position: Long) {
         viewModelScope.launch { videoRepository.updatePosition(path, position) }
+    }
+
+    fun switchTrackToIndex(trackType: @C.TrackType Int, trackIndex: Int) {
+        when (trackType) {
+            C.TRACK_TYPE_AUDIO -> currentAudioTrackIndex.value = trackIndex
+        }
     }
 }

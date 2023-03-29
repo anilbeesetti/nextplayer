@@ -12,8 +12,10 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -49,7 +51,7 @@ import java.util.Locale
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
-class PlayerActivity : ComponentActivity() {
+class PlayerActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityPlayerBinding
 
@@ -114,6 +116,25 @@ class PlayerActivity : ComponentActivity() {
                 }
 
                 launch {
+                    viewModel.currentAudioTrackIndex.collectLatest { audioTrackIndex ->
+                        if (audioTrackIndex != -1) {
+                            Timber.d("Setting audio track: $audioTrackIndex")
+                            player?.let { player ->
+                                val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+                                val trackSelectionOverride = TrackSelectionOverride(
+                                    tracks[audioTrackIndex].mediaTrackGroup,
+                                    0
+                                )
+                                player.trackSelectionParameters = player.trackSelectionParameters
+                                    .buildUpon()
+                                    .setOverrideForType(trackSelectionOverride)
+                                    .build()
+                            }
+                        }
+                    }
+                }
+
+                launch {
                     viewModel.currentPlaybackPath.collectLatest {
                         if (it != null) {
                             videoTitleTextView.text = File(it).name
@@ -142,26 +163,11 @@ class PlayerActivity : ComponentActivity() {
 
             if (audioRenderer == null) return@setOnClickListener
 
-            player?.let { player1 ->
-                val tracks = player1.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
-                val trackNames = tracks.filter { it.isSupported }.mapIndexed { index, trackGroup ->
-                    trackGroup.mediaTrackGroup.getName(index)
-                }.toTypedArray()
-                MaterialAlertDialogBuilder(this)
-                    .setTitle("Select Audio Track")
-                    .setSingleChoiceItems(
-                        trackNames,
-                        tracks.indexOfFirst { it.isSelected }
-                    ) { dialog, trackIndex ->
-                        player1.trackSelectionParameters = player1.trackSelectionParameters
-                            .buildUpon()
-                            .setOverrideForType(
-                                TrackSelectionOverride(tracks[trackIndex].mediaTrackGroup, 0)
-                            )
-                            .build()
-                        dialog.dismiss()
-                    }
-                    .show()
+            player?.let {
+                TrackSelectionFragment(C.TRACK_TYPE_AUDIO, it.currentTracks, viewModel).show(
+                    supportFragmentManager,
+                    "TrackSelectionDialog"
+                )
             }
         }
 
@@ -367,25 +373,3 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
-
-
-@UnstableApi
-fun TrackGroup.getName(index: Int): String? {
-    val format = this.getFormat(0)
-    val language = format.language
-    val label = format.label
-    return buildString {
-        if (label != null) {
-            append(label)
-        }
-        if (language != null && language != "und") {
-            if (label != null) {
-                append(" - ")
-            }
-            append(Locale(language).displayLanguage)
-        }
-        if (isEmpty()) {
-            append("Audio Track #${index + 1}")
-        }
-    }
-}
