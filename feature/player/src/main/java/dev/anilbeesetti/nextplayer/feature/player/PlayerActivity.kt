@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
@@ -233,9 +234,19 @@ class PlayerActivity : ComponentActivity() {
                 if (viewModel.currentPlayerItemIndex != -1) {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
+
+                        val subtitles = getSubsForMedia(playerItem.path).map {
+                            MediaItem.SubtitleConfiguration
+                                .Builder(it.toUri())
+                                .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                                .setLabel(it.nameWithoutExtension)
+                                .build()
+                        }
+
                         val mediaItem = MediaItem.Builder()
                             .setUri(File(playerItem.path).toUri())
                             .setMediaId(playerItem.path)
+                            .setSubtitleConfigurations(subtitles)
                             .build()
 
                         mediaItems.add(mediaItem)
@@ -323,6 +334,17 @@ class PlayerActivity : ComponentActivity() {
         }
         val trackType = mappedTrackInfo.getRendererType(rendererIndex)
         return type == trackType
+    }
+
+    private fun getSubsForMedia(mediaFilePath: String): List<File> {
+        val subtitleExtensions = listOf("srt")
+        val mediaFile = File(mediaFilePath)
+        val mediaName = mediaFile.nameWithoutExtension
+        val subs = mediaFile.parentFile?.listFiles { file ->
+            file.extension in subtitleExtensions && file.nameWithoutExtension == mediaName
+        }?.toList() ?: emptyList()
+
+        return subs
     }
 }
 
