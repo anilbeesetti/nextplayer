@@ -14,12 +14,6 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String? {
         if (label != null) {
             append(label)
         }
-        if (language != null && language != "und") {
-            if (label != null) {
-                append(" - ")
-            }
-            append(Locale(language).displayLanguage)
-        }
         if (isEmpty()) {
             if (trackType == C.TRACK_TYPE_TEXT) {
                 append("Subtitle Track #${index + 1}")
@@ -27,5 +21,10 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String? {
                 append("Audio Track #${index + 1}")
             }
         }
+        if (language != null && language != "und") {
+            append(" - ")
+            append(Locale(language).displayLanguage)
+        }
+
     }
 }
