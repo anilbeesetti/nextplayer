@@ -6,5 +6,7 @@ import androidx.room.PrimaryKey
 @Entity
 data class VideoEntity(
     @PrimaryKey val path: String,
-    val playbackPosition: Long
+    val playbackPosition: Long,
+    val audioTrack: Int? = null,
+    val subtitleTrack: Int? = null
 )
