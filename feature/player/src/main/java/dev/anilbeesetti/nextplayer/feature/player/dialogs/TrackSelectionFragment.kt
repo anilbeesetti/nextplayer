@@ -21,18 +21,25 @@ class TrackSelectionFragment(
         when (type) {
             C.TRACK_TYPE_AUDIO -> {
                 return activity?.let { activity ->
-                    val audioTracks = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
-                    val trackNames = audioTracks.filter { it.isSupported }.mapIndexed { index, trackGroup ->
+                    val audioTracks = tracks.groups
+                        .filter { it.type == C.TRACK_TYPE_AUDIO && it.isSupported }
+
+                    val trackNames = audioTracks.mapIndexed { index, trackGroup ->
                         trackGroup.mediaTrackGroup.getName(type, index)
                     }.toTypedArray()
+
                     val selectedTrackIndex = audioTracks.indexOfFirst { it.isSelected }
+                        .takeIf { it != -1 } ?: audioTracks.size
+
                     MaterialAlertDialogBuilder(activity)
                         .setTitle(getString(R.string.select_audio_track))
                         .setSingleChoiceItems(
-                            trackNames,
+                            arrayOf(*trackNames, getString(R.string.disable)),
                             selectedTrackIndex
                         ) { dialog, trackIndex ->
-                            if (selectedTrackIndex != trackIndex) {
+                            if (trackIndex == trackNames.size) {
+                                viewModel.switchTrack(type, -1)
+                            } else if (selectedTrackIndex != trackIndex) {
                                 viewModel.switchTrack(type, trackIndex)
                             }
                             dialog.dismiss()
@@ -42,18 +49,25 @@ class TrackSelectionFragment(
             }
             C.TRACK_TYPE_TEXT -> {
                 return activity?.let { activity ->
-                    val textTracks = tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
-                    val trackNames = textTracks.filter { it.isSupported }.mapIndexed { index, trackGroup ->
+                    val textTracks = tracks.groups
+                        .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
+
+                    val trackNames = textTracks.mapIndexed { index, trackGroup ->
                         trackGroup.mediaTrackGroup.getName(type, index)
                     }.toTypedArray()
+
                     val selectedTrackIndex = textTracks.indexOfFirst { it.isSelected }
+                        .takeIf { it != -1 } ?: textTracks.size
+
                     MaterialAlertDialogBuilder(activity)
                         .setTitle(getString(R.string.select_subtitle_track))
                         .setSingleChoiceItems(
-                            trackNames,
+                            arrayOf(*trackNames, getString(R.string.disable)),
                             selectedTrackIndex
                         ) { dialog, trackIndex ->
-                            if (selectedTrackIndex != trackIndex) {
+                            if (trackIndex == trackNames.size) {
+                                viewModel.switchTrack(type, -1)
+                            } else if (selectedTrackIndex != trackIndex) {
                                 viewModel.switchTrack(type, trackIndex)
                             }
                             dialog.dismiss()
