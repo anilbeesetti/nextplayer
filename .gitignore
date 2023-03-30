@@ -33,6 +33,6 @@ google-services.json
 *.hprof
 
 # ffmpeg
-libs/ffmpeg/build
-libs/ffmpeg/output
-libs/ffmpeg/ffmpeg-6.0
+nextlib/ffmpeg/build
+nextlib/ffmpeg/output
+nextlib/ffmpeg/ffmpeg-6.0
