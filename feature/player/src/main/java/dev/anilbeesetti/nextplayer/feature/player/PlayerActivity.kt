@@ -34,6 +34,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
+import dev.anilbeesetti.nextplayer.feature.player.extensions.changeTrack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.disableTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
@@ -113,15 +115,8 @@ class PlayerActivity : AppCompatActivity() {
                         audioTrackIndex?.let { index ->
                             player?.let { player ->
                                 if (index == -1) {
-                                    // Disable audio
                                     Timber.d("Disabling audio")
-
-                                    player.trackSelectionParameters =
-                                        player.trackSelectionParameters
-                                            .buildUpon()
-                                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
-                                            .build()
-
+                                    player.disableTrack(C.TRACK_TYPE_AUDIO)
                                 } else {
                                     Timber.d("Setting audio track: $audioTrackIndex")
 
@@ -130,12 +125,7 @@ class PlayerActivity : AppCompatActivity() {
                                     val trackSelectionOverride = TrackSelectionOverride(
                                         tracks[index].mediaTrackGroup, 0
                                     )
-                                    player.trackSelectionParameters =
-                                        player.trackSelectionParameters
-                                            .buildUpon()
-                                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
-                                            .setOverrideForType(trackSelectionOverride)
-                                            .build()
+                                    player.changeTrack(C.TRACK_TYPE_AUDIO, trackSelectionOverride)
                                 }
                             }
                         }
@@ -147,15 +137,8 @@ class PlayerActivity : AppCompatActivity() {
                         subtitleTrackIndex?.let { index ->
                             player?.let { player ->
                                 if (index == -1) {
-                                    // Disable subtitles
                                     Timber.d("Disabling subtitles")
-
-                                    player.trackSelectionParameters =
-                                        player.trackSelectionParameters
-                                            .buildUpon()
-                                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
-                                            .build()
-
+                                    player.disableTrack(C.TRACK_TYPE_TEXT)
                                 } else {
                                     Timber.d("Setting subtitle track: $subtitleTrackIndex")
 
@@ -164,12 +147,7 @@ class PlayerActivity : AppCompatActivity() {
                                     val trackSelectionOverride = TrackSelectionOverride(
                                         tracks[index].mediaTrackGroup, 0
                                     )
-                                    player.trackSelectionParameters =
-                                        player.trackSelectionParameters
-                                            .buildUpon()
-                                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-                                            .setOverrideForType(trackSelectionOverride)
-                                            .build()
+                                    player.changeTrack(C.TRACK_TYPE_TEXT, trackSelectionOverride)
                                 }
                             }
                         }
