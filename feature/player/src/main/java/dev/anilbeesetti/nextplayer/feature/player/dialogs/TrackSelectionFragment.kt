@@ -25,8 +25,8 @@ class TrackSelectionFragment(
                         .filter { it.type == C.TRACK_TYPE_AUDIO && it.isSupported }
 
                     val trackNames = audioTracks.mapIndexed { index, trackGroup ->
-                            trackGroup.mediaTrackGroup.getName(type, index)
-                        }.toTypedArray()
+                        trackGroup.mediaTrackGroup.getName(type, index)
+                    }.toTypedArray()
 
                     val selectedTrackIndex = audioTracks.indexOfFirst { it.isSelected }
                         .takeIf { it != -1 } ?: audioTracks.size
@@ -53,8 +53,8 @@ class TrackSelectionFragment(
                         .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
 
                     val trackNames = textTracks.mapIndexed { index, trackGroup ->
-                            trackGroup.mediaTrackGroup.getName(type, index)
-                        }.toTypedArray()
+                        trackGroup.mediaTrackGroup.getName(type, index)
+                    }.toTypedArray()
 
                     val selectedTrackIndex = textTracks.indexOfFirst { it.isSelected }
                         .takeIf { it != -1 } ?: textTracks.size

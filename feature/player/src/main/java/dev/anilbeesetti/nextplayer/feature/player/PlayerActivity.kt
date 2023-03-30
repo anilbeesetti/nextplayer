@@ -40,10 +40,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.enableTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
+import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -124,7 +124,8 @@ class PlayerActivity : AppCompatActivity() {
                                     val tracks = player.currentTracks.groups
                                         .filter { it.type == C.TRACK_TYPE_AUDIO }
                                     val trackSelectionOverride = TrackSelectionOverride(
-                                        tracks[audioTrackIndex].mediaTrackGroup, 0
+                                        tracks[audioTrackIndex].mediaTrackGroup,
+                                        0
                                     )
                                     player.changeTrack(C.TRACK_TYPE_AUDIO, trackSelectionOverride)
                                 }
@@ -148,7 +149,8 @@ class PlayerActivity : AppCompatActivity() {
                                     val tracks = player.currentTracks.groups
                                         .filter { it.type == C.TRACK_TYPE_TEXT }
                                     val trackSelectionOverride = TrackSelectionOverride(
-                                        tracks[subtitleTrackIndex].mediaTrackGroup, 0
+                                        tracks[subtitleTrackIndex].mediaTrackGroup,
+                                        0
                                     )
                                     player.changeTrack(C.TRACK_TYPE_TEXT, trackSelectionOverride)
                                 }
