@@ -9,8 +9,8 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
@@ -21,21 +21,22 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
+import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
-import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
-import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
 import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -43,7 +44,7 @@ import timber.log.Timber
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
-class PlayerActivity : ComponentActivity() {
+class PlayerActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityPlayerBinding
 
@@ -108,6 +109,44 @@ class PlayerActivity : ComponentActivity() {
                 }
 
                 launch {
+                    viewModel.currentAudioTrackIndex.collectLatest { audioTrackIndex ->
+                        if (audioTrackIndex != -1) {
+                            Timber.d("Setting audio track: $audioTrackIndex")
+                            player?.let { player ->
+                                val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+                                val trackSelectionOverride = TrackSelectionOverride(
+                                    tracks[audioTrackIndex].mediaTrackGroup,
+                                    0
+                                )
+                                player.trackSelectionParameters = player.trackSelectionParameters
+                                    .buildUpon()
+                                    .setOverrideForType(trackSelectionOverride)
+                                    .build()
+                            }
+                        }
+                    }
+                }
+
+                launch {
+                    viewModel.currentSubtitleTrackIndex.collectLatest { subtitleTrackIndex ->
+                        if (subtitleTrackIndex != -1) {
+                            Timber.d("Setting subtitle track: $subtitleTrackIndex")
+                            player?.let { player ->
+                                val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
+                                val trackSelectionOverride = TrackSelectionOverride(
+                                    tracks[subtitleTrackIndex].mediaTrackGroup,
+                                    0
+                                )
+                                player.trackSelectionParameters = player.trackSelectionParameters
+                                    .buildUpon()
+                                    .setOverrideForType(trackSelectionOverride)
+                                    .build()
+                            }
+                        }
+                    }
+                }
+
+                launch {
                     viewModel.currentPlaybackPath.collectLatest {
                         if (it != null) {
                             videoTitleTextView.text = File(it).name
@@ -137,17 +176,10 @@ class PlayerActivity : ComponentActivity() {
             if (audioRenderer == null) return@setOnClickListener
 
             player?.let {
-                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
-                    this,
-                    resources.getString(R.string.select_audio_track),
-                    it,
-                    C.TRACK_TYPE_AUDIO
+                TrackSelectionFragment(C.TRACK_TYPE_AUDIO, it.currentTracks, viewModel).show(
+                    supportFragmentManager,
+                    "TrackSelectionDialog"
                 )
-
-                trackSelectionDialogBuilder.setShowDisableOption(true)
-
-                val trackSelectionDialog = trackSelectionDialogBuilder.build()
-                trackSelectionDialog.show()
             }
         }
 
@@ -165,17 +197,10 @@ class PlayerActivity : ComponentActivity() {
             if (subtitleRenderer == null) return@setOnClickListener
 
             player?.let {
-                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
-                    this,
-                    resources.getString(R.string.select_subtitle_track),
-                    it,
-                    C.TRACK_TYPE_TEXT
+                TrackSelectionFragment(C.TRACK_TYPE_TEXT, it.currentTracks, viewModel).show(
+                    supportFragmentManager,
+                    "TrackSelectionDialog"
                 )
-
-                trackSelectionDialogBuilder.setShowDisableOption(true)
-
-                val trackSelectionDialog = trackSelectionDialogBuilder.build()
-                trackSelectionDialog.show()
             }
         }
 

@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player.utils
+package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import android.app.Activity
 import androidx.core.view.WindowCompat
