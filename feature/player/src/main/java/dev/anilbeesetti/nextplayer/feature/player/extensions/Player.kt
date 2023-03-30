@@ -19,3 +19,10 @@ fun Player.disableTrack(trackType: @C.TrackType Int) {
             .setTrackTypeDisabled(trackType, true)
             .build()
 }
+
+fun Player.enableTrack(trackType: @C.TrackType Int) {
+    trackSelectionParameters = trackSelectionParameters
+        .buildUpon()
+        .setTrackTypeDisabled(trackType, false)
+        .build()
+}
