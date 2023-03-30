@@ -37,10 +37,10 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
-import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -110,18 +110,33 @@ class PlayerActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.currentAudioTrackIndex.collectLatest { audioTrackIndex ->
-                        if (audioTrackIndex != -1) {
-                            Timber.d("Setting audio track: $audioTrackIndex")
+                        audioTrackIndex?.let { index ->
                             player?.let { player ->
-                                val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
-                                val trackSelectionOverride = TrackSelectionOverride(
-                                    tracks[audioTrackIndex].mediaTrackGroup,
-                                    0
-                                )
-                                player.trackSelectionParameters = player.trackSelectionParameters
-                                    .buildUpon()
-                                    .setOverrideForType(trackSelectionOverride)
-                                    .build()
+                                if (index == -1) {
+                                    // Disable audio
+                                    Timber.d("Disabling audio")
+
+                                    player.trackSelectionParameters =
+                                        player.trackSelectionParameters
+                                            .buildUpon()
+                                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                                            .build()
+
+                                } else {
+                                    Timber.d("Setting audio track: $audioTrackIndex")
+
+                                    val tracks = player.currentTracks.groups
+                                        .filter { it.type == C.TRACK_TYPE_AUDIO }
+                                    val trackSelectionOverride = TrackSelectionOverride(
+                                        tracks[index].mediaTrackGroup, 0
+                                    )
+                                    player.trackSelectionParameters =
+                                        player.trackSelectionParameters
+                                            .buildUpon()
+                                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                                            .setOverrideForType(trackSelectionOverride)
+                                            .build()
+                                }
                             }
                         }
                     }
@@ -129,18 +144,33 @@ class PlayerActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.currentSubtitleTrackIndex.collectLatest { subtitleTrackIndex ->
-                        if (subtitleTrackIndex != -1) {
-                            Timber.d("Setting subtitle track: $subtitleTrackIndex")
+                        subtitleTrackIndex?.let { index ->
                             player?.let { player ->
-                                val tracks = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
-                                val trackSelectionOverride = TrackSelectionOverride(
-                                    tracks[subtitleTrackIndex].mediaTrackGroup,
-                                    0
-                                )
-                                player.trackSelectionParameters = player.trackSelectionParameters
-                                    .buildUpon()
-                                    .setOverrideForType(trackSelectionOverride)
-                                    .build()
+                                if (index == -1) {
+                                    // Disable subtitles
+                                    Timber.d("Disabling subtitles")
+
+                                    player.trackSelectionParameters =
+                                        player.trackSelectionParameters
+                                            .buildUpon()
+                                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                                            .build()
+
+                                } else {
+                                    Timber.d("Setting subtitle track: $subtitleTrackIndex")
+
+                                    val tracks = player.currentTracks.groups
+                                        .filter { it.type == C.TRACK_TYPE_TEXT }
+                                    val trackSelectionOverride = TrackSelectionOverride(
+                                        tracks[index].mediaTrackGroup, 0
+                                    )
+                                    player.trackSelectionParameters =
+                                        player.trackSelectionParameters
+                                            .buildUpon()
+                                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                                            .setOverrideForType(trackSelectionOverride)
+                                            .build()
+                                }
                             }
                         }
                     }

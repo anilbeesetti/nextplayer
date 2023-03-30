@@ -32,18 +32,18 @@ class PlayerViewModel @Inject constructor(
     val currentPlayerItemIndex: Int
         get() = currentPlayerItems.indexOfFirst { it.path == currentPlaybackPath.value }
 
-    var currentAudioTrackIndex = MutableStateFlow(-1)
+    var currentAudioTrackIndex = MutableStateFlow<Int?>(null)
         private set
 
-    var currentSubtitleTrackIndex = MutableStateFlow(-1)
+    var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
         private set
 
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath.value = path
         viewModelScope.launch {
             playbackPosition.value = path?.let { videoRepository.getPosition(it) }
-            currentAudioTrackIndex.value = -1
-            currentSubtitleTrackIndex.value = -1
+            currentAudioTrackIndex.value = null
+            currentSubtitleTrackIndex.value = null
         }
     }
 
