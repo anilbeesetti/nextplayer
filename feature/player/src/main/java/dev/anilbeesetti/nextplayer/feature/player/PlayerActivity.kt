@@ -21,7 +21,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -34,16 +34,14 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
-import dev.anilbeesetti.nextplayer.feature.player.extensions.changeTrack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.disableTrack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.enableTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
-import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -113,51 +111,13 @@ class PlayerActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.currentAudioTrackIndex.collectLatest { audioTrackIndex ->
-                        player?.let { player ->
-                            if (audioTrackIndex != null) {
-                                if (audioTrackIndex == -1) {
-                                    Timber.d("Disabling audio")
-                                    player.disableTrack(C.TRACK_TYPE_AUDIO)
-                                } else {
-                                    Timber.d("Setting audio track: $audioTrackIndex")
-
-                                    val tracks = player.currentTracks.groups
-                                        .filter { it.type == C.TRACK_TYPE_AUDIO }
-                                    val trackSelectionOverride = TrackSelectionOverride(
-                                        tracks[audioTrackIndex].mediaTrackGroup,
-                                        0
-                                    )
-                                    player.changeTrack(C.TRACK_TYPE_AUDIO, trackSelectionOverride)
-                                }
-                            } else {
-                                player.enableTrack(C.TRACK_TYPE_AUDIO)
-                            }
-                        }
+                        player?.switchTrack(C.TRACK_TYPE_AUDIO, audioTrackIndex)
                     }
                 }
 
                 launch {
                     viewModel.currentSubtitleTrackIndex.collectLatest { subtitleTrackIndex ->
-                        player?.let { player ->
-                            if (subtitleTrackIndex != null) {
-                                if (subtitleTrackIndex == -1) {
-                                    Timber.d("Disabling subtitles")
-                                    player.disableTrack(C.TRACK_TYPE_TEXT)
-                                } else {
-                                    Timber.d("Setting subtitle track: $subtitleTrackIndex")
-
-                                    val tracks = player.currentTracks.groups
-                                        .filter { it.type == C.TRACK_TYPE_TEXT }
-                                    val trackSelectionOverride = TrackSelectionOverride(
-                                        tracks[subtitleTrackIndex].mediaTrackGroup,
-                                        0
-                                    )
-                                    player.changeTrack(C.TRACK_TYPE_TEXT, trackSelectionOverride)
-                                }
-                            } else {
-                                player.enableTrack(C.TRACK_TYPE_TEXT)
-                            }
-                        }
+                        player?.switchTrack(C.TRACK_TYPE_TEXT, subtitleTrackIndex)
                     }
                 }
 
@@ -220,11 +180,11 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener {
-            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.currentPosition?.let { position -> viewModel.saveState(position) }
             player?.seekToNext()
         }
         prevButton.setOnClickListener {
-            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.currentPosition?.let { position -> viewModel.saveState(position) }
             player?.seekToPrevious()
         }
         backButton.setOnClickListener {
@@ -308,7 +268,7 @@ class PlayerActivity : AppCompatActivity() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
             Timber.d("saving position: ${player.currentPosition}")
-            viewModel.updatePosition(player.currentPosition)
+            viewModel.saveState(player.currentPosition)
             player.removeListener(playbackStateListener)
             player.release()
         }
@@ -341,7 +301,7 @@ class PlayerActivity : AppCompatActivity() {
         ) {
             if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
                 oldPosition.mediaItem?.let {
-                    viewModel.updatePosition(it.mediaId, C.TIME_UNSET)
+                    viewModel.saveState(it.mediaId, C.TIME_UNSET)
                 }
             }
         }
@@ -360,6 +320,12 @@ class PlayerActivity : AppCompatActivity() {
                 .create()
 
             alertDialog.show()
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            player?.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex.value)
+            player?.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
+            super.onTracksChanged(tracks)
         }
     }
 

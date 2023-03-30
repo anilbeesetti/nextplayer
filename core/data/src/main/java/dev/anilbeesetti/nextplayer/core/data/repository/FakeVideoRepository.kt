@@ -1,23 +1,49 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.data.models.Video
+import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 class FakeVideoRepository : VideoRepository {
 
     val videoItems = mutableListOf<Video>()
-    val pathPositionMap = mutableMapOf<String, Long>()
+    private val videoEntities = mutableListOf<VideoEntity>()
 
     override fun getVideosFlow(): Flow<List<Video>> {
         return flowOf(videoItems)
     }
 
     override suspend fun getPosition(path: String): Long? {
-        return pathPositionMap[path]
+        return videoEntities.find { it.path == path }?.playbackPosition
     }
 
     override suspend fun updatePosition(path: String, position: Long) {
-        pathPositionMap[path] = position
+        videoEntities.find { it.path == path }?.let {
+            videoEntities.remove(it)
+            videoEntities.add(it.copy(playbackPosition = position))
+        }
+    }
+
+    override suspend fun saveVideoState(
+        path: String,
+        position: Long,
+        audioTrackIndex: Int?,
+        subtitleTrackIndex: Int?
+    ) {
+        videoEntities.find { it.path == path }?.let {
+            videoEntities.remove(it)
+            videoEntities.add(
+                it.copy(
+                    playbackPosition = position,
+                    audioTrack = audioTrackIndex,
+                    subtitleTrack = subtitleTrackIndex
+                )
+            )
+        }
+    }
+
+    override suspend fun getVideoState(path: String): VideoState? {
+        return videoEntities.find { it.path == path }?.toVideoState()
     }
 }

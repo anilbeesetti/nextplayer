@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ee0382475b49defac8ac2f4707a0c5e2",
+    "identityHash": "8ee777d645941c50bef2ba2c3bdec710",
     "entities": [
       {
         "tableName": "VideoEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`path` TEXT NOT NULL, `playbackPosition` INTEGER NOT NULL, PRIMARY KEY(`path`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`path` TEXT NOT NULL, `playbackPosition` INTEGER NOT NULL, `audioTrack` INTEGER, `subtitleTrack` INTEGER, PRIMARY KEY(`path`))",
         "fields": [
           {
             "fieldPath": "path",
@@ -19,6 +19,18 @@
             "columnName": "playbackPosition",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "audioTrack",
+            "columnName": "audioTrack",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "subtitleTrack",
+            "columnName": "subtitleTrack",
+            "affinity": "INTEGER",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -34,7 +46,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ee0382475b49defac8ac2f4707a0c5e2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8ee777d645941c50bef2ba2c3bdec710')"
     ]
   }
 }

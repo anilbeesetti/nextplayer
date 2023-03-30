@@ -7,11 +7,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
+import kotlinx.coroutines.async
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -40,10 +42,14 @@ class PlayerViewModel @Inject constructor(
 
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath.value = path
-        viewModelScope.launch {
-            playbackPosition.value = path?.let { videoRepository.getPosition(it) }
-            currentAudioTrackIndex.value = null
-            currentSubtitleTrackIndex.value = null
+        runBlocking {
+            path?.let {
+                val videoState = videoRepository.getVideoState(it)
+                Timber.d("video state for $it: $videoState")
+                playbackPosition.value = videoState?.position
+                currentAudioTrackIndex.value = videoState?.audioTrack
+                currentSubtitleTrackIndex.value = videoState?.subtitleTrack
+            }
         }
     }
 
@@ -56,21 +62,36 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun updatePosition(position: Long) {
+    fun saveState(position: Long) {
         playbackPosition.value = position
         viewModelScope.launch {
             currentPlaybackPath.value?.let {
-                if (position >= currentPlayerItems[currentPlayerItemIndex].duration - END_POSITION_OFFSET) {
-                    videoRepository.updatePosition(it, C.TIME_UNSET)
-                } else {
-                    videoRepository.updatePosition(it, position)
-                }
+                val newPosition =
+                    position.takeIf {
+                        position < currentPlayerItems[currentPlayerItemIndex].duration - END_POSITION_OFFSET
+                    } ?: C.TIME_UNSET
+
+                videoRepository.saveVideoState(
+                    path = it,
+                    position = newPosition,
+                    audioTrackIndex = currentAudioTrackIndex.value,
+                    subtitleTrackIndex = currentSubtitleTrackIndex.value
+                )
+
             }
         }
     }
 
-    fun updatePosition(path: String, position: Long) {
-        viewModelScope.launch { videoRepository.updatePosition(path, position) }
+    fun saveState(path: String, position: Long) {
+        Timber.d("current state: [$path, $position, ${currentAudioTrackIndex.value}, ${currentSubtitleTrackIndex.value}]")
+        viewModelScope.launch {
+            videoRepository.saveVideoState(
+                path = path,
+                position = position,
+                audioTrackIndex = currentAudioTrackIndex.value,
+                subtitleTrackIndex = currentAudioTrackIndex.value
+            )
+        }
     }
 
     fun switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
