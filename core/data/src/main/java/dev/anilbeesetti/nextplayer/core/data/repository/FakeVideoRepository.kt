@@ -14,17 +14,6 @@ class FakeVideoRepository : VideoRepository {
         return flowOf(videoItems)
     }
 
-    override suspend fun getPosition(path: String): Long? {
-        return videoEntities.find { it.path == path }?.playbackPosition
-    }
-
-    override suspend fun updatePosition(path: String, position: Long) {
-        videoEntities.find { it.path == path }?.let {
-            videoEntities.remove(it)
-            videoEntities.add(it.copy(playbackPosition = position))
-        }
-    }
-
     override suspend fun saveVideoState(
         path: String,
         position: Long,

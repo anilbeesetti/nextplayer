@@ -13,20 +13,6 @@ interface VideoRepository {
     fun getVideosFlow(): Flow<List<Video>>
 
     /**
-     * Get position from path
-     * @param path path of the video
-     * @return position in milliseconds
-     */
-    suspend fun getPosition(path: String): Long?
-
-    /**
-     * Update position of the video
-     * @param path path of the video
-     * @param position position in milliseconds
-     */
-    suspend fun updatePosition(path: String, position: Long)
-
-    /**
      * Save video state
      * @param path path of the video
      * @param position position in milliseconds
@@ -42,5 +28,10 @@ interface VideoRepository {
         subtitleTrackIndex: Int?
     )
 
+    /**
+     * Get video state
+     * @param path path of the video
+     * @return [VideoState] of the video
+     */
     suspend fun getVideoState(path: String): VideoState?
 }

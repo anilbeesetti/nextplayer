@@ -22,19 +22,8 @@ class LocalVideoRepository @Inject constructor(
             }
     }
 
-    override suspend fun getPosition(path: String): Long? {
-        return videoDao.get(path)?.playbackPosition
-    }
-
     override suspend fun getVideoState(path: String): VideoState? {
         return videoDao.get(path)?.toVideoState()
-    }
-
-    override suspend fun updatePosition(path: String, position: Long) {
-        videoDao.updatePosition(
-            path = path,
-            position = position
-        )
     }
 
     override suspend fun saveVideoState(
@@ -43,7 +32,7 @@ class LocalVideoRepository @Inject constructor(
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?
     ) {
-        Timber.d("saving state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex]")
+        Timber.d("save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex]")
         videoDao.upsert(
             VideoEntity(
                 path = path,

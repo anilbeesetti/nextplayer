@@ -42,10 +42,10 @@ class PlayerViewModel @Inject constructor(
 
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath.value = path
-        runBlocking {
+        viewModelScope.launch {
             path?.let {
                 val videoState = videoRepository.getVideoState(it)
-                Timber.d("video state for $it: $videoState")
+                Timber.d("Get state for $it: $videoState")
                 playbackPosition.value = videoState?.position
                 currentAudioTrackIndex.value = videoState?.audioTrack
                 currentSubtitleTrackIndex.value = videoState?.subtitleTrack
@@ -66,10 +66,9 @@ class PlayerViewModel @Inject constructor(
         playbackPosition.value = position
         viewModelScope.launch {
             currentPlaybackPath.value?.let {
-                val newPosition =
-                    position.takeIf {
-                        position < currentPlayerItems[currentPlayerItemIndex].duration - END_POSITION_OFFSET
-                    } ?: C.TIME_UNSET
+                val newPosition = position.takeIf {
+                    position < currentPlayerItems[currentPlayerItemIndex].duration - END_POSITION_OFFSET
+                } ?: C.TIME_UNSET
 
                 videoRepository.saveVideoState(
                     path = it,
@@ -83,7 +82,6 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun saveState(path: String, position: Long) {
-        Timber.d("current state: [$path, $position, ${currentAudioTrackIndex.value}, ${currentSubtitleTrackIndex.value}]")
         viewModelScope.launch {
             videoRepository.saveVideoState(
                 path = path,
