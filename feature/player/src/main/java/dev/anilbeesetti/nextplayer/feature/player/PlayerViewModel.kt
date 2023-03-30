@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
-import kotlinx.coroutines.async
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -76,7 +75,6 @@ class PlayerViewModel @Inject constructor(
                     audioTrackIndex = currentAudioTrackIndex.value,
                     subtitleTrackIndex = currentSubtitleTrackIndex.value
                 )
-
             }
         }
     }

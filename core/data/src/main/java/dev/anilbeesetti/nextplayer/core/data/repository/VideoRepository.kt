@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.data.models.Video
-import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import kotlinx.coroutines.flow.Flow
 
 interface VideoRepository {
