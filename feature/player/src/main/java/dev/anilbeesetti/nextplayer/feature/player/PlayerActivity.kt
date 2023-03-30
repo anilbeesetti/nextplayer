@@ -9,8 +9,8 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
@@ -18,24 +18,27 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
+import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
-import dev.anilbeesetti.nextplayer.feature.player.utils.hideSystemBars
-import dev.anilbeesetti.nextplayer.feature.player.utils.showSystemBars
 import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -43,7 +46,7 @@ import timber.log.Timber
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
-class PlayerActivity : ComponentActivity() {
+class PlayerActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityPlayerBinding
 
@@ -108,6 +111,18 @@ class PlayerActivity : ComponentActivity() {
                 }
 
                 launch {
+                    viewModel.currentAudioTrackIndex.collectLatest { audioTrackIndex ->
+                        player?.switchTrack(C.TRACK_TYPE_AUDIO, audioTrackIndex)
+                    }
+                }
+
+                launch {
+                    viewModel.currentSubtitleTrackIndex.collectLatest { subtitleTrackIndex ->
+                        player?.switchTrack(C.TRACK_TYPE_TEXT, subtitleTrackIndex)
+                    }
+                }
+
+                launch {
                     viewModel.currentPlaybackPath.collectLatest {
                         if (it != null) {
                             videoTitleTextView.text = File(it).name
@@ -137,17 +152,10 @@ class PlayerActivity : ComponentActivity() {
             if (audioRenderer == null) return@setOnClickListener
 
             player?.let {
-                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
-                    this,
-                    resources.getString(R.string.select_audio_track),
-                    it,
-                    C.TRACK_TYPE_AUDIO
+                TrackSelectionFragment(C.TRACK_TYPE_AUDIO, it.currentTracks, viewModel).show(
+                    supportFragmentManager,
+                    "TrackSelectionDialog"
                 )
-
-                trackSelectionDialogBuilder.setShowDisableOption(true)
-
-                val trackSelectionDialog = trackSelectionDialogBuilder.build()
-                trackSelectionDialog.show()
             }
         }
 
@@ -165,26 +173,19 @@ class PlayerActivity : ComponentActivity() {
             if (subtitleRenderer == null) return@setOnClickListener
 
             player?.let {
-                val trackSelectionDialogBuilder = TrackSelectionDialogBuilder(
-                    this,
-                    resources.getString(R.string.select_subtitle_track),
-                    it,
-                    C.TRACK_TYPE_TEXT
+                TrackSelectionFragment(C.TRACK_TYPE_TEXT, it.currentTracks, viewModel).show(
+                    supportFragmentManager,
+                    "TrackSelectionDialog"
                 )
-
-                trackSelectionDialogBuilder.setShowDisableOption(true)
-
-                val trackSelectionDialog = trackSelectionDialogBuilder.build()
-                trackSelectionDialog.show()
             }
         }
 
         nextButton.setOnClickListener {
-            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.currentPosition?.let { position -> viewModel.saveState(position) }
             player?.seekToNext()
         }
         prevButton.setOnClickListener {
-            player?.currentPosition?.let { position -> viewModel.updatePosition(position) }
+            player?.currentPosition?.let { position -> viewModel.saveState(position) }
             player?.seekToPrevious()
         }
         backButton.setOnClickListener {
@@ -239,9 +240,19 @@ class PlayerActivity : ComponentActivity() {
                 if (viewModel.currentPlayerItemIndex != -1) {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
+
+                        val subtitles = getSubsForMedia(playerItem.path).map {
+                            MediaItem.SubtitleConfiguration
+                                .Builder(it.toUri())
+                                .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                                .setLabel(it.nameWithoutExtension)
+                                .build()
+                        }
+
                         val mediaItem = MediaItem.Builder()
                             .setUri(File(playerItem.path).toUri())
                             .setMediaId(playerItem.path)
+                            .setSubtitleConfigurations(subtitles)
                             .build()
 
                         mediaItems.add(mediaItem)
@@ -263,7 +274,7 @@ class PlayerActivity : ComponentActivity() {
         player?.let { player ->
             playWhenReady = player.playWhenReady
             Timber.d("saving position: ${player.currentPosition}")
-            viewModel.updatePosition(player.currentPosition)
+            viewModel.saveState(player.currentPosition)
             player.removeListener(playbackStateListener)
             player.release()
         }
@@ -296,7 +307,7 @@ class PlayerActivity : ComponentActivity() {
         ) {
             if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
                 oldPosition.mediaItem?.let {
-                    viewModel.updatePosition(it.mediaId, C.TIME_UNSET)
+                    viewModel.saveState(it.mediaId, C.TIME_UNSET)
                 }
             }
         }
@@ -316,6 +327,12 @@ class PlayerActivity : ComponentActivity() {
 
             alertDialog.show()
         }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            player?.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex.value)
+            player?.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
+            super.onTracksChanged(tracks)
+        }
     }
 
     private fun isRendererType(
@@ -329,6 +346,17 @@ class PlayerActivity : ComponentActivity() {
         }
         val trackType = mappedTrackInfo.getRendererType(rendererIndex)
         return type == trackType
+    }
+
+    private fun getSubsForMedia(mediaFilePath: String): List<File> {
+        val subtitleExtensions = listOf("srt")
+        val mediaFile = File(mediaFilePath)
+        val mediaName = mediaFile.nameWithoutExtension
+        val subs = mediaFile.parentFile?.listFiles { file ->
+            file.extension in subtitleExtensions && file.nameWithoutExtension == mediaName
+        }?.toList() ?: emptyList()
+
+        return subs
     }
 }
 

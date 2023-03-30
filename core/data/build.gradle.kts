@@ -13,6 +13,8 @@ dependencies {
     implementation(project(":core:media"))
     api(project(":core:datastore"))
 
+    implementation(libs.timber)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
 
