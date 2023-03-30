@@ -1,7 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
+import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.Video
+import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
@@ -42,20 +44,4 @@ class LocalVideoRepository @Inject constructor(
             )
         )
     }
-}
-
-data class VideoState(
-    val path: String,
-    val position: Long,
-    val audioTrack: Int?,
-    val subtitleTrack: Int?
-)
-
-fun VideoEntity.toVideoState(): VideoState {
-    return VideoState(
-        path = path,
-        position = playbackPosition,
-        audioTrack = audioTrack,
-        subtitleTrack = subtitleTrack
-    )
 }
