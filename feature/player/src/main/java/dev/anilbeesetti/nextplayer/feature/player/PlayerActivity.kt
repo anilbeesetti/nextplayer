@@ -34,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
@@ -99,6 +100,7 @@ class PlayerActivity : AppCompatActivity() {
 
         videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
 
+        // Collecting flows from view model
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -225,7 +227,7 @@ class PlayerActivity : AppCompatActivity() {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
 
-                        val subtitles = getSubsForMedia(playerItem.path).map {
+                        val subtitles = File(playerItem.path).getSubtitles().map {
                             MediaItem.SubtitleConfiguration
                                 .Builder(it.toUri())
                                 .setMimeType(MimeTypes.APPLICATION_SUBRIP)
@@ -317,17 +319,6 @@ class PlayerActivity : AppCompatActivity() {
             player?.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
             super.onTracksChanged(tracks)
         }
-    }
-
-    private fun getSubsForMedia(mediaFilePath: String): List<File> {
-        val subtitleExtensions = listOf("srt")
-        val mediaFile = File(mediaFilePath)
-        val mediaName = mediaFile.nameWithoutExtension
-        val subs = mediaFile.parentFile?.listFiles { file ->
-            file.extension in subtitleExtensions && file.nameWithoutExtension == mediaName
-        }?.toList() ?: emptyList()
-
-        return subs
     }
 }
 
