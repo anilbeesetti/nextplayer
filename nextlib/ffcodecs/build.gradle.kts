@@ -42,7 +42,7 @@ val ffmpegSetup by tasks.registering(Exec::class) {
 tasks.preBuild.dependsOn(ffmpegSetup)
 
 dependencies {
-    implementation("androidx.media3:media3-exoplayer:1.0.0-rc02")
+    implementation("androidx.media3:media3-exoplayer:1.0.0")
     implementation("com.google.errorprone:error_prone_annotations:2.18.0")
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.annotation:annotation:1.6.0")
