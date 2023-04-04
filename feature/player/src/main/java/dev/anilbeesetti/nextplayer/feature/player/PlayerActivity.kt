@@ -314,9 +314,10 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
+            Timber.e(error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
-                .setTitle("Error")
-                .setMessage(R.string.cant_play_video)
+                .setTitle(getString(R.string.error_playing_video))
+                .setMessage(error.message ?: getString(R.string.unknown_error))
                 .setPositiveButton("OK") { dialog, _ ->
                     dialog.dismiss()
                 }
