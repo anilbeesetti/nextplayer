@@ -40,10 +40,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
+import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -327,4 +327,3 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
-
