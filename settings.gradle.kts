@@ -24,3 +24,6 @@ include(":core:common")
 include(":core:datastore")
 include(":core:domain")
 include(":core:media")
+include(":nextlib:ffcodecs")
+
+

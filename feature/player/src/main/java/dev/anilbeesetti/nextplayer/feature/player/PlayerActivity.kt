@@ -30,6 +30,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
@@ -206,12 +207,17 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun initializePlayer() {
         Timber.d("Initializing player")
+        val renderersFactory = FfmpegRenderersFactory(application).setExtensionRendererMode(
+            FfmpegRenderersFactory.EXTENSION_RENDERER_MODE_ON
+        )
+
         trackSelector.setParameters(
             trackSelector.buildUponParameters()
                 .setPreferredAudioLanguage("en")
                 .setPreferredTextLanguage("en")
         )
         player = ExoPlayer.Builder(this)
+            .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .build()
             .also { player ->
