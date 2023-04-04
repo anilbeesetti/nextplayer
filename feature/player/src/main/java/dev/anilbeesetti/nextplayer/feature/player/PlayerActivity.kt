@@ -25,7 +25,6 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -35,7 +34,9 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
@@ -99,6 +100,7 @@ class PlayerActivity : AppCompatActivity() {
 
         videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
 
+        // Collecting flows from view model
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -139,44 +141,28 @@ class PlayerActivity : AppCompatActivity() {
         )
 
         audioTrackButton.setOnClickListener {
-            val mappedTrackInfo =
-                trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
-
-            var audioRenderer: Int? = null
-            for (i in 0 until mappedTrackInfo.rendererCount) {
-                if (isRendererType(mappedTrackInfo, i, C.TRACK_TYPE_AUDIO)) {
-                    audioRenderer = i
-                }
-            }
-
-            if (audioRenderer == null) return@setOnClickListener
+            val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
+            if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_AUDIO)) return@setOnClickListener
 
             player?.let {
-                TrackSelectionFragment(C.TRACK_TYPE_AUDIO, it.currentTracks, viewModel).show(
-                    supportFragmentManager,
-                    "TrackSelectionDialog"
-                )
+                TrackSelectionFragment(
+                    type = C.TRACK_TYPE_AUDIO,
+                    tracks = it.currentTracks,
+                    viewModel = viewModel
+                ).show(supportFragmentManager, "TrackSelectionDialog")
             }
         }
 
         subtitleTrackButton.setOnClickListener {
-            val mappedTrackInfo =
-                trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
-
-            var subtitleRenderer: Int? = null
-            for (i in 0 until mappedTrackInfo.rendererCount) {
-                if (isRendererType(mappedTrackInfo, i, C.TRACK_TYPE_TEXT)) {
-                    subtitleRenderer = i
-                }
-            }
-
-            if (subtitleRenderer == null) return@setOnClickListener
+            val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
+            if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_TEXT)) return@setOnClickListener
 
             player?.let {
-                TrackSelectionFragment(C.TRACK_TYPE_TEXT, it.currentTracks, viewModel).show(
-                    supportFragmentManager,
-                    "TrackSelectionDialog"
-                )
+                TrackSelectionFragment(
+                    type = C.TRACK_TYPE_TEXT,
+                    tracks = it.currentTracks,
+                    viewModel = viewModel
+                ).show(supportFragmentManager, "TrackSelectionDialog")
             }
         }
 
@@ -241,7 +227,7 @@ class PlayerActivity : AppCompatActivity() {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
 
-                        val subtitles = getSubsForMedia(playerItem.path).map {
+                        val subtitles = File(playerItem.path).getSubtitles().map {
                             MediaItem.SubtitleConfiguration
                                 .Builder(it.toUri())
                                 .setMimeType(MimeTypes.APPLICATION_SUBRIP)
@@ -334,30 +320,6 @@ class PlayerActivity : AppCompatActivity() {
             player?.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
             super.onTracksChanged(tracks)
         }
-    }
-
-    private fun isRendererType(
-        mappedTrackInfo: MappingTrackSelector.MappedTrackInfo,
-        rendererIndex: Int,
-        type: Int
-    ): Boolean {
-        val trackGroupArray = mappedTrackInfo.getTrackGroups(rendererIndex)
-        if (trackGroupArray.length == 0) {
-            return false
-        }
-        val trackType = mappedTrackInfo.getRendererType(rendererIndex)
-        return type == trackType
-    }
-
-    private fun getSubsForMedia(mediaFilePath: String): List<File> {
-        val subtitleExtensions = listOf("srt")
-        val mediaFile = File(mediaFilePath)
-        val mediaName = mediaFile.nameWithoutExtension
-        val subs = mediaFile.parentFile?.listFiles { file ->
-            file.extension in subtitleExtensions && file.nameWithoutExtension == mediaName
-        }?.toList() ?: emptyList()
-
-        return subs
     }
 }
 

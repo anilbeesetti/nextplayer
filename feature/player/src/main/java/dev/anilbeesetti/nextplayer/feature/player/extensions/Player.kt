@@ -32,8 +32,7 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int?) {
         } else {
             Timber.d("Setting $trackTypeText track: $trackIndex")
 
-            val tracks = currentTracks.groups
-                .filter { it.type == trackType }
+            val tracks = currentTracks.groups.filter { it.type == trackType }
 
             if (tracks.isEmpty() || trackIndex >= tracks.size) {
                 Timber.d("Operation failed: Invalid track index: $trackIndex")
