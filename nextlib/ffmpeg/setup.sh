@@ -40,14 +40,12 @@ TOOLCHAIN_PREFIX="${NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}/bin"
 EXTRA_BUILD_CONFIGURATION_FLAGS=""
 COMMON_OPTIONS=""
 
-ls -la "${TOOLCHAIN_PREFIX}"
-
 # Add enabled decoders to FFmpeg build configuration
 for decoder in $ENABLED_DECODERS; do
     COMMON_OPTIONS="${COMMON_OPTIONS} --enable-decoder=${decoder}"
 done
 
-if [[ ! -d "$OUTPUT_DIR" ]]; then
+if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
 
     # Build FFmpeg for each architecture and platform
     for ABI in $ANDROID_ABIS; do
