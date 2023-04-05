@@ -81,7 +81,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Cache ffmpeg folder
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: nextlib/ffmpeg
           key: ${{ runner.os }}-ffmpeg-${{ hashFiles('nextlib/ffmpeg/setup.sh') }}
