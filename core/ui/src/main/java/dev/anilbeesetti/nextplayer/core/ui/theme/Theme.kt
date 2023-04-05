@@ -97,10 +97,10 @@ fun NextPlayerTheme(
     if (!view.isInEditMode) {
         SideEffect {
             (view.context as Activity).apply {
-                WindowCompat.getInsetsController(
-                    window,
-                    window.decorView
-                ).isAppearanceLightStatusBars = !darkTheme
+                WindowCompat.getInsetsController(window, window.decorView).apply {
+                    isAppearanceLightStatusBars = !darkTheme
+                    isAppearanceLightNavigationBars = !darkTheme
+                }
             }
         }
     }
