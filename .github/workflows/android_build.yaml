@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: nextlib/ffmpeg
-          key: ${{ runner.os }}-ffmpeg
+          key: ${{ runner.os }}-ffmpeg-${{ hashFiles('nextlib/ffmpeg/setup.sh') }}
 
       - name: Build Project with gradle
         run: ./gradlew assembleDebug
@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: nextlib/ffmpeg
-          key: ${{ runner.os }}-ffmpeg
+          key: ${{ runner.os }}-ffmpeg-${{ hashFiles('nextlib/ffmpeg/setup.sh') }}
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
