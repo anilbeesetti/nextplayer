@@ -34,7 +34,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
@@ -227,7 +226,7 @@ class PlayerActivity : AppCompatActivity() {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
 
-                        val subtitles = File(playerItem.path).getSubtitles().map {
+                        val subtitles = playerItem.subtitleTracks.map {
                             MediaItem.SubtitleConfiguration
                                 .Builder(it.toUri())
                                 .setMimeType(MimeTypes.APPLICATION_SUBRIP)

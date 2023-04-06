@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player.extensions
+package dev.anilbeesetti.nextplayer.core.common.extensions
 
 import java.io.File
 
