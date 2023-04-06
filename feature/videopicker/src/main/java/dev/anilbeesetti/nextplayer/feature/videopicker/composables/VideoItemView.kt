@@ -92,6 +92,9 @@ fun VideoItemView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     InfoChip(text = Utils.formatDurationMillis(video.duration))
+                    video.subtitleTracks.map { subtitle ->
+                        InfoChip(text = subtitle.extension.uppercase())
+                    }
                 }
             }
         }
