@@ -1,9 +1,13 @@
 <resources>
     <string name="title_activity_player">Next Player Activity</string>
-    <string name="player_controls_exit">exit</string>
+    <string name="player_controls_exit">Navigate up</string>
     <string name="select_audio_track">Select audio track</string>
     <string name="select_subtitle_track">Select subtitle track</string>
     <string name="disable">Disable</string>
     <string name="error_playing_video">Error: Can\'t play video</string>
-    <string name="unknown_error">An unknown error has occured</string>
+    <string name="unknown_error">An unknown error has occurred</string>
+    <string name="player_controls_play_pause">Player play pause</string>
+    <string name="player_controls_next">Player next</string>
+    <string name="player_controls_previous">Player previous</string>
+    <string name="player_controls_progress">Player progress bar</string>
 </resources>
