@@ -227,7 +227,7 @@ class PlayerActivity : AppCompatActivity() {
                     val mediaItems: MutableList<MediaItem> = mutableListOf()
                     viewModel.currentPlayerItems.forEach { playerItem ->
 
-                        val subtitles = File(playerItem.path).getSubtitles().map {
+                        val subtitles = playerItem.subtitleTracks.map {
                             MediaItem.SubtitleConfiguration
                                 .Builder(it.toUri())
                                 .setMimeType(MimeTypes.APPLICATION_SUBRIP)
