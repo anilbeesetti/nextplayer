@@ -11,6 +11,7 @@ dependencies {
 
     implementation(project(":core:database"))
     implementation(project(":core:media"))
+    implementation(project(":core:common"))
     api(project(":core:datastore"))
 
     implementation(libs.timber)

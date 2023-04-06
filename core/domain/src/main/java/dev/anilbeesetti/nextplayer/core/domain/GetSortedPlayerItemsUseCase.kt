@@ -1,11 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.io.File
+import javax.inject.Inject
 
 class GetSortedPlayerItemsUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase
@@ -17,7 +15,7 @@ class GetSortedPlayerItemsUseCase @Inject constructor(
                 PlayerItem(
                     path = video.path,
                     duration = video.duration,
-                    subtitleTracks = File(video.path).getSubtitles()
+                    subtitleTracks = video.subtitleTracks
                 )
             }
         }

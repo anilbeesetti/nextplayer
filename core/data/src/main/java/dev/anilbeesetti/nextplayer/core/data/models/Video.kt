@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.core.data.models
 
 import android.net.Uri
+import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
+import java.io.File
 
 /**
  * Defines Video item
@@ -24,4 +26,6 @@ data class Video(
 ) {
     val uri: Uri
         get() = Uri.parse(uriString)
+    val subtitleTracks: List<File>
+        get() = File(path).getSubtitles()
 }
