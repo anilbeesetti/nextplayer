@@ -84,6 +84,14 @@ fun VideoItemView(
                     ),
                     overflow = TextOverflow.Ellipsis
                 )
+                Text(
+                    text = video.path,
+                    maxLines = 2,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    ),
+                    overflow = TextOverflow.Ellipsis
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
