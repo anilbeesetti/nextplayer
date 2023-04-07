@@ -34,6 +34,7 @@ import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextPlayerMainTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreenRoute
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
@@ -82,6 +83,7 @@ class MainActivity : ComponentActivity() {
                             startDestination = videoPickerScreenRoute
                         ) {
                             videoPickerScreen(
+                                title = getString(R.string.app_name),
                                 onVideoItemClick = this@MainActivity::startPlayerActivity,
                                 onSettingsClick = navController::navigateToSettings
                             )
