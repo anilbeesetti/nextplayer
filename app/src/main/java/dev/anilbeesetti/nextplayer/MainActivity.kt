@@ -21,6 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
@@ -32,7 +34,8 @@ import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextPlayerMainTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreenRoute
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -69,10 +72,17 @@ class MainActivity : ComponentActivity() {
                         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                     }
 
+                    val navController = rememberNavController()
+
                     if (storagePermissionState.status.isGranted) {
-                        VideoPickerScreen(
-                            onVideoItemClick = { startPlayerActivity(it) }
-                        )
+                        NavHost(
+                            navController = navController,
+                            startDestination = videoPickerScreenRoute
+                        ) {
+                            videoPickerScreen(
+                                onVideoItemClick = { startPlayerActivity(it) }
+                            )
+                        }
                     } else {
                         PermissionScreen(
                             permission = storagePermissionState.permission,
