@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,7 +18,9 @@ fun VideoItemsPickerView(
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 10.dp),
-        modifier = Modifier.navigationBarsPadding()
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
     ) {
         items(videos) { video ->
             VideoItemView(
