@@ -49,6 +49,7 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 @Composable
 fun VideoPickerScreen(
     viewModel: VideoPickerViewModel = hiltViewModel(),
+    onSettingsClick: () -> Unit,
     onVideoItemClick: (uri: Uri) -> Unit
 ) {
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
@@ -57,6 +58,7 @@ fun VideoPickerScreen(
     VideoPickerScreen(
         videosState = videosState,
         preferences = preferences,
+        onSettingsClick = onSettingsClick,
         onVideoItemClick = onVideoItemClick,
         updatePreferences = viewModel::updateMenu
     )
@@ -68,6 +70,7 @@ internal fun VideoPickerScreen(
     videosState: VideosState,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     updatePreferences: (SortBy, SortOrder) -> Unit = { _, _ -> }
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
@@ -77,7 +80,7 @@ internal fun VideoPickerScreen(
             NextPlayerMainTopAppBar(
                 titleRes = R.string.app_name,
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = onSettingsClick) {
                         Icon(
                             imageVector = Icons.Rounded.Settings,
                             contentDescription = stringResource(id = R.string.settings)

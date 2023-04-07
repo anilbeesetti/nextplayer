@@ -36,6 +36,8 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreenRoute
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
+import dev.anilbeesetti.nextplayer.settings.navigation.settingsScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -80,7 +82,11 @@ class MainActivity : ComponentActivity() {
                             startDestination = videoPickerScreenRoute
                         ) {
                             videoPickerScreen(
-                                onVideoItemClick = { startPlayerActivity(it) }
+                                onVideoItemClick = this@MainActivity::startPlayerActivity,
+                                onSettingsClick = navController::navigateToSettings
+                            )
+                            settingsScreen(
+                                onNavigateUp = navController::popBackStack
                             )
                         }
                     } else {
