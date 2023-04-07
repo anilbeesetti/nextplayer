@@ -48,9 +48,9 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable
 fun VideoPickerScreen(
-    viewModel: VideoPickerViewModel = hiltViewModel(),
     onSettingsClick: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit
+    onVideoItemClick: (uri: Uri) -> Unit,
+    viewModel: VideoPickerViewModel = hiltViewModel()
 ) {
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
@@ -78,7 +78,7 @@ internal fun VideoPickerScreen(
     Scaffold(
         topBar = {
             NextPlayerMainTopAppBar(
-                titleRes = R.string.app_name,
+                title = stringResource(id = R.string.app_name),
                 navigationIcon = {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
