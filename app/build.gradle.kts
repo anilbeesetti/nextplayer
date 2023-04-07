@@ -50,12 +50,14 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":feature:videopicker"))
     implementation(project(":feature:player"))
+    implementation(project(":feature:settings"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.bundles.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
+    implementation(libs.androidx.navigation.compose)
 
     implementation(libs.accompanist.permissions)
 
