@@ -74,7 +74,7 @@ fun SettingsScreen(
             }
             item {
                 SettingGroupItem(
-                    title = stringResource(id = R.string.player),
+                    title = stringResource(id = R.string.player_name),
                     description = stringResource(id = R.string.player_description),
                     icon = Icons.Rounded.PlayArrow,
                     onClick = { }
@@ -82,7 +82,7 @@ fun SettingsScreen(
             }
             item {
                 SettingGroupItem(
-                    title = stringResource(id = R.string.about),
+                    title = stringResource(id = R.string.about_name),
                     description = stringResource(id = R.string.about_description),
                     icon = Icons.Rounded.Info,
                     onClick = { }
