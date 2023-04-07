@@ -14,8 +14,7 @@ class GetSortedPlayerItemsUseCase @Inject constructor(
             videos.map { video ->
                 PlayerItem(
                     path = video.path,
-                    duration = video.duration,
-                    subtitleTracks = video.subtitleTracks
+                    duration = video.duration
                 )
             }
         }

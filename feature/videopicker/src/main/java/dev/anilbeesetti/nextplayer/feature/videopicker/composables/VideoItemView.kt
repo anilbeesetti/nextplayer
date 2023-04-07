@@ -100,8 +100,8 @@ fun VideoItemView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     InfoChip(text = Utils.formatDurationMillis(video.duration))
-                    video.subtitleTracks.map { subtitle ->
-                        InfoChip(text = subtitle.extension.uppercase())
+                    video.subtitleExtensions.map { extension ->
+                        InfoChip(text = extension.uppercase())
                     }
                 }
             }
