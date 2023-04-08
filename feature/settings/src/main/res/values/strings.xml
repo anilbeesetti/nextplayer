@@ -14,4 +14,6 @@
     <string name="remember_brightness_level_description">Remember brightness level between playback sessions</string>
     <string name="double_tap">Double tap gesture</string>
     <string name="double_tap_description">Select double tap gesture action</string>
+    <string name="fast_seek_description">Seek to nearest key frame instead of exact one. This results in faster seek response but may be less precise</string>
+    <string name="fast_seek">Fast seeking</string>
 </resources>

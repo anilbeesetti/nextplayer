@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
@@ -61,4 +62,11 @@ interface PreferencesRepository {
      * @param gesture The double tap gesture to be set.
      */
     suspend fun setDoubleTapGesture(gesture: DoubleTapGesture)
+
+    /**
+     * Sets the fast seek of the video items.
+     *
+     * @param seek The fast seek to be set.
+     */
+    suspend fun setFastSeek(seek: FastSeek)
 }

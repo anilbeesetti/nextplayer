@@ -3,6 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
 import timber.log.Timber
 
 /**
@@ -57,5 +60,17 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int?) {
             .buildUpon()
             .setTrackTypeDisabled(trackType, false)
             .build()
+    }
+}
+
+/**
+ * Sets the seek parameters for the player.
+ *
+ * @param seekParameters The seek parameters to set.
+ */
+@UnstableApi
+fun Player.setSeekParameters(seekParameters: SeekParameters) {
+    when (this) {
+        is ExoPlayer -> this.setSeekParameters(seekParameters)
     }
 }

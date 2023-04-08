@@ -13,15 +13,15 @@ import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
+import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import kotlin.math.abs
 import kotlinx.coroutines.Job
@@ -76,14 +76,21 @@ class PlayerGestureHelper(
                         val viewCenterX = playerView.measuredWidth / 2
                         val currentPos = playerView.player?.currentPosition ?: 0
 
-                        if (event.x.toInt() > viewCenterX) {
-                            playerView.player?.seekTo(
-                                currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
-                            )
-                        } else {
-                            playerView.player?.seekTo(
-                                (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS).coerceAtLeast(0)
-                            )
+                        playerView.player?.let { player ->
+                            if (event.x.toInt() > viewCenterX) {
+                                if (playerPreferences.shouldFastSeek(player.duration)) {
+                                    player.setSeekParameters(SeekParameters.NEXT_SYNC)
+                                }
+                                player.seekTo(currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
+                            } else {
+                                if (playerPreferences.shouldFastSeek(player.duration)) {
+                                    player.setSeekParameters(SeekParameters.PREVIOUS_SYNC)
+                                }
+                                player.seekTo(
+                                    (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS)
+                                        .coerceAtLeast(0)
+                                )
+                            }
                         }
                         true
                     }
@@ -124,7 +131,7 @@ class PlayerGestureHelper(
                 val change = distanceDiff * SEEK_STEP_MS
                 if (distanceX > 0L) {
                     playerView.player?.let { player ->
-                        if (player.duration >= 600000) {
+                        if (playerPreferences.shouldFastSeek(player.duration)) {
                             player.setSeekParameters(SeekParameters.PREVIOUS_SYNC)
                         }
                         seekChange -= change.toLong()
@@ -133,7 +140,7 @@ class PlayerGestureHelper(
                     }
                 } else {
                     playerView.player?.let { player ->
-                        if (player.duration >= 600000) {
+                        if (playerPreferences.shouldFastSeek(player.duration)) {
                             player.setSeekParameters(SeekParameters.NEXT_SYNC)
                         }
                         seekChange += change.toLong()
@@ -337,13 +344,6 @@ class PlayerGestureHelper(
         const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
         const val SEEK_STEP_MS = 1000L
         const val HIDE_DELAY_MILLIS = 1000L
-    }
-}
-
-@UnstableApi
-fun Player.setSeekParameters(seekParameters: SeekParameters) {
-    when (this) {
-        is ExoPlayer -> this.setSeekParameters(seekParameters)
     }
 }
 
