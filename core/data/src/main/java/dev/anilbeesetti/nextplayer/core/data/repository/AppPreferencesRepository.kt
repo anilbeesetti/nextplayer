@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
+import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
@@ -38,5 +39,9 @@ class AppPreferencesRepository @Inject constructor(
 
     override suspend fun setPlayerBrightness(value: Float) {
         playerPreferencesDataSource.setPlayerBrightness(value)
+    }
+
+    override suspend fun setDoubleTapGesture(gesture: DoubleTapGesture) {
+        playerPreferencesDataSource.setDoubleTapGesture(gesture)
     }
 }

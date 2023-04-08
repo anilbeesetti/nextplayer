@@ -12,4 +12,6 @@
     <string name="resume_description">Select whether to resume played videos from the point where you stopped</string>
     <string name="remember_brightness_level">Remember brightness level</string>
     <string name="remember_brightness_level_description">Remember brightness level between playback sessions</string>
+    <string name="double_tap">Double tap gesture</string>
+    <string name="double_tap_description">Select double tap gesture action</string>
 </resources>

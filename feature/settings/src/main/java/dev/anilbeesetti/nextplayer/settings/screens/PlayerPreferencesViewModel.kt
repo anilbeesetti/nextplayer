@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import javax.inject.Inject
@@ -31,16 +32,28 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     fun onEvent(event: PlayerPreferencesEvent) {
         when (event) {
-            is PlayerPreferencesEvent.ResumeDialog -> _uiState.update {
-                it.copy(
-                    showResumeDialog = event.value
-                )
+            is PlayerPreferencesEvent.ShowDialog -> _uiState.update {
+                it.copy(showDialog = event.value)
             }
         }
     }
 
     fun updateResume(resume: Resume) {
         viewModelScope.launch { preferencesRepository.setPlaybackResume(resume) }
+    }
+
+    fun updateDoubleTapGesture(gesture: DoubleTapGesture) {
+        viewModelScope.launch { preferencesRepository.setDoubleTapGesture(gesture) }
+    }
+
+    fun toggleDoubleTapGesture() {
+        viewModelScope.launch {
+            preferencesRepository.setDoubleTapGesture(
+                if (preferencesFlow.value.doubleTapGesture == DoubleTapGesture.FAST_FORWARD_AND_REWIND)
+                    DoubleTapGesture.NONE
+                else DoubleTapGesture.FAST_FORWARD_AND_REWIND
+            )
+        }
     }
 
     fun toggleRememberBrightnessLevel() {
@@ -53,9 +66,15 @@ class PlayerPreferencesViewModel @Inject constructor(
 }
 
 data class UIState(
-    val showResumeDialog: Boolean = false
+    val showDialog: Dialog = Dialog.None
 )
 
+sealed interface Dialog {
+    object ResumeDialog : Dialog
+    object DoubleTapDialog : Dialog
+    object None : Dialog
+}
+
 sealed interface PlayerPreferencesEvent {
-    data class ResumeDialog(val value: Boolean) : PlayerPreferencesEvent
+    data class ShowDialog(val value: Dialog) : PlayerPreferencesEvent
 }

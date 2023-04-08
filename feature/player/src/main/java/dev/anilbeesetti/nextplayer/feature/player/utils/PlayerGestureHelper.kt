@@ -12,12 +12,14 @@ import android.view.WindowInsets
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
@@ -52,21 +54,39 @@ class PlayerGestureHelper(
     private val tapGestureDetector = GestureDetector(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
-            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
                 playerView.apply {
                     if (!isControllerFullyVisible) showController() else hideController()
                 }
                 return true
             }
 
-            override fun onDoubleTap(e: MotionEvent): Boolean {
-                playerView.controllerAutoShow = playerView.isControllerFullyVisible
-                if (playerView.player?.isPlaying == true) {
-                    playerView.player?.pause()
-                } else {
-                    playerView.player?.play()
+            override fun onDoubleTap(event: MotionEvent): Boolean {
+                return when (playerPreferences.doubleTapGesture) {
+                    DoubleTapGesture.PLAY_PAUSE -> {
+                        playerView.controllerAutoShow = playerView.isControllerFullyVisible
+                        if (playerView.player?.isPlaying == true) {
+                            playerView.player?.pause()
+                        } else {
+                            playerView.player?.play()
+                        }
+                        true
+                    }
+                    DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
+                        val viewCenterX = playerView.measuredWidth / 2
+                        val currentPos = playerView.player?.currentPosition ?: 0
+
+                        if (event.x.toInt() > viewCenterX) {
+                            playerView.player?.seekTo(currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
+                        } else {
+                            playerView.player?.seekTo((currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS).coerceAtLeast(0))
+                        }
+                        true
+                    }
+                    DoubleTapGesture.NONE -> {
+                        false
+                    }
                 }
-                return true
             }
         }
     )

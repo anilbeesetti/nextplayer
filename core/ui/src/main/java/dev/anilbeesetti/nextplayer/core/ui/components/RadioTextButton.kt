@@ -26,7 +26,8 @@ fun RadioTextButton(
                 selected = selected,
                 onClick = onClick,
                 role = Role.RadioButton
-            ),
+            )
+            .padding(horizontal = NextDialogDefaults.dialogPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(

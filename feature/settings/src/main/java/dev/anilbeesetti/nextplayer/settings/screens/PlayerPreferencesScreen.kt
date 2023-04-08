@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.settings.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +23,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
@@ -30,6 +32,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.feature.settings.R
 import dev.anilbeesetti.nextplayer.settings.composables.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSwitch
+import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSwitchWithDivider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,64 +78,93 @@ fun PlayerPreferencesScreen(
                     ClickablePreferenceItem(
                         title = stringResource(id = R.string.resume),
                         description = stringResource(id = R.string.resume_description),
-                        onClick = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(true)) }
+                        onClick = { viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.ResumeDialog)) }
                     )
                 }
                 item {
                     PreferenceSwitch(
                         title = stringResource(id = R.string.remember_brightness_level),
-                        description = stringResource(
-                            id = R.string.remember_brightness_level_description
-                        ),
+                        description = stringResource(id = R.string.remember_brightness_level_description),
                         isChecked = preferences.rememberPlayerBrightness,
                         onClick = viewModel::toggleRememberBrightnessLevel
                     )
                 }
+                item {
+                    PreferenceSwitchWithDivider(
+                        title = stringResource(id = R.string.double_tap),
+                        description = stringResource(id = R.string.double_tap_description),
+                        isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
+                        onChecked = viewModel::toggleDoubleTapGesture,
+                        onClick = { viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.DoubleTapDialog)) }
+                    )
+                }
             }
-            if (uiState.showResumeDialog) {
-                NextDialog(
-                    onDismissRequest = {
-                        viewModel.onEvent(
-                            PlayerPreferencesEvent.ResumeDialog(false)
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.resume)
-                        )
-                    },
-                    content = {
-                        Column(
-                            modifier = Modifier.selectableGroup()
-                        ) {
-                            Resume.values().forEach {
-                                RadioTextButton(
-                                    text = it.name,
-                                    selected = (it == preferences.resume),
-                                    onClick = {
-                                        viewModel.updateResume(it)
-                                        viewModel.onEvent(
-                                            PlayerPreferencesEvent.ResumeDialog(false)
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .padding(horizontal = NextDialogDefaults.dialogPadding)
-                                )
-                            }
+            when (uiState.showDialog) {
+                Dialog.ResumeDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.resume),
+                        onDismissClick = {
+                            viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
                         }
-                    },
-                    dismissButton = {
-                        CancelButton(
-                            onClick = {
-                                viewModel.onEvent(
-                                    PlayerPreferencesEvent.ResumeDialog(false)
-                                )
-                            }
-                        )
-                    },
-                    confirmButton = null
-                )
+                    ) {
+                        Resume.values().forEach {
+                            RadioTextButton(
+                                text = it.value,
+                                selected = (it == preferences.resume),
+                                onClick = {
+                                    viewModel.updateResume(it)
+                                    viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
+                                }
+                            )
+                        }
+                    }
+                }
+                Dialog.DoubleTapDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.double_tap),
+                        onDismissClick = {
+                            viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
+                        }
+                    ) {
+                        DoubleTapGesture.values().forEach {
+                            RadioTextButton(
+                                text = it.value,
+                                selected = (it == preferences.doubleTapGesture),
+                                onClick = {
+                                    viewModel.updateDoubleTapGesture(it)
+                                    viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
+                                }
+                            )
+                        }
+                    }
+                }
+                Dialog.None -> { /* Do nothing */ }
             }
         }
     }
+}
+
+@Composable
+fun OptionsDialog(
+    text: String,
+    onDismissClick: () -> Unit,
+    options: @Composable ColumnScope.() -> Unit
+) {
+    NextDialog(
+        onDismissRequest = onDismissClick,
+        title = {
+            Text(
+                text = text
+            )
+        },
+        content = {
+            Column(
+                modifier = Modifier.selectableGroup()
+            ) {
+                options()
+            }
+        },
+        dismissButton = { CancelButton(onClick = onDismissClick) },
+        confirmButton = null
+    )
 }
