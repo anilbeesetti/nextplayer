@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
@@ -97,6 +98,19 @@ fun PlayerPreferencesScreen(
                         }
                     )
                 }
+                item {
+                    PreferenceSwitchWithDivider(
+                        title = stringResource(id = R.string.fast_seek),
+                        description = stringResource(id = R.string.fast_seek_description),
+                        isChecked = (preferences.fastSeek != FastSeek.DISABLE),
+                        onChecked = viewModel::toggleFastSeek,
+                        onClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(Dialog.FastSeekDialog)
+                            )
+                        }
+                    )
+                }
             }
             when (uiState.showDialog) {
                 Dialog.ResumeDialog -> {
@@ -133,6 +147,27 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.doubleTapGesture),
                                 onClick = {
                                     viewModel.updateDoubleTapGesture(it)
+                                    viewModel.onEvent(
+                                        PlayerPreferencesEvent.ShowDialog(Dialog.None)
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                Dialog.FastSeekDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.fast_seek),
+                        onDismissClick = {
+                            viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
+                        }
+                    ) {
+                        FastSeek.values().forEach {
+                            RadioTextButton(
+                                text = it.value,
+                                selected = (it == preferences.fastSeek),
+                                onClick = {
+                                    viewModel.updateFastSeek(it)
                                     viewModel.onEvent(
                                         PlayerPreferencesEvent.ShowDialog(Dialog.None)
                                     )

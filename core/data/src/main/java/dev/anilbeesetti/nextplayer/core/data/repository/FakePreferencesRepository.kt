@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
@@ -42,5 +43,9 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override suspend fun setDoubleTapGesture(gesture: DoubleTapGesture) {
         playerPreferences.update { it.copy(doubleTapGesture = gesture) }
+    }
+
+    override suspend fun setFastSeek(seek: FastSeek) {
+        playerPreferences.update { it.copy(fastSeek = seek) }
     }
 }

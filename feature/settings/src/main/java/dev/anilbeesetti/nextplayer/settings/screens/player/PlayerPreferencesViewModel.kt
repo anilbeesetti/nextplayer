@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import javax.inject.Inject
@@ -46,13 +47,29 @@ class PlayerPreferencesViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setDoubleTapGesture(gesture) }
     }
 
+    fun updateFastSeek(fastSeek: FastSeek) {
+        viewModelScope.launch { preferencesRepository.setFastSeek(fastSeek) }
+    }
+
     fun toggleDoubleTapGesture() {
         viewModelScope.launch {
             preferencesRepository.setDoubleTapGesture(
-                if (preferencesFlow.value.doubleTapGesture == DoubleTapGesture.FAST_FORWARD_AND_REWIND) {
-                    DoubleTapGesture.NONE
-                } else {
+                if (preferencesFlow.value.doubleTapGesture == DoubleTapGesture.NONE) {
                     DoubleTapGesture.FAST_FORWARD_AND_REWIND
+                } else {
+                    DoubleTapGesture.NONE
+                }
+            )
+        }
+    }
+
+    fun toggleFastSeek() {
+        viewModelScope.launch {
+            preferencesRepository.setFastSeek(
+                if (preferencesFlow.value.fastSeek == FastSeek.DISABLE) {
+                    FastSeek.AUTO
+                } else {
+                    FastSeek.DISABLE
                 }
             )
         }
@@ -74,6 +91,7 @@ data class UIState(
 sealed interface Dialog {
     object ResumeDialog : Dialog
     object DoubleTapDialog : Dialog
+    object FastSeekDialog : Dialog
     object None : Dialog
 }
 
