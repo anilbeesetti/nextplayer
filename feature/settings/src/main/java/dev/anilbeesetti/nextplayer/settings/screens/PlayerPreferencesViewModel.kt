@@ -31,8 +31,8 @@ class PlayerPreferencesViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     fun onEvent(event: PlayerPreferencesEvent) {
-        when (event) {
-            is PlayerPreferencesEvent.ShowDialog -> _uiState.update {
+        if (event is PlayerPreferencesEvent.ShowDialog) {
+            _uiState.update {
                 it.copy(showDialog = event.value)
             }
         }
@@ -49,9 +49,11 @@ class PlayerPreferencesViewModel @Inject constructor(
     fun toggleDoubleTapGesture() {
         viewModelScope.launch {
             preferencesRepository.setDoubleTapGesture(
-                if (preferencesFlow.value.doubleTapGesture == DoubleTapGesture.FAST_FORWARD_AND_REWIND)
+                if (preferencesFlow.value.doubleTapGesture == DoubleTapGesture.FAST_FORWARD_AND_REWIND) {
                     DoubleTapGesture.NONE
-                else DoubleTapGesture.FAST_FORWARD_AND_REWIND
+                } else {
+                    DoubleTapGesture.FAST_FORWARD_AND_REWIND
+                }
             )
         }
     }

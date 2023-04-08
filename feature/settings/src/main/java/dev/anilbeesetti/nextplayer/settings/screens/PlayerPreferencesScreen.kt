@@ -72,13 +72,19 @@ fun PlayerPreferencesScreen(
                     ClickablePreferenceItem(
                         title = stringResource(id = R.string.resume),
                         description = stringResource(id = R.string.resume_description),
-                        onClick = { viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.ResumeDialog)) }
+                        onClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(Dialog.ResumeDialog)
+                            )
+                        }
                     )
                 }
                 item {
                     PreferenceSwitch(
                         title = stringResource(id = R.string.remember_brightness_level),
-                        description = stringResource(id = R.string.remember_brightness_level_description),
+                        description = stringResource(
+                            id = R.string.remember_brightness_level_description
+                        ),
                         isChecked = preferences.rememberPlayerBrightness,
                         onClick = viewModel::toggleRememberBrightnessLevel
                     )
@@ -89,7 +95,11 @@ fun PlayerPreferencesScreen(
                         description = stringResource(id = R.string.double_tap_description),
                         isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
                         onChecked = viewModel::toggleDoubleTapGesture,
-                        onClick = { viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.DoubleTapDialog)) }
+                        onClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(Dialog.DoubleTapDialog)
+                            )
+                        }
                     )
                 }
             }
@@ -107,7 +117,9 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.resume),
                                 onClick = {
                                     viewModel.updatePlaybackResume(it)
-                                    viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
+                                    viewModel.onEvent(
+                                        PlayerPreferencesEvent.ShowDialog(Dialog.None)
+                                    )
                                 }
                             )
                         }
@@ -126,7 +138,9 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.doubleTapGesture),
                                 onClick = {
                                     viewModel.updateDoubleTapGesture(it)
-                                    viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
+                                    viewModel.onEvent(
+                                        PlayerPreferencesEvent.ShowDialog(Dialog.None)
+                                    )
                                 }
                             )
                         }

@@ -11,9 +11,12 @@ data class PlayerPreferences(
 )
 
 enum class Resume(val value: String) {
-    YES(value = "Yes"), NO(value = "No")
+    YES(value = "Yes"),
+    NO(value = "No")
 }
 
 enum class DoubleTapGesture(val value: String) {
-    PLAY_PAUSE(value = "Play/Pause"), FAST_FORWARD_AND_REWIND(value = "Fast Forward/Rewind"), NONE(value = "None")
+    PLAY_PAUSE(value = "Play/Pause"),
+    FAST_FORWARD_AND_REWIND(value = "Fast Forward/Rewind"),
+    NONE(value = "None")
 }

@@ -77,9 +77,13 @@ class PlayerGestureHelper(
                         val currentPos = playerView.player?.currentPosition ?: 0
 
                         if (event.x.toInt() > viewCenterX) {
-                            playerView.player?.seekTo(currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
+                            playerView.player?.seekTo(
+                                currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
+                            )
                         } else {
-                            playerView.player?.seekTo((currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS).coerceAtLeast(0))
+                            playerView.player?.seekTo(
+                                (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS).coerceAtLeast(0)
+                            )
                         }
                         true
                     }
