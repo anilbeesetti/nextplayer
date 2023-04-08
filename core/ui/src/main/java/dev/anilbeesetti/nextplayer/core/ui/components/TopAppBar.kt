@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
@@ -14,15 +13,13 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import dev.anilbeesetti.nextplayer.core.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NextMainTopAppBar(
-    @StringRes titleRes: Int,
+    title: String,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
@@ -31,7 +28,7 @@ fun NextMainTopAppBar(
     CenterAlignedTopAppBar(
         title = {
             Text(
-                text = stringResource(id = titleRes),
+                text = title,
                 fontWeight = FontWeight.Bold
             )
         },
@@ -47,7 +44,7 @@ fun NextMainTopAppBar(
 @Composable
 private fun NextPlayerMainTopAppBarPreview() {
     NextMainTopAppBar(
-        titleRes = R.string.untitled,
+        title = "Next Player",
         navigationIcon = {
             IconButton(onClick = {}) {
                 Icon(
