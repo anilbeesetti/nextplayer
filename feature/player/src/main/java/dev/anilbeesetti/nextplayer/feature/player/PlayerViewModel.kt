@@ -108,4 +108,10 @@ class PlayerViewModel @Inject constructor(
             C.TRACK_TYPE_TEXT -> currentSubtitleTrackIndex.value = trackIndex
         }
     }
+
+    fun setPlayerBrightness(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.setPlayerBrightness(value)
+        }
+    }
 }

@@ -21,4 +21,24 @@ class PlayerPreferencesDataSource @Inject constructor(
             )
         }
     }
+
+    suspend fun shouldRememberPlayerBrightness(value: Boolean) {
+        try {
+            preferencesDataStore.updateData { it.copy(rememberPlayerBrightness = value) }
+        } catch (ioException: Exception) {
+            Timber.tag("NextPlayerPreferences").e(
+                "Failed to update player preferences: $ioException"
+            )
+        }
+    }
+
+    suspend fun setPlayerBrightness(value: Float) {
+        try {
+            preferencesDataStore.updateData { it.copy(playerBrightness = value) }
+        } catch (ioException: Exception) {
+            Timber.tag("NextPlayerPreferences").e(
+                "Failed to update player preferences: $ioException"
+            )
+        }
+    }
 }

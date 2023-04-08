@@ -4,7 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlayerPreferences(
-    val resume: Resume = Resume.YES
+    val resume: Resume = Resume.YES,
+    val rememberPlayerBrightness: Boolean = false,
+    val playerBrightness: Float = 0.5f,
 )
 
 enum class Resume {

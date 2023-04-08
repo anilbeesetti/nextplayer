@@ -10,4 +10,6 @@
     <string name="about_description">Version, credits</string>
     <string name="resume">Resume</string>
     <string name="resume_description">Select whether to resume played videos from the point where you stopped</string>
+    <string name="remember_brightness_level">Remember brightness level</string>
+    <string name="remember_brightness_level_description">Remember brightness level between playback sessions</string>
 </resources>

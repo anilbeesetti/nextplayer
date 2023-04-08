@@ -39,4 +39,18 @@ interface PreferencesRepository {
      * @param resume The playback resume to be set.
      */
     suspend fun setPlaybackResume(resume: Resume)
+
+    /**
+     * Sets the brightness level of the video items.
+     *
+     * @param value should remember the brightness level.
+     */
+    suspend fun shouldRememberPlayerBrightness(value: Boolean)
+
+    /**
+     * Sets the brightness level of the video items.
+     *
+     * @param value The brightness level to be set.
+     */
+    suspend fun setPlayerBrightness(value: Float)
 }

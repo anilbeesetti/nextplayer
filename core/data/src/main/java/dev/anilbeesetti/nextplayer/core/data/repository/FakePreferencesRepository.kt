@@ -30,4 +30,12 @@ class FakePreferencesRepository : PreferencesRepository {
     override suspend fun setPlaybackResume(resume: Resume) {
         playerPreferences.update { it.copy(resume = resume) }
     }
+
+    override suspend fun shouldRememberPlayerBrightness(value: Boolean) {
+        playerPreferences.update { it.copy(rememberPlayerBrightness = value) }
+    }
+
+    override suspend fun setPlayerBrightness(value: Float) {
+        playerPreferences.update { it.copy(playerBrightness = value) }
+    }
 }

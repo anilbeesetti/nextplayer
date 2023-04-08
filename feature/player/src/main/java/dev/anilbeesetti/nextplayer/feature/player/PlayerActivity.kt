@@ -134,9 +134,11 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         playerGestureHelper = PlayerGestureHelper(
+            playerPreferences = viewModel.preferences.value,
             activity = this,
             playerView = binding.playerView,
-            audioManager = getSystemService(android.media.AudioManager::class.java)
+            audioManager = getSystemService(android.media.AudioManager::class.java),
+            onBrightnessChange = viewModel::setPlayerBrightness,
         )
 
         audioTrackButton.setOnClickListener {
