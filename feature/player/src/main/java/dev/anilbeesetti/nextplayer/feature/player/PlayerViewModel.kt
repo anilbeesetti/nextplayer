@@ -47,7 +47,7 @@ class PlayerViewModel @Inject constructor(
 
     val preferences = preferencesRepository.playerPreferencesFlow.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = PlayerPreferences()
     )
 
@@ -57,7 +57,7 @@ class PlayerViewModel @Inject constructor(
             path?.let {
                 val videoState = videoRepository.getVideoState(it)
                 Timber.d("Get state for $it: $videoState")
-                playbackPosition.value = if (preferences.value.resume == Resume.YES) videoState?.position else 0L
+                playbackPosition.value = if (preferences.value.resume == Resume.YES) videoState?.position else null
                 currentAudioTrackIndex.value = videoState?.audioTrack
                 currentSubtitleTrackIndex.value = videoState?.subtitleTrack
             }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,10 +35,8 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateResume() {
-        viewModelScope.launch {
-            preferencesRepository.setPlaybackResume(preferencesFlow.value.resume)
-        }
+    fun updateResume(resume: Resume) {
+        viewModelScope.launch { preferencesRepository.setPlaybackResume(resume) }
     }
 }
 

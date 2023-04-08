@@ -31,9 +31,10 @@ fun NextDialog(
     onDismissRequest: () -> Unit,
     title: @Composable () -> Unit,
     content: @Composable BoxScope.() -> Unit,
-    confirmButton: @Composable () -> Unit,
+    confirmButton: (@Composable () -> Unit)?,
     dismissButton: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dialogProperties: DialogProperties = NextDialogDefaults.dialogProperties
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -87,18 +88,16 @@ fun NextDialog(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        confirmButton()
-                        Spacer(modifier = Modifier.width(8.dp))
+                        confirmButton?.let {
+                            it.invoke()
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                         dismissButton()
                     }
                 }
             }
         },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
+        properties = dialogProperties
     )
 }
 
@@ -108,6 +107,11 @@ object NextDialogDefaults {
     val titleContentColor: Color @Composable get() = AlertDialogDefaults.titleContentColor
     val textContentColor: Color @Composable get() = AlertDialogDefaults.textContentColor
     val tonalElevation: Dp = AlertDialogDefaults.TonalElevation
+    val dialogProperties: DialogProperties = DialogProperties(
+        usePlatformDefaultWidth = false,
+        dismissOnBackPress = true,
+        dismissOnClickOutside = true
+    )
     val dialogPadding: Dp = 24.dp
     val dialogMargin: Dp = 12.dp
     val spaceBy: Dp = 16.dp

@@ -1,34 +1,38 @@
 package dev.anilbeesetti.nextplayer.settings.screens
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.datastore.Resume
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
 import dev.anilbeesetti.nextplayer.feature.settings.R
 import dev.anilbeesetti.nextplayer.settings.composables.ClickablePreferenceItem
 
@@ -82,31 +86,52 @@ fun PlayerPreferencesScreen(
                 }
             }
             if (uiState.showResumeDialog) {
-                AlertDialog(
+                NextDialog(
+                    onDismissRequest = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(false)) },
                     title = {
-                        Text(text = stringResource(id = R.string.resume))
+                        Text(
+                            text = stringResource(id = R.string.resume),
+                        )
+                    },
+                    content = {
+                        Column(
+                            modifier = Modifier.selectableGroup()
+                        ) {
+                            Resume.values().forEach {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .selectable(
+                                            selected = (it == preferences.resume),
+                                            onClick = {
+                                                viewModel.updateResume(it)
+                                                viewModel.onEvent(
+                                                    PlayerPreferencesEvent.ResumeDialog(false)
+                                                )
+                                            },
+                                            role = Role.RadioButton
+                                        )
+                                        .padding(horizontal = NextDialogDefaults.dialogPadding),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = (it == preferences.resume),
+                                        onClick = null
+                                    )
+                                    Text(
+                                        text = it.name,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                }
+                            }
+                        }
                     },
                     dismissButton = {
-                        Button(
-                            onClick = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(false)) },
-                            modifier = Modifier
-                                .widthIn(min = 72.dp)
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            Text(text = stringResource(id = R.string.resume))
-                        }
+                        CancelButton(
+                            onClick = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(false)) }
+                        )
                     },
-                    onDismissRequest = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(false)) },
-                    confirmButton = {
-                        Button(
-                            onClick = { viewModel.updateResume() },
-                            modifier = Modifier
-                                .widthIn(min = 72.dp)
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            Text(text = stringResource(id = R.string.resume))
-                        }
-                    },
+                    confirmButton = null
                 )
             }
         }
