@@ -82,6 +82,7 @@ class MainActivity : ComponentActivity() {
                             startDestination = videoPickerScreenRoute
                         ) {
                             videoPickerScreen(
+                                title = getString(R.string.app_name),
                                 onVideoItemClick = this@MainActivity::startPlayerActivity,
                                 onSettingsClick = navController::navigateToSettings
                             )
@@ -110,7 +111,7 @@ fun PermissionScreen(
     onGrantPermissionClick: () -> Unit
 ) {
     Column {
-        NextPlayerMainTopAppBar(titleRes = R.string.app_name)
+        NextPlayerMainTopAppBar(title = stringResource(id = R.string.app_name))
         if (permissionStatus.shouldShowRationale) {
             PermissionRationaleDialog(
                 text = stringResource(id = R.string.permission_info, permission),

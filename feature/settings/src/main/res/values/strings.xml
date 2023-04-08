@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings">Settings</string>
+    <string name="navigate_up">Navigate up</string>
     <string name="interface_name">Interface</string>
     <string name="interface_description">Appearance, scan</string>
-    <string name="player">Player</string>
+    <string name="player_name">Player</string>
     <string name="player_description">Player appearance, playback controls</string>
-    <string name="navigate_up">Navigate up</string>
-    <string name="about">About</string>
+    <string name="about_name">About</string>
     <string name="about_description">Version, credits</string>
 </resources>

@@ -24,6 +24,7 @@ class VideoPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 VideoPickerScreen(
+                    title = "Title",
                     videosState = VideosState.Loading,
                     preferences = AppPreferences()
                 )
@@ -41,6 +42,7 @@ class VideoPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 VideoPickerScreen(
+                    title = "Title",
                     videosState = VideosState.Success(
                         videos = videoItemsTestData
                     ),
@@ -74,6 +76,7 @@ class VideoPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 VideoPickerScreen(
+                    title = "Title",
                     videosState = VideosState.Success(
                         videos = emptyList()
                     ),

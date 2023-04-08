@@ -48,14 +48,16 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable
 fun VideoPickerScreen(
-    viewModel: VideoPickerViewModel = hiltViewModel(),
+    title: String,
     onSettingsClick: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit
+    onVideoItemClick: (uri: Uri) -> Unit,
+    viewModel: VideoPickerViewModel = hiltViewModel()
 ) {
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
     VideoPickerScreen(
+        title = title,
         videosState = videosState,
         preferences = preferences,
         onSettingsClick = onSettingsClick,
@@ -67,6 +69,7 @@ fun VideoPickerScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun VideoPickerScreen(
+    title: String,
     videosState: VideosState,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
@@ -78,7 +81,7 @@ internal fun VideoPickerScreen(
     Scaffold(
         topBar = {
             NextPlayerMainTopAppBar(
-                titleRes = R.string.app_name,
+                title = title,
                 navigationIcon = {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
@@ -147,6 +150,7 @@ fun VideoPickerScreenPreview(
         NextPlayerTheme {
             Surface {
                 VideoPickerScreen(
+                    title = "Title",
                     videosState = VideosState.Success(
                         videos = videos
                     ),
@@ -176,6 +180,7 @@ fun VideoPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
             VideoPickerScreen(
+                title = "Title",
                 videosState = VideosState.Success(
                     videos = emptyList()
                 ),
@@ -192,6 +197,7 @@ fun VideoPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
             VideoPickerScreen(
+                title = "Title",
                 videosState = VideosState.Loading,
                 preferences = AppPreferences(),
                 onVideoItemClick = {}
