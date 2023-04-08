@@ -4,7 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import dev.anilbeesetti.nextplayer.settings.screens.PlayerPreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesScreen
 
 const val playerPreferencesNavigationRoute = "player_preferences_route"
 
