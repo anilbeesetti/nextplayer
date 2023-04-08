@@ -37,6 +37,8 @@ import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreenRoute
 import dev.anilbeesetti.nextplayer.settings.Setting
+import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
@@ -94,11 +96,15 @@ class MainActivity : ComponentActivity() {
                                 onItemClick = { setting ->
                                     when (setting) {
                                         Setting.PLAYER -> navController.navigateToPlayerPreferences()
+                                        Setting.ABOUT -> navController.navigateToAboutPreferences()
                                         else -> {}
                                     }
                                 }
                             )
                             playerPreferencesScreen(
+                                onNavigateUp = navController::popBackStack
+                            )
+                            aboutPreferencesScreen(
                                 onNavigateUp = navController::popBackStack
                             )
                         }

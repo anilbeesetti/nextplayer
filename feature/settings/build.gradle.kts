@@ -11,12 +11,13 @@ android {
 dependencies {
 
     implementation(project(":core:ui"))
+    implementation(project(":core:data"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.bundles.compose)
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation(project(mapOf("path" to ":core:data")))
+    implementation(libs.aboutlibraries.compose)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
