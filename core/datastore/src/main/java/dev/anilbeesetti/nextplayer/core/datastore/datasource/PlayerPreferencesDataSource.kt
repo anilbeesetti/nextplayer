@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
+import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import javax.inject.Inject
@@ -12,7 +13,7 @@ class PlayerPreferencesDataSource @Inject constructor(
 
     val preferencesFlow = preferencesDataStore.data
 
-    suspend fun setResume(resume: Resume) {
+    suspend fun setPlaybackResume(resume: Resume) {
         try {
             preferencesDataStore.updateData { it.copy(resume = resume) }
         } catch (ioException: Exception) {
@@ -35,6 +36,16 @@ class PlayerPreferencesDataSource @Inject constructor(
     suspend fun setPlayerBrightness(value: Float) {
         try {
             preferencesDataStore.updateData { it.copy(playerBrightness = value) }
+        } catch (ioException: Exception) {
+            Timber.tag("NextPlayerPreferences").e(
+                "Failed to update player preferences: $ioException"
+            )
+        }
+    }
+
+    suspend fun setDoubleTapGesture(value: DoubleTapGesture) {
+        try {
+            preferencesDataStore.updateData { it.copy(doubleTapGesture = value) }
         } catch (ioException: Exception) {
             Timber.tag("NextPlayerPreferences").e(
                 "Failed to update player preferences: $ioException"
