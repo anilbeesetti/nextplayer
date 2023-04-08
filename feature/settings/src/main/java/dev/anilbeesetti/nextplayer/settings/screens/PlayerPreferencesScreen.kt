@@ -9,7 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,9 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
-import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.feature.settings.R
