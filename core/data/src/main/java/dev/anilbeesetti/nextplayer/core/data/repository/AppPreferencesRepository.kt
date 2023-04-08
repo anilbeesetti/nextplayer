@@ -30,7 +30,7 @@ class AppPreferencesRepository @Inject constructor(
     }
 
     override suspend fun setPlaybackResume(resume: Resume) {
-        playerPreferencesDataSource.setResume(resume)
+        playerPreferencesDataSource.setPlaybackResume(resume)
     }
 
     override suspend fun shouldRememberPlayerBrightness(value: Boolean) {

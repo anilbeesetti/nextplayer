@@ -38,7 +38,7 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateResume(resume: Resume) {
+    fun updatePlaybackResume(resume: Resume) {
         viewModelScope.launch { preferencesRepository.setPlaybackResume(resume) }
     }
 

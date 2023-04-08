@@ -13,7 +13,7 @@ class PlayerPreferencesDataSource @Inject constructor(
 
     val preferencesFlow = preferencesDataStore.data
 
-    suspend fun setResume(resume: Resume) {
+    suspend fun setPlaybackResume(resume: Resume) {
         try {
             preferencesDataStore.updateData { it.copy(resume = resume) }
         } catch (ioException: Exception) {
