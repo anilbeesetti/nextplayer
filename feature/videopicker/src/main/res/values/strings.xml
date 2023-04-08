@@ -3,8 +3,6 @@
     <string name="no_videos_found">No videos found</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
-    <string name="cancel">Cancel</string>
-    <string name="done">Done</string>
     <string name="sort">Sort</string>
     <string name="app_name">Next Player</string>
     <string name="settings">Settings</string>

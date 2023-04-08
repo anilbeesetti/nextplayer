@@ -129,8 +129,8 @@ internal fun VideoPickerScreen(
             if (showMenu) {
                 MenuDialog(
                     preferences = preferences,
-                    showMenuDialog = { showMenu = it },
-                    update = updatePreferences
+                    onDismiss = { showMenu = false },
+                    updatePreferences = updatePreferences
                 )
             }
         }

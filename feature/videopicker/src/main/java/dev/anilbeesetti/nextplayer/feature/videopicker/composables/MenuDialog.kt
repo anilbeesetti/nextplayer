@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDownward
@@ -18,136 +17,122 @@ import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Title
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableChipBorder
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
+import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
 import dev.anilbeesetti.nextplayer.feature.videopicker.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuDialog(
     preferences: AppPreferences,
-    showMenuDialog: (Boolean) -> Unit,
-    update: (SortBy, SortOrder) -> Unit
+    onDismiss: () -> Unit,
+    updatePreferences: (SortBy, SortOrder) -> Unit
 ) {
-    Dialog(
-        onDismissRequest = { showMenuDialog(false) },
+
+    var selectedSortBy by remember { mutableStateOf(preferences.sortBy) }
+    var selectedSortOrder by remember { mutableStateOf(preferences.sortOrder) }
+
+    NextDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.sort),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
         content = {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
+            Column(
                 modifier = Modifier
-                    .widthIn(max = 500.dp)
-                    .fillMaxWidth(0.90f)
-                    .padding(bottom = 20.dp),
-                tonalElevation = AlertDialogDefaults.TonalElevation
+                    .fillMaxWidth()
+                    .padding(horizontal = NextDialogDefaults.dialogPadding)
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(vertical = 16.dp, horizontal = 24.dp)
-                ) {
-                    var selectedSortBy by remember { mutableStateOf(preferences.sortBy) }
-                    var selectedSortOrder by remember { mutableStateOf(preferences.sortOrder) }
 
-                    Column {
+                SortOptions(
+                    selectedSortBy = selectedSortBy,
+                    onOptionSelected = { selectedSortBy = it }
+                )
+                Spacer(modifier = Modifier.height(NextDialogDefaults.spaceBy))
+                SegmentedFilterChip(
+                    labelOne = {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowUpward,
+                            contentDescription = stringResource(R.string.ascending)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.sort),
-                            style = MaterialTheme.typography.headlineSmall
+                            text = stringResource(R.string.ascending),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
                         )
-                        SortOptions(
-                            selectedSortBy = selectedSortBy,
-                            onOptionSelected = { selectedSortBy = it }
+                    },
+                    labelTwo = {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowDownward,
+                            contentDescription = stringResource(R.string.descending)
                         )
-
-                        SegmentedFilterChip(
-                            labelOne = {
-                                Icon(
-                                    imageVector = Icons.Rounded.ArrowUpward,
-                                    contentDescription = stringResource(R.string.ascending)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.ascending),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            },
-                            labelTwo = {
-                                Icon(
-                                    imageVector = Icons.Rounded.ArrowDownward,
-                                    contentDescription = stringResource(R.string.descending)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.descending),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            },
-                            selected = if (selectedSortOrder == SortOrder.ASCENDING) ChipSelected.ONE else ChipSelected.TWO,
-                            onClick = {
-                                selectedSortOrder = when (it) {
-                                    ChipSelected.ONE -> SortOrder.ASCENDING
-                                    ChipSelected.TWO -> SortOrder.DESCENDING
-                                }
-                            }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.descending),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
                         )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    CancelDoneButtons(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        onCancelClick = {
-                            showMenuDialog(false)
-                        },
-                        onDoneClick = {
-                            update(selectedSortBy, selectedSortOrder)
-                            showMenuDialog(false)
+                    },
+                    selected = if (selectedSortOrder == SortOrder.ASCENDING) ChipSelected.ONE else ChipSelected.TWO,
+                    onClick = {
+                        selectedSortOrder = when (it) {
+                            ChipSelected.ONE -> SortOrder.ASCENDING
+                            ChipSelected.TWO -> SortOrder.DESCENDING
                         }
-                    )
-                }
+                    }
+                )
             }
         },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
+        confirmButton = {
+            DoneButton(
+                onClick = {
+                    updatePreferences(selectedSortBy, selectedSortOrder)
+                    onDismiss()
+                }
+            )
+        },
+        dismissButton = {
+            CancelButton(onClick = onDismiss)
+        }
     )
 }
 
 @Composable
 private fun SortOptions(
     selectedSortBy: SortBy,
-    onOptionSelected: (SortBy) -> Unit
+    onOptionSelected: (SortBy) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp)
     ) {
         TextIconToggleButton(
             text = "Title",
@@ -173,27 +158,6 @@ private fun SortOptions(
             isSelected = selectedSortBy == SortBy.RESOLUTION,
             onClick = { onOptionSelected(SortBy.RESOLUTION) }
         )
-    }
-}
-
-@Composable
-private fun CancelDoneButtons(
-    modifier: Modifier = Modifier,
-    onCancelClick: () -> Unit = {},
-    onDoneClick: () -> Unit = {},
-    arrangement: Arrangement.Horizontal = Arrangement.End
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = arrangement
-    ) {
-        TextButton(onClick = onCancelClick) {
-            Text(text = stringResource(R.string.cancel))
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        TextButton(onClick = onDoneClick) {
-            Text(text = stringResource(R.string.done))
-        }
     }
 }
 
