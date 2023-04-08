@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NextMainTopAppBar(
+fun NextCenterAlignedTopAppBar(
     title: String,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
@@ -43,7 +43,7 @@ fun NextMainTopAppBar(
 @Preview
 @Composable
 private fun NextPlayerMainTopAppBarPreview() {
-    NextMainTopAppBar(
+    NextCenterAlignedTopAppBar(
         title = "Next Player",
         navigationIcon = {
             IconButton(onClick = {}) {

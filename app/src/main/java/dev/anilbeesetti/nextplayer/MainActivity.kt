@@ -31,7 +31,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
 import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
-import dev.anilbeesetti.nextplayer.core.ui.components.NextMainTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
@@ -123,7 +123,7 @@ fun PermissionScreen(
     onGrantPermissionClick: () -> Unit
 ) {
     Column {
-        NextMainTopAppBar(title = stringResource(id = R.string.app_name))
+        NextCenterAlignedTopAppBar(title = stringResource(id = R.string.app_name))
         if (permissionStatus.shouldShowRationale) {
             PermissionRationaleDialog(
                 text = stringResource(id = R.string.permission_info, permission),
