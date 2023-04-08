@@ -56,7 +56,7 @@ fun AboutPreferencesScreen(
                 badgeContentColor = MaterialTheme.colorScheme.onSecondaryContainer
             ),
             padding = LibraryDefaults.libraryPadding(
-                namePadding = PaddingValues(vertical = 4.dp),
+                namePadding = PaddingValues(bottom = 4.dp),
                 badgeContentPadding = PaddingValues(4.dp)
             ),
             onLibraryClick = { library ->
