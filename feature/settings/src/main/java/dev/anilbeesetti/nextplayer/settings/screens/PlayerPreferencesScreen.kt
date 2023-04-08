@@ -47,7 +47,7 @@ fun PlayerPreferencesScreen(
             LargeTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.player)
+                        text = stringResource(id = R.string.player_name)
                     )
                 },
                 scrollBehavior = scrollBehaviour,
