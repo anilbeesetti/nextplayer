@@ -21,7 +21,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NextPlayerMainTopAppBar(
+fun NextMainTopAppBar(
     @StringRes titleRes: Int,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
@@ -46,7 +46,7 @@ fun NextPlayerMainTopAppBar(
 @Preview
 @Composable
 private fun NextPlayerMainTopAppBarPreview() {
-    NextPlayerMainTopAppBar(
+    NextMainTopAppBar(
         titleRes = R.string.untitled,
         navigationIcon = {
             IconButton(onClick = {}) {
