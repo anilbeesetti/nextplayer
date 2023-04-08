@@ -10,14 +10,13 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.feature.settings.R
 import dev.anilbeesetti.nextplayer.settings.composables.SettingGroupItem
 
@@ -27,17 +26,13 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit,
     onItemClick: (Setting) -> Unit
 ) {
-    val scrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.settings)
-                    )
-                },
+            NextTopAppBar(
+                title = stringResource(id = R.string.settings),
                 scrollBehavior = scrollBehaviour,
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
