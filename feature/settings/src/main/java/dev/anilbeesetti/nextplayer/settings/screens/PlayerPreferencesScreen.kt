@@ -81,7 +81,9 @@ fun PlayerPreferencesScreen(
                 item {
                     PreferenceSwitch(
                         title = stringResource(id = R.string.remember_brightness_level),
-                        description = stringResource(id = R.string.remember_brightness_level_description),
+                        description = stringResource(
+                            id = R.string.remember_brightness_level_description
+                        ),
                         isChecked = preferences.rememberPlayerBrightness,
                         onClick = viewModel::toggleRememberBrightnessLevel
                     )

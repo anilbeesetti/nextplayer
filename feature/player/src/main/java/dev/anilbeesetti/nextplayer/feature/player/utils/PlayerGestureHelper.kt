@@ -33,7 +33,7 @@ class PlayerGestureHelper(
     private val activity: PlayerActivity,
     private val playerView: PlayerView,
     private val audioManager: AudioManager,
-    private val onBrightnessChange: (Float) -> Unit,
+    private val onBrightnessChange: (Float) -> Unit
 ) {
 
     private var swipeGestureVolumeTrackerValue = -1f

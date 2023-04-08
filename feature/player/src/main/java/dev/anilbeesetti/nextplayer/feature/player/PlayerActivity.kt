@@ -138,7 +138,7 @@ class PlayerActivity : AppCompatActivity() {
             activity = this,
             playerView = binding.playerView,
             audioManager = getSystemService(android.media.AudioManager::class.java),
-            onBrightnessChange = viewModel::setPlayerBrightness,
+            onBrightnessChange = viewModel::setPlayerBrightness
         )
 
         audioTrackButton.setOnClickListener {
