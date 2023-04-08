@@ -29,6 +29,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.feature.settings.R
 import dev.anilbeesetti.nextplayer.settings.composables.ClickablePreferenceItem
+import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSwitch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +76,16 @@ fun PlayerPreferencesScreen(
                         title = stringResource(id = R.string.resume),
                         description = stringResource(id = R.string.resume_description),
                         onClick = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(true)) }
+                    )
+                }
+                item {
+                    PreferenceSwitch(
+                        title = stringResource(id = R.string.remember_brightness_level),
+                        description = stringResource(
+                            id = R.string.remember_brightness_level_description
+                        ),
+                        isChecked = preferences.rememberPlayerBrightness,
+                        onClick = viewModel::toggleRememberBrightnessLevel
                     )
                 }
             }

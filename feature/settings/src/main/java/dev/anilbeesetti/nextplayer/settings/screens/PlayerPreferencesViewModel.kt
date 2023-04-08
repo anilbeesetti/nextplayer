@@ -42,6 +42,14 @@ class PlayerPreferencesViewModel @Inject constructor(
     fun updateResume(resume: Resume) {
         viewModelScope.launch { preferencesRepository.setPlaybackResume(resume) }
     }
+
+    fun toggleRememberBrightnessLevel() {
+        viewModelScope.launch {
+            preferencesRepository.shouldRememberPlayerBrightness(
+                !preferencesFlow.value.rememberPlayerBrightness
+            )
+        }
+    }
 }
 
 data class UIState(

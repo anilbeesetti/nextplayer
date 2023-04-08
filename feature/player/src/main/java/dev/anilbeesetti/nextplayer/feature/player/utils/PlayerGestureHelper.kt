@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import kotlin.math.abs
@@ -28,9 +29,11 @@ import kotlinx.coroutines.launch
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
 class PlayerGestureHelper(
+    private val playerPreferences: PlayerPreferences,
     private val activity: PlayerActivity,
     private val playerView: PlayerView,
-    private val audioManager: AudioManager
+    private val audioManager: AudioManager,
+    private val onBrightnessChange: (Float) -> Unit
 ) {
 
     private var swipeGestureVolumeTrackerValue = -1f
@@ -236,6 +239,9 @@ class PlayerGestureHelper(
                         delay(HIDE_DELAY_MILLIS)
                         visibility = View.GONE
                     }
+                    if (playerPreferences.rememberPlayerBrightness) {
+                        onBrightnessChange(activity.window.attributes.screenBrightness)
+                    }
                     swipeGestureBrightnessOpen = false
                 }
             }
@@ -281,6 +287,10 @@ class PlayerGestureHelper(
     }
 
     init {
+        if (playerPreferences.rememberPlayerBrightness) {
+            activity.window.attributes.screenBrightness = playerPreferences.playerBrightness
+        }
+
         playerView.setOnTouchListener { _, motionEvent ->
             when (motionEvent.pointerCount) {
                 1 -> {
