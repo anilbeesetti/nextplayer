@@ -20,7 +20,7 @@ enum class Resume(val value: String) {
 enum class FastSeek(val value: String) {
     AUTO(value = "Auto"),
     ENABLE(value = "Enable"),
-    DISABLE(value = "Disable"),
+    DISABLE(value = "Disable")
 }
 
 enum class DoubleTapGesture(val value: String) {

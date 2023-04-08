@@ -348,4 +348,3 @@ class PlayerGestureHelper(
 }
 
 fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
-
