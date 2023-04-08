@@ -38,7 +38,7 @@ import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
 import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.VideoPickerPreviewParameterProvider
-import dev.anilbeesetti.nextplayer.core.ui.components.NextMainTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
@@ -80,7 +80,7 @@ internal fun VideoPickerScreen(
 
     Scaffold(
         topBar = {
-            NextMainTopAppBar(
+            NextCenterAlignedTopAppBar(
                 title = title,
                 navigationIcon = {
                     IconButton(onClick = onSettingsClick) {
