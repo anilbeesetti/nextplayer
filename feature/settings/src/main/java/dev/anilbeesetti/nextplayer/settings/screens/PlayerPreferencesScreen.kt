@@ -36,7 +36,6 @@ fun PlayerPreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: PlayerPreferencesViewModel = hiltViewModel()
 ) {
-
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -81,10 +80,14 @@ fun PlayerPreferencesScreen(
             }
             if (uiState.showResumeDialog) {
                 NextDialog(
-                    onDismissRequest = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(false)) },
+                    onDismissRequest = {
+                        viewModel.onEvent(
+                            PlayerPreferencesEvent.ResumeDialog(false)
+                        )
+                    },
                     title = {
                         Text(
-                            text = stringResource(id = R.string.resume),
+                            text = stringResource(id = R.string.resume)
                         )
                     },
                     content = {
@@ -97,7 +100,9 @@ fun PlayerPreferencesScreen(
                                     selected = (it == preferences.resume),
                                     onClick = {
                                         viewModel.updateResume(it)
-                                        viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(false))
+                                        viewModel.onEvent(
+                                            PlayerPreferencesEvent.ResumeDialog(false)
+                                        )
                                     },
                                     modifier = Modifier
                                         .padding(horizontal = NextDialogDefaults.dialogPadding)
@@ -107,7 +112,11 @@ fun PlayerPreferencesScreen(
                     },
                     dismissButton = {
                         CancelButton(
-                            onClick = { viewModel.onEvent(PlayerPreferencesEvent.ResumeDialog(false)) }
+                            onClick = {
+                                viewModel.onEvent(
+                                    PlayerPreferencesEvent.ResumeDialog(false)
+                                )
+                            }
                         )
                     },
                     confirmButton = null

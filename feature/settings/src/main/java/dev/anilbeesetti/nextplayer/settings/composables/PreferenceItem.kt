@@ -42,7 +42,7 @@ fun PreferenceItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp, 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             icon?.let {
                 Icon(
@@ -70,8 +70,9 @@ fun PreferenceItem(
                     Text(
                         text = it,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2, overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -105,14 +106,14 @@ fun PreferenceSwitch(
     enabled: Boolean = true,
     isChecked: Boolean = true,
     checkedIcon: ImageVector = Icons.Outlined.Check,
-    onClick: (() -> Unit) = {},
+    onClick: (() -> Unit) = {}
 ) {
     val thumbContent: (@Composable () -> Unit)? = if (isChecked) {
         {
             Icon(
                 imageVector = checkedIcon,
                 contentDescription = null,
-                modifier = Modifier.size(SwitchDefaults.IconSize),
+                modifier = Modifier.size(SwitchDefaults.IconSize)
             )
         }
     } else {
@@ -156,7 +157,7 @@ fun PreferenceSwitchWithDivider(
             Icon(
                 imageVector = checkedIcon,
                 contentDescription = null,
-                modifier = Modifier.size(SwitchDefaults.IconSize),
+                modifier = Modifier.size(SwitchDefaults.IconSize)
             )
         }
     } else {
@@ -168,7 +169,8 @@ fun PreferenceSwitchWithDivider(
         description = description,
         icon = icon,
         modifier = Modifier.clickable(
-            enabled = enabled, onClick = onClick
+            enabled = enabled,
+            onClick = onClick
         ),
         content = {
             Divider(
@@ -183,7 +185,8 @@ fun PreferenceSwitchWithDivider(
                 checked = isChecked,
                 onCheckedChange = { onChecked() },
                 modifier = Modifier.padding(start = 12.dp, end = 6.dp),
-                enabled = enabled, thumbContent = thumbContent
+                enabled = enabled,
+                thumbContent = thumbContent
             )
         }
     )

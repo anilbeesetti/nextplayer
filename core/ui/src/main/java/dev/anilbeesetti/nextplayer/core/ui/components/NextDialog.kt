@@ -50,7 +50,9 @@ fun NextDialog(
                     modifier = Modifier
                         .sizeIn(minWidth = MinWidth, maxWidth = MaxWidth)
                 ) {
-                    CompositionLocalProvider(LocalContentColor provides NextDialogDefaults.titleContentColor) {
+                    CompositionLocalProvider(
+                        LocalContentColor provides NextDialogDefaults.titleContentColor
+                    ) {
                         ProvideTextStyle(value = MaterialTheme.typography.headlineSmall) {
                             Box(
                                 modifier = Modifier
@@ -65,7 +67,9 @@ fun NextDialog(
                             }
                         }
                     }
-                    CompositionLocalProvider(LocalContentColor provides NextDialogDefaults.textContentColor) {
+                    CompositionLocalProvider(
+                        LocalContentColor provides NextDialogDefaults.textContentColor
+                    ) {
                         ProvideTextStyle(value = MaterialTheme.typography.bodyMedium) {
                             Box(
                                 modifier = Modifier

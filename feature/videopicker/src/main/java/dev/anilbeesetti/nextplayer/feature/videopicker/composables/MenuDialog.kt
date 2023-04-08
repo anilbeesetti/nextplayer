@@ -50,7 +50,6 @@ fun MenuDialog(
     onDismiss: () -> Unit,
     updatePreferences: (SortBy, SortOrder) -> Unit
 ) {
-
     var selectedSortBy by remember { mutableStateOf(preferences.sortBy) }
     var selectedSortOrder by remember { mutableStateOf(preferences.sortOrder) }
 
@@ -68,7 +67,6 @@ fun MenuDialog(
                     .fillMaxWidth()
                     .padding(horizontal = NextDialogDefaults.dialogPadding)
             ) {
-
                 SortOptions(
                     selectedSortBy = selectedSortBy,
                     onOptionSelected = { selectedSortBy = it }

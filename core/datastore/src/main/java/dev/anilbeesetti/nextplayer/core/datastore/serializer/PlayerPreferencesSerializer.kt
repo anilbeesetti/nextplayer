@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.datastore.serializer
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import java.io.InputStream
 import java.io.OutputStream

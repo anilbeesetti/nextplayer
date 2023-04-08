@@ -6,13 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class PlayerPreferencesViewModel @Inject constructor(
@@ -31,7 +31,11 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     fun onEvent(event: PlayerPreferencesEvent) {
         when (event) {
-            is PlayerPreferencesEvent.ResumeDialog -> _uiState.update { it.copy(showResumeDialog = event.value) }
+            is PlayerPreferencesEvent.ResumeDialog -> _uiState.update {
+                it.copy(
+                    showResumeDialog = event.value
+                )
+            }
         }
     }
 
@@ -41,7 +45,7 @@ class PlayerPreferencesViewModel @Inject constructor(
 }
 
 data class UIState(
-    val showResumeDialog: Boolean = false,
+    val showResumeDialog: Boolean = false
 )
 
 sealed interface PlayerPreferencesEvent {

@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateUp = navController::popBackStack,
                                 onItemClick = { setting ->
                                     when (setting) {
-                                        Setting.PLAYER-> navController.navigateToPlayerPreferences()
+                                        Setting.PLAYER -> navController.navigateToPlayerPreferences()
                                         else -> {}
                                     }
                                 }
