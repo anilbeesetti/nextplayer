@@ -29,7 +29,7 @@ class VideoPickerViewModel @Inject constructor(
             initialValue = VideosState.Loading
         )
 
-    val preferences = preferencesRepository.preferences
+    val preferences = preferencesRepository.appPreferencesFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

@@ -1,3 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="untitled">Some Random Title</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
 </resources>

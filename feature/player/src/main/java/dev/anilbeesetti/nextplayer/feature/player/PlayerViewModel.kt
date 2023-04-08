@@ -4,12 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
+import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
@@ -19,6 +24,7 @@ private const val END_POSITION_OFFSET = 5L
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val videoRepository: VideoRepository,
+    private val preferencesRepository: PreferencesRepository,
     private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase
 ) : ViewModel() {
 
@@ -39,13 +45,19 @@ class PlayerViewModel @Inject constructor(
     var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
         private set
 
+    val preferences = preferencesRepository.playerPreferencesFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = PlayerPreferences()
+    )
+
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath.value = path
         viewModelScope.launch {
             path?.let {
                 val videoState = videoRepository.getVideoState(it)
                 Timber.d("Get state for $it: $videoState")
-                playbackPosition.value = videoState?.position
+                playbackPosition.value = if (preferences.value.resume == Resume.YES) videoState?.position else null
                 currentAudioTrackIndex.value = videoState?.audioTrack
                 currentSubtitleTrackIndex.value = videoState?.subtitleTrack
             }

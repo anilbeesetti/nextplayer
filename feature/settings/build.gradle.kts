@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.bundles.compose)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(project(mapOf("path" to ":core:data")))
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)

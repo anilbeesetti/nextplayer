@@ -17,7 +17,7 @@ class GetSortedVideosUseCase @Inject constructor(
     operator fun invoke(): Flow<List<Video>> {
         return combine(
             videoRepository.getVideosFlow(),
-            preferencesRepository.preferences
+            preferencesRepository.appPreferencesFlow
         ) { videoItems, preferences ->
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {

@@ -31,12 +31,15 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
 import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
-import dev.anilbeesetti.nextplayer.core.ui.components.NextPlayerMainTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.NextMainTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreenRoute
+import dev.anilbeesetti.nextplayer.settings.Setting
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
+import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.settingsScreen
 
 @AndroidEntryPoint
@@ -87,6 +90,15 @@ class MainActivity : ComponentActivity() {
                                 onSettingsClick = navController::navigateToSettings
                             )
                             settingsScreen(
+                                onNavigateUp = navController::popBackStack,
+                                onItemClick = { setting ->
+                                    when (setting) {
+                                        Setting.PLAYER -> navController.navigateToPlayerPreferences()
+                                        else -> {}
+                                    }
+                                }
+                            )
+                            playerPreferencesScreen(
                                 onNavigateUp = navController::popBackStack
                             )
                         }
@@ -111,7 +123,7 @@ fun PermissionScreen(
     onGrantPermissionClick: () -> Unit
 ) {
     Column {
-        NextPlayerMainTopAppBar(title = stringResource(id = R.string.app_name))
+        NextMainTopAppBar(title = stringResource(id = R.string.app_name))
         if (permissionStatus.shouldShowRationale) {
             PermissionRationaleDialog(
                 text = stringResource(id = R.string.permission_info, permission),

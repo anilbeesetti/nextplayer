@@ -8,4 +8,6 @@
     <string name="player_description">Player appearance, playback controls</string>
     <string name="about_name">About</string>
     <string name="about_description">Version, credits</string>
+    <string name="resume">Resume</string>
+    <string name="resume_description">Select whether to resume played videos from the point where you stopped</string>
 </resources>
