@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.settings.screens
+package dev.anilbeesetti.nextplayer.settings.screens.player
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

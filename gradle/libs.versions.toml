@@ -1,4 +1,5 @@
 [versions]
+aboutlibraries = "10.6.1"
 accompanist = "0.30.1"
 androidGradlePlugin = "7.4.2"
 androidMaterial = "1.8.0"
@@ -31,6 +32,9 @@ timber = "5.0.1"
 
 
 [libraries]
+aboutlibraries-core = { group = "com.mikepenz", name = "aboutlibraries-core", version.ref = "aboutlibraries" }
+aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
+aboutlibraries-compose = { group = "com.mikepenz", name = "aboutlibraries-compose", version.ref = "aboutlibraries" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
@@ -85,6 +89,7 @@ media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media
 
 
 [plugins]
+aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

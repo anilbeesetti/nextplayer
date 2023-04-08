@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.settings.screens
+package dev.anilbeesetti.nextplayer.settings.screens.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
