@@ -1,5 +1,5 @@
 [versions]
-aboutlibraries = "10.6.1"
+aboutlibraries = "10.6.2"
 accompanist = "0.30.1"
 androidGradlePlugin = "7.4.2"
 androidMaterial = "1.8.0"
