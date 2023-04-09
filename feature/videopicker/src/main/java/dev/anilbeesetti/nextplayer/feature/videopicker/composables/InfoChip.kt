@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -19,12 +20,13 @@ fun InfoChip(
     text: String,
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    color: Color = MaterialTheme.colorScheme.onSecondaryContainer
+    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    shape: Shape = MaterialTheme.shapes.extraSmall.copy(CornerSize(2.dp))
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .clip(MaterialTheme.shapes.extraSmall.copy(CornerSize(2.dp)))
+            .clip(shape)
             .background(backgroundColor)
             .padding(
                 horizontal = 4.dp,
@@ -34,7 +36,7 @@ fun InfoChip(
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Normal),
-            color = color
+            color = contentColor
         )
     }
 }
