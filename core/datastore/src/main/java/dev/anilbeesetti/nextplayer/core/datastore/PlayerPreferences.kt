@@ -25,6 +25,6 @@ enum class FastSeek(val value: String) {
 
 enum class DoubleTapGesture(val value: String) {
     PLAY_PAUSE(value = "Play/Pause"),
-    FAST_FORWARD_AND_REWIND(value = "Fast Forward/Rewind"),
+    FAST_FORWARD_AND_REWIND(value = "Fast forward/Rewind"),
     NONE(value = "None")
 }
