@@ -1,6 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="untitled">Some Random Title</string>
-    <string name="done">Done</string>
+    <string name="app_name" translatable="false">Next Player</string>
+    <string name="about_description">Version, credits</string>
+    <string name="about_name">About</string>
+    <string name="ascending">Ascending</string>
     <string name="cancel">Cancel</string>
+    <string name="descending">Descending</string>
+    <string name="disable">Disable</string>
+    <string name="done">Done</string>
+    <string name="double_tap">Double tap gesture</string>
+    <string name="double_tap_description">Select double tap gesture action</string>
+    <string name="error_playing_video">Error: Can\'t play video</string>
+    <string name="fast_seek">Fast seeking</string>
+    <string name="fast_seek_description">Seek to nearest key frame instead of exact one. This results in faster seek response but may be less precise</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="interface_description">Appearance, scan</string>
+    <string name="interface_name">Interface</string>
+    <string name="menu">Menu</string>
+    <string name="navigate_up">Navigate up</string>
+    <string name="no_videos_found">No videos found</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="permission_info">The Next Player app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission.</string>
+    <string name="permission_not_granted">Permission Not Granted</string>
+    <string name="permission_request">Permission Request</string>
+    <string name="permission_settings">The Next Player app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission from settings since it was permanently denied.</string>
+    <string name="player_controls_exit">Navigate up</string>
+    <string name="player_controls_next">Player next</string>
+    <string name="player_controls_play_pause">Player play pause</string>
+    <string name="player_controls_previous">Player previous</string>
+    <string name="player_controls_progress">Player progress bar</string>
+    <string name="player_description">Player appearance, playback controls</string>
+    <string name="player_name">Player</string>
+    <string name="remember_brightness_level">Remember brightness level</string>
+    <string name="remember_brightness_level_description">Remember brightness level between playback sessions</string>
+    <string name="resume">Resume</string>
+    <string name="resume_description">Select whether to resume played videos from the point where you stopped</string>
+    <string name="select_audio_track">Select audio track</string>
+    <string name="select_subtitle_track">Select subtitle track</string>
+    <string name="settings">Settings</string>
+    <string name="sort">Sort</string>
+    <string name="title_activity_player">Next Player Activity</string>
+    <string name="unknown_error">An unknown error has occurred</string>
 </resources>

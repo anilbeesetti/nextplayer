@@ -41,7 +41,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
-import dev.anilbeesetti.nextplayer.feature.videopicker.R
+import dev.anilbeesetti.nextplayer.core.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

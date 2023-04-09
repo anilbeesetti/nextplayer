@@ -40,6 +40,7 @@ import dev.anilbeesetti.nextplayer.core.ui.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItemsPickerView

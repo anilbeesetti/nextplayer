@@ -43,6 +43,7 @@ import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -303,8 +304,8 @@ class PlayerActivity : AppCompatActivity() {
             super.onPlayerError(error)
             Timber.e(error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
-                .setTitle(getString(R.string.error_playing_video))
-                .setMessage(error.message ?: getString(R.string.unknown_error))
+                .setTitle(getString(coreUiR.string.error_playing_video))
+                .setMessage(error.message ?: getString(coreUiR.string.unknown_error))
                 .setPositiveButton("OK") { dialog, _ ->
                     dialog.dismiss()
                 }
