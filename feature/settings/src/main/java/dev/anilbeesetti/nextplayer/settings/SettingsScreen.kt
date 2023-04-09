@@ -48,10 +48,10 @@ fun SettingsScreen(
         ) {
             item {
                 ClickablePreferenceItem(
-                    title = stringResource(id = R.string.interface_name),
-                    description = stringResource(id = R.string.interface_description),
+                    title = stringResource(id = R.string.appearance_name),
+                    description = stringResource(id = R.string.appearance_description),
                     icon = NextIcons.Display,
-                    onClick = { onItemClick(Setting.INTERFACE) }
+                    onClick = { onItemClick(Setting.APPEARANCE) }
                 )
             }
             item {
@@ -75,7 +75,7 @@ fun SettingsScreen(
 }
 
 enum class Setting {
-    INTERFACE,
+    APPEARANCE,
     PLAYER,
     ABOUT
 }

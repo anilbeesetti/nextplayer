@@ -14,8 +14,8 @@
     <string name="fast_seek">Fast seeking</string>
     <string name="fast_seek_description">Seek to nearest key frame instead of exact one. This results in faster seek response but may be less precise</string>
     <string name="grant_permission">Grant Permission</string>
-    <string name="interface_description">Appearance, scan</string>
-    <string name="interface_name">Interface</string>
+    <string name="appearance_description">Adjust the app to your liking</string>
+    <string name="appearance_name">Appearance</string>
     <string name="menu">Menu</string>
     <string name="navigate_up">Navigate up</string>
     <string name="no_videos_found">No videos found</string>
