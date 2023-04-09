@@ -11,14 +11,12 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
@@ -32,18 +30,18 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
-import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
-import dev.anilbeesetti.nextplayer.feature.player.extensions.showSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
-import java.io.File
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -54,14 +52,14 @@ class PlayerActivity : AppCompatActivity() {
     private val viewModel: PlayerViewModel by viewModels()
 
     private var playerGestureHelper: PlayerGestureHelper? = null
-    private lateinit var mediaSession: MediaSession
+    private var mediaSession: MediaSession? = null
 
     private var player: Player? = null
     private var dataUri: Uri? = null
     private var playWhenReady = true
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private lateinit var trackSelector: DefaultTrackSelector
+    private val trackSelector: DefaultTrackSelector by lazy { DefaultTrackSelector(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,16 +72,14 @@ class PlayerActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        trackSelector = DefaultTrackSelector(this)
+        binding = ActivityPlayerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         dataUri = intent.data
 
         Timber.d("data: $dataUri")
 
         dataUri?.let { viewModel.initMedia(getPath(it)) }
-
-        binding = ActivityPlayerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         val backButton =
             binding.playerView.findViewById<ImageButton>(R.id.back_button)
@@ -104,10 +100,10 @@ class PlayerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.playbackPosition.collectLatest {
-                        if (it != null && it != C.TIME_UNSET) {
-                            Timber.d("Setting position: $it")
-                            player?.seekTo(it)
+                    viewModel.playbackPosition.collectLatest { position ->
+                        if (position != null && position != C.TIME_UNSET) {
+                            Timber.d("Setting position: $position")
+                            player?.seekTo(position)
                         }
                     }
                 }
@@ -176,9 +172,7 @@ class PlayerActivity : AppCompatActivity() {
             player?.currentPosition?.let { position -> viewModel.saveState(position) }
             player?.seekToPrevious()
         }
-        backButton.setOnClickListener {
-            finish()
-        }
+        backButton.setOnClickListener { finish() }
     }
 
     override fun onStart() {
@@ -212,43 +206,17 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.player = player
                 binding.playerView.setControllerVisibilityListener(
                     PlayerView.ControllerVisibilityListener { visibility ->
-                        when (visibility) {
-                            View.VISIBLE -> {
-                                this.showSystemBars()
-                            }
-                            View.GONE -> {
-                                this.hideSystemBars()
-                            }
-                        }
+                        this.toggleSystemBars(showBars = visibility == View.VISIBLE)
                     }
                 )
 
                 mediaSession = MediaSession.Builder(this, player).build()
 
                 if (viewModel.currentPlayerItemIndex != -1) {
-                    val mediaItems: MutableList<MediaItem> = mutableListOf()
-                    viewModel.currentPlayerItems.forEach { playerItem ->
-
-                        val subtitles = playerItem.subtitleTracks.map {
-                            MediaItem.SubtitleConfiguration
-                                .Builder(it.toUri())
-                                .setMimeType(MimeTypes.APPLICATION_SUBRIP)
-                                .setLabel(it.nameWithoutExtension)
-                                .build()
-                        }
-
-                        val mediaItem = MediaItem.Builder()
-                            .setUri(File(playerItem.path).toUri())
-                            .setMediaId(playerItem.path)
-                            .setSubtitleConfigurations(subtitles)
-                            .build()
-
-                        mediaItems.add(mediaItem)
-                    }
+                    val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem() }
                     player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
                 } else {
                     dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
-                    player.seekTo(viewModel.playbackPosition.value ?: C.TIME_UNSET)
                 }
 
                 player.playWhenReady = playWhenReady
@@ -266,7 +234,9 @@ class PlayerActivity : AppCompatActivity() {
             player.removeListener(playbackStateListener)
             player.release()
         }
-        mediaSession.release()
+        mediaSession?.release()
+        player = null
+        mediaSession = null
     }
 
     private fun playbackStateListener() = object : Player.Listener {
@@ -294,9 +264,7 @@ class PlayerActivity : AppCompatActivity() {
             reason: Int
         ) {
             if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
-                oldPosition.mediaItem?.let {
-                    viewModel.saveState(it.mediaId, C.TIME_UNSET)
-                }
+                oldPosition.mediaItem?.let { viewModel.saveState(it.mediaId, C.TIME_UNSET) }
             }
         }
 
