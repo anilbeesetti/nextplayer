@@ -84,7 +84,7 @@ android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", ver
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [bundles]
-compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-compose-material3", "androidx-compose-material-iconsExtended", "androidx-lifecycle-runtimeCompose"]
+compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-compose-material3", "androidx-lifecycle-runtimeCompose"]
 media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media3-ui", "androidx-media3-session"]
 
 

@@ -10,13 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material.icons.rounded.HighQuality
-import androidx.compose.material.icons.rounded.LocationOn
-import androidx.compose.material.icons.rounded.Straighten
-import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -41,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +69,7 @@ fun MenuDialog(
                 SegmentedFilterChip(
                     labelOne = {
                         Icon(
-                            imageVector = Icons.Rounded.ArrowUpward,
+                            imageVector = NextIcons.ArrowUpward,
                             contentDescription = stringResource(R.string.ascending)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -87,7 +81,7 @@ fun MenuDialog(
                     },
                     labelTwo = {
                         Icon(
-                            imageVector = Icons.Rounded.ArrowDownward,
+                            imageVector = NextIcons.ArrowDownward,
                             contentDescription = stringResource(R.string.descending)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -134,25 +128,25 @@ private fun SortOptions(
     ) {
         TextIconToggleButton(
             text = "Title",
-            icon = Icons.Rounded.Title,
+            icon = NextIcons.Title,
             isSelected = selectedSortBy == SortBy.TITLE,
             onClick = { onOptionSelected(SortBy.TITLE) }
         )
         TextIconToggleButton(
             text = "Duration",
-            icon = Icons.Rounded.Straighten,
+            icon = NextIcons.Length,
             isSelected = selectedSortBy == SortBy.DURATION,
             onClick = { onOptionSelected(SortBy.DURATION) }
         )
         TextIconToggleButton(
             text = "Path",
-            icon = Icons.Rounded.LocationOn,
+            icon = NextIcons.Location,
             isSelected = selectedSortBy == SortBy.PATH,
             onClick = { onOptionSelected(SortBy.PATH) }
         )
         TextIconToggleButton(
             text = "Resolution",
-            icon = Icons.Rounded.HighQuality,
+            icon = NextIcons.HighQuality,
             isSelected = selectedSortBy == SortBy.RESOLUTION,
             onClick = { onOptionSelected(SortBy.RESOLUTION) }
         )
