@@ -5,7 +5,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type
 import androidx.core.view.WindowInsetsControllerCompat
 
-
 /**
 * Must call this function after any configuration done to activity to keep system bars behaviour
 */
