@@ -25,10 +25,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
+import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -36,7 +36,7 @@ class PlayerGestureHelper(
     private val viewModel: PlayerViewModel,
     private val activity: PlayerActivity,
     private val playerView: PlayerView,
-    private val audioManager: AudioManager,
+    private val audioManager: AudioManager
 ) {
     private val playerPreferences: PlayerPreferences
         get() = viewModel.preferences.value
@@ -129,7 +129,10 @@ class PlayerGestureHelper(
                             it + seekStart < player.duration
                         } ?: (player.duration - seekStart)
                         position = (seekStart + seekChange).coerceAtMost(player.duration)
-                        player.seekForward(position, playerPreferences.shouldFastSeek(player.duration))
+                        player.seekForward(
+                            position,
+                            playerPreferences.shouldFastSeek(player.duration)
+                        )
                     }
                 } else {
                     playerView.player?.let { player ->

@@ -138,7 +138,7 @@ class PlayerActivity : AppCompatActivity() {
             viewModel = viewModel,
             activity = this,
             playerView = binding.playerView,
-            audioManager = getSystemService(android.media.AudioManager::class.java),
+            audioManager = getSystemService(android.media.AudioManager::class.java)
         )
 
         audioTrackButton.setOnClickListener {
