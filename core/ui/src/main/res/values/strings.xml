@@ -12,7 +12,7 @@
     <string name="double_tap_description">Select double tap gesture action</string>
     <string name="error_playing_video">Error: Can\'t play video</string>
     <string name="fast_seek">Fast seeking</string>
-    <string name="fast_seek_description">Seek to nearest key frame instead of exact one. This results in faster seek response but may be less precise</string>
+    <string name="fast_seek_description">Seek to nearest key frame instead of exact one.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="appearance_description">Adjust the app to your liking</string>
     <string name="appearance_name">Appearance</string>

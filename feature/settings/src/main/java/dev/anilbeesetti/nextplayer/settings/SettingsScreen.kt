@@ -50,7 +50,7 @@ fun SettingsScreen(
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.appearance_name),
                     description = stringResource(id = R.string.appearance_description),
-                    icon = NextIcons.Display,
+                    icon = NextIcons.Appearance,
                     onClick = { onItemClick(Setting.APPEARANCE) }
                 )
             }
