@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.ui
+package dev.anilbeesetti.nextplayer.core.ui.preview
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.data.models.Video

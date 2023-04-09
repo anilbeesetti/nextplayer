@@ -35,9 +35,9 @@ import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
-import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
-import dev.anilbeesetti.nextplayer.core.ui.DevicePreviews
-import dev.anilbeesetti.nextplayer.core.ui.VideoPickerPreviewParameterProvider
+import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
+import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
