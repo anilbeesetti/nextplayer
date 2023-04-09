@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.settings.composables.SettingGroupItem
+import dev.anilbeesetti.nextplayer.settings.composables.ClickablePreferenceItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +47,7 @@ fun SettingsScreen(
                 .fillMaxSize()
         ) {
             item {
-                SettingGroupItem(
+                ClickablePreferenceItem(
                     title = stringResource(id = R.string.interface_name),
                     description = stringResource(id = R.string.interface_description),
                     icon = NextIcons.Display,
@@ -55,15 +55,15 @@ fun SettingsScreen(
                 )
             }
             item {
-                SettingGroupItem(
+                ClickablePreferenceItem(
                     title = stringResource(id = R.string.player_name),
                     description = stringResource(id = R.string.player_description),
-                    icon = NextIcons.PlayArrow,
+                    icon = NextIcons.Player,
                     onClick = { onItemClick(Setting.PLAYER) }
                 )
             }
             item {
-                SettingGroupItem(
+                ClickablePreferenceItem(
                     title = stringResource(id = R.string.about_name),
                     description = stringResource(id = R.string.about_description),
                     icon = NextIcons.Info,

@@ -10,7 +10,7 @@ import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocationOn
-import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Title
@@ -26,7 +26,7 @@ object NextIcons {
     val Location = Icons.Rounded.LocationOn
     val HighQuality = Icons.Rounded.HighQuality
     val Display = Icons.Rounded.Aod
-    val PlayArrow = Icons.Rounded.PlayArrow
+    val Player = Icons.Rounded.PlayCircle
     val Info = Icons.Rounded.Info
     val Check = Icons.Rounded.Check
 }
