@@ -14,6 +14,7 @@ fun MediaVideo.toVideo(): Video {
         displayName = videoFile.nameWithoutExtension,
         nameWithExtension = videoFile.name,
         width = width,
-        height = height
+        height = height,
+        size = size
     )
 }

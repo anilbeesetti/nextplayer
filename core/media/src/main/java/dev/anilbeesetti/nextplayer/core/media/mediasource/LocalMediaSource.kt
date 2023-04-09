@@ -69,7 +69,8 @@ private val VIDEO_PROJECTION
         MediaStore.Video.Media.DATA,
         MediaStore.Video.Media.DURATION,
         MediaStore.Video.Media.HEIGHT,
-        MediaStore.Video.Media.WIDTH
+        MediaStore.Video.Media.WIDTH,
+        MediaStore.Video.Media.SIZE
     )
 
 /**
@@ -85,6 +86,7 @@ private inline val Cursor.toMediaVideo: MediaVideo
             duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
             uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
             width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
-            height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.HEIGHT))
+            height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.HEIGHT)),
+            size = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE))
         )
     }
