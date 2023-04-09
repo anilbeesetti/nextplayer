@@ -67,6 +67,7 @@ fun PlayerPreferencesScreen(
                     ClickablePreferenceItem(
                         title = stringResource(id = R.string.resume),
                         description = stringResource(id = R.string.resume_description),
+                        icon = NextIcons.Resume,
                         onClick = {
                             viewModel.onEvent(
                                 PlayerPreferencesEvent.ShowDialog(Dialog.ResumeDialog)
@@ -80,6 +81,7 @@ fun PlayerPreferencesScreen(
                         description = stringResource(
                             id = R.string.remember_brightness_level_description
                         ),
+                        icon = NextIcons.Brightness,
                         isChecked = preferences.rememberPlayerBrightness,
                         onClick = viewModel::toggleRememberBrightnessLevel
                     )
@@ -90,6 +92,7 @@ fun PlayerPreferencesScreen(
                         description = stringResource(id = R.string.double_tap_description),
                         isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
                         onChecked = viewModel::toggleDoubleTapGesture,
+                        icon = NextIcons.DoubleTap,
                         onClick = {
                             viewModel.onEvent(
                                 PlayerPreferencesEvent.ShowDialog(Dialog.DoubleTapDialog)
@@ -103,6 +106,7 @@ fun PlayerPreferencesScreen(
                         description = stringResource(id = R.string.fast_seek_description),
                         isChecked = (preferences.fastSeek != FastSeek.DISABLE),
                         onChecked = viewModel::toggleFastSeek,
+                        icon = NextIcons.Fast,
                         onClick = {
                             viewModel.onEvent(
                                 PlayerPreferencesEvent.ShowDialog(Dialog.FastSeekDialog)

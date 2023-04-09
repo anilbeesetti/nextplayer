@@ -48,7 +48,7 @@ fun PreferenceItem(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier
-                        .padding(start = 8.dp, end = 16.dp)
+                        .padding(start = 8.dp, end = 24.dp)
                         .size(24.dp),
                     tint = MaterialTheme.colorScheme.secondary
                 )
@@ -71,7 +71,8 @@ fun PreferenceItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 1.dp)
                     )
                 }
             }
