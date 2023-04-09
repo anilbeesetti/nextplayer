@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -17,6 +18,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -51,25 +53,36 @@ fun VideoItemView(
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier
-                    .widthIn(max = 420.dp)
-                    .fillMaxWidth(0.45f)
-                    .aspectRatio(16f / 10f),
-                content = {
-                    if (video.uriString.isNotEmpty()) {
-                        GlideImage(
-                            imageModel = { video.uriString },
-                            imageOptions = ImageOptions(
-                                contentScale = ContentScale.Crop,
-                                alignment = Alignment.Center
+            Box {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier
+                        .widthIn(max = 420.dp)
+                        .fillMaxWidth(0.45f)
+                        .aspectRatio(16f / 10f),
+                    content = {
+                        if (video.uriString.isNotEmpty()) {
+                            GlideImage(
+                                imageModel = { video.uriString },
+                                imageOptions = ImageOptions(
+                                    contentScale = ContentScale.Crop,
+                                    alignment = Alignment.Center
+                                )
                             )
-                        )
+                        }
                     }
-                }
-            )
+                )
+                InfoChip(
+                    text = Utils.formatDurationMillis(video.duration),
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .align(Alignment.BottomEnd),
+                    backgroundColor = Color.Black.copy(alpha = 0.6f),
+                    contentColor = Color.White,
+                    shape = MaterialTheme.shapes.small.copy(CornerSize(3.dp))
+                )
+            }
             Column(
                 modifier = Modifier
                     .padding(start = 12.dp, end = 12.dp)
@@ -99,7 +112,6 @@ fun VideoItemView(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InfoChip(text = Utils.formatDurationMillis(video.duration))
                     video.subtitleExtensions.map { extension ->
                         InfoChip(text = extension.uppercase())
                     }
