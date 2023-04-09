@@ -41,7 +41,11 @@ fun NextDialog(
         content = {
             Surface(
                 modifier = modifier
-                    .padding(NextDialogDefaults.dialogMargin),
+                    .padding(
+                        start = NextDialogDefaults.dialogMargin,
+                        end = NextDialogDefaults.dialogMargin,
+                        bottom = NextDialogDefaults.dialogMargin
+                    ),
                 shape = NextDialogDefaults.shape,
                 tonalElevation = NextDialogDefaults.tonalElevation,
                 color = NextDialogDefaults.containerColor
@@ -114,10 +118,11 @@ object NextDialogDefaults {
     val dialogProperties: DialogProperties = DialogProperties(
         usePlatformDefaultWidth = false,
         dismissOnBackPress = true,
-        dismissOnClickOutside = true
+        dismissOnClickOutside = true,
+        decorFitsSystemWindows = true
     )
     val dialogPadding: Dp = 24.dp
-    val dialogMargin: Dp = 12.dp
+    val dialogMargin: Dp = 16.dp
     val spaceBy: Dp = 16.dp
 }
 

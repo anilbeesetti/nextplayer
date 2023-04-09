@@ -123,7 +123,7 @@ fun PlayerPreferencesScreen(
                             viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(Dialog.None))
                         }
                     ) {
-                        Resume.values().forEach {
+                        Resume.values().map {
                             RadioTextButton(
                                 text = it.value,
                                 selected = (it == preferences.resume),
