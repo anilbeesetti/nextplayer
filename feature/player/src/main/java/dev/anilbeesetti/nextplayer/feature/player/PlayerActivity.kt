@@ -32,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
 import dev.anilbeesetti.nextplayer.feature.player.extensions.hideSystemBars
@@ -303,8 +304,8 @@ class PlayerActivity : AppCompatActivity() {
             super.onPlayerError(error)
             Timber.e(error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
-                .setTitle(getString(R.string.error_playing_video))
-                .setMessage(error.message ?: getString(R.string.unknown_error))
+                .setTitle(getString(coreUiR.string.error_playing_video))
+                .setMessage(error.message ?: getString(coreUiR.string.unknown_error))
                 .setPositiveButton("OK") { dialog, _ ->
                     dialog.dismiss()
                 }

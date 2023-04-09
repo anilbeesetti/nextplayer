@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
+import dev.anilbeesetti.nextplayer.core.ui.R
 import org.junit.Rule
 import org.junit.Test
 
