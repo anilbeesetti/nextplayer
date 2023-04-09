@@ -6,10 +6,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Title
-import androidx.compose.material.icons.rounded.Dashboard
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,11 +31,12 @@ import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
-import dev.anilbeesetti.nextplayer.core.ui.DayNightPreview
-import dev.anilbeesetti.nextplayer.core.ui.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
+import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
@@ -86,7 +83,7 @@ internal fun VideoPickerScreen(
                 navigationIcon = {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
-                            imageVector = Icons.Rounded.Settings,
+                            imageVector = NextIcons.Settings,
                             contentDescription = stringResource(id = R.string.settings)
                         )
                     }
@@ -94,7 +91,7 @@ internal fun VideoPickerScreen(
                 actions = {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
-                            imageVector = Icons.Rounded.Dashboard,
+                            imageVector = NextIcons.DashBoard,
                             contentDescription = stringResource(id = R.string.menu)
                         )
                     }
@@ -169,7 +166,7 @@ fun ButtonPreview() {
     Surface {
         TextIconToggleButton(
             text = "Title",
-            icon = Icons.Filled.Title,
+            icon = NextIcons.Title,
             onClick = {}
         )
     }

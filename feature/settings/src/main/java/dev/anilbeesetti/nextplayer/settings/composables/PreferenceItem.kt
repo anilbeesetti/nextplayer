@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @Composable
 fun PreferenceItem(
@@ -105,7 +104,7 @@ fun PreferenceSwitch(
     icon: ImageVector? = null,
     enabled: Boolean = true,
     isChecked: Boolean = true,
-    checkedIcon: ImageVector = Icons.Outlined.Check,
+    checkedIcon: ImageVector = NextIcons.Check,
     onClick: (() -> Unit) = {}
 ) {
     val thumbContent: (@Composable () -> Unit)? = if (isChecked) {
@@ -148,7 +147,7 @@ fun PreferenceSwitchWithDivider(
     icon: ImageVector? = null,
     enabled: Boolean = true,
     isChecked: Boolean = true,
-    checkedIcon: ImageVector = Icons.Outlined.Check,
+    checkedIcon: ImageVector = NextIcons.Check,
     onClick: (() -> Unit) = {},
     onChecked: () -> Unit = {}
 ) {

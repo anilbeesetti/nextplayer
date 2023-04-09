@@ -2,11 +2,6 @@ package dev.anilbeesetti.nextplayer.settings
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Aod
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,6 +13,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.SettingGroupItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +33,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
-                            imageVector = Icons.Rounded.ArrowBack,
+                            imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up)
                         )
                     }
@@ -54,7 +50,7 @@ fun SettingsScreen(
                 SettingGroupItem(
                     title = stringResource(id = R.string.interface_name),
                     description = stringResource(id = R.string.interface_description),
-                    icon = Icons.Rounded.Aod,
+                    icon = NextIcons.Display,
                     onClick = { onItemClick(Setting.INTERFACE) }
                 )
             }
@@ -62,7 +58,7 @@ fun SettingsScreen(
                 SettingGroupItem(
                     title = stringResource(id = R.string.player_name),
                     description = stringResource(id = R.string.player_description),
-                    icon = Icons.Rounded.PlayArrow,
+                    icon = NextIcons.PlayArrow,
                     onClick = { onItemClick(Setting.PLAYER) }
                 )
             }
@@ -70,7 +66,7 @@ fun SettingsScreen(
                 SettingGroupItem(
                     title = stringResource(id = R.string.about_name),
                     description = stringResource(id = R.string.about_description),
-                    icon = Icons.Rounded.Info,
+                    icon = NextIcons.Info,
                     onClick = { onItemClick(Setting.ABOUT) }
                 )
             }
