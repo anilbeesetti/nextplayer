@@ -14,15 +14,17 @@ import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
+import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,12 +33,13 @@ import kotlinx.coroutines.launch
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
 class PlayerGestureHelper(
-    private val playerPreferences: PlayerPreferences,
+    private val viewModel: PlayerViewModel,
     private val activity: PlayerActivity,
     private val playerView: PlayerView,
-    private val audioManager: AudioManager,
-    private val onBrightnessChange: (Float) -> Unit
+    private val audioManager: AudioManager
 ) {
+    private val playerPreferences: PlayerPreferences
+        get() = viewModel.preferences.value
 
     private var swipeGestureVolumeTrackerValue = -1f
     private var swipeGestureBrightnessTrackerValue = -1f
@@ -62,42 +65,33 @@ class PlayerGestureHelper(
             }
 
             override fun onDoubleTap(event: MotionEvent): Boolean {
-                return when (playerPreferences.doubleTapGesture) {
+                when (playerPreferences.doubleTapGesture) {
                     DoubleTapGesture.PLAY_PAUSE -> {
-                        playerView.controllerAutoShow = playerView.isControllerFullyVisible
-                        if (playerView.player?.isPlaying == true) {
-                            playerView.player?.pause()
-                        } else {
-                            playerView.player?.play()
-                        }
-                        true
+                        playerView.togglePlayPause()
                     }
                     DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
                         val viewCenterX = playerView.measuredWidth / 2
                         val currentPos = playerView.player?.currentPosition ?: 0
 
                         playerView.player?.let { player ->
-                            if (event.x.toInt() > viewCenterX) {
-                                if (playerPreferences.shouldFastSeek(player.duration)) {
-                                    player.setSeekParameters(SeekParameters.NEXT_SYNC)
-                                }
-                                player.seekTo(currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
+                            if (event.x.toInt() < viewCenterX) {
+                                player.seekBack(
+                                    positionMs = (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS)
+                                        .coerceAtLeast(0),
+                                    fastSeek = playerPreferences.shouldFastSeek(player.duration)
+                                )
                             } else {
-                                if (playerPreferences.shouldFastSeek(player.duration)) {
-                                    player.setSeekParameters(SeekParameters.PREVIOUS_SYNC)
-                                }
-                                player.seekTo(
-                                    (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS)
-                                        .coerceAtLeast(0)
+                                player.seekForward(
+                                    positionMs = (currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
+                                        .coerceAtMost(player.duration),
+                                    fastSeek = playerPreferences.shouldFastSeek(player.duration)
                                 )
                             }
                         }
-                        true
                     }
-                    DoubleTapGesture.NONE -> {
-                        false
-                    }
+                    DoubleTapGesture.NONE -> return false
                 }
+                return true
             }
         }
     )
@@ -129,23 +123,24 @@ class PlayerGestureHelper(
                     0.5f.coerceAtLeast(abs(Utils.pxToDp(distanceX) / 4).coerceAtMost(10.0f))
 
                 val change = distanceDiff * SEEK_STEP_MS
-                if (distanceX > 0L) {
+                if (distanceX < 0L) {
                     playerView.player?.let { player ->
-                        if (playerPreferences.shouldFastSeek(player.duration)) {
-                            player.setSeekParameters(SeekParameters.PREVIOUS_SYNC)
-                        }
-                        seekChange -= change.toLong()
-                        position = seekStart + seekChange
-                        player.seekTo(position)
+                        seekChange = (seekChange + change.toLong()).takeIf {
+                            it + seekStart < player.duration
+                        } ?: (player.duration - seekStart)
+                        position = (seekStart + seekChange).coerceAtMost(player.duration)
+                        player.seekForward(
+                            position,
+                            playerPreferences.shouldFastSeek(player.duration)
+                        )
                     }
                 } else {
                     playerView.player?.let { player ->
-                        if (playerPreferences.shouldFastSeek(player.duration)) {
-                            player.setSeekParameters(SeekParameters.NEXT_SYNC)
-                        }
-                        seekChange += change.toLong()
+                        seekChange = (seekChange - change.toLong()).takeIf {
+                            it + seekStart > 0
+                        } ?: (0 - seekStart)
                         position = seekStart + seekChange
-                        player.seekTo(position)
+                        player.seekBack(position, playerPreferences.shouldFastSeek(player.duration))
                     }
                 }
                 activity.binding.progressScrubberLayout.visibility = View.VISIBLE
@@ -271,7 +266,7 @@ class PlayerGestureHelper(
                         visibility = View.GONE
                     }
                     if (playerPreferences.rememberPlayerBrightness) {
-                        onBrightnessChange(activity.window.attributes.screenBrightness)
+                        viewModel.setPlayerBrightness(activity.window.attributes.screenBrightness)
                     }
                     swipeGestureBrightnessOpen = false
                 }
