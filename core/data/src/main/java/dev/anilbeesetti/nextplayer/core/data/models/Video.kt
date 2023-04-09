@@ -22,7 +22,8 @@ data class Video(
     val displayName: String,
     val nameWithExtension: String,
     val width: Int,
-    val height: Int
+    val height: Int,
+    val size: Long = 0,
 ) {
     val uri: Uri
         get() = Uri.parse(uriString)
