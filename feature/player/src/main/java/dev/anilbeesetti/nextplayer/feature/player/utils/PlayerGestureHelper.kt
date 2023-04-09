@@ -13,18 +13,18 @@ import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -330,19 +330,6 @@ class PlayerGestureHelper(
         }
     }
 
-
-
-    fun onDoubleTapRightScreen() {
-        val currentPos = playerView.player?.currentPosition ?: 0
-
-        playerView.player?.let { player ->
-            if (playerPreferences.shouldFastSeek(player.duration)) {
-                player.setSeekParameters(SeekParameters.NEXT_SYNC)
-            }
-            player.seekTo(currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
-        }
-    }
-
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
@@ -353,25 +340,3 @@ class PlayerGestureHelper(
 }
 
 fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
-
-@UnstableApi
-fun Player.seekBack(positionMs: Long, fastSeek: Boolean = false) {
-    if (fastSeek) this.setSeekParameters(SeekParameters.PREVIOUS_SYNC)
-    this.seekTo(positionMs)
-}
-
-@UnstableApi
-fun Player.seekForward(positionMs: Long, fastSeek: Boolean = false) {
-    if (fastSeek) this.setSeekParameters(SeekParameters.NEXT_SYNC)
-    this.seekTo(positionMs)
-}
-
-@UnstableApi
-fun PlayerView.togglePlayPause() {
-    this.controllerAutoShow = this.isControllerFullyVisible
-    if (this.player?.isPlaying == true) {
-        this.player?.pause()
-    } else {
-        this.player?.play()
-    }
-}
