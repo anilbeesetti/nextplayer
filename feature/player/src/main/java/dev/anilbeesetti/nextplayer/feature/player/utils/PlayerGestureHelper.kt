@@ -89,6 +89,32 @@ class PlayerGestureHelper(
                             }
                         }
                     }
+                    DoubleTapGesture.BOTH -> {
+                        val eventPositionPercentageX = event.x / playerView.measuredWidth
+                        val currentPos = playerView.player?.currentPosition ?: 0
+
+                        playerView.player?.let { player ->
+                            when {
+                                eventPositionPercentageX < 0.35 -> {
+                                    player.seekBack(
+                                        positionMs = (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS)
+                                            .coerceAtLeast(0),
+                                        fastSeek = playerPreferences.shouldFastSeek(player.duration)
+                                    )
+                                }
+                                eventPositionPercentageX > 0.65 -> {
+                                    player.seekForward(
+                                        positionMs = (currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
+                                            .coerceAtMost(player.duration),
+                                        fastSeek = playerPreferences.shouldFastSeek(player.duration)
+                                    )
+                                }
+                                else -> {
+                                    playerView.togglePlayPause()
+                                }
+                            }
+                        }
+                    }
                     DoubleTapGesture.NONE -> return false
                 }
                 return true
