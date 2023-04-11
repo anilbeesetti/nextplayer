@@ -9,6 +9,9 @@ import androidx.compose.ui.test.onNodeWithText
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import org.junit.Rule
 import org.junit.Test
 

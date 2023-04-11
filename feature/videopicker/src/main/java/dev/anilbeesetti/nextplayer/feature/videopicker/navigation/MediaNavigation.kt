@@ -5,7 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideoPickerScreen
 
 const val videoPickerScreenRoute = "video_picker_screen"
 
