@@ -46,7 +46,6 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable
 fun VideoPickerScreen(
-    title: String,
     onSettingsClick: () -> Unit,
     onVideoItemClick: (uri: Uri) -> Unit,
     viewModel: VideoPickerViewModel = hiltViewModel()
@@ -55,7 +54,6 @@ fun VideoPickerScreen(
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
     VideoPickerScreen(
-        title = title,
         videosState = videosState,
         preferences = preferences,
         onSettingsClick = onSettingsClick,
@@ -67,7 +65,6 @@ fun VideoPickerScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun VideoPickerScreen(
-    title: String,
     videosState: VideosState,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
@@ -79,7 +76,7 @@ internal fun VideoPickerScreen(
     Scaffold(
         topBar = {
             NextCenterAlignedTopAppBar(
-                title = title,
+                title = stringResource(id = R.string.app_name),
                 navigationIcon = {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
@@ -148,7 +145,6 @@ fun VideoPickerScreenPreview(
         NextPlayerTheme {
             Surface {
                 VideoPickerScreen(
-                    title = "Title",
                     videosState = VideosState.Success(
                         videos = videos
                     ),
@@ -178,7 +174,6 @@ fun VideoPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
             VideoPickerScreen(
-                title = "Title",
                 videosState = VideosState.Success(
                     videos = emptyList()
                 ),
@@ -195,7 +190,6 @@ fun VideoPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
             VideoPickerScreen(
-                title = "Title",
                 videosState = VideosState.Loading,
                 preferences = AppPreferences(),
                 onVideoItemClick = {}
