@@ -88,7 +88,6 @@ class MainActivity : ComponentActivity() {
                             startDestination = videoPickerScreenRoute
                         ) {
                             videoPickerScreen(
-                                title = getString(R.string.app_name),
                                 onVideoItemClick = this@MainActivity::startPlayerActivity,
                                 onSettingsClick = navController::navigateToSettings
                             )
