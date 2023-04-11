@@ -48,4 +48,8 @@ class FakePreferencesRepository : PreferencesRepository {
     override suspend fun setFastSeek(seek: FastSeek) {
         playerPreferences.update { it.copy(fastSeek = seek) }
     }
+
+    override suspend fun setUseSwipeControls(value: Boolean) {
+        playerPreferences.update { it.copy(useSwipeControls = value) }
+    }
 }

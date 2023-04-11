@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
+import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
 
 object NextIcons {
@@ -37,4 +38,5 @@ object NextIcons {
     val Fast = Icons.Rounded.FastForward
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Resume = Icons.Rounded.ResetTv
+    val SwipeVertical = Icons.Rounded.SwipeVertical
 }

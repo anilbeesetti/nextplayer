@@ -69,4 +69,11 @@ interface PreferencesRepository {
      * @param seek The fast seek to be set.
      */
     suspend fun setFastSeek(seek: FastSeek)
+
+    /**
+     * Sets the use of swipe controls to adjust volume and brightness.
+     *
+     * @param value The use of swipe controls to be set.
+     */
+    suspend fun setUseSwipeControls(value: Boolean)
 }

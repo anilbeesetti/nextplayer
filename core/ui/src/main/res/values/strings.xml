@@ -41,4 +41,6 @@
     <string name="sort">Sort</string>
     <string name="title_activity_player">Next Player Activity</string>
     <string name="unknown_error">An unknown error has occurred</string>
+    <string name="swipe_controls">Swipe controls</string>
+    <string name="swipe_controls_description">Use swipe gesture to adjust the brightness and volume</string>
 </resources>

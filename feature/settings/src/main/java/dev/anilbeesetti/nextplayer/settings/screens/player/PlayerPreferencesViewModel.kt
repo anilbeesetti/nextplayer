@@ -82,6 +82,14 @@ class PlayerPreferencesViewModel @Inject constructor(
             )
         }
     }
+
+    fun toggleSwipeControls() {
+        viewModelScope.launch {
+            preferencesRepository.setUseSwipeControls(
+                !preferencesFlow.value.useSwipeControls
+            )
+        }
+    }
 }
 
 data class UIState(
