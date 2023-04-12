@@ -69,4 +69,11 @@ interface PreferencesRepository {
      * @param seek The fast seek to be set.
      */
     suspend fun setFastSeek(seek: FastSeek)
+
+    /**
+     * Sets the group videos by folder of the video items.
+     *
+     * @param value The group videos by folder to be set.
+     */
+    suspend fun setGroupVideosByFolder(value: Boolean)
 }

@@ -49,4 +49,8 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun setFastSeek(seek: FastSeek) {
         playerPreferencesDataSource.setFastSeek(seek)
     }
+
+    override suspend fun setGroupVideosByFolder(value: Boolean) {
+        preferencesDataSource.setGroupVideosByFolder(value)
+    }
 }

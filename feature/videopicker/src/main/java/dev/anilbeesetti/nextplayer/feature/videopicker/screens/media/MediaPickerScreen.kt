@@ -36,6 +36,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderContent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosContent
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
@@ -103,14 +104,17 @@ internal fun MediaPickerScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-//            VideosContent(
-//                videosState = videosState,
-//                onVideoItemClick = onVideoItemClick
-//            )
-            FolderContent(
-                folderState = folderState,
-                onFolderClick = onFolderClick
-            )
+            if (preferences.groupVideosByFolder) {
+                FolderContent(
+                    folderState = folderState,
+                    onFolderClick = onFolderClick
+                )
+            } else {
+                VideosContent(
+                    videosState = videosState,
+                    onVideoItemClick = onVideoItemClick
+                )
+            }
             if (showMenu) {
                 MenuDialog(
                     preferences = preferences,
