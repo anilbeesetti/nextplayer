@@ -26,7 +26,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FolderView(
+fun FolderItem(
     folder: Folder,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
