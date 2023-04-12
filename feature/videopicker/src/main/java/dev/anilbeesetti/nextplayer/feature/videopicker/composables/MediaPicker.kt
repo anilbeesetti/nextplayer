@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-inline fun <T> PickerView(
+inline fun <T> MediaPicker(
     list: List<T>,
     modifier: Modifier = Modifier,
     crossinline content: @Composable (item: T) -> Unit

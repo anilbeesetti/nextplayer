@@ -26,7 +26,7 @@ class MediaPickerViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val media = preferencesRepository.appPreferencesFlow.flatMapLatest { appPreferences ->
+    val mediaState = preferencesRepository.appPreferencesFlow.flatMapLatest { appPreferences ->
         if (appPreferences.groupVideosByFolder) {
             getSortedFoldersUseCase.invoke()
                 .map { MediaState.Success(it) }

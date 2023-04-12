@@ -36,7 +36,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun VideoItemView(
+fun VideoItem(
     video: Video,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -131,7 +131,7 @@ fun VideoItemView(
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItemView(
+            VideoItem(
                 video = Video(
                     id = 8,
                     path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",

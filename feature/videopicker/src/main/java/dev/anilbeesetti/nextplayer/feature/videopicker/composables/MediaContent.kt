@@ -34,13 +34,13 @@ fun MediaContent(
                     )
                 }
             } else {
-                PickerView(list = state.data) { data ->
+                MediaPicker(list = state.data) { data ->
                     when (data) {
-                        is Folder -> FolderView(
+                        is Folder -> FolderItem(
                             folder = data,
                             onClick = { onMediaClick(data.path) }
                         )
-                        is Video -> VideoItemView(
+                        is Video -> VideoItem(
                             video = data,
                             onClick = { onMediaClick(data.uriString) }
                         )
