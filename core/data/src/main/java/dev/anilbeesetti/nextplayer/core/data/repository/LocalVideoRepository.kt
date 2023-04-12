@@ -14,6 +14,7 @@ import dev.anilbeesetti.nextplayer.core.media.model.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
@@ -23,10 +24,11 @@ class LocalVideoRepository @Inject constructor(
 ) : VideoRepository {
 
     override fun getVideosFlow(folderPath: String?): Flow<List<Video>> {
-        return mediaSource.getVideoItemsFlow(
-            selection = "${MediaStore.Video.Media.DATA} LIKE ?".takeIf { folderPath != null },
-            selectionArgs = arrayOf("$folderPath%").takeIf { folderPath != null }
-        ).map { it.map(MediaVideo::toVideo) }
+        return mediaSource.getVideoItemsFlow().map { mediaVideos ->
+            mediaVideos.filter {
+                folderPath == null || it.data.substringBeforeLast("/") == folderPath
+            }.map(MediaVideo::toVideo)
+        }
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {

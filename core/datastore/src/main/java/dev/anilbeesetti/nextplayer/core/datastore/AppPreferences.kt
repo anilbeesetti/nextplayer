@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class AppPreferences(
     val sortBy: SortBy = SortBy.TITLE,
     val sortOrder: SortOrder = SortOrder.ASCENDING,
-    val groupVideosByFolder: Boolean = false,
+    val groupVideosByFolder: Boolean = true,
 )
 
 enum class SortBy {
