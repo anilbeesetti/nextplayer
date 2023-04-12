@@ -34,7 +34,7 @@ fun MediaContent(
                     )
                 }
             } else {
-                PickerView(list = state.data) { data ->
+                MediaPicker(list = state.data) { data ->
                     when (data) {
                         is Folder -> FolderItem(
                             folder = data,
