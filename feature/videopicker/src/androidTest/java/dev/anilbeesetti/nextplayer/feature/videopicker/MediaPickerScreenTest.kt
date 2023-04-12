@@ -15,7 +15,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPicker
 import org.junit.Rule
 import org.junit.Test
 
-class VideoPickerScreenTest {
+class MediaPickerScreenTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
