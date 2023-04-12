@@ -17,7 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosContent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +50,10 @@ fun FolderVideoPickerScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            VideosContent(videosState = videosState, onVideoItemClick = onVideoItemClick)
+            MediaContent(
+                state = videosState,
+                onMediaClick = { onVideoItemClick(Uri.parse(it)) }
+            )
         }
     }
 }

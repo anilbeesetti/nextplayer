@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -9,23 +8,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import dev.anilbeesetti.nextplayer.core.data.models.Folder
+import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.VideosState
+import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
 
 @Composable
-fun VideosContent(
-    videosState: VideosState,
-    onVideoItemClick: (uri: Uri) -> Unit,
+fun MediaContent(
+    state: MediaState,
+    onMediaClick: (data: String) -> Unit,
 ) {
-    when (videosState) {
-        is VideosState.Loading -> {
+    when (state) {
+        is MediaState.Loading -> {
             CircularProgressIndicator(
                 modifier = Modifier.testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG)
             )
         }
-        is VideosState.Success -> {
-            if (videosState.videos.isEmpty()) {
+        is MediaState.Success<*> -> {
+            if (state.data.isEmpty()) {
                 Column {
                     Text(
                         text = stringResource(id = R.string.no_videos_found),
@@ -33,11 +34,17 @@ fun VideosContent(
                     )
                 }
             } else {
-                PickerView(list = videosState.videos) {video ->
-                    VideoItemView(
-                        video = video,
-                        onClick = { onVideoItemClick(video.uri) }
-                    )
+                PickerView(list = state.data) { data ->
+                    when (data) {
+                        is Folder -> FolderView(
+                            folder = data,
+                            onClick = { onMediaClick(data.path) }
+                        )
+                        is Video -> VideoItemView(
+                            video = data,
+                            onClick = { onMediaClick(data.uriString) }
+                        )
+                    }
                 }
             }
         }

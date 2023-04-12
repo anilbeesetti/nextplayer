@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
@@ -33,10 +34,10 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderContent
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosContent
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
@@ -47,13 +48,11 @@ fun MediaPickerScreen(
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel()
 ) {
-    val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
-    val folderState by viewModel.folderItems.collectAsStateWithLifecycle()
+    val mediaState by viewModel.media.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
     MediaPickerScreen(
-        videosState = videosState,
-        folderState = folderState,
+        mediaState = mediaState,
         preferences = preferences,
         onSettingsClick = onSettingsClick,
         onVideoItemClick = onVideoItemClick,
@@ -65,11 +64,10 @@ fun MediaPickerScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerScreen(
-    videosState: VideosState,
-    folderState: FolderState,
+    mediaState: MediaState,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
-    onFolderClick: (folderPath: String) -> Unit,
+    onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     updatePreferences: (SortBy, SortOrder) -> Unit = { _, _ -> }
 ) {
@@ -104,17 +102,15 @@ internal fun MediaPickerScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            if (preferences.groupVideosByFolder) {
-                FolderContent(
-                    folderState = folderState,
-                    onFolderClick = onFolderClick
-                )
-            } else {
-                VideosContent(
-                    videosState = videosState,
-                    onVideoItemClick = onVideoItemClick
-                )
-            }
+            MediaContent(
+                state = mediaState,
+                onMediaClick = {
+                    when(preferences.groupVideosByFolder) {
+                        true -> onFolderClick(it)
+                        false -> onVideoItemClick(Uri.parse(it))
+                    }
+                }
+            )
             if (showMenu) {
                 MenuDialog(
                     preferences = preferences,
@@ -136,11 +132,8 @@ fun MediaPickerScreenPreview(
         NextPlayerTheme {
             Surface {
                 MediaPickerScreen(
-                    videosState = VideosState.Success(
-                        videos = videos
-                    ),
-                    folderState = FolderState.Success(
-                        folders = emptyList()
+                    mediaState = MediaState.Success(
+                        data = videos
                     ),
                     preferences = AppPreferences(),
                     onVideoItemClick = {},
@@ -169,11 +162,8 @@ fun MediaPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                videosState = VideosState.Success(
-                    videos = emptyList()
-                ),
-                folderState = FolderState.Success(
-                    folders = emptyList()
+                mediaState = MediaState.Success(
+                    data = emptyList<Folder>()
                 ),
                 preferences = AppPreferences(),
                 onVideoItemClick = {},
@@ -189,8 +179,7 @@ fun MediaPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                videosState = VideosState.Loading,
-                folderState = FolderState.Loading,
+                mediaState = MediaState.Loading,
                 preferences = AppPreferences(),
                 onVideoItemClick = {},
                 onFolderClick = {}
