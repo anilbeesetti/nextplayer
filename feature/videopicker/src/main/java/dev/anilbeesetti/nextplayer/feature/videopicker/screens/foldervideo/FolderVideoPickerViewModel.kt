@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.VideosState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn

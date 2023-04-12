@@ -1,6 +1,5 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens
+package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -10,21 +9,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItemsPickerView
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.FolderState
+
 
 @Composable
-fun VideosContent(
-    videosState: VideosState,
-    onVideoItemClick: (uri: Uri) -> Unit,
+fun FolderContent(
+    folderState: FolderState,
+    onFolderClick: (id: String) -> Unit,
 ) {
-    when (videosState) {
-        is VideosState.Loading -> {
+    when (folderState) {
+        is FolderState.Loading -> {
             CircularProgressIndicator(
                 modifier = Modifier.testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG)
             )
         }
-        is VideosState.Success -> {
-            if (videosState.videos.isEmpty()) {
+        is FolderState.Success -> {
+            if (folderState.folders.isEmpty()) {
                 Column {
                     Text(
                         text = stringResource(id = R.string.no_videos_found),
@@ -32,10 +33,12 @@ fun VideosContent(
                     )
                 }
             } else {
-                VideoItemsPickerView(
-                    videos = videosState.videos,
-                    onVideoItemClick = onVideoItemClick
-                )
+                PickerView(list = folderState.folders,) { folder ->
+                    FolderView(
+                        folder = folder,
+                        onClick = { onFolderClick(folder.path) }
+                    )
+                }
             }
         }
     }

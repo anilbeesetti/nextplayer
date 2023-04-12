@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosContent
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)

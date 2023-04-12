@@ -8,24 +8,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
 
 @Composable
-fun FoldersPickerView(
-    folders: List<Folder>,
-    onFolderClick: (id: String) -> Unit
+inline fun <T> PickerView(
+    list: List<T>,
+    modifier: Modifier = Modifier,
+    crossinline content: @Composable (item: T) -> Unit
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 10.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .navigationBarsPadding()
     ) {
-        items(folders) { folder ->
-            FolderView(
-                folder = folder,
-                onClick = { onFolderClick(folder.path) }
-            )
-        }
+        items(list) { content(it) }
     }
 }

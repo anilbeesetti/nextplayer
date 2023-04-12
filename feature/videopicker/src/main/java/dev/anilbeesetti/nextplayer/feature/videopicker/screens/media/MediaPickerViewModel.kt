@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class VideoPickerViewModel @Inject constructor(
+class MediaPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     getSortedFoldersUseCase: GetSortedFoldersUseCase,
     private val preferencesRepository: PreferencesRepository

@@ -9,9 +9,9 @@ import androidx.compose.ui.test.onNodeWithText
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideoPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.VideosState
 import org.junit.Rule
 import org.junit.Test
 
@@ -27,7 +27,7 @@ class VideoPickerScreenTest {
     fun circularProgressIndicatorIsDisplayed_whenLoading() {
         composeTestRule.setContent {
             BoxWithConstraints {
-                VideoPickerScreen(
+                MediaPickerScreen(
                     videosState = VideosState.Loading,
                     preferences = AppPreferences()
                 )
@@ -44,7 +44,7 @@ class VideoPickerScreenTest {
     fun videoItemsAreDisplayed_whenSuccess() {
         composeTestRule.setContent {
             BoxWithConstraints {
-                VideoPickerScreen(
+                MediaPickerScreen(
                     videosState = VideosState.Success(
                         videos = videoItemsTestData
                     ),
@@ -77,7 +77,7 @@ class VideoPickerScreenTest {
     fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyList() {
         composeTestRule.setContent {
             BoxWithConstraints {
-                VideoPickerScreen(
+                MediaPickerScreen(
                     videosState = VideosState.Success(
                         videos = emptyList()
                     ),

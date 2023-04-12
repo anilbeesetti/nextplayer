@@ -8,8 +8,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderVideoPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo.FolderVideoPickerScreen
 
 const val folderVideoPickerScreenRoute = "folder_video_picker_screen"
 internal const val folderIdArg = "folderId"
