@@ -69,7 +69,6 @@ fun PreferenceSwitchWithDivider(
     )
 }
 
-
 @Preview
 @Composable
 fun PreferenceSwitchWithDividerPreview() {
