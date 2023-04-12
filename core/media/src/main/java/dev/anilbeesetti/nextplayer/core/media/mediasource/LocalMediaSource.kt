@@ -18,24 +18,24 @@ class LocalMediaSource @Inject constructor(
     @ApplicationContext private val context: Context
 ) : MediaSource {
 
-    override fun getVideoItemsFlow(
+    override fun getMediaVideosFlow(
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Flow<List<MediaVideo>> = callbackFlow {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
-                trySend(getVideoItems(selection, selectionArgs, sortOrder))
+                trySend(getMediaVideo(selection, selectionArgs, sortOrder))
             }
         }
         context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
         // initial value
-        trySend(getVideoItems(selection, selectionArgs, sortOrder))
+        trySend(getMediaVideo(selection, selectionArgs, sortOrder))
         // close
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
     }.distinctUntilChanged()
 
-    override fun getVideoItems(
+    override fun getMediaVideo(
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?

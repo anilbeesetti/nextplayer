@@ -14,7 +14,7 @@ interface MediaSource {
      * @return flow of list of [MediaVideo]
      * @see [android.content.ContentResolver.query]
      */
-    fun getVideoItemsFlow(
+    fun getMediaVideosFlow(
         selection: String? = null,
         selectionArgs: Array<String>? = null,
         sortOrder: String? = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
@@ -24,7 +24,7 @@ interface MediaSource {
      * Get list of [MediaVideo]s
      * @return list of video items
      */
-    fun getVideoItems(
+    fun getMediaVideo(
         selection: String? = null,
         selectionArgs: Array<String>? = null,
         sortOrder: String? = null

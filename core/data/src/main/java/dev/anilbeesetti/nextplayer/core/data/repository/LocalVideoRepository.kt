@@ -21,7 +21,7 @@ class LocalVideoRepository @Inject constructor(
 ) : VideoRepository {
 
     override fun getVideosFlow(folderPath: String?): Flow<List<Video>> {
-        return mediaSource.getVideoItemsFlow().map { mediaVideos ->
+        return mediaSource.getMediaVideosFlow().map { mediaVideos ->
             mediaVideos.filter {
                 folderPath == null || it.data.substringBeforeLast("/") == folderPath
             }.map(MediaVideo::toVideo)
@@ -29,7 +29,7 @@ class LocalVideoRepository @Inject constructor(
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {
-        return mediaSource.getVideoItemsFlow().map { mediaVideos ->
+        return mediaSource.getMediaVideosFlow().map { mediaVideos ->
             mediaVideos.groupBy { File(it.data).parentFile!! }
                 .map { (file, videos) ->
                     Folder(
