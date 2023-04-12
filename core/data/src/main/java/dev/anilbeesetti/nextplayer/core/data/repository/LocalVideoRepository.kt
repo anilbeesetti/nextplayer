@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.Folder
@@ -9,13 +8,12 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
-import dev.anilbeesetti.nextplayer.core.media.model.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import java.io.File
+import javax.inject.Inject
 
 class LocalVideoRepository @Inject constructor(
     private val videoDao: VideoDao,
@@ -31,7 +29,18 @@ class LocalVideoRepository @Inject constructor(
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {
-        return mediaSource.getMediaFoldersFlow().map { it.map(MediaFolder::toFolder) }
+        return mediaSource.getVideoItemsFlow().map { mediaVideos ->
+            mediaVideos.groupBy { File(it.data).parentFile!! }
+                .map { (file, videos) ->
+                    Folder(
+                        path = file.path,
+                        name = file.name.takeIf { file.path != "/storage/emulated/0" }
+                            ?: "Internal Storage",
+                        mediaCount = videos.size,
+                        mediaSize = videos.sumOf { it.size }
+                    )
+                }
+        }
     }
 
     override suspend fun getVideoState(path: String): VideoState? {
