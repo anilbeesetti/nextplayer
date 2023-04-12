@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -32,7 +33,7 @@ fun FolderVideoPickerScreen(
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = File(viewModel.folderPath).name,
+                title = File(viewModel.folderPath).prettyName,
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
