@@ -38,10 +38,12 @@ class MediaPickerScreenTest {
     }
 
     /**
-     * This test is to check if the video items are displayed when the [MediaState.Success] is passed.
+     * This test is to check if the video items are displayed
+     * when the [MediaState.Success] is passed with list of [Video],
+     * along with [AppPreferences].groupVideosByFolder = false
      */
     @Test
-    fun videoItemsAreDisplayed_whenSuccess() {
+    fun videoItemsAreDisplayed_whenSuccessAndGroupVideosByFolderIsFalse() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
@@ -70,18 +72,79 @@ class MediaPickerScreenTest {
     }
 
     /**
-     * This test is to check if the no videos found text is displayed,
-     * when the [MediaState.Success] with empty list is passed.
+     * This test is to check if the folder items are displayed
+     * when the [MediaState.Success] is passed with list of [Folder],
+     * along with [AppPreferences].groupVideosByFolder = true
      */
     @Test
-    fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyList() {
+    fun folderItemsAreDisplayed_whenSuccessAndGroupVideosByFolderIsTrue() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                MediaPickerScreen(
+                    mediaState = MediaState.Success(
+                        data = foldersTestData
+                    ),
+                    preferences = AppPreferences().copy(groupVideosByFolder = true)
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(
+                foldersTestData[0].name,
+                substring = true
+            )
+            .assertExists()
+            .assertHasClickAction()
+        composeTestRule
+            .onNodeWithText(
+                foldersTestData[1].name,
+                substring = true
+            )
+            .assertExists()
+            .assertHasClickAction()
+    }
+
+    /**
+     * This test is to check if the no videos found text is displayed,
+     * when the [MediaState.Success] with empty list is passed,
+     * along with [AppPreferences].groupVideosByFolder = false
+     */
+    @Test
+    fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyListAndGroupVideosByFolderIsFalse() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                MediaPickerScreen(
+                    mediaState = MediaState.Success(
+                        data = emptyList<Video>()
+                    ),
+                    preferences = AppPreferences().copy(groupVideosByFolder = false)
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(
+                composeTestRule.activity.getString(R.string.no_videos_found),
+                substring = true
+            )
+            .assertExists()
+    }
+
+    /**
+     * This test is to check if the no videos found text is displayed,
+     * when the [MediaState.Success] with empty list is passed,
+     * along with [AppPreferences].groupVideosByFolder = true
+     */
+    @Test
+    fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyListAndGroupVideosByFolderIsTrue() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
                     mediaState = MediaState.Success(
                         data = emptyList<Folder>()
                     ),
-                    preferences = AppPreferences()
+                    preferences = AppPreferences().copy(groupVideosByFolder = true)
                 )
             }
         }
@@ -115,5 +178,20 @@ val videoItemsTestData = listOf(
         width = 200,
         height = 200,
         nameWithExtension = "Video 2.mp4"
+    )
+)
+
+val foldersTestData = listOf(
+    Folder(
+        name = "Folder 1",
+        path = "/storage/emulated/0/DCIM/Camera/Folder 1",
+        mediaCount = 1,
+        mediaSize = 1000,
+    ),
+    Folder(
+        name = "Folder 2",
+        path = "/storage/emulated/0/DCIM/Camera/Folder 2",
+        mediaCount = 2,
+        mediaSize = 2000,
     )
 )

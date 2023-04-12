@@ -23,7 +23,6 @@ fun MediaVideo.toVideo(): Video {
 
 fun MediaFolder.toFolder(): Folder {
     return Folder(
-        id = id,
         name = name,
         path = path,
         mediaSize = media.sumOf { it.size },
