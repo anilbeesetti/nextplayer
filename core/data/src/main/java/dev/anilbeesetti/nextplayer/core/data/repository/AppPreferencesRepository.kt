@@ -53,4 +53,8 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun setGroupVideosByFolder(value: Boolean) {
         preferencesDataSource.setGroupVideosByFolder(value)
     }
+    
+    override suspend fun setUseSwipeControls(value: Boolean) {
+        playerPreferencesDataSource.setUseSwipeControls(value)
+    }
 }

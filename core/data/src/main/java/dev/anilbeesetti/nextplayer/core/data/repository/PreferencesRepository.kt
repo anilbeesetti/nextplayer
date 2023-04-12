@@ -76,4 +76,12 @@ interface PreferencesRepository {
      * @param value The group videos by folder to be set.
      */
     suspend fun setGroupVideosByFolder(value: Boolean)
+    
+    /**
+     * Sets the use of swipe controls to adjust volume and brightness.
+     *
+     * @param value The use of swipe controls to be set.
+     */
+    suspend fun setUseSwipeControls(value: Boolean)
+
 }

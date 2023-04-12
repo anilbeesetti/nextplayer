@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
+import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
 import dev.anilbeesetti.nextplayer.core.data.models.Folder
 
@@ -40,4 +41,5 @@ object NextIcons {
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Resume = Icons.Rounded.ResetTv
     val Folder = Icons.Rounded.Folder
+    val SwipeVertical = Icons.Rounded.SwipeVertical
 }

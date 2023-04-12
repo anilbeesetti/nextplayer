@@ -52,4 +52,8 @@ class FakePreferencesRepository : PreferencesRepository {
     override suspend fun setGroupVideosByFolder(value: Boolean) {
         appPreferences.update { it.copy(groupVideosByFolder = value) }
     }
+    
+    override suspend fun setUseSwipeControls(value: Boolean) {
+        playerPreferences.update { it.copy(useSwipeControls = value) }
+    }
 }
