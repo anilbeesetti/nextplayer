@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.Folder
@@ -34,8 +35,7 @@ class LocalVideoRepository @Inject constructor(
                 .map { (file, videos) ->
                     Folder(
                         path = file.path,
-                        name = file.name.takeIf { file.path != "/storage/emulated/0" }
-                            ?: "Internal Storage",
+                        name = file.prettyName,
                         mediaCount = videos.size,
                         mediaSize = videos.sumOf { it.size }
                     )
