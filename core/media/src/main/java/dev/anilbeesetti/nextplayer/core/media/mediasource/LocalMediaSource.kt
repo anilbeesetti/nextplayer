@@ -7,12 +7,16 @@ import android.database.Cursor
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.media.model.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
-import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import java.io.File
+import javax.inject.Inject
 
 class LocalMediaSource @Inject constructor(
     @ApplicationContext private val context: Context
@@ -34,6 +38,30 @@ class LocalMediaSource @Inject constructor(
         // close
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
     }.distinctUntilChanged()
+
+    override fun getMediaFoldersFlow(
+        selection: String?,
+        selectionArgs: Array<String>?,
+        sortOrder: String?
+    ): Flow<List<MediaFolder>> {
+        try {
+            return getVideoItemsFlow(selection, selectionArgs, sortOrder).map { videoItems ->
+                videoItems.mapNotNull { File(it.data).parentFile }
+                    .distinct()
+                    .map { file ->
+                        MediaFolder(
+                            id = file.hashCode().toLong(),
+                            name = file.name.takeIf { file.path != "/storage/emulated/0" } ?: "Internal Storage",
+                            path = file.path,
+                            media = getVideoItems().filter { File(it.data).parentFile == file }
+                        )
+                    }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return flow { emptyList<MediaFolder>() }
+        }
+    }
 
     override fun getVideoItems(
         selection: String?,

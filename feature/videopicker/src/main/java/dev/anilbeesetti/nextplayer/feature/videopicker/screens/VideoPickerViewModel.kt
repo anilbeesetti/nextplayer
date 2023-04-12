@@ -3,11 +3,13 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -18,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class VideoPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
+    getSortedFoldersUseCase: GetSortedFoldersUseCase,
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
@@ -27,6 +30,14 @@ class VideoPickerViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = VideosState.Loading
+        )
+
+    val folderItems = getSortedFoldersUseCase.invoke()
+        .map { FolderState.Success(it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = FolderState.Loading
         )
 
     val preferences = preferencesRepository.appPreferencesFlow
@@ -47,4 +58,9 @@ class VideoPickerViewModel @Inject constructor(
 sealed interface VideosState {
     object Loading : VideosState
     data class Success(val videos: List<Video>) : VideosState
+}
+
+sealed interface FolderState {
+    object Loading : FolderState
+    data class Success(val folders: List<Folder>) : FolderState
 }

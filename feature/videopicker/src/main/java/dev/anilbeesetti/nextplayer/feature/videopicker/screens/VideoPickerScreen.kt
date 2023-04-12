@@ -45,10 +45,12 @@ fun VideoPickerScreen(
     viewModel: VideoPickerViewModel = hiltViewModel()
 ) {
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
+    val folderState by viewModel.folderItems.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
     VideoPickerScreen(
         videosState = videosState,
+        folderState = folderState,
         preferences = preferences,
         onSettingsClick = onSettingsClick,
         onVideoItemClick = onVideoItemClick,
@@ -60,6 +62,7 @@ fun VideoPickerScreen(
 @Composable
 internal fun VideoPickerScreen(
     videosState: VideosState,
+    folderState: FolderState,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -96,10 +99,11 @@ internal fun VideoPickerScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            VideosContent(
-                videosState = videosState,
-                onVideoItemClick = onVideoItemClick
-            )
+//            VideosContent(
+//                videosState = videosState,
+//                onVideoItemClick = onVideoItemClick
+//            )
+            FolderContent(folderState = folderState, onFolderClick = {} )
             if (showMenu) {
                 MenuDialog(
                     preferences = preferences,
@@ -123,6 +127,9 @@ fun VideoPickerScreenPreview(
                 VideoPickerScreen(
                     videosState = VideosState.Success(
                         videos = videos
+                    ),
+                    folderState = FolderState.Success(
+                        folders = emptyList()
                     ),
                     preferences = AppPreferences(),
                     onVideoItemClick = {}
@@ -153,6 +160,9 @@ fun VideoPickerNoVideosFoundPreview() {
                 videosState = VideosState.Success(
                     videos = emptyList()
                 ),
+                folderState = FolderState.Success(
+                    folders = emptyList()
+                ),
                 preferences = AppPreferences(),
                 onVideoItemClick = {}
             )
@@ -167,6 +177,7 @@ fun VideoPickerLoadingPreview() {
         Surface {
             VideoPickerScreen(
                 videosState = VideosState.Loading,
+                folderState = FolderState.Loading,
                 preferences = AppPreferences(),
                 onVideoItemClick = {}
             )

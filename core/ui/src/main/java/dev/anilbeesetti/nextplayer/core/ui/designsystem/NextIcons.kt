@@ -9,6 +9,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocationOn
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Title
+import dev.anilbeesetti.nextplayer.core.data.models.Folder
 
 object NextIcons {
     val ArrowBack = Icons.Rounded.ArrowBack
@@ -37,4 +39,5 @@ object NextIcons {
     val Fast = Icons.Rounded.FastForward
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Resume = Icons.Rounded.ResetTv
+    val Folder = Icons.Rounded.Folder
 }
