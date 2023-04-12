@@ -24,8 +24,8 @@ class LocalVideoRepository @Inject constructor(
 
     override fun getVideosFlow(folderPath: String?): Flow<List<Video>> {
         return mediaSource.getVideoItemsFlow(
-            selection = MediaStore.Video.Media.DATA + " LIKE ?",
-            selectionArgs = arrayOf("$folderPath%")
+            selection = "${MediaStore.Video.Media.DATA} LIKE ?".takeIf { folderPath != null },
+            selectionArgs = arrayOf("$folderPath%").takeIf { folderPath != null }
         ).map { it.map(MediaVideo::toVideo) }
     }
 

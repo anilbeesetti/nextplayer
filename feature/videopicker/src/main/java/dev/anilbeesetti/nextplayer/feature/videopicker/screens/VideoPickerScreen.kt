@@ -106,7 +106,10 @@ internal fun VideoPickerScreen(
 //                videosState = videosState,
 //                onVideoItemClick = onVideoItemClick
 //            )
-            FolderContent(folderState = folderState, onFolderClick = onFolderClick )
+            FolderContent(
+                folderState = folderState,
+                onFolderClick = onFolderClick
+            )
             if (showMenu) {
                 MenuDialog(
                     preferences = preferences,
