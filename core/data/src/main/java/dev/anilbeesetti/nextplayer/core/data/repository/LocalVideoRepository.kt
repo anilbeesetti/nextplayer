@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
+import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.Folder
@@ -9,11 +9,10 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
-import dev.anilbeesetti.nextplayer.core.media.model.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
@@ -23,7 +22,7 @@ class LocalVideoRepository @Inject constructor(
 ) : VideoRepository {
 
     override fun getVideosFlow(folderPath: String?): Flow<List<Video>> {
-        return mediaSource.getVideoItemsFlow().map { mediaVideos ->
+        return mediaSource.getMediaVideosFlow().map { mediaVideos ->
             mediaVideos.filter {
                 folderPath == null || it.data.substringBeforeLast("/") == folderPath
             }.map(MediaVideo::toVideo)
@@ -31,7 +30,17 @@ class LocalVideoRepository @Inject constructor(
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {
-        return mediaSource.getMediaFoldersFlow().map { it.map(MediaFolder::toFolder) }
+        return mediaSource.getMediaVideosFlow().map { mediaVideos ->
+            mediaVideos.groupBy { File(it.data).parentFile!! }
+                .map { (file, videos) ->
+                    Folder(
+                        path = file.path,
+                        name = file.prettyName,
+                        mediaCount = videos.size,
+                        mediaSize = videos.sumOf { it.size }
+                    )
+                }
+        }
     }
 
     override suspend fun getVideoState(path: String): VideoState? {

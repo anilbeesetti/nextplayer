@@ -11,3 +11,6 @@ fun File.getSubtitles(): List<File> {
 
     return subs
 }
+
+val File.prettyName: String
+    get() = this.name.takeIf { this.path != "/storage/emulated/0" } ?: "Internal Storage"

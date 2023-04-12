@@ -11,10 +11,3 @@ data class MediaVideo(
     val data: String,
     val duration: Long
 )
-
-data class MediaFolder(
-    val id: Long,
-    val name: String,
-    val path: String,
-    val media: List<MediaVideo>
-)
