@@ -49,4 +49,8 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun setFastSeek(seek: FastSeek) {
         playerPreferencesDataSource.setFastSeek(seek)
     }
+
+    override suspend fun setUseSwipeControls(value: Boolean) {
+        playerPreferencesDataSource.setUseSwipeControls(value)
+    }
 }

@@ -347,7 +347,11 @@ class PlayerGestureHelper(
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
-                    volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
+                    if (playerPreferences.useSwipeControls) {
+                        volumeAndBrightnessGestureDetector.onTouchEvent(
+                            motionEvent
+                        )
+                    }
                     seekGestureDetector.onTouchEvent(motionEvent)
                 }
                 2 -> {

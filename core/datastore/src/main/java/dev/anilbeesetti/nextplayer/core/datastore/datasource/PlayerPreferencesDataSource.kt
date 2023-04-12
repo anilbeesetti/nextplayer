@@ -63,4 +63,14 @@ class PlayerPreferencesDataSource @Inject constructor(
             )
         }
     }
+
+    suspend fun setUseSwipeControls(value: Boolean) {
+        try {
+            preferencesDataStore.updateData { it.copy(useSwipeControls = value) }
+        } catch (ioException: Exception) {
+            Timber.tag("NextPlayerPreferences").e(
+                "Failed to update player preferences: $ioException"
+            )
+        }
+    }
 }
