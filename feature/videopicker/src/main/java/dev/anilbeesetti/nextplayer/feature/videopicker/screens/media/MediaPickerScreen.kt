@@ -1,19 +1,15 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,12 +17,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
@@ -38,36 +34,40 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItemsPickerView
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable
-fun VideoPickerScreen(
+fun MediaPickerScreen(
     onSettingsClick: () -> Unit,
     onVideoItemClick: (uri: Uri) -> Unit,
-    viewModel: VideoPickerViewModel = hiltViewModel()
+    onFolderClick: (folderPath: String) -> Unit,
+    viewModel: MediaPickerViewModel = hiltViewModel()
 ) {
-    val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
+    val mediaState by viewModel.media.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
-    VideoPickerScreen(
-        videosState = videosState,
+    MediaPickerScreen(
+        mediaState = mediaState,
         preferences = preferences,
         onSettingsClick = onSettingsClick,
         onVideoItemClick = onVideoItemClick,
+        onFolderClick = onFolderClick,
         updatePreferences = viewModel::updateMenu
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun VideoPickerScreen(
-    videosState: VideosState,
+internal fun MediaPickerScreen(
+    mediaState: MediaState,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
+    onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     updatePreferences: (SortBy, SortOrder) -> Unit = { _, _ -> }
 ) {
@@ -102,28 +102,15 @@ internal fun VideoPickerScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            when (videosState) {
-                is VideosState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG)
-                    )
-                }
-                is VideosState.Success -> {
-                    if (videosState.videos.isEmpty()) {
-                        Column {
-                            Text(
-                                text = stringResource(id = R.string.no_videos_found),
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        }
-                    } else {
-                        VideoItemsPickerView(
-                            videos = videosState.videos,
-                            onVideoItemClick = onVideoItemClick
-                        )
+            MediaContent(
+                state = mediaState,
+                onMediaClick = {
+                    when (preferences.groupVideosByFolder) {
+                        true -> onFolderClick(it)
+                        false -> onVideoItemClick(Uri.parse(it))
                     }
                 }
-            }
+            )
             if (showMenu) {
                 MenuDialog(
                     preferences = preferences,
@@ -137,19 +124,20 @@ internal fun VideoPickerScreen(
 
 @DevicePreviews
 @Composable
-fun VideoPickerScreenPreview(
+fun MediaPickerScreenPreview(
     @PreviewParameter(VideoPickerPreviewParameterProvider::class)
     videos: List<Video>
 ) {
     BoxWithConstraints {
         NextPlayerTheme {
             Surface {
-                VideoPickerScreen(
-                    videosState = VideosState.Success(
-                        videos = videos
+                MediaPickerScreen(
+                    mediaState = MediaState.Success(
+                        data = videos
                     ),
                     preferences = AppPreferences(),
-                    onVideoItemClick = {}
+                    onVideoItemClick = {},
+                    onFolderClick = {}
                 )
             }
         }
@@ -170,15 +158,16 @@ fun ButtonPreview() {
 
 @DayNightPreview
 @Composable
-fun VideoPickerNoVideosFoundPreview() {
+fun MediaPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
-            VideoPickerScreen(
-                videosState = VideosState.Success(
-                    videos = emptyList()
+            MediaPickerScreen(
+                mediaState = MediaState.Success(
+                    data = emptyList<Folder>()
                 ),
                 preferences = AppPreferences(),
-                onVideoItemClick = {}
+                onVideoItemClick = {},
+                onFolderClick = {}
             )
         }
     }
@@ -186,13 +175,14 @@ fun VideoPickerNoVideosFoundPreview() {
 
 @DayNightPreview
 @Composable
-fun VideoPickerLoadingPreview() {
+fun MediaPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
-            VideoPickerScreen(
-                videosState = VideosState.Loading,
+            MediaPickerScreen(
+                mediaState = MediaState.Loading,
                 preferences = AppPreferences(),
-                onVideoItemClick = {}
+                onVideoItemClick = {},
+                onFolderClick = {}
             )
         }
     }

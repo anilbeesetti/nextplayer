@@ -71,6 +71,13 @@ interface PreferencesRepository {
     suspend fun setFastSeek(seek: FastSeek)
 
     /**
+     * Sets the group videos by folder of the video items.
+     *
+     * @param value The group videos by folder to be set.
+     */
+    suspend fun setGroupVideosByFolder(value: Boolean)
+
+    /**
      * Sets the use of swipe controls to adjust volume and brightness.
      *
      * @param value The use of swipe controls to be set.

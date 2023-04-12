@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.data.models.Video
+import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
@@ -9,31 +9,31 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
-class GetSortedVideosUseCase @Inject constructor(
+class GetSortedFoldersUseCase @Inject constructor(
     private val videoRepository: VideoRepository,
     private val preferencesRepository: PreferencesRepository
 ) {
 
-    operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
+    operator fun invoke(): Flow<List<Folder>> {
         return combine(
-            videoRepository.getVideosFlow(folderPath),
+            videoRepository.getFoldersFlow(),
             preferencesRepository.appPreferencesFlow
         ) { videoItems, preferences ->
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> videoItems.sortedBy { it.displayName.lowercase() }
-                        SortBy.DURATION -> videoItems.sortedBy { it.duration }
+                        SortBy.TITLE -> videoItems.sortedBy { it.name.lowercase() }
+                        SortBy.DURATION -> videoItems.sortedBy { it.name.lowercase() }
                         SortBy.PATH -> videoItems.sortedBy { it.path.lowercase() }
-                        SortBy.RESOLUTION -> videoItems.sortedBy { it.width * it.height }
+                        SortBy.RESOLUTION -> videoItems.sortedBy { it.name.lowercase() }
                     }
                 }
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> videoItems.sortedByDescending { it.displayName.lowercase() }
-                        SortBy.DURATION -> videoItems.sortedByDescending { it.duration }
+                        SortBy.TITLE -> videoItems.sortedByDescending { it.name.lowercase() }
+                        SortBy.DURATION -> videoItems.sortedByDescending { it.name.lowercase() }
                         SortBy.PATH -> videoItems.sortedByDescending { it.path.lowercase() }
-                        SortBy.RESOLUTION -> videoItems.sortedByDescending { it.width * it.height }
+                        SortBy.RESOLUTION -> videoItems.sortedByDescending { it.name.lowercase() }
                     }
                 }
             }

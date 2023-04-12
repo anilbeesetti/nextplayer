@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -9,24 +8,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.data.models.Video
 
 @Composable
-fun VideoItemsPickerView(
-    videos: List<Video>,
-    onVideoItemClick: (uri: Uri) -> Unit
+inline fun <T> PickerView(
+    list: List<T>,
+    modifier: Modifier = Modifier,
+    crossinline content: @Composable (item: T) -> Unit
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 10.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .navigationBarsPadding()
     ) {
-        items(videos) { video ->
-            VideoItemView(
-                video = video,
-                onClick = { onVideoItemClick(video.uri) }
-            )
-        }
+        items(list) { content(it) }
     }
 }

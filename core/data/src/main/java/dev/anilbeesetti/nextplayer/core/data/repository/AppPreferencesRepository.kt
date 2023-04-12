@@ -50,6 +50,10 @@ class AppPreferencesRepository @Inject constructor(
         playerPreferencesDataSource.setFastSeek(seek)
     }
 
+    override suspend fun setGroupVideosByFolder(value: Boolean) {
+        preferencesDataSource.setGroupVideosByFolder(value)
+    }
+
     override suspend fun setUseSwipeControls(value: Boolean) {
         playerPreferencesDataSource.setUseSwipeControls(value)
     }

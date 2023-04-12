@@ -28,4 +28,12 @@ class AppPreferencesDataSource @Inject constructor(
             Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
         }
     }
+
+    suspend fun setGroupVideosByFolder(groupVideosByFolder: Boolean) {
+        try {
+            appPreferences.updateData { it.copy(groupVideosByFolder = groupVideosByFolder) }
+        } catch (ioException: Exception) {
+            Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
+        }
+    }
 }

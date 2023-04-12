@@ -5,22 +5,24 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import dev.anilbeesetti.nextplayer.feature.videopicker.VideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerScreen
 
-const val videoPickerScreenRoute = "video_picker_screen"
+const val mediaPickerScreenRoute = "media_picker_screen"
 
-fun NavController.navigateToVideoPickerScreen(navOptions: NavOptions? = null) {
-    this.navigate(videoPickerScreenRoute, navOptions)
+fun NavController.navigateToMediaPickerScreen(navOptions: NavOptions? = null) {
+    this.navigate(mediaPickerScreenRoute, navOptions)
 }
 
-fun NavGraphBuilder.videoPickerScreen(
+fun NavGraphBuilder.mediaPickerScreen(
     onSettingsClick: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit
+    onVideoItemClick: (uri: Uri) -> Unit,
+    onFolderCLick: (path: String) -> Unit
 ) {
-    composable(route = videoPickerScreenRoute) {
-        VideoPickerScreen(
+    composable(route = mediaPickerScreenRoute) {
+        MediaPickerScreen(
+            onSettingsClick = onSettingsClick,
             onVideoItemClick = onVideoItemClick,
-            onSettingsClick = onSettingsClick
+            onFolderClick = onFolderCLick
         )
     }
 }

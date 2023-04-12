@@ -35,8 +35,10 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreenRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.folderVideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreenRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToFolderVideoPickerScreen
 import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
@@ -85,11 +87,16 @@ class MainActivity : ComponentActivity() {
                     if (storagePermissionState.status.isGranted) {
                         NavHost(
                             navController = navController,
-                            startDestination = videoPickerScreenRoute
+                            startDestination = mediaPickerScreenRoute
                         ) {
-                            videoPickerScreen(
+                            mediaPickerScreen(
                                 onVideoItemClick = this@MainActivity::startPlayerActivity,
-                                onSettingsClick = navController::navigateToSettings
+                                onSettingsClick = navController::navigateToSettings,
+                                onFolderCLick = navController::navigateToFolderVideoPickerScreen
+                            )
+                            folderVideoPickerScreen(
+                                onNavigateUp = navController::popBackStack,
+                                onVideoItemClick = this@MainActivity::startPlayerActivity
                             )
                             settingsScreen(
                                 onNavigateUp = navController::popBackStack,
@@ -97,7 +104,7 @@ class MainActivity : ComponentActivity() {
                                     when (setting) {
                                         Setting.PLAYER -> navController.navigateToPlayerPreferences()
                                         Setting.ABOUT -> navController.navigateToAboutPreferences()
-                                        else -> {}
+                                        Setting.APPEARANCE -> {}
                                     }
                                 }
                             )
