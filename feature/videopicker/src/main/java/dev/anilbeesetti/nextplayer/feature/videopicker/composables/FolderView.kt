@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FolderView(
@@ -64,7 +63,9 @@ fun FolderView(
                 Text(
                     text = folder.name,
                     maxLines = 2,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Normal
+                    ),
                     overflow = TextOverflow.Ellipsis
                 )
                 Row(

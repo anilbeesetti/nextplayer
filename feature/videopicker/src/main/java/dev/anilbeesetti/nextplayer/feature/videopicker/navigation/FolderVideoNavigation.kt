@@ -14,18 +14,21 @@ const val folderVideoPickerScreenRoute = "folder_video_picker_screen"
 internal const val folderIdArg = "folderId"
 
 internal class FolderArgs(val folderId: String) {
-    constructor(savedStateHandle: SavedStateHandle):
-            this(Uri.decode(checkNotNull(savedStateHandle[folderIdArg])))
+    constructor(savedStateHandle: SavedStateHandle) :
+        this(Uri.decode(checkNotNull(savedStateHandle[folderIdArg])))
 }
 
-fun NavController.navigateToFolderVideoPickerScreen(folderId: String, navOptions: NavOptions? = null) {
+fun NavController.navigateToFolderVideoPickerScreen(
+    folderId: String,
+    navOptions: NavOptions? = null
+) {
     val encodedFolderId = Uri.encode(folderId)
     this.navigate("$folderVideoPickerScreenRoute/$encodedFolderId", navOptions)
 }
 
 fun NavGraphBuilder.folderVideoPickerScreen(
     onNavigateUp: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit,
+    onVideoItemClick: (uri: Uri) -> Unit
 ) {
     composable(
         route = "$folderVideoPickerScreenRoute/{$folderIdArg}",

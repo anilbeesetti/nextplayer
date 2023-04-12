@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import android.provider.MediaStore
 import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState

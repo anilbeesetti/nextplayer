@@ -11,13 +11,13 @@ import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
 import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
 
 @Composable
 fun MediaContent(
     state: MediaState,
-    onMediaClick: (data: String) -> Unit,
+    onMediaClick: (data: String) -> Unit
 ) {
     when (state) {
         is MediaState.Loading -> {

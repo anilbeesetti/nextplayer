@@ -105,7 +105,7 @@ internal fun MediaPickerScreen(
             MediaContent(
                 state = mediaState,
                 onMediaClick = {
-                    when(preferences.groupVideosByFolder) {
+                    when (preferences.groupVideosByFolder) {
                         true -> onFolderClick(it)
                         false -> onVideoItemClick(Uri.parse(it))
                     }

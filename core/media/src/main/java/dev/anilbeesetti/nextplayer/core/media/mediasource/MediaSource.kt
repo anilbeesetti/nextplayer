@@ -21,7 +21,6 @@ interface MediaSource {
         sortOrder: String? = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
     ): Flow<List<MediaVideo>>
 
-
     /**
      * Get list of [MediaFolder]s as flow
      * @param selection selection of the query

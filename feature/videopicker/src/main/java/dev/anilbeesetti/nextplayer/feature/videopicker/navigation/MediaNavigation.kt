@@ -16,7 +16,7 @@ fun NavController.navigateToMediaPickerScreen(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.mediaPickerScreen(
     onSettingsClick: () -> Unit,
     onVideoItemClick: (uri: Uri) -> Unit,
-    onFolderCLick: (path: String) -> Unit,
+    onFolderCLick: (path: String) -> Unit
 ) {
     composable(route = mediaPickerScreenRoute) {
         MediaPickerScreen(

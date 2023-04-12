@@ -14,9 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
 import java.io.File
 
@@ -25,7 +25,7 @@ import java.io.File
 fun FolderVideoPickerScreen(
     viewModel: FolderVideoPickerViewModel = hiltViewModel(),
     onVideoItemClick: (uri: Uri) -> Unit,
-    onNavigateUp: () -> Unit,
+    onNavigateUp: () -> Unit
 ) {
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
 
@@ -57,4 +57,3 @@ fun FolderVideoPickerScreen(
         }
     }
 }
-
