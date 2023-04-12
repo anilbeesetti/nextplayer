@@ -13,7 +13,7 @@ import dev.anilbeesetti.nextplayer.core.data.models.Folder
 @Composable
 fun FoldersPickerView(
     folders: List<Folder>,
-    onFolderClick: (id: Long) -> Unit
+    onFolderClick: (id: String) -> Unit
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 10.dp),
@@ -24,7 +24,7 @@ fun FoldersPickerView(
         items(folders) { folder ->
             FolderView(
                 folder = folder,
-                onClick = { onFolderClick(folder.id) }
+                onClick = { onFolderClick(folder.path) }
             )
         }
     }

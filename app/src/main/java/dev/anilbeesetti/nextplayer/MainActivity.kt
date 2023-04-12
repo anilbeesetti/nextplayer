@@ -35,6 +35,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.folderVideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToFolderVideoPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.videoPickerScreenRoute
 import dev.anilbeesetti.nextplayer.settings.Setting
@@ -89,7 +91,12 @@ class MainActivity : ComponentActivity() {
                         ) {
                             videoPickerScreen(
                                 onVideoItemClick = this@MainActivity::startPlayerActivity,
-                                onSettingsClick = navController::navigateToSettings
+                                onSettingsClick = navController::navigateToSettings,
+                                onFolderCLick = navController::navigateToFolderVideoPickerScreen
+                            )
+                            folderVideoPickerScreen(
+                                onNavigateUp = navController::popBackStack,
+                                onVideoItemClick = this@MainActivity::startPlayerActivity
                             )
                             settingsScreen(
                                 onNavigateUp = navController::popBackStack,
@@ -97,7 +104,7 @@ class MainActivity : ComponentActivity() {
                                     when (setting) {
                                         Setting.PLAYER -> navController.navigateToPlayerPreferences()
                                         Setting.ABOUT -> navController.navigateToAboutPreferences()
-                                        else -> {}
+                                        Setting.APPEARANCE -> {}
                                     }
                                 }
                             )

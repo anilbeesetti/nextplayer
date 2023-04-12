@@ -15,12 +15,14 @@ fun NavController.navigateToVideoPickerScreen(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.videoPickerScreen(
     onSettingsClick: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit
+    onVideoItemClick: (uri: Uri) -> Unit,
+    onFolderCLick: (path: String) -> Unit,
 ) {
     composable(route = videoPickerScreenRoute) {
         VideoPickerScreen(
+            onSettingsClick = onSettingsClick,
             onVideoItemClick = onVideoItemClick,
-            onSettingsClick = onSettingsClick
+            onFolderClick = onFolderCLick
         )
     }
 }

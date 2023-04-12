@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import android.provider.MediaStore
 import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
@@ -20,8 +21,12 @@ class LocalVideoRepository @Inject constructor(
     private val videoDao: VideoDao,
     private val mediaSource: MediaSource
 ) : VideoRepository {
-    override fun getVideosFlow(): Flow<List<Video>> {
-        return mediaSource.getVideoItemsFlow().map { it.map(MediaVideo::toVideo) }
+
+    override fun getVideosFlow(folderPath: String?): Flow<List<Video>> {
+        return mediaSource.getVideoItemsFlow(
+            selection = MediaStore.Video.Media.DATA + " LIKE ?",
+            selectionArgs = arrayOf("$folderPath%")
+        ).map { it.map(MediaVideo::toVideo) }
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {

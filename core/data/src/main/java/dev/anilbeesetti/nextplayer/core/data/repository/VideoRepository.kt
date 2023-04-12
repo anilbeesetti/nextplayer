@@ -6,12 +6,12 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import kotlinx.coroutines.flow.Flow
 
 interface VideoRepository {
-
     /**
      * Get list of [Video]s as flow
+     * @param folderPath path of the folder
      * @return flow of list of video items
      */
-    fun getVideosFlow(): Flow<List<Video>>
+    fun getVideosFlow(folderPath: String? = null): Flow<List<Video>>
 
     /**
      * Get list of [Folder]s as flow

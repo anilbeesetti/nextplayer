@@ -13,8 +13,7 @@ class FakeVideoRepository : VideoRepository {
     val videoItems = mutableListOf<Video>()
     val folders = mutableListOf<Folder>()
     private val videoEntities = mutableListOf<VideoEntity>()
-
-    override fun getVideosFlow(): Flow<List<Video>> {
+    override fun getVideosFlow(folderPath: String?): Flow<List<Video>> {
         return flowOf(videoItems)
     }
 

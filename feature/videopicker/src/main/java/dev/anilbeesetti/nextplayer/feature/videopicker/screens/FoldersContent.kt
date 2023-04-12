@@ -15,7 +15,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersPicker
 @Composable
 fun FolderContent(
     folderState: FolderState,
-    onFolderClick: (id: Long) -> Unit,
+    onFolderClick: (id: String) -> Unit,
 ) {
     when (folderState) {
         is FolderState.Loading -> {

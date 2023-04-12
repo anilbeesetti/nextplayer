@@ -42,6 +42,7 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 fun VideoPickerScreen(
     onSettingsClick: () -> Unit,
     onVideoItemClick: (uri: Uri) -> Unit,
+    onFolderClick: (folderPath: String) -> Unit,
     viewModel: VideoPickerViewModel = hiltViewModel()
 ) {
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
@@ -54,6 +55,7 @@ fun VideoPickerScreen(
         preferences = preferences,
         onSettingsClick = onSettingsClick,
         onVideoItemClick = onVideoItemClick,
+        onFolderClick = onFolderClick,
         updatePreferences = viewModel::updateMenu
     )
 }
@@ -65,6 +67,7 @@ internal fun VideoPickerScreen(
     folderState: FolderState,
     preferences: AppPreferences,
     onVideoItemClick: (uri: Uri) -> Unit = {},
+    onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit = {},
     updatePreferences: (SortBy, SortOrder) -> Unit = { _, _ -> }
 ) {
@@ -103,7 +106,7 @@ internal fun VideoPickerScreen(
 //                videosState = videosState,
 //                onVideoItemClick = onVideoItemClick
 //            )
-            FolderContent(folderState = folderState, onFolderClick = {} )
+            FolderContent(folderState = folderState, onFolderClick = onFolderClick )
             if (showMenu) {
                 MenuDialog(
                     preferences = preferences,
@@ -132,7 +135,8 @@ fun VideoPickerScreenPreview(
                         folders = emptyList()
                     ),
                     preferences = AppPreferences(),
-                    onVideoItemClick = {}
+                    onVideoItemClick = {},
+                    onFolderClick = {}
                 )
             }
         }
@@ -164,7 +168,8 @@ fun VideoPickerNoVideosFoundPreview() {
                     folders = emptyList()
                 ),
                 preferences = AppPreferences(),
-                onVideoItemClick = {}
+                onVideoItemClick = {},
+                onFolderClick = {}
             )
         }
     }
@@ -179,7 +184,8 @@ fun VideoPickerLoadingPreview() {
                 videosState = VideosState.Loading,
                 folderState = FolderState.Loading,
                 preferences = AppPreferences(),
-                onVideoItemClick = {}
+                onVideoItemClick = {},
+                onFolderClick = {}
             )
         }
     }
