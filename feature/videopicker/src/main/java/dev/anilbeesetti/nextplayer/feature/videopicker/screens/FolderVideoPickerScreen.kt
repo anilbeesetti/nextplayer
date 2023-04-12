@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.R
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +31,7 @@ fun FolderVideoPickerScreen(
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = viewModel.folderPath,
+                title = File(viewModel.folderPath).name,
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
