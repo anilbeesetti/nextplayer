@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.common.extensions
 
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
@@ -64,13 +65,13 @@ fun Context.getPath(uri: Uri): String? {
                 return contentUri?.let { getDataColumn(it, selection, selectionArgs) }
             }
         }
-    } else if ("content".equals(uri.scheme, ignoreCase = true)) {
+    } else if (ContentResolver.SCHEME_CONTENT.equals(uri.scheme, ignoreCase = true)) {
         return if (uri.isGooglePhotosUri) {
             uri.lastPathSegment
         } else {
             getDataColumn(uri, null, null)
         }
-    } else if ("file".equals(uri.scheme, ignoreCase = true)) {
+    } else if (ContentResolver.SCHEME_FILE.equals(uri.scheme, ignoreCase = true)) {
         return uri.path
     }
     return null
@@ -97,6 +98,8 @@ private fun Context.getDataColumn(
             val index = cursor.getColumnIndexOrThrow(column)
             return cursor.getString(index)
         }
+    } catch (e: Exception) {
+        return null
     } finally {
         cursor?.close()
     }
@@ -109,7 +112,7 @@ private fun Context.getDataColumn(
  * @return filename of the file
  */
 fun Context.getFilenameFromUri(uri: Uri): String {
-    return if (uri.scheme == "file") {
+    return if (ContentResolver.SCHEME_FILE.equals(uri.scheme, ignoreCase = true)) {
         File(uri.toString()).name
     } else {
         getFilenameFromContentUri(uri) ?: uri.lastPathSegment ?: ""
