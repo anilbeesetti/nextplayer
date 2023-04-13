@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -30,11 +29,9 @@ fun NextDialog(
         title = title,
         text = {
             Column {
-                Divider()
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     content()
                 }
-                Divider()
             }
         },
         modifier = modifier
@@ -54,5 +51,4 @@ object NextDialogDefaults {
         decorFitsSystemWindows = true
     )
     val dialogMargin: Dp = 16.dp
-    val spaceBy: Dp = 16.dp
 }

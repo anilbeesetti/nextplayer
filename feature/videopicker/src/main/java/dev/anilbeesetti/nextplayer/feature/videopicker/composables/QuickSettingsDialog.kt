@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableChipBorder
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,8 +36,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
-import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,6 +55,7 @@ fun QuickSettingsDialog(
             Text(text = stringResource(R.string.quick_settings))
         },
         content = {
+            Divider()
             DialogSectionTitle(text = stringResource(R.string.sort))
             SortOptions(
                 selectedSortBy = selectedSortBy,
@@ -93,9 +95,9 @@ fun QuickSettingsDialog(
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(NextDialogDefaults.spaceBy))
-            PreferenceSwitch(
-                title = stringResource(id = R.string.group_videos),
+            Divider(modifier = Modifier.padding(top = 16.dp))
+            DialogPreferenceSwitch(
+                text = stringResource(id = R.string.group_videos),
                 isChecked = groupVideos,
                 onClick = { groupVideos = !groupVideos }
             )
@@ -228,6 +230,40 @@ private fun DialogSectionTitle(text: String) {
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
     )
+}
+
+@Composable
+fun DialogPreferenceSwitch(
+    text: String,
+    isChecked: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = isChecked,
+                enabled = enabled,
+                onValueChange = { onClick() }
+            )
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = text,
+            maxLines = 1,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Switch(
+            checked = isChecked,
+            onCheckedChange = null,
+            modifier = Modifier.padding(start = 20.dp),
+            enabled = enabled,
+        )
+    }
 }
 
 enum class ChipSelected {
