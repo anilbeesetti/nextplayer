@@ -26,6 +26,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivide
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
+import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,27 +65,7 @@ fun PlayerPreferencesScreen(
                     .fillMaxSize()
             ) {
                 item {
-                    ClickablePreferenceItem(
-                        title = stringResource(id = R.string.resume),
-                        description = stringResource(id = R.string.resume_description),
-                        icon = NextIcons.Resume,
-                        onClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(Dialog.ResumeDialog)
-                            )
-                        }
-                    )
-                }
-                item {
-                    PreferenceSwitch(
-                        title = stringResource(id = R.string.remember_brightness_level),
-                        description = stringResource(
-                            id = R.string.remember_brightness_level_description
-                        ),
-                        icon = NextIcons.Brightness,
-                        isChecked = preferences.rememberPlayerBrightness,
-                        onClick = viewModel::toggleRememberBrightnessLevel
-                    )
+                    PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
                 }
                 item {
                     PreferenceSwitch(
@@ -110,6 +91,41 @@ fun PlayerPreferencesScreen(
                     )
                 }
                 item {
+                    PreferenceSubtitle(text = stringResource(id = R.string.playback))
+                }
+                item {
+                    ClickablePreferenceItem(
+                        title = stringResource(id = R.string.resume),
+                        description = stringResource(id = R.string.resume_description),
+                        icon = NextIcons.Resume,
+                        onClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(Dialog.ResumeDialog)
+                            )
+                        }
+                    )
+                }
+                item {
+                    PreferenceSwitch(
+                        title = stringResource(id = R.string.remember_brightness_level),
+                        description = stringResource(
+                            id = R.string.remember_brightness_level_description
+                        ),
+                        icon = NextIcons.Brightness,
+                        isChecked = preferences.rememberPlayerBrightness,
+                        onClick = viewModel::toggleRememberBrightnessLevel
+                    )
+                }
+                item {
+                    PreferenceSwitch(
+                        title = stringResource(id = R.string.remember_selections),
+                        description = stringResource(id = R.string.remember_selections_description),
+                        icon = NextIcons.Selection,
+                        isChecked = preferences.rememberSelections,
+                        onClick = viewModel::toggleRememberSelections
+                    )
+                }
+                item {
                     PreferenceSwitchWithDivider(
                         title = stringResource(id = R.string.fast_seek),
                         description = stringResource(id = R.string.fast_seek_description),
@@ -121,15 +137,6 @@ fun PlayerPreferencesScreen(
                                 PlayerPreferencesEvent.ShowDialog(Dialog.FastSeekDialog)
                             )
                         }
-                    )
-                }
-                item {
-                    PreferenceSwitch(
-                        title = stringResource(id = R.string.remember_selections),
-                        description = stringResource(id = R.string.remember_selections_description),
-                        icon = NextIcons.Selection,
-                        isChecked = preferences.rememberSelections,
-                        onClick = viewModel::toggleRememberSelections
                     )
                 }
             }
