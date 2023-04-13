@@ -45,4 +45,6 @@
     <string name="swipe_controls_description">Use swipe gesture to adjust the brightness and volume</string>
     <string name="group_videos">Group videos by folder</string>
     <string name="quick_settings">Quick Settings</string>
+    <string name="remember_selections">Remember selections</string>
+    <string name="remember_selections_description">Remember selections for each file like audio track, subtitle track, etc</string>
 </resources>

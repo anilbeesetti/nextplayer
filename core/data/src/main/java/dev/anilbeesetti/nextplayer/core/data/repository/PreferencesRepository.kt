@@ -43,7 +43,7 @@ interface PreferencesRepository {
     suspend fun setPlaybackResume(resume: Resume)
 
     /**
-     * Sets the brightness level of the video items.
+     * Sets whether the player should remember the brightness level.
      *
      * @param value should remember the brightness level.
      */
@@ -83,4 +83,11 @@ interface PreferencesRepository {
      * @param value The use of swipe controls to be set.
      */
     suspend fun setUseSwipeControls(value: Boolean)
+
+    /**
+     * Sets whether the app should remember the selections for each file like audio track, subtitle track, etc.
+     *
+     * @param value The use of swipe controls to be set.
+     */
+    suspend fun setRememberSelections(value: Boolean)
 }

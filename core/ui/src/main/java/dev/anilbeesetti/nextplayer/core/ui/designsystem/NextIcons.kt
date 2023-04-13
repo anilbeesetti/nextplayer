@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Folder
@@ -20,7 +21,6 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
 
 object NextIcons {
     val ArrowBack = Icons.Rounded.ArrowBack
@@ -42,4 +42,5 @@ object NextIcons {
     val Resume = Icons.Rounded.ResetTv
     val Folder = Icons.Rounded.Folder
     val SwipeVertical = Icons.Rounded.SwipeVertical
+    val Selection = Icons.Rounded.DoneAll
 }

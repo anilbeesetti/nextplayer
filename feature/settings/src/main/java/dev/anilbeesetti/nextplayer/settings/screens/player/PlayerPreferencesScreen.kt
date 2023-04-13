@@ -123,6 +123,15 @@ fun PlayerPreferencesScreen(
                         }
                     )
                 }
+                item {
+                    PreferenceSwitch(
+                        title = stringResource(id = R.string.remember_selections),
+                        description = stringResource(id = R.string.remember_selections_description),
+                        icon = NextIcons.Selection,
+                        isChecked = preferences.rememberSelections,
+                        onClick = viewModel::toggleRememberSelections
+                    )
+                }
             }
             when (uiState.showDialog) {
                 Dialog.ResumeDialog -> {

@@ -10,7 +10,8 @@ data class PlayerPreferences(
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.FAST_FORWARD_AND_REWIND,
     val fastSeek: FastSeek = FastSeek.AUTO,
     val minDurationForFastSeek: Long = 120000L,
-    val useSwipeControls: Boolean = true
+    val useSwipeControls: Boolean = true,
+    val rememberSelections: Boolean = true
 )
 
 enum class Resume(val value: String) {

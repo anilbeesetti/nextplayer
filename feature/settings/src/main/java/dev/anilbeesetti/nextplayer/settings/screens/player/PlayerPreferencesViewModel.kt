@@ -90,6 +90,14 @@ class PlayerPreferencesViewModel @Inject constructor(
             )
         }
     }
+
+    fun toggleRememberSelections() {
+        viewModelScope.launch {
+            preferencesRepository.setRememberSelections(
+                !preferencesFlow.value.rememberSelections
+            )
+        }
+    }
 }
 
 data class UIState(

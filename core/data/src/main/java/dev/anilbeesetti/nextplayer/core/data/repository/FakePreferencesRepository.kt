@@ -56,4 +56,8 @@ class FakePreferencesRepository : PreferencesRepository {
     override suspend fun setUseSwipeControls(value: Boolean) {
         playerPreferences.update { it.copy(useSwipeControls = value) }
     }
+
+    override suspend fun setRememberSelections(value: Boolean) {
+        playerPreferences.update { it.copy(rememberSelections = value) }
+    }
 }
