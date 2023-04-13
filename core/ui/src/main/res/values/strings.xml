@@ -47,4 +47,6 @@
     <string name="quick_settings">Quick Settings</string>
     <string name="remember_selections">Remember selections</string>
     <string name="remember_selections_description">Remember selections for each file like audio track, subtitle track, etc</string>
+    <string name="playback">Playback</string>
+    <string name="interface_name">Interface</string>
 </resources>
