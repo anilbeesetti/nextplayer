@@ -104,8 +104,12 @@ class PlayerViewModel @Inject constructor(
             videoRepository.saveVideoState(
                 path = path,
                 position = position,
-                audioTrackIndex = currentAudioTrackIndex.value.takeIf { preferences.value.rememberSelections },
-                subtitleTrackIndex = currentAudioTrackIndex.value.takeIf { preferences.value.rememberSelections }
+                audioTrackIndex = currentAudioTrackIndex.value.takeIf {
+                    preferences.value.rememberSelections
+                } ?: initialVideoState?.audioTrack,
+                subtitleTrackIndex = currentAudioTrackIndex.value.takeIf {
+                    preferences.value.rememberSelections
+                } ?: initialVideoState?.subtitleTrack
             )
         }
     }
