@@ -140,7 +140,8 @@ fun VideoItemPreview() {
                     duration = 1000,
                     displayName = "Avengers Endgame (2019) BluRay x264",
                     width = 1920,
-                    height = 1080
+                    height = 1080,
+                    size = 1000
                 ),
                 onClick = {}
             )
