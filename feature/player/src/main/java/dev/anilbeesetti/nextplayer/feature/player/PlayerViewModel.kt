@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
@@ -51,15 +52,18 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
+    var initialVideoState: VideoState? = null
+
     fun setCurrentMedia(path: String?) {
         currentPlaybackPath.value = path
         viewModelScope.launch {
             path?.let {
-                val videoState = videoRepository.getVideoState(it)
-                Timber.d("Get state for $it: $videoState")
-                playbackPosition.value = if (preferences.value.resume == Resume.YES) videoState?.position else null
-                currentAudioTrackIndex.value = videoState?.audioTrack
-                currentSubtitleTrackIndex.value = videoState?.subtitleTrack
+                initialVideoState = videoRepository.getVideoState(it)
+                Timber.d("Get state for $it: $initialVideoState")
+                playbackPosition.value =
+                    if (preferences.value.resume == Resume.YES) initialVideoState?.position else null
+                currentAudioTrackIndex.value = initialVideoState?.audioTrack
+                currentSubtitleTrackIndex.value = initialVideoState?.subtitleTrack
             }
         }
     }
@@ -84,8 +88,12 @@ class PlayerViewModel @Inject constructor(
                 videoRepository.saveVideoState(
                     path = it,
                     position = newPosition,
-                    audioTrackIndex = currentAudioTrackIndex.value,
-                    subtitleTrackIndex = currentSubtitleTrackIndex.value
+                    audioTrackIndex = currentAudioTrackIndex.value.takeIf {
+                        preferences.value.rememberSelections
+                    } ?: initialVideoState?.audioTrack,
+                    subtitleTrackIndex = currentSubtitleTrackIndex.value.takeIf {
+                        preferences.value.rememberSelections
+                    } ?: initialVideoState?.subtitleTrack
                 )
             }
         }
@@ -96,8 +104,8 @@ class PlayerViewModel @Inject constructor(
             videoRepository.saveVideoState(
                 path = path,
                 position = position,
-                audioTrackIndex = currentAudioTrackIndex.value,
-                subtitleTrackIndex = currentAudioTrackIndex.value
+                audioTrackIndex = currentAudioTrackIndex.value.takeIf { preferences.value.rememberSelections },
+                subtitleTrackIndex = currentAudioTrackIndex.value.takeIf { preferences.value.rememberSelections }
             )
         }
     }
