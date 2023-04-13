@@ -21,9 +21,7 @@ fun OptionsDialog(
     NextDialog(
         onDismissRequest = onDismissClick,
         title = {
-            Text(
-                text = text
-            )
+            Text(text = text)
         },
         content = {
             Column(
@@ -33,11 +31,9 @@ fun OptionsDialog(
                         orientation = Orientation.Vertical
                     )
                     .selectableGroup()
-            ) {
-                options()
-            }
+            ) { options() }
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },
-        confirmButton = null
+        confirmButton = { }
     )
 }

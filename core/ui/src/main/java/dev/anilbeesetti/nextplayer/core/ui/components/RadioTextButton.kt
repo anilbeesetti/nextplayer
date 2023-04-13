@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -27,16 +29,14 @@ fun RadioTextButton(
                 onClick = onClick,
                 role = Role.RadioButton
             )
-            .padding(horizontal = NextDialogDefaults.dialogPadding),
+            .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
             selected = selected,
             onClick = null
         )
-        Text(
-            text = text,
-            modifier = Modifier.padding(16.dp)
-        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text)
     }
 }
