@@ -35,6 +35,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,10 +43,11 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 fun MenuDialog(
     preferences: AppPreferences,
     onDismiss: () -> Unit,
-    updatePreferences: (SortBy, SortOrder) -> Unit
+    updatePreferences: (SortBy, SortOrder, Boolean) -> Unit
 ) {
     var selectedSortBy by remember { mutableStateOf(preferences.sortBy) }
     var selectedSortOrder by remember { mutableStateOf(preferences.sortOrder) }
+    var groupVideos by remember { mutableStateOf(preferences.groupVideosByFolder) }
 
     NextDialog(
         onDismissRequest = onDismiss,
@@ -59,14 +61,16 @@ fun MenuDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = NextDialogDefaults.dialogPadding)
             ) {
                 SortOptions(
                     selectedSortBy = selectedSortBy,
-                    onOptionSelected = { selectedSortBy = it }
+                    onOptionSelected = { selectedSortBy = it },
+                    modifier = Modifier
+                        .padding(horizontal = NextDialogDefaults.dialogPadding)
                 )
                 Spacer(modifier = Modifier.height(NextDialogDefaults.spaceBy))
                 SegmentedFilterChip(
+                    modifier = Modifier.padding(horizontal = NextDialogDefaults.dialogPadding),
                     labelOne = {
                         Icon(
                             imageVector = NextIcons.ArrowUpward,
@@ -99,12 +103,18 @@ fun MenuDialog(
                         }
                     }
                 )
+                Spacer(modifier = Modifier.height(NextDialogDefaults.spaceBy))
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.group_videos),
+                    isChecked = groupVideos,
+                    onClick = { groupVideos = !groupVideos }
+                )
             }
         },
         confirmButton = {
             DoneButton(
                 onClick = {
-                    updatePreferences(selectedSortBy, selectedSortOrder)
+                    updatePreferences(selectedSortBy, selectedSortOrder, groupVideos)
                     onDismiss()
                 }
             )
