@@ -47,4 +47,8 @@
     <string name="quick_settings">Quick Settings</string>
     <string name="remember_selections">Remember selections</string>
     <string name="remember_selections_description">Remember selections for each file like audio track, subtitle track, etc</string>
+    <string name="size">Size</string>
+    <string name="location">Location</string>
+    <string name="length">Length</string>
+    <string name="title">Title</string>
 </resources>

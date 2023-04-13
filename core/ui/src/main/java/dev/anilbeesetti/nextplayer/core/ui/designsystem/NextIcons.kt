@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CompareArrows
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
@@ -31,7 +32,7 @@ object NextIcons {
     val Title = Icons.Rounded.Title
     val Length = Icons.Rounded.Straighten
     val Location = Icons.Rounded.LocationOn
-    val HighQuality = Icons.Rounded.HighQuality
+    val Size = Icons.Rounded.CompareArrows
     val Appearance = Icons.Rounded.Palette
     val Player = Icons.Rounded.PlayCircle
     val Info = Icons.Rounded.Info

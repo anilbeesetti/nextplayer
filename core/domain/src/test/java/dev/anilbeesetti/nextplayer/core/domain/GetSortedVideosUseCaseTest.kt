@@ -43,7 +43,7 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.DURATION)
+        preferencesRepository.setSortBy(SortBy.LENGTH)
         preferencesRepository.setSortOrder(SortOrder.ASCENDING)
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
@@ -55,7 +55,7 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.DURATION)
+        preferencesRepository.setSortBy(SortBy.LENGTH)
         preferencesRepository.setSortOrder(SortOrder.DESCENDING)
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
