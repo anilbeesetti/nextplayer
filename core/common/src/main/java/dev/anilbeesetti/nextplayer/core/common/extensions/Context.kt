@@ -97,6 +97,8 @@ private fun Context.getDataColumn(
             val index = cursor.getColumnIndexOrThrow(column)
             return cursor.getString(index)
         }
+    } catch (e: Exception) {
+        return null
     } finally {
         cursor?.close()
     }
