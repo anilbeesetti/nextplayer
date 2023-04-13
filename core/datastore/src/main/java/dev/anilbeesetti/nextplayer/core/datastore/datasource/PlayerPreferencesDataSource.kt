@@ -73,4 +73,14 @@ class PlayerPreferencesDataSource @Inject constructor(
             )
         }
     }
+
+    suspend fun setRememberSelections(value: Boolean) {
+        try {
+            preferencesDataStore.updateData { it.copy(rememberSelections = value) }
+        } catch (ioException: Exception) {
+            Timber.tag("NextPlayerPreferences").e(
+                "Failed to update player preferences: $ioException"
+            )
+        }
+    }
 }
