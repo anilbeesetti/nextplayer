@@ -69,7 +69,7 @@ internal fun MediaPickerScreen(
     onVideoItemClick: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    updatePreferences: (SortBy, SortOrder) -> Unit = { _, _ -> }
+    updatePreferences: (SortBy, SortOrder, Boolean) -> Unit = { _, _, _ -> }
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
