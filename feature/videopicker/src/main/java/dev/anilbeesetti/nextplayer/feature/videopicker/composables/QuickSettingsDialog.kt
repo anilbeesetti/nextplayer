@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -34,13 +35,12 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogDefaults
-import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
+import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MenuDialog(
+fun QuickSettingsDialog(
     preferences: AppPreferences,
     onDismiss: () -> Unit,
     updatePreferences: (SortBy, SortOrder, Boolean) -> Unit
@@ -52,64 +52,55 @@ fun MenuDialog(
     NextDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(
-                text = stringResource(R.string.sort),
-                style = MaterialTheme.typography.headlineSmall
-            )
+            Text(text = stringResource(R.string.quick_settings))
         },
         content = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                SortOptions(
-                    selectedSortBy = selectedSortBy,
-                    onOptionSelected = { selectedSortBy = it },
-                    modifier = Modifier
-                        .padding(horizontal = NextDialogDefaults.dialogPadding)
-                )
-                Spacer(modifier = Modifier.height(NextDialogDefaults.spaceBy))
-                SegmentedFilterChip(
-                    modifier = Modifier.padding(horizontal = NextDialogDefaults.dialogPadding),
-                    labelOne = {
-                        Icon(
-                            imageVector = NextIcons.ArrowUpward,
-                            contentDescription = stringResource(R.string.ascending)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.ascending),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
-                    labelTwo = {
-                        Icon(
-                            imageVector = NextIcons.ArrowDownward,
-                            contentDescription = stringResource(R.string.descending)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.descending),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
-                    selected = if (selectedSortOrder == SortOrder.ASCENDING) ChipSelected.ONE else ChipSelected.TWO,
-                    onClick = {
-                        selectedSortOrder = when (it) {
-                            ChipSelected.ONE -> SortOrder.ASCENDING
-                            ChipSelected.TWO -> SortOrder.DESCENDING
-                        }
+            Divider()
+            DialogSectionTitle(text = stringResource(R.string.sort))
+            SortOptions(
+                selectedSortBy = selectedSortBy,
+                onOptionSelected = { selectedSortBy = it }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            SegmentedFilterChip(
+                labelOne = {
+                    Icon(
+                        imageVector = NextIcons.ArrowUpward,
+                        contentDescription = stringResource(R.string.ascending)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.ascending),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
+                labelTwo = {
+                    Icon(
+                        imageVector = NextIcons.ArrowDownward,
+                        contentDescription = stringResource(R.string.descending)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.descending),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
+                selected = if (selectedSortOrder == SortOrder.ASCENDING) ChipSelected.ONE else ChipSelected.TWO,
+                onClick = {
+                    selectedSortOrder = when (it) {
+                        ChipSelected.ONE -> SortOrder.ASCENDING
+                        ChipSelected.TWO -> SortOrder.DESCENDING
                     }
-                )
-                Spacer(modifier = Modifier.height(NextDialogDefaults.spaceBy))
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.group_videos),
-                    isChecked = groupVideos,
-                    onClick = { groupVideos = !groupVideos }
-                )
-            }
+                }
+            )
+            Divider(modifier = Modifier.padding(top = 16.dp))
+            DialogPreferenceSwitch(
+                text = stringResource(id = R.string.group_videos),
+                isChecked = groupVideos,
+                onClick = { groupVideos = !groupVideos }
+            )
         },
         confirmButton = {
             DoneButton(
@@ -228,6 +219,49 @@ fun SegmentedFilterChip(
             },
             border = border,
             selected = selected == ChipSelected.TWO
+        )
+    }
+}
+
+@Composable
+private fun DialogSectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+fun DialogPreferenceSwitch(
+    text: String,
+    isChecked: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = isChecked,
+                enabled = enabled,
+                onValueChange = { onClick() }
+            )
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = text,
+            maxLines = 1,
+            style = MaterialTheme.typography.titleMedium
+        )
+        NextSwitch(
+            checked = isChecked,
+            onCheckedChange = null,
+            modifier = Modifier.padding(start = 20.dp),
+            enabled = enabled
         )
     }
 }

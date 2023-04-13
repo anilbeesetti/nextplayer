@@ -36,7 +36,7 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterPr
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MenuDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
@@ -112,7 +112,7 @@ internal fun MediaPickerScreen(
                 }
             )
             if (showMenu) {
-                MenuDialog(
+                QuickSettingsDialog(
                     preferences = preferences,
                     onDismiss = { showMenu = false },
                     updatePreferences = updatePreferences

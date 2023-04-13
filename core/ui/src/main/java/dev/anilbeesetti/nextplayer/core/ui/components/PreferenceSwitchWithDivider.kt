@@ -3,13 +3,9 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,22 +21,9 @@ fun PreferenceSwitchWithDivider(
     icon: ImageVector? = null,
     enabled: Boolean = true,
     isChecked: Boolean = true,
-    checkedIcon: ImageVector = NextIcons.Check,
     onClick: (() -> Unit) = {},
     onChecked: () -> Unit = {}
 ) {
-    val thumbContent: (@Composable () -> Unit)? = if (isChecked) {
-        {
-            Icon(
-                imageVector = checkedIcon,
-                contentDescription = null,
-                modifier = Modifier.size(SwitchDefaults.IconSize)
-            )
-        }
-    } else {
-        null
-    }
-
     PreferenceItem(
         title = title,
         description = description,
@@ -58,12 +41,11 @@ fun PreferenceSwitchWithDivider(
                     .align(Alignment.CenterVertically),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
-            Switch(
+            NextSwitch(
                 checked = isChecked,
                 onCheckedChange = { onChecked() },
                 modifier = Modifier.padding(start = 12.dp, end = 6.dp),
-                enabled = enabled,
-                thumbContent = thumbContent
+                enabled = enabled
             )
         }
     )
