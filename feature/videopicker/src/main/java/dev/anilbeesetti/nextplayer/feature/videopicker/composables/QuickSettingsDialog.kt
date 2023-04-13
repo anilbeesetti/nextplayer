@@ -59,7 +59,7 @@ fun QuickSettingsDialog(
             DialogSectionTitle(text = stringResource(R.string.sort))
             SortOptions(
                 selectedSortBy = selectedSortBy,
-                onOptionSelected = { selectedSortBy = it },
+                onOptionSelected = { selectedSortBy = it }
             )
             Spacer(modifier = Modifier.height(8.dp))
             SegmentedFilterChip(
@@ -228,7 +228,7 @@ private fun DialogSectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
     )
 }
 
@@ -261,7 +261,7 @@ fun DialogPreferenceSwitch(
             checked = isChecked,
             onCheckedChange = null,
             modifier = Modifier.padding(start = 20.dp),
-            enabled = enabled,
+            enabled = enabled
         )
     }
 }

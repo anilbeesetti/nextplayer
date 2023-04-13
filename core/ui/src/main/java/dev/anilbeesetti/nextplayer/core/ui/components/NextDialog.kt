@@ -22,7 +22,6 @@ fun NextDialog(
     modifier: Modifier = Modifier,
     dialogProperties: DialogProperties = NextDialogDefaults.dialogProperties
 ) {
-
     val configuration = LocalConfiguration.current
 
     AlertDialog(
