@@ -44,4 +44,5 @@
     <string name="swipe_controls">Swipe controls</string>
     <string name="swipe_controls_description">Use swipe gesture to adjust the brightness and volume</string>
     <string name="group_videos">Group videos by folder</string>
+    <string name="quick_settings">Quick Settings</string>
 </resources>
