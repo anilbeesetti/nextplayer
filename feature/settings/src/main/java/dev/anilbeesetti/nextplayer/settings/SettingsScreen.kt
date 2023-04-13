@@ -12,9 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.settings.composables.ClickablePreferenceItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

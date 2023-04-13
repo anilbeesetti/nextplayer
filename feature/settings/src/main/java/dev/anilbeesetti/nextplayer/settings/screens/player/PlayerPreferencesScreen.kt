@@ -19,13 +19,13 @@ import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.settings.composables.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
-import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSwitch
-import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSwitchWithDivider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
