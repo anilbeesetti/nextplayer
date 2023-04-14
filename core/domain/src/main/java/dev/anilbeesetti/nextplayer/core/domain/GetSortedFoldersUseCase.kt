@@ -23,17 +23,17 @@ class GetSortedFoldersUseCase @Inject constructor(
                 SortOrder.ASCENDING -> {
                     when (preferences.sortBy) {
                         SortBy.TITLE -> videoItems.sortedBy { it.name.lowercase() }
-                        SortBy.DURATION -> videoItems.sortedBy { it.name.lowercase() }
+                        SortBy.LENGTH -> videoItems.sortedBy { it.mediaCount }
                         SortBy.PATH -> videoItems.sortedBy { it.path.lowercase() }
-                        SortBy.RESOLUTION -> videoItems.sortedBy { it.name.lowercase() }
+                        SortBy.SIZE -> videoItems.sortedBy { it.mediaSize }
                     }
                 }
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
                         SortBy.TITLE -> videoItems.sortedByDescending { it.name.lowercase() }
-                        SortBy.DURATION -> videoItems.sortedByDescending { it.name.lowercase() }
+                        SortBy.LENGTH -> videoItems.sortedByDescending { it.mediaCount }
                         SortBy.PATH -> videoItems.sortedByDescending { it.path.lowercase() }
-                        SortBy.RESOLUTION -> videoItems.sortedByDescending { it.name.lowercase() }
+                        SortBy.SIZE -> videoItems.sortedByDescending { it.mediaSize }
                     }
                 }
             }

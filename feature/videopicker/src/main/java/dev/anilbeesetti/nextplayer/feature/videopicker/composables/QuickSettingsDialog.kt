@@ -128,28 +128,28 @@ private fun SortOptions(
             .fillMaxWidth()
     ) {
         TextIconToggleButton(
-            text = "Title",
+            text = stringResource(id = R.string.title),
             icon = NextIcons.Title,
             isSelected = selectedSortBy == SortBy.TITLE,
             onClick = { onOptionSelected(SortBy.TITLE) }
         )
         TextIconToggleButton(
-            text = "Duration",
+            text = stringResource(id = R.string.length),
             icon = NextIcons.Length,
-            isSelected = selectedSortBy == SortBy.DURATION,
-            onClick = { onOptionSelected(SortBy.DURATION) }
+            isSelected = selectedSortBy == SortBy.LENGTH,
+            onClick = { onOptionSelected(SortBy.LENGTH) }
         )
         TextIconToggleButton(
-            text = "Path",
+            text = stringResource(id = R.string.location),
             icon = NextIcons.Location,
             isSelected = selectedSortBy == SortBy.PATH,
             onClick = { onOptionSelected(SortBy.PATH) }
         )
         TextIconToggleButton(
-            text = "Resolution",
-            icon = NextIcons.HighQuality,
-            isSelected = selectedSortBy == SortBy.RESOLUTION,
-            onClick = { onOptionSelected(SortBy.RESOLUTION) }
+            text = stringResource(id = R.string.size),
+            icon = NextIcons.Size,
+            isSelected = selectedSortBy == SortBy.SIZE,
+            onClick = { onOptionSelected(SortBy.SIZE) }
         )
     }
 }
