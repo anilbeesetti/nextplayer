@@ -51,4 +51,6 @@
     <string name="title">Title</string>
     <string name="title_activity_player">Next Player Activity</string>
     <string name="unknown_error">An unknown error has occurred</string>
+    <string name="playback">Playback</string>
+    <string name="interface_name">Interface</string>
 </resources>
