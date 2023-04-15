@@ -19,6 +19,7 @@ import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
+import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
 
@@ -41,6 +42,7 @@ object NextIcons {
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
     val Size = Icons.Rounded.CompareArrows
+    val SwipeHorizontal = Icons.Rounded.Swipe
     val SwipeVertical = Icons.Rounded.SwipeVertical
     val Title = Icons.Rounded.Title
 }

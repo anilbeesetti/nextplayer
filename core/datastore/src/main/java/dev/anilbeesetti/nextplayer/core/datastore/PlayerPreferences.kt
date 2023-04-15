@@ -11,6 +11,7 @@ data class PlayerPreferences(
     val fastSeek: FastSeek = FastSeek.AUTO,
     val minDurationForFastSeek: Long = 120000L,
     val useSwipeControls: Boolean = true,
+    val useSeekControls: Boolean = true,
     val rememberSelections: Boolean = true
 )
 

@@ -348,11 +348,11 @@ class PlayerGestureHelper(
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
                     if (playerPreferences.useSwipeControls) {
-                        volumeAndBrightnessGestureDetector.onTouchEvent(
-                            motionEvent
-                        )
+                        volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
                     }
-                    seekGestureDetector.onTouchEvent(motionEvent)
+                    if (playerPreferences.useSeekControls) {
+                        seekGestureDetector.onTouchEvent(motionEvent)
+                    }
                 }
                 2 -> {
                     // Do nothing for now

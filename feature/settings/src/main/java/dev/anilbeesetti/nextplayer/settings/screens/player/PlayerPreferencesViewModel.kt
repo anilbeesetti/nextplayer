@@ -98,6 +98,14 @@ class PlayerPreferencesViewModel @Inject constructor(
             )
         }
     }
+
+    fun toggleSeekControls() {
+        viewModelScope.launch {
+            preferencesRepository.setUseSeekControls(
+                !preferencesFlow.value.useSeekControls
+            )
+        }
+    }
 }
 
 data class UIState(
