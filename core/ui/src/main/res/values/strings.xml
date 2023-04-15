@@ -17,7 +17,6 @@
     <string name="fast_seek_description">Seek to nearest key frame instead of exact one.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="group_videos">Group videos by folder</string>
-    <string name="interface_name">Interface</string>
     <string name="length">Length</string>
     <string name="location">Location</string>
     <string name="menu">Menu</string>
@@ -28,7 +27,6 @@
     <string name="permission_not_granted">Permission Not Granted</string>
     <string name="permission_request">Permission Request</string>
     <string name="permission_settings">The Next Player app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission from settings since it was permanently denied.</string>
-    <string name="playback">Playback</string>
     <string name="player_controls_exit">Navigate up</string>
     <string name="player_controls_next">Player next</string>
     <string name="player_controls_play_pause">Player play pause</string>
@@ -55,4 +53,12 @@
     <string name="title">Title</string>
     <string name="title_activity_player">Next Player Activity</string>
     <string name="unknown_error">An unknown error has occurred</string>
+    <string name="playback">Playback</string>
+    <string name="interface_name">Interface</string>
+    <string name="a_z">A-Z</string>
+    <string name="z_a">Z-A</string>
+    <string name="shortest">Shortest</string>
+    <string name="longest">Longest</string>
+    <string name="smallest">Smallest</string>
+    <string name="largest">Largest</string>
 </resources>

@@ -2,21 +2,17 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SelectableChipBorder
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,8 +33,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.prettyName
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickSettingsDialog(
     preferences: AppPreferences,
@@ -62,38 +58,10 @@ fun QuickSettingsDialog(
                 onOptionSelected = { selectedSortBy = it }
             )
             Spacer(modifier = Modifier.height(8.dp))
-            SegmentedFilterChip(
-                labelOne = {
-                    Icon(
-                        imageVector = NextIcons.ArrowUpward,
-                        contentDescription = stringResource(R.string.ascending)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.ascending),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
-                labelTwo = {
-                    Icon(
-                        imageVector = NextIcons.ArrowDownward,
-                        contentDescription = stringResource(R.string.descending)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.descending),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
-                selected = if (selectedSortOrder == SortOrder.ASCENDING) ChipSelected.ONE else ChipSelected.TWO,
-                onClick = {
-                    selectedSortOrder = when (it) {
-                        ChipSelected.ONE -> SortOrder.ASCENDING
-                        ChipSelected.TWO -> SortOrder.DESCENDING
-                    }
-                }
+            SortOrderSegmentedButton(
+                selectedSortBy = selectedSortBy,
+                selectedSortOrder = selectedSortOrder,
+                onOptionSelected = { selectedSortOrder = it }
             )
             Divider(modifier = Modifier.padding(top = 16.dp))
             DialogPreferenceSwitch(
@@ -112,6 +80,54 @@ fun QuickSettingsDialog(
         },
         dismissButton = {
             CancelButton(onClick = onDismiss)
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SortOrderSegmentedButton(
+    selectedSortBy: SortBy,
+    selectedSortOrder: SortOrder,
+    onOptionSelected: (SortOrder) -> Unit
+) {
+    SegmentedSelectableButton(
+        iconOne = {
+            Icon(
+                imageVector = NextIcons.ArrowUpward,
+                contentDescription = stringResource(R.string.ascending),
+                modifier = Modifier.size(FilterChipDefaults.IconSize)
+            )
+        },
+        labelOne = {
+            Text(
+                text = SortOrder.ASCENDING.prettyName(selectedSortBy),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall
+            )
+        },
+        iconTwo = {
+            Icon(
+                imageVector = NextIcons.ArrowDownward,
+                contentDescription = stringResource(R.string.descending),
+                modifier = Modifier.size(FilterChipDefaults.IconSize)
+            )
+        },
+        labelTwo = {
+            Text(
+                text = SortOrder.DESCENDING.prettyName(selectedSortBy),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall
+            )
+        },
+        selected = if (selectedSortOrder == SortOrder.ASCENDING) ChipSelected.ONE else ChipSelected.TWO,
+        onClick = {
+            onOptionSelected(
+                when (it) {
+                    ChipSelected.ONE -> SortOrder.ASCENDING
+                    ChipSelected.TWO -> SortOrder.DESCENDING
+                }
+            )
         }
     )
 }
@@ -150,75 +166,6 @@ private fun SortOptions(
             icon = NextIcons.Size,
             isSelected = selectedSortBy == SortBy.SIZE,
             onClick = { onOptionSelected(SortBy.SIZE) }
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SegmentedFilterChip(
-    labelOne: @Composable RowScope.() -> Unit,
-    labelTwo: @Composable RowScope.() -> Unit,
-    modifier: Modifier = Modifier,
-    border: SelectableChipBorder = FilterChipDefaults.filterChipBorder(
-        selectedBorderColor = MaterialTheme.colorScheme.primary,
-        borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-        borderWidth = 1.dp,
-        selectedBorderWidth = 1.dp
-    ),
-    selected: ChipSelected,
-    onClick: (ChipSelected) -> Unit = { }
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        FilterChip(
-            modifier = Modifier.weight(1f),
-            onClick = { onClick(ChipSelected.ONE) },
-            shape = RoundedCornerShape(
-                topStart = 8.dp,
-                bottomStart = 8.dp,
-                topEnd = 0.dp,
-                bottomEnd = 0.dp
-            ),
-            label = {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                ) {
-                    labelOne()
-                }
-            },
-            border = border,
-            selected = selected == ChipSelected.ONE
-        )
-        FilterChip(
-            modifier = Modifier
-                .weight(1f),
-            onClick = { onClick(ChipSelected.TWO) },
-            shape = RoundedCornerShape(
-                topStart = 0.dp,
-                bottomStart = 0.dp,
-                topEnd = 8.dp,
-                bottomEnd = 8.dp
-            ),
-            label = {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                ) {
-                    labelTwo()
-                }
-            },
-            border = border,
-            selected = selected == ChipSelected.TWO
         )
     }
 }
