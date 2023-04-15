@@ -244,6 +244,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
+            super.onIsPlayingChanged(isPlaying)
         }
 
         @SuppressLint("SourceLockedOrientationActivity")
@@ -253,10 +254,13 @@ class PlayerActivity : AppCompatActivity() {
             } else {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
+            super.onVideoSizeChanged(videoSize)
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            Timber.d("Playing media item: ${mediaItem?.mediaId}")
             viewModel.setCurrentMedia(mediaItem?.mediaId)
+            super.onMediaItemTransition(mediaItem, reason)
         }
 
         @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -268,10 +272,10 @@ class PlayerActivity : AppCompatActivity() {
             if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
                 oldPosition.mediaItem?.let { viewModel.saveState(it.mediaId, C.TIME_UNSET) }
             }
+            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            super.onPlayerError(error)
             Timber.e(error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
                 .setTitle(getString(coreUiR.string.error_playing_video))
@@ -285,12 +289,25 @@ class PlayerActivity : AppCompatActivity() {
                 .create()
 
             alertDialog.show()
+            super.onPlayerError(error)
         }
 
         override fun onTracksChanged(tracks: Tracks) {
             player?.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex.value)
             player?.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
             super.onTracksChanged(tracks)
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            Timber.d("playback state changed: $playbackState")
+            if (playbackState == Player.STATE_ENDED) {
+                if (player?.hasNextMediaItem() == true) {
+                    player?.seekToNext()
+                } else {
+                    finish()
+                }
+            }
+            super.onPlaybackStateChanged(playbackState)
         }
     }
 }
