@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -63,5 +64,9 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override suspend fun setRememberSelections(value: Boolean) {
         playerPreferences.update { it.copy(rememberSelections = value) }
+    }
+
+    override suspend fun setThemeConfig(themeConfig: ThemeConfig) {
+        appPreferences.update { it.copy(themeConfig = themeConfig) }
     }
 }

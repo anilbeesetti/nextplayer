@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.PlayerPreferencesDataSource
 import javax.inject.Inject
@@ -64,5 +65,9 @@ class AppPreferencesRepository @Inject constructor(
 
     override suspend fun setRememberSelections(value: Boolean) {
         playerPreferencesDataSource.setRememberSelections(value)
+    }
+
+    override suspend fun setThemeConfig(themeConfig: ThemeConfig) {
+        preferencesDataSource.setThemeConfig(themeConfig)
     }
 }

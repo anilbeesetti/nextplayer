@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
 import kotlinx.coroutines.flow.Flow
 
 interface PreferencesRepository {
@@ -97,4 +98,11 @@ interface PreferencesRepository {
      * @param value The use of swipe controls to be set.
      */
     suspend fun setRememberSelections(value: Boolean)
+
+    /**
+     * Sets the theme config.
+     *
+     * @param themeConfig The theme config to be set.
+     */
+    suspend fun setThemeConfig(themeConfig: ThemeConfig)
 }
