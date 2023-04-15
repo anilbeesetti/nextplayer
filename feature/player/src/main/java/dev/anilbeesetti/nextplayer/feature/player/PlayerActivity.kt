@@ -232,7 +232,6 @@ class PlayerActivity : AppCompatActivity() {
         Timber.d("Releasing player")
         player?.let { player ->
             playWhenReady = player.playWhenReady
-            Timber.d("saving position: ${player.currentPosition}")
             viewModel.saveState(player.currentPosition)
             player.removeListener(playbackStateListener)
             player.release()
