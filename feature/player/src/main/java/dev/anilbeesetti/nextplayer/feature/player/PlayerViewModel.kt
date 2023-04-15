@@ -80,10 +80,13 @@ class PlayerViewModel @Inject constructor(
     fun saveState(position: Long) {
         playbackPosition.value = position
         viewModelScope.launch {
+            if (currentPlayerItemIndex == -1) return@launch
             currentPlaybackPath.value?.let {
                 val newPosition = position.takeIf {
                     position < currentPlayerItems[currentPlayerItemIndex].duration - END_POSITION_OFFSET
                 } ?: C.TIME_UNSET
+
+                Timber.d("Save state for ${currentPlaybackPath.value}: $position")
 
                 videoRepository.saveVideoState(
                     path = it,
