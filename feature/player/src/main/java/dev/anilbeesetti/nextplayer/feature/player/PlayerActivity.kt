@@ -293,6 +293,18 @@ class PlayerActivity : AppCompatActivity() {
             player?.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
             super.onTracksChanged(tracks)
         }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            Timber.d("playback state changed: $playbackState")
+            if (playbackState == Player.STATE_ENDED) {
+                if (player?.hasNextMediaItem() == true) {
+                    player?.seekToNext()
+                } else {
+                    finish()
+                }
+            }
+            super.onPlaybackStateChanged(playbackState)
+        }
     }
 }
 
