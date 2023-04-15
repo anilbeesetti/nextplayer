@@ -58,6 +58,10 @@ class AppPreferencesRepository @Inject constructor(
         playerPreferencesDataSource.setUseSwipeControls(value)
     }
 
+    override suspend fun setUseSeekControls(value: Boolean) {
+        playerPreferencesDataSource.setUseSeekControls(value)
+    }
+
     override suspend fun setRememberSelections(value: Boolean) {
         playerPreferencesDataSource.setRememberSelections(value)
     }

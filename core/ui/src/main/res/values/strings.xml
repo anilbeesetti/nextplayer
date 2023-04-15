@@ -53,4 +53,6 @@
     <string name="unknown_error">An unknown error has occurred</string>
     <string name="playback">Playback</string>
     <string name="interface_name">Interface</string>
+    <string name="seek_controls">Seek controls</string>
+    <string name="seek_controls_description">Swipe horizontally to seek forwards or backwards</string>
 </resources>

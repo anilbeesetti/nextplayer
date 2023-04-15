@@ -85,6 +85,13 @@ interface PreferencesRepository {
     suspend fun setUseSwipeControls(value: Boolean)
 
     /**
+     * Sets the use of seek controls to seek forwards and backwards.
+     *
+     * @param value The use of seek controls to be set.
+     */
+    suspend fun setUseSeekControls(value: Boolean)
+
+    /**
      * Sets whether the app should remember the selections for each file like audio track, subtitle track, etc.
      *
      * @param value The use of swipe controls to be set.

@@ -77,6 +77,15 @@ fun PlayerPreferencesScreen(
                     )
                 }
                 item {
+                    PreferenceSwitch(
+                        title = stringResource(id = R.string.seek_controls),
+                        description = stringResource(id = R.string.seek_controls_description),
+                        icon = NextIcons.SwipeHorizontal,
+                        isChecked = preferences.useSeekControls,
+                        onClick = viewModel::toggleSeekControls
+                    )
+                }
+                item {
                     PreferenceSwitchWithDivider(
                         title = stringResource(id = R.string.double_tap),
                         description = stringResource(id = R.string.double_tap_description),
