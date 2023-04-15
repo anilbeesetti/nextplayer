@@ -69,20 +69,20 @@ fun PlayerPreferencesScreen(
                 }
                 item {
                     PreferenceSwitch(
-                        title = stringResource(id = R.string.swipe_controls),
-                        description = stringResource(id = R.string.swipe_controls_description),
-                        icon = NextIcons.SwipeVertical,
-                        isChecked = preferences.useSwipeControls,
-                        onClick = viewModel::toggleSwipeControls
+                        title = stringResource(id = R.string.seek_gesture),
+                        description = stringResource(id = R.string.seek_gesture_description),
+                        icon = NextIcons.SwipeHorizontal,
+                        isChecked = preferences.useSeekControls,
+                        onClick = viewModel::toggleSeekControls
                     )
                 }
                 item {
                     PreferenceSwitch(
-                        title = stringResource(id = R.string.seek_controls),
-                        description = stringResource(id = R.string.seek_controls_description),
-                        icon = NextIcons.SwipeHorizontal,
-                        isChecked = preferences.useSeekControls,
-                        onClick = viewModel::toggleSeekControls
+                        title = stringResource(id = R.string.swipe_gesture),
+                        description = stringResource(id = R.string.swipe_gesture_description),
+                        icon = NextIcons.SwipeVertical,
+                        isChecked = preferences.useSwipeControls,
+                        onClick = viewModel::toggleSwipeControls
                     )
                 }
                 item {
