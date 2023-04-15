@@ -37,6 +37,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.prettyName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,7 +71,7 @@ fun QuickSettingsDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.ascending),
+                        text = SortOrder.ASCENDING.prettyName(selectedSortBy),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -82,7 +83,7 @@ fun QuickSettingsDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.descending),
+                        text = SortOrder.DESCENDING.prettyName(selectedSortBy),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodySmall
                     )
