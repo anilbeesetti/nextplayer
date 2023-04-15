@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,9 +31,8 @@ fun SegmentedSelectableButton(
     color: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
     selectedColor: Color = MaterialTheme.colorScheme.primary,
     onClick: (ChipSelected) -> Unit = { },
-    contentPadding: PaddingValues = PaddingValues(10.dp),
+    contentPadding: PaddingValues = PaddingValues(10.dp)
 ) {
-
     val borderShapeOne = RoundedCornerShape(
         topStart = 8.dp,
         bottomStart = 8.dp,
@@ -67,7 +65,7 @@ fun SegmentedSelectableButton(
                 .selectable(
                     selected = selected == ChipSelected.ONE,
                     onClick = { onClick(ChipSelected.ONE) },
-                    role = Role.RadioButton,
+                    role = Role.RadioButton
                 )
                 .padding(contentPadding)
         ) {
@@ -89,7 +87,7 @@ fun SegmentedSelectableButton(
                 .selectable(
                     selected = selected == ChipSelected.TWO,
                     onClick = { onClick(ChipSelected.TWO) },
-                    role = Role.RadioButton,
+                    role = Role.RadioButton
                 )
                 .padding(contentPadding)
         ) {
