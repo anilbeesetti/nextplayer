@@ -23,6 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -68,6 +70,14 @@ fun FolderItem(
                     ),
                     overflow = TextOverflow.Ellipsis
                 )
+                Text(
+                    text = folder.path,
+                    maxLines = 2,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    ),
+                    overflow = TextOverflow.Ellipsis
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -75,10 +85,27 @@ fun FolderItem(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val vidText = if (folder.mediaCount == 1) "video" else "videos"
-                    InfoChip(text = "${folder.mediaCount} $vidText")
+                    InfoChip(
+                        text = "${folder.mediaCount} ${"video".takeIf { folder.mediaCount == 1 } ?: "videos"}"
+                    )
                 }
             }
         }
+    }
+}
+
+@DayNightPreview
+@Composable
+fun FolderItemPreview() {
+    NextPlayerTheme {
+        FolderItem(
+            folder = Folder(
+                name = "Folder 1",
+                path = "/storage/emulated/0/DCIM/Camera/Live Photos",
+                mediaSize = 1000,
+                mediaCount = 1
+            ),
+            onClick = { }
+        )
     }
 }
