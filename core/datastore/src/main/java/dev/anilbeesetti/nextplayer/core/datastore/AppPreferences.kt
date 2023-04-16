@@ -7,7 +7,7 @@ data class AppPreferences(
     val sortBy: SortBy = SortBy.TITLE,
     val sortOrder: SortOrder = SortOrder.ASCENDING,
     val groupVideosByFolder: Boolean = true,
-    val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
+    val themeConfig: ThemeConfig = ThemeConfig.SYSTEM
 )
 
 enum class SortBy {
@@ -17,7 +17,7 @@ enum class SortBy {
 enum class ThemeConfig(val value: String) {
     SYSTEM("System Default"),
     LIGHT("Off"),
-    DARK("On"),
+    DARK("On")
 }
 
 enum class SortOrder {

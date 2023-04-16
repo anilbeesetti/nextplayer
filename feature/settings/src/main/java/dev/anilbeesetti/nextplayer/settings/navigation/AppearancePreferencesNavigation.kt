@@ -5,7 +5,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.anilbeesetti.nextplayer.settings.screens.appearance.AppearancePreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesScreen
 
 const val appearancePreferencesNavigationRoute = "appearance_preferences_route"
 

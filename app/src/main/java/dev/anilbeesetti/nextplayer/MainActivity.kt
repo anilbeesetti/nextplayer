@@ -61,7 +61,6 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-
     val viewModel: MainActivityViewModel by viewModels()
 
     @OptIn(ExperimentalPermissionsApi::class)
@@ -184,14 +183,13 @@ fun Context.startPlayerActivity(uri: Uri) {
     startActivity(intent)
 }
 
-
 /**
  * Returns `true` if dark theme should be used, as a function of the [uiState] and the
  * current system context.
  */
 @Composable
 private fun shouldUseDarkTheme(
-    uiState: MainActivityUiState,
+    uiState: MainActivityUiState
 ): Boolean = when (uiState) {
     MainActivityUiState.Loading -> isSystemInDarkTheme()
     is MainActivityUiState.Success -> when (uiState.preferences.themeConfig) {

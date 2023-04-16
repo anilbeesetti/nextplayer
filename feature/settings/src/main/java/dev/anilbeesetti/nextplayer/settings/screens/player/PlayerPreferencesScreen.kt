@@ -94,7 +94,9 @@ fun PlayerPreferencesScreen(
                         icon = NextIcons.DoubleTap,
                         onClick = {
                             viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.DoubleTapDialog)
+                                PlayerPreferencesEvent.ShowDialog(
+                                    PlayerPreferenceDialog.DoubleTapDialog
+                                )
                             )
                         }
                     )
@@ -109,7 +111,9 @@ fun PlayerPreferencesScreen(
                         icon = NextIcons.Resume,
                         onClick = {
                             viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.ResumeDialog)
+                                PlayerPreferencesEvent.ShowDialog(
+                                    PlayerPreferenceDialog.ResumeDialog
+                                )
                             )
                         }
                     )
@@ -143,7 +147,9 @@ fun PlayerPreferencesScreen(
                         icon = NextIcons.Fast,
                         onClick = {
                             viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.FastSeekDialog)
+                                PlayerPreferencesEvent.ShowDialog(
+                                    PlayerPreferenceDialog.FastSeekDialog
+                                )
                             )
                         }
                     )
@@ -154,7 +160,9 @@ fun PlayerPreferencesScreen(
                     OptionsDialog(
                         text = stringResource(id = R.string.resume),
                         onDismissClick = {
-                            viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None))
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                            )
                         }
                     ) {
                         Resume.values().map {
@@ -164,7 +172,9 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updatePlaybackResume(it)
                                     viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                                        PlayerPreferencesEvent.ShowDialog(
+                                            PlayerPreferenceDialog.None
+                                        )
                                     )
                                 }
                             )
@@ -175,7 +185,9 @@ fun PlayerPreferencesScreen(
                     OptionsDialog(
                         text = stringResource(id = R.string.double_tap),
                         onDismissClick = {
-                            viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None))
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                            )
                         }
                     ) {
                         DoubleTapGesture.values().forEach {
@@ -185,7 +197,9 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updateDoubleTapGesture(it)
                                     viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                                        PlayerPreferencesEvent.ShowDialog(
+                                            PlayerPreferenceDialog.None
+                                        )
                                     )
                                 }
                             )
@@ -196,7 +210,9 @@ fun PlayerPreferencesScreen(
                     OptionsDialog(
                         text = stringResource(id = R.string.fast_seek),
                         onDismissClick = {
-                            viewModel.onEvent(PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None))
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                            )
                         }
                     ) {
                         FastSeek.values().forEach {
@@ -206,7 +222,9 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updateFastSeek(it)
                                     viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                                        PlayerPreferencesEvent.ShowDialog(
+                                            PlayerPreferenceDialog.None
+                                        )
                                     )
                                 }
                             )

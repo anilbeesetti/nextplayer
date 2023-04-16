@@ -28,9 +28,8 @@ import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 @Composable
 fun AppearancePreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: AppearancePreferencesViewModel = hiltViewModel(),
+    viewModel: AppearancePreferencesViewModel = hiltViewModel()
 ) {
-
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
@@ -38,6 +37,7 @@ fun AppearancePreferencesScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
+            // TODO: Check why the appbar flickers when changing the theme with small appbar and not with large appbar
             NextTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 scrollBehavior = scrollBehaviour,
@@ -86,7 +86,9 @@ fun AppearancePreferencesScreen(
                         text = stringResource(id = R.string.dark_theme),
                         onDismissClick = {
                             viewModel.onEvent(
-                                AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.None)
+                                AppearancePreferencesEvent.ShowDialog(
+                                    AppearancePreferenceDialog.None
+                                )
                             )
                         }
                     ) {
