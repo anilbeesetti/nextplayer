@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CompareArrows
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
@@ -30,6 +31,7 @@ object NextIcons {
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val Brightness = Icons.Rounded.BrightnessHigh
     val Check = Icons.Rounded.Check
+    val DarkMode = Icons.Rounded.DarkMode
     val DashBoard = Icons.Rounded.Dashboard
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Fast = Icons.Rounded.FastForward

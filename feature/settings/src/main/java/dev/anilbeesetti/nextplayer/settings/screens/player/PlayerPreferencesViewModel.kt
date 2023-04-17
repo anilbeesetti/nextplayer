@@ -28,7 +28,7 @@ class PlayerPreferencesViewModel @Inject constructor(
             initialValue = PlayerPreferences()
         )
 
-    private val _uiState = MutableStateFlow(UIState())
+    private val _uiState = MutableStateFlow(PlayerPreferencesUIState())
     val uiState = _uiState.asStateFlow()
 
     fun onEvent(event: PlayerPreferencesEvent) {
@@ -108,17 +108,17 @@ class PlayerPreferencesViewModel @Inject constructor(
     }
 }
 
-data class UIState(
-    val showDialog: Dialog = Dialog.None
+data class PlayerPreferencesUIState(
+    val showDialog: PlayerPreferenceDialog = PlayerPreferenceDialog.None
 )
 
-sealed interface Dialog {
-    object ResumeDialog : Dialog
-    object DoubleTapDialog : Dialog
-    object FastSeekDialog : Dialog
-    object None : Dialog
+sealed interface PlayerPreferenceDialog {
+    object ResumeDialog : PlayerPreferenceDialog
+    object DoubleTapDialog : PlayerPreferenceDialog
+    object FastSeekDialog : PlayerPreferenceDialog
+    object None : PlayerPreferenceDialog
 }
 
 sealed interface PlayerPreferencesEvent {
-    data class ShowDialog(val value: Dialog) : PlayerPreferencesEvent
+    data class ShowDialog(val value: PlayerPreferenceDialog) : PlayerPreferencesEvent
 }
