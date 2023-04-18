@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
+import java.io.File
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -70,9 +71,10 @@ class PlayerViewModel @Inject constructor(
 
     fun initMedia(path: String?) {
         setCurrentMedia(path)
+        val parent = path?.let { File(it).parent }
         runBlocking {
             currentPlayerItems.addAll(
-                getSortedPlayerItemsUseCase.invoke().first()
+                getSortedPlayerItemsUseCase.invoke(parent).first()
             )
         }
     }
