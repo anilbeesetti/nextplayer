@@ -62,4 +62,6 @@
     <string name="smallest">Smallest</string>
     <string name="largest">Largest</string>
     <string name="dark_theme">Dark theme</string>
+    <string name="dynamic_theme">Dynamic color theme</string>
+    <string name="dynamic_theme_description">Apply colors from system wallpaper to the application theme</string>
 </resources>

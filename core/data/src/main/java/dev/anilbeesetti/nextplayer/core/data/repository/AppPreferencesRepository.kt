@@ -70,4 +70,8 @@ class AppPreferencesRepository @Inject constructor(
     override suspend fun setThemeConfig(themeConfig: ThemeConfig) {
         preferencesDataSource.setThemeConfig(themeConfig)
     }
+
+    override suspend fun setUseDynamicColors(value: Boolean) {
+        preferencesDataSource.setUseDynamicColors(value)
+    }
 }

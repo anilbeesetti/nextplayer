@@ -69,4 +69,8 @@ class FakePreferencesRepository : PreferencesRepository {
     override suspend fun setThemeConfig(themeConfig: ThemeConfig) {
         appPreferences.update { it.copy(themeConfig = themeConfig) }
     }
+
+    override suspend fun setUseDynamicColors(value: Boolean) {
+        appPreferences.update { it.copy(useDynamicColors = value) }
+    }
 }
