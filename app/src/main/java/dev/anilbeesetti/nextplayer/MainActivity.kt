@@ -205,7 +205,7 @@ private fun shouldUseDarkTheme(
  */
 @Composable
 private fun shouldUseDynamicTheming(
-    uiState: MainActivityUiState,
+    uiState: MainActivityUiState
 ): Boolean = when (uiState) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> uiState.preferences.useDynamicColors
