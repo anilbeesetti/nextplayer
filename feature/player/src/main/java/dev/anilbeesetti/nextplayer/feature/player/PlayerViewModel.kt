@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -70,9 +71,10 @@ class PlayerViewModel @Inject constructor(
 
     fun initMedia(path: String?) {
         setCurrentMedia(path)
+        val parent = path?.let { File(it).parent }
         runBlocking {
             currentPlayerItems.addAll(
-                getSortedPlayerItemsUseCase.invoke().first()
+                getSortedPlayerItemsUseCase.invoke(parent).first()
             )
         }
     }
