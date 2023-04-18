@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.net.Uri
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -22,7 +23,7 @@ fun File.toSubtitleConfiguration(): MediaItem.SubtitleConfiguration {
  */
 fun PlayerItem.toMediaItem(): MediaItem {
     return MediaItem.Builder()
-        .setUri(File(this.path).toUri())
+        .setUri(Uri.parse(this.uriString))
         .setMediaId(this.path)
         .setSubtitleConfigurations(this.subtitleTracks.map { it.toSubtitleConfiguration() })
         .build()
