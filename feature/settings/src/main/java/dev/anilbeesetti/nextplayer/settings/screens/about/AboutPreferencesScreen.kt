@@ -60,7 +60,9 @@ fun AboutPreferencesScreen(
             ),
             onLibraryClick = { library ->
                 library.website?.let {
-                    uriHandler.openUri(it)
+                    if (it.isNotEmpty()) {
+                        uriHandler.openUri(it)
+                    }
                 }
             }
         )
