@@ -357,7 +357,7 @@ class PlayerGestureHelper(
                     if (playerPreferences.useSwipeControls) {
                         volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
                     }
-                    if (playerPreferences.useSeekControls) {
+                    if (playerPreferences.useSeekControls && activity.isFileLoaded) {
                         seekGestureDetector.onTouchEvent(motionEvent)
                     }
                 }

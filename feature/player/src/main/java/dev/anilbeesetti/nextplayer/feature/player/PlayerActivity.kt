@@ -57,6 +57,7 @@ class PlayerActivity : AppCompatActivity() {
     private var player: Player? = null
     private var dataUri: Uri? = null
     private var playWhenReady = true
+    var isFileLoaded = false
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val trackSelector: DefaultTrackSelector by lazy {
@@ -300,11 +301,26 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             Timber.d("playback state changed: $playbackState")
-            if (playbackState == Player.STATE_ENDED) {
-                if (player?.hasNextMediaItem() == true) {
-                    player?.seekToNext()
-                } else {
-                    finish()
+            when (playbackState) {
+                Player.STATE_ENDED -> {
+                    Timber.d("Player state: ENDED")
+                    if (player?.hasNextMediaItem() == true) {
+                        player?.seekToNext()
+                    } else {
+                        finish()
+                    }
+                }
+                Player.STATE_READY -> {
+                    Timber.d("Player state: READY")
+                    isFileLoaded = true
+                }
+
+                Player.STATE_BUFFERING -> {
+                    Timber.d("Player state: BUFFERING")
+                }
+
+                Player.STATE_IDLE -> {
+                    Timber.d("Player state: IDLE")
                 }
             }
             super.onPlaybackStateChanged(playbackState)
