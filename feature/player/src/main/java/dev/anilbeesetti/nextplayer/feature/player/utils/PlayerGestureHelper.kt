@@ -47,6 +47,8 @@ class PlayerGestureHelper(
     private var seekStart = 0L
     private var position = 0L
     private var seekChange = 0L
+    private var isPlayingOnSeekStart: Boolean = false
+    private var isControllerAutoShow = false
 
     private var swipeGestureVolumeOpen = false
     private var swipeGestureBrightnessOpen = false
@@ -115,6 +117,7 @@ class PlayerGestureHelper(
                             }
                         }
                     }
+
                     DoubleTapGesture.NONE -> return false
                 }
                 return true
@@ -141,7 +144,10 @@ class PlayerGestureHelper(
                 if (!seeking) {
                     seekChange = 0L
                     seekStart = playerView.player?.currentPosition ?: 0L
-                    playerView.player?.pause()
+                    if (playerView.player?.isPlaying == true) {
+                        playerView.player?.pause()
+                        isPlayingOnSeekStart = true
+                    }
                     seeking = true
                 }
 
@@ -301,8 +307,9 @@ class PlayerGestureHelper(
             activity.binding.progressScrubberLayout.apply {
                 if (visibility == View.VISIBLE) {
                     visibility = View.GONE
-                    playerView.player?.play()
+                    if (isPlayingOnSeekStart) playerView.player?.play()
                     playerView.controllerAutoShow = true
+                    isPlayingOnSeekStart = false
                     seeking = false
                 }
             }
@@ -354,6 +361,7 @@ class PlayerGestureHelper(
                         seekGestureDetector.onTouchEvent(motionEvent)
                     }
                 }
+
                 2 -> {
                     // Do nothing for now
                 }
