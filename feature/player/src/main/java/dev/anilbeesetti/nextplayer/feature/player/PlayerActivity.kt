@@ -57,6 +57,7 @@ class PlayerActivity : AppCompatActivity() {
     private var player: Player? = null
     private var dataUri: Uri? = null
     private var playWhenReady = true
+    var isFileLoaded = false
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val trackSelector: DefaultTrackSelector by lazy {
@@ -306,6 +307,8 @@ class PlayerActivity : AppCompatActivity() {
                 } else {
                     finish()
                 }
+            } else if (playbackState == Player.STATE_READY) {
+                isFileLoaded = true
             }
             super.onPlaybackStateChanged(playbackState)
         }
