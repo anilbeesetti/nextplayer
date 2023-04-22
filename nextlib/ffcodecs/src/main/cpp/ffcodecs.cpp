@@ -117,7 +117,7 @@ AVCodecContext *createContext(JNIEnv *env, AVCodec *codec, jbyteArray extraData,
         context->extradata =
                 (uint8_t *)av_malloc(size + AV_INPUT_BUFFER_PADDING_SIZE);
         if (!context->extradata) {
-            LOGE("Failed to allocate extradata.");
+            LOGE("Failed to allocate extra data.");
             releaseContext(context);
             return nullptr;
         }
@@ -126,8 +126,8 @@ AVCodecContext *createContext(JNIEnv *env, AVCodec *codec, jbyteArray extraData,
     if (context->codec_id == AV_CODEC_ID_PCM_MULAW ||
         context->codec_id == AV_CODEC_ID_PCM_ALAW) {
         context->sample_rate = rawSampleRate;
-        context->channels = rawChannelCount;
-        context->channel_layout = av_get_default_channel_layout(rawChannelCount);
+        context->ch_layout.nb_channels = rawChannelCount;
+        av_channel_layout_default(&context->ch_layout, rawChannelCount);
     }
     context->err_recognition = AV_EF_IGNORE_ERR;
     int result = avcodec_open2(context, codec, nullptr);
@@ -169,8 +169,8 @@ int decodePacket(AVCodecContext *context, AVPacket *packet,
 
         // Resample output.
         AVSampleFormat sampleFormat = context->sample_fmt;
-        int channelCount = context->channels;
-        int channelLayout = (int)context->channel_layout;
+        int channelCount = context->ch_layout.nb_channels;
+        int channelLayout = (int)context->ch_layout.u.mask;
         int sampleRate = context->sample_rate;
         int sampleCount = frame->nb_samples;
         int dataSize = av_samples_get_buffer_size(nullptr, channelCount, sampleCount,
@@ -316,7 +316,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegGetChannelCount(
         LOGE("Context must be non-NULL.");
         return -1;
     }
-    return ((AVCodecContext *)context)->channels;
+    return ((AVCodecContext *)context)->ch_layout.nb_channels;
 }
 extern "C"
 JNIEXPORT jint JNICALL
