@@ -9,17 +9,24 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import timber.log.Timber
 
 fun Uri.getSubtitleMime(): String {
-    return if (path?.endsWith(".ssa") == true || path?.endsWith(".ass") == true) {
-        MimeTypes.TEXT_SSA;
-    } else if (path?.endsWith(".vtt") == true) {
-        MimeTypes.TEXT_VTT;
-    } else if (path?.endsWith(".ttml") == true || path?.endsWith(".xml") == true || path?.endsWith(".dfxp") == true) {
-        MimeTypes.APPLICATION_TTML;
-    } else {
-        MimeTypes.APPLICATION_SUBRIP;
+    return when {
+        path?.endsWith(".ssa") == true || path?.endsWith(".ass") == true -> {
+            MimeTypes.TEXT_SSA
+        }
+
+        path?.endsWith(".vtt") == true -> {
+            MimeTypes.TEXT_VTT
+        }
+
+        path?.endsWith(".ttml") == true || path?.endsWith(".xml") == true || path?.endsWith(".dfxp") == true -> {
+            MimeTypes.APPLICATION_TTML
+        }
+
+        else -> {
+            MimeTypes.APPLICATION_SUBRIP
+        }
     }
 }
 
@@ -41,14 +48,12 @@ fun Uri.toSubtitleConfiguration(
     return subtitleConfigurationBuilder.build()
 }
 
-
 /**
  * Converts [Uri] to [MediaItem]
  */
 fun Uri.toMediaItem(context: Context, extras: Bundle? = null): MediaItem {
     val subtitleConfigurations = mutableListOf<MediaItem.SubtitleConfiguration>()
     if (extras != null) {
-
         val subsEnable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             extras.getParcelableArray(PlayerActivity.API_SUBS_ENABLE, Uri::class.java)
         } else {
