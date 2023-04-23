@@ -19,6 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaItem.SubtitleConfiguration
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
@@ -38,6 +40,7 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import java.io.File
@@ -224,10 +227,48 @@ class PlayerActivity : AppCompatActivity() {
                 mediaSession = MediaSession.Builder(this, player).build()
 
                 if (viewModel.currentPlayerItemIndex != -1) {
-                    val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem() }
+                    val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem(this) }
                     player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
                 } else {
-                    dataUri?.also { player.addMediaItem(MediaItem.fromUri(it)) }
+                    dataUri?.also {
+                        var defaultSub: Uri? = null
+                        val subsEnable = extras?.getParcelableArray(API_SUBS_ENABLE)
+                        if (!subsEnable.isNullOrEmpty()) {
+                            defaultSub = subsEnable[0] as Uri
+                        }
+                        val subtitleConfigurations = mutableListOf<SubtitleConfiguration>()
+                        if (extras?.containsKey(API_SUBS) == true) {
+                            val subs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                extras?.getParcelableArray(API_SUBS, Uri::class.java)
+                            } else {
+                                extras?.getParcelableArray(API_SUBS)
+                            }
+                            val subsName = extras?.getStringArray(API_SUBS_NAME)
+                            Timber.d("Subs: $subs")
+                            if (!subs.isNullOrEmpty()) {
+                                for (i in subs.indices) {
+                                    var subName: String? = null
+                                    val subtitle = subs[i] as Uri
+                                    if (subsName != null && subsName.size > i) {
+                                        subName = subsName[i]
+                                    }
+                                    subtitleConfigurations.add(
+                                        subtitle.toSubtitleConfiguration(
+                                            context = this,
+                                            selected = subtitle == defaultSub,
+                                            name = subName
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        player.addMediaItem(
+                            MediaItem.Builder()
+                                .setUri(it)
+                                .setSubtitleConfigurations(subtitleConfigurations)
+                                .build()
+                        )
+                    }
                     extras?.also {
                         if (it.containsKey(API_POSITION)) {
                             player.seekTo(it.getInt(API_POSITION).toLong())
@@ -365,6 +406,9 @@ class PlayerActivity : AppCompatActivity() {
         private const val API_DURATION = "duration"
         private const val API_RETURN_RESULT = "return_result"
         private const val API_END_BY = "end_by"
+        private const val API_SUBS = "subs"
+        private const val API_SUBS_ENABLE = "subs.enable"
+        private const val API_SUBS_NAME = "subs.name"
     }
 }
 
