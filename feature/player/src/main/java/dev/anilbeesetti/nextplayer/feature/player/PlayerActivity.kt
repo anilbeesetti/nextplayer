@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
@@ -56,14 +58,14 @@ class PlayerActivity : AppCompatActivity() {
 
     private var player: Player? = null
     private var dataUri: Uri? = null
+    private var extras: Bundle? = null
     private var playWhenReady = true
     var isFileLoaded = false
+    private var isPlaybackFinished = false
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val trackSelector: DefaultTrackSelector by lazy {
-        DefaultTrackSelector(
-            applicationContext
-        )
+        DefaultTrackSelector(applicationContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,6 +83,7 @@ class PlayerActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         dataUri = intent.data
+        extras = intent.extras
 
         Timber.d("data: $dataUri")
 
@@ -99,7 +102,11 @@ class PlayerActivity : AppCompatActivity() {
         val prevButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
 
-        videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
+        if (extras?.containsKey(API_TITLE) == true) {
+            videoTitleTextView.text = extras?.getString(API_TITLE)
+        } else {
+            videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
+        }
 
         // Collecting flows from view model
         lifecycleScope.launch {
@@ -217,10 +224,15 @@ class PlayerActivity : AppCompatActivity() {
                 mediaSession = MediaSession.Builder(this, player).build()
 
                 if (viewModel.currentPlayerItemIndex != -1) {
-                    val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem() }
+                    val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem(this) }
                     player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
                 } else {
-                    dataUri?.let { player.addMediaItem(MediaItem.fromUri(it)) }
+                    dataUri?.also { player.addMediaItem(it.toMediaItem(this, extras)) }
+                    extras?.also {
+                        if (it.containsKey(API_POSITION)) {
+                            player.seekTo(it.getInt(API_POSITION).toLong())
+                        }
+                    }
                 }
 
                 player.playWhenReady = playWhenReady
@@ -304,12 +316,14 @@ class PlayerActivity : AppCompatActivity() {
             when (playbackState) {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
+                    isPlaybackFinished = true
                     if (player?.hasNextMediaItem() == true) {
                         player?.seekToNext()
                     } else {
                         finish()
                     }
                 }
+
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
                     isFileLoaded = true
@@ -325,6 +339,35 @@ class PlayerActivity : AppCompatActivity() {
             }
             super.onPlaybackStateChanged(playbackState)
         }
+    }
+
+    override fun finish() {
+        if (extras != null && extras!!.containsKey(API_RETURN_RESULT)) {
+            val result = Intent("com.mxtech.intent.result.VIEW")
+            result.putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
+            if (!isPlaybackFinished) {
+                player?.also {
+                    if (it.duration != C.TIME_UNSET) {
+                        result.putExtra(API_DURATION, it.duration.toInt())
+                    }
+                    result.putExtra(API_POSITION, it.currentPosition.toInt())
+                }
+            }
+            Timber.d("Sending result: $result")
+            setResult(Activity.RESULT_OK, result)
+        }
+        super.finish()
+    }
+
+    companion object {
+        const val API_TITLE = "title"
+        const val API_POSITION = "position"
+        const val API_DURATION = "duration"
+        const val API_RETURN_RESULT = "return_result"
+        const val API_END_BY = "end_by"
+        const val API_SUBS = "subs"
+        const val API_SUBS_ENABLE = "subs.enable"
+        const val API_SUBS_NAME = "subs.name"
     }
 }
 
