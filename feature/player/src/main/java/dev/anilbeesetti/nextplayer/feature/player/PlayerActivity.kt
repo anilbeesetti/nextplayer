@@ -228,6 +228,7 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 )
 
+                player.setHandleAudioBecomingNoisy(true)
                 mediaSession = MediaSession.Builder(this, player).build()
 
                 if (viewModel.currentPlayerItemIndex != -1) {
