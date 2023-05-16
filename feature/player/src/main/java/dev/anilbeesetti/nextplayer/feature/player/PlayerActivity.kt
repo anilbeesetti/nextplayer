@@ -27,6 +27,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -98,6 +99,8 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
         val subtitleTrackButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
+        val videoZoomButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_video_zoom)
         val nextButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
         val prevButton =
@@ -183,6 +186,14 @@ class PlayerActivity : AppCompatActivity() {
         prevButton.setOnClickListener {
             player?.currentPosition?.let { position -> viewModel.saveState(position) }
             player?.seekToPrevious()
+        }
+        videoZoomButton.setOnClickListener {
+            binding.playerView.resizeMode =
+                if (binding.playerView.resizeMode != AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
+                    AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                } else {
+                    AspectRatioFrameLayout.RESIZE_MODE_FIT
+                }
         }
         backButton.setOnClickListener { finish() }
     }

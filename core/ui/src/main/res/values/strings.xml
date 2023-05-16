@@ -62,4 +62,5 @@
     <string name="smallest">Smallest</string>
     <string name="largest">Largest</string>
     <string name="dark_theme">Dark theme</string>
+    <string name="video_zoom">Video Zoom</string>
 </resources>
