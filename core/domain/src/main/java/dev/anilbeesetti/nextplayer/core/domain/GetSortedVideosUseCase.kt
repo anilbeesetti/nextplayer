@@ -16,24 +16,29 @@ class GetSortedVideosUseCase @Inject constructor(
 
     operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
         return combine(
-            videoRepository.getVideosFlow(folderPath),
+            videoRepository.getVideosFlow(),
             preferencesRepository.appPreferencesFlow
         ) { videoItems, preferences ->
+
+            val filteredVideos = videoItems.filter {
+                folderPath == null || it.path.substringBeforeLast("/") == folderPath
+            }
+
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> videoItems.sortedBy { it.displayName.lowercase() }
-                        SortBy.LENGTH -> videoItems.sortedBy { it.duration }
-                        SortBy.PATH -> videoItems.sortedBy { it.path.lowercase() }
-                        SortBy.SIZE -> videoItems.sortedBy { it.size }
+                        SortBy.TITLE -> filteredVideos.sortedBy { it.displayName.lowercase() }
+                        SortBy.LENGTH -> filteredVideos.sortedBy { it.duration }
+                        SortBy.PATH -> filteredVideos.sortedBy { it.path.lowercase() }
+                        SortBy.SIZE -> filteredVideos.sortedBy { it.size }
                     }
                 }
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> videoItems.sortedByDescending { it.displayName.lowercase() }
-                        SortBy.LENGTH -> videoItems.sortedByDescending { it.duration }
-                        SortBy.PATH -> videoItems.sortedByDescending { it.path.lowercase() }
-                        SortBy.SIZE -> videoItems.sortedByDescending { it.size }
+                        SortBy.TITLE -> filteredVideos.sortedByDescending { it.displayName.lowercase() }
+                        SortBy.LENGTH -> filteredVideos.sortedByDescending { it.duration }
+                        SortBy.PATH -> filteredVideos.sortedByDescending { it.path.lowercase() }
+                        SortBy.SIZE -> filteredVideos.sortedByDescending { it.size }
                     }
                 }
             }
