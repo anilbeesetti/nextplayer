@@ -11,18 +11,9 @@ import kotlinx.coroutines.flow.flowOf
 class FakeVideoRepository : VideoRepository {
 
     val videoItems = mutableListOf<Video>()
-    val folders = mutableListOf<Folder>()
     private val videoEntities = mutableListOf<VideoEntity>()
-    override fun getVideosFlow(folderPath: String?): Flow<List<Video>> {
-        return flowOf(
-            videoItems.filter {
-                folderPath == null || it.path.substringBeforeLast("/") == folderPath
-            }
-        )
-    }
-
-    override fun getFoldersFlow(): Flow<List<Folder>> {
-        return flowOf(folders)
+    override fun getVideosFlow(): Flow<List<Video>> {
+        return flowOf(videoItems)
     }
 
     override suspend fun saveVideoState(
