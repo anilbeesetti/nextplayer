@@ -8,10 +8,10 @@ import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
-import javax.inject.Inject
 
 class LocalVideoRepository @Inject constructor(
     private val videoDao: VideoDao,

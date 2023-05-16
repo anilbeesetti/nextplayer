@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import kotlinx.coroutines.flow.Flow
