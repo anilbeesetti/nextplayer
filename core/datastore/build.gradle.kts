@@ -1,4 +1,3 @@
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("nextplayer.android.library")
     id("nextplayer.android.hilt")
