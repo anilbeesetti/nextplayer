@@ -1,5 +1,3 @@
-@file:Suppress("DSL_SCOPE_VIOLATION") // False positive
-
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
