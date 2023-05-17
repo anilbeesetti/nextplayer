@@ -81,7 +81,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             NextPlayerTheme(
-                darkTheme = shouldUseDarkTheme(uiState = uiState)
+                darkTheme = shouldUseDarkTheme(uiState = uiState),
+                dynamicColor = shouldUseDynamicTheming(uiState = uiState)
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -197,4 +198,15 @@ private fun shouldUseDarkTheme(
         ThemeConfig.LIGHT -> false
         ThemeConfig.DARK -> true
     }
+}
+
+/**
+ * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
+ */
+@Composable
+private fun shouldUseDynamicTheming(
+    uiState: MainActivityUiState
+): Boolean = when (uiState) {
+    MainActivityUiState.Loading -> false
+    is MainActivityUiState.Success -> uiState.preferences.useDynamicColors
 }

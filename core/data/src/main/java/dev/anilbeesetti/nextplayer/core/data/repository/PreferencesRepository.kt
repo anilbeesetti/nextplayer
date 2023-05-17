@@ -105,4 +105,11 @@ interface PreferencesRepository {
      * @param themeConfig The theme config to be set.
      */
     suspend fun setThemeConfig(themeConfig: ThemeConfig)
+
+    /**
+     * Sets whether the dynamic colors is enabled.
+     *
+     * @param value Weather the dynamic color to be enabled.
+     */
+    suspend fun setUseDynamicColors(value: Boolean)
 }
