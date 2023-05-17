@@ -18,9 +18,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.theme.supportsDynamicTheming
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 
@@ -78,6 +80,17 @@ fun AppearancePreferencesScreen(
                             )
                         }
                     )
+                }
+                item {
+                    if (supportsDynamicTheming()) {
+                        PreferenceSwitch(
+                            title = stringResource(id = R.string.dynamic_theme),
+                            description = stringResource(id = R.string.dynamic_theme_description),
+                            isChecked = preferences.useDynamicColors,
+                            onClick = viewModel::toggleUseDynamicColors,
+                            icon = NextIcons.Appearance
+                        )
+                    }
                 }
             }
             when (uiState.showDialog) {

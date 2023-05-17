@@ -45,4 +45,12 @@ class AppPreferencesDataSource @Inject constructor(
             Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
         }
     }
+
+    suspend fun setUseDynamicColors(value: Boolean) {
+        try {
+            appPreferences.updateData { it.copy(useDynamicColors = value) }
+        } catch (ioException: Exception) {
+            Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
+        }
+    }
 }

@@ -51,6 +51,14 @@ class AppearancePreferencesViewModel @Inject constructor(
     fun updateThemeConfig(themeConfig: ThemeConfig) {
         viewModelScope.launch { preferencesRepository.setThemeConfig(themeConfig) }
     }
+
+    fun toggleUseDynamicColors() {
+        viewModelScope.launch {
+            preferencesRepository.setUseDynamicColors(
+                !preferencesFlow.value.useDynamicColors
+            )
+        }
+    }
 }
 
 data class AppearancePreferencesUiState(

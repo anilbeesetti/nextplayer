@@ -7,7 +7,8 @@ data class AppPreferences(
     val sortBy: SortBy = SortBy.TITLE,
     val sortOrder: SortOrder = SortOrder.ASCENDING,
     val groupVideosByFolder: Boolean = true,
-    val themeConfig: ThemeConfig = ThemeConfig.SYSTEM
+    val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
+    val useDynamicColors: Boolean = true
 )
 
 enum class SortBy {
