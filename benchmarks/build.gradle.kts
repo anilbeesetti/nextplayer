@@ -1,5 +1,3 @@
-import com.android.build.api.dsl.ManagedVirtualDevice
-
 plugins {
     id("nextplayer.android.test")
 }
@@ -24,7 +22,6 @@ android {
     targetProjectPath = ":app"
     experimentalProperties["android.experimental.self-instrumenting"] = true
 }
-
 
 dependencies {
     implementation(libs.androidx.benchmark.macro)

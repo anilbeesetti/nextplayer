@@ -36,7 +36,7 @@ class ScrollVideoPickerBenchmark {
             // Start the app
             pressHome()
             startActivityAndWait()
-        },
+        }
     ) {
         videoPickerWaitForContent()
         videoPickerSwitchToVideosView()

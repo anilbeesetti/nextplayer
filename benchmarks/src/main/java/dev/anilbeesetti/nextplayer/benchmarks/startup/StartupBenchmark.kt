@@ -13,7 +13,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-
 @RunWith(AndroidJUnit4ClassRunner::class)
 class StartupBenchmark {
 
@@ -25,7 +24,10 @@ class StartupBenchmark {
 
     @Test
     fun startupBaselineProfileDisabled() = startup(
-        CompilationMode.Partial(baselineProfileMode = BaselineProfileMode.Disable, warmupIterations = 1),
+        CompilationMode.Partial(
+            baselineProfileMode = BaselineProfileMode.Disable,
+            warmupIterations = 1
+        )
     )
 
     @Test
@@ -35,7 +37,6 @@ class StartupBenchmark {
 
     @Test
     fun startupFullCompilation() = startup(CompilationMode.Full())
-
 
     private fun startup(compilationMode: CompilationMode) = benchmarkRule.measureRepeated(
         packageName = PACKAGE_NAME,
