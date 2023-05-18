@@ -65,4 +65,5 @@
     <string name="video_zoom">Video Zoom</string>
     <string name="dynamic_theme">Dynamic color theme</string>
     <string name="dynamic_theme_description">Apply colors from system wallpaper to the application theme</string>
+    <string name="controls_lock">Lock controls</string>
 </resources>

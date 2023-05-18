@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.viewModels
@@ -62,8 +63,10 @@ class PlayerActivity : AppCompatActivity() {
     private var dataUri: Uri? = null
     private var extras: Bundle? = null
     private var playWhenReady = true
-    var isFileLoaded = false
     private var isPlaybackFinished = false
+
+    var isFileLoaded = false
+    var isControlsLocked = false
 
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val trackSelector: DefaultTrackSelector by lazy {
@@ -105,6 +108,12 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
         val prevButton =
             binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
+        val lockControlsButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_lock_controls)
+        val unlockControlsButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
+        val playerControls =
+            binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
 
         if (extras?.containsKey(API_TITLE) == true) {
             videoTitleTextView.text = extras?.getString(API_TITLE)
@@ -195,6 +204,18 @@ class PlayerActivity : AppCompatActivity() {
                     AspectRatioFrameLayout.RESIZE_MODE_FIT
                 }
         }
+        lockControlsButton.setOnClickListener {
+            playerControls.visibility = View.INVISIBLE
+            unlockControlsButton.visibility = View.VISIBLE
+            isControlsLocked = true
+            toggleSystemBars(showBars = false)
+        }
+        unlockControlsButton.setOnClickListener {
+            unlockControlsButton.visibility = View.INVISIBLE
+            playerControls.visibility = View.VISIBLE
+            isControlsLocked = false
+            toggleSystemBars(showBars = true)
+        }
         backButton.setOnClickListener { finish() }
     }
 
@@ -235,7 +256,7 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.player = player
                 binding.playerView.setControllerVisibilityListener(
                     PlayerView.ControllerVisibilityListener { visibility ->
-                        this.toggleSystemBars(showBars = visibility == View.VISIBLE)
+                        this.toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
                     }
                 )
 
