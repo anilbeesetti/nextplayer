@@ -144,6 +144,22 @@
                 android:contentDescription="@string/player_controls_progress"
                 app:played_color="?android:attr/colorPrimary" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/btn_video_zoom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/transparent_circle_background"
+                    android:contentDescription="@string/video_zoom"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_aspect_ratio"
+                    app:tint="@android:color/white" />
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </FrameLayout>
