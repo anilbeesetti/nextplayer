@@ -20,9 +20,12 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -63,7 +66,7 @@ class MainActivity : ComponentActivity() {
 
     val viewModel: MainActivityViewModel by viewModels()
 
-    @OptIn(ExperimentalPermissionsApi::class)
+    @OptIn(ExperimentalPermissionsApi::class, ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -113,7 +116,10 @@ class MainActivity : ComponentActivity() {
                     if (storagePermissionState.status.isGranted) {
                         NavHost(
                             navController = navController,
-                            startDestination = mediaPickerScreenRoute
+                            startDestination = mediaPickerScreenRoute,
+                            modifier = Modifier.semantics {
+                                testTagsAsResourceId = true
+                            }
                         ) {
                             mediaPickerScreen(
                                 onVideoItemClick = this@MainActivity::startPlayerActivity,

@@ -44,6 +44,7 @@ fun MediaContent(
                     contentPadding = PaddingValues(vertical = 10.dp),
                     modifier = Modifier
                         .fillMaxSize()
+                        .testTag("videoPicker:feed")
                 ) {
                     items(state.data) { data ->
                         when (data) {

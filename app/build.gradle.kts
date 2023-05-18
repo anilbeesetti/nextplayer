@@ -18,7 +18,7 @@ android {
     }
 
     buildTypes {
-        getByName("release") {
+        val release by getting {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -31,6 +31,14 @@ android {
             isDebuggable = true
             applicationIdSuffix = ".debug"
         }
+        create("benchmark") {
+            initWith(release)
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            proguardFiles("benchmark-rules.pro")
+            isMinifyEnabled = true
+            applicationIdSuffix = ".benchmark"
+        }
     }
 
     splits {
@@ -42,7 +50,7 @@ android {
         }
     }
 
-    packagingOptions {
+    packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
@@ -67,6 +75,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.profileinstaller)
 
     implementation(libs.timber)
 
