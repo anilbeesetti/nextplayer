@@ -37,5 +37,9 @@ gradlePlugin {
             id = "nextplayer.android.hilt"
             implementationClass = "AndroidHiltConventionPlugin"
         }
+        register("androidTest") {
+            id = "nextplayer.android.test"
+            implementationClass = "AndroidTestConventionPlugin"
+        }
     }
 }
