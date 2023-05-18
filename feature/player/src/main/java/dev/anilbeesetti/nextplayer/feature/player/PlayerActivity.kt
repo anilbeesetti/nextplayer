@@ -256,7 +256,7 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.player = player
                 binding.playerView.setControllerVisibilityListener(
                     PlayerView.ControllerVisibilityListener { visibility ->
-                        this.toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
+                        toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
                     }
                 )
 
