@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId = "dev.anilbeesetti.nextplayer"
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1.0"
     }
 
     buildFeatures {
@@ -42,7 +42,7 @@ android {
         }
     }
 
-    packagingOptions {
+    packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }

@@ -19,8 +19,8 @@ Next Player is an Android native video player written in Kotlin. It provides a s
 - Audio/Subtitle track selection
 - Vertical swipe to change brightness (left) / volume (right)
 - Horizontal swipe to seek through video
-- Material You support. [see](https://m3.material.io/)
-- File picker with folder and file view
+- [Material 3 (You)](https://m3.material.io/) support
+- Media picker with folder and file view
 
 ## Planned Features
 - Zoom gesture
