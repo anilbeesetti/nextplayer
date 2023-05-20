@@ -5,9 +5,11 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 
 class GetSortedVideosUseCase @Inject constructor(
     private val videoRepository: VideoRepository,
@@ -42,6 +44,6 @@ class GetSortedVideosUseCase @Inject constructor(
                     }
                 }
             }
-        }
+        }.flowOn(Dispatchers.Default)
     }
 }

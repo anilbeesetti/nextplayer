@@ -2,10 +2,12 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 
 class GetSortedPlayerItemsUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
@@ -38,6 +40,6 @@ class GetSortedPlayerItemsUseCase @Inject constructor(
                     duration = it.duration
                 )
             }
-        }
+        }.flowOn(Dispatchers.Default)
     }
 }
