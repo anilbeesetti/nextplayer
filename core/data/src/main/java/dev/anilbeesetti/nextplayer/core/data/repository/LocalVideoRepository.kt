@@ -34,16 +34,33 @@ class LocalVideoRepository @Inject constructor(
         path: String,
         position: Long,
         audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?
+        subtitleTrackIndex: Int?,
+        rememberSelections: Boolean
     ) {
         Timber.d("save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex]")
-        videoDao.upsert(
-            VideoEntity(
-                path = path,
-                playbackPosition = position,
-                audioTrack = audioTrackIndex,
-                subtitleTrack = subtitleTrackIndex
+        val videoEntity = videoDao.get(path)
+
+        if (videoEntity == null) {
+            videoDao.upsert(
+                VideoEntity(
+                    path = path,
+                    playbackPosition = position,
+                    audioTrack = audioTrackIndex,
+                    subtitleTrack = subtitleTrackIndex
+                )
             )
-        )
+        } else {
+            videoDao.upsert(
+                videoEntity.copy(
+                    playbackPosition = position,
+                    audioTrack = audioTrackIndex.takeIf {
+                        rememberSelections
+                    } ?: videoEntity.audioTrack,
+                    subtitleTrack = subtitleTrackIndex.takeIf {
+                        rememberSelections
+                    } ?: videoEntity.subtitleTrack
+                )
+            )
+        }
     }
 }

@@ -19,7 +19,8 @@ class FakeVideoRepository : VideoRepository {
         path: String,
         position: Long,
         audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?
+        subtitleTrackIndex: Int?,
+        rememberSelections: Boolean
     ) {
         videoEntities.find { it.path == path }?.let {
             videoEntities.remove(it)

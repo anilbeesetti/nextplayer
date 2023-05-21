@@ -358,24 +358,6 @@ class PlayerActivity : AppCompatActivity() {
             super.onVideoSizeChanged(videoSize)
         }
 
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            Timber.d("Playing media item: ${mediaItem?.mediaId}")
-//            viewModel.setCurrentMedia(mediaItem?.mediaId)
-            super.onMediaItemTransition(mediaItem, reason)
-        }
-
-        @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-        override fun onPositionDiscontinuity(
-            oldPosition: Player.PositionInfo,
-            newPosition: Player.PositionInfo,
-            reason: Int
-        ) {
-            if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
-                oldPosition.mediaItem?.let { viewModel.saveState(it.mediaId, C.TIME_UNSET) }
-            }
-            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
-        }
-
         override fun onPlayerError(error: PlaybackException) {
             Timber.e(error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
@@ -400,12 +382,12 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            Timber.d("playback state changed: $playbackState")
             when (playbackState) {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
                     if (PlaylistQueue.hasNext()) {
+                        viewModel.saveState(PlaylistQueue.getCurrent(), C.TIME_UNSET)
                         playVideo(PlaylistQueue.getNext()!!)
                     } else {
                         finish()

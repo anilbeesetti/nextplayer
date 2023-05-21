@@ -24,7 +24,8 @@ interface VideoRepository {
         path: String,
         position: Long,
         audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?
+        subtitleTrackIndex: Int?,
+        rememberSelections: Boolean
     )
 
     /**
