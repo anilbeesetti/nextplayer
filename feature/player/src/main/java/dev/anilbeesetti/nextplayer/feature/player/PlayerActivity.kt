@@ -57,21 +57,19 @@ class PlayerActivity : AppCompatActivity() {
     private val viewModel: PlayerViewModel by viewModels()
 
     private var playerGestureHelper: PlayerGestureHelper? = null
-    private var mediaSession: MediaSession? = null
+    private lateinit var player: Player
 
-    private var player: Player? = null
     private var dataUri: Uri? = null
     private var extras: Bundle? = null
     private var playWhenReady = true
     private var isPlaybackFinished = false
-
     var isFileLoaded = false
-    var isControlsLocked = false
 
+    var isControlsLocked = false
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val trackSelector: DefaultTrackSelector by lazy {
-        DefaultTrackSelector(applicationContext)
-    }
+
+    private lateinit var trackSelector: DefaultTrackSelector
+    private lateinit var mediaSession: MediaSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -220,7 +218,9 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStart() {
-        initializePlayer()
+        createPlayer()
+        preparePlayerView()
+        playVideo()
         super.onStart()
     }
 
@@ -231,67 +231,63 @@ class PlayerActivity : AppCompatActivity() {
         super.onStop()
     }
 
-    private fun initializePlayer() {
-        Timber.d("Initializing player")
+    private fun createPlayer() {
+        Timber.d("Creating player")
+
         val renderersFactory = FfmpegRenderersFactory(application).setExtensionRendererMode(
             FfmpegRenderersFactory.EXTENSION_RENDERER_MODE_ON
         )
 
-        trackSelector.setParameters(
-            trackSelector.buildUponParameters()
-                .setPreferredAudioLanguage("en")
-                .setPreferredTextLanguage("en")
-        )
+        trackSelector = DefaultTrackSelector(applicationContext)
+
         player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                    .setUsage(C.USAGE_MEDIA)
-                    .build(),
-                /* handleAudioFocus = */ true
-            ).build()
-            .also { player ->
-                binding.playerView.player = player
-                binding.playerView.setControllerVisibilityListener(
-                    PlayerView.ControllerVisibilityListener { visibility ->
-                        toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
-                    }
-                )
+            .setAudioAttributes(getAudioAttributes(), true)
+            .setHandleAudioBecomingNoisy(true)
+            .build()
 
-                player.setHandleAudioBecomingNoisy(true)
-                mediaSession = MediaSession.Builder(this, player).build()
+        mediaSession = MediaSession.Builder(applicationContext, player).build()
+    }
 
-                if (viewModel.currentPlayerItemIndex != -1) {
-                    val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem(this) }
-                    player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
-                } else {
-                    dataUri?.also { player.addMediaItem(it.toMediaItem(this, extras)) }
-                    extras?.also {
-                        if (it.containsKey(API_POSITION)) {
-                            player.seekTo(it.getInt(API_POSITION).toLong())
-                        }
-                    }
+    private fun preparePlayerView() {
+        binding.playerView.apply {
+            player = this@PlayerActivity.player
+            setControllerVisibilityListener(
+                PlayerView.ControllerVisibilityListener { visibility ->
+                    toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
                 }
+            )
+        }
+    }
 
-                player.playWhenReady = playWhenReady
-                player.addListener(playbackStateListener)
-                player.prepare()
+    private fun playVideo() {
+        if (viewModel.currentPlayerItemIndex != -1) {
+            val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem(this) }
+            player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
+        } else {
+            dataUri?.also { player.addMediaItem(it.toMediaItem(this, extras)) }
+            extras?.also {
+                if (it.containsKey(API_POSITION)) {
+                    player.seekTo(it.getInt(API_POSITION).toLong())
+                }
             }
+        }
+
+        player.playWhenReady = playWhenReady
+        player.addListener(playbackStateListener)
+        player.prepare()
     }
 
     private fun releasePlayer() {
         Timber.d("Releasing player")
-        player?.let { player ->
+        player.let { player ->
             playWhenReady = player.playWhenReady
             viewModel.saveState(player.currentPosition)
             player.removeListener(playbackStateListener)
             player.release()
         }
-        mediaSession?.release()
-        player = null
-        mediaSession = null
+        mediaSession.release()
     }
 
     private fun playbackStateListener() = object : Player.Listener {
@@ -397,6 +393,13 @@ class PlayerActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK, result)
         }
         super.finish()
+    }
+
+    fun getAudioAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+            .build()
     }
 
     companion object {
