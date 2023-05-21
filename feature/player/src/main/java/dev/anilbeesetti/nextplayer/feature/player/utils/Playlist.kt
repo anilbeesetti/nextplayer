@@ -4,7 +4,7 @@ import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import timber.log.Timber
 
 
-object PlaylistQueue {
+class Playlist {
 
     private val queue = mutableListOf<PlayerItem>()
     private var currentItem: PlayerItem? = null
