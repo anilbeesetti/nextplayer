@@ -4,7 +4,6 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
-import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext

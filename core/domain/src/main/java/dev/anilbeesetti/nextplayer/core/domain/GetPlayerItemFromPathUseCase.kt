@@ -12,7 +12,6 @@ class GetPlayerItemFromPathUseCase @Inject constructor(
     operator fun invoke(path: String?): PlayerItem? {
         return path?.let { videoRepository.getVideo(it) }?.toPlayerItem()
     }
-
 }
 
 fun Video.toPlayerItem() = PlayerItem(

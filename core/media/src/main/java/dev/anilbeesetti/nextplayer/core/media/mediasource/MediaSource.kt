@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.media.mediasource
 
-import android.net.Uri
 import android.provider.MediaStore
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +29,6 @@ interface MediaSource {
         selectionArgs: Array<String>? = null,
         sortOrder: String? = null
     ): List<MediaVideo>
-
 
     /**
      *

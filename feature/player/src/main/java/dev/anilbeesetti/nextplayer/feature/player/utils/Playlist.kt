@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import timber.log.Timber
 
-
 class Playlist {
 
     private val queue = mutableListOf<PlayerItem>()

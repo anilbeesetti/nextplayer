@@ -44,12 +44,12 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.Playlist
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -108,7 +108,6 @@ class PlayerActivity : AppCompatActivity() {
 
         initialDataUri = intent.data
         extras = intent.extras
-
 
         Timber.d("data: $initialDataUri")
 
@@ -197,7 +196,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun initializePlayerView() {
-
         videoTitleTextView =
             binding.playerView.findViewById(R.id.video_name)
 
@@ -290,7 +288,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playVideo() {
         lifecycleScope.launch(Dispatchers.IO) {
-
             if (isActivityOpenedIntital) {
                 val path = getPath(intent.data!!)
                 val playerItem = viewModel.getPlayerItemFromPath(path)
