@@ -239,15 +239,15 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener {
-            viewModel.saveState(PlaylistQueue.getCurrent(), player.currentPosition)
             PlaylistQueue.printPlaylist()
             if (PlaylistQueue.hasNext()) {
+                viewModel.saveState(PlaylistQueue.getCurrent(), player.currentPosition)
                 playVideo(PlaylistQueue.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
-            viewModel.saveState(PlaylistQueue.getCurrent(), player.currentPosition)
             if (PlaylistQueue.hasPrev()) {
+                viewModel.saveState(PlaylistQueue.getCurrent(), player.currentPosition)
                 playVideo(PlaylistQueue.getPrev()!!)
             }
         }
@@ -272,12 +272,6 @@ class PlayerActivity : AppCompatActivity() {
             toggleSystemBars(showBars = true)
         }
         backButton.setOnClickListener { finish() }
-
-        if (extras?.containsKey(API_TITLE) == true) {
-            videoTitleTextView.text = extras?.getString(API_TITLE)
-        } else {
-            videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
-        }
     }
 
     private fun playVideo(item: PlayerItem) {
@@ -321,6 +315,11 @@ class PlayerActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 if (PlaylistQueue.getCurrent() == null) {
                     player.setMediaItem(dataUri!!.toMediaItem(this@PlayerActivity, extras))
+                    if (extras?.containsKey(API_TITLE) == true) {
+                        videoTitleTextView.text = extras?.getString(API_TITLE)
+                    } else {
+                        videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
+                    }
                 } else {
                     player.setMediaItem(
                         PlaylistQueue.getCurrent()!!.toMediaItem(this@PlayerActivity),
