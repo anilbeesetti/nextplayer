@@ -29,7 +29,6 @@ fun FolderVideoPickerScreen(
     onVideoItemClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit
 ) {
-
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle(
