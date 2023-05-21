@@ -26,6 +26,10 @@ class LocalVideoRepository @Inject constructor(
         return videoDao.get(path)?.toVideoState()
     }
 
+    override fun getVideo(path: String): Video? {
+        return mediaSource.getMediaFromPath(path)?.toVideo()
+    }
+
     override suspend fun saveVideoState(
         path: String,
         position: Long,

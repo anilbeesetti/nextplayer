@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -53,6 +54,21 @@ class LocalMediaSource @Inject constructor(
             }
         }
         return mediaVideos
+    }
+
+    override fun getMediaFromPath(path: String): MediaVideo? {
+        context.contentResolver.query(
+            VIDEO_COLLECTION_URI,
+            VIDEO_PROJECTION,
+            MediaStore.MediaColumns.DATA + " = ?",
+            arrayOf(path),
+            null
+        )?.use { cursor ->
+            if (cursor.moveToNext()) {
+                return cursor.toMediaVideo
+            }
+        }
+        return null
     }
 }
 

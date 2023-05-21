@@ -192,7 +192,7 @@
             android:orientation="horizontal">
 
             <ImageButton
-                android:id="@+id/exo_prev"
+                android:id="@+id/btn_play_prev"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:background="@drawable/transparent_circle_background"
@@ -216,7 +216,7 @@
 
 
             <ImageButton
-                android:id="@+id/exo_next"
+                android:id="@+id/btn_play_next"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:background="@drawable/transparent_circle_background"
