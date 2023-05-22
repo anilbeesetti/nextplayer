@@ -304,12 +304,16 @@ class PlayerActivity : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 if (playlist.getCurrent() == null) {
-                    player.setMediaItem(intentDataUri!!.toMediaItem(this@PlayerActivity, intentExtras))
+                    player.setMediaItem(
+                        intentDataUri!!.toMediaItem(this@PlayerActivity, intentExtras)
+                    )
+
                     if (intentExtras?.containsKey(API_TITLE) == true) {
                         videoTitleTextView.text = intentExtras?.getString(API_TITLE)
                     } else {
                         videoTitleTextView.text = intentDataUri?.let { getFilenameFromUri(it) }
                     }
+
                     if (intentExtras?.containsKey(API_POSITION) == true) {
                         player.seekTo(intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET)
                     }
