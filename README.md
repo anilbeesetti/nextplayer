@@ -4,6 +4,8 @@ Next Player is an Android native video player written in Kotlin. It provides a s
 
 **This project is still in development and is expected to have bugs. Please report any bugs you find in the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 
+<a href='https://apt.izzysoft.de/fdroid/index/apk/dev.anilbeesetti.nextplayer'><img alt='Get it on IzzyOnDroid' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png' height="80"/></a>
+
 ## Screenshots
 
 ### Media Picker
