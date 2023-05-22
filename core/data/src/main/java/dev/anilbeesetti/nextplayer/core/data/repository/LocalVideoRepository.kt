@@ -9,8 +9,10 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import javax.inject.Inject
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class LocalVideoRepository @Inject constructor(
@@ -26,20 +28,45 @@ class LocalVideoRepository @Inject constructor(
         return videoDao.get(path)?.toVideoState()
     }
 
+    override fun getVideo(path: String): Video? {
+        return mediaSource.getMediaFromPath(path)?.toVideo()
+    }
+
     override suspend fun saveVideoState(
         path: String,
         position: Long,
         audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?
+        subtitleTrackIndex: Int?,
+        rememberSelections: Boolean
     ) {
         Timber.d("save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex]")
-        videoDao.upsert(
-            VideoEntity(
-                path = path,
-                playbackPosition = position,
-                audioTrack = audioTrackIndex,
-                subtitleTrack = subtitleTrackIndex
-            )
-        )
+
+        // TODO: Replace global scope with application wide scope
+        GlobalScope.launch {
+            val videoEntity = videoDao.get(path)
+
+            if (videoEntity == null) {
+                videoDao.upsert(
+                    VideoEntity(
+                        path = path,
+                        playbackPosition = position,
+                        audioTrack = audioTrackIndex,
+                        subtitleTrack = subtitleTrackIndex
+                    )
+                )
+            } else {
+                videoDao.upsert(
+                    videoEntity.copy(
+                        playbackPosition = position,
+                        audioTrack = audioTrackIndex.takeIf {
+                            rememberSelections
+                        } ?: videoEntity.audioTrack,
+                        subtitleTrack = subtitleTrackIndex.takeIf {
+                            rememberSelections
+                        } ?: videoEntity.subtitleTrack
+                    )
+                )
+            }
+        }
     }
 }

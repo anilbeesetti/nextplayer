@@ -20,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
@@ -35,6 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
@@ -43,9 +43,12 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
+import dev.anilbeesetti.nextplayer.feature.player.utils.Playlist
 import java.io.File
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -56,22 +59,38 @@ class PlayerActivity : AppCompatActivity() {
 
     private val viewModel: PlayerViewModel by viewModels()
 
-    private var playerGestureHelper: PlayerGestureHelper? = null
-    private var mediaSession: MediaSession? = null
-
-    private var player: Player? = null
-    private var dataUri: Uri? = null
+    /**
+     * Intent data
+     */
+    private var initialDataUri: Uri? = null
     private var extras: Bundle? = null
+
     private var playWhenReady = true
     private var isPlaybackFinished = false
 
     var isFileLoaded = false
     var isControlsLocked = false
+    private var isActivityOpenedIntital = true
 
+    /**
+     * Player
+     */
+    private lateinit var player: Player
+    private lateinit var playerGestureHelper: PlayerGestureHelper
+    private lateinit var playlist: Playlist
+    private lateinit var trackSelector: DefaultTrackSelector
+    private lateinit var mediaSession: MediaSession
+
+    /**
+     * Listeners
+     */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val trackSelector: DefaultTrackSelector by lazy {
-        DefaultTrackSelector(applicationContext)
+    private val onTrackChangeListener: (PlayerItem) -> Unit = {
+        videoTitleTextView.text = File(it.path).name
+        viewModel.updateInfo(it)
     }
+
+    private lateinit var videoTitleTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,39 +106,10 @@ class PlayerActivity : AppCompatActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        dataUri = intent.data
+        initialDataUri = intent.data
         extras = intent.extras
 
-        Timber.d("data: $dataUri")
-
-        dataUri?.let { viewModel.initMedia(getPath(it)) }
-
-        val backButton =
-            binding.playerView.findViewById<ImageButton>(R.id.back_button)
-        val videoTitleTextView =
-            binding.playerView.findViewById<TextView>(R.id.video_name)
-        val audioTrackButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
-        val subtitleTrackButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
-        val videoZoomButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_video_zoom)
-        val nextButton =
-            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_next)
-        val prevButton =
-            binding.playerView.findViewById<ImageButton>(androidx.media3.ui.R.id.exo_prev)
-        val lockControlsButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_lock_controls)
-        val unlockControlsButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
-        val playerControls =
-            binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
-
-        if (extras?.containsKey(API_TITLE) == true) {
-            videoTitleTextView.text = extras?.getString(API_TITLE)
-        } else {
-            videoTitleTextView.text = dataUri?.let { getFilenameFromUri(it) }
-        }
+        Timber.d("data: $initialDataUri")
 
         // Collecting flows from view model
         lifecycleScope.launch {
@@ -128,28 +118,19 @@ class PlayerActivity : AppCompatActivity() {
                     viewModel.playbackPosition.collectLatest { position ->
                         if (position != null && position != C.TIME_UNSET) {
                             Timber.d("Setting position: $position")
-                            player?.seekTo(position)
+                            player.seekTo(position)
                         }
                     }
                 }
-
                 launch {
                     viewModel.currentAudioTrackIndex.collectLatest { audioTrackIndex ->
-                        player?.switchTrack(C.TRACK_TYPE_AUDIO, audioTrackIndex)
+                        player.switchTrack(C.TRACK_TYPE_AUDIO, audioTrackIndex)
                     }
                 }
 
                 launch {
                     viewModel.currentSubtitleTrackIndex.collectLatest { subtitleTrackIndex ->
-                        player?.switchTrack(C.TRACK_TYPE_TEXT, subtitleTrackIndex)
-                    }
-                }
-
-                launch {
-                    viewModel.currentPlaybackPath.collectLatest {
-                        if (it != null) {
-                            videoTitleTextView.text = File(it).name
-                        }
+                        player.switchTrack(C.TRACK_TYPE_TEXT, subtitleTrackIndex)
                     }
                 }
             }
@@ -162,11 +143,86 @@ class PlayerActivity : AppCompatActivity() {
             audioManager = getSystemService(android.media.AudioManager::class.java)
         )
 
+        playlist = Playlist()
+    }
+
+    override fun onStart() {
+        createPlayer()
+        playlist.addOnTrackChangedListener(onTrackChangeListener)
+        preparePlayerView()
+        initializePlayerView()
+        playVideo()
+        super.onStart()
+    }
+
+    override fun onStop() {
+        binding.gestureVolumeLayout.visibility = View.GONE
+        binding.gestureBrightnessLayout.visibility = View.GONE
+        isActivityOpenedIntital = false
+        playlist.removeOnTrackChangedListener(onTrackChangeListener)
+        releasePlayer()
+        super.onStop()
+    }
+
+    private fun createPlayer() {
+        Timber.d("Creating player")
+
+        val renderersFactory = FfmpegRenderersFactory(application).setExtensionRendererMode(
+            FfmpegRenderersFactory.EXTENSION_RENDERER_MODE_ON
+        )
+
+        trackSelector = DefaultTrackSelector(applicationContext)
+
+        player = ExoPlayer.Builder(applicationContext)
+            .setRenderersFactory(renderersFactory)
+            .setTrackSelector(trackSelector)
+            .setAudioAttributes(getAudioAttributes(), true)
+            .setHandleAudioBecomingNoisy(true)
+            .build()
+
+        mediaSession = MediaSession.Builder(applicationContext, player).build()
+        player.addListener(playbackStateListener)
+    }
+
+    private fun preparePlayerView() {
+        binding.playerView.apply {
+            player = this@PlayerActivity.player
+            setControllerVisibilityListener(
+                PlayerView.ControllerVisibilityListener { visibility ->
+                    toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
+                }
+            )
+        }
+    }
+
+    private fun initializePlayerView() {
+        videoTitleTextView =
+            binding.playerView.findViewById(R.id.video_name)
+
+        val backButton =
+            binding.playerView.findViewById<ImageButton>(R.id.back_button)
+        val audioTrackButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
+        val subtitleTrackButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
+        val videoZoomButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_video_zoom)
+        val nextButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_play_next)
+        val prevButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_play_prev)
+        val lockControlsButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_lock_controls)
+        val unlockControlsButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
+        val playerControls =
+            binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
+
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_AUDIO)) return@setOnClickListener
 
-            player?.let {
+            player.let {
                 TrackSelectionFragment(
                     type = C.TRACK_TYPE_AUDIO,
                     tracks = it.currentTracks,
@@ -179,7 +235,7 @@ class PlayerActivity : AppCompatActivity() {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_TEXT)) return@setOnClickListener
 
-            player?.let {
+            player.let {
                 TrackSelectionFragment(
                     type = C.TRACK_TYPE_TEXT,
                     tracks = it.currentTracks,
@@ -189,12 +245,16 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener {
-            player?.currentPosition?.let { position -> viewModel.saveState(position) }
-            player?.seekToNext()
+            if (playlist.hasNext()) {
+                viewModel.saveState(playlist.getCurrent(), player.currentPosition)
+                playVideo(playlist.getNext()!!)
+            }
         }
         prevButton.setOnClickListener {
-            player?.currentPosition?.let { position -> viewModel.saveState(position) }
-            player?.seekToPrevious()
+            if (playlist.hasPrev()) {
+                viewModel.saveState(playlist.getCurrent(), player.currentPosition)
+                playVideo(playlist.getPrev()!!)
+            }
         }
         videoZoomButton.setOnClickListener {
             binding.playerView.resizeMode =
@@ -219,79 +279,58 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    override fun onStart() {
-        initializePlayer()
-        super.onStart()
+    private fun playVideo(item: PlayerItem) {
+        player.setMediaItem(item.toMediaItem(this@PlayerActivity))
+        playlist.updateCurrent(item)
+        player.playWhenReady = playWhenReady
+        player.prepare()
     }
 
-    override fun onStop() {
-        binding.gestureVolumeLayout.visibility = View.GONE
-        binding.gestureBrightnessLayout.visibility = View.GONE
-        releasePlayer()
-        super.onStop()
-    }
+    private fun playVideo() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            if (isActivityOpenedIntital) {
+                val path = getPath(intent.data!!)
+                val playerItem = viewModel.getPlayerItemFromPath(path)
 
-    private fun initializePlayer() {
-        Timber.d("Initializing player")
-        val renderersFactory = FfmpegRenderersFactory(application).setExtensionRendererMode(
-            FfmpegRenderersFactory.EXTENSION_RENDERER_MODE_ON
-        )
-
-        trackSelector.setParameters(
-            trackSelector.buildUponParameters()
-                .setPreferredAudioLanguage("en")
-                .setPreferredTextLanguage("en")
-        )
-        player = ExoPlayer.Builder(applicationContext)
-            .setRenderersFactory(renderersFactory)
-            .setTrackSelector(trackSelector)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                    .setUsage(C.USAGE_MEDIA)
-                    .build(),
-                /* handleAudioFocus = */ true
-            ).build()
-            .also { player ->
-                binding.playerView.player = player
-                binding.playerView.setControllerVisibilityListener(
-                    PlayerView.ControllerVisibilityListener { visibility ->
-                        toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
-                    }
-                )
-
-                player.setHandleAudioBecomingNoisy(true)
-                mediaSession = MediaSession.Builder(this, player).build()
-
-                if (viewModel.currentPlayerItemIndex != -1) {
-                    val mediaItems = viewModel.currentPlayerItems.map { it.toMediaItem(this) }
-                    player.setMediaItems(mediaItems, viewModel.currentPlayerItemIndex, C.TIME_UNSET)
-                } else {
-                    dataUri?.also { player.addMediaItem(it.toMediaItem(this, extras)) }
-                    extras?.also {
-                        if (it.containsKey(API_POSITION)) {
-                            player.seekTo(it.getInt(API_POSITION).toLong())
-                        }
+                if (playerItem != null) {
+                    playlist.updateCurrent(playerItem)
+                    launch(Dispatchers.IO) {
+                        val playerItems = viewModel.getPlayerItemsFromPath(path)
+                        playlist.setPlayerItems(playerItems)
                     }
                 }
+            }
 
+            withContext(Dispatchers.Main) {
+                if (playlist.getCurrent() == null) {
+                    player.setMediaItem(intent.data!!.toMediaItem(this@PlayerActivity, extras))
+                    if (extras?.containsKey(API_TITLE) == true) {
+                        videoTitleTextView.text = extras?.getString(API_TITLE)
+                    } else {
+                        videoTitleTextView.text = intent.data?.let { getFilenameFromUri(it) }
+                    }
+                    if (extras?.containsKey(API_POSITION) == true) {
+                        player.seekTo(extras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET)
+                    }
+                } else {
+                    player.setMediaItem(
+                        playlist.getCurrent()!!.toMediaItem(this@PlayerActivity),
+                        viewModel.playbackPosition.value ?: C.TIME_UNSET
+                    )
+                }
                 player.playWhenReady = playWhenReady
-                player.addListener(playbackStateListener)
                 player.prepare()
             }
+        }
     }
 
     private fun releasePlayer() {
         Timber.d("Releasing player")
-        player?.let { player ->
-            playWhenReady = player.playWhenReady
-            viewModel.saveState(player.currentPosition)
-            player.removeListener(playbackStateListener)
-            player.release()
-        }
-        mediaSession?.release()
-        player = null
-        mediaSession = null
+        playWhenReady = player.playWhenReady
+        viewModel.saveState(playlist.getCurrent(), player.currentPosition)
+        player.removeListener(playbackStateListener)
+        player.release()
+        mediaSession.release()
     }
 
     private fun playbackStateListener() = object : Player.Listener {
@@ -310,24 +349,6 @@ class PlayerActivity : AppCompatActivity() {
             super.onVideoSizeChanged(videoSize)
         }
 
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            Timber.d("Playing media item: ${mediaItem?.mediaId}")
-            viewModel.setCurrentMedia(mediaItem?.mediaId)
-            super.onMediaItemTransition(mediaItem, reason)
-        }
-
-        @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-        override fun onPositionDiscontinuity(
-            oldPosition: Player.PositionInfo,
-            newPosition: Player.PositionInfo,
-            reason: Int
-        ) {
-            if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
-                oldPosition.mediaItem?.let { viewModel.saveState(it.mediaId, C.TIME_UNSET) }
-            }
-            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
-        }
-
         override fun onPlayerError(error: PlaybackException) {
             Timber.e(error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
@@ -337,7 +358,7 @@ class PlayerActivity : AppCompatActivity() {
                     dialog.dismiss()
                 }
                 .setOnDismissListener {
-                    if (player?.hasNextMediaItem() == true) player?.seekToNext() else finish()
+                    if (playlist.hasNext()) playVideo(playlist.getNext()!!) else finish()
                 }
                 .create()
 
@@ -346,19 +367,19 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onTracksChanged(tracks: Tracks) {
-            player?.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex.value)
-            player?.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
+            player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex.value)
+            player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
             super.onTracksChanged(tracks)
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            Timber.d("playback state changed: $playbackState")
             when (playbackState) {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
-                    if (player?.hasNextMediaItem() == true) {
-                        player?.seekToNext()
+                    if (playlist.hasNext()) {
+                        viewModel.saveState(playlist.getCurrent(), C.TIME_UNSET)
+                        playVideo(playlist.getNext()!!)
                     } else {
                         finish()
                     }
@@ -366,6 +387,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
+                    Timber.d(playlist.toString())
                     isFileLoaded = true
                 }
 
@@ -383,10 +405,10 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun finish() {
         if (extras != null && extras!!.containsKey(API_RETURN_RESULT)) {
-            val result = Intent("com.mxtech.intent.result.VIEW")
+            val result = Intent(API_RESULT_INTENT)
             result.putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
             if (!isPlaybackFinished) {
-                player?.also {
+                player.also {
                     if (it.duration != C.TIME_UNSET) {
                         result.putExtra(API_DURATION, it.duration.toInt())
                     }
@@ -399,6 +421,13 @@ class PlayerActivity : AppCompatActivity() {
         super.finish()
     }
 
+    private fun getAudioAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+            .build()
+    }
+
     companion object {
         const val API_TITLE = "title"
         const val API_POSITION = "position"
@@ -408,6 +437,7 @@ class PlayerActivity : AppCompatActivity() {
         const val API_SUBS = "subs"
         const val API_SUBS_ENABLE = "subs.enable"
         const val API_SUBS_NAME = "subs.name"
+        const val API_RESULT_INTENT = "com.mxtech.intent.result.VIEW"
     }
 }
 

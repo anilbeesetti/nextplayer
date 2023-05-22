@@ -29,4 +29,9 @@ interface MediaSource {
         selectionArgs: Array<String>? = null,
         sortOrder: String? = null
     ): List<MediaVideo>
+
+    /**
+     *
+     */
+    fun getMediaFromPath(path: String): MediaVideo?
 }

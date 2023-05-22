@@ -19,7 +19,8 @@ class FakeVideoRepository : VideoRepository {
         path: String,
         position: Long,
         audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?
+        subtitleTrackIndex: Int?,
+        rememberSelections: Boolean
     ) {
         videoEntities.find { it.path == path }?.let {
             videoEntities.remove(it)
@@ -35,5 +36,9 @@ class FakeVideoRepository : VideoRepository {
 
     override suspend fun getVideoState(path: String): VideoState? {
         return videoEntities.find { it.path == path }?.toVideoState()
+    }
+
+    override fun getVideo(path: String): Video? {
+        return videoItems.find { it.path == path }
     }
 }

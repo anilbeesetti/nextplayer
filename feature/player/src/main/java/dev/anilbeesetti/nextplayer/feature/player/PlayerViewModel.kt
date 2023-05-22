@@ -8,7 +8,7 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.Resume
+import dev.anilbeesetti.nextplayer.core.domain.GetPlayerItemFromPathUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import java.io.File
@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 
 private const val END_POSITION_OFFSET = 5L
@@ -27,19 +26,12 @@ private const val END_POSITION_OFFSET = 5L
 class PlayerViewModel @Inject constructor(
     private val videoRepository: VideoRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase
+    private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase,
+    private val getPlayerItemFromPathUseCase: GetPlayerItemFromPathUseCase
 ) : ViewModel() {
 
     var playbackPosition = MutableStateFlow<Long?>(null)
         private set
-
-    var currentPlaybackPath = MutableStateFlow<String?>(null)
-        private set
-
-    var currentPlayerItems: MutableList<PlayerItem> = mutableListOf()
-
-    val currentPlayerItemIndex: Int
-        get() = currentPlayerItems.indexOfFirst { it.path == currentPlaybackPath.value }
 
     var currentAudioTrackIndex = MutableStateFlow<Int?>(null)
         private set
@@ -53,54 +45,46 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
-    var initialVideoState: VideoState? = null
+    suspend fun getVideoState(path: String): VideoState? {
+        return videoRepository.getVideoState(path)
+    }
 
-    fun setCurrentMedia(path: String?) {
-        currentPlaybackPath.value = path
+    fun updateInfo(playerItem: PlayerItem) {
         viewModelScope.launch {
-            path?.let {
-                initialVideoState = videoRepository.getVideoState(it)
-                Timber.d("Get state for $it: $initialVideoState")
-                playbackPosition.value =
-                    if (preferences.value.resume == Resume.YES) initialVideoState?.position else null
-                currentAudioTrackIndex.value = initialVideoState?.audioTrack
-                currentSubtitleTrackIndex.value = initialVideoState?.subtitleTrack
-            }
+            val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
+
+            playbackPosition.value = videoState.position
+            currentAudioTrackIndex.value = videoState.audioTrack
+            currentSubtitleTrackIndex.value = videoState.subtitleTrack
         }
     }
 
-    fun initMedia(path: String?) {
-        setCurrentMedia(path)
+    fun getPlayerItemFromPath(path: String?): PlayerItem? {
+        return getPlayerItemFromPathUseCase.invoke(path)
+    }
+
+    suspend fun getPlayerItemsFromPath(path: String?): List<PlayerItem> {
         val parent = path?.let { File(it).parent }
-        runBlocking {
-            currentPlayerItems.addAll(
-                getSortedPlayerItemsUseCase.invoke(parent).first()
-            )
-        }
+        return getSortedPlayerItemsUseCase.invoke(parent).first()
     }
 
-    fun saveState(position: Long) {
+    fun saveState(playerItem: PlayerItem?, position: Long) {
         playbackPosition.value = position
         viewModelScope.launch {
-            if (currentPlayerItemIndex == -1) return@launch
-            currentPlaybackPath.value?.let {
-                val newPosition = position.takeIf {
-                    position < currentPlayerItems[currentPlayerItemIndex].duration - END_POSITION_OFFSET
-                } ?: C.TIME_UNSET
+            if (playerItem == null) return@launch
+            val newPosition = position.takeIf {
+                position < playerItem.duration - END_POSITION_OFFSET
+            } ?: C.TIME_UNSET
 
-                Timber.d("Save state for ${currentPlaybackPath.value}: $position")
+            Timber.d("Save state for ${playerItem.path}: $position")
 
-                videoRepository.saveVideoState(
-                    path = it,
-                    position = newPosition,
-                    audioTrackIndex = currentAudioTrackIndex.value.takeIf {
-                        preferences.value.rememberSelections
-                    } ?: initialVideoState?.audioTrack,
-                    subtitleTrackIndex = currentSubtitleTrackIndex.value.takeIf {
-                        preferences.value.rememberSelections
-                    } ?: initialVideoState?.subtitleTrack
-                )
-            }
+            videoRepository.saveVideoState(
+                path = playerItem.path,
+                position = newPosition,
+                audioTrackIndex = currentAudioTrackIndex.value,
+                subtitleTrackIndex = currentSubtitleTrackIndex.value,
+                rememberSelections = preferences.value.rememberSelections
+            )
         }
     }
 
@@ -109,12 +93,9 @@ class PlayerViewModel @Inject constructor(
             videoRepository.saveVideoState(
                 path = path,
                 position = position,
-                audioTrackIndex = currentAudioTrackIndex.value.takeIf {
-                    preferences.value.rememberSelections
-                } ?: initialVideoState?.audioTrack,
-                subtitleTrackIndex = currentAudioTrackIndex.value.takeIf {
-                    preferences.value.rememberSelections
-                } ?: initialVideoState?.subtitleTrack
+                audioTrackIndex = currentAudioTrackIndex.value,
+                subtitleTrackIndex = currentAudioTrackIndex.value,
+                rememberSelections = preferences.value.rememberSelections
             )
         }
     }

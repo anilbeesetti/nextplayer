@@ -56,6 +56,21 @@ class LocalMediaSource @Inject constructor(
         }
         return mediaVideos
     }
+
+    override fun getMediaFromPath(path: String): MediaVideo? {
+        context.contentResolver.query(
+            VIDEO_COLLECTION_URI,
+            VIDEO_PROJECTION,
+            MediaStore.MediaColumns.DATA + " = ?",
+            arrayOf(path),
+            null
+        )?.use { cursor ->
+            if (cursor.moveToNext()) {
+                return cursor.toMediaVideo
+            }
+        }
+        return null
+    }
 }
 
 private val VIDEO_COLLECTION_URI
