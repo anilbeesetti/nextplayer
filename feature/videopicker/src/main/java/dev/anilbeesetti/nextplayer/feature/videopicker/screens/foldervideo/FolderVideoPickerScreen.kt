@@ -18,10 +18,10 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FolderVideoPickerScreen(
     viewModel: FolderVideoPickerViewModel = hiltViewModel(),
@@ -30,10 +30,26 @@ fun FolderVideoPickerScreen(
 ) {
     val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
 
+    FolderVideoPickerScreen(
+        folderPath = viewModel.folderPath,
+        videosState = videosState,
+        onVideoItemClick = onVideoItemClick,
+        onNavigateUp = onNavigateUp
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun FolderVideoPickerScreen(
+    folderPath: String,
+    videosState: MediaState,
+    onVideoItemClick: (uri: Uri) -> Unit,
+    onNavigateUp: () -> Unit
+) {
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = File(viewModel.folderPath).prettyName,
+                title = File(folderPath).prettyName,
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
