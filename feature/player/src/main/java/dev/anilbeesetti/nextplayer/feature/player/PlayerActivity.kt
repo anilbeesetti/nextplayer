@@ -245,6 +245,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener {
+            playlist.printPlaylist()
             if (playlist.hasNext()) {
                 viewModel.saveState(playlist.getCurrent(), player.currentPosition)
                 playVideo(playlist.getNext()!!)
@@ -308,6 +309,9 @@ class PlayerActivity : AppCompatActivity() {
                         videoTitleTextView.text = extras?.getString(API_TITLE)
                     } else {
                         videoTitleTextView.text = intent.data?.let { getFilenameFromUri(it) }
+                    }
+                    if (extras?.containsKey(API_POSITION) == true) {
+                        player.seekTo(extras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET)
                     }
                 } else {
                     player.setMediaItem(
