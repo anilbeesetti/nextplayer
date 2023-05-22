@@ -292,8 +292,8 @@ class PlayerActivity : AppCompatActivity() {
                 val path = getPath(intent.data!!)
                 val playerItem = viewModel.getPlayerItemFromPath(path)
 
-                if (path != null) {
-                    playlist.updateCurrent(playerItem!!)
+                if (playerItem != null) {
+                    playlist.updateCurrent(playerItem)
                     launch(Dispatchers.IO) {
                         val playerItems = viewModel.getPlayerItemsFromPath(path)
                         playlist.setPlayerItems(playerItems)
