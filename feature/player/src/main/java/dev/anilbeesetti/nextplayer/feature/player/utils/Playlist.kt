@@ -65,5 +65,4 @@ class Playlist {
         queue.forEach { append(it.path + "\n") }
         append("##############################")
     }
-
 }
