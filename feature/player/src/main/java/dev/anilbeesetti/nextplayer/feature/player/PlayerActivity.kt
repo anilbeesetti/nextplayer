@@ -62,15 +62,15 @@ class PlayerActivity : AppCompatActivity() {
     /**
      * Intent data
      */
-    private var initialDataUri: Uri? = null
-    private var extras: Bundle? = null
+    private var intentDataUri: Uri? = null
+    private var intentExtras: Bundle? = null
 
     private var playWhenReady = true
     private var isPlaybackFinished = false
 
     var isFileLoaded = false
     var isControlsLocked = false
-    private var isActivityOpenedIntital = true
+    private var shouldFetchPlaylist = true
 
     /**
      * Player
@@ -106,10 +106,10 @@ class PlayerActivity : AppCompatActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initialDataUri = intent.data
-        extras = intent.extras
+        intentDataUri = intent.data
+        intentExtras = intent.extras
 
-        Timber.d("data: $initialDataUri")
+        Timber.d("data: $intentDataUri")
 
         // Collecting flows from view model
         lifecycleScope.launch {
@@ -158,7 +158,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         binding.gestureVolumeLayout.visibility = View.GONE
         binding.gestureBrightnessLayout.visibility = View.GONE
-        isActivityOpenedIntital = false
         playlist.removeOnTrackChangedListener(onTrackChangeListener)
         releasePlayer()
         super.onStop()
@@ -288,8 +287,8 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playVideo() {
         lifecycleScope.launch(Dispatchers.IO) {
-            if (isActivityOpenedIntital) {
-                val path = getPath(intent.data!!)
+            if (shouldFetchPlaylist) {
+                val path = getPath(intentDataUri!!)
                 val playerItem = viewModel.getPlayerItemFromPath(path)
 
                 if (playerItem != null) {
@@ -299,18 +298,20 @@ class PlayerActivity : AppCompatActivity() {
                         playlist.setPlayerItems(playerItems)
                     }
                 }
+
+                shouldFetchPlaylist = false
             }
 
             withContext(Dispatchers.Main) {
                 if (playlist.getCurrent() == null) {
-                    player.setMediaItem(intent.data!!.toMediaItem(this@PlayerActivity, extras))
-                    if (extras?.containsKey(API_TITLE) == true) {
-                        videoTitleTextView.text = extras?.getString(API_TITLE)
+                    player.setMediaItem(intentDataUri!!.toMediaItem(this@PlayerActivity, intentExtras))
+                    if (intentExtras?.containsKey(API_TITLE) == true) {
+                        videoTitleTextView.text = intentExtras?.getString(API_TITLE)
                     } else {
-                        videoTitleTextView.text = intent.data?.let { getFilenameFromUri(it) }
+                        videoTitleTextView.text = intentDataUri?.let { getFilenameFromUri(it) }
                     }
-                    if (extras?.containsKey(API_POSITION) == true) {
-                        player.seekTo(extras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET)
+                    if (intentExtras?.containsKey(API_POSITION) == true) {
+                        player.seekTo(intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET)
                     }
                 } else {
                     player.setMediaItem(
@@ -404,7 +405,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun finish() {
-        if (extras != null && extras!!.containsKey(API_RETURN_RESULT)) {
+        if (intentExtras != null && intentExtras!!.containsKey(API_RETURN_RESULT)) {
             val result = Intent(API_RESULT_INTENT)
             result.putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
             if (!isPlaybackFinished) {
@@ -419,6 +420,18 @@ class PlayerActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK, result)
         }
         super.finish()
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent != null) {
+            Timber.d("new intent: ${intent.data}")
+            playlist.clearQueue()
+            intentDataUri = intent.data
+            intentExtras = intent.extras
+            shouldFetchPlaylist = true
+            playVideo()
+        }
     }
 
     private fun getAudioAttributes(): AudioAttributes {
