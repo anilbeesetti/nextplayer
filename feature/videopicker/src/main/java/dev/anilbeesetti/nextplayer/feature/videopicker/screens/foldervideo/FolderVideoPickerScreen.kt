@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -28,7 +29,11 @@ fun FolderVideoPickerScreen(
     onVideoItemClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit
 ) {
-    val videosState by viewModel.videoItems.collectAsStateWithLifecycle()
+    // The app experiences jank when videosState updates before the initial render finishes.
+    // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
+    val videosState by viewModel.videoItems.collectAsStateWithLifecycle(
+        minActiveState = Lifecycle.State.RESUMED
+    )
 
     FolderVideoPickerScreen(
         folderPath = viewModel.folderPath,
