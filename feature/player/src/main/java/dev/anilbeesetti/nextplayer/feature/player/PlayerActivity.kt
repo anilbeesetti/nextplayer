@@ -245,7 +245,6 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener {
-            playlist.printPlaylist()
             if (playlist.hasNext()) {
                 viewModel.saveState(playlist.getCurrent(), player.currentPosition)
                 playVideo(playlist.getNext()!!)
@@ -388,6 +387,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
+                    Timber.d(playlist.toString())
                     isFileLoaded = true
                 }
 
@@ -405,7 +405,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun finish() {
         if (extras != null && extras!!.containsKey(API_RETURN_RESULT)) {
-            val result = Intent("com.mxtech.intent.result.VIEW")
+            val result = Intent(API_RESULT_INTENT)
             result.putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
             if (!isPlaybackFinished) {
                 player.also {
@@ -437,6 +437,7 @@ class PlayerActivity : AppCompatActivity() {
         const val API_SUBS = "subs"
         const val API_SUBS_ENABLE = "subs.enable"
         const val API_SUBS_NAME = "subs.name"
+        const val API_RESULT_INTENT = "com.mxtech.intent.result.VIEW"
     }
 }
 

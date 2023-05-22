@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
-import timber.log.Timber
 
 class Playlist {
 
@@ -61,11 +60,10 @@ class Playlist {
         onTrackChangedListeners.remove(listener)
     }
 
-    fun printPlaylist() {
-        Timber.d("########## playlist ##########")
-        queue.forEach {
-            Timber.d(it.path)
-        }
-        Timber.d("###############################")
+    override fun toString(): String = buildString {
+        append("########## playlist ##########\n")
+        queue.forEach { append(it.path + "\n") }
+        append("##############################")
     }
+
 }
