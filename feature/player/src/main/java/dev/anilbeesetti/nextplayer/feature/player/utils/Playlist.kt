@@ -60,6 +60,11 @@ class Playlist {
         onTrackChangedListeners.remove(listener)
     }
 
+    fun clearQueue() {
+        queue.clear()
+        currentItem = null
+    }
+
     override fun toString(): String = buildString {
         append("########## playlist ##########\n")
         queue.forEach { append(it.path + "\n") }
