@@ -52,7 +52,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle"}
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewModel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
@@ -60,6 +60,7 @@ androidx-media3-common = { group = "androidx.media3", name = "media3-common", ve
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
 androidx-media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "androidxMedia3" }
 androidx-media3-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "androidxMedia3" }
+androidx-media3-exoplayer-rtsp = { group = "androidx.media3", name = "media3-exoplayer-rtsp", version.ref = "androidxMedia3" }
 androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
@@ -69,8 +70,8 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerQual" }
-github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist"}
-google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial"}
+github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist" }
+google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }
 google-errorprone-annotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "googleErrorProne" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
@@ -87,7 +88,7 @@ kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-pl
 
 [bundles]
 compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-compose-material3", "androidx-lifecycle-runtimeCompose"]
-media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media3-exoplayer-dash","androidx-media3-exoplayer-hls","androidx-media3-ui", "androidx-media3-session"]
+media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media3-exoplayer-dash", "androidx-media3-exoplayer-hls", "androidx-media3-exoplayer-rtsp", "androidx-media3-ui", "androidx-media3-session"]
 
 
 [plugins]
