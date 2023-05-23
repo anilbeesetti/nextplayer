@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/player_background">
+    android:layout_height="match_parent">
 
     <FrameLayout
         android:id="@+id/player_controls"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/player_background">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -21,7 +21,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-                android:layout_marginVertical="@dimen/dimen_controls_vertical"
                 android:contextClickable="true"
                 android:orientation="horizontal">
 
@@ -101,8 +100,7 @@
                 android:layout_gravity="bottom"
                 android:contextClickable="true"
                 android:orientation="vertical"
-                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-                android:layout_marginVertical="@dimen/dimen_controls_vertical">
+                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -233,14 +231,12 @@
         android:id="@+id/btn_unlock_controls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/transparent_circle_background"
+        android:background="@drawable/rounded_corner"
         android:contentDescription="@string/controls_unlock"
         android:padding="12dp"
-        android:layout_marginVertical="16dp"
-        android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
+        android:layout_margin="16dp"
         android:visibility="invisible"
         tools:visibility="visible"
         android:src="@drawable/ic_lock"
         app:tint="@android:color/white" />
-
 </FrameLayout>
