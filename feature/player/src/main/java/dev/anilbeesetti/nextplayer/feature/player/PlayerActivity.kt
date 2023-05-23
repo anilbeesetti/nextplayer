@@ -64,6 +64,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private var intentDataUri: Uri? = null
     private var intentExtras: Bundle? = null
+    private var intentType: String? = null
 
     private var playWhenReady = true
     private var isPlaybackFinished = false
@@ -108,6 +109,7 @@ class PlayerActivity : AppCompatActivity() {
 
         intentDataUri = intent.data
         intentExtras = intent.extras
+        intentType = intent.type
 
         Timber.d("data: $intentDataUri")
 
@@ -279,7 +281,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playVideo(item: PlayerItem) {
-        player.setMediaItem(item.toMediaItem(this@PlayerActivity))
+        player.setMediaItem(item.toMediaItem(this@PlayerActivity, null))
         playlist.updateCurrent(item)
         player.playWhenReady = playWhenReady
         player.prepare()
@@ -305,7 +307,11 @@ class PlayerActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 if (playlist.getCurrent() == null) {
                     player.setMediaItem(
-                        intentDataUri!!.toMediaItem(this@PlayerActivity, intentExtras)
+                        intentDataUri!!.toMediaItem(
+                            context = this@PlayerActivity,
+                            type = intentType,
+                            extras = intentExtras
+                        )
                     )
 
                     if (intentExtras?.containsKey(API_TITLE) == true) {
@@ -319,7 +325,10 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 } else {
                     player.setMediaItem(
-                        playlist.getCurrent()!!.toMediaItem(this@PlayerActivity),
+                        playlist.getCurrent()!!.toMediaItem(
+                            context = this@PlayerActivity,
+                            type = intentType
+                        ),
                         viewModel.playbackPosition.value ?: C.TIME_UNSET
                     )
                 }
@@ -433,6 +442,7 @@ class PlayerActivity : AppCompatActivity() {
             playlist.clearQueue()
             intentDataUri = intent.data
             intentExtras = intent.extras
+            intentType = intent.type
             shouldFetchPlaylist = true
             playVideo()
         }

@@ -51,7 +51,7 @@ fun Uri.toSubtitleConfiguration(
 /**
  * Converts [Uri] to [MediaItem]
  */
-fun Uri.toMediaItem(context: Context, extras: Bundle? = null): MediaItem {
+fun Uri.toMediaItem(context: Context, type: String?, extras: Bundle? = null): MediaItem {
     val subtitleConfigurations = mutableListOf<MediaItem.SubtitleConfiguration>()
     if (extras != null) {
         val subsEnable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -81,8 +81,13 @@ fun Uri.toMediaItem(context: Context, extras: Bundle? = null): MediaItem {
             }
         }
     }
-    return MediaItem.Builder()
+    val mediaItemBuilder = MediaItem.Builder()
         .setUri(this)
         .setSubtitleConfigurations(subtitleConfigurations)
-        .build()
+
+    if (type != null) {
+        mediaItemBuilder.setMimeType(type)
+    }
+
+    return mediaItemBuilder.build()
 }
