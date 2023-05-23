@@ -67,7 +67,9 @@ class PlayerGestureHelper(
             }
 
             override fun onDoubleTap(event: MotionEvent): Boolean {
+                // Disables double tap gestures if view is locked
                 if (activity.isControlsLocked) return false
+
                 when (playerPreferences.doubleTapGesture) {
                     DoubleTapGesture.PLAY_PAUSE -> {
                         playerView.togglePlayPause()
@@ -137,6 +139,8 @@ class PlayerGestureHelper(
             ): Boolean {
                 // Excludes area where app gestures conflicting with system gestures
                 if (inExclusionArea(firstEvent)) return false
+
+                // Disables gesture if view is locked
                 if (activity.isControlsLocked) return false
 
                 if (abs(distanceX / distanceY) < 2) return false
@@ -195,6 +199,8 @@ class PlayerGestureHelper(
             ): Boolean {
                 // Excludes area where app gestures conflicting with system gestures
                 if (inExclusionArea(firstEvent)) return false
+
+                // Disables gesture if view is locked
                 if (activity.isControlsLocked) return false
 
                 val viewCenterX = playerView.measuredWidth / 2
