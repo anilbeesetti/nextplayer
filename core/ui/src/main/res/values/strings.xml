@@ -67,4 +67,5 @@
     <string name="dynamic_theme_description">Apply colors from system wallpaper to the application theme</string>
     <string name="controls_lock">Lock controls</string>
     <string name="controls_unlock">Unlock controls</string>
+    <string name="select_playback_speed">Select playback speed</string>
 </resources>

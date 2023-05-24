@@ -37,6 +37,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
@@ -135,6 +136,12 @@ class PlayerActivity : AppCompatActivity() {
                         player.switchTrack(C.TRACK_TYPE_TEXT, subtitleTrackIndex)
                     }
                 }
+
+                launch {
+                    viewModel.currentPlaybackSpeed.collectLatest { playbackSpeed ->
+                        player.setPlaybackSpeed(playbackSpeed)
+                    }
+                }
             }
         }
 
@@ -202,6 +209,8 @@ class PlayerActivity : AppCompatActivity() {
 
         val backButton =
             binding.playerView.findViewById<ImageButton>(R.id.back_button)
+        val playbackSpeedButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_playback_speed)
         val audioTrackButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
         val subtitleTrackButton =
@@ -243,6 +252,12 @@ class PlayerActivity : AppCompatActivity() {
                     viewModel = viewModel
                 ).show(supportFragmentManager, "TrackSelectionDialog")
             }
+        }
+
+        playbackSpeedButton.setOnClickListener {
+            PlaybackSpeedSelectionFragment(
+                viewModel = viewModel
+            ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 
         nextButton.setOnClickListener {

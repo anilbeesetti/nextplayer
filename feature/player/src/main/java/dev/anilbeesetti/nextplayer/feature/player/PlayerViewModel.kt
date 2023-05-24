@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -37,6 +38,9 @@ class PlayerViewModel @Inject constructor(
         private set
 
     var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
+        private set
+
+    var currentPlaybackSpeed = MutableStateFlow(1f)
         private set
 
     val preferences = preferencesRepository.playerPreferencesFlow.stateIn(
@@ -105,6 +109,10 @@ class PlayerViewModel @Inject constructor(
             C.TRACK_TYPE_AUDIO -> currentAudioTrackIndex.value = trackIndex
             C.TRACK_TYPE_TEXT -> currentSubtitleTrackIndex.value = trackIndex
         }
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        currentPlaybackSpeed.value = speed
     }
 
     fun setPlayerBrightness(value: Float) {
