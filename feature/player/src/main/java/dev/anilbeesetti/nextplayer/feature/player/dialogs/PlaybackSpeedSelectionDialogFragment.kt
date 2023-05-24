@@ -7,7 +7,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
-class PlaybackSpeedSelectionFragment(
+class PlaybackSpeedSelectionDialogFragment(
     private val viewModel: PlayerViewModel
 ): DialogFragment() {
 

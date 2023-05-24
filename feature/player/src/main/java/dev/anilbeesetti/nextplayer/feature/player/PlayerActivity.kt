@@ -37,8 +37,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionFragment
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
@@ -233,7 +233,7 @@ class PlayerActivity : AppCompatActivity() {
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_AUDIO)) return@setOnClickListener
 
             player.let {
-                TrackSelectionFragment(
+                TrackSelectionDialogFragment(
                     type = C.TRACK_TYPE_AUDIO,
                     tracks = it.currentTracks,
                     viewModel = viewModel
@@ -246,7 +246,7 @@ class PlayerActivity : AppCompatActivity() {
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_TEXT)) return@setOnClickListener
 
             player.let {
-                TrackSelectionFragment(
+                TrackSelectionDialogFragment(
                     type = C.TRACK_TYPE_TEXT,
                     tracks = it.currentTracks,
                     viewModel = viewModel
@@ -255,7 +255,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         playbackSpeedButton.setOnClickListener {
-            PlaybackSpeedSelectionFragment(
+            PlaybackSpeedSelectionDialogFragment(
                 viewModel = viewModel
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }

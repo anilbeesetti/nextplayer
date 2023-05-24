@@ -12,7 +12,7 @@ import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 
 @UnstableApi
-class TrackSelectionFragment(
+class TrackSelectionDialogFragment(
     private val type: @C.TrackType Int,
     private val tracks: Tracks,
     private val viewModel: PlayerViewModel
