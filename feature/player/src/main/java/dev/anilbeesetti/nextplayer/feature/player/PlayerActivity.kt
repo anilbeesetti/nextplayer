@@ -37,7 +37,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
@@ -135,6 +136,12 @@ class PlayerActivity : AppCompatActivity() {
                         player.switchTrack(C.TRACK_TYPE_TEXT, subtitleTrackIndex)
                     }
                 }
+
+                launch {
+                    viewModel.currentPlaybackSpeed.collectLatest { playbackSpeed ->
+                        player.setPlaybackSpeed(playbackSpeed)
+                    }
+                }
             }
         }
 
@@ -202,6 +209,8 @@ class PlayerActivity : AppCompatActivity() {
 
         val backButton =
             binding.playerView.findViewById<ImageButton>(R.id.back_button)
+        val playbackSpeedButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_playback_speed)
         val audioTrackButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
         val subtitleTrackButton =
@@ -224,7 +233,7 @@ class PlayerActivity : AppCompatActivity() {
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_AUDIO)) return@setOnClickListener
 
             player.let {
-                TrackSelectionFragment(
+                TrackSelectionDialogFragment(
                     type = C.TRACK_TYPE_AUDIO,
                     tracks = it.currentTracks,
                     viewModel = viewModel
@@ -237,12 +246,18 @@ class PlayerActivity : AppCompatActivity() {
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_TEXT)) return@setOnClickListener
 
             player.let {
-                TrackSelectionFragment(
+                TrackSelectionDialogFragment(
                     type = C.TRACK_TYPE_TEXT,
                     tracks = it.currentTracks,
                     viewModel = viewModel
                 ).show(supportFragmentManager, "TrackSelectionDialog")
             }
+        }
+
+        playbackSpeedButton.setOnClickListener {
+            PlaybackSpeedSelectionDialogFragment(
+                viewModel = viewModel
+            ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 
         nextButton.setOnClickListener {

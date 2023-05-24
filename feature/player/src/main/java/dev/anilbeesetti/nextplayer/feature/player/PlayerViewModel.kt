@@ -39,6 +39,9 @@ class PlayerViewModel @Inject constructor(
     var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
         private set
 
+    var currentPlaybackSpeed = MutableStateFlow(1f)
+        private set
+
     val preferences = preferencesRepository.playerPreferencesFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
@@ -105,6 +108,10 @@ class PlayerViewModel @Inject constructor(
             C.TRACK_TYPE_AUDIO -> currentAudioTrackIndex.value = trackIndex
             C.TRACK_TYPE_TEXT -> currentSubtitleTrackIndex.value = trackIndex
         }
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        currentPlaybackSpeed.value = speed
     }
 
     fun setPlayerBrightness(value: Float) {
