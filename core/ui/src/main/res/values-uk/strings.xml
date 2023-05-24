@@ -66,4 +66,5 @@
     <string name="video_zoom">Збільшити відео</string>
     <string name="dynamic_theme">Динамічна кольорова тема</string>
     <string name="controls_lock">Заблокувати</string>
+    <string name="select_playback_speed">Виберіть швидкість відтворення</string>
 </resources>
