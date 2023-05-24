@@ -51,5 +51,15 @@ Next Player is an Android native video player written in Kotlin. It provides a s
 - External Audio support
 - Picture-in-picture mode
 
+## Contributing
+
+Contributions are welcome!
+
+### Translating
+
+You can help translate Next Player on [Hosted Weblate](https://hosted.weblate.org/engage/next-player/).
+
+[![Translate status](https://hosted.weblate.org/widgets/next-player/-/multi-auto.svg)](https://hosted.weblate.org/engage/next-player/)
+
 ## License
 Next Player is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for more information.
