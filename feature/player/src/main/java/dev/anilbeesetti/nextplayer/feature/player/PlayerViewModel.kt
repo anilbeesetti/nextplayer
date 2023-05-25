@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.domain.GetPlayerItemFromPathUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
@@ -51,7 +52,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
 
-            playbackPosition.value = videoState.position
+            playbackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
             currentAudioTrackIndex.value = videoState.audioTrack
             currentSubtitleTrackIndex.value = videoState.subtitleTrack
         }
