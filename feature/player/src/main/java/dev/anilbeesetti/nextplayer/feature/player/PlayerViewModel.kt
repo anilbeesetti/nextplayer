@@ -103,4 +103,11 @@ class PlayerViewModel @Inject constructor(
             preferencesRepository.setPlayerBrightness(value)
         }
     }
+
+    fun resetToDefaults() {
+        playbackPosition.value = null
+        currentPlaybackSpeed.value = 1f
+        currentAudioTrackIndex.value = null
+        currentSubtitleTrackIndex.value = null
+    }
 }

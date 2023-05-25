@@ -108,7 +108,7 @@ class PlayerActivity : AppCompatActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        updateIntentData()
+        updateIntentData(intent)
         Timber.d("data: $intentDataUri")
 
         // Collecting flows from view model
@@ -450,7 +450,8 @@ class PlayerActivity : AppCompatActivity() {
         if (intent != null) {
             Timber.d("new intent: ${intent.data}")
             playlist.clearQueue()
-            updateIntentData()
+            viewModel.resetToDefaults()
+            updateIntentData(intent)
             shouldFetchPlaylist = true
             playVideo()
         }
@@ -463,7 +464,7 @@ class PlayerActivity : AppCompatActivity() {
             .build()
     }
 
-    private fun updateIntentData() {
+    private fun updateIntentData(intent: Intent) {
         intentDataUri = intent.data
         intentExtras = intent.extras
         intentType = intent.type
