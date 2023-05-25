@@ -48,10 +48,6 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
-    suspend fun getVideoState(path: String): VideoState? {
-        return videoRepository.getVideoState(path)
-    }
-
     fun updateInfo(playerItem: PlayerItem) {
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
@@ -86,18 +82,6 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = currentAudioTrackIndex.value,
                 subtitleTrackIndex = currentSubtitleTrackIndex.value,
-                rememberSelections = preferences.value.rememberSelections
-            )
-        }
-    }
-
-    fun saveState(path: String, position: Long) {
-        viewModelScope.launch {
-            videoRepository.saveVideoState(
-                path = path,
-                position = position,
-                audioTrackIndex = currentAudioTrackIndex.value,
-                subtitleTrackIndex = currentAudioTrackIndex.value,
                 rememberSelections = preferences.value.rememberSelections
             )
         }
