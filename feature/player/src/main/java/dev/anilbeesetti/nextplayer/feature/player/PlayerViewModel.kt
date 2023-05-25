@@ -55,6 +55,7 @@ class PlayerViewModel @Inject constructor(
             playbackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
             currentAudioTrackIndex.value = videoState.audioTrack
             currentSubtitleTrackIndex.value = videoState.subtitleTrack
+            currentPlaybackSpeed.value = videoState.playbackSpeed
         }
     }
 
@@ -82,6 +83,7 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = currentAudioTrackIndex.value,
                 subtitleTrackIndex = currentSubtitleTrackIndex.value,
+                playbackSpeed = currentPlaybackSpeed.value,
                 rememberSelections = preferences.value.rememberSelections
             )
         }

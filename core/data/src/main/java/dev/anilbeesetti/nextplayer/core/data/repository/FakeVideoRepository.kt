@@ -20,6 +20,7 @@ class FakeVideoRepository : VideoRepository {
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
+        playbackSpeed: Float,
         rememberSelections: Boolean
     ) {
         videoEntities.find { it.path == path }?.let {
