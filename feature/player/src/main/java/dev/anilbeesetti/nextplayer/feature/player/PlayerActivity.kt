@@ -332,7 +332,6 @@ class PlayerActivity : AppCompatActivity() {
                     } else {
                         videoTitleTextView.text = intentDataUri?.let { getFilenameFromUri(it) }
                     }
-
                 } else {
                     player.setMediaItem(
                         playlist.getCurrent()!!.toMediaItem(
