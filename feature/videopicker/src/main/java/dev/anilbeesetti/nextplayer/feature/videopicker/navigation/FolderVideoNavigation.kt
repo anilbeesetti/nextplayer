@@ -10,7 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo.FolderVideoPickerScreen
 
-const val folderVideoPickerScreenRoute = "folder_video_picker_screen"
+const val folderVideoPickerNavigationRoute = "folder_video_picker_screen"
 internal const val folderIdArg = "folderId"
 
 internal class FolderArgs(val folderId: String) {
@@ -23,7 +23,7 @@ fun NavController.navigateToFolderVideoPickerScreen(
     navOptions: NavOptions? = null
 ) {
     val encodedFolderId = Uri.encode(folderId)
-    this.navigate("$folderVideoPickerScreenRoute/$encodedFolderId", navOptions)
+    this.navigate("$folderVideoPickerNavigationRoute/$encodedFolderId", navOptions)
 }
 
 fun NavGraphBuilder.folderVideoPickerScreen(
@@ -31,7 +31,7 @@ fun NavGraphBuilder.folderVideoPickerScreen(
     onVideoItemClick: (uri: Uri) -> Unit
 ) {
     composable(
-        route = "$folderVideoPickerScreenRoute/{$folderIdArg}",
+        route = "$folderVideoPickerNavigationRoute/{$folderIdArg}",
         arguments = listOf(
             navArgument(folderIdArg) { type = NavType.StringType }
         )

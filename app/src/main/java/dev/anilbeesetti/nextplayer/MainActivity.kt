@@ -1,9 +1,6 @@
 package dev.anilbeesetti.nextplayer
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -42,20 +39,9 @@ import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.folderVideoPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreenRoute
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToFolderVideoPickerScreen
-import dev.anilbeesetti.nextplayer.settings.Setting
-import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
-import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.settingsScreen
+import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
+import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
+import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -113,36 +99,13 @@ class MainActivity : ComponentActivity() {
                     if (storagePermissionState.status.isGranted) {
                         NavHost(
                             navController = navController,
-                            startDestination = mediaPickerScreenRoute
+                            startDestination = MEDIA_ROUTE
                         ) {
-                            mediaPickerScreen(
-                                onVideoItemClick = this@MainActivity::startPlayerActivity,
-                                onSettingsClick = navController::navigateToSettings,
-                                onFolderCLick = navController::navigateToFolderVideoPickerScreen
+                            mediaNavGraph(
+                                context = this@MainActivity,
+                                navController = navController
                             )
-                            folderVideoPickerScreen(
-                                onNavigateUp = navController::popBackStack,
-                                onVideoItemClick = this@MainActivity::startPlayerActivity
-                            )
-                            settingsScreen(
-                                onNavigateUp = navController::popBackStack,
-                                onItemClick = { setting ->
-                                    when (setting) {
-                                        Setting.APPEARANCE -> navController.navigateToAppearancePreferences()
-                                        Setting.PLAYER -> navController.navigateToPlayerPreferences()
-                                        Setting.ABOUT -> navController.navigateToAboutPreferences()
-                                    }
-                                }
-                            )
-                            appearancePreferencesScreen(
-                                onNavigateUp = navController::popBackStack
-                            )
-                            playerPreferencesScreen(
-                                onNavigateUp = navController::popBackStack
-                            )
-                            aboutPreferencesScreen(
-                                onNavigateUp = navController::popBackStack
-                            )
+                            settingsNavGraph(navController = navController)
                         }
                     } else {
                         PermissionScreen(
@@ -177,11 +140,6 @@ fun PermissionScreen(
             )
         }
     }
-}
-
-fun Context.startPlayerActivity(uri: Uri) {
-    val intent = Intent(Intent.ACTION_VIEW, uri, this, PlayerActivity::class.java)
-    startActivity(intent)
 }
 
 /**
