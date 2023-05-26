@@ -44,7 +44,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
-import dev.anilbeesetti.nextplayer.feature.player.utils.Playlist
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -79,7 +79,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private lateinit var player: Player
     private lateinit var playerGestureHelper: PlayerGestureHelper
-    private lateinit var playlist: Playlist
+    private lateinit var playlistManager: PlaylistManager
     private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var mediaSession: MediaSession
 
@@ -87,9 +87,9 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val onTrackChangeListener: (PlayerItem) -> Unit = {
-        videoTitleTextView.text = File(it.path).name
-        viewModel.updateInfo(it)
+    private val onTrackChangeListener: (Uri) -> Unit = { uri ->
+        videoTitleTextView.text = getFilenameFromUri(uri)
+        getPath(uri)?.let { viewModel.updateInfo(it) }
     }
 
     private lateinit var videoTitleTextView: TextView
@@ -149,12 +149,12 @@ class PlayerActivity : AppCompatActivity() {
             audioManager = getSystemService(android.media.AudioManager::class.java)
         )
 
-        playlist = Playlist()
+        playlistManager = PlaylistManager()
     }
 
     override fun onStart() {
         createPlayer()
-        playlist.addOnTrackChangedListener(onTrackChangeListener)
+        playlistManager.addOnTrackChangedListener(onTrackChangeListener)
         preparePlayerView()
         initializePlayerView()
         playVideo()
@@ -164,7 +164,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         binding.gestureVolumeLayout.visibility = View.GONE
         binding.gestureBrightnessLayout.visibility = View.GONE
-        playlist.removeOnTrackChangedListener(onTrackChangeListener)
+        playlistManager.removeOnTrackChangedListener(onTrackChangeListener)
         releasePlayer()
         super.onStop()
     }
@@ -258,15 +258,15 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener {
-            if (playlist.hasNext()) {
-                viewModel.saveState(playlist.getCurrent(), player.currentPosition)
-                playVideo(playlist.getNext()!!)
+            if (playlistManager.hasNext()) {
+                viewModel.saveState(playlistManager.getCurrent(), player.currentPosition)
+                playVideo(playlistManager.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
-            if (playlist.hasPrev()) {
-                viewModel.saveState(playlist.getCurrent(), player.currentPosition)
-                playVideo(playlist.getPrev()!!)
+            if (playlistManager.hasPrev()) {
+                viewModel.saveState(playlistManager.getCurrent(), player.currentPosition)
+                playVideo(playlistManager.getPrev()!!)
             }
         }
         videoZoomButton.setOnClickListener {
@@ -294,7 +294,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playVideo(item: PlayerItem) {
         player.setMediaItem(item.toMediaItem(this@PlayerActivity, null))
-        playlist.updateCurrent(item)
+        playlistManager.updateCurrent(item)
         player.playWhenReady = playWhenReady
         player.prepare()
     }
@@ -306,10 +306,10 @@ class PlayerActivity : AppCompatActivity() {
                 val playerItem = viewModel.getPlayerItemFromPath(path)
 
                 if (playerItem != null) {
-                    playlist.updateCurrent(playerItem)
+                    playlistManager.updateCurrent(playerItem)
                     launch(Dispatchers.IO) {
                         val playerItems = viewModel.getPlayerItemsFromPath(path)
-                        playlist.setPlayerItems(playerItems)
+                        playlistManager.setPlayerItems(playerItems)
                     }
                 }
 
@@ -317,7 +317,7 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             withContext(Dispatchers.Main) {
-                if (playlist.getCurrent() == null) {
+                if (playlistManager.getCurrent() == null) {
                     player.setMediaItem(
                         intentDataUri!!.toMediaItem(
                             context = this@PlayerActivity,
@@ -334,7 +334,7 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 } else {
                     player.setMediaItem(
-                        playlist.getCurrent()!!.toMediaItem(
+                        playlistManager.getCurrent()!!.toMediaItem(
                             context = this@PlayerActivity,
                             type = intentType
                         ),
@@ -350,7 +350,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun releasePlayer() {
         Timber.d("Releasing player")
         playWhenReady = player.playWhenReady
-        viewModel.saveState(playlist.getCurrent(), player.currentPosition)
+        viewModel.saveState(playlistManager.getCurrent(), player.currentPosition)
         player.removeListener(playbackStateListener)
         player.release()
         mediaSession.release()
@@ -381,7 +381,7 @@ class PlayerActivity : AppCompatActivity() {
                     dialog.dismiss()
                 }
                 .setOnDismissListener {
-                    if (playlist.hasNext()) playVideo(playlist.getNext()!!) else finish()
+                    if (playlistManager.hasNext()) playVideo(playlistManager.getNext()!!) else finish()
                 }
                 .create()
 
@@ -400,9 +400,9 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
-                    if (playlist.hasNext()) {
-                        viewModel.saveState(playlist.getCurrent(), C.TIME_UNSET)
-                        playVideo(playlist.getNext()!!)
+                    if (playlistManager.hasNext()) {
+                        viewModel.saveState(playlistManager.getCurrent(), C.TIME_UNSET)
+                        playVideo(playlistManager.getNext()!!)
                     } else {
                         finish()
                     }
@@ -410,7 +410,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
-                    Timber.d(playlist.toString())
+                    Timber.d(playlistManager.toString())
                     isFileLoaded = true
                 }
 
@@ -448,7 +448,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent != null) {
             Timber.d("new intent: ${intent.data}")
-            playlist.clearQueue()
+            playlistManager.clearQueue()
             viewModel.resetToDefaults()
             updateIntentData(intent)
             shouldFetchPlaylist = true

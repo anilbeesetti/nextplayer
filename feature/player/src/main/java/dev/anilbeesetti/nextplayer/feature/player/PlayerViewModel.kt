@@ -48,9 +48,9 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
-    fun updateInfo(playerItem: PlayerItem) {
+    fun updateInfo(path: String) {
         viewModelScope.launch {
-            val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
+            val videoState = videoRepository.getVideoState(path) ?: return@launch
 
             playbackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
             currentAudioTrackIndex.value = videoState.audioTrack

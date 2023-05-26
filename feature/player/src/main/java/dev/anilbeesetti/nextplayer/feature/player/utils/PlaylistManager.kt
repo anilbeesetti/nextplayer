@@ -1,8 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
+import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 
-class Playlist {
+class PlaylistManager {
 
     private val queue = mutableListOf<PlayerItem>()
     private var currentItem: PlayerItem? = null
@@ -10,7 +11,7 @@ class Playlist {
     /**
      * Listener that gets called when the current playing video changes
      */
-    private val onTrackChangedListeners: MutableList<(PlayerItem) -> Unit> = mutableListOf()
+    private val onTrackChangedListeners: MutableList<(Uri) -> Unit> = mutableListOf()
 
     fun clear() = queue.clear()
 
@@ -47,16 +48,16 @@ class Playlist {
         currentItem = item
         onTrackChangedListeners.forEach {
             runCatching {
-                it.invoke(item)
+                it.invoke(Uri.parse(item.uriString))
             }
         }
     }
 
-    fun addOnTrackChangedListener(listener: (PlayerItem) -> Unit) {
+    fun addOnTrackChangedListener(listener: (Uri) -> Unit) {
         onTrackChangedListeners.add(listener)
     }
 
-    fun removeOnTrackChangedListener(listener: (PlayerItem) -> Unit) {
+    fun removeOnTrackChangedListener(listener: (Uri) -> Unit) {
         onTrackChangedListeners.remove(listener)
     }
 
