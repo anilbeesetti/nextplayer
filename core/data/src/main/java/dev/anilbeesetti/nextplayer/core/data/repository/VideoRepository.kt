@@ -26,7 +26,6 @@ interface VideoRepository {
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
         playbackSpeed: Float,
-        rememberSelections: Boolean
     )
 
     /**

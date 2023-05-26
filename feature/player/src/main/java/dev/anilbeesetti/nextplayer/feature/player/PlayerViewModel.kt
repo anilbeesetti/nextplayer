@@ -53,9 +53,9 @@ class PlayerViewModel @Inject constructor(
             val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
 
             playbackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
-            currentAudioTrackIndex.value = videoState.audioTrack
-            currentSubtitleTrackIndex.value = videoState.subtitleTrack
-            currentPlaybackSpeed.value = videoState.playbackSpeed
+            currentAudioTrackIndex.value = videoState.audioTrack.takeIf { preferences.value.rememberSelections }
+            currentSubtitleTrackIndex.value = videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
+            currentPlaybackSpeed.value = videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
         }
     }
 
@@ -83,8 +83,7 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = currentAudioTrackIndex.value,
                 subtitleTrackIndex = currentSubtitleTrackIndex.value,
-                playbackSpeed = currentPlaybackSpeed.value,
-                rememberSelections = preferences.value.rememberSelections
+                playbackSpeed = currentPlaybackSpeed.value
             )
         }
     }
