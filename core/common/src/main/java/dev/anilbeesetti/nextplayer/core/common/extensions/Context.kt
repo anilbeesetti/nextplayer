@@ -5,12 +5,22 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import androidx.core.text.isDigitsOnly
 import java.io.File
+
+
+private val VIDEO_COLLECTION_URI
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+    } else {
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+    }
+
 
 /**
  * get path from uri
@@ -33,6 +43,7 @@ fun Context.getPath(uri: Uri): String? {
 
                 // TODO handle non-primary volumes
             }
+
             uri.isDownloadsDocument -> {
                 val docId = DocumentsContract.getDocumentId(uri)
                 if (docId.isDigitsOnly()) {
@@ -47,6 +58,7 @@ fun Context.getPath(uri: Uri): String? {
                     }
                 }
             }
+
             uri.isMediaDocument -> {
                 val docId = DocumentsContract.getDocumentId(uri)
                 val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -138,6 +150,35 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
         }
     } catch (e: Exception) {
         return null
+    }
+    return null
+}
+
+
+fun Context.getContentUriFromUri(uri: Uri): Uri? {
+    if (ContentResolver.SCHEME_CONTENT.equals(uri.scheme, ignoreCase = true)) return uri
+    val path = getPath(uri) ?: return null
+
+    var cursor: Cursor? = null
+    val column = MediaStore.Video.Media._ID
+    val projection = arrayOf(column)
+    try {
+        cursor = contentResolver.query(
+            VIDEO_COLLECTION_URI,
+            projection,
+            "${MediaStore.Images.Media.DATA} = ?",
+            arrayOf(path),
+            null
+        )
+        if (cursor != null && cursor.moveToFirst()) {
+            val index = cursor.getColumnIndexOrThrow(column)
+            val id = cursor.getLong(index)
+            return ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id)
+        }
+    } catch (e: Exception) {
+        return null
+    } finally {
+        cursor?.close()
     }
     return null
 }

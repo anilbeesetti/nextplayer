@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
@@ -10,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.domain.GetPlayerItemFromPathUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 import java.io.File
 import javax.inject.Inject
@@ -26,6 +28,7 @@ private const val END_POSITION_OFFSET = 5L
 class PlayerViewModel @Inject constructor(
     private val videoRepository: VideoRepository,
     private val preferencesRepository: PreferencesRepository,
+    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
     private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase,
     private val getPlayerItemFromPathUseCase: GetPlayerItemFromPathUseCase
 ) : ViewModel() {
@@ -68,18 +71,23 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlayerItemsUseCase.invoke(parent).first()
     }
 
-    fun saveState(playerItem: PlayerItem?, position: Long) {
+    suspend fun getPlaylistFromPath(path: String?): List<Uri> {
+        val parent = path?.let { File(it).parent }
+        return getSortedPlaylistUseCase.invoke(parent)
+    }
+
+    fun saveState(path: String?, position: Long, duration: Long) {
         playbackPosition.value = position
         viewModelScope.launch {
-            if (playerItem == null) return@launch
+            if (path == null) return@launch
             val newPosition = position.takeIf {
-                position < playerItem.duration - END_POSITION_OFFSET
+                position < duration - END_POSITION_OFFSET
             } ?: C.TIME_UNSET
 
-            Timber.d("Save state for ${playerItem.path}: $position")
+            Timber.d("Save state for ${path}: $position")
 
             videoRepository.saveVideoState(
-                path = playerItem.path,
+                path = path,
                 position = newPosition,
                 audioTrackIndex = currentAudioTrackIndex.value,
                 subtitleTrackIndex = currentSubtitleTrackIndex.value,

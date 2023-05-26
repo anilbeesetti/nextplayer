@@ -1,12 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.net.Uri
-import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
 
 class PlaylistManager {
 
-    private val queue = mutableListOf<PlayerItem>()
-    private var currentItem: PlayerItem? = null
+    private val queue = mutableListOf<Uri>()
+    private var currentItem: Uri? = null
 
     /**
      * Listener that gets called when the current playing video changes
@@ -23,32 +22,30 @@ class PlaylistManager {
         return currentIndex() > 0
     }
 
-    fun getNext(): PlayerItem? = queue.getOrNull(currentIndex() + 1)
+    fun getNext(): Uri? = queue.getOrNull(currentIndex() + 1)
 
-    fun getPrev(): PlayerItem? = queue.getOrNull(currentIndex() - 1)
+    fun getPrev(): Uri? = queue.getOrNull(currentIndex() - 1)
 
     fun size() = queue.size
 
-    fun currentIndex(): Int = queue.indexOfFirst {
-        it.path == currentItem?.path
-    }.takeIf { it >= 0 } ?: 0
+    fun currentIndex(): Int = queue.indexOfFirst { it == currentItem }.takeIf { it >= 0 } ?: 0
 
     fun isNotEmpty() = queue.isNotEmpty()
 
     fun isEmpty() = queue.isEmpty()
 
-    fun getCurrent(): PlayerItem? = currentItem
+    fun getCurrent(): Uri? = currentItem
 
-    fun setPlayerItems(items: List<PlayerItem>) {
+    fun setPlaylist(items: List<Uri>) {
         queue.clear()
         queue.addAll(items)
     }
 
-    fun updateCurrent(item: PlayerItem) {
-        currentItem = item
+    fun updateCurrent(uri: Uri) {
+        currentItem = uri
         onTrackChangedListeners.forEach {
             runCatching {
-                it.invoke(Uri.parse(item.uriString))
+                it.invoke(uri)
             }
         }
     }

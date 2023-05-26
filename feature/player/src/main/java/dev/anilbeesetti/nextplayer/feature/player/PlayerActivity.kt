@@ -32,10 +32,9 @@ import androidx.media3.ui.PlayerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
+import dev.anilbeesetti.nextplayer.core.common.extensions.getContentUriFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
-import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -45,12 +44,12 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -88,7 +87,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val onTrackChangeListener: (Uri) -> Unit = { uri ->
-        videoTitleTextView.text = getFilenameFromUri(uri)
+        runOnUiThread { videoTitleTextView.text = getFilenameFromUri(uri) }
         getPath(uri)?.let { viewModel.updateInfo(it) }
     }
 
@@ -259,13 +258,17 @@ class PlayerActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener {
             if (playlistManager.hasNext()) {
-                viewModel.saveState(playlistManager.getCurrent(), player.currentPosition)
+                playlistManager.getCurrent()?.let {
+                    viewModel.saveState(getPath(it), player.currentPosition, player.duration)
+                }
                 playVideo(playlistManager.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
             if (playlistManager.hasPrev()) {
-                viewModel.saveState(playlistManager.getCurrent(), player.currentPosition)
+                playlistManager.getCurrent()?.let {
+                    viewModel.saveState(getPath(it), player.currentPosition, player.duration)
+                }
                 playVideo(playlistManager.getPrev()!!)
             }
         }
@@ -292,9 +295,9 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private fun playVideo(item: PlayerItem) {
-        player.setMediaItem(item.toMediaItem(this@PlayerActivity, null))
-        playlistManager.updateCurrent(item)
+    private fun playVideo(uri: Uri) {
+        player.setMediaItem(uri.toMediaItem(this@PlayerActivity, null))
+        playlistManager.updateCurrent(uri)
         player.playWhenReady = playWhenReady
         player.prepare()
     }
@@ -303,13 +306,14 @@ class PlayerActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             if (shouldFetchPlaylist) {
                 val path = getPath(intentDataUri!!)
-                val playerItem = viewModel.getPlayerItemFromPath(path)
+                val contentUri = getContentUriFromUri(intentDataUri!!)
 
-                if (playerItem != null) {
-                    playlistManager.updateCurrent(playerItem)
+                playlistManager.updateCurrent(uri = contentUri ?: intentDataUri!!)
+
+                if (contentUri != null) {
                     launch(Dispatchers.IO) {
-                        val playerItems = viewModel.getPlayerItemsFromPath(path)
-                        playlistManager.setPlayerItems(playerItems)
+                        val playlist = viewModel.getPlaylistFromPath(path)
+                        playlistManager.setPlaylist(playlist)
                     }
                 }
 
@@ -317,29 +321,19 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             withContext(Dispatchers.Main) {
-                if (playlistManager.getCurrent() == null) {
-                    player.setMediaItem(
-                        intentDataUri!!.toMediaItem(
-                            context = this@PlayerActivity,
-                            type = intentType,
-                            extras = intentExtras
-                        ),
-                        viewModel.playbackPosition.value ?: C.TIME_UNSET
-                    )
+                player.setMediaItem(
+                    intentDataUri!!.toMediaItem(
+                        context = this@PlayerActivity,
+                        type = intentType,
+                        extras = intentExtras
+                    ),
+                    viewModel.playbackPosition.value ?: C.TIME_UNSET
+                )
 
-                    if (intentExtras?.containsKey(API_TITLE) == true) {
-                        videoTitleTextView.text = intentExtras?.getString(API_TITLE)
-                    } else {
-                        videoTitleTextView.text = intentDataUri?.let { getFilenameFromUri(it) }
-                    }
+                if (intentExtras?.containsKey(API_TITLE) == true) {
+                    videoTitleTextView.text = intentExtras?.getString(API_TITLE)
                 } else {
-                    player.setMediaItem(
-                        playlistManager.getCurrent()!!.toMediaItem(
-                            context = this@PlayerActivity,
-                            type = intentType
-                        ),
-                        viewModel.playbackPosition.value ?: C.TIME_UNSET
-                    )
+                    videoTitleTextView.text = intentDataUri?.let { getFilenameFromUri(it) }
                 }
                 player.playWhenReady = playWhenReady
                 player.prepare()
@@ -350,7 +344,9 @@ class PlayerActivity : AppCompatActivity() {
     private fun releasePlayer() {
         Timber.d("Releasing player")
         playWhenReady = player.playWhenReady
-        viewModel.saveState(playlistManager.getCurrent(), player.currentPosition)
+        playlistManager.getCurrent()?.let {
+            viewModel.saveState(getPath(it), player.currentPosition, player.duration)
+        }
         player.removeListener(playbackStateListener)
         player.release()
         mediaSession.release()
@@ -401,7 +397,9 @@ class PlayerActivity : AppCompatActivity() {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
                     if (playlistManager.hasNext()) {
-                        viewModel.saveState(playlistManager.getCurrent(), C.TIME_UNSET)
+                        playlistManager.getCurrent()?.let {
+                            viewModel.saveState(getPath(it), C.TIME_UNSET, player.duration)
+                        }
                         playVideo(playlistManager.getNext()!!)
                     } else {
                         finish()
@@ -469,7 +467,8 @@ class PlayerActivity : AppCompatActivity() {
         intentType = intent.type
 
         if (intentExtras?.containsKey(API_POSITION) == true) {
-            viewModel.playbackPosition.value = intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
+            viewModel.playbackPosition.value =
+                intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
         }
     }
 
