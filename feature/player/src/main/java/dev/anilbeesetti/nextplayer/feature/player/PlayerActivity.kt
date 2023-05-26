@@ -115,7 +115,7 @@ class PlayerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.playbackPosition.collectLatest { position ->
+                    viewModel.currentPlaybackPosition.collectLatest { position ->
                         if (position != null && position != C.TIME_UNSET) {
                             Timber.d("Setting position: $position")
                             player.seekTo(position)
@@ -324,7 +324,7 @@ class PlayerActivity : AppCompatActivity() {
                             type = intentType,
                             extras = intentExtras
                         ),
-                        viewModel.playbackPosition.value ?: C.TIME_UNSET
+                        viewModel.currentPlaybackPosition.value ?: C.TIME_UNSET
                     )
 
                     if (intentExtras?.containsKey(API_TITLE) == true) {
@@ -338,7 +338,7 @@ class PlayerActivity : AppCompatActivity() {
                             context = this@PlayerActivity,
                             type = intentType
                         ),
-                        viewModel.playbackPosition.value ?: C.TIME_UNSET
+                        viewModel.currentPlaybackPosition.value ?: C.TIME_UNSET
                     )
                 }
                 player.playWhenReady = playWhenReady
@@ -469,7 +469,7 @@ class PlayerActivity : AppCompatActivity() {
         intentType = intent.type
 
         if (intentExtras?.containsKey(API_POSITION) == true) {
-            viewModel.playbackPosition.value = intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
+            viewModel.currentPlaybackPosition.value = intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
         }
     }
 

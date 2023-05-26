@@ -29,17 +29,16 @@ class PlayerViewModel @Inject constructor(
     private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase,
     private val getPlayerItemFromPathUseCase: GetPlayerItemFromPathUseCase
 ) : ViewModel() {
+    var currentPlaybackPosition = MutableStateFlow<Long?>(null)
+        private set
 
-    var playbackPosition = MutableStateFlow<Long?>(null)
+    var currentPlaybackSpeed = MutableStateFlow(1f)
         private set
 
     var currentAudioTrackIndex = MutableStateFlow<Int?>(null)
         private set
 
     var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
-        private set
-
-    var currentPlaybackSpeed = MutableStateFlow(1f)
         private set
 
     val preferences = preferencesRepository.playerPreferencesFlow.stateIn(
@@ -52,7 +51,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
 
-            playbackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
+            currentPlaybackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
             currentAudioTrackIndex.value = videoState.audioTrack.takeIf { preferences.value.rememberSelections }
             currentSubtitleTrackIndex.value = videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
             currentPlaybackSpeed.value = videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
@@ -69,7 +68,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun saveState(playerItem: PlayerItem?, position: Long) {
-        playbackPosition.value = position
+        currentPlaybackPosition.value = position
         viewModelScope.launch {
             if (playerItem == null) return@launch
             val newPosition = position.takeIf {
@@ -106,7 +105,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun resetToDefaults() {
-        playbackPosition.value = null
+        currentPlaybackPosition.value = null
         currentPlaybackSpeed.value = 1f
         currentAudioTrackIndex.value = null
         currentSubtitleTrackIndex.value = null
