@@ -37,6 +37,7 @@ class LocalVideoRepository @Inject constructor(
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
+        playbackSpeed: Float,
         rememberSelections: Boolean
     ) {
         Timber.d("save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex]")
@@ -50,8 +51,9 @@ class LocalVideoRepository @Inject constructor(
                     VideoEntity(
                         path = path,
                         playbackPosition = position,
-                        audioTrack = audioTrackIndex,
-                        subtitleTrack = subtitleTrackIndex
+                        audioTrack = audioTrackIndex.takeIf { rememberSelections },
+                        subtitleTrack = subtitleTrackIndex.takeIf { rememberSelections },
+                        playbackSpeed = playbackSpeed.takeIf { rememberSelections } ?: 1f
                     )
                 )
             } else {
@@ -63,7 +65,10 @@ class LocalVideoRepository @Inject constructor(
                         } ?: videoEntity.audioTrack,
                         subtitleTrack = subtitleTrackIndex.takeIf {
                             rememberSelections
-                        } ?: videoEntity.subtitleTrack
+                        } ?: videoEntity.subtitleTrack,
+                        playbackSpeed = playbackSpeed.takeIf {
+                            rememberSelections
+                        } ?: videoEntity.playbackSpeed
                     )
                 )
             }

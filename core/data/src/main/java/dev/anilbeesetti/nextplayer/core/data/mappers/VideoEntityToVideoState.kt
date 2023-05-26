@@ -8,6 +8,7 @@ fun VideoEntity.toVideoState(): VideoState {
         path = path,
         position = playbackPosition,
         audioTrack = audioTrack,
-        subtitleTrack = subtitleTrack
+        subtitleTrack = subtitleTrack,
+        playbackSpeed = playbackSpeed
     )
 }

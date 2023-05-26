@@ -4,5 +4,6 @@ data class VideoState(
     val path: String,
     val position: Long,
     val audioTrack: Int?,
-    val subtitleTrack: Int?
+    val subtitleTrack: Int?,
+    val playbackSpeed: Float
 )
