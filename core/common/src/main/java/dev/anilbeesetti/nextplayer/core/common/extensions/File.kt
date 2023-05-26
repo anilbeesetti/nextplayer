@@ -3,13 +3,17 @@ package dev.anilbeesetti.nextplayer.core.common.extensions
 import java.io.File
 
 fun File.getSubtitles(): List<File> {
-    val subtitleExtensions = listOf("srt")
     val mediaName = this.nameWithoutExtension
     val subs = this.parentFile?.listFiles { file ->
-        file.extension in subtitleExtensions && file.nameWithoutExtension == mediaName
+        file.isSubtitle() && file.nameWithoutExtension.startsWith(mediaName)
     }?.toList() ?: emptyList()
 
     return subs
+}
+
+fun File.isSubtitle(): Boolean {
+    val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
+    return extension in subtitleExtensions
 }
 
 val File.prettyName: String
