@@ -10,6 +10,6 @@ data class VideoEntity(
     val playbackPosition: Long,
     val audioTrack: Int? = null,
     val subtitleTrack: Int? = null,
-    @ColumnInfo(name = "playback_speed", defaultValue = "1.0")
+    @ColumnInfo(name = "playbackSpeed", defaultValue = "1.0")
     val playbackSpeed: Float = 1f
 )
