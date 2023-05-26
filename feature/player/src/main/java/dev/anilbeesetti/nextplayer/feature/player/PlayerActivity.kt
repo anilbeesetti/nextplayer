@@ -108,10 +108,7 @@ class PlayerActivity : AppCompatActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        intentDataUri = intent.data
-        intentExtras = intent.extras
-        intentType = intent.type
-
+        updateIntentData(intent)
         Timber.d("data: $intentDataUri")
 
         // Collecting flows from view model
@@ -326,17 +323,14 @@ class PlayerActivity : AppCompatActivity() {
                             context = this@PlayerActivity,
                             type = intentType,
                             extras = intentExtras
-                        )
+                        ),
+                        viewModel.playbackPosition.value ?: C.TIME_UNSET
                     )
 
                     if (intentExtras?.containsKey(API_TITLE) == true) {
                         videoTitleTextView.text = intentExtras?.getString(API_TITLE)
                     } else {
                         videoTitleTextView.text = intentDataUri?.let { getFilenameFromUri(it) }
-                    }
-
-                    if (intentExtras?.containsKey(API_POSITION) == true) {
-                        player.seekTo(intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET)
                     }
                 } else {
                     player.setMediaItem(
@@ -455,9 +449,8 @@ class PlayerActivity : AppCompatActivity() {
         if (intent != null) {
             Timber.d("new intent: ${intent.data}")
             playlist.clearQueue()
-            intentDataUri = intent.data
-            intentExtras = intent.extras
-            intentType = intent.type
+            viewModel.resetToDefaults()
+            updateIntentData(intent)
             shouldFetchPlaylist = true
             playVideo()
         }
@@ -468,6 +461,16 @@ class PlayerActivity : AppCompatActivity() {
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
             .build()
+    }
+
+    private fun updateIntentData(intent: Intent) {
+        intentDataUri = intent.data
+        intentExtras = intent.extras
+        intentType = intent.type
+
+        if (intentExtras?.containsKey(API_POSITION) == true) {
+            viewModel.playbackPosition.value = intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
+        }
     }
 
     companion object {

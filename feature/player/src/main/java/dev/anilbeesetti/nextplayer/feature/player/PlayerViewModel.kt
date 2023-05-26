@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.domain.GetPlayerItemFromPathUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
@@ -48,15 +48,11 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
-    suspend fun getVideoState(path: String): VideoState? {
-        return videoRepository.getVideoState(path)
-    }
-
     fun updateInfo(playerItem: PlayerItem) {
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
 
-            playbackPosition.value = videoState.position
+            playbackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
             currentAudioTrackIndex.value = videoState.audioTrack
             currentSubtitleTrackIndex.value = videoState.subtitleTrack
         }
@@ -91,18 +87,6 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun saveState(path: String, position: Long) {
-        viewModelScope.launch {
-            videoRepository.saveVideoState(
-                path = path,
-                position = position,
-                audioTrackIndex = currentAudioTrackIndex.value,
-                subtitleTrackIndex = currentAudioTrackIndex.value,
-                rememberSelections = preferences.value.rememberSelections
-            )
-        }
-    }
-
     fun switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
         when (trackType) {
             C.TRACK_TYPE_AUDIO -> currentAudioTrackIndex.value = trackIndex
@@ -118,5 +102,12 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.setPlayerBrightness(value)
         }
+    }
+
+    fun resetToDefaults() {
+        playbackPosition.value = null
+        currentPlaybackSpeed.value = 1f
+        currentAudioTrackIndex.value = null
+        currentSubtitleTrackIndex.value = null
     }
 }
