@@ -9,18 +9,14 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
-import dev.anilbeesetti.nextplayer.core.domain.GetPlayerItemFromPathUseCase
-import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
-import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
+import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -28,9 +24,7 @@ private const val END_POSITION_OFFSET = 5L
 class PlayerViewModel @Inject constructor(
     private val videoRepository: VideoRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
-    private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase,
-    private val getPlayerItemFromPathUseCase: GetPlayerItemFromPathUseCase
+    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase
 ) : ViewModel() {
 
     var playbackPosition = MutableStateFlow<Long?>(null)
@@ -55,20 +49,12 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(path) ?: return@launch
 
-            playbackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
+            playbackPosition.value =
+                videoState.position.takeIf { preferences.value.resume == Resume.YES }
             currentAudioTrackIndex.value = videoState.audioTrack
             currentSubtitleTrackIndex.value = videoState.subtitleTrack
             currentPlaybackSpeed.value = videoState.playbackSpeed
         }
-    }
-
-    fun getPlayerItemFromPath(path: String?): PlayerItem? {
-        return getPlayerItemFromPathUseCase.invoke(path)
-    }
-
-    suspend fun getPlayerItemsFromPath(path: String?): List<PlayerItem> {
-        val parent = path?.let { File(it).parent }
-        return getSortedPlayerItemsUseCase.invoke(parent).first()
     }
 
     suspend fun getPlaylistFromPath(path: String?): List<Uri> {

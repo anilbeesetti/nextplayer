@@ -65,7 +65,7 @@ class PlaylistManager {
 
     override fun toString(): String = buildString {
         append("########## playlist ##########\n")
-        queue.forEach { append(it.path + "\n") }
+        queue.forEach { append(it.toString() + "\n") }
         append("##############################")
     }
 }
