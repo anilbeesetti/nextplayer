@@ -101,7 +101,10 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = MEDIA_ROUTE
                         ) {
-                            mediaNavGraph(context = this@MainActivity, navController = navController)
+                            mediaNavGraph(
+                                context = this@MainActivity,
+                                navController = navController
+                            )
                             settingsNavGraph(navController = navController)
                         }
                     } else {

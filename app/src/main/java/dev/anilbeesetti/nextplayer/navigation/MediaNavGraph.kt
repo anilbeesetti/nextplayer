@@ -8,8 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.folderVideoPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerNavigationRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToFolderVideoPickerScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
