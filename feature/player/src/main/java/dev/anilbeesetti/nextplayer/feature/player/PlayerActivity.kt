@@ -35,6 +35,7 @@ import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getContentUriFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -49,7 +50,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint

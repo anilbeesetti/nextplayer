@@ -13,14 +13,12 @@ import android.provider.OpenableColumns
 import androidx.core.text.isDigitsOnly
 import java.io.File
 
-
 private val VIDEO_COLLECTION_URI
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
     } else {
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI
     }
-
 
 /**
  * get path from uri
@@ -153,7 +151,6 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
     }
     return null
 }
-
 
 fun Context.getContentUriFromUri(uri: Uri): Uri? {
     if (ContentResolver.SCHEME_CONTENT.equals(uri.scheme, ignoreCase = true)) return uri

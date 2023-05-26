@@ -2,9 +2,9 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import kotlinx.coroutines.flow.first
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 
 class GetSortedPlaylistUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,

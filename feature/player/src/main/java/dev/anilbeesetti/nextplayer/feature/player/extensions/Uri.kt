@@ -65,7 +65,6 @@ fun Uri.toMediaItem(context: Context, type: String?, extras: Bundle? = null): Me
         val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
 
         if (extras.containsKey(PlayerActivity.API_SUBS)) {
-
             val subs = extras.getParcelableUriArray(PlayerActivity.API_SUBS)
             val subsName = extras.getStringArray(PlayerActivity.API_SUBS_NAME)
 
@@ -97,7 +96,6 @@ fun Uri.toMediaItem(context: Context, type: String?, extras: Bundle? = null): Me
 
     return mediaItemBuilder.build()
 }
-
 
 fun Bundle.getParcelableUriArray(key: String): Array<out Parcelable>? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

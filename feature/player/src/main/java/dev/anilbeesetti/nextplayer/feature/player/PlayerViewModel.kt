@@ -10,13 +10,13 @@ import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
-import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -70,7 +70,7 @@ class PlayerViewModel @Inject constructor(
                 position < duration - END_POSITION_OFFSET
             } ?: C.TIME_UNSET
 
-            Timber.d("Save state for ${path}: $position")
+            Timber.d("Save state for $path: $position")
 
             videoRepository.saveVideoState(
                 path = path,
