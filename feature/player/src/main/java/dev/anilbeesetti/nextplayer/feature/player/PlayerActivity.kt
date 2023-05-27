@@ -326,7 +326,7 @@ class PlayerActivity : AppCompatActivity() {
                         type = intentType,
                         extras = intentExtras
                     ),
-                    viewModel.playbackPosition.value ?: C.TIME_UNSET
+                    viewModel.currentPlaybackPosition.value ?: C.TIME_UNSET
                 )
 
                 if (intentExtras?.containsKey(API_TITLE) == true) {
