@@ -60,9 +60,8 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    suspend fun getPlaylistFromPath(path: String?): List<Uri> {
-        val parent = path?.let { File(it).parent }
-        return getSortedPlaylistUseCase.invoke(parent)
+    suspend fun getPlaylistFromUri(uri: Uri): List<Uri> {
+        return getSortedPlaylistUseCase.invoke(uri)
     }
 
     fun saveState(path: String?, position: Long, duration: Long) {

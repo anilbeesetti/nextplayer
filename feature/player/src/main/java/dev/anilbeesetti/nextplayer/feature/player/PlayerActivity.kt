@@ -305,14 +305,13 @@ class PlayerActivity : AppCompatActivity() {
     private fun playVideo() {
         lifecycleScope.launch(Dispatchers.IO) {
             if (shouldFetchPlaylist) {
-                val path = getPath(intentDataUri!!)
                 val contentUri = getContentUriFromUri(intentDataUri!!)
 
                 playlistManager.updateCurrent(uri = contentUri ?: intentDataUri!!)
 
                 if (contentUri != null) {
                     launch(Dispatchers.IO) {
-                        val playlist = viewModel.getPlaylistFromPath(path)
+                        val playlist = viewModel.getPlaylistFromUri(contentUri)
                         playlistManager.setPlaylist(playlist)
                     }
                 }
