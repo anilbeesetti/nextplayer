@@ -58,7 +58,6 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-
     fun saveState(path: String?, position: Long, duration: Long) {
         currentPlaybackPosition.value = position
         viewModelScope.launch {
