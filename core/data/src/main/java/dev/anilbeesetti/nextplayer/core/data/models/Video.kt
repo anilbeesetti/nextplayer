@@ -29,6 +29,4 @@ data class Video(
         get() = Uri.parse(uriString)
     val subtitleTracks: List<File>
         get() = File(path).getSubtitles()
-    val subtitleExtensions: List<String>
-        get() = subtitleTracks.map { it.extension }.distinct()
 }

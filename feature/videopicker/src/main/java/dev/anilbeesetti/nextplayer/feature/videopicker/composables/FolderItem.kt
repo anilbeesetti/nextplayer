@@ -4,6 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +28,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun FolderItem(
     folder: Folder,
@@ -78,15 +80,15 @@ fun FolderItem(
                     ),
                     overflow = TextOverflow.Ellipsis
                 )
-                Row(
+                FlowRow(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     InfoChip(
-                        text = "${folder.mediaCount} ${"video".takeIf { folder.mediaCount == 1 } ?: "videos"}"
+                        text = "${folder.mediaCount} ${"video".takeIf { folder.mediaCount == 1 } ?: "videos"}",
+                        modifier = Modifier.padding(vertical = 5.dp)
                     )
                 }
             }
