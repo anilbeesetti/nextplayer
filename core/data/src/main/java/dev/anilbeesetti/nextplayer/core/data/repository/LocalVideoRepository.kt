@@ -33,41 +33,21 @@ class LocalVideoRepository @Inject constructor(
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
-        playbackSpeed: Float,
-        rememberSelections: Boolean
+        playbackSpeed: Float
     ) {
         Timber.d("save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex]")
 
         // TODO: Replace global scope with application wide scope
         GlobalScope.launch {
-            val videoEntity = videoDao.get(path)
-
-            if (videoEntity == null) {
-                videoDao.upsert(
-                    VideoEntity(
-                        path = path,
-                        playbackPosition = position,
-                        audioTrack = audioTrackIndex.takeIf { rememberSelections },
-                        subtitleTrack = subtitleTrackIndex.takeIf { rememberSelections },
-                        playbackSpeed = playbackSpeed.takeIf { rememberSelections } ?: 1f
-                    )
+            videoDao.upsert(
+                VideoEntity(
+                    path = path,
+                    playbackPosition = position,
+                    audioTrack = audioTrackIndex,
+                    subtitleTrack = subtitleTrackIndex,
+                    playbackSpeed = playbackSpeed
                 )
-            } else {
-                videoDao.upsert(
-                    videoEntity.copy(
-                        playbackPosition = position,
-                        audioTrack = audioTrackIndex.takeIf {
-                            rememberSelections
-                        } ?: videoEntity.audioTrack,
-                        subtitleTrack = subtitleTrackIndex.takeIf {
-                            rememberSelections
-                        } ?: videoEntity.subtitleTrack,
-                        playbackSpeed = playbackSpeed.takeIf {
-                            rememberSelections
-                        } ?: videoEntity.playbackSpeed
-                    )
-                )
-            }
+            )
         }
     }
 }

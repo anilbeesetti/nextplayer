@@ -25,17 +25,16 @@ class PlayerViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase
 ) : ViewModel() {
+    var currentPlaybackPosition = MutableStateFlow<Long?>(null)
+        private set
 
-    var playbackPosition = MutableStateFlow<Long?>(null)
+    var currentPlaybackSpeed = MutableStateFlow(1f)
         private set
 
     var currentAudioTrackIndex = MutableStateFlow<Int?>(null)
         private set
 
     var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
-        private set
-
-    var currentPlaybackSpeed = MutableStateFlow(1f)
         private set
 
     val preferences = preferencesRepository.playerPreferencesFlow.stateIn(
@@ -48,11 +47,10 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(path) ?: return@launch
 
-            playbackPosition.value =
-                videoState.position.takeIf { preferences.value.resume == Resume.YES }
-            currentAudioTrackIndex.value = videoState.audioTrack
-            currentSubtitleTrackIndex.value = videoState.subtitleTrack
-            currentPlaybackSpeed.value = videoState.playbackSpeed
+            currentPlaybackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
+            currentAudioTrackIndex.value = videoState.audioTrack.takeIf { preferences.value.rememberSelections }
+            currentSubtitleTrackIndex.value = videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
+            currentPlaybackSpeed.value = videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
         }
     }
 
@@ -60,8 +58,9 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
+
     fun saveState(path: String?, position: Long, duration: Long) {
-        playbackPosition.value = position
+        currentPlaybackPosition.value = position
         viewModelScope.launch {
             if (path == null) return@launch
             val newPosition = position.takeIf {
@@ -75,8 +74,7 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = currentAudioTrackIndex.value,
                 subtitleTrackIndex = currentSubtitleTrackIndex.value,
-                playbackSpeed = currentPlaybackSpeed.value,
-                rememberSelections = preferences.value.rememberSelections
+                playbackSpeed = currentPlaybackSpeed.value
             )
         }
     }
@@ -99,7 +97,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun resetToDefaults() {
-        playbackPosition.value = null
+        currentPlaybackPosition.value = null
         currentPlaybackSpeed.value = 1f
         currentAudioTrackIndex.value = null
         currentSubtitleTrackIndex.value = null
