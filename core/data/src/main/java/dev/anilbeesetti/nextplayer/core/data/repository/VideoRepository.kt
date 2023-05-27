@@ -34,6 +34,4 @@ interface VideoRepository {
      * @return [VideoState] of the video
      */
     suspend fun getVideoState(path: String): VideoState?
-
-    fun getVideo(path: String): Video?
 }

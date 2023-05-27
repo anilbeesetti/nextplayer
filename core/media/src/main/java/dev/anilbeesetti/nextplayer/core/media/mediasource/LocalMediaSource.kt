@@ -4,9 +4,9 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
-import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -56,29 +56,7 @@ class LocalMediaSource @Inject constructor(
         }
         return mediaVideos
     }
-
-    override fun getMediaFromPath(path: String): MediaVideo? {
-        context.contentResolver.query(
-            VIDEO_COLLECTION_URI,
-            VIDEO_PROJECTION,
-            MediaStore.MediaColumns.DATA + " = ?",
-            arrayOf(path),
-            null
-        )?.use { cursor ->
-            if (cursor.moveToNext()) {
-                return cursor.toMediaVideo
-            }
-        }
-        return null
-    }
 }
-
-private val VIDEO_COLLECTION_URI
-    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-    } else {
-        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-    }
 
 private val VIDEO_PROJECTION
     get() = arrayOf(

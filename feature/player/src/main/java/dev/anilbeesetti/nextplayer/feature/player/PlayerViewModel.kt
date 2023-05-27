@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
@@ -8,14 +9,10 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.Resume
-import dev.anilbeesetti.nextplayer.core.domain.GetPlayerItemFromPathUseCase
-import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlayerItemsUseCase
-import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
-import java.io.File
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -26,8 +23,7 @@ private const val END_POSITION_OFFSET = 5L
 class PlayerViewModel @Inject constructor(
     private val videoRepository: VideoRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val getSortedPlayerItemsUseCase: GetSortedPlayerItemsUseCase,
-    private val getPlayerItemFromPathUseCase: GetPlayerItemFromPathUseCase
+    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase
 ) : ViewModel() {
     var currentPlaybackPosition = MutableStateFlow<Long?>(null)
         private set
@@ -47,9 +43,9 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
-    fun updateInfo(playerItem: PlayerItem) {
+    fun updateInfo(path: String) {
         viewModelScope.launch {
-            val videoState = videoRepository.getVideoState(playerItem.path) ?: return@launch
+            val videoState = videoRepository.getVideoState(path) ?: return@launch
 
             currentPlaybackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
             currentAudioTrackIndex.value = videoState.audioTrack.takeIf { preferences.value.rememberSelections }
@@ -58,27 +54,22 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun getPlayerItemFromPath(path: String?): PlayerItem? {
-        return getPlayerItemFromPathUseCase.invoke(path)
+    suspend fun getPlaylistFromUri(uri: Uri): List<Uri> {
+        return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    suspend fun getPlayerItemsFromPath(path: String?): List<PlayerItem> {
-        val parent = path?.let { File(it).parent }
-        return getSortedPlayerItemsUseCase.invoke(parent).first()
-    }
-
-    fun saveState(playerItem: PlayerItem?, position: Long) {
+    fun saveState(path: String?, position: Long, duration: Long) {
         currentPlaybackPosition.value = position
         viewModelScope.launch {
-            if (playerItem == null) return@launch
+            if (path == null) return@launch
             val newPosition = position.takeIf {
-                position < playerItem.duration - END_POSITION_OFFSET
+                position < duration - END_POSITION_OFFSET
             } ?: C.TIME_UNSET
 
-            Timber.d("Save state for ${playerItem.path}: $position")
+            Timber.d("Save state for $path: $position")
 
             videoRepository.saveVideoState(
-                path = playerItem.path,
+                path = path,
                 position = newPosition,
                 audioTrackIndex = currentAudioTrackIndex.value,
                 subtitleTrackIndex = currentSubtitleTrackIndex.value,

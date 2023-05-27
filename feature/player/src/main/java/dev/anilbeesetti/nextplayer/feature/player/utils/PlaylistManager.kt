@@ -1,16 +1,16 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
-import dev.anilbeesetti.nextplayer.core.domain.model.PlayerItem
+import android.net.Uri
 
-class Playlist {
+class PlaylistManager {
 
-    private val queue = mutableListOf<PlayerItem>()
-    private var currentItem: PlayerItem? = null
+    private val queue = mutableListOf<Uri>()
+    private var currentItem: Uri? = null
 
     /**
      * Listener that gets called when the current playing video changes
      */
-    private val onTrackChangedListeners: MutableList<(PlayerItem) -> Unit> = mutableListOf()
+    private val onTrackChangedListeners: MutableList<(Uri) -> Unit> = mutableListOf()
 
     fun clear() = queue.clear()
 
@@ -22,41 +22,39 @@ class Playlist {
         return currentIndex() > 0
     }
 
-    fun getNext(): PlayerItem? = queue.getOrNull(currentIndex() + 1)
+    fun getNext(): Uri? = queue.getOrNull(currentIndex() + 1)
 
-    fun getPrev(): PlayerItem? = queue.getOrNull(currentIndex() - 1)
+    fun getPrev(): Uri? = queue.getOrNull(currentIndex() - 1)
 
     fun size() = queue.size
 
-    fun currentIndex(): Int = queue.indexOfFirst {
-        it.path == currentItem?.path
-    }.takeIf { it >= 0 } ?: 0
+    fun currentIndex(): Int = queue.indexOfFirst { it == currentItem }.takeIf { it >= 0 } ?: 0
 
     fun isNotEmpty() = queue.isNotEmpty()
 
     fun isEmpty() = queue.isEmpty()
 
-    fun getCurrent(): PlayerItem? = currentItem
+    fun getCurrent(): Uri? = currentItem
 
-    fun setPlayerItems(items: List<PlayerItem>) {
+    fun setPlaylist(items: List<Uri>) {
         queue.clear()
         queue.addAll(items)
     }
 
-    fun updateCurrent(item: PlayerItem) {
-        currentItem = item
+    fun updateCurrent(uri: Uri) {
+        currentItem = uri
         onTrackChangedListeners.forEach {
             runCatching {
-                it.invoke(item)
+                it.invoke(uri)
             }
         }
     }
 
-    fun addOnTrackChangedListener(listener: (PlayerItem) -> Unit) {
+    fun addOnTrackChangedListener(listener: (Uri) -> Unit) {
         onTrackChangedListeners.add(listener)
     }
 
-    fun removeOnTrackChangedListener(listener: (PlayerItem) -> Unit) {
+    fun removeOnTrackChangedListener(listener: (Uri) -> Unit) {
         onTrackChangedListeners.remove(listener)
     }
 
@@ -67,7 +65,7 @@ class Playlist {
 
     override fun toString(): String = buildString {
         append("########## playlist ##########\n")
-        queue.forEach { append(it.path + "\n") }
+        queue.forEach { append(it.toString() + "\n") }
         append("##############################")
     }
 }

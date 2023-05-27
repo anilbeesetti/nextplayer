@@ -37,8 +37,4 @@ class FakeVideoRepository : VideoRepository {
     override suspend fun getVideoState(path: String): VideoState? {
         return videoEntities.find { it.path == path }?.toVideoState()
     }
-
-    override fun getVideo(path: String): Video? {
-        return videoItems.find { it.path == path }
-    }
 }
