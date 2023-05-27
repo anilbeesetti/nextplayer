@@ -13,7 +13,7 @@ import android.provider.OpenableColumns
 import androidx.core.text.isDigitsOnly
 import java.io.File
 
-private val VIDEO_COLLECTION_URI
+val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
     } else {
