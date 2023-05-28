@@ -133,7 +133,9 @@ fun VideoItem(
                         InfoChip(text = "SUB")
                     }
                     InfoChip(text = formattedSize, modifier = Modifier.padding(vertical = 5.dp))
-                    InfoChip(text = "${video.width} x ${video.height}")
+                    if (video.width > 0 && video.height > 0) {
+                        InfoChip(text = "${video.width} x ${video.height}")
+                    }
                 }
             }
         }
