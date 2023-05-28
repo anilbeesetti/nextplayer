@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.models
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
+import dev.anilbeesetti.nextplayer.core.common.extensions.getThumbnails
 import java.io.File
 
 /**
@@ -27,6 +28,8 @@ data class Video(
 ) {
     val uri: Uri
         get() = Uri.parse(uriString)
+    val thumbs: List<File>
+        get() = File(path).getThumbnails()
     val subtitleTracks: List<File>
         get() = File(path).getSubtitles()
     val subtitleExtensions: List<String>
