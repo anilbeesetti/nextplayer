@@ -37,11 +37,25 @@ interface PreferencesRepository {
     suspend fun setSortBy(sortBy: SortBy)
 
     /**
-     * Sets the playback resume of the video items.
+     * Sets the group videos by folder of the video items.
      *
-     * @param resume The playback resume to be set.
+     * @param value The group videos by folder to be set.
      */
-    suspend fun setPlaybackResume(resume: Resume)
+    suspend fun setGroupVideosByFolder(value: Boolean)
+
+    /**
+     * Sets the theme config.
+     *
+     * @param themeConfig The theme config to be set.
+     */
+    suspend fun setThemeConfig(themeConfig: ThemeConfig)
+
+    /**
+     * Sets whether the dynamic colors is enabled.
+     *
+     * @param value Weather the dynamic color to be enabled.
+     */
+    suspend fun setUseDynamicColors(value: Boolean)
 
     /**
      * Sets whether the player should remember the brightness level.
@@ -49,6 +63,13 @@ interface PreferencesRepository {
      * @param value should remember the brightness level.
      */
     suspend fun shouldRememberPlayerBrightness(value: Boolean)
+
+    /**
+     * Sets the playback resume of the video items.
+     *
+     * @param resume The playback resume to be set.
+     */
+    suspend fun setPlaybackResume(resume: Resume)
 
     /**
      * Sets the brightness level of the video items.
@@ -72,13 +93,6 @@ interface PreferencesRepository {
     suspend fun setFastSeek(seek: FastSeek)
 
     /**
-     * Sets the group videos by folder of the video items.
-     *
-     * @param value The group videos by folder to be set.
-     */
-    suspend fun setGroupVideosByFolder(value: Boolean)
-
-    /**
      * Sets the use of swipe controls to adjust volume and brightness.
      *
      * @param value The use of swipe controls to be set.
@@ -98,18 +112,4 @@ interface PreferencesRepository {
      * @param value The use of swipe controls to be set.
      */
     suspend fun setRememberSelections(value: Boolean)
-
-    /**
-     * Sets the theme config.
-     *
-     * @param themeConfig The theme config to be set.
-     */
-    suspend fun setThemeConfig(themeConfig: ThemeConfig)
-
-    /**
-     * Sets whether the dynamic colors is enabled.
-     *
-     * @param value Weather the dynamic color to be enabled.
-     */
-    suspend fun setUseDynamicColors(value: Boolean)
 }

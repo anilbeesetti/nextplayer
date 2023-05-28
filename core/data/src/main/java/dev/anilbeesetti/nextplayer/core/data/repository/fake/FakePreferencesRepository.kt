@@ -1,5 +1,6 @@
-package dev.anilbeesetti.nextplayer.core.data.repository
+package dev.anilbeesetti.nextplayer.core.data.repository.fake
 
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
@@ -14,8 +15,8 @@ import kotlinx.coroutines.flow.update
 
 class FakePreferencesRepository : PreferencesRepository {
 
-    val appPreferences = MutableStateFlow(AppPreferences())
-    val playerPreferences = MutableStateFlow(PlayerPreferences())
+    private val appPreferences = MutableStateFlow(AppPreferences())
+    private val playerPreferences = MutableStateFlow(PlayerPreferences())
 
     override val appPreferencesFlow: Flow<AppPreferences>
         get() = appPreferences

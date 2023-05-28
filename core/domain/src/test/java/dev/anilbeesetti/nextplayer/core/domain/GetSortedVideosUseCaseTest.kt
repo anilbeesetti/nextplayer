@@ -1,8 +1,8 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.data.models.Video
-import dev.anilbeesetti.nextplayer.core.data.repository.FakePreferencesRepository
-import dev.anilbeesetti.nextplayer.core.data.repository.FakeVideoRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeVideoRepository
 import dev.anilbeesetti.nextplayer.core.datastore.SortBy
 import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi

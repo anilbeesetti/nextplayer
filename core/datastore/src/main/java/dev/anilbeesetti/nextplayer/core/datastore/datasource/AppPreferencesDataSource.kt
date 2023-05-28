@@ -2,9 +2,6 @@ package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
-import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
 import javax.inject.Inject
 import timber.log.Timber
 
@@ -14,41 +11,9 @@ class AppPreferencesDataSource @Inject constructor(
 
     val preferencesFlow = appPreferences.data
 
-    suspend fun setSortBy(sortBy: SortBy) {
+    suspend fun updateData(transform: suspend (AppPreferences) -> AppPreferences) {
         try {
-            appPreferences.updateData { it.copy(sortBy = sortBy) }
-        } catch (ioException: Exception) {
-            Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
-        }
-    }
-
-    suspend fun setSortOrder(sortOrder: SortOrder) {
-        try {
-            appPreferences.updateData { it.copy(sortOrder = sortOrder) }
-        } catch (ioException: Exception) {
-            Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
-        }
-    }
-
-    suspend fun setGroupVideosByFolder(groupVideosByFolder: Boolean) {
-        try {
-            appPreferences.updateData { it.copy(groupVideosByFolder = groupVideosByFolder) }
-        } catch (ioException: Exception) {
-            Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
-        }
-    }
-
-    suspend fun setThemeConfig(themeConfig: ThemeConfig) {
-        try {
-            appPreferences.updateData { it.copy(themeConfig = themeConfig) }
-        } catch (ioException: Exception) {
-            Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
-        }
-    }
-
-    suspend fun setUseDynamicColors(value: Boolean) {
-        try {
-            appPreferences.updateData { it.copy(useDynamicColors = value) }
+            appPreferences.updateData(transform)
         } catch (ioException: Exception) {
             Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
         }
