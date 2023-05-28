@@ -10,8 +10,8 @@ import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
 import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.PlayerPreferencesDataSource
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 class LocalPreferencesRepository @Inject constructor(
     private val appPreferencesDataSource: AppPreferencesDataSource,

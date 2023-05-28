@@ -112,5 +112,4 @@ interface PreferencesRepository {
      * @param value The use of swipe controls to be set.
      */
     suspend fun setRememberSelections(value: Boolean)
-
 }
