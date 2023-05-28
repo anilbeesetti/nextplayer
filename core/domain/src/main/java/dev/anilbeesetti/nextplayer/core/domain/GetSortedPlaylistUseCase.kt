@@ -5,11 +5,11 @@ import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.io.File
+import javax.inject.Inject
 
 class GetSortedPlaylistUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
@@ -28,6 +28,6 @@ class GetSortedPlaylistUseCase @Inject constructor(
             } else {
                 true
             }
-        }.map { it.uri }
+        }.map { Uri.parse(it.uriString) }
     }
 }

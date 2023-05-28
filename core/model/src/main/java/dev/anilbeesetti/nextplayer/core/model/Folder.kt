@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.data.models
+package dev.anilbeesetti.nextplayer.core.model
 
 data class Folder(
     val name: String,

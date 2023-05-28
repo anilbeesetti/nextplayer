@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.mappers
 
-import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
+import dev.anilbeesetti.nextplayer.core.model.Video
 import java.io.File
 
 fun MediaVideo.toVideo(): Video {
