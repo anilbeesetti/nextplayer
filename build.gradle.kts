@@ -2,13 +2,14 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
+    alias(libs.plugins.aboutlibraries) apply false
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.kotlin.android) apply false
-    alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.kapt) apply false
-    alias(libs.plugins.aboutlibraries) apply false
+    alias(libs.plugins.ktlint) apply false
 }
 
 subprojects {

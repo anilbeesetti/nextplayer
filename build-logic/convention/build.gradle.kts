@@ -37,5 +37,9 @@ gradlePlugin {
             id = "nextplayer.android.hilt"
             implementationClass = "AndroidHiltConventionPlugin"
         }
+        register("jvmLibrary") {
+            id = "nextplayer.jvm.library"
+            implementationClass = "JvmLibraryConventionPlugin"
+        }
     }
 }
