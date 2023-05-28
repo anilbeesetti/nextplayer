@@ -6,6 +6,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,11 +19,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +41,7 @@ import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun VideoItem(
     video: Video,
@@ -43,15 +50,21 @@ fun VideoItem(
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val formattedSize = remember { Formatter.formatFileSize(context, video.size) }
+    val formattedDuration = remember { Utils.formatDurationMillis(video.duration) }
+
+    var thumbHeight by remember { mutableStateOf(0) }
+    var contentHeight by remember { mutableStateOf(0) }
 
     Box(
         modifier = Modifier
             .combinedClickable(
-                onClick = { onClick() },
+                onClick = onClick,
                 onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
             )
     ) {
         Row(
+            verticalAlignment = if (contentHeight > thumbHeight) Alignment.CenterVertically else Alignment.Top,
             modifier = modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -61,13 +74,14 @@ fun VideoItem(
                     color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
                     shape = MaterialTheme.shapes.small,
                     modifier = Modifier
+                        .onSizeChanged { thumbHeight = it.height }
                         .widthIn(max = 420.dp)
                         .fillMaxWidth(0.45f)
                         .aspectRatio(16f / 10f),
                     content = {
                         if (video.uriString.isNotEmpty()) {
                             GlideImage(
-                                imageModel = { video.uriString },
+                                imageModel = { video.uri },
                                 imageOptions = ImageOptions(
                                     contentScale = ContentScale.Crop,
                                     alignment = Alignment.Center
@@ -77,7 +91,7 @@ fun VideoItem(
                     }
                 )
                 InfoChip(
-                    text = Utils.formatDurationMillis(video.duration),
+                    text = formattedDuration,
                     modifier = Modifier
                         .padding(5.dp)
                         .align(Alignment.BottomEnd),
@@ -88,6 +102,7 @@ fun VideoItem(
             }
             Column(
                 modifier = Modifier
+                    .onSizeChanged { contentHeight = it.height }
                     .padding(start = 12.dp, end = 12.dp)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
@@ -108,18 +123,19 @@ fun VideoItem(
                     ),
                     overflow = TextOverflow.Ellipsis
                 )
-                Row(
+                FlowRow(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    video.subtitleExtensions.map { extension ->
-                        InfoChip(text = extension.uppercase())
+                    if (video.subtitleTracks.isNotEmpty()) {
+                        InfoChip(text = "SUB")
                     }
-                    val sizeString = Formatter.formatFileSize(context, video.size)
-                    InfoChip(text = sizeString)
+                    InfoChip(text = formattedSize, modifier = Modifier.padding(vertical = 5.dp))
+                    if (video.width > 0 && video.height > 0) {
+                        InfoChip(text = "${video.width} x ${video.height}")
+                    }
                 }
             }
         }
