@@ -31,6 +31,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
+import dev.anilbeesetti.nextplayer.settings.extensions.name
 import java.lang.Exception
 import java.util.Locale
 
@@ -128,7 +129,7 @@ fun PlayerPreferencesScreen(
                     ) {
                         items(Resume.values()) {
                             RadioTextButton(
-                                text = it.value,
+                                text = it.name(),
                                 selected = (it == preferences.resume),
                                 onClick = {
                                     viewModel.updatePlaybackResume(it)
@@ -146,7 +147,7 @@ fun PlayerPreferencesScreen(
                     ) {
                         items(DoubleTapGesture.values()) {
                             RadioTextButton(
-                                text = it.value,
+                                text = it.name(),
                                 selected = (it == preferences.doubleTapGesture),
                                 onClick = {
                                     viewModel.updateDoubleTapGesture(it)
@@ -164,7 +165,7 @@ fun PlayerPreferencesScreen(
                     ) {
                         items(FastSeek.values()) {
                             RadioTextButton(
-                                text = it.value,
+                                text = it.name(),
                                 selected = (it == preferences.fastSeek),
                                 onClick = {
                                     viewModel.updateFastSeek(it)
