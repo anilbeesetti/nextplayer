@@ -22,11 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
-import dev.anilbeesetti.nextplayer.core.data.models.Video
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -65,7 +65,7 @@ fun MediaPickerScreen(
 @Composable
 internal fun MediaPickerScreen(
     mediaState: MediaState,
-    preferences: AppPreferences,
+    preferences: AppPrefs,
     onVideoItemClick: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -135,7 +135,7 @@ fun MediaPickerScreenPreview(
                     mediaState = MediaState.Success(
                         data = videos
                     ),
-                    preferences = AppPreferences(),
+                    preferences = AppPrefs.default(),
                     onVideoItemClick = {},
                     onFolderClick = {}
                 )
@@ -165,7 +165,7 @@ fun MediaPickerNoVideosFoundPreview() {
                 mediaState = MediaState.Success(
                     data = emptyList<Folder>()
                 ),
-                preferences = AppPreferences(),
+                preferences = AppPrefs.default(),
                 onVideoItemClick = {},
                 onFolderClick = {}
             )
@@ -180,7 +180,7 @@ fun MediaPickerLoadingPreview() {
         Surface {
             MediaPickerScreen(
                 mediaState = MediaState.Loading,
-                preferences = AppPreferences(),
+                preferences = AppPrefs.default(),
                 onVideoItemClick = {},
                 onFolderClick = {}
             )

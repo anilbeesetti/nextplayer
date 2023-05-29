@@ -1,10 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.data.repository.fake
 
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
-import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
+import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 

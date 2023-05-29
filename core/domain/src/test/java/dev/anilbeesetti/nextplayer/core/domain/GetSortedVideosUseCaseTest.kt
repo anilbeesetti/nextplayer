@@ -1,10 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.data.models.Video
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeVideoRepository
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

@@ -37,9 +37,12 @@ import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.data.models.Video
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.subtitleTracks
+import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.thumbs
+import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.uri
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable

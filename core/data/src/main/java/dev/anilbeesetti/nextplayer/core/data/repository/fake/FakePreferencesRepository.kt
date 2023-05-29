@@ -1,16 +1,21 @@
 package dev.anilbeesetti.nextplayer.core.data.repository.fake
 
+import dev.anilbeesetti.nextplayer.core.data.mappers.toAppPrefs
+import dev.anilbeesetti.nextplayer.core.data.mappers.toPlayerPrefs
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
-import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.Resume
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
-import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.model.FastSeek
+import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
+import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 class FakePreferencesRepository : PreferencesRepository {
@@ -18,10 +23,10 @@ class FakePreferencesRepository : PreferencesRepository {
     private val appPreferences = MutableStateFlow(AppPreferences())
     private val playerPreferences = MutableStateFlow(PlayerPreferences())
 
-    override val appPreferencesFlow: Flow<AppPreferences>
-        get() = appPreferences
-    override val playerPreferencesFlow: Flow<PlayerPreferences>
-        get() = playerPreferences
+    override val appPrefsFlow: Flow<AppPrefs>
+        get() = appPreferences.map(AppPreferences::toAppPrefs)
+    override val playerPrefsFlow: Flow<PlayerPrefs>
+        get() = playerPreferences.map(PlayerPreferences::toPlayerPrefs)
 
     override suspend fun setSortOrder(sortOrder: SortOrder) {
         appPreferences.update { it.copy(sortOrder = sortOrder) }

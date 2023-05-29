@@ -7,9 +7,9 @@ import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
-import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.Resume
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
+import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
+import dev.anilbeesetti.nextplayer.core.model.Resume
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,10 +37,10 @@ class PlayerViewModel @Inject constructor(
     var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
         private set
 
-    val preferences = preferencesRepository.playerPreferencesFlow.stateIn(
+    val preferences = preferencesRepository.playerPrefsFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = PlayerPreferences()
+        initialValue = PlayerPrefs.default()
     )
 
     fun updateInfo(path: String) {

@@ -1,11 +1,11 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +21,7 @@ class GetSortedFoldersUseCase @Inject constructor(
     operator fun invoke(): Flow<List<Folder>> {
         return combine(
             videoRepository.getVideosFlow(),
-            preferencesRepository.appPreferencesFlow
+            preferencesRepository.appPrefsFlow
         ) { videoItems, preferences ->
 
             val folders = videoItems.groupBy { File(it.path).parentFile!! }

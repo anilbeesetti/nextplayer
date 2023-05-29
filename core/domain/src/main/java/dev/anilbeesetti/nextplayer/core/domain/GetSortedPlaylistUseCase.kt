@@ -21,13 +21,13 @@ class GetSortedPlaylistUseCase @Inject constructor(
         val parent = File(path).parent
 
         val videos = getSortedVideosUseCase.invoke().first()
-        val preferences = preferencesRepository.appPreferencesFlow.first()
+        val preferences = preferencesRepository.appPrefsFlow.first()
         videos.filter {
             if (preferences.groupVideosByFolder) {
                 parent == null || File(it.path).parent == parent
             } else {
                 true
             }
-        }.map { it.uri }
+        }.map { Uri.parse(it.uriString) }
     }
 }

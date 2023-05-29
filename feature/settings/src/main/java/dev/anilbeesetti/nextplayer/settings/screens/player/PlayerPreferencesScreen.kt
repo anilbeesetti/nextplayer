@@ -15,9 +15,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
-import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
-import dev.anilbeesetti.nextplayer.core.datastore.Resume
+import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.model.FastSeek
+import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar

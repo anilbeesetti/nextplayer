@@ -2,8 +2,8 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.extensions
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.ui.R
 
 @Composable
