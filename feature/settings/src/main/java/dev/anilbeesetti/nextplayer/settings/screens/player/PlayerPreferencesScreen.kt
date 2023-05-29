@@ -3,6 +3,8 @@ package dev.anilbeesetti.nextplayer.settings.screens.player
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -72,139 +74,57 @@ fun PlayerPreferencesScreen(
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
                 }
-                item {
-                    PreferenceSwitch(
-                        title = stringResource(id = R.string.seek_gesture),
-                        description = stringResource(id = R.string.seek_gesture_description),
-                        icon = NextIcons.SwipeHorizontal,
-                        isChecked = preferences.useSeekControls,
-                        onClick = viewModel::toggleSeekControls
-                    )
-                }
-                item {
-                    PreferenceSwitch(
-                        title = stringResource(id = R.string.swipe_gesture),
-                        description = stringResource(id = R.string.swipe_gesture_description),
-                        icon = NextIcons.SwipeVertical,
-                        isChecked = preferences.useSwipeControls,
-                        onClick = viewModel::toggleSwipeControls
-                    )
-                }
-                item {
-                    PreferenceSwitchWithDivider(
-                        title = stringResource(id = R.string.double_tap),
-                        description = stringResource(id = R.string.double_tap_description),
-                        isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
-                        onChecked = viewModel::toggleDoubleTapGesture,
-                        icon = NextIcons.DoubleTap,
-                        onClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(
-                                    PlayerPreferenceDialog.DoubleTapDialog
-                                )
-                            )
-                        }
-                    )
-                }
+                seekGestureSetting(
+                    isChecked = preferences.useSeekControls,
+                    onClick = viewModel::toggleSeekControls
+                )
+                swipeGestureSetting(
+                    isChecked = preferences.useSwipeControls,
+                    onClick = viewModel::toggleSwipeControls
+                )
+                doubleTapGestureSetting(
+                    isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
+                    onChecked = viewModel::toggleDoubleTapGesture,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
+                )
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.playback))
                 }
-                item {
-                    ClickablePreferenceItem(
-                        title = stringResource(id = R.string.resume),
-                        description = stringResource(id = R.string.resume_description),
-                        icon = NextIcons.Resume,
-                        onClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(
-                                    PlayerPreferenceDialog.ResumeDialog
-                                )
-                            )
-                        }
-                    )
-                }
-                item {
-                    PreferenceSwitch(
-                        title = stringResource(id = R.string.remember_brightness_level),
-                        description = stringResource(
-                            id = R.string.remember_brightness_level_description
-                        ),
-                        icon = NextIcons.Brightness,
-                        isChecked = preferences.rememberPlayerBrightness,
-                        onClick = viewModel::toggleRememberBrightnessLevel
-                    )
-                }
-                item {
-                    PreferenceSwitch(
-                        title = stringResource(id = R.string.remember_selections),
-                        description = stringResource(id = R.string.remember_selections_description),
-                        icon = NextIcons.Selection,
-                        isChecked = preferences.rememberSelections,
-                        onClick = viewModel::toggleRememberSelections
-                    )
-                }
-                item {
-                    PreferenceSwitchWithDivider(
-                        title = stringResource(id = R.string.fast_seek),
-                        description = stringResource(id = R.string.fast_seek_description),
-                        isChecked = (preferences.fastSeek != FastSeek.DISABLE),
-                        onChecked = viewModel::toggleFastSeek,
-                        icon = NextIcons.Fast,
-                        onClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(
-                                    PlayerPreferenceDialog.FastSeekDialog
-                                )
-                            )
-                        }
-                    )
-                }
+                resumeSetting(
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) }
+                )
+                rememberBrightnessSetting(
+                    isChecked = preferences.rememberPlayerBrightness,
+                    onClick = viewModel::toggleRememberBrightnessLevel
+                )
+                rememberSelectionsSetting(
+                    isChecked = preferences.rememberSelections,
+                    onClick = viewModel::toggleRememberSelections
+                )
+                fastSeekSetting(
+                    isChecked = (preferences.fastSeek != FastSeek.DISABLE),
+                    onChecked = viewModel::toggleFastSeek,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
+                )
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.audio))
                 }
-                item {
-                    ClickablePreferenceItem(
-                        title = stringResource(id = R.string.preferred_audio_lang),
-                        description = stringResource(id = R.string.preferred_audio_lang_description),
-                        icon = NextIcons.AudioTrack,
-                        onClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(
-                                    PlayerPreferenceDialog.AudioLanguageDialog
-                                )
-                            )
-                        }
-                    )
-                }
+                preferredAudioLanguageSetting(
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.AudioLanguageDialog) }
+                )
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.subtitle))
                 }
-                item {
-                    ClickablePreferenceItem(
-                        title = stringResource(id = R.string.preferred_subtitle_lang),
-                        description = stringResource(
-                            id = R.string.preferred_subtitle_lang_description
-                        ),
-                        icon = NextIcons.Subtitle,
-                        onClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(
-                                    PlayerPreferenceDialog.SubtitleLanguageDialog
-                                )
-                            )
-                        }
-                    )
-                }
+                preferredSubtitleLanguageSetting(
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.SubtitleLanguageDialog) }
+                )
             }
+
             when (uiState.showDialog) {
                 PlayerPreferenceDialog.ResumeDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.resume),
-                        onDismissClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
-                            )
-                        }
+                        onDismissClick = viewModel::hideDialog
                     ) {
                         items(Resume.values()) {
                             RadioTextButton(
@@ -212,11 +132,7 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.resume),
                                 onClick = {
                                     viewModel.updatePlaybackResume(it)
-                                    viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(
-                                            PlayerPreferenceDialog.None
-                                        )
-                                    )
+                                    viewModel.hideDialog()
                                 }
                             )
                         }
@@ -226,11 +142,7 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.DoubleTapDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.double_tap),
-                        onDismissClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
-                            )
-                        }
+                        onDismissClick = viewModel::hideDialog
                     ) {
                         items(DoubleTapGesture.values()) {
                             RadioTextButton(
@@ -238,11 +150,7 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.doubleTapGesture),
                                 onClick = {
                                     viewModel.updateDoubleTapGesture(it)
-                                    viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(
-                                            PlayerPreferenceDialog.None
-                                        )
-                                    )
+                                    viewModel.hideDialog()
                                 }
                             )
                         }
@@ -252,11 +160,7 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.FastSeekDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.fast_seek),
-                        onDismissClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
-                            )
-                        }
+                        onDismissClick = viewModel::hideDialog
                     ) {
                         items(FastSeek.values()) {
                             RadioTextButton(
@@ -264,11 +168,7 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.fastSeek),
                                 onClick = {
                                     viewModel.updateFastSeek(it)
-                                    viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(
-                                            PlayerPreferenceDialog.None
-                                        )
-                                    )
+                                    viewModel.hideDialog()
                                 }
                             )
                         }
@@ -278,11 +178,7 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.AudioLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
-                            )
-                        }
+                        onDismissClick = viewModel::hideDialog
                     ) {
                         items(languages) {
                             RadioTextButton(
@@ -290,11 +186,7 @@ fun PlayerPreferencesScreen(
                                 selected = it.second == preferences.preferredAudioLanguage,
                                 onClick = {
                                     viewModel.updateAudioLanguage(it.second)
-                                    viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(
-                                            PlayerPreferenceDialog.None
-                                        )
-                                    )
+                                    viewModel.hideDialog()
                                 }
                             )
                         }
@@ -304,32 +196,162 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.SubtitleLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_subtitle_lang),
-                        onDismissClick = {
-                            viewModel.onEvent(
-                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
-                            )
-                        }
+                        onDismissClick = viewModel::hideDialog
                     ) {
                         items(languages) {
                             RadioTextButton(
-                                text = it.first + " " + it.second,
+                                text = it.first,
                                 selected = it.second == preferences.preferredSubtitleLanguage,
                                 onClick = {
                                     viewModel.updateSubtitleLanguage(it.second)
-                                    viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(
-                                            PlayerPreferenceDialog.None
-                                        )
-                                    )
+                                    viewModel.hideDialog()
                                 }
                             )
                         }
                     }
                 }
-                PlayerPreferenceDialog.None -> { /* Do nothing */
-                }
+
+                PlayerPreferenceDialog.None -> { /* Do nothing */ }
             }
         }
+    }
+}
+
+
+fun LazyListScope.seekGestureSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    item {
+        PreferenceSwitch(
+            title = stringResource(id = R.string.seek_gesture),
+            description = stringResource(id = R.string.seek_gesture_description),
+            icon = NextIcons.SwipeHorizontal,
+            isChecked = isChecked,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.swipeGestureSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    item {
+        PreferenceSwitch(
+            title = stringResource(id = R.string.swipe_gesture),
+            description = stringResource(id = R.string.swipe_gesture_description),
+            icon = NextIcons.SwipeVertical,
+            isChecked = isChecked,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.doubleTapGestureSetting(
+    isChecked: Boolean,
+    onChecked: () -> Unit,
+    onClick: () -> Unit
+) {
+    item {
+        PreferenceSwitchWithDivider(
+            title = stringResource(id = R.string.double_tap),
+            description = stringResource(id = R.string.double_tap_description),
+            isChecked = isChecked,
+            onChecked = onChecked,
+            icon = NextIcons.DoubleTap,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.resumeSetting(
+    onClick: () -> Unit
+) {
+    item {
+        ClickablePreferenceItem(
+            title = stringResource(id = R.string.resume),
+            description = stringResource(id = R.string.resume_description),
+            icon = NextIcons.Resume,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.rememberBrightnessSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    item {
+        PreferenceSwitch(
+            title = stringResource(id = R.string.remember_brightness_level),
+            description = stringResource(
+                id = R.string.remember_brightness_level_description
+            ),
+            icon = NextIcons.Brightness,
+            isChecked = isChecked,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.rememberSelectionsSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    item {
+        PreferenceSwitch(
+            title = stringResource(id = R.string.remember_selections),
+            description = stringResource(id = R.string.remember_selections_description),
+            icon = NextIcons.Selection,
+            isChecked = isChecked,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.fastSeekSetting(
+    isChecked: Boolean,
+    onChecked: () -> Unit,
+    onClick: () -> Unit
+) {
+    item {
+        PreferenceSwitchWithDivider(
+            title = stringResource(id = R.string.fast_seek),
+            description = stringResource(id = R.string.fast_seek_description),
+            isChecked = isChecked,
+            onChecked = onChecked,
+            icon = NextIcons.Fast,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.preferredAudioLanguageSetting(
+    onClick: () -> Unit
+) {
+    item {
+        ClickablePreferenceItem(
+            title = stringResource(id = R.string.preferred_audio_lang),
+            description = stringResource(id = R.string.preferred_audio_lang_description),
+            icon = NextIcons.AudioTrack,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.preferredSubtitleLanguageSetting(
+    onClick: () -> Unit
+) {
+    item {
+        ClickablePreferenceItem(
+            title = stringResource(id = R.string.preferred_subtitle_lang),
+            description = stringResource(
+                id = R.string.preferred_subtitle_lang_description
+            ),
+            icon = NextIcons.Subtitle,
+            onClick = onClick
+        )
     }
 }
 
