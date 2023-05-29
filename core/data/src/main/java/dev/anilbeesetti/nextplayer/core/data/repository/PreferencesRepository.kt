@@ -112,4 +112,8 @@ interface PreferencesRepository {
      * @param value The use of swipe controls to be set.
      */
     suspend fun setRememberSelections(value: Boolean)
+
+    suspend fun setPreferredAudioLanguage(value: String)
+
+    suspend fun setPreferredSubtitleLanguage(value: String)
 }

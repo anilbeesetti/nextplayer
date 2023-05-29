@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.settings.screens.player
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -10,8 +11,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +30,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
+import java.lang.Exception
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +41,7 @@ fun PlayerPreferencesScreen(
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val languages = remember { listOf(Pair("None", "")) + getLanguages() }
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -154,6 +160,40 @@ fun PlayerPreferencesScreen(
                         }
                     )
                 }
+                item {
+                    PreferenceSubtitle(text = stringResource(id = R.string.audio))
+                }
+                item {
+                    ClickablePreferenceItem(
+                        title = stringResource(id = R.string.preferred_audio_lang),
+                        description = stringResource(id = R.string.preferred_audio_lang_description),
+                        icon = NextIcons.AudioTrack,
+                        onClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(
+                                    PlayerPreferenceDialog.AudioLanguageDialog
+                                )
+                            )
+                        }
+                    )
+                }
+                item {
+                    PreferenceSubtitle(text = stringResource(id = R.string.subtitle))
+                }
+                item {
+                    ClickablePreferenceItem(
+                        title = stringResource(id = R.string.preferred_subtitle_lang),
+                        description = stringResource(id = R.string.preferred_subtitle_lang_description),
+                        icon = NextIcons.Subtitle,
+                        onClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(
+                                    PlayerPreferenceDialog.SubtitleLanguageDialog
+                                )
+                            )
+                        }
+                    )
+                }
             }
             when (uiState.showDialog) {
                 PlayerPreferenceDialog.ResumeDialog -> {
@@ -165,7 +205,7 @@ fun PlayerPreferencesScreen(
                             )
                         }
                     ) {
-                        Resume.values().map {
+                        items(Resume.values()) {
                             RadioTextButton(
                                 text = it.value,
                                 selected = (it == preferences.resume),
@@ -181,6 +221,7 @@ fun PlayerPreferencesScreen(
                         }
                     }
                 }
+
                 PlayerPreferenceDialog.DoubleTapDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.double_tap),
@@ -190,7 +231,7 @@ fun PlayerPreferencesScreen(
                             )
                         }
                     ) {
-                        DoubleTapGesture.values().forEach {
+                        items(DoubleTapGesture.values()) {
                             RadioTextButton(
                                 text = it.value,
                                 selected = (it == preferences.doubleTapGesture),
@@ -206,6 +247,7 @@ fun PlayerPreferencesScreen(
                         }
                     }
                 }
+
                 PlayerPreferenceDialog.FastSeekDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.fast_seek),
@@ -215,7 +257,7 @@ fun PlayerPreferencesScreen(
                             )
                         }
                     ) {
-                        FastSeek.values().forEach {
+                        items(FastSeek.values()) {
                             RadioTextButton(
                                 text = it.value,
                                 selected = (it == preferences.fastSeek),
@@ -231,8 +273,72 @@ fun PlayerPreferencesScreen(
                         }
                     }
                 }
-                PlayerPreferenceDialog.None -> { /* Do nothing */ }
+
+                PlayerPreferenceDialog.AudioLanguageDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.preferred_audio_lang),
+                        onDismissClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                            )
+                        }
+                    ) {
+                        items(languages) {
+                            RadioTextButton(
+                                text = it.first,
+                                selected = it.second == preferences.preferredAudioLanguage,
+                                onClick = {
+                                    viewModel.updateAudioLanguage(it.second)
+                                    viewModel.onEvent(
+                                        PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+
+                PlayerPreferenceDialog.SubtitleLanguageDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.preferred_subtitle_lang),
+                        onDismissClick = {
+                            viewModel.onEvent(
+                                PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                            )
+                        }
+                    ) {
+                        items(languages) {
+                            RadioTextButton(
+                                text = it.first + " " + it.second,
+                                selected = it.second == preferences.preferredSubtitleLanguage,
+                                onClick = {
+                                    viewModel.updateSubtitleLanguage(it.second)
+                                    viewModel.onEvent(
+                                        PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                PlayerPreferenceDialog.None -> { /* Do nothing */
+                }
+
             }
         }
+    }
+}
+
+
+fun getLanguages(): List<Pair<String, String>> {
+    return try {
+        Locale.getAvailableLocales().map {
+            val key = it.isO3Language
+            val language = it.displayLanguage
+            Pair(language, key)
+        }.distinctBy { it.second }.sortedBy { it.first }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        listOf()
     }
 }

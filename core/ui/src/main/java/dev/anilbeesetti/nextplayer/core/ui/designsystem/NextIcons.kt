@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CompareArrows
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
+import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
@@ -29,6 +31,7 @@ object NextIcons {
     val ArrowBack = Icons.Rounded.ArrowBack
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
+    val AudioTrack = Icons.Rounded.Audiotrack
     val Brightness = Icons.Rounded.BrightnessHigh
     val Check = Icons.Rounded.Check
     val DarkMode = Icons.Rounded.DarkMode
@@ -43,6 +46,7 @@ object NextIcons {
     val Resume = Icons.Rounded.ResetTv
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
+    val Subtitle = Icons.Rounded.Subtitles
     val Size = Icons.Rounded.CompareArrows
     val SwipeHorizontal = Icons.Rounded.Swipe
     val SwipeVertical = Icons.Rounded.SwipeVertical

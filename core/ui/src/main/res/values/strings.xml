@@ -68,4 +68,10 @@
     <string name="controls_lock">Lock controls</string>
     <string name="controls_unlock">Unlock controls</string>
     <string name="select_playback_speed">Select playback speed</string>
+    <string name="audio">Audio</string>
+    <string name="preferred_audio_lang">Preferred audio language</string>
+    <string name="preferred_audio_lang_description">Language of the audio track you want to use by default</string>
+    <string name="subtitle">Subtitle</string>
+    <string name="preferred_subtitle_lang">Preferred subtitle language</string>
+    <string name="preferred_subtitle_lang_description">Language of the subtitle track you want to use by default</string>
 </resources>

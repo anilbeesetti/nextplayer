@@ -79,4 +79,12 @@ class LocalPreferencesRepository @Inject constructor(
     override suspend fun setRememberSelections(value: Boolean) {
         playerPreferencesDataSource.updateData { it.copy(rememberSelections = value) }
     }
+
+    override suspend fun setPreferredAudioLanguage(value: String) {
+        playerPreferencesDataSource.updateData { it.copy(preferredAudioLanguage = value) }
+    }
+
+    override suspend fun setPreferredSubtitleLanguage(value: String) {
+        playerPreferencesDataSource.updateData { it.copy(preferredSubtitleLanguage = value) }
+    }
 }

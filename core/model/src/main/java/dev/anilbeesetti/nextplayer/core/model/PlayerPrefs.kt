@@ -9,7 +9,9 @@ data class PlayerPrefs(
     val minDurationForFastSeek: Long,
     val useSwipeControls: Boolean,
     val useSeekControls: Boolean,
-    val rememberSelections: Boolean
+    val rememberSelections: Boolean,
+    val preferredAudioLanguage: String,
+    val preferredSubtitleLanguage: String
 ) {
 
     companion object {
@@ -22,7 +24,9 @@ data class PlayerPrefs(
             minDurationForFastSeek = 120000L,
             useSwipeControls = true,
             useSeekControls = true,
-            rememberSelections = true
+            rememberSelections = true,
+            preferredAudioLanguage = "",
+            preferredSubtitleLanguage = ""
         )
     }
 }
