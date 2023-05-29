@@ -136,3 +136,11 @@ sealed interface PlayerPreferenceDialog {
 sealed interface PlayerPreferencesEvent {
     data class ShowDialog(val value: PlayerPreferenceDialog) : PlayerPreferencesEvent
 }
+
+fun PlayerPreferencesViewModel.showDialog(dialog: PlayerPreferenceDialog) {
+    onEvent(PlayerPreferencesEvent.ShowDialog(dialog))
+}
+
+fun PlayerPreferencesViewModel.hideDialog() {
+    onEvent(PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None))
+}

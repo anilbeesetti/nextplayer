@@ -74,4 +74,15 @@
     <string name="subtitle">Subtitle</string>
     <string name="preferred_subtitle_lang">Preferred subtitle language</string>
     <string name="preferred_subtitle_lang_description">Language of the subtitle track you want to use by default</string>
+    <string name="system_default">System Default</string>
+    <string name="off">Off</string>
+    <string name="on">On</string>
+    <string name="play_pause">Play/Pause</string>
+    <string name="ff_rewind">Fast forward/Rewind</string>
+    <string name="play_pause_ff_rewind">Play/Pause and Fast forward/Rewind</string>
+    <string name="none">None</string>
+    <string name="auto">Auto</string>
+    <string name="enable">Enable</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

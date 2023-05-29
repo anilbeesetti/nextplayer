@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.settings.screens.appearance
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.supportsDynamicTheming
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
+import dev.anilbeesetti.nextplayer.settings.extensions.name
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,57 +68,29 @@ fun AppearancePreferencesScreen(
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
                 }
-                item {
-                    PreferenceSwitchWithDivider(
-                        title = stringResource(id = R.string.dark_theme),
-                        description = preferences.themeConfig.value,
-                        isChecked = preferences.themeConfig == ThemeConfig.DARK,
-                        onChecked = viewModel::toggleDarkTheme,
-                        icon = NextIcons.DarkMode,
-                        onClick = {
-                            viewModel.onEvent(
-                                AppearancePreferencesEvent.ShowDialog(
-                                    AppearancePreferenceDialog.Theme
-                                )
-                            )
-                        }
-                    )
-                }
-                item {
-                    if (supportsDynamicTheming()) {
-                        PreferenceSwitch(
-                            title = stringResource(id = R.string.dynamic_theme),
-                            description = stringResource(id = R.string.dynamic_theme_description),
-                            isChecked = preferences.useDynamicColors,
-                            onClick = viewModel::toggleUseDynamicColors,
-                            icon = NextIcons.Appearance
-                        )
-                    }
-                }
+                darkThemeSetting(
+                    currentPreference = preferences.themeConfig,
+                    onChecked = viewModel::toggleDarkTheme,
+                    onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) }
+                )
+                dynamicThemingSetting(
+                    isChecked = preferences.useDynamicColors,
+                    onClick = viewModel::toggleUseDynamicColors
+                )
             }
             when (uiState.showDialog) {
                 AppearancePreferenceDialog.Theme -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.dark_theme),
-                        onDismissClick = {
-                            viewModel.onEvent(
-                                AppearancePreferencesEvent.ShowDialog(
-                                    AppearancePreferenceDialog.None
-                                )
-                            )
-                        }
+                        onDismissClick = viewModel::hideDialog
                     ) {
                         items(ThemeConfig.values()) {
                             RadioTextButton(
-                                text = it.value,
+                                text = it.name(),
                                 selected = (it == preferences.themeConfig),
                                 onClick = {
                                     viewModel.updateThemeConfig(it)
-                                    viewModel.onEvent(
-                                        AppearancePreferencesEvent.ShowDialog(
-                                            AppearancePreferenceDialog.None
-                                        )
-                                    )
+                                    viewModel.hideDialog()
                                 }
                             )
                         }
@@ -126,6 +100,40 @@ fun AppearancePreferencesScreen(
                 AppearancePreferenceDialog.None -> { /* Do nothing */
                 }
             }
+        }
+    }
+}
+
+fun LazyListScope.darkThemeSetting(
+    currentPreference: ThemeConfig,
+    onChecked: () -> Unit,
+    onClick: () -> Unit
+) {
+    item {
+        PreferenceSwitchWithDivider(
+            title = stringResource(id = R.string.dark_theme),
+            description = currentPreference.name(),
+            isChecked = currentPreference == ThemeConfig.ON,
+            onChecked = onChecked,
+            icon = NextIcons.DarkMode,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.dynamicThemingSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    item {
+        if (supportsDynamicTheming()) {
+            PreferenceSwitch(
+                title = stringResource(id = R.string.dynamic_theme),
+                description = stringResource(id = R.string.dynamic_theme_description),
+                isChecked = isChecked,
+                onClick = onClick,
+                icon = NextIcons.Appearance
+            )
         }
     }
 }
