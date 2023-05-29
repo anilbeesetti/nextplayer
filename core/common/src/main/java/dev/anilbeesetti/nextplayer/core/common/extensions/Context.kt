@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -178,4 +179,22 @@ fun Context.getContentUriFromUri(uri: Uri): Uri? {
         cursor?.close()
     }
     return null
+}
+
+fun Context.scanPaths(paths: List<String>, callback: ((String?, Uri?) -> Unit)? = null) {
+    MediaScannerConnection.scanFile(
+        this,
+        paths.toTypedArray(),
+        arrayOf("video/*"),
+        callback
+    )
+}
+
+fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
+    val storagePath = Environment.getExternalStorageDirectory()?.path
+    if (storagePath != null) {
+        scanPaths(listOf(storagePath), callback)
+    } else {
+        callback?.invoke(null, null)
+    }
 }
