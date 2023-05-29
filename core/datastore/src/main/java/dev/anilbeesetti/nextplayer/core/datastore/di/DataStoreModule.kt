@@ -9,10 +9,15 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.anilbeesetti.nextplayer.core.common.Dispatcher
+import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
+import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.AppPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.PlayerPreferencesSerializer
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import javax.inject.Singleton
 
 private const val APP_PREFERENCES_DATASTORE_FILE = "app_preferences.json"
@@ -25,21 +30,27 @@ object DataStoreModule {
     @Provides
     @Singleton
     fun provideAppPreferencesDataStore(
-        @ApplicationContext applicationContext: Context
+        @ApplicationContext context: Context,
+        @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
+        @ApplicationScope scope: CoroutineScope,
     ): DataStore<AppPreferences> {
         return DataStoreFactory.create(
             serializer = AppPreferencesSerializer,
-            produceFile = { applicationContext.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) }
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+            produceFile = { context.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) }
         )
     }
 
     @Provides
     @Singleton
     fun providePlayerPreferencesDataStore(
-        @ApplicationContext applicationContext: Context
+        @ApplicationContext applicationContext: Context,
+        @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
+        @ApplicationScope scope: CoroutineScope,
     ): DataStore<PlayerPreferences> {
         return DataStoreFactory.create(
             serializer = PlayerPreferencesSerializer,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
             produceFile = { applicationContext.dataStoreFile(PLAYER_PREFERENCES_DATASTORE_FILE) }
         )
     }
