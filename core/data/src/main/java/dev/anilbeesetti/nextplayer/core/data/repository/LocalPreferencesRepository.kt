@@ -1,27 +1,32 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import dev.anilbeesetti.nextplayer.core.data.mappers.toAppPrefs
+import dev.anilbeesetti.nextplayer.core.data.mappers.toPlayerPrefs
 import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.PlayerPreferencesDataSource
+import dev.anilbeesetti.nextplayer.core.model.AppPrefs
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
+import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class LocalPreferencesRepository @Inject constructor(
     private val appPreferencesDataSource: AppPreferencesDataSource,
     private val playerPreferencesDataSource: PlayerPreferencesDataSource
 ) : PreferencesRepository {
-    override val appPreferencesFlow: Flow<AppPreferences> =
-        appPreferencesDataSource.preferencesFlow
+    override val appPrefsFlow: Flow<AppPrefs> =
+        appPreferencesDataSource.preferencesFlow.map(AppPreferences::toAppPrefs)
 
-    override val playerPreferencesFlow: Flow<PlayerPreferences> =
-        playerPreferencesDataSource.preferencesFlow
+    override val playerPrefsFlow: Flow<PlayerPrefs> =
+        playerPreferencesDataSource.preferencesFlow.map(PlayerPreferences::toPlayerPrefs)
 
     override suspend fun setSortOrder(sortOrder: SortOrder) {
         appPreferencesDataSource.updateData { it.copy(sortOrder = sortOrder) }

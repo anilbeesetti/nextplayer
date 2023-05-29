@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
+import dev.anilbeesetti.nextplayer.core.model.AppPrefs
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
@@ -26,7 +26,7 @@ class MediaPickerViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val mediaState = preferencesRepository.appPreferencesFlow.flatMapLatest { appPreferences ->
+    val mediaState = preferencesRepository.appPrefsFlow.flatMapLatest { appPreferences ->
         if (appPreferences.groupVideosByFolder) {
             getSortedFoldersUseCase.invoke()
                 .map { MediaState.Success(it) }
@@ -40,11 +40,11 @@ class MediaPickerViewModel @Inject constructor(
         initialValue = MediaState.Loading
     )
 
-    val preferences = preferencesRepository.appPreferencesFlow
+    val preferences = preferencesRepository.appPrefsFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AppPreferences()
+            initialValue = AppPrefs.default()
         )
 
     fun updateMenu(sortBy: SortBy, sortOrder: SortOrder, groupVideosByFolder: Boolean) {

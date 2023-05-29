@@ -21,7 +21,7 @@ class GetSortedFoldersUseCase @Inject constructor(
     operator fun invoke(): Flow<List<Folder>> {
         return combine(
             videoRepository.getVideosFlow(),
-            preferencesRepository.appPreferencesFlow
+            preferencesRepository.appPrefsFlow
         ) { videoItems, preferences ->
 
             val folders = videoItems.groupBy { File(it.path).parentFile!! }

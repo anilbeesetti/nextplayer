@@ -16,8 +16,8 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
@@ -38,7 +38,7 @@ class PlayerGestureHelper(
     private val playerView: PlayerView,
     private val audioManager: AudioManager
 ) {
-    private val playerPreferences: PlayerPreferences
+    private val playerPreferences: PlayerPrefs
         get() = viewModel.preferences.value
 
     private var swipeGestureVolumeTrackerValue = -1f
