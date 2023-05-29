@@ -53,6 +53,7 @@ dependencies {
 
     implementation(project(":core:data"))
     implementation(project(":core:ui"))
+    implementation(project(":core:model"))
     implementation(project(":feature:videopicker"))
     implementation(project(":feature:player"))
     implementation(project(":feature:settings"))

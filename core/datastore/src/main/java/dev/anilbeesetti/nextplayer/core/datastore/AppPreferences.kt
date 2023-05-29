@@ -1,5 +1,8 @@
 package dev.anilbeesetti.nextplayer.core.datastore
 
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,17 +13,3 @@ data class AppPreferences(
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
     val useDynamicColors: Boolean = true
 )
-
-enum class SortBy {
-    TITLE, LENGTH, PATH, SIZE
-}
-
-enum class ThemeConfig(val value: String) {
-    SYSTEM("System Default"),
-    LIGHT("Off"),
-    DARK("On")
-}
-
-enum class SortOrder {
-    ASCENDING, DESCENDING
-}
