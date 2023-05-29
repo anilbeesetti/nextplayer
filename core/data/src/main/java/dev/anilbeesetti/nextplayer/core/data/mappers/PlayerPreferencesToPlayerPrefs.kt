@@ -12,5 +12,7 @@ fun PlayerPreferences.toPlayerPrefs() = PlayerPrefs(
     minDurationForFastSeek = minDurationForFastSeek,
     useSwipeControls = useSwipeControls,
     useSeekControls = useSeekControls,
-    rememberSelections = rememberSelections
+    rememberSelections = rememberSelections,
+    preferredAudioLanguage = preferredAudioLanguage,
+    preferredSubtitleLanguage = preferredSubtitleLanguage
 )

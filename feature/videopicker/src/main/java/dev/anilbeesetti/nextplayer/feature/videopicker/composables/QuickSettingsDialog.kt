@@ -1,13 +1,16 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
@@ -52,23 +55,27 @@ fun QuickSettingsDialog(
         },
         content = {
             Divider()
-            DialogSectionTitle(text = stringResource(R.string.sort))
-            SortOptions(
-                selectedSortBy = selectedSortBy,
-                onOptionSelected = { selectedSortBy = it }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            SortOrderSegmentedButton(
-                selectedSortBy = selectedSortBy,
-                selectedSortOrder = selectedSortOrder,
-                onOptionSelected = { selectedSortOrder = it }
-            )
-            Divider(modifier = Modifier.padding(top = 16.dp))
-            DialogPreferenceSwitch(
-                text = stringResource(id = R.string.group_videos),
-                isChecked = groupVideos,
-                onClick = { groupVideos = !groupVideos }
-            )
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                DialogSectionTitle(text = stringResource(R.string.sort))
+                SortOptions(
+                    selectedSortBy = selectedSortBy,
+                    onOptionSelected = { selectedSortBy = it }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                SortOrderSegmentedButton(
+                    selectedSortBy = selectedSortBy,
+                    selectedSortOrder = selectedSortOrder,
+                    onOptionSelected = { selectedSortOrder = it }
+                )
+                Divider(modifier = Modifier.padding(top = 16.dp))
+                DialogPreferenceSwitch(
+                    text = stringResource(id = R.string.group_videos),
+                    isChecked = groupVideos,
+                    onClick = { groupVideos = !groupVideos }
+                )
+            }
         },
         confirmButton = {
             DoneButton(

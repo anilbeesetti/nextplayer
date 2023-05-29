@@ -15,5 +15,7 @@ data class PlayerPreferences(
     val minDurationForFastSeek: Long = 120000L,
     val useSwipeControls: Boolean = true,
     val useSeekControls: Boolean = true,
-    val rememberSelections: Boolean = true
+    val rememberSelections: Boolean = true,
+    val preferredAudioLanguage: String = "",
+    val preferredSubtitleLanguage: String = ""
 )

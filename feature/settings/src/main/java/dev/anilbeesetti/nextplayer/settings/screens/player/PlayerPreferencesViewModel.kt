@@ -106,6 +106,18 @@ class PlayerPreferencesViewModel @Inject constructor(
             )
         }
     }
+
+    fun updateAudioLanguage(value: String) {
+        viewModelScope.launch {
+            preferencesRepository.setPreferredAudioLanguage(value)
+        }
+    }
+
+    fun updateSubtitleLanguage(value: String) {
+        viewModelScope.launch {
+            preferencesRepository.setPreferredSubtitleLanguage(value)
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
@@ -116,6 +128,8 @@ sealed interface PlayerPreferenceDialog {
     object ResumeDialog : PlayerPreferenceDialog
     object DoubleTapDialog : PlayerPreferenceDialog
     object FastSeekDialog : PlayerPreferenceDialog
+    object AudioLanguageDialog : PlayerPreferenceDialog
+    object SubtitleLanguageDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 

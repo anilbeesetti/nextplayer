@@ -2,8 +2,6 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,13 +24,7 @@ fun NextDialog(
 
     AlertDialog(
         title = title,
-        text = {
-            Column {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    content()
-                }
-            }
-        },
+        text = { Column { content() } },
         modifier = modifier
             .widthIn(max = configuration.screenWidthDp.dp - NextDialogDefaults.dialogMargin * 2),
         onDismissRequest = onDismissRequest,

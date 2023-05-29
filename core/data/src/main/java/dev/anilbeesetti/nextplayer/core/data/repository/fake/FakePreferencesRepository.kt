@@ -72,6 +72,14 @@ class FakePreferencesRepository : PreferencesRepository {
         playerPreferences.update { it.copy(rememberSelections = value) }
     }
 
+    override suspend fun setPreferredAudioLanguage(value: String) {
+        playerPreferences.update { it.copy(preferredAudioLanguage = value) }
+    }
+
+    override suspend fun setPreferredSubtitleLanguage(value: String) {
+        playerPreferences.update { it.copy(preferredSubtitleLanguage = value) }
+    }
+
     override suspend fun setThemeConfig(themeConfig: ThemeConfig) {
         appPreferences.update { it.copy(themeConfig = themeConfig) }
     }

@@ -1,8 +1,8 @@
 package dev.anilbeesetti.nextplayer.settings.composables
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
@@ -16,7 +16,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 fun OptionsDialog(
     text: String,
     onDismissClick: () -> Unit,
-    options: @Composable ColumnScope.() -> Unit
+    options: LazyListScope.() -> Unit
 ) {
     NextDialog(
         onDismissRequest = onDismissClick,
@@ -24,11 +24,12 @@ fun OptionsDialog(
             Text(text = text)
         },
         content = {
-            Divider(modifier = Modifier.padding(bottom = 8.dp))
-            Column(modifier = Modifier.selectableGroup()) {
-                options()
-            }
-            Divider(modifier = Modifier.padding(top = 8.dp))
+            Divider()
+            LazyColumn(
+                contentPadding = PaddingValues(vertical = 8.dp),
+                modifier = Modifier.selectableGroup()
+            ) { options() }
+            Divider()
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },
         confirmButton = { }

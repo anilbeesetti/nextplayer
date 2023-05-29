@@ -177,6 +177,12 @@ class PlayerActivity : AppCompatActivity() {
 
         trackSelector = DefaultTrackSelector(applicationContext)
 
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters()
+                .setPreferredAudioLanguage(viewModel.preferences.value.preferredAudioLanguage)
+                .setPreferredTextLanguage(viewModel.preferences.value.preferredSubtitleLanguage)
+        )
+
         player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
