@@ -5,7 +5,6 @@ import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.ui.R
 
-
 @Composable
 fun DoubleTapGesture.name(): String {
     val stringRes = when (this) {
