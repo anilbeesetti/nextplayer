@@ -7,7 +7,7 @@ import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.ui.R
 
 @Composable
-fun SortOrder.prettyName(sortBy: SortBy): String {
+fun SortOrder.name(sortBy: SortBy): String {
     val stringRes = when (sortBy) {
         SortBy.TITLE,
         SortBy.PATH -> when (this) {

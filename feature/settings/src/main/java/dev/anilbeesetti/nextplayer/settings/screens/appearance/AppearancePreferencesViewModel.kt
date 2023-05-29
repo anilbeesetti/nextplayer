@@ -39,10 +39,10 @@ class AppearancePreferencesViewModel @Inject constructor(
     fun toggleDarkTheme() {
         viewModelScope.launch {
             preferencesRepository.setThemeConfig(
-                if (preferencesFlow.value.themeConfig == ThemeConfig.DARK) {
-                    ThemeConfig.LIGHT
+                if (preferencesFlow.value.themeConfig == ThemeConfig.ON) {
+                    ThemeConfig.OFF
                 } else {
-                    ThemeConfig.DARK
+                    ThemeConfig.ON
                 }
             )
         }
@@ -72,4 +72,12 @@ sealed interface AppearancePreferencesEvent {
 sealed interface AppearancePreferenceDialog {
     object Theme : AppearancePreferenceDialog
     object None : AppearancePreferenceDialog
+}
+
+fun AppearancePreferencesViewModel.showDialog(dialog: AppearancePreferenceDialog) {
+    onEvent(AppearancePreferencesEvent.ShowDialog(dialog))
+}
+
+fun AppearancePreferencesViewModel.hideDialog() {
+    onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.None))
 }

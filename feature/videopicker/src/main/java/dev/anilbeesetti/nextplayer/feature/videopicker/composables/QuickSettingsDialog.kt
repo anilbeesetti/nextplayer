@@ -36,7 +36,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.prettyName
+import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
 @Composable
 fun QuickSettingsDialog(
@@ -108,7 +108,7 @@ fun SortOrderSegmentedButton(
         },
         labelOne = {
             Text(
-                text = SortOrder.ASCENDING.prettyName(selectedSortBy),
+                text = SortOrder.ASCENDING.name(selectedSortBy),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -122,7 +122,7 @@ fun SortOrderSegmentedButton(
         },
         labelTwo = {
             Text(
-                text = SortOrder.DESCENDING.prettyName(selectedSortBy),
+                text = SortOrder.DESCENDING.name(selectedSortBy),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodySmall
             )

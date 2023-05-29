@@ -153,8 +153,8 @@ private fun shouldUseDarkTheme(
     MainActivityUiState.Loading -> isSystemInDarkTheme()
     is MainActivityUiState.Success -> when (uiState.preferences.themeConfig) {
         ThemeConfig.SYSTEM -> isSystemInDarkTheme()
-        ThemeConfig.LIGHT -> false
-        ThemeConfig.DARK -> true
+        ThemeConfig.OFF -> false
+        ThemeConfig.ON -> true
     }
 }
 

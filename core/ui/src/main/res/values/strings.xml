@@ -74,4 +74,7 @@
     <string name="subtitle">Subtitle</string>
     <string name="preferred_subtitle_lang">Preferred subtitle language</string>
     <string name="preferred_subtitle_lang_description">Language of the subtitle track you want to use by default</string>
+    <string name="system_default">System Default</string>
+    <string name="off">Off</string>
+    <string name="on">On</string>
 </resources>
