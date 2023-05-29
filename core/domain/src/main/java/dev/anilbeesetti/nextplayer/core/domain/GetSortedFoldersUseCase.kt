@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import dev.anilbeesetti.nextplayer.core.common.Dispatcher
+import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
@@ -8,14 +10,15 @@ import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import java.io.File
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 
 class GetSortedFoldersUseCase @Inject constructor(
     private val videoRepository: VideoRepository,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
 ) {
 
     operator fun invoke(): Flow<List<Folder>> {
@@ -53,6 +56,6 @@ class GetSortedFoldersUseCase @Inject constructor(
                     }
                 }
             }
-        }.flowOn(Dispatchers.Default)
+        }.flowOn(defaultDispatcher)
     }
 }

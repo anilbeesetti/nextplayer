@@ -6,10 +6,12 @@ import android.database.ContentObserver
 import android.database.Cursor
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.Dispatcher
+import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -17,7 +19,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 
 class LocalMediaSource @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    @Dispatcher(NextDispatchers.IO) private val dispatcher: CoroutineDispatcher
 ) : MediaSource {
 
     override fun getMediaVideosFlow(
@@ -35,7 +38,7 @@ class LocalMediaSource @Inject constructor(
         trySend(getMediaVideo(selection, selectionArgs, sortOrder))
         // close
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
-    }.flowOn(Dispatchers.IO).distinctUntilChanged()
+    }.flowOn(dispatcher).distinctUntilChanged()
 
     override fun getMediaVideo(
         selection: String?,
