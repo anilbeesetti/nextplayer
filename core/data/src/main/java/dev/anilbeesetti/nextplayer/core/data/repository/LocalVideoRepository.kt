@@ -9,8 +9,8 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
 import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import dev.anilbeesetti.nextplayer.core.model.Video
-import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch

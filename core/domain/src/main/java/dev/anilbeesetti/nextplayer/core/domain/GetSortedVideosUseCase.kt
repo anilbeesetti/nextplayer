@@ -7,8 +7,8 @@ import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.Video
-import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn

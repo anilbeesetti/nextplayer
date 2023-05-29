@@ -16,9 +16,9 @@ import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.AppPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.PlayerPreferencesSerializer
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import javax.inject.Singleton
 
 private const val APP_PREFERENCES_DATASTORE_FILE = "app_preferences.json"
 private const val PLAYER_PREFERENCES_DATASTORE_FILE = "player_preferences.json"
@@ -32,7 +32,7 @@ object DataStoreModule {
     fun provideAppPreferencesDataStore(
         @ApplicationContext context: Context,
         @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
-        @ApplicationScope scope: CoroutineScope,
+        @ApplicationScope scope: CoroutineScope
     ): DataStore<AppPreferences> {
         return DataStoreFactory.create(
             serializer = AppPreferencesSerializer,
@@ -46,7 +46,7 @@ object DataStoreModule {
     fun providePlayerPreferencesDataStore(
         @ApplicationContext applicationContext: Context,
         @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
-        @ApplicationScope scope: CoroutineScope,
+        @ApplicationScope scope: CoroutineScope
     ): DataStore<PlayerPreferences> {
         return DataStoreFactory.create(
             serializer = PlayerPreferencesSerializer,
