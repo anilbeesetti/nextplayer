@@ -102,9 +102,15 @@ class PlayerActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         when (viewModel.appPrefs.value.themeConfig) {
-            ThemeConfig.SYSTEM -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-            ThemeConfig.OFF -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            ThemeConfig.ON -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            ThemeConfig.SYSTEM -> AppCompatDelegate.setDefaultNightMode(
+                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            )
+            ThemeConfig.OFF -> AppCompatDelegate.setDefaultNightMode(
+                AppCompatDelegate.MODE_NIGHT_NO
+            )
+            ThemeConfig.ON -> AppCompatDelegate.setDefaultNightMode(
+                AppCompatDelegate.MODE_NIGHT_YES
+            )
         }
 
         if (viewModel.appPrefs.value.useDynamicColors) {
