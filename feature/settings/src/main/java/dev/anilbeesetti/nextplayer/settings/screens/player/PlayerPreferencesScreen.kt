@@ -14,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -183,7 +182,9 @@ fun PlayerPreferencesScreen(
                 item {
                     ClickablePreferenceItem(
                         title = stringResource(id = R.string.preferred_subtitle_lang),
-                        description = stringResource(id = R.string.preferred_subtitle_lang_description),
+                        description = stringResource(
+                            id = R.string.preferred_subtitle_lang_description
+                        ),
                         icon = NextIcons.Subtitle,
                         onClick = {
                             viewModel.onEvent(
@@ -290,7 +291,9 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updateAudioLanguage(it.second)
                                     viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                                        PlayerPreferencesEvent.ShowDialog(
+                                            PlayerPreferenceDialog.None
+                                        )
                                     )
                                 }
                             )
@@ -314,7 +317,9 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updateSubtitleLanguage(it.second)
                                     viewModel.onEvent(
-                                        PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None)
+                                        PlayerPreferencesEvent.ShowDialog(
+                                            PlayerPreferenceDialog.None
+                                        )
                                     )
                                 }
                             )
@@ -323,12 +328,10 @@ fun PlayerPreferencesScreen(
                 }
                 PlayerPreferenceDialog.None -> { /* Do nothing */
                 }
-
             }
         }
     }
 }
-
 
 fun getLanguages(): List<Pair<String, String>> {
     return try {

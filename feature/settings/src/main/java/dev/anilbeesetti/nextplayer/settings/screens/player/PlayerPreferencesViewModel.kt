@@ -128,8 +128,8 @@ sealed interface PlayerPreferenceDialog {
     object ResumeDialog : PlayerPreferenceDialog
     object DoubleTapDialog : PlayerPreferenceDialog
     object FastSeekDialog : PlayerPreferenceDialog
-    object AudioLanguageDialog: PlayerPreferenceDialog
-    object SubtitleLanguageDialog: PlayerPreferenceDialog
+    object AudioLanguageDialog : PlayerPreferenceDialog
+    object SubtitleLanguageDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 
