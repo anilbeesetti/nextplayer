@@ -67,4 +67,21 @@
     <string name="dynamic_theme">Динамічна кольорова тема</string>
     <string name="controls_lock">Заблокувати</string>
     <string name="select_playback_speed">Виберіть швидкість відтворення</string>
+    <string name="off">Вимк</string>
+    <string name="auto">Авто</string>
+    <string name="on">Ввімк</string>
+    <string name="preferred_audio_lang">Бажана мова аудіо</string>
+    <string name="audio">Аудіо</string>
+    <string name="preferred_audio_lang_description">Мова звукової доріжки, яку ви хочете використовувати за замовчуванням</string>
+    <string name="subtitle">Субтитри</string>
+    <string name="preferred_subtitle_lang">Бажана мова субтитрів</string>
+    <string name="preferred_subtitle_lang_description">Мова доріжки субтитрів, яку ви хочете використовувати за замовчуванням</string>
+    <string name="system_default">Система за замовчуванням</string>
+    <string name="play_pause">Відтворення/Пауза</string>
+    <string name="ff_rewind">Перемотування вперед/назад</string>
+    <string name="play_pause_ff_rewind">Відтворення/пауза та перемотування вперед/назад</string>
+    <string name="none">Нічого</string>
+    <string name="enable">Ввімкнути</string>
+    <string name="yes">Так</string>
+    <string name="no">Ні</string>
 </resources>
