@@ -7,10 +7,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.folderVideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerFolderScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerNavigationRoute
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToFolderVideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerFolderScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
 const val MEDIA_ROUTE = "media_nav_route"
@@ -24,13 +24,13 @@ fun NavGraphBuilder.mediaNavGraph(
         route = MEDIA_ROUTE
     ) {
         mediaPickerScreen(
-            onVideoItemClick = context::startPlayerActivity,
-            onSettingsClick = navController::navigateToSettings,
-            onFolderCLick = navController::navigateToFolderVideoPickerScreen
+            onVideoClick = context::startPlayerActivity,
+            onFolderCLick = navController::navigateToMediaPickerFolderScreen,
+            onSettingsClick = navController::navigateToSettings
         )
-        folderVideoPickerScreen(
+        mediaPickerFolderScreen(
             onNavigateUp = navController::popBackStack,
-            onVideoItemClick = context::startPlayerActivity
+            onVideoClick = context::startPlayerActivity
         )
     }
 }

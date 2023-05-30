@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
@@ -24,9 +24,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFro
 import java.io.File
 
 @Composable
-fun FolderVideoPickerScreen(
-    viewModel: FolderVideoPickerViewModel = hiltViewModel(),
-    onVideoItemClick: (uri: Uri) -> Unit,
+fun MediaPickerFolderScreen(
+    viewModel: MediaPickerFolderViewModel = hiltViewModel(),
+    onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
@@ -35,17 +35,17 @@ fun FolderVideoPickerScreen(
         minActiveState = Lifecycle.State.RESUMED
     )
 
-    FolderVideoPickerScreen(
+    MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
-        onVideoClick = onVideoItemClick,
+        onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FolderVideoPickerScreen(
+internal fun MediaPickerFolderScreen(
     folderPath: String,
     videosState: VideosState,
     onVideoClick: (uri: Uri) -> Unit,

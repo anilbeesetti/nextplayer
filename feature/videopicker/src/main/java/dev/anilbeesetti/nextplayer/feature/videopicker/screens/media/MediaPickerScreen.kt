@@ -45,7 +45,7 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 @Composable
 fun MediaPickerScreen(
     onSettingsClick: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit,
+    onVideoClick: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel()
 ) {
@@ -59,7 +59,7 @@ fun MediaPickerScreen(
         foldersState = foldersState,
         preferences = preferences,
         onSettingsClick = onSettingsClick,
-        onVideoItemClick = onVideoItemClick,
+        onVideoClick = onVideoClick,
         onFolderClick = onFolderClick,
         updatePreferences = viewModel::updateMenu
     )
@@ -71,7 +71,7 @@ internal fun MediaPickerScreen(
     videosState: VideosState,
     foldersState: FoldersState,
     preferences: AppPrefs,
-    onVideoItemClick: (uri: Uri) -> Unit = {},
+    onVideoClick: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     updatePreferences: (SortBy, SortOrder, Boolean) -> Unit = { _, _, _ -> }
@@ -110,7 +110,7 @@ internal fun MediaPickerScreen(
             if (preferences.groupVideosByFolder) {
                 FoldersListFromState(foldersState = foldersState, onFolderClick = onFolderClick)
             } else {
-                VideosListFromState(videosState = videosState, onVideoClick = onVideoItemClick)
+                VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
             }
             if (showMenu) {
                 QuickSettingsDialog(
@@ -138,7 +138,7 @@ fun MediaPickerScreenPreview(
                     ),
                     foldersState = FoldersState.Loading,
                     preferences = AppPrefs.default().copy(groupVideosByFolder = false),
-                    onVideoItemClick = {},
+                    onVideoClick = {},
                     onFolderClick = {}
                 )
             }
@@ -169,7 +169,7 @@ fun MediaPickerNoVideosFoundPreview() {
                     data = emptyList()
                 ),
                 preferences = AppPrefs.default(),
-                onVideoItemClick = {},
+                onVideoClick = {},
                 onFolderClick = {}
             )
         }
@@ -185,7 +185,7 @@ fun MediaPickerLoadingPreview() {
                 videosState = VideosState.Loading,
                 foldersState = FoldersState.Loading,
                 preferences = AppPrefs.default(),
-                onVideoItemClick = {},
+                onVideoClick = {},
                 onFolderClick = {}
             )
         }

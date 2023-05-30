@@ -8,9 +8,9 @@ import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo.FolderVideoPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder.MediaPickerFolderScreen
 
-const val folderVideoPickerNavigationRoute = "folder_video_picker_screen"
+const val mediaPickerFolderNavigationRoute = "media_picker_folder_screen"
 internal const val folderIdArg = "folderId"
 
 internal class FolderArgs(val folderId: String) {
@@ -18,26 +18,26 @@ internal class FolderArgs(val folderId: String) {
         this(Uri.decode(checkNotNull(savedStateHandle[folderIdArg])))
 }
 
-fun NavController.navigateToFolderVideoPickerScreen(
+fun NavController.navigateToMediaPickerFolderScreen(
     folderId: String,
     navOptions: NavOptions? = null
 ) {
     val encodedFolderId = Uri.encode(folderId)
-    this.navigate("$folderVideoPickerNavigationRoute/$encodedFolderId", navOptions)
+    this.navigate("$mediaPickerFolderNavigationRoute/$encodedFolderId", navOptions)
 }
 
-fun NavGraphBuilder.folderVideoPickerScreen(
+fun NavGraphBuilder.mediaPickerFolderScreen(
     onNavigateUp: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit
+    onVideoClick: (uri: Uri) -> Unit
 ) {
     composable(
-        route = "$folderVideoPickerNavigationRoute/{$folderIdArg}",
+        route = "$mediaPickerFolderNavigationRoute/{$folderIdArg}",
         arguments = listOf(
             navArgument(folderIdArg) { type = NavType.StringType }
         )
     ) {
-        FolderVideoPickerScreen(
-            onVideoItemClick = onVideoItemClick,
+        MediaPickerFolderScreen(
+            onVideoClick = onVideoClick,
             onNavigateUp = onNavigateUp
         )
     }

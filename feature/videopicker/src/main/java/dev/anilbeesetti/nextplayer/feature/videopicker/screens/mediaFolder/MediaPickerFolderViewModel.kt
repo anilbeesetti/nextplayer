@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class FolderVideoPickerViewModel @Inject constructor(
+class MediaPickerFolderViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
