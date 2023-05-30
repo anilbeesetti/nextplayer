@@ -13,18 +13,18 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 class GetSortedFoldersUseCase @Inject constructor(
-    private val getAllFoldersUseCase: GetAllFoldersUseCase,
+    private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val preferencesRepository: PreferencesRepository,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
 ) {
 
     operator fun invoke(): Flow<List<Folder>> {
         return combine(
-            getAllFoldersUseCase.invoke(),
+            getSortedVideosUseCase.invoke(),
             preferencesRepository.appPrefsFlow
-        ) { allFolders, preferences ->
+        ) { videos, preferences ->
 
-            val folders = allFolders.filter { !it.isExcluded }
+            val folders = videos.toFolders()
 
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {

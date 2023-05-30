@@ -6,6 +6,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -24,19 +25,22 @@ class GetAllFoldersUseCase @Inject constructor(
             videoRepository.getVideosFlow(),
             preferencesRepository.appPrefsFlow
         ) { videoItems, preferences ->
-
-            val folders = videoItems.groupBy {
-                File(it.path).parentFile!!
-            }.map { (file, videos) ->
-                Folder(
-                    path = file.path,
-                    name = file.prettyName,
-                    mediaCount = videos.size,
-                    mediaSize = videos.sumOf { it.size },
-                    isExcluded = file.path in preferences.excludeFolders
-                )
-            }
-            folders.sortedBy { it.path }
+            videoItems
+                .toFolders(preferences.excludeFolders)
+                .sortedBy { it.path }
         }.flowOn(defaultDispatcher)
     }
 }
+
+fun List<Video>.toFolders(excludedFolders: List<String>? = null) =
+    groupBy { File(it.path).parentFile!! }
+        .map { (file, videos) ->
+            Folder(
+                path = file.path,
+                name = file.prettyName,
+                mediaCount = videos.size,
+                mediaSize = videos.sumOf { it.size },
+                isExcluded = if (excludedFolders == null) false else file.path in excludedFolders
+            )
+        }
+
