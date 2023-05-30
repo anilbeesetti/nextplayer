@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CornerSize
@@ -19,30 +21,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.common.extensions.getThumbnail
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.subtitleTracks
-import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.thumbs
-import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.uri
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -56,18 +51,15 @@ fun VideoItem(
     val formattedSize = remember { Formatter.formatFileSize(context, video.size) }
     val formattedDuration = remember { Utils.formatDurationMillis(video.duration) }
 
-    var thumbHeight by remember { mutableStateOf(0) }
-    var contentHeight by remember { mutableStateOf(0) }
-
     Box(
         modifier = Modifier
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
-            )
+            ),
     ) {
         Row(
-            verticalAlignment = if (contentHeight > thumbHeight) Alignment.CenterVertically else Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -77,20 +69,13 @@ fun VideoItem(
                     color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
                     shape = MaterialTheme.shapes.small,
                     modifier = Modifier
-                        .onSizeChanged { thumbHeight = it.height }
                         .widthIn(max = 420.dp)
                         .fillMaxWidth(0.45f)
                         .aspectRatio(16f / 10f),
                     content = {
                         if (video.uriString.isNotEmpty()) {
                             GlideImage(
-                                imageModel = {
-                                    if (video.thumbs.isNotEmpty()) {
-                                        video.thumbs[0]
-                                    } else {
-                                        video.uri
-                                    }
-                                },
+                                imageModel = { video.path.getThumbnail() ?: video.uriString },
                                 imageOptions = ImageOptions(
                                     contentScale = ContentScale.Crop,
                                     alignment = Alignment.Center
@@ -111,36 +96,32 @@ fun VideoItem(
             }
             Column(
                 modifier = Modifier
-                    .onSizeChanged { contentHeight = it.height }
-                    .padding(start = 12.dp, end = 12.dp)
+                    .padding(start = 12.dp)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = video.nameWithExtension,
+                    text = video.displayName,
                     maxLines = 2,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Normal
-                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(3.dp))
                 Text(
                     text = video.path,
                     maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 FlowRow(
                     modifier = Modifier
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (video.subtitleTracks.isNotEmpty()) {
-                        InfoChip(text = "SUB")
-                    }
                     InfoChip(text = formattedSize, modifier = Modifier.padding(vertical = 5.dp))
                     if (video.width > 0 && video.height > 0) {
                         InfoChip(text = "${video.width} x ${video.height}")
