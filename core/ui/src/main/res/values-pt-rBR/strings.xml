@@ -67,4 +67,21 @@
     <string name="done">Feito</string>
     <string name="permission_info">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão.</string>
     <string name="permission_settings">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
+    <string name="audio">Áudio</string>
+    <string name="preferred_audio_lang">Idioma de áudio preferido</string>
+    <string name="preferred_audio_lang_description">Idioma da faixa de áudio que você deseja usar por padrão</string>
+    <string name="subtitle">Legenda</string>
+    <string name="preferred_subtitle_lang">Idioma de legenda preferido</string>
+    <string name="preferred_subtitle_lang_description">Idioma da faixa de legenda que você deseja usar por padrão</string>
+    <string name="system_default">Padrão do sistema</string>
+    <string name="on">Ligado</string>
+    <string name="auto">Automático</string>
+    <string name="no">Não</string>
+    <string name="off">Desligado</string>
+    <string name="play_pause">Reproduzir/Pausar</string>
+    <string name="ff_rewind">Avançar/Retroceder</string>
+    <string name="play_pause_ff_rewind">Reproduzir/Pausar e Avançar/Retroceder</string>
+    <string name="none">Nenhum</string>
+    <string name="enable">Ativar</string>
+    <string name="yes">Sim</string>
 </resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="descending">Descendant</string>
+    <string name="ascending">Ascendant</string>
+    <string name="preferred_audio_lang">Langue audio préférée</string>
+    <string name="preferred_audio_lang_description">Langue de la piste audio que vous souhaitez utiliser par défaut</string>
+    <string name="subtitle">Sous-titre</string>
+    <string name="preferred_subtitle_lang">Langue de sous-titrage préférée</string>
+    <string name="off">Désactivé</string>
+    <string name="on">Activé</string>
+    <string name="play_pause">Lecture/Pause</string>
+    <string name="ff_rewind">Avance rapide/Retour arrière</string>
+    <string name="play_pause_ff_rewind">Lecture/Pause et Avance/Retour rapide</string>
+    <string name="none">Aucun</string>
+    <string name="auto">Auto</string>
+    <string name="enable">Activer</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string name="about_description">Version, crédits</string>
+    <string name="cancel">Annuler</string>
+    <string name="double_tap">Geste de double tapotement</string>
+    <string name="system_default">Défaut du système</string>
+    <string name="appearance_description">Ajustez l\'application à votre convenance</string>
+    <string name="appearance_name">Apparence</string>
+    <string name="disable">Désactiver</string>
+    <string name="about_name">À propos</string>
+    <string name="done">Terminé</string>
+    <string name="preferred_subtitle_lang_description">Langue de la piste de sous-titres que vous souhaitez utiliser par défaut</string>
+</resources>
