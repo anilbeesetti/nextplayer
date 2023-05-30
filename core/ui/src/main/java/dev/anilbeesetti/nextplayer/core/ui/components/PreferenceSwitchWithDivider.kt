@@ -1,9 +1,13 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -60,5 +64,39 @@ fun PreferenceSwitchWithDividerPreview() {
         icon = NextIcons.DoubleTap,
         onClick = {},
         onChecked = {}
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun PreferenceCheckbox(
+    title: String,
+    description: String? = null,
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
+    isChecked: Boolean = true,
+    onClick: (() -> Unit) = {},
+    onLongClick: (() -> Unit) = {}
+) {
+    PreferenceItem(
+        title = title,
+        description = description,
+        icon = icon,
+        modifier = Modifier
+            .toggleable(
+                value = isChecked,
+                enabled = enabled,
+                onValueChange = { onClick() }
+            )
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
+        content = {
+            Checkbox(
+                checked = isChecked,
+                onCheckedChange = null
+            )
+        }
     )
 }

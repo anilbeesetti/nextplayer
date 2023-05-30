@@ -5,7 +5,8 @@ data class AppPrefs(
     val sortOrder: SortOrder,
     val groupVideosByFolder: Boolean,
     val themeConfig: ThemeConfig,
-    val useDynamicColors: Boolean
+    val useDynamicColors: Boolean,
+    val excludeFolders: List<String>
 ) {
 
     companion object {
@@ -14,7 +15,8 @@ data class AppPrefs(
             sortOrder = SortOrder.ASCENDING,
             groupVideosByFolder = true,
             themeConfig = ThemeConfig.SYSTEM,
-            useDynamicColors = true
+            useDynamicColors = true,
+            excludeFolders = listOf("/storage/emulated/0/Download")
         )
     }
 }

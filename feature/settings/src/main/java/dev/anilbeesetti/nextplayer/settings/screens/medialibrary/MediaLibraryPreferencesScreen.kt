@@ -11,6 +11,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -26,7 +28,8 @@ import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaLibraryPreferencesScreen(
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onFolderSettingClick: () -> Unit = {}
 ) {
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val context = LocalContext.current
@@ -60,6 +63,9 @@ fun MediaLibraryPreferencesScreen(
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.scan))
                 }
+                hideFoldersSettings(
+                    onClick = onFolderSettingClick
+                )
                 forceRescanStorageSetting(
                     onClick = {
                         context.scanStorage()
@@ -71,6 +77,19 @@ fun MediaLibraryPreferencesScreen(
                 )
             }
         }
+    }
+}
+
+fun LazyListScope.hideFoldersSettings(
+    onClick: () -> Unit
+) {
+    item {
+        ClickablePreferenceItem(
+            title = stringResource(id = R.string.manage_folders),
+            description = stringResource(id = R.string.manage_folders_desc),
+            icon = NextIcons.FolderOff,
+            onClick = onClick
+        )
     }
 }
 

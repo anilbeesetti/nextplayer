@@ -60,6 +60,14 @@ class FakePreferencesRepository : PreferencesRepository {
         appPreferences.update { it.copy(groupVideosByFolder = value) }
     }
 
+    override suspend fun addToExcludedFolders(folder: String) {
+        appPreferences.update { it.copy(excludeFolders = it.excludeFolders + folder) }
+    }
+
+    override suspend fun removeFromExcludedFolders(folder: String) {
+        appPreferences.update { it.copy(excludeFolders = it.excludeFolders - folder) }
+    }
+
     override suspend fun setUseSwipeControls(value: Boolean) {
         playerPreferences.update { it.copy(useSwipeControls = value) }
     }

@@ -43,6 +43,10 @@ interface PreferencesRepository {
      */
     suspend fun setGroupVideosByFolder(value: Boolean)
 
+    suspend fun addToExcludedFolders(folder: String)
+
+    suspend fun removeFromExcludedFolders(folder: String)
+
     /**
      * Sets the theme config.
      *

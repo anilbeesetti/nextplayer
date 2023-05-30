@@ -8,5 +8,6 @@ fun AppPreferences.toAppPrefs() = AppPrefs(
     sortOrder = sortOrder,
     groupVideosByFolder = groupVideosByFolder,
     themeConfig = themeConfig,
-    useDynamicColors = useDynamicColors
+    useDynamicColors = useDynamicColors,
+    excludeFolders = excludeFolders
 )

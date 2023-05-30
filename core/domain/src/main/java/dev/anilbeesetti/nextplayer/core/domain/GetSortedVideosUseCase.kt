@@ -28,6 +28,8 @@ class GetSortedVideosUseCase @Inject constructor(
 
             val filteredVideos = videoItems.filter {
                 folderPath == null || it.path.substringBeforeLast("/") == folderPath
+            }.filterNot {
+                it.path.substringBeforeLast("/") in preferences.excludeFolders
             }
 
             when (preferences.sortOrder) {

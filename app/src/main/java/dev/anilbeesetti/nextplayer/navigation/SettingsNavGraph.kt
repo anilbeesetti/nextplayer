@@ -6,10 +6,12 @@ import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.folderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.mediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaPreferencesPreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.settingsNavigationRoute
@@ -29,7 +31,7 @@ fun NavGraphBuilder.settingsNavGraph(
             onItemClick = { setting ->
                 when (setting) {
                     Setting.APPEARANCE -> navController.navigateToAppearancePreferences()
-                    Setting.MEDIA_LIBRARY -> navController.navigateToMediaPreferencesPreferences()
+                    Setting.MEDIA_LIBRARY -> navController.navigateToMediaLibraryPreferencesScreen()
                     Setting.PLAYER -> navController.navigateToPlayerPreferences()
                     Setting.ABOUT -> navController.navigateToAboutPreferences()
                 }
@@ -39,6 +41,10 @@ fun NavGraphBuilder.settingsNavGraph(
             onNavigateUp = navController::popBackStack
         )
         mediaLibraryPreferencesScreen(
+            onNavigateUp = navController::popBackStack,
+            onFolderSettingClick = navController::navigateToFolderPreferencesScreen
+        )
+        folderPreferencesScreen(
             onNavigateUp = navController::popBackStack
         )
         playerPreferencesScreen(

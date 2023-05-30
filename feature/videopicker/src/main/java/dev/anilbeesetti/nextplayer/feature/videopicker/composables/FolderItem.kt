@@ -104,7 +104,8 @@ fun FolderItemPreview() {
                 name = "Folder 1",
                 path = "/storage/emulated/0/DCIM/Camera/Live Photos",
                 mediaSize = 1000,
-                mediaCount = 1
+                mediaCount = 1,
+                isExcluded = false
             ),
             onClick = { }
         )
