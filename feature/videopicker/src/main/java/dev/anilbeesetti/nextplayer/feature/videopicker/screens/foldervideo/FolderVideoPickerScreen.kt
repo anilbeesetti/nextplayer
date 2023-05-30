@@ -19,8 +19,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
 import java.io.File
 
 @Composable
@@ -31,14 +31,14 @@ fun FolderVideoPickerScreen(
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
-    val videosState by viewModel.videoItems.collectAsStateWithLifecycle(
+    val videosState by viewModel.videos.collectAsStateWithLifecycle(
         minActiveState = Lifecycle.State.RESUMED
     )
 
     FolderVideoPickerScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
-        onVideoItemClick = onVideoItemClick,
+        onVideoClick = onVideoItemClick,
         onNavigateUp = onNavigateUp
     )
 }
@@ -47,8 +47,8 @@ fun FolderVideoPickerScreen(
 @Composable
 internal fun FolderVideoPickerScreen(
     folderPath: String,
-    videosState: MediaState,
-    onVideoItemClick: (uri: Uri) -> Unit,
+    videosState: VideosState,
+    onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit
 ) {
     Scaffold(
@@ -72,10 +72,7 @@ internal fun FolderVideoPickerScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            MediaContent(
-                state = videosState,
-                onMediaClick = { onVideoItemClick(Uri.parse(it)) }
-            )
+            VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
         }
     }
 }
