@@ -11,5 +11,6 @@ data class AppPreferences(
     val sortOrder: SortOrder = SortOrder.ASCENDING,
     val groupVideosByFolder: Boolean = true,
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
-    val useDynamicColors: Boolean = true
+    val useDynamicColors: Boolean = true,
+    val excludeFolders: List<String> = emptyList()
 )

@@ -40,6 +40,14 @@ class LocalPreferencesRepository @Inject constructor(
         appPreferencesDataSource.updateData { it.copy(groupVideosByFolder = value) }
     }
 
+    override suspend fun addToExcludedFolders(folder: String) {
+        appPreferencesDataSource.updateData { it.copy(excludeFolders = it.excludeFolders + folder) }
+    }
+
+    override suspend fun removeFromExcludedFolders(folder: String) {
+        appPreferencesDataSource.updateData { it.copy(excludeFolders = it.excludeFolders - folder) }
+    }
+
     override suspend fun setThemeConfig(themeConfig: ThemeConfig) {
         appPreferencesDataSource.updateData { it.copy(themeConfig = themeConfig) }
     }
