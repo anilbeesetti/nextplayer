@@ -46,7 +46,6 @@ fun CenterCircularProgressBar() {
     )
 }
 
-
 @Composable
 fun NoVideosFound() {
     Text(
@@ -54,7 +53,6 @@ fun NoVideosFound() {
         style = MaterialTheme.typography.titleLarge
     )
 }
-
 
 @Composable
 fun VideosListFromState(

@@ -19,8 +19,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
 @Composable

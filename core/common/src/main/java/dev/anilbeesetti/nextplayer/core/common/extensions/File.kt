@@ -11,7 +11,6 @@ fun File.getSubtitles(): List<File> {
     return subs
 }
 
-
 fun File.isSubFor(file: File): Boolean {
     return nameWithoutExtension.startsWith("${file.nameWithoutExtension}.") && isSubtitle()
 }

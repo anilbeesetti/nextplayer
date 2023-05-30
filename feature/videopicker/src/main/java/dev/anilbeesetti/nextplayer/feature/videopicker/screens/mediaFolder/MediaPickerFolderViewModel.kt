@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 @HiltViewModel
 class MediaPickerFolderViewModel @Inject constructor(

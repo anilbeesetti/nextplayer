@@ -56,7 +56,7 @@ fun VideoItem(
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
-            ),
+            )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

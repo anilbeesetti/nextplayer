@@ -33,12 +33,12 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersListFromState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
@@ -49,7 +49,6 @@ fun MediaPickerScreen(
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel()
 ) {
-
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
