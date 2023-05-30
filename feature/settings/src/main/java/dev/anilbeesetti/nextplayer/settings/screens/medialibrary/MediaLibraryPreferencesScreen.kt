@@ -26,7 +26,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaLibraryPreferencesScreen(
-    onNavigateUp: () -> Unit,
+    onNavigateUp: () -> Unit
 ) {
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val context = LocalContext.current
@@ -74,7 +74,6 @@ fun MediaLibraryPreferencesScreen(
     }
 }
 
-
 fun LazyListScope.forceRescanStorageSetting(
     onClick: () -> Unit
 ) {
@@ -83,7 +82,7 @@ fun LazyListScope.forceRescanStorageSetting(
             title = stringResource(id = R.string.force_rescan_storage),
             description = stringResource(id = R.string.force_rescan_storage_desc),
             icon = NextIcons.Update,
-            onClick = onClick,
+            onClick = onClick
         )
     }
 }
