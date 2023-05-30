@@ -67,7 +67,6 @@ fun PreferenceSwitchWithDividerPreview() {
     )
 }
 
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PreferenceCheckbox(
@@ -77,7 +76,7 @@ fun PreferenceCheckbox(
     enabled: Boolean = true,
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
-    onLongClick: (() -> Unit) = {},
+    onLongClick: (() -> Unit) = {}
 ) {
     PreferenceItem(
         title = title,

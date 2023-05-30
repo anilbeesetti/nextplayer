@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,7 +91,6 @@ fun PreferenceItemPreview() {
     )
 }
 
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SelectablePreference(
@@ -106,14 +104,14 @@ fun SelectablePreference(
     Surface(
         modifier = Modifier.combinedClickable(
             onClick = onClick,
-            onLongClick = onLongClick,
+            onLongClick = onLongClick
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp, 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             icon?.let {
                 Icon(
@@ -137,17 +135,18 @@ fun SelectablePreference(
                         maxLines = 1,
                         color = colorScheme.onSurface,
                         style = typography.titleMedium.copy(
-                            textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
+                            textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
                         )
                     )
                     description?.let {
                         Text(
                             text = it,
                             color = colorScheme.onSurfaceVariant,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                             style = typography.bodyMedium.copy(
                                 textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
-                            ),
+                            )
                         )
                     }
                 }

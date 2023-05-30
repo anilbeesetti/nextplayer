@@ -6,11 +6,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetAllFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class MediaLibraryPreferencesViewModel @Inject constructor(
@@ -38,7 +38,7 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
 }
 
 sealed interface FolderPreferencesUiState {
-    object Loading: FolderPreferencesUiState
+    object Loading : FolderPreferencesUiState
 
-    data class Success(val folders: List<Folder>): FolderPreferencesUiState
+    data class Success(val folders: List<Folder>) : FolderPreferencesUiState
 }

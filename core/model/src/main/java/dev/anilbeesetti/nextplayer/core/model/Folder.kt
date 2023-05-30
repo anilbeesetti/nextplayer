@@ -5,5 +5,5 @@ data class Folder(
     val path: String,
     val mediaSize: Long,
     val mediaCount: Int,
-    val isExcluded: Boolean,
+    val isExcluded: Boolean
 )

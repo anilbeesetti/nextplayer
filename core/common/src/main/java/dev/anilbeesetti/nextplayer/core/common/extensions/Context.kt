@@ -205,5 +205,4 @@ fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
 }
 
 fun Context.getFolderFromSAF() {
-
 }

@@ -7,12 +7,12 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import java.io.File
-import javax.inject.Inject
 
 class GetAllFoldersUseCase @Inject constructor(
     private val videoRepository: VideoRepository,
@@ -43,4 +43,3 @@ fun List<Video>.toFolders(excludedFolders: List<String>? = null) =
                 isExcluded = if (excludedFolders == null) false else file.path in excludedFolders
             )
         }
-

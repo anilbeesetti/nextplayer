@@ -12,8 +12,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -24,7 +22,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.showToast
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceCheckbox
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 
@@ -67,7 +64,7 @@ fun MediaLibraryPreferencesScreen(
                     PreferenceSubtitle(text = stringResource(id = R.string.scan))
                 }
                 hideFoldersSettings(
-                    onClick = onFolderSettingClick,
+                    onClick = onFolderSettingClick
                 )
                 forceRescanStorageSetting(
                     onClick = {
@@ -82,7 +79,6 @@ fun MediaLibraryPreferencesScreen(
         }
     }
 }
-
 
 fun LazyListScope.hideFoldersSettings(
     onClick: () -> Unit
