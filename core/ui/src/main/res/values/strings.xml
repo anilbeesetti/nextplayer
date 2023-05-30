@@ -85,4 +85,10 @@
     <string name="enable">Enable</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="scan">Scan</string>
+    <string name="media_library">Media library</string>
+    <string name="force_rescan_storage">Force rescan storage</string>
+    <string name="force_rescan_storage_desc">Caution: Initiating a full storage rescan may cause increased resource usage on your device</string>
+    <string name="media_library_description">Scan and manage media library</string>
+    <string name="scanning_storage">Scanning storage…</string>
 </resources>

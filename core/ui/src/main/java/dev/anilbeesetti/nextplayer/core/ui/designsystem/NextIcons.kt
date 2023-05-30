@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayCircle
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
+import androidx.compose.material.icons.rounded.Update
 
 object NextIcons {
     val Appearance = Icons.Rounded.Palette
@@ -42,6 +44,7 @@ object NextIcons {
     val Info = Icons.Rounded.Info
     val Length = Icons.Rounded.Straighten
     val Location = Icons.Rounded.LocationOn
+    val Movie = Icons.Rounded.LocalMovies
     val Player = Icons.Rounded.PlayCircle
     val Resume = Icons.Rounded.ResetTv
     val Selection = Icons.Rounded.DoneAll
@@ -51,4 +54,5 @@ object NextIcons {
     val SwipeHorizontal = Icons.Rounded.Swipe
     val SwipeVertical = Icons.Rounded.SwipeVertical
     val Title = Icons.Rounded.Title
+    val Update = Icons.Rounded.Update
 }

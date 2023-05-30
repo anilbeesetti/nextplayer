@@ -11,6 +11,7 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.core.text.isDigitsOnly
 import java.io.File
 
@@ -179,6 +180,10 @@ fun Context.getContentUriFromUri(uri: Uri): Uri? {
         cursor?.close()
     }
     return null
+}
+
+fun Context.showToast(string: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, string, duration).show()
 }
 
 fun Context.scanPaths(paths: List<String>, callback: ((String?, Uri?) -> Unit)? = null) {

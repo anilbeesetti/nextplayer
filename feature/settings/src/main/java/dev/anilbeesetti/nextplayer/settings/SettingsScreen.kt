@@ -56,6 +56,14 @@ fun SettingsScreen(
             }
             item {
                 ClickablePreferenceItem(
+                    title = stringResource(id = R.string.media_library),
+                    description = stringResource(id = R.string.media_library_description),
+                    icon = NextIcons.Movie,
+                    onClick = { onItemClick(Setting.MEDIA_LIBRARY) }
+                )
+            }
+            item {
+                ClickablePreferenceItem(
                     title = stringResource(id = R.string.player_name),
                     description = stringResource(id = R.string.player_description),
                     icon = NextIcons.Player,
@@ -76,6 +84,7 @@ fun SettingsScreen(
 
 enum class Setting {
     APPEARANCE,
+    MEDIA_LIBRARY,
     PLAYER,
     ABOUT
 }
