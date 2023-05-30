@@ -37,11 +37,10 @@ fun FolderItem(
 ) {
     val haptic = LocalHapticFeedback.current
     Surface(
-        modifier = Modifier
-            .combinedClickable(
-                onClick = { onClick() },
-                onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
-            )
+        modifier = Modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+        )
     ) {
         Row(
             modifier = modifier
