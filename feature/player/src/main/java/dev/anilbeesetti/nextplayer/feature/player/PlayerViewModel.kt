@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
+import dev.anilbeesetti.nextplayer.core.model.AppPrefs
 import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import javax.inject.Inject
@@ -41,6 +42,12 @@ class PlayerViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = PlayerPrefs.default()
+    )
+
+    val appPrefs = preferencesRepository.appPrefsFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = AppPrefs.default()
     )
 
     fun updateInfo(path: String) {
