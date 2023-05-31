@@ -10,6 +10,8 @@ import dev.anilbeesetti.nextplayer.core.model.AppPrefs
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerScreen
 import org.junit.Rule
@@ -21,14 +23,15 @@ class MediaPickerScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     /**
-     * This test is to check if the CircularProgressIndicator is displayed when the [MediaState.Loading] is passed.
+     * This test is to check if the CircularProgressIndicator is displayed when the [VideosState.Loading] is passed.
      */
     @Test
     fun circularProgressIndicatorIsDisplayed_whenLoading() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Loading,
+                    videosState = VideosState.Loading,
+                    foldersState = FoldersState.Loading,
                     preferences = AppPrefs.default()
                 )
             }
@@ -39,7 +42,7 @@ class MediaPickerScreenTest {
 
     /**
      * This test is to check if the video items are displayed
-     * when the [MediaState.Success] is passed with list of [Video],
+     * when the [VideosState.Success] is passed with list of [Video],
      * along with [AppPrefs].groupVideosByFolder = false
      */
     @Test
@@ -47,9 +50,10 @@ class MediaPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
+                    videosState = VideosState.Success(
                         data = videoItemsTestData
                     ),
+                    foldersState = FoldersState.Loading,
                     preferences = AppPrefs.default().copy(groupVideosByFolder = false)
                 )
             }
@@ -73,7 +77,7 @@ class MediaPickerScreenTest {
 
     /**
      * This test is to check if the folder items are displayed
-     * when the [MediaState.Success] is passed with list of [Folder],
+     * when the [FoldersState.Success] is passed with list of [Folder],
      * along with [AppPrefs].groupVideosByFolder = true
      */
     @Test
@@ -81,7 +85,8 @@ class MediaPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
+                    videosState = VideosState.Loading, // Don't care what the videos state is
+                    foldersState = FoldersState.Success(
                         data = foldersTestData
                     ),
                     preferences = AppPrefs.default().copy(groupVideosByFolder = true)
@@ -107,7 +112,7 @@ class MediaPickerScreenTest {
 
     /**
      * This test is to check if the no videos found text is displayed,
-     * when the [MediaState.Success] with empty list is passed,
+     * when the [VideosState.Success] with empty list is passed,
      * along with [AppPrefs].groupVideosByFolder = false
      */
     @Test
@@ -115,9 +120,10 @@ class MediaPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
-                        data = emptyList<Video>()
+                    videosState = VideosState.Success(
+                        data = emptyList()
                     ),
+                    foldersState = FoldersState.Loading,
                     preferences = AppPrefs.default().copy(groupVideosByFolder = false)
                 )
             }
@@ -133,7 +139,7 @@ class MediaPickerScreenTest {
 
     /**
      * This test is to check if the no videos found text is displayed,
-     * when the [MediaState.Success] with empty list is passed,
+     * when the [FoldersState.Success] with empty list is passed,
      * along with [AppPrefs].groupVideosByFolder = true
      */
     @Test
@@ -141,8 +147,9 @@ class MediaPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
-                        data = emptyList<Folder>()
+                    videosState = VideosState.Loading,
+                    foldersState = FoldersState.Success(
+                        data = emptyList()
                     ),
                     preferences = AppPrefs.default().copy(groupVideosByFolder = true)
                 )

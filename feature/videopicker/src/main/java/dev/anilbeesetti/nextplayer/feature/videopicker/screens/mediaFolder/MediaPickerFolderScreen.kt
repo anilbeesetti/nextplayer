@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens.foldervideo
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
@@ -19,36 +19,36 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
 @Composable
-fun FolderVideoPickerScreen(
-    viewModel: FolderVideoPickerViewModel = hiltViewModel(),
-    onVideoItemClick: (uri: Uri) -> Unit,
+fun MediaPickerFolderScreen(
+    viewModel: MediaPickerFolderViewModel = hiltViewModel(),
+    onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
-    val videosState by viewModel.videoItems.collectAsStateWithLifecycle(
+    val videosState by viewModel.videos.collectAsStateWithLifecycle(
         minActiveState = Lifecycle.State.RESUMED
     )
 
-    FolderVideoPickerScreen(
+    MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
-        onVideoItemClick = onVideoItemClick,
+        onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FolderVideoPickerScreen(
+internal fun MediaPickerFolderScreen(
     folderPath: String,
-    videosState: MediaState,
-    onVideoItemClick: (uri: Uri) -> Unit,
+    videosState: VideosState,
+    onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit
 ) {
     Scaffold(
@@ -72,10 +72,7 @@ internal fun FolderVideoPickerScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            MediaContent(
-                state = videosState,
-                onMediaClick = { onVideoItemClick(Uri.parse(it)) }
-            )
+            VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
         }
     }
 }

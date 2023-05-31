@@ -1,63 +1,97 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import androidx.compose.foundation.layout.Column
+import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.model.Folder
-import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
 
 @Composable
-fun MediaContent(
-    state: MediaState,
-    onMediaClick: (data: String) -> Unit
+fun MediaLazyList(
+    modifier: Modifier = Modifier,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+    content: LazyListScope.() -> Unit
 ) {
-    when (state) {
-        is MediaState.Loading -> {
-            CircularProgressIndicator(
-                modifier = Modifier.testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG)
-            )
-        }
+    LazyColumn(
+        contentPadding = PaddingValues(vertical = 10.dp),
+        modifier = modifier
+            .fillMaxSize(),
+        horizontalAlignment = horizontalAlignment,
+        verticalArrangement = verticalArrangement,
+        content = content
+    )
+}
 
-        is MediaState.Success<*> -> {
-            if (state.data.isEmpty()) {
-                Column {
-                    Text(
-                        text = stringResource(id = R.string.no_videos_found),
-                        style = MaterialTheme.typography.titleLarge
+@Composable
+fun CenterCircularProgressBar() {
+    CircularProgressIndicator(
+        modifier = Modifier
+            .testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG)
+    )
+}
+
+@Composable
+fun NoVideosFound() {
+    Text(
+        text = stringResource(id = R.string.no_videos_found),
+        style = MaterialTheme.typography.titleLarge
+    )
+}
+
+@Composable
+fun VideosListFromState(
+    videosState: VideosState,
+    onVideoClick: (Uri) -> Unit
+) {
+    when (videosState) {
+        VideosState.Loading -> CenterCircularProgressBar()
+        is VideosState.Success -> if (videosState.data.isEmpty()) {
+            NoVideosFound()
+        } else {
+            MediaLazyList {
+                items(videosState.data, key = { it.path }) {
+                    VideoItem(
+                        video = it,
+                        onClick = { onVideoClick(Uri.parse(it.uriString)) }
                     )
                 }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(vertical = 10.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    items(state.data) { data ->
-                        when (data) {
-                            is Folder -> FolderItem(
-                                folder = data,
-                                onClick = { onMediaClick(data.path) }
-                            )
+            }
+        }
+    }
+}
 
-                            is Video -> VideoItem(
-                                video = data,
-                                onClick = { onMediaClick(data.uriString) }
-                            )
-                        }
-                    }
+@Composable
+fun FoldersListFromState(
+    foldersState: FoldersState,
+    onFolderClick: (folderPath: String) -> Unit
+) {
+    when (foldersState) {
+        FoldersState.Loading -> CenterCircularProgressBar()
+        is FoldersState.Success -> if (foldersState.data.isEmpty()) {
+            NoVideosFound()
+        } else {
+            MediaLazyList {
+                items(foldersState.data, key = { it.path }) {
+                    FolderItem(
+                        folder = it,
+                        onClick = { onFolderClick(it.path) }
+                    )
                 }
             }
         }

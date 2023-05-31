@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.common.extensions
 
+import android.os.Environment
 import java.io.File
 
 fun File.getSubtitles(): List<File> {
@@ -11,13 +12,14 @@ fun File.getSubtitles(): List<File> {
     return subs
 }
 
-fun File.getThumbnails(): List<File> {
-    val mediaName = this.nameWithoutExtension
-    val thumbs = this.parentFile?.listFiles { file ->
-        file.nameWithoutExtension == mediaName && file.isImage()
-    }?.toList() ?: emptyList()
-
-    return thumbs
+fun String.getThumbnail(): File? {
+    val filePathWithoutExtension = this.substringBeforeLast(".")
+    val imageExtensions = listOf("png", "jpg", "jpeg")
+    for (imageExtension in imageExtensions) {
+        val file = File("$filePathWithoutExtension.$imageExtension")
+        if (file.exists()) return file
+    }
+    return null
 }
 
 fun File.isSubtitle(): Boolean {
@@ -25,10 +27,5 @@ fun File.isSubtitle(): Boolean {
     return extension in subtitleExtensions
 }
 
-fun File.isImage(): Boolean {
-    val imageExtensions = listOf("png", "jpg", "jpeg")
-    return extension in imageExtensions
-}
-
 val File.prettyName: String
-    get() = this.name.takeIf { this.path != "/storage/emulated/0" } ?: "Internal Storage"
+    get() = this.name.takeIf { this.path != Environment.getExternalStorageDirectory()?.path } ?: "Internal Storage"
