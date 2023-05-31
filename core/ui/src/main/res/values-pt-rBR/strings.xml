@@ -10,7 +10,7 @@
     <string name="double_tap">Gesto de toque duplo</string>
     <string name="double_tap_description">Selecione a ação do gesto de toque duplo</string>
     <string name="group_videos">Agrupar vídeos por pasta</string>
-    <string name="length">Comprimento</string>
+    <string name="length">Duração</string>
     <string name="location">Localização</string>
     <string name="menu">Menu</string>
     <string name="navigate_up">Navegar para cima</string>
@@ -29,7 +29,7 @@
     <string name="player_controls_progress">Barra de progresso do player</string>
     <string name="player_name">Player</string>
     <string name="quick_settings">Configurações rápidas</string>
-    <string name="remember_brightness_level">Lembrar do nível de brilho</string>
+    <string name="remember_brightness_level">Nível de brilho</string>
     <string name="remember_brightness_level_description">Lembrar do nível de brilho entre as sessões de reprodução</string>
     <string name="remember_selections">Lembrar seleções</string>
     <string name="remember_selections_description">Lembrar das seleções para cada arquivo, como faixa de áudio, faixa de legenda, etc</string>
@@ -84,4 +84,14 @@
     <string name="none">Nenhum</string>
     <string name="enable">Ativar</string>
     <string name="yes">Sim</string>
+    <string name="media_library">Biblioteca de mídia</string>
+    <string name="force_rescan_storage_desc">Cuidado: iniciar uma nova verificação completa do armazenamento pode aumentar o uso de recursos em seu dispositivo</string>
+    <string name="videos">vídeos</string>
+    <string name="manage_folders_desc">Selecione as pastas a serem excluídas na biblioteca de mídia</string>
+    <string name="video">vídeo</string>
+    <string name="scan">Verificar</string>
+    <string name="force_rescan_storage">Forçar verificação do armazenamento</string>
+    <string name="media_library_description">Verificar e gerenciar a biblioteca de mídia</string>
+    <string name="scanning_storage">Verificando armazenamento…</string>
+    <string name="manage_folders">Gerenciar pastas</string>
 </resources>
