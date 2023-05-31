@@ -93,4 +93,6 @@
     <string name="scanning_storage">Scanning storage…</string>
     <string name="manage_folders">Manage folders</string>
     <string name="manage_folders_desc">Select folders to be excluded in the media library</string>
+    <string name="video">video</string>
+    <string name="videos">videos</string>
 </resources>

@@ -97,8 +97,7 @@ fun VideoItem(
             Column(
                 modifier = Modifier
                     .padding(start = 12.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.Top
+                    .fillMaxWidth()
             ) {
                 Text(
                     text = video.displayName,
@@ -117,14 +116,16 @@ fun VideoItem(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InfoChip(text = formattedSize, modifier = Modifier.padding(vertical = 5.dp))
+                    InfoChip(text = formattedSize, modifier = Modifier.padding(top = 5.dp))
                     if (video.width > 0 && video.height > 0) {
-                        InfoChip(text = "${video.width} x ${video.height}")
+                        InfoChip(
+                            text = "${video.width} x ${video.height}",
+                            modifier = Modifier.padding(top = 5.dp)
+                        )
                     }
                 }
             }
