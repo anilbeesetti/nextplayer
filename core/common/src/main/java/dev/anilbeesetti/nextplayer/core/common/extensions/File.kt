@@ -4,15 +4,12 @@ import android.os.Environment
 import java.io.File
 
 fun File.getSubtitles(): List<File> {
+    val mediaName = this.nameWithoutExtension
     val subs = this.parentFile?.listFiles { file ->
-        file.isSubFor(this)
+        file.nameWithoutExtension.startsWith(mediaName) && file.isSubtitle()
     }?.toList() ?: emptyList()
 
     return subs
-}
-
-fun File.isSubFor(file: File): Boolean {
-    return nameWithoutExtension.startsWith("${file.nameWithoutExtension}.") && isSubtitle()
 }
 
 fun String.getThumbnail(): File? {
