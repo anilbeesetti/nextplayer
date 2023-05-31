@@ -92,7 +92,7 @@ fun FolderItem(
                             id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos
                         )
                         }",
-                        modifier = Modifier.padding(top = 5.dp)
+                        modifier = Modifier.padding(vertical = 5.dp)
                     )
                 }
             }

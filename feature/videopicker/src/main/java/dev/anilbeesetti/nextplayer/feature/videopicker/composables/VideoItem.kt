@@ -120,11 +120,11 @@ fun VideoItem(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InfoChip(text = formattedSize, modifier = Modifier.padding(top = 5.dp))
+                    InfoChip(text = formattedSize, modifier = Modifier.padding(vertical = 5.dp))
                     if (video.width > 0 && video.height > 0) {
                         InfoChip(
                             text = "${video.width} x ${video.height}",
-                            modifier = Modifier.padding(top = 5.dp)
+                            modifier = Modifier.padding(vertical = 5.dp)
                         )
                     }
                 }
