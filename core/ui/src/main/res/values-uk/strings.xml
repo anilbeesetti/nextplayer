@@ -84,4 +84,12 @@
     <string name="enable">Ввімкнути</string>
     <string name="yes">Так</string>
     <string name="no">Ні</string>
+    <string name="manage_folders_desc">Виберіть папки, які потрібно виключити з медіатеки</string>
+    <string name="scanning_storage">Сканування сховища…</string>
+    <string name="force_rescan_storage">Примусове повторне сканування сховища</string>
+    <string name="media_library">Медіатека</string>
+    <string name="force_rescan_storage_desc">Попередження: Ініціювання повного сканування сховища може призвести до підвищеного використання ресурсів вашого пристрою</string>
+    <string name="media_library_description">Сканування та керування медіатекою</string>
+    <string name="manage_folders">Керування папками</string>
+    <string name="scan">Сканування</string>
 </resources>
