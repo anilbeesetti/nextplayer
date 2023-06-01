@@ -43,10 +43,10 @@ Next Player is an Android native video player written in Kotlin. It provides a s
 - Horizontal swipe to seek through video
 - [Material 3 (You)](https://m3.material.io/) support
 - Media picker with folder and file view
+- Control playback speed
 
 ## Planned Features
 - Zoom gesture
-- Control playback speed
 - External Subtitle support
 - External Audio support
 - Picture-in-picture mode
@@ -76,7 +76,7 @@ You can help translate Next Player on [Hosted Weblate](https://hosted.weblate.or
 
 [<img src="https://hosted.weblate.org/widgets/next-player/-/287x66-white.png"  width="200"/>](https://hosted.weblate.org/engage/next-player/)
 
-Thanks to **Weblate** for providing free hosting for the open source project **Next Player**.
+Thanks to **Weblate** for providing free hosting for the project.
 
 ## License
 Next Player is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for more information.
