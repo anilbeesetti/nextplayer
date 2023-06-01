@@ -331,7 +331,6 @@ class PlayerActivity : AppCompatActivity() {
     private fun playVideo(uri: Uri) {
         player.setMediaItem(uri.toMediaItem(this@PlayerActivity, null))
         playlistManager.updateCurrent(uri)
-        player.playWhenReady = playWhenReady
         player.prepare()
     }
 
