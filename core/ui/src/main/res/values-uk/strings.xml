@@ -92,4 +92,6 @@
     <string name="media_library_description">Сканування та керування медіатекою</string>
     <string name="manage_folders">Керування папками</string>
     <string name="scan">Сканування</string>
+    <string name="video">відео</string>
+    <string name="videos">відео</string>
 </resources>
