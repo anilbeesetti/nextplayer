@@ -54,10 +54,14 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(path) ?: return@launch
 
-            currentPlaybackPosition.value = videoState.position.takeIf { preferences.value.resume == Resume.YES }
-            currentAudioTrackIndex.value = videoState.audioTrack.takeIf { preferences.value.rememberSelections }
-            currentSubtitleTrackIndex.value = videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
-            currentPlaybackSpeed.value = videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
+            currentPlaybackPosition.value =
+                videoState.position.takeIf { preferences.value.resume == Resume.YES }
+            currentAudioTrackIndex.value =
+                videoState.audioTrack.takeIf { preferences.value.rememberSelections }
+            currentSubtitleTrackIndex.value =
+                videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
+            currentPlaybackSpeed.value =
+                videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
         }
     }
 
@@ -67,20 +71,23 @@ class PlayerViewModel @Inject constructor(
 
     fun saveState(path: String?, position: Long, duration: Long) {
         currentPlaybackPosition.value = position
+
+        if (path == null) return
+
+        val newPosition =
+            position.takeIf { position < duration - END_POSITION_OFFSET } ?: C.TIME_UNSET
+        val audioTrack = currentAudioTrackIndex.value
+        val subtitleTrack = currentSubtitleTrackIndex.value
+        val playbackSpeed = currentPlaybackSpeed.value
+
         viewModelScope.launch {
-            if (path == null) return@launch
-            val newPosition = position.takeIf {
-                position < duration - END_POSITION_OFFSET
-            } ?: C.TIME_UNSET
-
             Timber.d("Save state for $path: $position")
-
             videoRepository.saveVideoState(
                 path = path,
                 position = newPosition,
-                audioTrackIndex = currentAudioTrackIndex.value,
-                subtitleTrackIndex = currentSubtitleTrackIndex.value,
-                playbackSpeed = currentPlaybackSpeed.value
+                audioTrackIndex = audioTrack,
+                subtitleTrackIndex = subtitleTrack,
+                playbackSpeed = playbackSpeed
             )
         }
     }
