@@ -162,6 +162,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.currentPlaybackSpeed.collectLatest { playbackSpeed ->
+                        Timber.d("changing speed $playbackSpeed")
                         player.setPlaybackSpeed(playbackSpeed)
                     }
                 }

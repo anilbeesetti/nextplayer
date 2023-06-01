@@ -51,6 +51,7 @@ class PlayerViewModel @Inject constructor(
     )
 
     fun updateInfo(path: String) {
+        resetToDefaults()
         viewModelScope.launch {
             val videoState = videoRepository.getVideoState(path) ?: return@launch
 
