@@ -90,7 +90,13 @@ class PlayerActivity : AppCompatActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val onTrackChangeListener: (Uri) -> Unit = { uri ->
-        runOnUiThread { videoTitleTextView.text = getFilenameFromUri(uri) }
+        runOnUiThread {
+            if (uri.toString() == intentDataUri.toString() && intentExtras?.containsKey(API_TITLE) == true) {
+                videoTitleTextView.text = intentExtras?.getString(API_TITLE)
+            } else {
+                videoTitleTextView.text = getFilenameFromUri(uri)
+            }
+        }
         getPath(uri)?.let { viewModel.updateInfo(it) }
     }
 
@@ -105,9 +111,11 @@ class PlayerActivity : AppCompatActivity() {
             ThemeConfig.SYSTEM -> AppCompatDelegate.setDefaultNightMode(
                 AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             )
+
             ThemeConfig.OFF -> AppCompatDelegate.setDefaultNightMode(
                 AppCompatDelegate.MODE_NIGHT_NO
             )
+
             ThemeConfig.ON -> AppCompatDelegate.setDefaultNightMode(
                 AppCompatDelegate.MODE_NIGHT_YES
             )
@@ -154,6 +162,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.currentPlaybackSpeed.collectLatest { playbackSpeed ->
+                        Timber.d("changing speed $playbackSpeed")
                         player.setPlaybackSpeed(playbackSpeed)
                     }
                 }
@@ -323,7 +332,6 @@ class PlayerActivity : AppCompatActivity() {
     private fun playVideo(uri: Uri) {
         player.setMediaItem(uri.toMediaItem(this@PlayerActivity, null))
         playlistManager.updateCurrent(uri)
-        player.playWhenReady = playWhenReady
         player.prepare()
     }
 
@@ -344,21 +352,16 @@ class PlayerActivity : AppCompatActivity() {
                 shouldFetchPlaylist = false
             }
 
+            val mediaItem = playlistManager.getCurrent()!!.toMediaItem(
+                context = this@PlayerActivity,
+                type = intentType,
+                extras = intentExtras
+            )
             withContext(Dispatchers.Main) {
                 player.setMediaItem(
-                    intentDataUri!!.toMediaItem(
-                        context = this@PlayerActivity,
-                        type = intentType,
-                        extras = intentExtras
-                    ),
+                    mediaItem,
                     viewModel.currentPlaybackPosition.value ?: C.TIME_UNSET
                 )
-
-                if (intentExtras?.containsKey(API_TITLE) == true) {
-                    videoTitleTextView.text = intentExtras?.getString(API_TITLE)
-                } else {
-                    videoTitleTextView.text = intentDataUri?.let { getFilenameFromUri(it) }
-                }
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
@@ -491,7 +494,8 @@ class PlayerActivity : AppCompatActivity() {
         intentType = intent.type
 
         if (intentExtras?.containsKey(API_POSITION) == true) {
-            viewModel.currentPlaybackPosition.value = intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
+            viewModel.currentPlaybackPosition.value =
+                intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
         }
     }
 

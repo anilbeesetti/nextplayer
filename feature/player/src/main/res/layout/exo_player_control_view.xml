@@ -76,6 +76,10 @@
                         android:src="@drawable/ic_speed"
                         app:tint="@android:color/white" />
 
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="0dp" />
+
                     <ImageButton
                         android:id="@+id/btn_audio_track"
                         android:layout_width="wrap_content"
@@ -87,7 +91,7 @@
                         app:tint="@android:color/white" />
 
                     <Space
-                        android:layout_width="8dp"
+                        android:layout_width="5dp"
                         android:layout_height="0dp" />
 
                     <ImageButton
