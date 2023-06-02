@@ -15,10 +15,10 @@
     <string name="double_tap_description">选择双击手势操作</string>
     <string name="fast_seek_description">寻求最近的关键帧而不是精确的帧。</string>
     <string name="no_videos_found">未找到视频</string>
-    <string name="permission_info">Next Player 应用需要\"%1$s\"权限来访问和播放媒体。没有它，将无法访问和播放媒体。为了完全使用应用，请授予该权限。</string>
+    <string name="permission_info">Next Player 应用需要\"%1$s\"权限来访问和播放媒体。没有它，将无法访问和播放媒体。为了完整使用应用，请授予该权限。</string>
     <string name="permission_not_granted">未授予权限</string>
     <string name="permission_request">权限请求</string>
-    <string name="permission_settings">Next Player 应用需要“%1$s”权限才能访问和播放媒体。没有它，将无法访问和播放媒体。要完全使用该应用程序，请从设置中授予权限，因为它已被永久拒绝。</string>
+    <string name="permission_settings">Next Player 应用需要“%1$s”权限才能访问和播放媒体。没有它，将无法访问和播放媒体。要完整使用该应用程序，请从设置中授予权限，因为它已被永久拒绝。</string>
     <string name="player_controls_exit">向上导航</string>
     <string name="player_controls_next">播放下一个</string>
     <string name="player_controls_play_pause">播放器 播放 暂停</string>
