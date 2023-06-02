@@ -7,14 +7,14 @@
     <string name="done">确定</string>
     <string name="appearance_name">外观</string>
     <string name="cancel">取消</string>
-    <string name="disable">禁用</string>
+    <string name="disable">不使用</string>
     <string name="error_playing_video">错误：无法播放视频</string>
     <string name="resume">重新播放</string>
     <string name="appearance_description">根据自己的喜好调整应用程序</string>
     <string name="double_tap">双击手势</string>
     <string name="double_tap_description">选择双击手势操作</string>
-    <string name="fast_seek_description">寻求最近的关键帧而不是精确的帧。</string>
-    <string name="no_videos_found">未找到视频</string>
+    <string name="fast_seek_description">寻找最近的关键帧而不是精确的帧。</string>
+    <string name="no_videos_found">没有找到视频</string>
     <string name="permission_info">Next Player 应用需要\"%1$s\"权限来访问和播放媒体。没有它，将无法访问和播放媒体。为了完整使用应用，请授予该权限。</string>
     <string name="permission_not_granted">未授予权限</string>
     <string name="permission_request">权限请求</string>
@@ -86,7 +86,7 @@
     <string name="scan">扫描</string>
     <string name="media_library">媒体库</string>
     <string name="force_rescan_storage">强制重新扫描存储</string>
-    <string name="force_rescan_storage_desc">警告：启动完全存储重新扫描可能会导致设备上的资源使用量增加</string>
+    <string name="force_rescan_storage_desc">警告：启动完整的存储重新扫描可能会导致设备上的资源使用量增加</string>
     <string name="media_library_description">扫描和管理媒体库</string>
     <string name="video">视频</string>
     <string name="videos">视频</string>
