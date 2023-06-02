@@ -26,4 +26,21 @@
     <string name="about_name">À propos</string>
     <string name="done">Terminé</string>
     <string name="preferred_subtitle_lang_description">Langue de la piste de sous-titres que vous souhaitez utiliser par défaut</string>
+    <string name="double_tap_description">Choix action de double tapotement</string>
+    <string name="error_playing_video">Erreur : impossible de lire la vidéo</string>
+    <string name="fast_seek">Recherche rapide</string>
+    <string name="fast_seek_description">Rechercher jusqu\'à la key frame la plus proche au lieu d\'une exacte.</string>
+    <string name="grant_permission">Donner la permission</string>
+    <string name="group_videos">Regrouper les vidéos par dossier</string>
+    <string name="length">Durée</string>
+    <string name="location">Lieu</string>
+    <string name="menu">Menu</string>
+    <string name="navigate_up">Naviguer vers le haut</string>
+    <string name="no_videos_found">Aucune vidéo trouvée</string>
+    <string name="open_settings">Ouvrir les paramètres</string>
+    <string name="permission_info">Next Player app a besoin de la permission \"%1$s\" pour accéder et lire du contenu. Sans cette permission, l\'accès et la lecture des médias ne fonctionneront pas. Pour utiliser l\'application complètement, donner la permission.</string>
+    <string name="permission_not_granted">Permission non accordée</string>
+    <string name="permission_request">Demande de permission</string>
+    <string name="permission_settings">Next Player app a besoin de la permission \"%1$s\" pour accéder et lire du contenu. Sans cette permission, l\'accès et la lecture des médias ne fonctionneront pas. Pour utiliser l\'application complètement, donner la permission depuis les paramètres d\'Android, car elle a été précédemment refusée de manière permanente.</string>
+    <string name="player_controls_exit">Naviguer vers le haut</string>
 </resources>
