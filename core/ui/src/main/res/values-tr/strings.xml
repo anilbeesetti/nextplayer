@@ -4,7 +4,7 @@
     <string name="grant_permission">İzin Ver</string>
     <string name="group_videos">Videoları klasöre göre gruplandırın</string>
     <string name="fast_seek">Hızlı sarma</string>
-    <string name="open_settings">Ayarları aç</string>
+    <string name="open_settings">Ayarları Aç</string>
     <string name="player_controls_progress">Oynatıcı ilerleme çubuğu</string>
     <string name="remember_selections_description">Ses parçası, altyazı parçası vb. gibi her dosya için seçimleri hatırlayın</string>
     <string name="resume">Sürdür</string>
@@ -13,11 +13,11 @@
     <string name="select_audio_track">Ses parçasını seç</string>
     <string name="select_subtitle_track">Altyazı parçasını seç</string>
     <string name="settings">Ayarlar</string>
-    <string name="sort">Tür</string>
+    <string name="sort">Sırala</string>
     <string name="shortest">En kısa</string>
     <string name="swipe_gesture_description">Parlaklığı ve sesi ayarlamak için dikey olarak kaydırın</string>
     <string name="title">Başlık</string>
-    <string name="title_activity_player">Next Player Aktivitesi</string>
+    <string name="title_activity_player">Next Player Aktivite</string>
     <string name="playback">Oynatma</string>
     <string name="interface_name">Arayüz</string>
     <string name="a_z">A-Z</string>
@@ -65,7 +65,7 @@
     <string name="permission_request">İzin İsteği</string>
     <string name="permission_settings">Next Player uygulamasının medyaya erişmek ve medyayı oynatmak için \"%1$s\" iznine ihtiyacı var. Bu olmadan medya erişimi ve oynatma çalışmaz. Kalıcı olarak reddedildiğinden, uygulamayı tam olarak kullanmak için ayarlardan izin verin.</string>
     <string name="player_controls_exit">Yukarı git</string>
-    <string name="player_controls_next">Sıradaki oynatıcı</string>
+    <string name="player_controls_next">Oynatıcı sıradaki</string>
     <string name="z_a">Z-A</string>
     <string name="longest">En uzun</string>
     <string name="largest">En büyük</string>
