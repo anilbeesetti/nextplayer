@@ -12,18 +12,17 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -50,7 +49,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -76,6 +74,7 @@ class PlayerActivity : AppCompatActivity() {
     var isFileLoaded = false
     var isControlsLocked = false
     private var shouldFetchPlaylist = true
+    private var isSubtitleLauncherHasUri = false
 
     /**
      * Player
@@ -99,6 +98,14 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
     }
+    private val subtitleFileLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                isSubtitleLauncherHasUri = true
+                viewModel.currentExternalSubtitles.add(uri)
+            }
+            playVideo()
+        }
 
     private lateinit var videoTitleTextView: TextView
 
@@ -249,6 +256,18 @@ class PlayerActivity : AppCompatActivity() {
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
 
+        subtitleTrackButton.setOnLongClickListener {
+            subtitleFileLauncher.launch(
+                arrayOf(
+                    MimeTypes.APPLICATION_SUBRIP,
+                    MimeTypes.APPLICATION_TTML,
+                    MimeTypes.TEXT_VTT,
+                    MimeTypes.TEXT_SSA
+                )
+            )
+            true
+        }
+
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedSelectionDialogFragment(
                 player = player
@@ -318,11 +337,20 @@ class PlayerActivity : AppCompatActivity() {
                 shouldFetchPlaylist = false
             }
 
-            getPath(playlistManager.getCurrent()!!)?.let { viewModel.updateInfo(it) }
+            getPath(playlistManager.getCurrent()!!)?.let {
+                viewModel.updateState(
+                    path = it,
+                    shouldUpdateSubtitles = !isSubtitleLauncherHasUri
+                )
+            }
+            if (isSubtitleLauncherHasUri) {
+                viewModel.currentSubtitleTrackIndex = null
+            }
 
             val subs = playlistManager.getCurrent()!!.getSubs(
                 context = this@PlayerActivity,
-                extras = intentExtras
+                extras = intentExtras,
+                externalSubtitles = viewModel.currentExternalSubtitles
             )
 
             val mediaItem = playlistManager.getCurrent()!!.toMediaItem(
@@ -337,6 +365,7 @@ class PlayerActivity : AppCompatActivity() {
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
+            isSubtitleLauncherHasUri = false
         }
     }
 

@@ -67,7 +67,11 @@ fun Uri.toMediaItem(subtitles: List<Subtitle>, type: String?): MediaItem {
     return mediaItemBuilder.build()
 }
 
-fun Uri.getSubs(context: Context, extras: Bundle?): List<Subtitle> {
+fun Uri.getSubs(
+    context: Context,
+    extras: Bundle?,
+    externalSubtitles: List<Uri> = emptyList()
+): List<Subtitle> {
     val subtitles = mutableListOf<Subtitle>()
 
     if (extras != null && extras.containsKey(PlayerActivity.API_SUBS)) {
@@ -86,7 +90,7 @@ fun Uri.getSubs(context: Context, extras: Bundle?): List<Subtitle> {
                 Subtitle(
                     name = subtitleName,
                     uri = subtitleUri,
-                    isSelected = subtitleUri == defaultSub
+                    isSelected = subtitleUri == defaultSub && externalSubtitles.isEmpty()
                 )
             }
         }
@@ -97,9 +101,17 @@ fun Uri.getSubs(context: Context, extras: Bundle?): List<Subtitle> {
             Subtitle(
                 name = file.name,
                 uri = file.toUri(),
-                isSelected = index == 0
+                isSelected = index == 0 && externalSubtitles.isEmpty()
             )
         }
+    }
+
+    subtitles += externalSubtitles.mapIndexed { index, uri ->
+        Subtitle(
+            name = context.getFilenameFromUri(uri),
+            uri = uri,
+            isSelected = index == (externalSubtitles.size - 1)
+        )
     }
 
     return subtitles

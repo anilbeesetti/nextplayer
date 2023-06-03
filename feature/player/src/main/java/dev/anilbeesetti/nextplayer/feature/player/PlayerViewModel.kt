@@ -14,7 +14,6 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,13 +30,12 @@ class PlayerViewModel @Inject constructor(
     var currentPlaybackPosition: Long? = null
 
     var currentPlaybackSpeed: Float = 1f
-        private set
 
     var currentAudioTrackIndex: Int? = null
-        private set
 
     var currentSubtitleTrackIndex: Int? = null
-        private set
+
+    val currentExternalSubtitles = mutableListOf<Uri>()
 
     val preferences = preferencesRepository.playerPrefsFlow.stateIn(
         scope = viewModelScope,
@@ -51,8 +49,8 @@ class PlayerViewModel @Inject constructor(
         initialValue = AppPrefs.default()
     )
 
-    suspend fun updateInfo(path: String) {
-        resetToDefaults()
+    suspend fun updateState(path: String, shouldUpdateSubtitles: Boolean) {
+        resetToDefaults(exceptSubtitles = !shouldUpdateSubtitles)
         val videoState = videoRepository.getVideoState(path) ?: return
 
         Timber.d("$videoState")
@@ -65,6 +63,8 @@ class PlayerViewModel @Inject constructor(
             videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
         currentPlaybackSpeed =
             videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
+
+        // TODO: update subs when stored in local storage
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Uri> {
@@ -101,10 +101,11 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun resetToDefaults() {
+    fun resetToDefaults(exceptSubtitles: Boolean = false) {
         currentPlaybackPosition = null
         currentPlaybackSpeed = 1f
         currentAudioTrackIndex = null
         currentSubtitleTrackIndex = null
+        if (!exceptSubtitles) currentExternalSubtitles.clear()
     }
 }
