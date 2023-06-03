@@ -56,9 +56,19 @@ fun Uri.toSubtitleConfiguration(
 /**
  * Converts [Uri] to [MediaItem]
  */
-fun Uri.toMediaItem(context: Context, type: String?, extras: Bundle? = null): MediaItem {
-    val subtitleConfigurations = mutableListOf<MediaItem.SubtitleConfiguration>()
-    val path = context.getPath(this)
+fun Uri.toMediaItem(subtitles: List<Subtitle>, type: String?): MediaItem {
+    val subtitleConfigurations = subtitles.map(Subtitle::toSubtitleConfiguration)
+    val mediaItemBuilder = MediaItem.Builder()
+        .setUri(this)
+        .setSubtitleConfigurations(subtitleConfigurations)
+
+    type?.let { mediaItemBuilder.setMimeType(type) }
+
+    return mediaItemBuilder.build()
+}
+
+fun Uri.getSubs(context: Context, extras: Bundle?): List<Subtitle> {
+    val subtitles = mutableListOf<Subtitle>()
 
     if (extras != null && extras.containsKey(PlayerActivity.API_SUBS)) {
         val subsEnable = extras.getParcelableUriArray(PlayerActivity.API_SUBS_ENABLE)
@@ -69,30 +79,49 @@ fun Uri.toMediaItem(context: Context, type: String?, extras: Bundle? = null): Me
         val subsName = extras.getStringArray(PlayerActivity.API_SUBS_NAME)
 
         if (!subs.isNullOrEmpty()) {
-            subtitleConfigurations += subs.mapIndexed { index, parcelable ->
-                val subtitle = parcelable as Uri
+            subtitles += subs.mapIndexed { index, parcelable ->
+                val subtitleUri = parcelable as Uri
                 val subtitleName =
                     if (subsName != null && subsName.size > index) subsName[index] else null
-                subtitle.toSubtitleConfiguration(
-                    context = context,
-                    selected = subtitle == defaultSub,
-                    name = subtitleName
+                Subtitle(
+                    name = subtitleName,
+                    uri = subtitleUri,
+                    isSelected = subtitleUri == defaultSub
                 )
             }
         }
-    } else {
-        path?.let {
-            subtitleConfigurations += File(path).getSubtitles()
-                .map { it.toUri().toSubtitleConfiguration(context, false) }
+    }
+
+    context.getPath(this)?.let { path ->
+        subtitles += File(path).getSubtitles().mapIndexed { index, file ->
+            Subtitle(
+                name = file.name,
+                uri = file.toUri(),
+                isSelected = index == 0
+            )
         }
     }
-    val mediaItemBuilder = MediaItem.Builder()
-        .setUri(this)
-        .setSubtitleConfigurations(subtitleConfigurations)
 
-    type?.let { mediaItemBuilder.setMimeType(type) }
+    return subtitles
+}
 
-    return mediaItemBuilder.build()
+
+data class Subtitle(
+    val name: String?,
+    val uri: Uri,
+    val isSelected: Boolean
+)
+
+
+fun Subtitle.toSubtitleConfiguration(): MediaItem.SubtitleConfiguration {
+    val subtitleConfigurationBuilder = MediaItem.SubtitleConfiguration
+        .Builder(uri)
+        .setMimeType(uri.getSubtitleMime())
+        .setLabel(name)
+    if (isSelected) {
+        subtitleConfigurationBuilder.setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+    }
+    return subtitleConfigurationBuilder.build()
 }
 
 @Suppress("DEPRECATION")
