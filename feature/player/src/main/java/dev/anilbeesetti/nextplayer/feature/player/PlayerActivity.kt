@@ -23,6 +23,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -41,6 +42,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
@@ -75,6 +77,7 @@ class PlayerActivity : AppCompatActivity() {
     var isControlsLocked = false
     private var shouldFetchPlaylist = true
     private var isSubtitleLauncherHasUri = false
+    private var isFirstFrameRendered = false
 
     /**
      * Player
@@ -168,6 +171,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.gestureBrightnessLayout.visibility = View.GONE
         playlistManager.removeOnTrackChangedListener(onTrackChangeListener)
         releasePlayer()
+        isFirstFrameRendered = false
         super.onStop()
     }
 
@@ -275,17 +279,15 @@ class PlayerActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener {
             if (playlistManager.hasNext()) {
-                playlistManager.getCurrent()?.let {
-                    viewModel.saveState(getPath(it), player)
-                }
+                playlistManager.getCurrent()?.let { savePlayerState(it) }
+                isFirstFrameRendered = false
                 playVideo(playlistManager.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
             if (playlistManager.hasPrev()) {
-                playlistManager.getCurrent()?.let {
-                    viewModel.saveState(getPath(it), player)
-                }
+                playlistManager.getCurrent()?.let { savePlayerState(it) }
+                isFirstFrameRendered = false
                 playVideo(playlistManager.getPrev()!!)
             }
         }
@@ -371,9 +373,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun releasePlayer() {
         Timber.d("Releasing player")
         playWhenReady = player.playWhenReady
-        playlistManager.getCurrent()?.let {
-            viewModel.saveState(getPath(it), player)
-        }
+        playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)
         player.release()
         mediaSession.release()
@@ -418,9 +418,7 @@ class PlayerActivity : AppCompatActivity() {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
                     if (playlistManager.hasNext()) {
-                        playlistManager.getCurrent()?.let {
-                            viewModel.saveState(getPath(it), player)
-                        }
+                        playlistManager.getCurrent()?.let { savePlayerState(it) }
                         playVideo(playlistManager.getNext()!!)
                     } else {
                         finish()
@@ -448,10 +446,16 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onRenderedFirstFrame() {
-            player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
-            player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
-            player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
+            isFirstFrameRendered = true
             super.onRenderedFirstFrame()
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            if (!isFirstFrameRendered) {
+                player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
+                player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
+                player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
+            }
         }
     }
 
@@ -499,6 +503,19 @@ class PlayerActivity : AppCompatActivity() {
 
         if (intentExtras?.containsKey(API_POSITION) == true) {
             viewModel.currentPlaybackPosition = intentExtras?.getInt(API_POSITION)?.toLong()
+        }
+    }
+
+    private fun savePlayerState(uri: Uri) {
+        if (isFirstFrameRendered) {
+            viewModel.saveState(
+                path = getPath(uri),
+                position = player.currentPosition,
+                duration = player.duration,
+                audioTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
+                subtitleTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
+                playbackSpeed = player.playbackParameters.speed
+            )
         }
     }
 

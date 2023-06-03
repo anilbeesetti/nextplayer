@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
@@ -12,7 +11,6 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.AppPrefs
 import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -71,25 +69,31 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    fun saveState(path: String?, player: Player) {
-        currentPlaybackPosition = player.currentPosition
+    fun saveState(
+        path: String?,
+        position: Long,
+        duration: Long,
+        audioTrackIndex: Int,
+        subtitleTrackIndex: Int,
+        playbackSpeed: Float
+    ) {
+        currentPlaybackPosition = position
+        currentAudioTrackIndex = audioTrackIndex
+        currentSubtitleTrackIndex = subtitleTrackIndex
+        currentPlaybackSpeed = playbackSpeed
 
         if (path == null) return
 
-        val position = player.currentPosition.takeIf {
-            player.currentPosition < player.duration - END_POSITION_OFFSET
+        val newPosition = position.takeIf {
+            position < duration - END_POSITION_OFFSET
         } ?: C.TIME_UNSET
-        val audioTrack = player.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO)
-        val subtitleTrack = player.getCurrentTrackIndex(C.TRACK_TYPE_TEXT)
-        val playbackSpeed = player.playbackParameters.speed
 
         viewModelScope.launch {
-            Timber.d("Save state for $path: $position, $audioTrack, $subtitleTrack, $playbackSpeed")
             videoRepository.saveVideoState(
                 path = path,
-                position = position,
-                audioTrackIndex = audioTrack,
-                subtitleTrackIndex = subtitleTrack,
+                position = newPosition,
+                audioTrackIndex = audioTrackIndex,
+                subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed
             )
         }
