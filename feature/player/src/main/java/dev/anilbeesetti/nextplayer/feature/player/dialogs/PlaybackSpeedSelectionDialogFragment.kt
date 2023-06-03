@@ -6,7 +6,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.media3.common.Player
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
-import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 
 class PlaybackSpeedSelectionDialogFragment(
     private val player: Player
@@ -30,6 +29,3 @@ class PlaybackSpeedSelectionDialogFragment(
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 }
-
-
-

@@ -117,13 +117,11 @@ fun Uri.getSubs(
     return subtitles
 }
 
-
 data class Subtitle(
     val name: String?,
     val uri: Uri,
     val isSelected: Boolean
 )
-
 
 fun Subtitle.toSubtitleConfiguration(): MediaItem.SubtitleConfiguration {
     val subtitleConfigurationBuilder = MediaItem.SubtitleConfiguration

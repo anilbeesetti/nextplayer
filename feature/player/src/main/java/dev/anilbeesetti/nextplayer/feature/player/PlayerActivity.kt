@@ -237,7 +237,6 @@ class PlayerActivity : AppCompatActivity() {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_AUDIO)) return@setOnClickListener
 
-
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_AUDIO,
                 tracks = player.currentTracks,
