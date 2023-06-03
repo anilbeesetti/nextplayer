@@ -154,8 +154,7 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
     return null
 }
 
-fun Context.getContentUriFromUri(uri: Uri): Uri? {
-    if (ContentResolver.SCHEME_CONTENT.equals(uri.scheme, ignoreCase = true)) return uri
+fun Context.getMediaContentUri(uri: Uri): Uri? {
     val path = getPath(uri) ?: return null
 
     var cursor: Cursor? = null

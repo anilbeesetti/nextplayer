@@ -34,8 +34,8 @@ import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
-import dev.anilbeesetti.nextplayer.core.common.extensions.getContentUriFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
+import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -162,7 +162,6 @@ class PlayerActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.currentPlaybackSpeed.collectLatest { playbackSpeed ->
-                        Timber.d("changing speed $playbackSpeed")
                         player.setPlaybackSpeed(playbackSpeed)
                     }
                 }
@@ -338,13 +337,15 @@ class PlayerActivity : AppCompatActivity() {
     private fun playVideo() {
         lifecycleScope.launch(Dispatchers.IO) {
             if (shouldFetchPlaylist) {
-                val contentUri = getContentUriFromUri(intentDataUri!!)
+                val mediaUri = getMediaContentUri(intentDataUri!!)
 
-                playlistManager.updateCurrent(uri = contentUri ?: intentDataUri!!)
+                Timber.d("content Uri: $mediaUri")
 
-                if (contentUri != null) {
+                playlistManager.updateCurrent(uri = mediaUri ?: intentDataUri!!)
+
+                if (mediaUri != null) {
                     launch(Dispatchers.IO) {
-                        val playlist = viewModel.getPlaylistFromUri(contentUri)
+                        val playlist = viewModel.getPlaylistFromUri(mediaUri)
                         playlistManager.setPlaylist(playlist)
                     }
                 }
@@ -435,6 +436,9 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
+                    Timber.d(
+                        "Current: ${playlistManager.currentIndex()} ${playlistManager.getCurrent()}"
+                    )
                     Timber.d(playlistManager.toString())
                     isFileLoaded = true
                 }

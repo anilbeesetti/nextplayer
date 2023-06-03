@@ -58,31 +58,29 @@ fun Uri.toSubtitleConfiguration(
  */
 fun Uri.toMediaItem(context: Context, type: String?, extras: Bundle? = null): MediaItem {
     val subtitleConfigurations = mutableListOf<MediaItem.SubtitleConfiguration>()
+    val path = context.getPath(this)
 
-    if (extras != null) {
+    if (extras != null && extras.containsKey(PlayerActivity.API_SUBS)) {
         val subsEnable = extras.getParcelableUriArray(PlayerActivity.API_SUBS_ENABLE)
 
         val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
 
-        if (extras.containsKey(PlayerActivity.API_SUBS)) {
-            val subs = extras.getParcelableUriArray(PlayerActivity.API_SUBS)
-            val subsName = extras.getStringArray(PlayerActivity.API_SUBS_NAME)
+        val subs = extras.getParcelableUriArray(PlayerActivity.API_SUBS)
+        val subsName = extras.getStringArray(PlayerActivity.API_SUBS_NAME)
 
-            if (!subs.isNullOrEmpty()) {
-                subtitleConfigurations += subs.mapIndexed { index, parcelable ->
-                    val subtitle = parcelable as Uri
-                    val subtitleName =
-                        if (subsName != null && subsName.size > index) subsName[index] else null
-                    subtitle.toSubtitleConfiguration(
-                        context = context,
-                        selected = subtitle == defaultSub,
-                        name = subtitleName
-                    )
-                }
+        if (!subs.isNullOrEmpty()) {
+            subtitleConfigurations += subs.mapIndexed { index, parcelable ->
+                val subtitle = parcelable as Uri
+                val subtitleName =
+                    if (subsName != null && subsName.size > index) subsName[index] else null
+                subtitle.toSubtitleConfiguration(
+                    context = context,
+                    selected = subtitle == defaultSub,
+                    name = subtitleName
+                )
             }
         }
     } else {
-        val path = context.getPath(this)
         path?.let {
             subtitleConfigurations += File(path).getSubtitles()
                 .map { it.toUri().toSubtitleConfiguration(context, false) }
