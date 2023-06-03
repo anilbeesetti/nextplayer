@@ -13,7 +13,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import timber.log.Timber
 import java.io.File
 
 fun Uri.getSubtitleMime(): String {
@@ -65,7 +64,6 @@ fun Uri.toMediaItem(context: Context, type: String?, extras: Bundle? = null): Me
         val subsEnable = extras.getParcelableUriArray(PlayerActivity.API_SUBS_ENABLE)
 
         val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
-
 
         val subs = extras.getParcelableUriArray(PlayerActivity.API_SUBS)
         val subsName = extras.getStringArray(PlayerActivity.API_SUBS_NAME)
