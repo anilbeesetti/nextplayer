@@ -112,9 +112,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
+                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
                 android:contextClickable="true"
-                android:orientation="vertical"
-                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal">
+                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -172,6 +172,7 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/transparent_circle_background"
                         android:contentDescription="@string/controls_lock"
+                        android:contextClickable="true"
                         android:padding="12dp"
                         android:src="@drawable/ic_lock_open"
                         app:tint="@android:color/white" />
@@ -186,8 +187,24 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/transparent_circle_background"
                         android:contentDescription="@string/video_zoom"
+                        android:contextClickable="true"
                         android:padding="12dp"
                         android:src="@drawable/ic_aspect_ratio"
+                        app:tint="@android:color/white" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="0dp" />
+
+                    <ImageButton
+                        android:id="@+id/btn_screen_rotation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/transparent_circle_background"
+                        android:contentDescription="@string/screen_rotation"
+                        android:contextClickable="true"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_screen_rotation"
                         app:tint="@android:color/white" />
 
                 </LinearLayout>
@@ -245,12 +262,12 @@
         android:id="@+id/btn_unlock_controls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="16dp"
         android:background="@drawable/rounded_corner"
         android:contentDescription="@string/controls_unlock"
         android:padding="12dp"
-        android:layout_margin="16dp"
-        android:visibility="invisible"
-        tools:visibility="visible"
         android:src="@drawable/ic_lock"
-        app:tint="@android:color/white" />
+        android:visibility="invisible"
+        app:tint="@android:color/white"
+        tools:visibility="visible" />
 </FrameLayout>

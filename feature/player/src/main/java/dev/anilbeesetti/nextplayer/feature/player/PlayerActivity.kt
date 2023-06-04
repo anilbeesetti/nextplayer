@@ -25,6 +25,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
+import androidx.media3.common.text.Cue
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
@@ -78,6 +79,7 @@ class PlayerActivity : AppCompatActivity() {
     private var shouldFetchPlaylist = true
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
+    private var currentOrientation: Int? = null
 
     /**
      * Player
@@ -170,8 +172,8 @@ class PlayerActivity : AppCompatActivity() {
         binding.gestureVolumeLayout.visibility = View.GONE
         binding.gestureBrightnessLayout.visibility = View.GONE
         playlistManager.removeOnTrackChangedListener(onTrackChangeListener)
+        currentOrientation = requestedOrientation
         releasePlayer()
-        isFirstFrameRendered = false
         super.onStop()
     }
 
@@ -226,6 +228,8 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
         val videoZoomButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_video_zoom)
+        val screenRotationButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_screen_rotation)
         val nextButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_play_next)
         val prevButton =
@@ -236,6 +240,8 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
         val playerControls =
             binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
+
+        binding.playerView.subtitleView?.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
 
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
@@ -311,6 +317,7 @@ class PlayerActivity : AppCompatActivity() {
             isControlsLocked = false
             toggleSystemBars(showBars = true)
         }
+        screenRotationButton.setOnClickListener { switchOrientation() }
         backButton.setOnClickListener { finish() }
     }
 
@@ -373,6 +380,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun releasePlayer() {
         Timber.d("Releasing player")
         playWhenReady = player.playWhenReady
+        isFirstFrameRendered = false
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)
         player.release()
@@ -387,7 +395,9 @@ class PlayerActivity : AppCompatActivity() {
 
         @SuppressLint("SourceLockedOrientationActivity")
         override fun onVideoSizeChanged(videoSize: VideoSize) {
-            requestedOrientation = if (videoSize.isPortrait) {
+            requestedOrientation = currentOrientation?.let {
+                currentOrientation
+            } ?: if (videoSize.isPortrait) {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             } else {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
@@ -537,3 +547,16 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
+
+private fun Activity.switchOrientation() {
+    val isLandscape = requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE ||
+        requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
+    requestedOrientation = if (isLandscape) {
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+    } else {
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+    }
+
+    Timber.d("setting orientation $requestedOrientation")
+}
