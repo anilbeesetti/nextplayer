@@ -550,7 +550,7 @@ private val VideoSize.isPortrait: Boolean
 
 private fun Activity.switchOrientation() {
     val isLandscape = requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE ||
-            requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
     requestedOrientation = if (isLandscape) {
         ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
