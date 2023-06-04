@@ -226,6 +226,8 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
         val videoZoomButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_video_zoom)
+        val screenRotationButton =
+            binding.playerView.findViewById<ImageButton>(R.id.btn_screen_rotation)
         val nextButton =
             binding.playerView.findViewById<ImageButton>(R.id.btn_play_next)
         val prevButton =
@@ -311,6 +313,7 @@ class PlayerActivity : AppCompatActivity() {
             isControlsLocked = false
             toggleSystemBars(showBars = true)
         }
+        screenRotationButton.setOnClickListener { switchOrientation() }
         backButton.setOnClickListener { finish() }
     }
 
@@ -537,3 +540,17 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
+
+
+private fun Activity.switchOrientation() {
+    val isLandscape = requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
+    requestedOrientation = if (isLandscape) {
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+    } else {
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+    }
+
+    Timber.d("setting orientation $requestedOrientation")
+}

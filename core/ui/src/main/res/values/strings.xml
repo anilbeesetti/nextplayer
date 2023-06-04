@@ -95,4 +95,5 @@
     <string name="manage_folders_desc">Select folders to be excluded in the media library</string>
     <string name="video">video</string>
     <string name="videos">videos</string>
+    <string name="screen_rotation">Screen Rotation</string>
 </resources>
