@@ -31,7 +31,6 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.SubtitleView
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -55,7 +55,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -81,7 +80,6 @@ class PlayerActivity : AppCompatActivity() {
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
     private var currentOrientation: Int? = null
-    private var isUserChangedTheOrientation = false
 
     /**
      * Player
@@ -242,10 +240,8 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
         val playerControls =
             binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
-        val subtitleView =
-            binding.playerView.findViewById<SubtitleView>(R.id.exo_subtitles)
 
-        subtitleView.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
+        binding.playerView.subtitleView?.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
 
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
@@ -552,10 +548,9 @@ private val VideoSize.isPortrait: Boolean
         return if (isRotated) this.width > this.height else this.height > this.width
     }
 
-
 private fun Activity.switchOrientation() {
-    val isLandscape = requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+    val isLandscape = requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE ||
+            requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
     requestedOrientation = if (isLandscape) {
         ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
