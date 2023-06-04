@@ -94,4 +94,5 @@
     <string name="media_library_description">Verificar e gerenciar a biblioteca de mídia</string>
     <string name="scanning_storage">Verificando armazenamento…</string>
     <string name="manage_folders">Gerenciar pastas</string>
+    <string name="screen_rotation">Rotação de tela</string>
 </resources>
