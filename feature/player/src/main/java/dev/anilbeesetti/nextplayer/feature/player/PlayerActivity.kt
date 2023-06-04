@@ -286,14 +286,12 @@ class PlayerActivity : AppCompatActivity() {
         nextButton.setOnClickListener {
             if (playlistManager.hasNext()) {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
-                isFirstFrameRendered = false
                 playVideo(playlistManager.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
             if (playlistManager.hasPrev()) {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
-                isFirstFrameRendered = false
                 playVideo(playlistManager.getPrev()!!)
             }
         }
@@ -380,7 +378,6 @@ class PlayerActivity : AppCompatActivity() {
     private fun releasePlayer() {
         Timber.d("Releasing player")
         playWhenReady = player.playWhenReady
-        isFirstFrameRendered = false
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)
         player.release()
@@ -527,6 +524,7 @@ class PlayerActivity : AppCompatActivity() {
                 playbackSpeed = player.playbackParameters.speed
             )
         }
+        isFirstFrameRendered = false
     }
 
     companion object {
