@@ -13,15 +13,15 @@
         android:background="@android:color/black"
         app:animation_enabled="false"
         app:show_buffering="always"
-        tools:foreground="@color/player_background"/>
+        tools:foreground="@color/player_background" />
 
     <LinearLayout
         android:id="@+id/progress_scrubber_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginBottom="120dp"
         android:clickable="false"
         android:gravity="center"
-        android:layout_marginBottom="120dp"
         android:orientation="horizontal"
         android:visibility="gone"
         tools:visibility="visible">

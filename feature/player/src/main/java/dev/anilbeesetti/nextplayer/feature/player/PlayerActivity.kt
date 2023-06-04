@@ -25,11 +25,13 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
+import androidx.media3.common.text.Cue
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.SubtitleView
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,7 +40,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -54,6 +55,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -78,6 +80,8 @@ class PlayerActivity : AppCompatActivity() {
     private var shouldFetchPlaylist = true
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
+    private var currentOrientation: Int? = null
+    private var isUserChangedTheOrientation = false
 
     /**
      * Player
@@ -170,8 +174,8 @@ class PlayerActivity : AppCompatActivity() {
         binding.gestureVolumeLayout.visibility = View.GONE
         binding.gestureBrightnessLayout.visibility = View.GONE
         playlistManager.removeOnTrackChangedListener(onTrackChangeListener)
+        currentOrientation = requestedOrientation
         releasePlayer()
-        isFirstFrameRendered = false
         super.onStop()
     }
 
@@ -238,6 +242,10 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
         val playerControls =
             binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
+        val subtitleView =
+            binding.playerView.findViewById<SubtitleView>(R.id.exo_subtitles)
+
+        subtitleView.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
 
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
@@ -376,6 +384,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun releasePlayer() {
         Timber.d("Releasing player")
         playWhenReady = player.playWhenReady
+        isFirstFrameRendered = false
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)
         player.release()
@@ -390,7 +399,9 @@ class PlayerActivity : AppCompatActivity() {
 
         @SuppressLint("SourceLockedOrientationActivity")
         override fun onVideoSizeChanged(videoSize: VideoSize) {
-            requestedOrientation = if (videoSize.isPortrait) {
+            requestedOrientation = currentOrientation?.let {
+                currentOrientation
+            } ?: if (videoSize.isPortrait) {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             } else {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
