@@ -96,4 +96,9 @@
     <string name="video">video</string>
     <string name="videos">videos</string>
     <string name="screen_rotation">Screen Rotation</string>
+    <string name="player_screen_orientation">Player screen orientation</string>
+    <string name="automatic">Automatic (sensor)</string>
+    <string name="landscape">Landscape</string>
+    <string name="portrait">Portrait</string>
+    <string name="video_orientation">Video Orientation</string>
 </resources>

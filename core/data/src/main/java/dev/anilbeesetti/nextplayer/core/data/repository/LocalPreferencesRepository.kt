@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -94,5 +95,9 @@ class LocalPreferencesRepository @Inject constructor(
 
     override suspend fun setPreferredSubtitleLanguage(value: String) {
         playerPreferencesDataSource.updateData { it.copy(preferredSubtitleLanguage = value) }
+    }
+
+    override suspend fun setPlayerScreenOrientation(value: ScreenOrientation) {
+        playerPreferencesDataSource.updateData { it.copy(playerScreenOrientation = value) }
     }
 }

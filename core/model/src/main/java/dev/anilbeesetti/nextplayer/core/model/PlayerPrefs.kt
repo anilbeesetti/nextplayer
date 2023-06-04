@@ -11,7 +11,8 @@ data class PlayerPrefs(
     val useSeekControls: Boolean,
     val rememberSelections: Boolean,
     val preferredAudioLanguage: String,
-    val preferredSubtitleLanguage: String
+    val preferredSubtitleLanguage: String,
+    val playerScreenOrientation: ScreenOrientation
 ) {
 
     companion object {
@@ -26,7 +27,8 @@ data class PlayerPrefs(
             useSeekControls = true,
             rememberSelections = true,
             preferredAudioLanguage = "",
-            preferredSubtitleLanguage = ""
+            preferredSubtitleLanguage = "",
+            playerScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION
         )
     }
 }

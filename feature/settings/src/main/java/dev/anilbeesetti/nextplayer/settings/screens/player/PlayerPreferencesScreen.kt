@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -105,6 +106,10 @@ fun PlayerPreferencesScreen(
                     isChecked = (preferences.fastSeek != FastSeek.DISABLE),
                     onChecked = viewModel::toggleFastSeek,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
+                )
+                screenOrientationSetting(
+                    currentOrientationPreference = preferences.playerScreenOrientation,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog) }
                 )
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.audio))
@@ -211,6 +216,23 @@ fun PlayerPreferencesScreen(
                     }
                 }
 
+                PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.player_screen_orientation),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(ScreenOrientation.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = it == preferences.playerScreenOrientation,
+                                onClick = {
+                                    viewModel.updatePreferredPlayerOrientation(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
+                    }
+                }
                 PlayerPreferenceDialog.None -> { /* Do nothing */ }
             }
         }
@@ -321,6 +343,20 @@ fun LazyListScope.fastSeekSetting(
             isChecked = isChecked,
             onChecked = onChecked,
             icon = NextIcons.Fast,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.screenOrientationSetting(
+    currentOrientationPreference: ScreenOrientation,
+    onClick: () -> Unit
+) {
+    item {
+        ClickablePreferenceItem(
+            title = stringResource(id = R.string.player_screen_orientation),
+            description = currentOrientationPreference.name(),
+            icon = NextIcons.Rotation,
             onClick = onClick
         )
     }

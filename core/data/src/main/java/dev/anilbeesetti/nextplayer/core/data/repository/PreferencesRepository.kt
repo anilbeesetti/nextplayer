@@ -5,6 +5,7 @@ import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -120,4 +121,6 @@ interface PreferencesRepository {
     suspend fun setPreferredAudioLanguage(value: String)
 
     suspend fun setPreferredSubtitleLanguage(value: String)
+
+    suspend fun setPlayerScreenOrientation(value: ScreenOrientation)
 }

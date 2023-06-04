@@ -10,6 +10,7 @@ import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -94,5 +95,9 @@ class FakePreferencesRepository : PreferencesRepository {
 
     override suspend fun setUseDynamicColors(value: Boolean) {
         appPreferences.update { it.copy(useDynamicColors = value) }
+    }
+
+    override suspend fun setPlayerScreenOrientation(value: ScreenOrientation) {
+        playerPreferences.update { it.copy(playerScreenOrientation = value) }
     }
 }
