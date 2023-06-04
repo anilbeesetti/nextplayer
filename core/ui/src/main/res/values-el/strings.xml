@@ -94,4 +94,5 @@
     <string name="manage_folders_desc">Επιλέξτε φακέλους που θα εξαιρεθούν από τη βιβλιοθήκη πολυμέσων</string>
     <string name="video">βίντεο</string>
     <string name="videos">βίντεο</string>
+    <string name="screen_rotation">Διάταξη οθόνης</string>
 </resources>
