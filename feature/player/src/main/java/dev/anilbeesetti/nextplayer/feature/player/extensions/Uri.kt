@@ -6,13 +6,14 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import androidx.core.net.toUri
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
+import dev.anilbeesetti.nextplayer.feature.player.model.toSubtitleConfiguration
 import java.io.File
 
 fun Uri.getSubtitleMime(): String {
@@ -33,24 +34,6 @@ fun Uri.getSubtitleMime(): String {
             MimeTypes.APPLICATION_SUBRIP
         }
     }
-}
-
-/**
- * Converts [Uri] to [MediaItem.SubtitleConfiguration]
- */
-fun Uri.toSubtitleConfiguration(
-    context: Context,
-    selected: Boolean,
-    name: String? = null
-): MediaItem.SubtitleConfiguration {
-    val subtitleConfigurationBuilder = MediaItem.SubtitleConfiguration
-        .Builder(this)
-        .setMimeType(getSubtitleMime())
-        .setLabel(name ?: context.getFilenameFromUri(this))
-    if (selected) {
-        subtitleConfigurationBuilder.setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-    }
-    return subtitleConfigurationBuilder.build()
 }
 
 /**
@@ -115,23 +98,6 @@ fun Uri.getSubs(
     }
 
     return subtitles
-}
-
-data class Subtitle(
-    val name: String?,
-    val uri: Uri,
-    val isSelected: Boolean
-)
-
-fun Subtitle.toSubtitleConfiguration(): MediaItem.SubtitleConfiguration {
-    val subtitleConfigurationBuilder = MediaItem.SubtitleConfiguration
-        .Builder(uri)
-        .setMimeType(uri.getSubtitleMime())
-        .setLabel(name)
-    if (isSelected) {
-        subtitleConfigurationBuilder.setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-    }
-    return subtitleConfigurationBuilder.build()
 }
 
 @Suppress("DEPRECATION")
