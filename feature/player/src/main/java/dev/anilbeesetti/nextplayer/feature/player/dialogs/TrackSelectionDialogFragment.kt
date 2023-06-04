@@ -4,18 +4,18 @@ import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.media3.common.C
+import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 
 @UnstableApi
 class TrackSelectionDialogFragment(
     private val type: @C.TrackType Int,
     private val tracks: Tracks,
-    private val viewModel: PlayerViewModel
+    private val onTrackSelected: (trackIndex: Int) -> Unit
 ) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         when (type) {
@@ -38,9 +38,9 @@ class TrackSelectionDialogFragment(
                             selectedTrackIndex
                         ) { dialog, trackIndex ->
                             if (trackIndex == trackNames.size) {
-                                viewModel.switchTrack(type, -1)
+                                onTrackSelected(-1)
                             } else if (selectedTrackIndex != trackIndex) {
-                                viewModel.switchTrack(type, trackIndex)
+                                onTrackSelected(trackIndex)
                             }
                             dialog.dismiss()
                         }
@@ -66,9 +66,9 @@ class TrackSelectionDialogFragment(
                             selectedTrackIndex
                         ) { dialog, trackIndex ->
                             if (trackIndex == trackNames.size) {
-                                viewModel.switchTrack(type, -1)
+                                onTrackSelected(-1)
                             } else if (selectedTrackIndex != trackIndex) {
-                                viewModel.switchTrack(type, trackIndex)
+                                onTrackSelected(trackIndex)
                             }
                             dialog.dismiss()
                         }
@@ -82,4 +82,10 @@ class TrackSelectionDialogFragment(
             }
         }
     }
+}
+
+fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
+    return currentTracks.groups
+        .filter { it.type == type && it.isSupported }
+        .indexOfFirst { it.isSelected }
 }

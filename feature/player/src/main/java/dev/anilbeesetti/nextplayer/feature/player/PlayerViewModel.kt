@@ -12,7 +12,6 @@ import dev.anilbeesetti.nextplayer.core.model.AppPrefs
 import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -26,17 +25,15 @@ class PlayerViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase
 ) : ViewModel() {
-    var currentPlaybackPosition = MutableStateFlow<Long?>(null)
-        private set
+    var currentPlaybackPosition: Long? = null
 
-    var currentPlaybackSpeed = MutableStateFlow(1f)
-        private set
+    var currentPlaybackSpeed: Float = 1f
 
-    var currentAudioTrackIndex = MutableStateFlow<Int?>(null)
-        private set
+    var currentAudioTrackIndex: Int? = null
 
-    var currentSubtitleTrackIndex = MutableStateFlow<Int?>(null)
-        private set
+    var currentSubtitleTrackIndex: Int? = null
+
+    val currentExternalSubtitles = mutableListOf<Uri>()
 
     val preferences = preferencesRepository.playerPrefsFlow.stateIn(
         scope = viewModelScope,
@@ -50,58 +47,56 @@ class PlayerViewModel @Inject constructor(
         initialValue = AppPrefs.default()
     )
 
-    fun updateInfo(path: String) {
-        resetToDefaults()
-        viewModelScope.launch {
-            val videoState = videoRepository.getVideoState(path) ?: return@launch
+    suspend fun updateState(path: String, shouldUpdateSubtitles: Boolean) {
+        resetToDefaults(exceptSubtitles = !shouldUpdateSubtitles)
+        val videoState = videoRepository.getVideoState(path) ?: return
 
-            currentPlaybackPosition.value =
-                videoState.position.takeIf { preferences.value.resume == Resume.YES }
-            currentAudioTrackIndex.value =
-                videoState.audioTrack.takeIf { preferences.value.rememberSelections }
-            currentSubtitleTrackIndex.value =
-                videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
-            currentPlaybackSpeed.value =
-                videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
-        }
+        Timber.d("$videoState")
+
+        currentPlaybackPosition =
+            videoState.position.takeIf { preferences.value.resume == Resume.YES }
+        currentAudioTrackIndex =
+            videoState.audioTrack.takeIf { preferences.value.rememberSelections }
+        currentSubtitleTrackIndex =
+            videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
+        currentPlaybackSpeed =
+            videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
+
+        // TODO: update subs when stored in local storage
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Uri> {
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    fun saveState(path: String?, position: Long, duration: Long) {
-        currentPlaybackPosition.value = position
+    fun saveState(
+        path: String?,
+        position: Long,
+        duration: Long,
+        audioTrackIndex: Int,
+        subtitleTrackIndex: Int,
+        playbackSpeed: Float
+    ) {
+        currentPlaybackPosition = position
+        currentAudioTrackIndex = audioTrackIndex
+        currentSubtitleTrackIndex = subtitleTrackIndex
+        currentPlaybackSpeed = playbackSpeed
 
         if (path == null) return
 
-        val newPosition =
-            position.takeIf { position < duration - END_POSITION_OFFSET } ?: C.TIME_UNSET
-        val audioTrack = currentAudioTrackIndex.value
-        val subtitleTrack = currentSubtitleTrackIndex.value
-        val playbackSpeed = currentPlaybackSpeed.value
+        val newPosition = position.takeIf {
+            position < duration - END_POSITION_OFFSET
+        } ?: C.TIME_UNSET
 
         viewModelScope.launch {
-            Timber.d("Save state for $path: $position")
             videoRepository.saveVideoState(
                 path = path,
                 position = newPosition,
-                audioTrackIndex = audioTrack,
-                subtitleTrackIndex = subtitleTrack,
+                audioTrackIndex = audioTrackIndex,
+                subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed
             )
         }
-    }
-
-    fun switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
-        when (trackType) {
-            C.TRACK_TYPE_AUDIO -> currentAudioTrackIndex.value = trackIndex
-            C.TRACK_TYPE_TEXT -> currentSubtitleTrackIndex.value = trackIndex
-        }
-    }
-
-    fun setPlaybackSpeed(speed: Float) {
-        currentPlaybackSpeed.value = speed
     }
 
     fun setPlayerBrightness(value: Float) {
@@ -110,10 +105,11 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun resetToDefaults() {
-        currentPlaybackPosition.value = null
-        currentPlaybackSpeed.value = 1f
-        currentAudioTrackIndex.value = null
-        currentSubtitleTrackIndex.value = null
+    fun resetToDefaults(exceptSubtitles: Boolean = false) {
+        currentPlaybackPosition = null
+        currentPlaybackSpeed = 1f
+        currentAudioTrackIndex = null
+        currentSubtitleTrackIndex = null
+        if (!exceptSubtitles) currentExternalSubtitles.clear()
     }
 }

@@ -12,15 +12,15 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
@@ -42,6 +42,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
@@ -49,7 +51,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -75,6 +76,8 @@ class PlayerActivity : AppCompatActivity() {
     var isFileLoaded = false
     var isControlsLocked = false
     private var shouldFetchPlaylist = true
+    private var isSubtitleLauncherHasUri = false
+    private var isFirstFrameRendered = false
 
     /**
      * Player
@@ -97,8 +100,15 @@ class PlayerActivity : AppCompatActivity() {
                 videoTitleTextView.text = getFilenameFromUri(uri)
             }
         }
-        getPath(uri)?.let { viewModel.updateInfo(it) }
     }
+    private val subtitleFileLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                isSubtitleLauncherHasUri = true
+                viewModel.currentExternalSubtitles.add(uri)
+            }
+            playVideo()
+        }
 
     private lateinit var videoTitleTextView: TextView
 
@@ -137,37 +147,6 @@ class PlayerActivity : AppCompatActivity() {
         updateIntentData(intent)
         Timber.d("data: $intentDataUri")
 
-        // Collecting flows from view model
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.currentPlaybackPosition.collectLatest { position ->
-                        if (position != null && position != C.TIME_UNSET) {
-                            Timber.d("Setting position: $position")
-                            player.seekTo(position)
-                        }
-                    }
-                }
-                launch {
-                    viewModel.currentAudioTrackIndex.collectLatest { audioTrackIndex ->
-                        player.switchTrack(C.TRACK_TYPE_AUDIO, audioTrackIndex)
-                    }
-                }
-
-                launch {
-                    viewModel.currentSubtitleTrackIndex.collectLatest { subtitleTrackIndex ->
-                        player.switchTrack(C.TRACK_TYPE_TEXT, subtitleTrackIndex)
-                    }
-                }
-
-                launch {
-                    viewModel.currentPlaybackSpeed.collectLatest { playbackSpeed ->
-                        player.setPlaybackSpeed(playbackSpeed)
-                    }
-                }
-            }
-        }
-
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
             activity = this,
@@ -192,6 +171,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.gestureBrightnessLayout.visibility = View.GONE
         playlistManager.removeOnTrackChangedListener(onTrackChangeListener)
         releasePlayer()
+        isFirstFrameRendered = false
         super.onStop()
     }
 
@@ -261,47 +241,53 @@ class PlayerActivity : AppCompatActivity() {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_AUDIO)) return@setOnClickListener
 
-            player.let {
-                TrackSelectionDialogFragment(
-                    type = C.TRACK_TYPE_AUDIO,
-                    tracks = it.currentTracks,
-                    viewModel = viewModel
-                ).show(supportFragmentManager, "TrackSelectionDialog")
-            }
+            TrackSelectionDialogFragment(
+                type = C.TRACK_TYPE_AUDIO,
+                tracks = player.currentTracks,
+                onTrackSelected = { player.switchTrack(C.TRACK_TYPE_AUDIO, it) }
+            ).show(supportFragmentManager, "TrackSelectionDialog")
         }
 
         subtitleTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
             if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_TEXT)) return@setOnClickListener
 
-            player.let {
-                TrackSelectionDialogFragment(
-                    type = C.TRACK_TYPE_TEXT,
-                    tracks = it.currentTracks,
-                    viewModel = viewModel
-                ).show(supportFragmentManager, "TrackSelectionDialog")
-            }
+            TrackSelectionDialogFragment(
+                type = C.TRACK_TYPE_TEXT,
+                tracks = player.currentTracks,
+                onTrackSelected = { player.switchTrack(C.TRACK_TYPE_TEXT, it) }
+            ).show(supportFragmentManager, "TrackSelectionDialog")
+        }
+
+        subtitleTrackButton.setOnLongClickListener {
+            subtitleFileLauncher.launch(
+                arrayOf(
+                    MimeTypes.APPLICATION_SUBRIP,
+                    MimeTypes.APPLICATION_TTML,
+                    MimeTypes.TEXT_VTT,
+                    MimeTypes.TEXT_SSA
+                )
+            )
+            true
         }
 
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedSelectionDialogFragment(
-                viewModel = viewModel
+                player = player
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 
         nextButton.setOnClickListener {
             if (playlistManager.hasNext()) {
-                playlistManager.getCurrent()?.let {
-                    viewModel.saveState(getPath(it), player.currentPosition, player.duration)
-                }
+                playlistManager.getCurrent()?.let { savePlayerState(it) }
+                isFirstFrameRendered = false
                 playVideo(playlistManager.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
             if (playlistManager.hasPrev()) {
-                playlistManager.getCurrent()?.let {
-                    viewModel.saveState(getPath(it), player.currentPosition, player.duration)
-                }
+                playlistManager.getCurrent()?.let { savePlayerState(it) }
+                isFirstFrameRendered = false
                 playVideo(playlistManager.getPrev()!!)
             }
         }
@@ -329,9 +315,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playVideo(uri: Uri) {
-        player.setMediaItem(uri.toMediaItem(this@PlayerActivity, null))
         playlistManager.updateCurrent(uri)
-        player.prepare()
+        playVideo()
     }
 
     private fun playVideo() {
@@ -353,28 +338,42 @@ class PlayerActivity : AppCompatActivity() {
                 shouldFetchPlaylist = false
             }
 
-            val mediaItem = playlistManager.getCurrent()!!.toMediaItem(
+            getPath(playlistManager.getCurrent()!!)?.let {
+                viewModel.updateState(
+                    path = it,
+                    shouldUpdateSubtitles = !isSubtitleLauncherHasUri
+                )
+            }
+            if (isSubtitleLauncherHasUri) {
+                viewModel.currentSubtitleTrackIndex = null
+            }
+
+            val subs = playlistManager.getCurrent()!!.getSubs(
                 context = this@PlayerActivity,
+                extras = intentExtras,
+                externalSubtitles = viewModel.currentExternalSubtitles
+            )
+
+            val mediaItem = playlistManager.getCurrent()!!.toMediaItem(
                 type = intentType,
-                extras = intentExtras
+                subtitles = subs
             )
             withContext(Dispatchers.Main) {
                 player.setMediaItem(
                     mediaItem,
-                    viewModel.currentPlaybackPosition.value ?: C.TIME_UNSET
+                    viewModel.currentPlaybackPosition ?: C.TIME_UNSET
                 )
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
+            isSubtitleLauncherHasUri = false
         }
     }
 
     private fun releasePlayer() {
         Timber.d("Releasing player")
         playWhenReady = player.playWhenReady
-        playlistManager.getCurrent()?.let {
-            viewModel.saveState(getPath(it), player.currentPosition, player.duration)
-        }
+        playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)
         player.release()
         mediaSession.release()
@@ -413,21 +412,13 @@ class PlayerActivity : AppCompatActivity() {
             super.onPlayerError(error)
         }
 
-        override fun onTracksChanged(tracks: Tracks) {
-            player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex.value)
-            player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex.value)
-            super.onTracksChanged(tracks)
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
                     if (playlistManager.hasNext()) {
-                        playlistManager.getCurrent()?.let {
-                            viewModel.saveState(getPath(it), C.TIME_UNSET, player.duration)
-                        }
+                        playlistManager.getCurrent()?.let { savePlayerState(it) }
                         playVideo(playlistManager.getNext()!!)
                     } else {
                         finish()
@@ -452,6 +443,19 @@ class PlayerActivity : AppCompatActivity() {
                 }
             }
             super.onPlaybackStateChanged(playbackState)
+        }
+
+        override fun onRenderedFirstFrame() {
+            isFirstFrameRendered = true
+            super.onRenderedFirstFrame()
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            if (!isFirstFrameRendered) {
+                player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
+                player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
+                player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
+            }
         }
     }
 
@@ -498,8 +502,20 @@ class PlayerActivity : AppCompatActivity() {
         intentType = intent.type
 
         if (intentExtras?.containsKey(API_POSITION) == true) {
-            viewModel.currentPlaybackPosition.value =
-                intentExtras?.getInt(API_POSITION)?.toLong() ?: C.TIME_UNSET
+            viewModel.currentPlaybackPosition = intentExtras?.getInt(API_POSITION)?.toLong()
+        }
+    }
+
+    private fun savePlayerState(uri: Uri) {
+        if (isFirstFrameRendered) {
+            viewModel.saveState(
+                path = getPath(uri),
+                position = player.currentPosition,
+                duration = player.duration,
+                audioTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
+                subtitleTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
+                playbackSpeed = player.playbackParameters.speed
+            )
         }
     }
 
