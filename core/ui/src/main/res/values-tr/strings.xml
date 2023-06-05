@@ -94,4 +94,12 @@
     <string name="remember_selections">Seçimleri hatırla</string>
     <string name="size">Boyut</string>
     <string name="unknown_error">Bilinmeyen bir hata oluştu</string>
+    <string name="video_orientation">Video Yönü</string>
+    <string name="screen_rotation">Ekranı Döndürme</string>
+    <string name="player_screen_orientation">Oynatıcı ekran yönü</string>
+    <string name="automatic">Otomatik (sensör)</string>
+    <string name="portrait">Portre</string>
+    <string name="landscape">Manzara</string>
+    <string name="landscape_reverse">Manzara ters</string>
+    <string name="landscape_auto">Manzara (sensör)</string>
 </resources>
