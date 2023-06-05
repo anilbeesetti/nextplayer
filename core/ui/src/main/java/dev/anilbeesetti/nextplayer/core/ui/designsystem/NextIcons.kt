@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.ResetTv
+import androidx.compose.material.icons.rounded.ScreenRotationAlt
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Subtitles
@@ -51,6 +52,7 @@ object NextIcons {
     val Movie = Icons.Rounded.LocalMovies
     val Player = Icons.Rounded.PlayCircle
     val Resume = Icons.Rounded.ResetTv
+    val Rotation = Icons.Rounded.ScreenRotationAlt
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
     val Subtitle = Icons.Rounded.Subtitles

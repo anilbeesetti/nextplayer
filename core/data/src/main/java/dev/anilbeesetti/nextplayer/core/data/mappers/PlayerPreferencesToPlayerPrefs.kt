@@ -14,5 +14,6 @@ fun PlayerPreferences.toPlayerPrefs() = PlayerPrefs(
     useSeekControls = useSeekControls,
     rememberSelections = rememberSelections,
     preferredAudioLanguage = preferredAudioLanguage,
-    preferredSubtitleLanguage = preferredSubtitleLanguage
+    preferredSubtitleLanguage = preferredSubtitleLanguage,
+    playerScreenOrientation = playerScreenOrientation
 )

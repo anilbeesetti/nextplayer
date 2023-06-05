@@ -8,6 +8,7 @@ import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -118,6 +119,12 @@ class PlayerPreferencesViewModel @Inject constructor(
             preferencesRepository.setPreferredSubtitleLanguage(value)
         }
     }
+
+    fun updatePreferredPlayerOrientation(value: ScreenOrientation) {
+        viewModelScope.launch {
+            preferencesRepository.setPlayerScreenOrientation(value)
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
@@ -130,6 +137,7 @@ sealed interface PlayerPreferenceDialog {
     object FastSeekDialog : PlayerPreferenceDialog
     object AudioLanguageDialog : PlayerPreferenceDialog
     object SubtitleLanguageDialog : PlayerPreferenceDialog
+    object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 

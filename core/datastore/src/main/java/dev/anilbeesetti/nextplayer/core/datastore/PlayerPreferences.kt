@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.datastore
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,5 +18,6 @@ data class PlayerPreferences(
     val useSeekControls: Boolean = true,
     val rememberSelections: Boolean = true,
     val preferredAudioLanguage: String = "",
-    val preferredSubtitleLanguage: String = ""
+    val preferredSubtitleLanguage: String = "",
+    val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION
 )
