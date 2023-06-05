@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
@@ -38,6 +40,7 @@ import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
@@ -80,6 +83,7 @@ class PlayerActivity : AppCompatActivity() {
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
     private var currentOrientation: Int? = null
+    private var currentVideoOrientation: Int? = null
 
     /**
      * Player
@@ -163,6 +167,7 @@ class PlayerActivity : AppCompatActivity() {
         createPlayer()
         playlistManager.addOnTrackChangedListener(onTrackChangeListener)
         preparePlayerView()
+        setOrientation()
         initializePlayerView()
         playVideo()
         super.onStart()
@@ -317,7 +322,32 @@ class PlayerActivity : AppCompatActivity() {
             isControlsLocked = false
             toggleSystemBars(showBars = true)
         }
-        screenRotationButton.setOnClickListener { switchOrientation() }
+        screenRotationButton.setOnClickListener {
+            screenRotationButton.setImageDrawable(ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation_alt))
+            requestedOrientation =
+                if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                } else {
+                    when (viewModel.preferences.value.playerScreenOrientation) {
+                        ScreenOrientation.PORTRAIT,
+                        ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
+                        ScreenOrientation.VIDEO_ORIENTATION,
+                        ScreenOrientation.SYSTEM_DEFAULT,
+                        ScreenOrientation.AUTOMATIC,
+                        ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+
+                        ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                    }
+                }
+        }
+        screenRotationButton.setOnLongClickListener {
+            screenRotationButton.setImageDrawable(ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation))
+            requestedOrientation = viewModel.preferences.value.playerScreenOrientation
+                .toActivityOrientation(videoOrientation = currentVideoOrientation)
+            currentOrientation = null
+            true
+        }
         backButton.setOnClickListener { finish() }
     }
 
@@ -395,12 +425,15 @@ class PlayerActivity : AppCompatActivity() {
 
         @SuppressLint("SourceLockedOrientationActivity")
         override fun onVideoSizeChanged(videoSize: VideoSize) {
-            requestedOrientation = currentOrientation?.let {
-                currentOrientation
-            } ?: if (videoSize.isPortrait) {
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-            } else {
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            if (currentOrientation != null) return
+
+            if (viewModel.preferences.value.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
+                currentVideoOrientation = if (videoSize.isPortrait) {
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                } else {
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                }
+                requestedOrientation = currentVideoOrientation!!
             }
             super.onVideoSizeChanged(videoSize)
         }
@@ -529,6 +562,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun setOrientation() {
+        requestedOrientation = currentOrientation
+            ?: viewModel.preferences.value.playerScreenOrientation.toActivityOrientation()
+    }
+
     companion object {
         const val API_TITLE = "title"
         const val API_POSITION = "position"
@@ -549,14 +587,23 @@ private val VideoSize.isPortrait: Boolean
     }
 
 private fun Activity.switchOrientation() {
-    val isLandscape = requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE ||
-        requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+    requestedOrientation =
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
+}
 
-    requestedOrientation = if (isLandscape) {
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-    } else {
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+private fun ScreenOrientation.toActivityOrientation(videoOrientation: Int? = null): Int {
+    return when (this) {
+        ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+        ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        ScreenOrientation.SYSTEM_DEFAULT -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        ScreenOrientation.VIDEO_ORIENTATION -> videoOrientation
+            ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
-
-    Timber.d("setting orientation $requestedOrientation")
 }
