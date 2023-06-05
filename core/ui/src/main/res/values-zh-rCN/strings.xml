@@ -95,4 +95,11 @@
     <string name="scanning_storage">正在扫描存储…</string>
     <string name="manage_folders_desc">选择要在媒体库中排除的文件夹</string>
     <string name="screen_rotation">屏幕旋转</string>
+    <string name="automatic">自动（传感器）</string>
+    <string name="landscape">横向</string>
+    <string name="portrait">竖直</string>
+    <string name="landscape_reverse">横向翻转</string>
+    <string name="player_screen_orientation">播放器屏幕方向</string>
+    <string name="video_orientation">视频方向</string>
+    <string name="landscape_auto">横向（传感器）</string>
 </resources>
