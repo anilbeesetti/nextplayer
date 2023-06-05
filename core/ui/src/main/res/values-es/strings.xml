@@ -95,4 +95,11 @@
     <string name="videos">vídeos</string>
     <string name="manage_folders">Gestionar carpetas</string>
     <string name="screen_rotation">Rotación de la pantalla</string>
+    <string name="player_screen_orientation">Orientación de la pantalla del reproductor</string>
+    <string name="automatic">Automático (sensor)</string>
+    <string name="landscape">Apaisado</string>
+    <string name="landscape_reverse">Invertir el modo apaisado</string>
+    <string name="video_orientation">Orientación del vídeo</string>
+    <string name="landscape_auto">Apaisado (sensor)</string>
+    <string name="portrait">Retrato</string>
 </resources>
