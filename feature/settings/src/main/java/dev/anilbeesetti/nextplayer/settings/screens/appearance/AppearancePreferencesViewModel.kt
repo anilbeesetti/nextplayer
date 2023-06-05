@@ -38,25 +38,25 @@ class AppearancePreferencesViewModel @Inject constructor(
 
     fun toggleDarkTheme() {
         viewModelScope.launch {
-            preferencesRepository.setThemeConfig(
-                if (preferencesFlow.value.themeConfig == ThemeConfig.ON) {
-                    ThemeConfig.OFF
-                } else {
-                    ThemeConfig.ON
-                }
-            )
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON)
+            }
         }
     }
 
     fun updateThemeConfig(themeConfig: ThemeConfig) {
-        viewModelScope.launch { preferencesRepository.setThemeConfig(themeConfig) }
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(themeConfig = themeConfig)
+            }
+        }
     }
 
     fun toggleUseDynamicColors() {
         viewModelScope.launch {
-            preferencesRepository.setUseDynamicColors(
-                !preferencesFlow.value.useDynamicColors
-            )
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(useDynamicColors = !it.useDynamicColors)
+            }
         }
     }
 }

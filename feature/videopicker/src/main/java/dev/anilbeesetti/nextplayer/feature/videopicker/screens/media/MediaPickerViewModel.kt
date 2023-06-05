@@ -49,9 +49,13 @@ class MediaPickerViewModel @Inject constructor(
 
     fun updateMenu(sortBy: SortBy, sortOrder: SortOrder, groupVideosByFolder: Boolean) {
         viewModelScope.launch {
-            preferencesRepository.setSortBy(sortBy)
-            preferencesRepository.setSortOrder(sortOrder)
-            preferencesRepository.setGroupVideosByFolder(groupVideosByFolder)
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(
+                    sortBy = sortBy,
+                    sortOrder = sortOrder,
+                    groupVideosByFolder = groupVideosByFolder
+                )
+            }
         }
     }
 }

@@ -29,9 +29,9 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
     fun updateExcludeList(folder: Folder) {
         viewModelScope.launch {
             if (folder.isExcluded) {
-                preferencesRepository.removeFromExcludedFolders(folder.path)
+                preferencesRepository.updateApplicationPreferences { it.copy(excludeFolders = it.excludeFolders - folder.path ) }
             } else {
-                preferencesRepository.addToExcludedFolders(folder.path)
+                preferencesRepository.updateApplicationPreferences { it.copy(excludeFolders = it.excludeFolders + folder.path ) }
             }
         }
     }
