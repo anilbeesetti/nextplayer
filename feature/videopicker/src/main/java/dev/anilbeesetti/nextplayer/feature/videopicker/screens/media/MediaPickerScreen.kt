@@ -22,7 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -69,7 +69,7 @@ fun MediaPickerScreen(
 internal fun MediaPickerScreen(
     videosState: VideosState,
     foldersState: FoldersState,
-    preferences: AppPrefs,
+    preferences: ApplicationPreferences,
     onVideoClick: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -136,7 +136,7 @@ fun MediaPickerScreenPreview(
                         data = videos
                     ),
                     foldersState = FoldersState.Loading,
-                    preferences = AppPrefs.default().copy(groupVideosByFolder = false),
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                     onVideoClick = {},
                     onFolderClick = {}
                 )
@@ -167,7 +167,7 @@ fun MediaPickerNoVideosFoundPreview() {
                 foldersState = FoldersState.Success(
                     data = emptyList()
                 ),
-                preferences = AppPrefs.default(),
+                preferences = ApplicationPreferences(),
                 onVideoClick = {},
                 onFolderClick = {}
             )
@@ -183,7 +183,7 @@ fun MediaPickerLoadingPreview() {
             MediaPickerScreen(
                 videosState = VideosState.Loading,
                 foldersState = FoldersState.Loading,
-                preferences = AppPrefs.default(),
+                preferences = ApplicationPreferences(),
                 onVideoClick = {},
                 onFolderClick = {}
             )

@@ -21,8 +21,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.TITLE)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.ASCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 
@@ -33,8 +34,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.TITLE)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.DESCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 
@@ -45,8 +47,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.LENGTH)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.ASCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 
@@ -57,8 +60,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.LENGTH)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.DESCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 
@@ -69,8 +73,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByPathAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.PATH)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.ASCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 
@@ -81,8 +86,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByPathDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.PATH)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.DESCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 
@@ -93,8 +99,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortBySizeAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.SIZE)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.ASCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 
@@ -105,8 +112,9 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortBySizeDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.SIZE)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.DESCENDING)
+        }
 
         videoRepository.videoItems.addAll(testVideoItems.shuffled())
 

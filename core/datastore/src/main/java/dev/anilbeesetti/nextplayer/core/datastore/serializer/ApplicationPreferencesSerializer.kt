@@ -2,20 +2,20 @@ package dev.anilbeesetti.nextplayer.core.datastore.serializer
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import java.io.InputStream
 import java.io.OutputStream
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-object AppPreferencesSerializer : Serializer<AppPreferences> {
-    override val defaultValue: AppPreferences
-        get() = AppPreferences()
+object ApplicationPreferencesSerializer : Serializer<ApplicationPreferences> {
+    override val defaultValue: ApplicationPreferences
+        get() = ApplicationPreferences()
 
-    override suspend fun readFrom(input: InputStream): AppPreferences {
+    override suspend fun readFrom(input: InputStream): ApplicationPreferences {
         try {
             return Json.decodeFromString(
-                deserializer = AppPreferences.serializer(),
+                deserializer = ApplicationPreferences.serializer(),
                 string = input.readBytes().decodeToString()
             )
         } catch (exception: SerializationException) {
@@ -24,10 +24,10 @@ object AppPreferencesSerializer : Serializer<AppPreferences> {
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    override suspend fun writeTo(t: AppPreferences, output: OutputStream) {
+    override suspend fun writeTo(t: ApplicationPreferences, output: OutputStream) {
         output.write(
             Json.encodeToString(
-                serializer = AppPreferences.serializer(),
+                serializer = ApplicationPreferences.serializer(),
                 value = t
             ).encodeToByteArray()
         )

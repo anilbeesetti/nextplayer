@@ -1,9 +1,5 @@
-package dev.anilbeesetti.nextplayer.core.datastore
+package dev.anilbeesetti.nextplayer.core.model
 
-import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
-import dev.anilbeesetti.nextplayer.core.model.FastSeek
-import dev.anilbeesetti.nextplayer.core.model.Resume
-import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import kotlinx.serialization.Serializable
 
 @Serializable

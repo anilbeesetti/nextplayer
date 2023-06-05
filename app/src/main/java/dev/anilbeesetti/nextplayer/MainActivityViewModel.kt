@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -15,7 +15,7 @@ class MainActivityViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val uiState = preferencesRepository.appPrefsFlow.map { preferences ->
+    val uiState = preferencesRepository.applicationPreferences.map { preferences ->
         MainActivityUiState.Success(preferences)
     }.stateIn(
         scope = viewModelScope,
@@ -26,5 +26,5 @@ class MainActivityViewModel @Inject constructor(
 
 sealed interface MainActivityUiState {
     object Loading : MainActivityUiState
-    data class Success(val preferences: AppPrefs) : MainActivityUiState
+    data class Success(val preferences: ApplicationPreferences) : MainActivityUiState
 }

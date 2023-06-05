@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -40,7 +40,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
 @Composable
 fun QuickSettingsDialog(
-    preferences: AppPrefs,
+    preferences: ApplicationPreferences,
     onDismiss: () -> Unit,
     updatePreferences: (SortBy, SortOrder, Boolean) -> Unit
 ) {

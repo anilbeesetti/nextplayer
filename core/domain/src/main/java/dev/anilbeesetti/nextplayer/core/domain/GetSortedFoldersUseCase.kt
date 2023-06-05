@@ -21,7 +21,7 @@ class GetSortedFoldersUseCase @Inject constructor(
     operator fun invoke(): Flow<List<Folder>> {
         return combine(
             getSortedVideosUseCase.invoke(),
-            preferencesRepository.appPrefsFlow
+            preferencesRepository.applicationPreferences
         ) { videos, preferences ->
 
             val folders = videos.toFolders()

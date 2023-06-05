@@ -1,17 +1,17 @@
 package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
-import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import javax.inject.Inject
 import timber.log.Timber
 
 class PlayerPreferencesDataSource @Inject constructor(
     private val preferencesDataStore: DataStore<PlayerPreferences>
-) {
+) : PreferencesDataSource<PlayerPreferences> {
 
-    val preferencesFlow = preferencesDataStore.data
+    override val preferences = preferencesDataStore.data
 
-    suspend fun updateData(transform: suspend (PlayerPreferences) -> PlayerPreferences) {
+    override suspend fun update(transform: suspend (PlayerPreferences) -> PlayerPreferences) {
         try {
             preferencesDataStore.updateData(transform)
         } catch (ioException: Exception) {
