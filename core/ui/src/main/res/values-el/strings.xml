@@ -33,10 +33,10 @@
     <string name="select_subtitle_track">Επιλογή κομματιού υποτίτλων</string>
     <string name="settings">Ρυθμίσεις</string>
     <string name="size">Μέγεθος</string>
-    <string name="sort">Ταξινόμηση</string>
+    <string name="sort">Ταξινόμηση κατά</string>
     <string name="swipe_gesture">Κάθετη χειρονομία</string>
     <string name="swipe_gesture_description">Κάθετα για προσαρμογή της φωτεινότητας και της έντασης</string>
-    <string name="title">Τίτλος</string>
+    <string name="title">Τίτλο</string>
     <string name="title_activity_player">Δραστηριότητα Next Player</string>
     <string name="unknown_error">Προέκυψε ένα άγνωστο σφάλμα</string>
     <string name="playback">Αναπαραγωγή</string>
@@ -95,4 +95,11 @@
     <string name="video">βίντεο</string>
     <string name="videos">βίντεο</string>
     <string name="screen_rotation">Διάταξη οθόνης</string>
+    <string name="portrait">Κάθετη</string>
+    <string name="automatic">Αυτόματη</string>
+    <string name="player_screen_orientation">Διάταξη της οθόνης</string>
+    <string name="landscape">Οριζόντια</string>
+    <string name="landscape_reverse">Οριζόντια ανάστροφα</string>
+    <string name="landscape_auto">Οριζόντια (αισθητήρας)</string>
+    <string name="video_orientation">Διάταξη βίντεο</string>
 </resources>
