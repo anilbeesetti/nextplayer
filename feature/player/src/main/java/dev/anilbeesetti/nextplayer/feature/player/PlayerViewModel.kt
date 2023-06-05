@@ -8,8 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.model.AppPrefs
-import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,16 +35,16 @@ class PlayerViewModel @Inject constructor(
 
     val currentExternalSubtitles = mutableListOf<Uri>()
 
-    val preferences = preferencesRepository.playerPrefsFlow.stateIn(
+    val preferences = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = PlayerPrefs.default()
+        initialValue = PlayerPreferences()
     )
 
-    val appPrefs = preferencesRepository.appPrefsFlow.stateIn(
+    val appPrefs = preferencesRepository.applicationPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = AppPrefs.default()
+        initialValue = ApplicationPreferences()
     )
 
     suspend fun updateState(path: String, shouldUpdateSubtitles: Boolean) {

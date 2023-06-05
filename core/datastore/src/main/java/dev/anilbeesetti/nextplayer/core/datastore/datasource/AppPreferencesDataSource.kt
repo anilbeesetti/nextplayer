@@ -1,17 +1,17 @@
 package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import javax.inject.Inject
 import timber.log.Timber
 
 class AppPreferencesDataSource @Inject constructor(
-    private val appPreferences: DataStore<AppPreferences>
-) {
+    private val appPreferences: DataStore<ApplicationPreferences>
+) : PreferencesDataSource<ApplicationPreferences> {
 
-    val preferencesFlow = appPreferences.data
+    override val preferences = appPreferences.data
 
-    suspend fun updateData(transform: suspend (AppPreferences) -> AppPreferences) {
+    override suspend fun update(transform: suspend (ApplicationPreferences) -> ApplicationPreferences) {
         try {
             appPreferences.updateData(transform)
         } catch (ioException: Exception) {

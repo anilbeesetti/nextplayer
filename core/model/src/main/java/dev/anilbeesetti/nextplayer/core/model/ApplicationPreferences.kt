@@ -1,12 +1,9 @@
-package dev.anilbeesetti.nextplayer.core.datastore
+package dev.anilbeesetti.nextplayer.core.model
 
-import dev.anilbeesetti.nextplayer.core.model.SortBy
-import dev.anilbeesetti.nextplayer.core.model.SortOrder
-import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AppPreferences(
+data class ApplicationPreferences(
     val sortBy: SortBy = SortBy.TITLE,
     val sortOrder: SortOrder = SortOrder.ASCENDING,
     val groupVideosByFolder: Boolean = true,

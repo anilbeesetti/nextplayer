@@ -23,7 +23,7 @@ class GetAllFoldersUseCase @Inject constructor(
     operator fun invoke(): Flow<List<Folder>> {
         return combine(
             videoRepository.getVideosFlow(),
-            preferencesRepository.appPrefsFlow
+            preferencesRepository.applicationPreferences
         ) { videoItems, preferences ->
             videoItems
                 .toFolders(preferences.excludeFolders)

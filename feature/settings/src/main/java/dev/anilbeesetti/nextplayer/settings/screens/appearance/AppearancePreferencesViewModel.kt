@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,11 +18,11 @@ import kotlinx.coroutines.launch
 class AppearancePreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
-    val preferencesFlow = preferencesRepository.appPrefsFlow
+    val preferencesFlow = preferencesRepository.applicationPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = AppPrefs.default()
+            initialValue = ApplicationPreferences()
         )
 
     private val _uiState = MutableStateFlow(AppearancePreferencesUiState())

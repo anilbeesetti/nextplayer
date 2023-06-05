@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
-import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import javax.inject.Inject
@@ -22,11 +22,11 @@ class PlayerPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val preferencesFlow = preferencesRepository.playerPrefsFlow
+    val preferencesFlow = preferencesRepository.playerPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = PlayerPrefs.default()
+            initialValue = PlayerPreferences()
         )
 
     private val _uiState = MutableStateFlow(PlayerPreferencesUIState())

@@ -6,7 +6,7 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -32,7 +32,7 @@ class MediaPickerScreenTest {
                 MediaPickerScreen(
                     videosState = VideosState.Loading,
                     foldersState = FoldersState.Loading,
-                    preferences = AppPrefs.default()
+                    preferences = ApplicationPreferences()
                 )
             }
         }
@@ -43,7 +43,7 @@ class MediaPickerScreenTest {
     /**
      * This test is to check if the video items are displayed
      * when the [VideosState.Success] is passed with list of [Video],
-     * along with [AppPrefs].groupVideosByFolder = false
+     * along with [ApplicationPreferences].groupVideosByFolder = false
      */
     @Test
     fun videoItemsAreDisplayed_whenSuccessAndGroupVideosByFolderIsFalse() {
@@ -54,7 +54,7 @@ class MediaPickerScreenTest {
                         data = videoItemsTestData
                     ),
                     foldersState = FoldersState.Loading,
-                    preferences = AppPrefs.default().copy(groupVideosByFolder = false)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false)
                 )
             }
         }
@@ -78,7 +78,7 @@ class MediaPickerScreenTest {
     /**
      * This test is to check if the folder items are displayed
      * when the [FoldersState.Success] is passed with list of [Folder],
-     * along with [AppPrefs].groupVideosByFolder = true
+     * along with [ApplicationPreferences].groupVideosByFolder = true
      */
     @Test
     fun folderItemsAreDisplayed_whenSuccessAndGroupVideosByFolderIsTrue() {
@@ -89,7 +89,7 @@ class MediaPickerScreenTest {
                     foldersState = FoldersState.Success(
                         data = foldersTestData
                     ),
-                    preferences = AppPrefs.default().copy(groupVideosByFolder = true)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true)
                 )
             }
         }
@@ -113,7 +113,7 @@ class MediaPickerScreenTest {
     /**
      * This test is to check if the no videos found text is displayed,
      * when the [VideosState.Success] with empty list is passed,
-     * along with [AppPrefs].groupVideosByFolder = false
+     * along with [ApplicationPreferences].groupVideosByFolder = false
      */
     @Test
     fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyListAndGroupVideosByFolderIsFalse() {
@@ -124,7 +124,7 @@ class MediaPickerScreenTest {
                         data = emptyList()
                     ),
                     foldersState = FoldersState.Loading,
-                    preferences = AppPrefs.default().copy(groupVideosByFolder = false)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false)
                 )
             }
         }
@@ -140,7 +140,7 @@ class MediaPickerScreenTest {
     /**
      * This test is to check if the no videos found text is displayed,
      * when the [FoldersState.Success] with empty list is passed,
-     * along with [AppPrefs].groupVideosByFolder = true
+     * along with [ApplicationPreferences].groupVideosByFolder = true
      */
     @Test
     fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyListAndGroupVideosByFolderIsTrue() {
@@ -151,7 +151,7 @@ class MediaPickerScreenTest {
                     foldersState = FoldersState.Success(
                         data = emptyList()
                     ),
-                    preferences = AppPrefs.default().copy(groupVideosByFolder = true)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true)
                 )
             }
         }

@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.model.AppPrefs
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
-import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.SortBy
@@ -14,14 +14,14 @@ import kotlinx.coroutines.flow.Flow
 interface PreferencesRepository {
 
     /**
-     * Stream of [AppPrefs].
+     * Stream of [ApplicationPreferences].
      */
-    val appPrefsFlow: Flow<AppPrefs>
+    val applicationPreferences: Flow<ApplicationPreferences>
 
     /**
-     * Stream of [PlayerPrefs].
+     * Stream of [PlayerPreferences].
      */
-    val playerPrefsFlow: Flow<PlayerPrefs>
+    val playerPreferences: Flow<PlayerPreferences>
 
     /**
      * Sets the sort order of the video items.

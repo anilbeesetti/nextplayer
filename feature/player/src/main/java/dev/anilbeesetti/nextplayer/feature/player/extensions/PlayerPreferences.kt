@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
-import dev.anilbeesetti.nextplayer.core.model.PlayerPrefs
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 
-fun PlayerPrefs.shouldFastSeek(duration: Long): Boolean {
+fun PlayerPreferences.shouldFastSeek(duration: Long): Boolean {
     return when (fastSeek) {
         FastSeek.ENABLE -> true
         FastSeek.DISABLE -> false

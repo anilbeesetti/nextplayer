@@ -12,13 +12,13 @@ import dagger.hilt.components.SingletonComponent
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.serializer.AppPreferencesSerializer
+import dev.anilbeesetti.nextplayer.core.datastore.serializer.ApplicationPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.PlayerPreferencesSerializer
-import javax.inject.Singleton
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import javax.inject.Singleton
 
 private const val APP_PREFERENCES_DATASTORE_FILE = "app_preferences.json"
 private const val PLAYER_PREFERENCES_DATASTORE_FILE = "player_preferences.json"
@@ -33,9 +33,9 @@ object DataStoreModule {
         @ApplicationContext context: Context,
         @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
         @ApplicationScope scope: CoroutineScope
-    ): DataStore<AppPreferences> {
+    ): DataStore<ApplicationPreferences> {
         return DataStoreFactory.create(
-            serializer = AppPreferencesSerializer,
+            serializer = ApplicationPreferencesSerializer,
             scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
             produceFile = { context.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) }
         )
