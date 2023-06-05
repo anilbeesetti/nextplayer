@@ -137,7 +137,7 @@ sealed interface PlayerPreferenceDialog {
     object FastSeekDialog : PlayerPreferenceDialog
     object AudioLanguageDialog : PlayerPreferenceDialog
     object SubtitleLanguageDialog : PlayerPreferenceDialog
-    object PlayerScreenOrientationDialog: PlayerPreferenceDialog
+    object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 

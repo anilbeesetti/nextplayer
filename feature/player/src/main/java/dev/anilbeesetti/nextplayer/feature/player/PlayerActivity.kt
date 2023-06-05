@@ -50,6 +50,7 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
@@ -323,7 +324,9 @@ class PlayerActivity : AppCompatActivity() {
             toggleSystemBars(showBars = true)
         }
         screenRotationButton.setOnClickListener {
-            screenRotationButton.setImageDrawable(ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation_alt))
+            screenRotationButton.setImageDrawable(
+                ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation_alt)
+            )
             requestedOrientation =
                 if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -342,7 +345,9 @@ class PlayerActivity : AppCompatActivity() {
                 }
         }
         screenRotationButton.setOnLongClickListener {
-            screenRotationButton.setImageDrawable(ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation))
+            screenRotationButton.setImageDrawable(
+                ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation)
+            )
             requestedOrientation = viewModel.preferences.value.playerScreenOrientation
                 .toActivityOrientation(videoOrientation = currentVideoOrientation)
             currentOrientation = null
@@ -585,25 +590,3 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
-
-private fun Activity.switchOrientation() {
-    requestedOrientation =
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        }
-}
-
-private fun ScreenOrientation.toActivityOrientation(videoOrientation: Int? = null): Int {
-    return when (this) {
-        ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
-        ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
-        ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        ScreenOrientation.SYSTEM_DEFAULT -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        ScreenOrientation.VIDEO_ORIENTATION -> videoOrientation
-            ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-    }
-}

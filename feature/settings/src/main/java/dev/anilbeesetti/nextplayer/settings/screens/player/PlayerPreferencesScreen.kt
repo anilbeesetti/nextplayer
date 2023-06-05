@@ -109,7 +109,11 @@ fun PlayerPreferencesScreen(
                 )
                 screenOrientationSetting(
                     currentOrientationPreference = preferences.playerScreenOrientation,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog) }
+                    onClick = {
+                        viewModel.showDialog(
+                            PlayerPreferenceDialog.PlayerScreenOrientationDialog
+                        )
+                    }
                 )
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.audio))
