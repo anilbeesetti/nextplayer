@@ -41,7 +41,13 @@ class PlayerPreferencesViewModel @Inject constructor(
     }
 
     fun updatePlaybackResume(resume: Resume) {
-        viewModelScope.launch { preferencesRepository.updatePlayerPreferences { it.copy(resume = resume) } }
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    resume = resume
+                )
+            }
+        }
     }
 
     fun updateDoubleTapGesture(gesture: DoubleTapGesture) {
@@ -55,17 +61,24 @@ class PlayerPreferencesViewModel @Inject constructor(
     }
 
     fun updateFastSeek(fastSeek: FastSeek) {
-        viewModelScope.launch { preferencesRepository.updatePlayerPreferences { it.copy(fastSeek = fastSeek) } }
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    fastSeek = fastSeek
+                )
+            }
+        }
     }
 
     fun toggleDoubleTapGesture() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(
-                    doubleTapGesture = if (it.doubleTapGesture == DoubleTapGesture.NONE)
+                    doubleTapGesture = if (it.doubleTapGesture == DoubleTapGesture.NONE) {
                         DoubleTapGesture.FAST_FORWARD_AND_REWIND
-                    else
+                    } else {
                         DoubleTapGesture.NONE
+                    }
                 )
             }
         }
@@ -121,7 +134,11 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     fun updateSubtitleLanguage(value: String) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(preferredSubtitleLanguage = value) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    preferredSubtitleLanguage = value
+                )
+            }
         }
     }
 

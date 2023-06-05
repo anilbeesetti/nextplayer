@@ -39,7 +39,9 @@ class AppearancePreferencesViewModel @Inject constructor(
     fun toggleDarkTheme() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
-                it.copy(themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON)
+                it.copy(
+                    themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON
+                )
             }
         }
     }

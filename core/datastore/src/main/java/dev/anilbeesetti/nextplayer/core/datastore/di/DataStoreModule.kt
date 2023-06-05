@@ -16,9 +16,9 @@ import dev.anilbeesetti.nextplayer.core.datastore.serializer.ApplicationPreferen
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.PlayerPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import javax.inject.Singleton
 
 private const val APP_PREFERENCES_DATASTORE_FILE = "app_preferences.json"
 private const val PLAYER_PREFERENCES_DATASTORE_FILE = "player_preferences.json"

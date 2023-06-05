@@ -11,7 +11,9 @@ class AppPreferencesDataSource @Inject constructor(
 
     override val preferences = appPreferences.data
 
-    override suspend fun update(transform: suspend (ApplicationPreferences) -> ApplicationPreferences) {
+    override suspend fun update(
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences
+    ) {
         try {
             appPreferences.updateData(transform)
         } catch (ioException: Exception) {
