@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -131,21 +132,15 @@ class PlayerActivity : AppCompatActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        when (viewModel.appPrefs.value.themeConfig) {
-            ThemeConfig.SYSTEM -> AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            )
+        AppCompatDelegate.setDefaultNightMode(
+            when (viewModel.applicationPreferences.value.themeConfig) {
+                ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
+                ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
+            }
+        )
 
-            ThemeConfig.OFF -> AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_NO
-            )
-
-            ThemeConfig.ON -> AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_YES
-            )
-        }
-
-        if (viewModel.appPrefs.value.useDynamicColors) {
+        if (viewModel.applicationPreferences.value.useDynamicColors) {
             DynamicColors.applyToActivityIfAvailable(this)
         }
 
@@ -164,7 +159,7 @@ class PlayerActivity : AppCompatActivity() {
             viewModel = viewModel,
             activity = this,
             playerView = binding.playerView,
-            audioManager = getSystemService(android.media.AudioManager::class.java)
+            audioManager = getSystemService(AudioManager::class.java)
         )
 
         playlistManager = PlaylistManager()

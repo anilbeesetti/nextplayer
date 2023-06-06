@@ -41,7 +41,7 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
-    val appPrefs = preferencesRepository.applicationPreferences.stateIn(
+    val applicationPreferences = preferencesRepository.applicationPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = ApplicationPreferences()
