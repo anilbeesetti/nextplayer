@@ -196,13 +196,15 @@ val foldersTestData = listOf(
         path = "/storage/emulated/0/DCIM/Camera/Folder 1",
         mediaCount = 1,
         mediaSize = 1000,
-        isExcluded = false
+        isExcluded = false,
+        dateModified = 1000
     ),
     Folder(
         name = "Folder 2",
         path = "/storage/emulated/0/DCIM/Camera/Folder 2",
         mediaCount = 2,
         mediaSize = 2000,
-        isExcluded = false
+        isExcluded = false,
+        dateModified = 1000
     )
 )
