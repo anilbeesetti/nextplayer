@@ -121,7 +121,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         AppCompatDelegate.setDefaultNightMode(
             when (viewModel.applicationPreferences.value.themeConfig) {
                 ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
@@ -171,7 +170,6 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStart() {
         createPlayer()
-        preparePlayerView()
         setOrientation()
         initializePlayerView()
         playVideo()
@@ -212,7 +210,7 @@ class PlayerActivity : AppCompatActivity() {
         player.addListener(playbackStateListener)
     }
 
-    private fun preparePlayerView() {
+    private fun initializePlayerView() {
         binding.playerView.apply {
             player = this@PlayerActivity.player
             setControllerVisibilityListener(
@@ -221,9 +219,7 @@ class PlayerActivity : AppCompatActivity() {
                 }
             )
         }
-    }
 
-    private fun initializePlayerView() {
         binding.playerView.subtitleView?.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
 
         audioTrackButton.setOnClickListener {
@@ -372,7 +368,6 @@ class PlayerActivity : AppCompatActivity() {
             val mediaItem = currentUri.toMediaItem(type = intent.type, subtitles = subs)
 
             withContext(Dispatchers.Main) {
-
                 // Set api title if current uri is intent uri and intent extras contains api title
                 if (intent.data == currentUri && intent.extras?.containsKey(API_TITLE) == true) {
                     videoTitleTextView.text = intent.extras?.getString(API_TITLE)
@@ -452,7 +447,7 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
                     Timber.d(
-                        "Current: ${playlistManager.currentIndex()} ${playlistManager.getCurrent()}"
+                        "Current: ${playlistManager.currentIndex()} - ${playlistManager.getCurrent()}"
                     )
                     Timber.d(playlistManager.toString())
                     isFileLoaded = true
