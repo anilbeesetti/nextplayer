@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -68,13 +69,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private val viewModel: PlayerViewModel by viewModels()
 
-    /**
-     * Intent data
-     */
-    private var intentDataUri: Uri? = null
-    private var intentExtras: Bundle? = null
-    private var intentType: String? = null
-
     private var playWhenReady = true
     private var isPlaybackFinished = false
 
@@ -99,15 +93,6 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val onTrackChangeListener: (Uri) -> Unit = { uri ->
-        runOnUiThread {
-            if (uri.toString() == intentDataUri.toString() && intentExtras?.containsKey(API_TITLE) == true) {
-                videoTitleTextView.text = intentExtras?.getString(API_TITLE)
-            } else {
-                videoTitleTextView.text = getFilenameFromUri(uri)
-            }
-        }
-    }
     private val subtitleFileLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
@@ -117,28 +102,34 @@ class PlayerActivity : AppCompatActivity() {
             playVideo()
         }
 
+    /**
+     * Player controller views
+     */
+    private lateinit var audioTrackButton: ImageButton
+    private lateinit var backButton: ImageButton
+    private lateinit var lockControlsButton: ImageButton
+    private lateinit var nextButton: ImageButton
+    private lateinit var playbackSpeedButton: ImageButton
+    private lateinit var playerControls: FrameLayout
+    private lateinit var prevButton: ImageButton
+    private lateinit var screenRotationButton: ImageButton
+    private lateinit var subtitleTrackButton: ImageButton
+    private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
+    private lateinit var videoZoomButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        AppCompatDelegate.setDefaultNightMode(
+            when (viewModel.applicationPreferences.value.themeConfig) {
+                ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
+                ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
+            }
+        )
 
-        when (viewModel.appPrefs.value.themeConfig) {
-            ThemeConfig.SYSTEM -> AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            )
-
-            ThemeConfig.OFF -> AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_NO
-            )
-
-            ThemeConfig.ON -> AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_YES
-            )
-        }
-
-        if (viewModel.appPrefs.value.useDynamicColors) {
+        if (viewModel.applicationPreferences.value.useDynamicColors) {
             DynamicColors.applyToActivityIfAvailable(this)
         }
 
@@ -148,26 +139,37 @@ class PlayerActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        updateIntentData(intent)
-        Timber.d("data: $intentDataUri")
 
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
             activity = this,
             playerView = binding.playerView,
-            audioManager = getSystemService(android.media.AudioManager::class.java)
+            audioManager = getSystemService(AudioManager::class.java)
         )
 
         playlistManager = PlaylistManager()
+
+        // Initializing views
+        audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
+        backButton = binding.playerView.findViewById(R.id.back_button)
+        lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
+        nextButton = binding.playerView.findViewById(R.id.btn_play_next)
+        playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
+        playerControls = binding.playerView.findViewById(R.id.player_controls)
+        prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
+        screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
+        subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
+        unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
+        videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
+        videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
     }
 
     override fun onStart() {
         createPlayer()
-        playlistManager.addOnTrackChangedListener(onTrackChangeListener)
-        preparePlayerView()
         setOrientation()
         initializePlayerView()
         playVideo()
@@ -177,7 +179,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         binding.gestureVolumeLayout.visibility = View.GONE
         binding.gestureBrightnessLayout.visibility = View.GONE
-        playlistManager.removeOnTrackChangedListener(onTrackChangeListener)
         currentOrientation = requestedOrientation
         releasePlayer()
         super.onStop()
@@ -209,7 +210,7 @@ class PlayerActivity : AppCompatActivity() {
         player.addListener(playbackStateListener)
     }
 
-    private fun preparePlayerView() {
+    private fun initializePlayerView() {
         binding.playerView.apply {
             player = this@PlayerActivity.player
             setControllerVisibilityListener(
@@ -218,34 +219,6 @@ class PlayerActivity : AppCompatActivity() {
                 }
             )
         }
-    }
-
-    private fun initializePlayerView() {
-        videoTitleTextView =
-            binding.playerView.findViewById(R.id.video_name)
-
-        val backButton =
-            binding.playerView.findViewById<ImageButton>(R.id.back_button)
-        val playbackSpeedButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_playback_speed)
-        val audioTrackButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
-        val subtitleTrackButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
-        val videoZoomButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_video_zoom)
-        val screenRotationButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_screen_rotation)
-        val nextButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_play_next)
-        val prevButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_play_prev)
-        val lockControlsButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_lock_controls)
-        val unlockControlsButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
-        val playerControls =
-            binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
 
         binding.playerView.subtitleView?.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
 
@@ -354,19 +327,11 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private fun playVideo(uri: Uri) {
-        playlistManager.updateCurrent(uri)
-        playVideo()
-    }
-
-    private fun playVideo() {
+    private fun playVideo(uri: Uri? = null) {
         lifecycleScope.launch(Dispatchers.IO) {
             if (shouldFetchPlaylist) {
-                val mediaUri = getMediaContentUri(intentDataUri!!)
-
-                Timber.d("content Uri: $mediaUri")
-
-                playlistManager.updateCurrent(uri = mediaUri ?: intentDataUri!!)
+                val mediaUri = getMediaContentUri(intent.data!!)
+                playlistManager.updateCurrent(uri = mediaUri ?: intent.data!!)
 
                 if (mediaUri != null) {
                     launch(Dispatchers.IO) {
@@ -374,35 +339,44 @@ class PlayerActivity : AppCompatActivity() {
                         playlistManager.setPlaylist(playlist)
                     }
                 }
-
                 shouldFetchPlaylist = false
             }
 
-            getPath(playlistManager.getCurrent()!!)?.let {
-                viewModel.updateState(
-                    path = it,
-                    shouldUpdateSubtitles = !isSubtitleLauncherHasUri
-                )
-            }
-            if (isSubtitleLauncherHasUri) {
-                viewModel.currentSubtitleTrackIndex = null
+            uri?.let { playlistManager.updateCurrent(uri) }
+
+            val currentUri = playlistManager.getCurrent()!!
+
+            viewModel.updateState(
+                path = getPath(currentUri),
+                shouldUpdateSubtitles = !isSubtitleLauncherHasUri
+            )
+
+            if (isSubtitleLauncherHasUri) viewModel.currentSubtitleTrackIndex = null
+
+            if (intent.data == currentUri && intent.extras?.containsKey(API_POSITION) == true) {
+                viewModel.currentPlaybackPosition = intent.extras?.getInt(API_POSITION)?.toLong()
             }
 
-            val subs = playlistManager.getCurrent()!!.getSubs(
+            // Get all subtitles for current uri
+            val subs = currentUri.getSubs(
                 context = this@PlayerActivity,
-                extras = intentExtras,
+                extras = intent.extras,
                 externalSubtitles = viewModel.currentExternalSubtitles
             )
 
-            val mediaItem = playlistManager.getCurrent()!!.toMediaItem(
-                type = intentType,
-                subtitles = subs
-            )
+            // current uri as MediaItem with subs
+            val mediaItem = currentUri.toMediaItem(type = intent.type, subtitles = subs)
+
             withContext(Dispatchers.Main) {
-                player.setMediaItem(
-                    mediaItem,
-                    viewModel.currentPlaybackPosition ?: C.TIME_UNSET
-                )
+                // Set api title if current uri is intent uri and intent extras contains api title
+                if (intent.data == currentUri && intent.extras?.containsKey(API_TITLE) == true) {
+                    videoTitleTextView.text = intent.extras?.getString(API_TITLE)
+                } else {
+                    videoTitleTextView.text = getFilenameFromUri(currentUri)
+                }
+
+                // Set media and start player
+                player.setMediaItem(mediaItem, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
@@ -473,7 +447,7 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
                     Timber.d(
-                        "Current: ${playlistManager.currentIndex()} ${playlistManager.getCurrent()}"
+                        "Current: ${playlistManager.currentIndex()} - ${playlistManager.getCurrent()}"
                     )
                     Timber.d(playlistManager.toString())
                     isFileLoaded = true
@@ -505,7 +479,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun finish() {
-        if (intentExtras != null && intentExtras!!.containsKey(API_RETURN_RESULT)) {
+        if (intent.extras != null && intent.extras!!.containsKey(API_RETURN_RESULT)) {
             val result = Intent(API_RESULT_INTENT)
             result.putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
             if (!isPlaybackFinished) {
@@ -528,7 +502,7 @@ class PlayerActivity : AppCompatActivity() {
             Timber.d("new intent: ${intent.data}")
             playlistManager.clearQueue()
             viewModel.resetToDefaults()
-            updateIntentData(intent)
+            setIntent(intent)
             shouldFetchPlaylist = true
             playVideo()
         }
@@ -539,16 +513,6 @@ class PlayerActivity : AppCompatActivity() {
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
             .build()
-    }
-
-    private fun updateIntentData(intent: Intent) {
-        intentDataUri = intent.data
-        intentExtras = intent.extras
-        intentType = intent.type
-
-        if (intentExtras?.containsKey(API_POSITION) == true) {
-            viewModel.currentPlaybackPosition = intentExtras?.getInt(API_POSITION)?.toLong()
-        }
     }
 
     private fun savePlayerState(uri: Uri) {

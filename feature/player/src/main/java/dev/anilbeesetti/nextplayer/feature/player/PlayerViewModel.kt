@@ -41,14 +41,15 @@ class PlayerViewModel @Inject constructor(
         initialValue = PlayerPreferences()
     )
 
-    val appPrefs = preferencesRepository.applicationPreferences.stateIn(
+    val applicationPreferences = preferencesRepository.applicationPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = ApplicationPreferences()
     )
 
-    suspend fun updateState(path: String, shouldUpdateSubtitles: Boolean) {
+    suspend fun updateState(path: String?, shouldUpdateSubtitles: Boolean) {
         resetToDefaults(exceptSubtitles = !shouldUpdateSubtitles)
+        if (path == null) return
         val videoState = videoRepository.getVideoState(path) ?: return
 
         Timber.d("$videoState")

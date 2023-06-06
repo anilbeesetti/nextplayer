@@ -7,11 +7,6 @@ class PlaylistManager {
     private val queue = mutableListOf<Uri>()
     private var currentItem: Uri? = null
 
-    /**
-     * Listener that gets called when the current playing video changes
-     */
-    private val onTrackChangedListeners: MutableList<(Uri) -> Unit> = mutableListOf()
-
     fun clear() = queue.clear()
 
     fun hasNext(): Boolean {
@@ -43,19 +38,6 @@ class PlaylistManager {
 
     fun updateCurrent(uri: Uri) {
         currentItem = uri
-        onTrackChangedListeners.forEach {
-            runCatching {
-                it.invoke(uri)
-            }
-        }
-    }
-
-    fun addOnTrackChangedListener(listener: (Uri) -> Unit) {
-        onTrackChangedListeners.add(listener)
-    }
-
-    fun removeOnTrackChangedListener(listener: (Uri) -> Unit) {
-        onTrackChangedListeners.remove(listener)
     }
 
     fun clearQueue() {
