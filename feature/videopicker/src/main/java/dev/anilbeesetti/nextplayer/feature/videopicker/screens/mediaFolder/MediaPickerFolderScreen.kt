@@ -24,7 +24,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
 @Composable
-fun MediaPickerFolderScreen(
+fun MediaPickerFolderRoute(
     viewModel: MediaPickerFolderViewModel = hiltViewModel(),
     onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit
