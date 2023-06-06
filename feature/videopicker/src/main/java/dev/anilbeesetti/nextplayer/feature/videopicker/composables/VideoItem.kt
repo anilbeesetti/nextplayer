@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import dev.anilbeesetti.nextplayer.core.common.extensions.getThumbnail
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -45,11 +44,10 @@ fun VideoItem(
     val haptic = LocalHapticFeedback.current
 
     Box(
-        modifier = Modifier
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
-            )
+        modifier = Modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -68,7 +66,7 @@ fun VideoItem(
                     content = {
                         if (video.uriString.isNotEmpty()) {
                             GlideImage(
-                                imageModel = { video.path.getThumbnail() ?: video.uriString },
+                                imageModel = { video.thumbnail ?: video.uriString },
                                 imageOptions = ImageOptions(
                                     contentScale = ContentScale.Crop,
                                     alignment = Alignment.Center
@@ -113,7 +111,10 @@ fun VideoItem(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InfoChip(text = video.formattedFileSize, modifier = Modifier.padding(vertical = 5.dp))
+                    InfoChip(
+                        text = video.formattedFileSize,
+                        modifier = Modifier.padding(vertical = 5.dp)
+                    )
                     if (video.width > 0 && video.height > 0) {
                         InfoChip(
                             text = "${video.width} x ${video.height}",

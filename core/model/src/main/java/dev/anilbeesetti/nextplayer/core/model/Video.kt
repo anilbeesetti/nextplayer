@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.model
 
+import java.io.File
+
 data class Video(
     val id: Long,
     val path: String,
@@ -11,7 +13,8 @@ data class Video(
     val height: Int,
     val size: Long,
     val formattedDuration: String = "",
-    val formattedFileSize: String = ""
+    val formattedFileSize: String = "",
+    val thumbnail: File? = null
 ) {
 
     companion object {
@@ -26,7 +29,7 @@ data class Video(
             height = 1080,
             size = 1000,
             formattedDuration = "29.36",
-            formattedFileSize = "320KB",
+            formattedFileSize = "320KB"
         )
     }
 }
