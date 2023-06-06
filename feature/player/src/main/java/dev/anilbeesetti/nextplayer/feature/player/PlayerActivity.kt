@@ -356,18 +356,10 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private fun playVideo(uri: Uri) {
-        playlistManager.updateCurrent(uri)
-        playVideo()
-    }
-
-    private fun playVideo() {
+    private fun playVideo(uri: Uri? = null) {
         lifecycleScope.launch(Dispatchers.IO) {
             if (shouldFetchPlaylist) {
                 val mediaUri = getMediaContentUri(intentDataUri!!)
-
-                Timber.d("content Uri: $mediaUri")
-
                 playlistManager.updateCurrent(uri = mediaUri ?: intentDataUri!!)
 
                 if (mediaUri != null) {
@@ -376,35 +368,32 @@ class PlayerActivity : AppCompatActivity() {
                         playlistManager.setPlaylist(playlist)
                     }
                 }
-
                 shouldFetchPlaylist = false
             }
 
-            getPath(playlistManager.getCurrent()!!)?.let {
-                viewModel.updateState(
-                    path = it,
-                    shouldUpdateSubtitles = !isSubtitleLauncherHasUri
-                )
-            }
-            if (isSubtitleLauncherHasUri) {
-                viewModel.currentSubtitleTrackIndex = null
-            }
+            uri?.let { playlistManager.updateCurrent(uri) }
 
-            val subs = playlistManager.getCurrent()!!.getSubs(
+            val currentUri = playlistManager.getCurrent()!!
+
+            viewModel.updateState(
+                path = getPath(currentUri),
+                shouldUpdateSubtitles = !isSubtitleLauncherHasUri
+            )
+
+            if (isSubtitleLauncherHasUri) viewModel.currentSubtitleTrackIndex = null
+
+            // Get all subtitles for current uri
+            val subs = currentUri.getSubs(
                 context = this@PlayerActivity,
                 extras = intentExtras,
                 externalSubtitles = viewModel.currentExternalSubtitles
             )
 
-            val mediaItem = playlistManager.getCurrent()!!.toMediaItem(
-                type = intentType,
-                subtitles = subs
-            )
+            // MediaItem
+            val mediaItem = currentUri.toMediaItem(type = intentType, subtitles = subs)
+
             withContext(Dispatchers.Main) {
-                player.setMediaItem(
-                    mediaItem,
-                    viewModel.currentPlaybackPosition ?: C.TIME_UNSET
-                )
+                player.setMediaItem(mediaItem, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }

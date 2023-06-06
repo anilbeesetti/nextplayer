@@ -47,8 +47,9 @@ class PlayerViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    suspend fun updateState(path: String, shouldUpdateSubtitles: Boolean) {
+    suspend fun updateState(path: String?, shouldUpdateSubtitles: Boolean) {
         resetToDefaults(exceptSubtitles = !shouldUpdateSubtitles)
+        if (path == null) return
         val videoState = videoRepository.getVideoState(path) ?: return
 
         Timber.d("$videoState")
