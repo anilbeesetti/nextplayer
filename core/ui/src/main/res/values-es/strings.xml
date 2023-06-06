@@ -94,4 +94,5 @@
     <string name="video">vídeo</string>
     <string name="videos">vídeos</string>
     <string name="manage_folders">Gestionar carpetas</string>
+    <string name="screen_rotation">Rotación de la pantalla</string>
 </resources>

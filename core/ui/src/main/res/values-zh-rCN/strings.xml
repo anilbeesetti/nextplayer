@@ -94,4 +94,5 @@
     <string name="ff_rewind">快进/快退</string>
     <string name="scanning_storage">正在扫描存储…</string>
     <string name="manage_folders_desc">选择要在媒体库中排除的文件夹</string>
+    <string name="screen_rotation">屏幕旋转</string>
 </resources>
