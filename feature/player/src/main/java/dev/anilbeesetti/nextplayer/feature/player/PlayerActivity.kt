@@ -93,15 +93,6 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val onTrackChangeListener: (Uri) -> Unit = { uri ->
-        runOnUiThread {
-            if (uri == intent.data && intent.extras?.containsKey(API_TITLE) == true) {
-                videoTitleTextView.text = intent.extras?.getString(API_TITLE)
-            } else {
-                videoTitleTextView.text = getFilenameFromUri(uri)
-            }
-        }
-    }
     private val subtitleFileLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
@@ -130,7 +121,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         AppCompatDelegate.setDefaultNightMode(
             when (viewModel.applicationPreferences.value.themeConfig) {
@@ -150,10 +140,10 @@ class PlayerActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        Timber.d("data: ${intent.data}")
 
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
@@ -181,7 +171,6 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStart() {
         createPlayer()
-        playlistManager.addOnTrackChangedListener(onTrackChangeListener)
         preparePlayerView()
         setOrientation()
         initializePlayerView()
@@ -192,7 +181,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         binding.gestureVolumeLayout.visibility = View.GONE
         binding.gestureBrightnessLayout.visibility = View.GONE
-        playlistManager.removeOnTrackChangedListener(onTrackChangeListener)
         currentOrientation = requestedOrientation
         releasePlayer()
         super.onStop()
@@ -380,10 +368,19 @@ class PlayerActivity : AppCompatActivity() {
                 externalSubtitles = viewModel.currentExternalSubtitles
             )
 
-            // MediaItem
+            // current uri as MediaItem with subs
             val mediaItem = currentUri.toMediaItem(type = intent.type, subtitles = subs)
 
             withContext(Dispatchers.Main) {
+
+                // Set api title if current uri is intent uri and intent extras contains api title
+                if (intent.data == currentUri && intent.extras?.containsKey(API_TITLE) == true) {
+                    videoTitleTextView.text = intent.extras?.getString(API_TITLE)
+                } else {
+                    videoTitleTextView.text = getFilenameFromUri(currentUri)
+                }
+
+                // Set media and start player
                 player.setMediaItem(mediaItem, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
                 player.prepare()
