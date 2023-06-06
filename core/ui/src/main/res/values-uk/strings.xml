@@ -94,4 +94,12 @@
     <string name="scan">Сканування</string>
     <string name="video">відео</string>
     <string name="videos">відео</string>
+    <string name="screen_rotation">Поворот екрана</string>
+    <string name="player_screen_orientation">Орієнтація екрана плеєра</string>
+    <string name="automatic">Автоматичний (датчик)</string>
+    <string name="landscape">Альбомний</string>
+    <string name="portrait">Портретний</string>
+    <string name="video_orientation">Орієнтація відео</string>
+    <string name="landscape_reverse">Перевернутий альбомний</string>
+    <string name="landscape_auto">Альбомний (датчик)</string>
 </resources>
