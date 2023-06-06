@@ -187,7 +187,6 @@ private fun SortOptions(
     }
 }
 
-
 @Composable
 private fun DialogSectionTitle(text: String) {
     Text(

@@ -69,7 +69,7 @@ private val VIDEO_PROJECTION
         MediaStore.Video.Media.HEIGHT,
         MediaStore.Video.Media.WIDTH,
         MediaStore.Video.Media.SIZE,
-        MediaStore.Video.Media.DATE_MODIFIED,
+        MediaStore.Video.Media.DATE_MODIFIED
     )
 
 /**
