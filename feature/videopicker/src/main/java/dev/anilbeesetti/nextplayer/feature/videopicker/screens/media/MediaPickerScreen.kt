@@ -43,7 +43,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable
-fun MediaPickerScreen(
+fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
     onVideoClick: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
