@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="about_name">Sobre</string>
-    <string name="appearance_description">Ajuste o aplicativo ao seu gosto</string>
+    <string name="appearance_description">Personalize o aplicativo</string>
     <string name="appearance_name">Aparência</string>
     <string name="ascending">Crescente</string>
     <string name="cancel">Cancelar</string>
@@ -25,7 +25,7 @@
     <string name="player_controls_next">Reproduzir o próximo</string>
     <string name="player_controls_play_pause">Pausar reprodução</string>
     <string name="player_controls_previous">Reproduzir o anterior</string>
-    <string name="player_description">Aparência do player, controles de reprodução</string>
+    <string name="player_description">Ajustes do player, controles de reprodução</string>
     <string name="player_controls_progress">Barra de progresso do player</string>
     <string name="player_name">Player</string>
     <string name="quick_settings">Configurações rápidas</string>
@@ -95,4 +95,11 @@
     <string name="scanning_storage">Verificando armazenamento…</string>
     <string name="manage_folders">Gerenciar pastas</string>
     <string name="screen_rotation">Rotação de tela</string>
+    <string name="landscape">Paisagem</string>
+    <string name="landscape_reverse">Paisagem reversa</string>
+    <string name="portrait">Retrato</string>
+    <string name="automatic">Automático (detectar)</string>
+    <string name="player_screen_orientation">Orientação de tela do player</string>
+    <string name="landscape_auto">Paisagem (detectar)</string>
+    <string name="video_orientation">Orientação de vídeo</string>
 </resources>
