@@ -103,4 +103,6 @@
     <string name="landscape_auto">Landscape (sensor)</string>
     <string name="portrait">Portrait</string>
     <string name="video_orientation">Video Orientation</string>
+    <string name="newest">Newest</string>
+    <string name="oldest">Oldest</string>
 </resources>

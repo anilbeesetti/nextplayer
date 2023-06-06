@@ -39,6 +39,7 @@ class GetSortedVideosUseCase @Inject constructor(
                         SortBy.LENGTH -> filteredVideos.sortedBy { it.duration }
                         SortBy.PATH -> filteredVideos.sortedBy { it.path.lowercase() }
                         SortBy.SIZE -> filteredVideos.sortedBy { it.size }
+                        SortBy.DATE -> filteredVideos.sortedBy { it.dateModified }
                     }
                 }
                 SortOrder.DESCENDING -> {
@@ -47,6 +48,7 @@ class GetSortedVideosUseCase @Inject constructor(
                         SortBy.LENGTH -> filteredVideos.sortedByDescending { it.duration }
                         SortBy.PATH -> filteredVideos.sortedByDescending { it.path.lowercase() }
                         SortBy.SIZE -> filteredVideos.sortedByDescending { it.size }
+                        SortBy.DATE -> filteredVideos.sortedByDescending { it.dateModified }
                     }
                 }
             }

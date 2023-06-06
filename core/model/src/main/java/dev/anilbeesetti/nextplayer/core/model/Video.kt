@@ -12,6 +12,7 @@ data class Video(
     val width: Int,
     val height: Int,
     val size: Long,
+    val dateModified: Long = 0,
     val formattedDuration: String = "",
     val formattedFileSize: String = "",
     val thumbnail: File? = null
