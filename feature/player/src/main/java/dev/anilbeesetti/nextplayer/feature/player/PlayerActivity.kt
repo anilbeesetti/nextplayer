@@ -68,13 +68,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private val viewModel: PlayerViewModel by viewModels()
 
-    /**
-     * Intent data
-     */
-    private var intentDataUri: Uri? = null
-    private var intentExtras: Bundle? = null
-    private var intentType: String? = null
-
     private var playWhenReady = true
     private var isPlaybackFinished = false
 
@@ -101,8 +94,8 @@ class PlayerActivity : AppCompatActivity() {
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val onTrackChangeListener: (Uri) -> Unit = { uri ->
         runOnUiThread {
-            if (uri.toString() == intentDataUri.toString() && intentExtras?.containsKey(API_TITLE) == true) {
-                videoTitleTextView.text = intentExtras?.getString(API_TITLE)
+            if (uri == intent.data && intent.extras?.containsKey(API_TITLE) == true) {
+                videoTitleTextView.text = intent.extras?.getString(API_TITLE)
             } else {
                 videoTitleTextView.text = getFilenameFromUri(uri)
             }
@@ -120,18 +113,18 @@ class PlayerActivity : AppCompatActivity() {
     /**
      * Player controller views
      */
-    private lateinit var videoTitleTextView: TextView
-    private lateinit var backButton: ImageButton
-    private lateinit var playbackSpeedButton: ImageButton
     private lateinit var audioTrackButton: ImageButton
-    private lateinit var subtitleTrackButton: ImageButton
-    private lateinit var videoZoomButton: ImageButton
-    private lateinit var screenRotationButton: ImageButton
-    private lateinit var nextButton: ImageButton
-    private lateinit var prevButton: ImageButton
+    private lateinit var backButton: ImageButton
     private lateinit var lockControlsButton: ImageButton
-    private lateinit var unlockControlsButton: ImageButton
+    private lateinit var nextButton: ImageButton
+    private lateinit var playbackSpeedButton: ImageButton
     private lateinit var playerControls: FrameLayout
+    private lateinit var prevButton: ImageButton
+    private lateinit var screenRotationButton: ImageButton
+    private lateinit var subtitleTrackButton: ImageButton
+    private lateinit var unlockControlsButton: ImageButton
+    private lateinit var videoTitleTextView: TextView
+    private lateinit var videoZoomButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -165,8 +158,7 @@ class PlayerActivity : AppCompatActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        updateIntentData(intent)
-        Timber.d("data: $intentDataUri")
+        Timber.d("data: ${intent.data}")
 
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
@@ -178,18 +170,18 @@ class PlayerActivity : AppCompatActivity() {
         playlistManager = PlaylistManager()
 
         // Initializing views
-        videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
-        backButton = binding.playerView.findViewById(R.id.back_button)
-        playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
         audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
-        subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
-        videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
-        screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
-        nextButton = binding.playerView.findViewById(R.id.btn_play_next)
-        prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
+        backButton = binding.playerView.findViewById(R.id.back_button)
         lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
-        unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
+        nextButton = binding.playerView.findViewById(R.id.btn_play_next)
+        playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
         playerControls = binding.playerView.findViewById(R.id.player_controls)
+        prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
+        screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
+        subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
+        unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
+        videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
+        videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
     }
 
     override fun onStart() {
@@ -359,8 +351,8 @@ class PlayerActivity : AppCompatActivity() {
     private fun playVideo(uri: Uri? = null) {
         lifecycleScope.launch(Dispatchers.IO) {
             if (shouldFetchPlaylist) {
-                val mediaUri = getMediaContentUri(intentDataUri!!)
-                playlistManager.updateCurrent(uri = mediaUri ?: intentDataUri!!)
+                val mediaUri = getMediaContentUri(intent.data!!)
+                playlistManager.updateCurrent(uri = mediaUri ?: intent.data!!)
 
                 if (mediaUri != null) {
                     launch(Dispatchers.IO) {
@@ -382,15 +374,19 @@ class PlayerActivity : AppCompatActivity() {
 
             if (isSubtitleLauncherHasUri) viewModel.currentSubtitleTrackIndex = null
 
+            if (intent.data == currentUri && intent.extras?.containsKey(API_POSITION) == true) {
+                viewModel.currentPlaybackPosition = intent.extras?.getInt(API_POSITION)?.toLong()
+            }
+
             // Get all subtitles for current uri
             val subs = currentUri.getSubs(
                 context = this@PlayerActivity,
-                extras = intentExtras,
+                extras = intent.extras,
                 externalSubtitles = viewModel.currentExternalSubtitles
             )
 
             // MediaItem
-            val mediaItem = currentUri.toMediaItem(type = intentType, subtitles = subs)
+            val mediaItem = currentUri.toMediaItem(type = intent.type, subtitles = subs)
 
             withContext(Dispatchers.Main) {
                 player.setMediaItem(mediaItem, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
@@ -496,7 +492,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun finish() {
-        if (intentExtras != null && intentExtras!!.containsKey(API_RETURN_RESULT)) {
+        if (intent.extras != null && intent.extras!!.containsKey(API_RETURN_RESULT)) {
             val result = Intent(API_RESULT_INTENT)
             result.putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
             if (!isPlaybackFinished) {
@@ -519,7 +515,7 @@ class PlayerActivity : AppCompatActivity() {
             Timber.d("new intent: ${intent.data}")
             playlistManager.clearQueue()
             viewModel.resetToDefaults()
-            updateIntentData(intent)
+            setIntent(intent)
             shouldFetchPlaylist = true
             playVideo()
         }
@@ -530,16 +526,6 @@ class PlayerActivity : AppCompatActivity() {
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
             .build()
-    }
-
-    private fun updateIntentData(intent: Intent) {
-        intentDataUri = intent.data
-        intentExtras = intent.extras
-        intentType = intent.type
-
-        if (intentExtras?.containsKey(API_POSITION) == true) {
-            viewModel.currentPlaybackPosition = intentExtras?.getInt(API_POSITION)?.toLong()
-        }
     }
 
     private fun savePlayerState(uri: Uri) {
