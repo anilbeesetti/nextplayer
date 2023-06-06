@@ -17,7 +17,7 @@
     <string name="fast_seek_description">Seek to nearest key frame instead of exact one.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="group_videos">Group videos by folder</string>
-    <string name="length">Length</string>
+    <string name="duration">Duration</string>
     <string name="location">Location</string>
     <string name="menu">Menu</string>
     <string name="navigate_up">Navigate up</string>

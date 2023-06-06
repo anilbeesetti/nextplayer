@@ -38,7 +38,7 @@
     <string name="error_playing_video">خطاء: لا يمكن تشغيل الفيديو</string>
     <string name="fast_seek">البحث السريع</string>
     <string name="fast_seek_description">ابحث عن أقرب إطار رئيسي.</string>
-    <string name="length">الطول</string>
+    <string name="duration">الطول</string>
     <string name="group_videos">تجميع الفيديوهات حسب المجلد</string>
     <string name="navigate_up">الأنتقال لأعلى</string>
     <string name="location">الموقع</string>

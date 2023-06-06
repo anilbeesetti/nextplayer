@@ -32,7 +32,7 @@
     <string name="fast_seek_description">Rechercher jusqu\'à la key frame la plus proche au lieu d\'une exacte.</string>
     <string name="grant_permission">Donner la permission</string>
     <string name="group_videos">Regrouper les vidéos par dossier</string>
-    <string name="length">Durée</string>
+    <string name="duration">Durée</string>
     <string name="location">Lieu</string>
     <string name="menu">Menu</string>
     <string name="navigate_up">Naviguer vers le haut</string>

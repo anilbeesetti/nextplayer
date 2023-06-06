@@ -1,15 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -165,16 +161,16 @@ private fun SortOptions(
             onClick = { onOptionSelected(SortBy.TITLE) }
         )
         TextIconToggleButton(
-            text = stringResource(id = R.string.length),
+            text = stringResource(id = R.string.duration),
             icon = NextIcons.Length,
             isSelected = selectedSortBy == SortBy.LENGTH,
             onClick = { onOptionSelected(SortBy.LENGTH) }
         )
         TextIconToggleButton(
-            text = stringResource(id = R.string.location),
-            icon = NextIcons.Location,
-            isSelected = selectedSortBy == SortBy.PATH,
-            onClick = { onOptionSelected(SortBy.PATH) }
+            text = stringResource(id = R.string.date),
+            icon = NextIcons.Calendar,
+            isSelected = selectedSortBy == SortBy.DATE,
+            onClick = { onOptionSelected(SortBy.DATE) }
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.size),
@@ -183,10 +179,10 @@ private fun SortOptions(
             onClick = { onOptionSelected(SortBy.SIZE) }
         )
         TextIconToggleButton(
-            text = stringResource(id = R.string.date),
-            icon = NextIcons.Calendar,
-            isSelected = selectedSortBy == SortBy.DATE,
-            onClick = { onOptionSelected(SortBy.DATE) }
+            text = stringResource(id = R.string.location),
+            icon = NextIcons.Location,
+            isSelected = selectedSortBy == SortBy.PATH,
+            onClick = { onOptionSelected(SortBy.PATH) }
         )
     }
 }

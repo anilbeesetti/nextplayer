@@ -11,7 +11,7 @@
     <string name="fast_seek">Γρήγορη αναζήτηση</string>
     <string name="fast_seek_description">Στο πλησιέστερο βασικό καρέ αντί για το ακριβές.</string>
     <string name="group_videos">Ομαδοποίηση ανά φάκελο</string>
-    <string name="length">Διάρκεια</string>
+    <string name="duration">Διάρκεια</string>
     <string name="no_videos_found">Δε βρέθηκαν βίντεο</string>
     <string name="open_settings">Άνοιγμα ρυθμίσεων</string>
     <string name="permission_info">Ο Next Player χρειάζεται άδεια \"%1$s\" για πρόσβαση και αναπαραγωγή πολυμέσων. Χωρίς αυτό, η πρόσβαση και η αναπαραγωγή πολυμέσων δε θα λειτουργήσουν. Για να χρησιμοποιήσετε την εφαρμογή πλήρως, παραχωρήστε την άδεια.</string>

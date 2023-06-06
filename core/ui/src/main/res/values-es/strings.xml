@@ -16,7 +16,7 @@
     <string name="fast_seek_description">Busca el fotograma clave más cercano en lugar del exacto.</string>
     <string name="grant_permission">Conceder permiso</string>
     <string name="group_videos">Agrupar vídeos por carpeta</string>
-    <string name="length">Duración</string>
+    <string name="duration">Duración</string>
     <string name="location">Ubicación</string>
     <string name="menu">Menú</string>
     <string name="navigate_up">Navegar hacia arriba</string>

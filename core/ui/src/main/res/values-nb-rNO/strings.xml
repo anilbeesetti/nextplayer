@@ -5,7 +5,7 @@
     <string name="fast_seek_description">Blafre til nærmeste nøkkelramme istedenfor den eksakte.</string>
     <string name="grant_permission">Innvilg tilgang</string>
     <string name="group_videos">Grupper videoer etter mappe</string>
-    <string name="length">Varighet</string>
+    <string name="duration">Varighet</string>
     <string name="location">Sted</string>
     <string name="menu">Meny</string>
     <string name="navigate_up">Naviger oppover</string>

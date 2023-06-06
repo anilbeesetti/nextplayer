@@ -60,7 +60,7 @@
     <string name="about_description">版本，出处说明</string>
     <string name="fast_seek">快速寻找</string>
     <string name="grant_permission">授予权限</string>
-    <string name="length">长度</string>
+    <string name="duration">长度</string>
     <string name="open_settings">打开设置</string>
     <string name="group_videos">按文件夹对视频进行分组</string>
     <string name="location">地点</string>

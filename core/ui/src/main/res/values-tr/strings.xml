@@ -56,7 +56,7 @@
     <string name="double_tap">Çift dokunma hareketi</string>
     <string name="error_playing_video">Hata: Video oynatılamadı</string>
     <string name="permission_not_granted">İzin Verilmedi</string>
-    <string name="length">Uzunluk</string>
+    <string name="duration">Uzunluk</string>
     <string name="location">Konum</string>
     <string name="navigate_up">Yukarı git</string>
     <string name="no_videos_found">Video bulunamadı</string>

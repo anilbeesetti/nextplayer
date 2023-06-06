@@ -14,7 +14,7 @@
     <string name="fast_seek">Snel doorspoelen</string>
     <string name="fast_seek_description">Spoel door naar volgende key frame in plaats van het exacte frame</string>
     <string name="about_description">Versie, credits</string>
-    <string name="length">Lengte</string>
+    <string name="duration">Lengte</string>
     <string name="about_name">Over</string>
     <string name="menu">Menu</string>
     <string name="appearance_name">Uiterlijk</string>
