@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import android.text.format.Formatter
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,19 +20,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.getThumbnail
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -46,10 +42,7 @@ fun VideoItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val formattedSize = remember { Formatter.formatFileSize(context, video.size) }
-    val formattedDuration = remember { Utils.formatDurationMillis(video.duration) }
 
     Box(
         modifier = Modifier
@@ -85,7 +78,7 @@ fun VideoItem(
                     }
                 )
                 InfoChip(
-                    text = formattedDuration,
+                    text = video.formattedDuration,
                     modifier = Modifier
                         .padding(5.dp)
                         .align(Alignment.BottomEnd),
@@ -120,7 +113,7 @@ fun VideoItem(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InfoChip(text = formattedSize, modifier = Modifier.padding(vertical = 5.dp))
+                    InfoChip(text = video.formattedFileSize, modifier = Modifier.padding(vertical = 5.dp))
                     if (video.width > 0 && video.height > 0) {
                         InfoChip(
                             text = "${video.width} x ${video.height}",
@@ -139,17 +132,7 @@ fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
             VideoItem(
-                video = Video(
-                    id = 8,
-                    path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
-                    uriString = "",
-                    nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
-                    duration = 1000,
-                    displayName = "Avengers Endgame (2019) BluRay x264",
-                    width = 1920,
-                    height = 1080,
-                    size = 1000
-                ),
+                video = Video.sample,
                 onClick = {}
             )
         }
