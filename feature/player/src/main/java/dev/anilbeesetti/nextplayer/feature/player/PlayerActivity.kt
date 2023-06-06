@@ -117,7 +117,21 @@ class PlayerActivity : AppCompatActivity() {
             playVideo()
         }
 
+    /**
+     * Player controller views
+     */
     private lateinit var videoTitleTextView: TextView
+    private lateinit var backButton: ImageButton
+    private lateinit var playbackSpeedButton: ImageButton
+    private lateinit var audioTrackButton: ImageButton
+    private lateinit var subtitleTrackButton: ImageButton
+    private lateinit var videoZoomButton: ImageButton
+    private lateinit var screenRotationButton: ImageButton
+    private lateinit var nextButton: ImageButton
+    private lateinit var prevButton: ImageButton
+    private lateinit var lockControlsButton: ImageButton
+    private lateinit var unlockControlsButton: ImageButton
+    private lateinit var playerControls: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -162,6 +176,20 @@ class PlayerActivity : AppCompatActivity() {
         )
 
         playlistManager = PlaylistManager()
+
+        // Initializing views
+        videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
+        backButton = binding.playerView.findViewById(R.id.back_button)
+        playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
+        audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
+        subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
+        videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
+        screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
+        nextButton = binding.playerView.findViewById(R.id.btn_play_next)
+        prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
+        lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
+        unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
+        playerControls = binding.playerView.findViewById(R.id.player_controls)
     }
 
     override fun onStart() {
@@ -221,32 +249,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun initializePlayerView() {
-        videoTitleTextView =
-            binding.playerView.findViewById(R.id.video_name)
-
-        val backButton =
-            binding.playerView.findViewById<ImageButton>(R.id.back_button)
-        val playbackSpeedButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_playback_speed)
-        val audioTrackButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
-        val subtitleTrackButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle_track)
-        val videoZoomButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_video_zoom)
-        val screenRotationButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_screen_rotation)
-        val nextButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_play_next)
-        val prevButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_play_prev)
-        val lockControlsButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_lock_controls)
-        val unlockControlsButton =
-            binding.playerView.findViewById<ImageButton>(R.id.btn_unlock_controls)
-        val playerControls =
-            binding.playerView.findViewById<FrameLayout>(R.id.player_controls)
-
         binding.playerView.subtitleView?.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
 
         audioTrackButton.setOnClickListener {
