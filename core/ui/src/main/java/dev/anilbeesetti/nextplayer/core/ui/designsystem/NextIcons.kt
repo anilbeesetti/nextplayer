@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.BrightnessHigh
+import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CompareArrows
 import androidx.compose.material.icons.rounded.DarkMode
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Update
+import java.util.Calendar
 
 object NextIcons {
     val Add = Icons.Rounded.Add
@@ -39,6 +41,7 @@ object NextIcons {
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val AudioTrack = Icons.Rounded.Audiotrack
     val Brightness = Icons.Rounded.BrightnessHigh
+    val Calendar = Icons.Rounded.CalendarMonth
     val Check = Icons.Rounded.Check
     val DarkMode = Icons.Rounded.DarkMode
     val DashBoard = Icons.Rounded.Dashboard

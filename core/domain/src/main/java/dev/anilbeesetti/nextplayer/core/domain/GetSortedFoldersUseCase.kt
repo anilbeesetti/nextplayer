@@ -43,7 +43,7 @@ class GetSortedFoldersUseCase @Inject constructor(
                         SortBy.LENGTH -> folders.sortedByDescending { it.mediaCount }
                         SortBy.PATH -> folders.sortedByDescending { it.path.lowercase() }
                         SortBy.SIZE -> folders.sortedByDescending { it.mediaSize }
-                        SortBy.DATE -> folders.sortedBy { it.dateModified }
+                        SortBy.DATE -> folders.sortedByDescending { it.dateModified }
                     }
                 }
             }
