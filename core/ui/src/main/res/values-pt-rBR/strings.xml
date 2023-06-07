@@ -102,4 +102,7 @@
     <string name="player_screen_orientation">Orientação de tela do player</string>
     <string name="landscape_auto">Paisagem (detectar)</string>
     <string name="video_orientation">Orientação de vídeo</string>
+    <string name="oldest">Mais antigo</string>
+    <string name="date">Data</string>
+    <string name="newest">Mais recente</string>
 </resources>
