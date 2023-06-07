@@ -66,7 +66,7 @@ fun VideoItem(
                     content = {
                         if (video.uriString.isNotEmpty()) {
                             GlideImage(
-                                imageModel = { video.thumbnail ?: video.uriString },
+                                imageModel = { video.uriString },
                                 imageOptions = ImageOptions(
                                     contentScale = ContentScale.Crop,
                                     alignment = Alignment.Center
