@@ -4,15 +4,15 @@ import dev.anilbeesetti.nextplayer.core.data.mappers.toDirectory
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
-import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
-import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class FakeVideoRepository : VideoRepository {
+class FakeMediaRepository : MediaRepository {
 
     private val videoEntities = mutableListOf<MediumEntity>()
     private val directoryEntities = mutableListOf<DirectoryEntity>()
@@ -20,7 +20,7 @@ class FakeVideoRepository : VideoRepository {
         return flowOf(videoEntities.map(MediumEntity::toVideo))
     }
 
-    override fun getDirectoriesFlow(): Flow<List<Folder>> {
+    override fun getDirectoriesFlow(): Flow<List<Directory>> {
         return flowOf(directoryEntities.map(DirectoryEntity::toDirectory))
     }
 

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetAllFoldersUseCase
-import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.Directory
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -26,18 +26,18 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
             initialValue = FolderPreferencesUiState.Loading
         )
 
-    fun updateExcludeList(folder: Folder) {
+    fun updateExcludeList(directory: Directory) {
         viewModelScope.launch {
-            if (folder.isExcluded) {
+            if (directory.isExcluded) {
                 preferencesRepository.updateApplicationPreferences {
                     it.copy(
-                        excludeFolders = it.excludeFolders - folder.path
+                        excludeFolders = it.excludeFolders - directory.path
                     )
                 }
             } else {
                 preferencesRepository.updateApplicationPreferences {
                     it.copy(
-                        excludeFolders = it.excludeFolders + folder.path
+                        excludeFolders = it.excludeFolders + directory.path
                     )
                 }
             }
@@ -48,5 +48,5 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
 sealed interface FolderPreferencesUiState {
     object Loading : FolderPreferencesUiState
 
-    data class Success(val folders: List<Folder>) : FolderPreferencesUiState
+    data class Success(val directories: List<Directory>) : FolderPreferencesUiState
 }

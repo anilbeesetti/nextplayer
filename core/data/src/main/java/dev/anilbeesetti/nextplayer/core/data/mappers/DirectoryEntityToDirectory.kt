@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.data.mappers
 
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
-import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.Directory
 
-fun DirectoryEntity.toDirectory() = Folder(
+fun DirectoryEntity.toDirectory() = Directory(
     name = name,
     path = path,
     mediaSize = size,

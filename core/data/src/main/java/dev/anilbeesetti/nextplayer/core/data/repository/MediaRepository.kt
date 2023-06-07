@@ -1,11 +1,11 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
-import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 
-interface VideoRepository {
+interface MediaRepository {
     /**
      * Get list of [Video]s as flow
      * @return flow of list of video items
@@ -13,7 +13,7 @@ interface VideoRepository {
     fun getVideosFlow(): Flow<List<Video>>
 
 
-    fun getDirectoriesFlow(): Flow<List<Folder>>
+    fun getDirectoriesFlow(): Flow<List<Directory>>
 
     /**
      * Save video state

@@ -4,8 +4,8 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
-import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
+import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
 import java.io.File
 import javax.inject.Inject
@@ -15,14 +15,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 
 class GetAllFoldersUseCase @Inject constructor(
-    private val videoRepository: VideoRepository,
+    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
 ) {
 
-    operator fun invoke(): Flow<List<Folder>> {
+    operator fun invoke(): Flow<List<Directory>> {
         return combine(
-            videoRepository.getVideosFlow(),
+            mediaRepository.getVideosFlow(),
             preferencesRepository.applicationPreferences
         ) { videoItems, preferences ->
             videoItems
@@ -35,7 +35,7 @@ class GetAllFoldersUseCase @Inject constructor(
 fun List<Video>.toFolders(excludedFolders: List<String>? = null) =
     groupBy { File(it.path).parentFile!! }
         .map { (file, videos) ->
-            Folder(
+            Directory(
                 path = file.path,
                 name = file.prettyName,
                 mediaCount = videos.size,

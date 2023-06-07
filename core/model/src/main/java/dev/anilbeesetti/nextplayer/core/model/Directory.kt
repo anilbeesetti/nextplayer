@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.model
 
-data class Folder(
+data class Directory(
     val name: String,
     val path: String,
     val mediaSize: Long,

@@ -71,7 +71,7 @@ fun FolderPreferencesScreen(
                     contentPadding = innerPadding,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items((uiState as FolderPreferencesUiState.Success).folders) {
+                    items((uiState as FolderPreferencesUiState.Success).directories) {
                         SelectablePreference(
                             title = it.name,
                             description = it.path,

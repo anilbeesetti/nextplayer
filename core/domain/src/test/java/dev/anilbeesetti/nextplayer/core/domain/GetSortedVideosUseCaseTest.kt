@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
-import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeVideoRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -14,7 +14,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetSortedVideosUseCaseTest {
 
-    private val videoRepository = FakeVideoRepository()
+    private val videoRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
     val getSortedVideosUseCase = GetSortedVideosUseCase(videoRepository, preferencesRepository)
