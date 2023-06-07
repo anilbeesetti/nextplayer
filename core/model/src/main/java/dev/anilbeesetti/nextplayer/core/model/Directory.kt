@@ -5,6 +5,5 @@ data class Directory(
     val path: String,
     val mediaSize: Long,
     val mediaCount: Int,
-    val isExcluded: Boolean,
     val dateModified: Long
 )

@@ -32,9 +32,8 @@ fun FolderPreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: MediaLibraryPreferencesViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(
-        minActiveState = Lifecycle.State.RESUMED
-    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -75,8 +74,8 @@ fun FolderPreferencesScreen(
                         SelectablePreference(
                             title = it.name,
                             description = it.path,
-                            selected = it.isExcluded,
-                            onClick = { viewModel.updateExcludeList(it) }
+                            selected = it.path in preferences.excludeFolders,
+                            onClick = { viewModel.updateExcludeList(it.path) }
                         )
                     }
                 }

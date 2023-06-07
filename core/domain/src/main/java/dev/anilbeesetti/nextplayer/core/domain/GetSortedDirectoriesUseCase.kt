@@ -25,24 +25,28 @@ class GetSortedDirectoriesUseCase @Inject constructor(
             preferencesRepository.applicationPreferences
         ) { directories, preferences ->
 
+            val nonExcludedDirectories = directories.filterNot {
+                it.path in preferences.excludeFolders
+            }
+
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> directories.sortedBy { it.name.lowercase() }
-                        SortBy.LENGTH -> directories.sortedBy { it.mediaCount }
-                        SortBy.PATH -> directories.sortedBy { it.path.lowercase() }
-                        SortBy.SIZE -> directories.sortedBy { it.mediaSize }
-                        SortBy.DATE -> directories.sortedBy { it.dateModified }
+                        SortBy.TITLE -> nonExcludedDirectories.sortedBy { it.name.lowercase() }
+                        SortBy.LENGTH -> nonExcludedDirectories.sortedBy { it.mediaCount }
+                        SortBy.PATH -> nonExcludedDirectories.sortedBy { it.path.lowercase() }
+                        SortBy.SIZE -> nonExcludedDirectories.sortedBy { it.mediaSize }
+                        SortBy.DATE -> nonExcludedDirectories.sortedBy { it.dateModified }
                     }
                 }
 
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> directories.sortedByDescending { it.name.lowercase() }
-                        SortBy.LENGTH -> directories.sortedByDescending { it.mediaCount }
-                        SortBy.PATH -> directories.sortedByDescending { it.path.lowercase() }
-                        SortBy.SIZE -> directories.sortedByDescending { it.mediaSize }
-                        SortBy.DATE -> directories.sortedByDescending { it.dateModified }
+                        SortBy.TITLE -> nonExcludedDirectories.sortedByDescending { it.name.lowercase() }
+                        SortBy.LENGTH -> nonExcludedDirectories.sortedByDescending { it.mediaCount }
+                        SortBy.PATH -> nonExcludedDirectories.sortedByDescending { it.path.lowercase() }
+                        SortBy.SIZE -> nonExcludedDirectories.sortedByDescending { it.mediaSize }
+                        SortBy.DATE -> nonExcludedDirectories.sortedByDescending { it.dateModified }
                     }
                 }
             }

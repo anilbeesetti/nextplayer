@@ -8,6 +8,5 @@ fun DirectoryEntity.toDirectory() = Directory(
     path = path,
     mediaSize = size,
     mediaCount = mediaCount,
-    isExcluded = false,
     dateModified = modified
 )
