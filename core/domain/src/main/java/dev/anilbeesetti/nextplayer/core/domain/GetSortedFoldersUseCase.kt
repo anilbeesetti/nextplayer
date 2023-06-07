@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
+import dev.anilbeesetti.nextplayer.core.data.repository.LocalVideoRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.SortBy
@@ -13,37 +14,35 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 
 class GetSortedFoldersUseCase @Inject constructor(
-    private val getSortedVideosUseCase: GetSortedVideosUseCase,
+    private val videoRepository: LocalVideoRepository,
     private val preferencesRepository: PreferencesRepository,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
 ) {
 
     operator fun invoke(): Flow<List<Folder>> {
         return combine(
-            getSortedVideosUseCase.invoke(),
+            videoRepository.getDirectoriesFlow(),
             preferencesRepository.applicationPreferences
-        ) { videos, preferences ->
-
-            val folders = videos.toFolders()
+        ) { directories, preferences ->
 
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> folders.sortedBy { it.name.lowercase() }
-                        SortBy.LENGTH -> folders.sortedBy { it.mediaCount }
-                        SortBy.PATH -> folders.sortedBy { it.path.lowercase() }
-                        SortBy.SIZE -> folders.sortedBy { it.mediaSize }
-                        SortBy.DATE -> folders.sortedBy { it.dateModified }
+                        SortBy.TITLE -> directories.sortedBy { it.name.lowercase() }
+                        SortBy.LENGTH -> directories.sortedBy { it.mediaCount }
+                        SortBy.PATH -> directories.sortedBy { it.path.lowercase() }
+                        SortBy.SIZE -> directories.sortedBy { it.mediaSize }
+                        SortBy.DATE -> directories.sortedBy { it.dateModified }
                     }
                 }
 
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> folders.sortedByDescending { it.name.lowercase() }
-                        SortBy.LENGTH -> folders.sortedByDescending { it.mediaCount }
-                        SortBy.PATH -> folders.sortedByDescending { it.path.lowercase() }
-                        SortBy.SIZE -> folders.sortedByDescending { it.mediaSize }
-                        SortBy.DATE -> folders.sortedByDescending { it.dateModified }
+                        SortBy.TITLE -> directories.sortedByDescending { it.name.lowercase() }
+                        SortBy.LENGTH -> directories.sortedByDescending { it.mediaCount }
+                        SortBy.PATH -> directories.sortedByDescending { it.path.lowercase() }
+                        SortBy.SIZE -> directories.sortedByDescending { it.mediaSize }
+                        SortBy.DATE -> directories.sortedByDescending { it.dateModified }
                     }
                 }
             }
