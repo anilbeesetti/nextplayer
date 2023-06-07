@@ -3,7 +3,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository.fake
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
-import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.flowOf
 class FakeVideoRepository : VideoRepository {
 
     val videoItems = mutableListOf<Video>()
-    private val videoEntities = mutableListOf<VideoEntity>()
+    private val videoEntities = mutableListOf<MediumEntity>()
     override fun getVideosFlow(): Flow<List<Video>> {
         return flowOf(videoItems)
     }
@@ -28,8 +28,8 @@ class FakeVideoRepository : VideoRepository {
             videoEntities.add(
                 it.copy(
                     playbackPosition = position,
-                    audioTrack = audioTrackIndex,
-                    subtitleTrack = subtitleTrackIndex
+                    audioTrackIndex = audioTrackIndex,
+                    subtitleTrackIndex = subtitleTrackIndex
                 )
             )
         }

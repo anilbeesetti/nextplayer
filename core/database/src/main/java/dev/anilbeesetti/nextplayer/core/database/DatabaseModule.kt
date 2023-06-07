@@ -21,5 +21,5 @@ object DatabaseModule {
         context,
         MediaDatabase::class.java,
         MediaDatabase.DATABASE_NAME
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 }
