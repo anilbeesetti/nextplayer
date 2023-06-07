@@ -102,4 +102,7 @@
     <string name="landscape_reverse">Οριζόντια ανάστροφα</string>
     <string name="landscape_auto">Οριζόντια (αισθητήρας)</string>
     <string name="video_orientation">Διάταξη βίντεο</string>
+    <string name="newest">Νεότερο</string>
+    <string name="oldest">Παλαιότερο</string>
+    <string name="date">Ημερομηνία</string>
 </resources>
