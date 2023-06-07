@@ -8,14 +8,14 @@ import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
-import javax.inject.Inject
 
 class MediaSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
@@ -31,7 +31,6 @@ class MediaSynchronizer @Inject constructor(
             applicationScope.launch { updateMedia(media) }
         }.launchIn(scope ?: applicationScope)
     }
-
 
     private suspend fun updateDirectories(media: List<MediaVideo>) {
         val directories = media.groupBy { File(it.data).parentFile!! }.map { (file, videos) ->
@@ -53,7 +52,6 @@ class MediaSynchronizer @Inject constructor(
 
         directoryDao.delete(unwantedDirectories)
     }
-
 
     private suspend fun updateMedia(media: List<MediaVideo>) {
         val mediumEntities = media.map {

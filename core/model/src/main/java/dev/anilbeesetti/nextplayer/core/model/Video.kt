@@ -1,7 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.model
 
-import java.io.File
-
 data class Video(
     val id: Long,
     val path: String,

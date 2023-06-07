@@ -83,7 +83,6 @@ class MediumDaoTest {
         assert(result == null)
     }
 
-
     @Test
     fun mediumDao_upsert_all_from_database() = runTest {
         val mediumEntities = sampleData
@@ -116,7 +115,6 @@ class MediumDaoTest {
     }
 }
 
-
 val medium1 = MediumEntity(
     path = "/storage/emulated/0/media/video1.mp4",
     name = "video1.mp4",
@@ -133,7 +131,6 @@ val medium1 = MediumEntity(
     playbackSpeed = 1f,
     mediaStoreId = 1234
 )
-
 
 val medium2 = MediumEntity(
     path = "/storage/emulated/0/media/image1.jpg",

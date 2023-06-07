@@ -27,7 +27,6 @@ class FakeMediaRepository : MediaRepository {
         subtitleTrackIndex: Int?,
         playbackSpeed: Float
     ) {
-
     }
 
     override suspend fun getVideoState(path: String): VideoState? {

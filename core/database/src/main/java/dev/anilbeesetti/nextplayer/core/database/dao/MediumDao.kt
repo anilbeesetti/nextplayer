@@ -24,7 +24,9 @@ interface MediumDao {
     @Query("DELETE FROM media WHERE path in (:paths)")
     suspend fun deleteMedia(paths: List<String>)
 
-    @Query("UPDATE OR REPLACE media SET playback_position = :position, audio_track_index = :audioTrackIndex, subtitle_track_index = :subtitleTrackIndex, playback_speed = :playbackSpeed WHERE path = :path")
+    @Query(
+        "UPDATE OR REPLACE media SET playback_position = :position, audio_track_index = :audioTrackIndex, subtitle_track_index = :subtitleTrackIndex, playback_speed = :playbackSpeed WHERE path = :path"
+    )
     suspend fun updateMediumState(
         path: String,
         position: Long,

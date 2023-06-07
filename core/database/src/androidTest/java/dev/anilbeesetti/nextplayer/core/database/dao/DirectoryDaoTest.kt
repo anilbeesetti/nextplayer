@@ -57,7 +57,6 @@ class DirectoryDaoTest {
         assert(result[0] == updatedDirectoryEntity)
     }
 
-
     @Test
     fun directoryDao_upsert_all_from_database() = runTest {
         val directoryEntities = sampleData
@@ -89,7 +88,6 @@ class DirectoryDaoTest {
         assert(result == remainingDirectoryEntities)
     }
 }
-
 
 val directory1 = DirectoryEntity(
     path = "/storage/emulated/0/media",

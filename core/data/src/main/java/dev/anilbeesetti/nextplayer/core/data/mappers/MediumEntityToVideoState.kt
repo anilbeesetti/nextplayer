@@ -12,4 +12,3 @@ fun MediumEntity.toVideoState(): VideoState {
         playbackSpeed = playbackSpeed
     )
 }
-

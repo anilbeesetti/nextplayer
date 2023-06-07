@@ -12,7 +12,6 @@ interface MediaRepository {
      */
     fun getVideosFlow(): Flow<List<Video>>
 
-
     fun getDirectoriesFlow(): Flow<List<Directory>>
 
     /**

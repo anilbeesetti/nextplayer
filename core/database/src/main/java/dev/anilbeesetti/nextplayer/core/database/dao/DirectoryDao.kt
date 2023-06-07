@@ -15,11 +15,9 @@ interface DirectoryDao {
     @Upsert
     suspend fun upsertAll(directories: List<DirectoryEntity>)
 
-
     @Query("SELECT * FROM directories")
     fun getAll(): Flow<List<DirectoryEntity>>
 
     @Query("DELETE FROM directories WHERE path in (:paths)")
     suspend fun delete(paths: List<String>)
-
 }
