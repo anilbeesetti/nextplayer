@@ -9,17 +9,11 @@ import javax.inject.Inject
 @HiltAndroidApp
 class NextPlayerApplication : Application() {
 
-    @Inject
-    lateinit var synchronizer: MediaSynchronizer
-
     override fun onCreate() {
         super.onCreate()
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
-
-        // Initialize Sync
-        synchronizer.sync()
     }
 }

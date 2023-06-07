@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 
 class GetSortedPlaylistUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
-    private val preferencesRepository: PreferencesRepository,
     @ApplicationContext private val context: Context,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
 ) {

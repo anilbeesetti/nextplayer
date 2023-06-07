@@ -12,6 +12,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -22,11 +24,12 @@ class MediaSynchronizer @Inject constructor(
     @ApplicationScope private val applicationScope: CoroutineScope
 ) {
 
-    fun sync() {
+    fun sync(scope: CoroutineScope? = null) {
         mediaSource.getMediaVideosFlow().onEach { media ->
-            updateDirectories(media)
-            updateMedia(media)
-        }.launchIn(applicationScope)
+            Timber.d("Syncing: $media")
+            applicationScope.launch { updateDirectories(media) }
+            applicationScope.launch { updateMedia(media) }
+        }.launchIn(scope ?: applicationScope)
     }
 
 
@@ -55,6 +58,7 @@ class MediaSynchronizer @Inject constructor(
     private suspend fun updateMedia(media: List<MediaVideo>) {
         val mediumEntities = media.map {
             val file = File(it.data)
+            val mediumEntity = mediumDao.get(it.data)
             MediumEntity(
                 path = it.data,
                 uriString = it.uri.toString(),
@@ -65,7 +69,11 @@ class MediaSynchronizer @Inject constructor(
                 width = it.width,
                 height = it.height,
                 duration = it.duration,
-                mediaStoreId = it.id
+                mediaStoreId = it.id,
+                playbackPosition = mediumEntity?.playbackPosition ?: 0,
+                audioTrackIndex = mediumEntity?.audioTrackIndex,
+                subtitleTrackIndex = mediumEntity?.subtitleTrackIndex,
+                playbackSpeed = mediumEntity?.playbackSpeed ?: 1f
             )
         }
 

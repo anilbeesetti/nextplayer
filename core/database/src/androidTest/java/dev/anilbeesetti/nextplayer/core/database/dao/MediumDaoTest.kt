@@ -24,7 +24,7 @@ class MediumDaoTest {
             context,
             MediaDatabase::class.java
         ).build()
-        mediumDao = db.MediaDao()
+        mediumDao = db.mediumDao()
     }
 
     /**

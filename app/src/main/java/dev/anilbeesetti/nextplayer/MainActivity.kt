@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -35,6 +36,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
 import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
+import dev.anilbeesetti.nextplayer.core.data.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
@@ -43,9 +45,13 @@ import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var synchronizer: MediaSynchronizer
 
     val viewModel: MainActivityViewModel by viewModels()
 
@@ -92,6 +98,12 @@ class MainActivity : ComponentActivity() {
                         }
                         lifecycleOwner.lifecycle.addObserver(observer)
                         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                    }
+
+                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
+                        if (storagePermissionState.status.isGranted) {
+                            synchronizer.sync(lifecycleScope)
+                        }
                     }
 
                     val navController = rememberNavController()
