@@ -102,4 +102,7 @@
     <string name="landscape">Manzara</string>
     <string name="landscape_reverse">Manzara ters</string>
     <string name="landscape_auto">Manzara (sensör)</string>
+    <string name="newest">En yeni</string>
+    <string name="oldest">En eski</string>
+    <string name="date">Tarih</string>
 </resources>
