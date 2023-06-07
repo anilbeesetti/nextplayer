@@ -102,4 +102,7 @@
     <string name="video_orientation">Орієнтація відео</string>
     <string name="landscape_reverse">Перевернутий альбомний</string>
     <string name="landscape_auto">Альбомний (датчик)</string>
+    <string name="newest">Найновіше</string>
+    <string name="oldest">Найстаріше</string>
+    <string name="date">Дата</string>
 </resources>
