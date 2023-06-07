@@ -40,6 +40,7 @@ fun List<Video>.toFolders(excludedFolders: List<String>? = null) =
                 name = file.prettyName,
                 mediaCount = videos.size,
                 mediaSize = videos.sumOf { it.size },
-                isExcluded = if (excludedFolders == null) false else file.path in excludedFolders
+                isExcluded = if (excludedFolders == null) false else file.path in excludedFolders,
+                dateModified = file.lastModified()
             )
         }

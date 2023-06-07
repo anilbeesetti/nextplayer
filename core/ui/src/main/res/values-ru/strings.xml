@@ -48,7 +48,7 @@
     <string name="error_playing_video">Ошибка: Невозможно воспроизвести видео</string>
     <string name="grant_permission">Выдать Разрешение</string>
     <string name="fast_seek_description">Поиск ближайшего ключевого кадра вместо точного.</string>
-    <string name="length">Длина</string>
+    <string name="duration">Длина</string>
     <string name="menu">Меню</string>
     <string name="open_settings">Открыть Настройки</string>
     <string name="permission_info">Приложению Next Player требуется разрешение \"%1$s\" для доступа и воспроизведения медиафайлов. Без него доступ к медиа и воспроизведение не будут работать. Чтобы использовать приложение в полном объеме, предоставьте разрешение.</string>

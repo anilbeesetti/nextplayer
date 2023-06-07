@@ -26,7 +26,7 @@
     <string name="error_playing_video">שגיאה: לא ניתן לנגן וידאו</string>
     <string name="fast_seek_description">חפש מסגרת ראשית קרובה ביותר במקום אחת מדויקת.</string>
     <string name="menu">תפריט</string>
-    <string name="length">אורך</string>
+    <string name="duration">אורך</string>
     <string name="permission_info">אפליקציית Next Player צריכה רשות \"%1$s\" כדי לגשת ולנגן מדיה. ללא רשות זו, ניגון וגישה למדיה לא יעבדו. כדי לצרוך את האפליקציה במלואה, יש לתת רשות.</string>
     <string name="permission_settings">אפליקציית Next Player צריכה רשות \"%1$s\" כדי לגשת ולנגן מדיה. ללא רשות זו, ניגון וגישה למדיה לא יעבדו. כדי לצרוך את האפליקציה במלואה, יש לתת רשות מן ההגדרות כיוון שהיא נדחתה לצמיתות.</string>
     <string name="player_controls_exit">נווט מעלה</string>

@@ -1,5 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.model
 
 enum class SortBy {
-    TITLE, LENGTH, PATH, SIZE
+    TITLE, LENGTH, PATH, SIZE, DATE
 }

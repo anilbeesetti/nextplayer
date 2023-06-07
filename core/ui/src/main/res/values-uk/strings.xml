@@ -29,7 +29,7 @@
     <string name="fast_seek">Швидкий пошук</string>
     <string name="fast_seek_description">Шукати найближчий ключовий кадр замість точного.</string>
     <string name="group_videos">Згрупувати відео за папками</string>
-    <string name="length">Довжина</string>
+    <string name="duration">Довжина</string>
     <string name="open_settings">Відкрити налаштування</string>
     <string name="location">Розташування</string>
     <string name="menu">Меню</string>

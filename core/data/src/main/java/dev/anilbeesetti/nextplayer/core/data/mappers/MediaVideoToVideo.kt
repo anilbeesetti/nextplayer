@@ -18,6 +18,7 @@ fun MediaVideo.toVideo(): Video {
         width = width,
         height = height,
         size = size,
+        dateModified = dateModified,
         formattedFileSize = Utils.formatFileSize(size),
         formattedDuration = Utils.formatDurationMillis(duration),
         thumbnail = data.getThumbnail()

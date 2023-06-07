@@ -22,6 +22,11 @@ fun SortOrder.name(sortBy: SortBy): String {
             SortOrder.ASCENDING -> R.string.smallest
             SortOrder.DESCENDING -> R.string.largest
         }
+
+        SortBy.DATE -> when (this) {
+            SortOrder.ASCENDING -> R.string.oldest
+            SortOrder.DESCENDING -> R.string.newest
+        }
     }
 
     return stringResource(stringRes)
