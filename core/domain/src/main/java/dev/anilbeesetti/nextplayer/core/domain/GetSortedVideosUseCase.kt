@@ -27,9 +27,13 @@ class GetSortedVideosUseCase @Inject constructor(
         ) { videoItems, preferences ->
 
             val filteredVideos = videoItems.filter {
-                folderPath == null || it.path.substringBeforeLast("/") == folderPath
+                if (preferences.groupVideosByFolder) {
+                    folderPath == null || it.parentPath == folderPath
+                } else {
+                    true
+                }
             }.filterNot {
-                it.path.substringBeforeLast("/") in preferences.excludeFolders
+                it.parentPath in preferences.excludeFolders
             }
 
             when (preferences.sortOrder) {
@@ -42,6 +46,7 @@ class GetSortedVideosUseCase @Inject constructor(
                         SortBy.DATE -> filteredVideos.sortedBy { it.dateModified }
                     }
                 }
+
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
                         SortBy.TITLE -> filteredVideos.sortedByDescending { it.displayName.lowercase() }

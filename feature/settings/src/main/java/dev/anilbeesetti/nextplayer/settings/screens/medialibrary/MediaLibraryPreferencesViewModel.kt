@@ -3,8 +3,8 @@ package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.domain.GetAllFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.model.Directory
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,11 +14,11 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MediaLibraryPreferencesViewModel @Inject constructor(
-    getAllFoldersUseCase: GetAllFoldersUseCase,
+    mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val uiState = getAllFoldersUseCase.invoke()
+    val uiState = mediaRepository.getDirectoriesFlow()
         .map { FolderPreferencesUiState.Success(it) }
         .stateIn(
             scope = viewModelScope,

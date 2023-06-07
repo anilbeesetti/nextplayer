@@ -5,6 +5,7 @@ import java.io.File
 data class Video(
     val id: Long,
     val path: String,
+    val parentPath: String = "",
     val duration: Long,
     val uriString: String,
     val displayName: String,
@@ -22,6 +23,7 @@ data class Video(
         val sample = Video(
             id = 8,
             path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
+            parentPath = "/storage/emulated/0/Download",
             uriString = "",
             nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
             duration = 1000,

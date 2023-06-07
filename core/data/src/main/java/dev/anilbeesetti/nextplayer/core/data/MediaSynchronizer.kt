@@ -57,6 +57,7 @@ class MediaSynchronizer @Inject constructor(
             val file = File(it.data)
             MediumEntity(
                 path = it.data,
+                uriString = it.uri.toString(),
                 name = file.nameWithoutExtension,
                 parentPath = file.parent!!,
                 modified = it.dateModified,

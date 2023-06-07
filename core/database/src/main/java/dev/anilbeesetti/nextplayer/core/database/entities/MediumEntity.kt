@@ -10,6 +10,7 @@ import androidx.room.PrimaryKey
 data class MediumEntity(
     @PrimaryKey @ColumnInfo(name = "path") val path: String,
     @ColumnInfo(name = "filename") val name: String,
+    @ColumnInfo(name = "uri") val uriString: String,
     @ColumnInfo(name = "parent_path") val parentPath: String,
     @ColumnInfo(name = "last_modified") val modified: Long,
     @ColumnInfo(name = "size") val size: Long,
