@@ -2,7 +2,6 @@
 <resources>
     <string name="fast_seek">Schnelle Suche</string>
     <string name="group_videos">Videos nach Ordnern gruppieren</string>
-    <string name="length">Länge</string>
     <string name="location">Aufnahmeort</string>
     <string name="menu">Menü</string>
     <string name="navigate_up">Aufwärts navigieren</string>
