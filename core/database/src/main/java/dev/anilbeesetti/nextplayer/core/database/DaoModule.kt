@@ -4,12 +4,16 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.anilbeesetti.nextplayer.core.database.dao.VideoDao
+import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
+import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DaoModule {
 
     @Provides
-    fun provideVideoDao(db: MediaDatabase): VideoDao = db.videoDao()
+    fun provideMediumDao(db: MediaDatabase): MediumDao = db.mediumDao()
+
+    @Provides
+    fun provideDirectoryDao(db: MediaDatabase): DirectoryDao = db.directoryDao()
 }

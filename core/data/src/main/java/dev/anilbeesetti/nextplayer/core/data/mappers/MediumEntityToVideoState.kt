@@ -1,14 +1,14 @@
 package dev.anilbeesetti.nextplayer.core.data.mappers
 
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
-import dev.anilbeesetti.nextplayer.core.database.entities.VideoEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 
-fun VideoEntity.toVideoState(): VideoState {
+fun MediumEntity.toVideoState(): VideoState {
     return VideoState(
         path = path,
         position = playbackPosition,
-        audioTrack = audioTrack,
-        subtitleTrack = subtitleTrack,
+        audioTrack = audioTrackIndex,
+        subtitleTrack = subtitleTrackIndex,
         playbackSpeed = playbackSpeed
     )
 }

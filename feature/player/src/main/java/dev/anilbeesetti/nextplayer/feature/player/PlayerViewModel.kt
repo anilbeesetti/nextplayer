@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
@@ -21,7 +21,7 @@ private const val END_POSITION_OFFSET = 5L
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val videoRepository: VideoRepository,
+    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase
 ) : ViewModel() {
@@ -50,7 +50,7 @@ class PlayerViewModel @Inject constructor(
     suspend fun updateState(path: String?, shouldUpdateSubtitles: Boolean) {
         resetToDefaults(exceptSubtitles = !shouldUpdateSubtitles)
         if (path == null) return
-        val videoState = videoRepository.getVideoState(path) ?: return
+        val videoState = mediaRepository.getVideoState(path) ?: return
 
         Timber.d("$videoState")
 
@@ -90,7 +90,7 @@ class PlayerViewModel @Inject constructor(
         } ?: C.TIME_UNSET
 
         viewModelScope.launch {
-            videoRepository.saveVideoState(
+            mediaRepository.saveVideoState(
                 path = path,
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,

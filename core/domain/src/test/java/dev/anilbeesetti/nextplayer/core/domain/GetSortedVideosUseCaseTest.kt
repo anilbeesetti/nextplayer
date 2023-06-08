@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
-import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeVideoRepository
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -14,10 +14,10 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetSortedVideosUseCaseTest {
 
-    private val videoRepository = FakeVideoRepository()
+    private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
-    val getSortedVideosUseCase = GetSortedVideosUseCase(videoRepository, preferencesRepository)
+    val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository)
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {
@@ -25,7 +25,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.ASCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -38,7 +38,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.DESCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -51,7 +51,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.ASCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -64,7 +64,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.DESCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -77,7 +77,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.ASCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -90,7 +90,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.DESCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -103,7 +103,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.ASCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -116,7 +116,7 @@ class GetSortedVideosUseCaseTest {
             it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.DESCENDING)
         }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 

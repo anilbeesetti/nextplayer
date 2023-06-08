@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -32,9 +31,8 @@ fun FolderPreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: MediaLibraryPreferencesViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(
-        minActiveState = Lifecycle.State.RESUMED
-    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -71,12 +69,12 @@ fun FolderPreferencesScreen(
                     contentPadding = innerPadding,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items((uiState as FolderPreferencesUiState.Success).folders) {
+                    items((uiState as FolderPreferencesUiState.Success).directories) {
                         SelectablePreference(
                             title = it.name,
                             description = it.path,
-                            selected = it.isExcluded,
-                            onClick = { viewModel.updateExcludeList(it) }
+                            selected = it.path in preferences.excludeFolders,
+                            onClick = { viewModel.updateExcludeList(it.path) }
                         )
                     }
                 }

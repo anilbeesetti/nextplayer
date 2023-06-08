@@ -2,8 +2,8 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.data.repository.VideoRepository
 import dev.anilbeesetti.nextplayer.core.model.SortBy
 import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -15,21 +15,25 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 
 class GetSortedVideosUseCase @Inject constructor(
-    private val videoRepository: VideoRepository,
+    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
         return combine(
-            videoRepository.getVideosFlow(),
+            mediaRepository.getVideosFlow(),
             preferencesRepository.applicationPreferences
         ) { videoItems, preferences ->
 
             val filteredVideos = videoItems.filter {
-                folderPath == null || it.path.substringBeforeLast("/") == folderPath
+                if (preferences.groupVideosByFolder) {
+                    folderPath == null || it.parentPath == folderPath
+                } else {
+                    true
+                }
             }.filterNot {
-                it.path.substringBeforeLast("/") in preferences.excludeFolders
+                it.parentPath in preferences.excludeFolders
             }
 
             when (preferences.sortOrder) {
@@ -42,6 +46,7 @@ class GetSortedVideosUseCase @Inject constructor(
                         SortBy.DATE -> filteredVideos.sortedBy { it.dateModified }
                     }
                 }
+
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
                         SortBy.TITLE -> filteredVideos.sortedByDescending { it.displayName.lowercase() }

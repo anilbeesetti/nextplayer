@@ -6,7 +6,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
-import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,7 +14,6 @@ import kotlinx.coroutines.withContext
 
 class GetSortedPlaylistUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
-    private val preferencesRepository: PreferencesRepository,
     @ApplicationContext private val context: Context,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
 ) {
@@ -23,14 +21,6 @@ class GetSortedPlaylistUseCase @Inject constructor(
         val path = context.getPath(uri) ?: return@withContext emptyList()
         val parent = File(path).parent
 
-        val videos = getSortedVideosUseCase.invoke().first()
-        val preferences = preferencesRepository.applicationPreferences.first()
-        videos.filter {
-            if (preferences.groupVideosByFolder) {
-                parent == null || File(it.path).parent == parent
-            } else {
-                true
-            }
-        }.map { Uri.parse(it.uriString) }
+        getSortedVideosUseCase.invoke(parent).first().map { Uri.parse(it.uriString) }
     }
 }
