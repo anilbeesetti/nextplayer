@@ -60,7 +60,7 @@
     <string name="about_description">版本，出处说明</string>
     <string name="fast_seek">快速寻找</string>
     <string name="grant_permission">授予权限</string>
-    <string name="duration">长度</string>
+    <string name="duration">时间</string>
     <string name="open_settings">打开设置</string>
     <string name="group_videos">按文件夹对视频进行分组</string>
     <string name="location">地点</string>
@@ -97,9 +97,12 @@
     <string name="screen_rotation">屏幕旋转</string>
     <string name="automatic">自动（传感器）</string>
     <string name="landscape">横向</string>
-    <string name="portrait">竖直</string>
+    <string name="portrait">纵向</string>
     <string name="landscape_reverse">横向翻转</string>
     <string name="player_screen_orientation">播放器屏幕方向</string>
     <string name="video_orientation">视频方向</string>
     <string name="landscape_auto">横向（传感器）</string>
+    <string name="newest">最新</string>
+    <string name="oldest">最老</string>
+    <string name="date">日期</string>
 </resources>
