@@ -30,7 +30,6 @@ class FakeMediaRepository : MediaRepository {
     }
 
     override suspend fun saveVideoState(videoState: VideoState) {
-
     }
 
     override suspend fun getVideoState(path: String): VideoState? {

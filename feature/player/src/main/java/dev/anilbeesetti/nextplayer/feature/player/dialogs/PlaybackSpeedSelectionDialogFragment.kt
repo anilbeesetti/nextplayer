@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player.dialogs
 import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
-import androidx.media3.common.Player
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 

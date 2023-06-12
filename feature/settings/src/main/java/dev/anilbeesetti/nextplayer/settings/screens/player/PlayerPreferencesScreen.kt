@@ -1,11 +1,8 @@
 package dev.anilbeesetti.nextplayer.settings.screens.player
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -14,7 +11,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -45,14 +41,11 @@ import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.settings.composables.InputDialog
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 import java.lang.Exception
 import java.util.Locale
-import kotlin.math.round
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +108,11 @@ fun PlayerPreferencesScreen(
                 )
                 defaultPlaybackSpeedSetting(
                     currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.DefaultPlaybackSpeedDialog) }
+                    onClick = {
+                        viewModel.showDialog(
+                            PlayerPreferenceDialog.DefaultPlaybackSpeedDialog
+                        )
+                    }
                 )
                 rememberBrightnessSetting(
                     isChecked = preferences.rememberPlayerBrightness,
@@ -262,8 +259,11 @@ fun PlayerPreferencesScreen(
                 }
 
                 PlayerPreferenceDialog.DefaultPlaybackSpeedDialog -> {
-
-                    var defaultPlaybackSpeed by remember { mutableStateOf(preferences.defaultPlaybackSpeed) }
+                    var defaultPlaybackSpeed by remember {
+                        mutableStateOf(
+                            preferences.defaultPlaybackSpeed
+                        )
+                    }
 
                     NextDialog(
                         title = { Text(text = stringResource(R.string.default_playback_speed)) },

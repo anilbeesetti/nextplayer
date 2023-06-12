@@ -43,7 +43,9 @@ class LocalMediaRepository @Inject constructor(
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?
     ) {
-        Timber.d("save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]")
+        Timber.d(
+            "save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]"
+        )
 
         applicationScope.launch {
             mediumDao.updateMediumState(

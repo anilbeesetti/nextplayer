@@ -56,7 +56,7 @@ class PlayerViewModel @Inject constructor(
         val videoState = mediaRepository.getVideoState(path) ?: return
 
         Timber.d("$videoState")
-        
+
         val prefs = preferencesRepository.playerPreferences.first()
 
         currentPlaybackPosition = videoState.position.takeIf { prefs.resume == Resume.YES }
@@ -91,12 +91,14 @@ class PlayerViewModel @Inject constructor(
         } ?: C.TIME_UNSET
 
         viewModelScope.launch {
+            val videoState = mediaRepository.getVideoState(path)
+
             mediaRepository.saveVideoState(
                 path = path,
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged }
+                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: videoState?.playbackSpeed
             )
         }
     }
