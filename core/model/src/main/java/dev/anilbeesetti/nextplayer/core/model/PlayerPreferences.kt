@@ -15,5 +15,6 @@ data class PlayerPreferences(
     val rememberSelections: Boolean = true,
     val preferredAudioLanguage: String = "",
     val preferredSubtitleLanguage: String = "",
-    val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION
+    val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
+    val defaultPlaybackSpeed: Float = 1.0f
 )

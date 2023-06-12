@@ -114,7 +114,7 @@ fun PlayerPreferencesScreen(
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) }
                 )
                 defaultPlaybackSpeedSetting(
-                    currentDefaultPlaybackSpeed = 1.0f,
+                    currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.DefaultPlaybackSpeedDialog) }
                 )
                 rememberBrightnessSetting(
@@ -263,11 +263,18 @@ fun PlayerPreferencesScreen(
 
                 PlayerPreferenceDialog.DefaultPlaybackSpeedDialog -> {
 
-                    var defaultPlaybackSpeed by remember { mutableStateOf(1.0f) }
+                    var defaultPlaybackSpeed by remember { mutableStateOf(preferences.defaultPlaybackSpeed) }
 
                     NextDialog(
                         title = { Text(text = stringResource(R.string.default_playback_speed)) },
-                        confirmButton = { DoneButton(onClick = {}) },
+                        confirmButton = {
+                            DoneButton(
+                                onClick = {
+                                    viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        },
                         dismissButton = { CancelButton(onClick = viewModel::hideDialog) },
                         onDismissRequest = viewModel::hideDialog,
                         content = {
