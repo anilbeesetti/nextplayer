@@ -71,7 +71,7 @@ class MediaSynchronizer @Inject constructor(
                 playbackPosition = mediumEntity?.playbackPosition ?: 0,
                 audioTrackIndex = mediumEntity?.audioTrackIndex,
                 subtitleTrackIndex = mediumEntity?.subtitleTrackIndex,
-                playbackSpeed = mediumEntity?.playbackSpeed ?: 1f
+                playbackSpeed = mediumEntity?.playbackSpeed
             )
         }
 

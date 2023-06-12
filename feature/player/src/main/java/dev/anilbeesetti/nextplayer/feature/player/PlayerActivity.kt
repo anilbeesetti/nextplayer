@@ -258,7 +258,11 @@ class PlayerActivity : AppCompatActivity() {
 
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedSelectionDialogFragment(
-                player = player
+                currentSpeed = player.playbackParameters.speed,
+                onChange = {
+                    viewModel.isPlaybackSpeedChanged = true
+                    player.setPlaybackSpeed(it)
+                }
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 

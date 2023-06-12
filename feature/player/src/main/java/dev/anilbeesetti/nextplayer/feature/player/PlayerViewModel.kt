@@ -33,6 +33,8 @@ class PlayerViewModel @Inject constructor(
 
     var currentSubtitleTrackIndex: Int? = null
 
+    var isPlaybackSpeedChanged: Boolean = false
+
     val currentExternalSubtitles = mutableListOf<Uri>()
 
     val preferences = preferencesRepository.playerPreferences.stateIn(
@@ -57,11 +59,14 @@ class PlayerViewModel @Inject constructor(
         currentPlaybackPosition =
             videoState.position.takeIf { preferences.value.resume == Resume.YES }
         currentAudioTrackIndex =
-            videoState.audioTrack.takeIf { preferences.value.rememberSelections }
+            videoState.audioTrackIndex.takeIf { preferences.value.rememberSelections }
         currentSubtitleTrackIndex =
-            videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
-        currentPlaybackSpeed =
-            videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
+            videoState.subtitleTrackIndex.takeIf { preferences.value.rememberSelections }
+        currentPlaybackSpeed = videoState.playbackSpeed.takeIf {
+            preferences.value.rememberSelections
+        } ?: preferences.value.defaultPlaybackSpeed
+
+        Timber.d("${preferences.value}")
 
         // TODO: update subs when stored in local storage
     }
@@ -95,7 +100,7 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed
+                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged }
             )
         }
     }
@@ -111,6 +116,7 @@ class PlayerViewModel @Inject constructor(
         currentPlaybackSpeed = 1f
         currentAudioTrackIndex = null
         currentSubtitleTrackIndex = null
+        isPlaybackSpeedChanged = false
         if (!exceptSubtitles) currentExternalSubtitles.clear()
     }
 }
