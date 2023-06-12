@@ -160,6 +160,7 @@ sealed interface PlayerPreferenceDialog {
     object AudioLanguageDialog : PlayerPreferenceDialog
     object SubtitleLanguageDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
+    object DefaultPlaybackSpeedDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 
