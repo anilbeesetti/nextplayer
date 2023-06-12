@@ -13,6 +13,7 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -55,18 +56,13 @@ class PlayerViewModel @Inject constructor(
         val videoState = mediaRepository.getVideoState(path) ?: return
 
         Timber.d("$videoState")
+        
+        val prefs = preferencesRepository.playerPreferences.first()
 
-        currentPlaybackPosition =
-            videoState.position.takeIf { preferences.value.resume == Resume.YES }
-        currentAudioTrackIndex =
-            videoState.audioTrackIndex.takeIf { preferences.value.rememberSelections }
-        currentSubtitleTrackIndex =
-            videoState.subtitleTrackIndex.takeIf { preferences.value.rememberSelections }
-        currentPlaybackSpeed = videoState.playbackSpeed.takeIf {
-            preferences.value.rememberSelections
-        } ?: preferences.value.defaultPlaybackSpeed
-
-        Timber.d("${preferences.value}")
+        currentPlaybackPosition = videoState.position.takeIf { prefs.resume == Resume.YES }
+        currentAudioTrackIndex = videoState.audioTrackIndex.takeIf { prefs.rememberSelections }
+        currentSubtitleTrackIndex = videoState.subtitleTrackIndex.takeIf { prefs.rememberSelections }
+        currentPlaybackSpeed = videoState.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
 
         // TODO: update subs when stored in local storage
     }
