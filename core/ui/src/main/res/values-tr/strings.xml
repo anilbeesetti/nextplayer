@@ -105,4 +105,5 @@
     <string name="newest">En yeni</string>
     <string name="oldest">En eski</string>
     <string name="date">Tarih</string>
+    <string name="default_playback_speed">Varsayılan oynatma hızı</string>
 </resources>
