@@ -37,7 +37,7 @@ import androidx.media3.ui.PlayerView
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.libs.ffcodecs.FfmpegRenderersFactory
+import dev.anilbeesetti.libs.ffcodecs.NextRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
@@ -187,9 +187,8 @@ class PlayerActivity : AppCompatActivity() {
     private fun createPlayer() {
         Timber.d("Creating player")
 
-        val renderersFactory = FfmpegRenderersFactory(application)
-            .setExtensionRendererMode(FfmpegRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-            .setEnableDecoderFallback(true)
+        val renderersFactory = NextRenderersFactory(application)
+            .setExtensionRendererMode(NextRenderersFactory.EXTENSION_RENDERER_MODE_ON)
 
         trackSelector = DefaultTrackSelector(applicationContext)
 

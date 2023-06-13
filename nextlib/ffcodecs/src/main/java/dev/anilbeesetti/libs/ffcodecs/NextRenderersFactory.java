@@ -15,16 +15,16 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 
 @UnstableApi
-public class FfmpegRenderersFactory extends DefaultRenderersFactory {
+public class NextRenderersFactory extends DefaultRenderersFactory {
 
     /**
      * @param context A {@link Context}.
      */
-    public FfmpegRenderersFactory(Context context) {
+    public NextRenderersFactory(Context context) {
         super(context);
     }
     
-    private static final String TAG = "FFmpegRenderersFactory";
+    private static final String TAG = "NextRenderersFactory";
 
     @Override
     protected void buildAudioRenderers(Context context, int extensionRendererMode, MediaCodecSelector mediaCodecSelector, boolean enableDecoderFallback, AudioSink audioSink, Handler eventHandler, AudioRendererEventListener eventListener, ArrayList<Renderer> out) {
@@ -32,6 +32,10 @@ public class FfmpegRenderersFactory extends DefaultRenderersFactory {
 
         if (extensionRendererMode == EXTENSION_RENDERER_MODE_OFF) {
             return;
+        }
+        int extensionRendererIndex = out.size();
+        if (extensionRendererMode == EXTENSION_RENDERER_MODE_PREFER) {
+            extensionRendererIndex--;
         }
 
         try {
@@ -44,7 +48,7 @@ public class FfmpegRenderersFactory extends DefaultRenderersFactory {
                             androidx.media3.exoplayer.audio.AudioSink.class);
             Renderer renderer =
                     (Renderer) constructor.newInstance(eventHandler, eventListener, audioSink);
-            out.add(renderer);
+            out.add(extensionRendererIndex++, renderer);
             Log.i(TAG, "Loaded FfmpegAudioRenderer.");
         } catch (ClassNotFoundException e) {
             // Expected if the app was built without the extension.
