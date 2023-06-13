@@ -28,8 +28,10 @@ interface MediaRepository {
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
-        playbackSpeed: Float
+        playbackSpeed: Float?
     )
+
+    suspend fun saveVideoState(videoState: VideoState)
 
     /**
      * Get video state

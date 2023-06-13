@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
@@ -13,6 +14,7 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -33,7 +35,11 @@ class PlayerViewModel @Inject constructor(
 
     var currentSubtitleTrackIndex: Int? = null
 
+    var isPlaybackSpeedChanged: Boolean = false
+
     val currentExternalSubtitles = mutableListOf<Uri>()
+
+    private var currentVideoState: VideoState? = null
 
     val preferences = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
@@ -50,18 +56,16 @@ class PlayerViewModel @Inject constructor(
     suspend fun updateState(path: String?, shouldUpdateSubtitles: Boolean) {
         resetToDefaults(exceptSubtitles = !shouldUpdateSubtitles)
         if (path == null) return
-        val videoState = mediaRepository.getVideoState(path) ?: return
+        currentVideoState = mediaRepository.getVideoState(path) ?: return
 
-        Timber.d("$videoState")
+        Timber.d("$currentVideoState")
 
-        currentPlaybackPosition =
-            videoState.position.takeIf { preferences.value.resume == Resume.YES }
-        currentAudioTrackIndex =
-            videoState.audioTrack.takeIf { preferences.value.rememberSelections }
-        currentSubtitleTrackIndex =
-            videoState.subtitleTrack.takeIf { preferences.value.rememberSelections }
-        currentPlaybackSpeed =
-            videoState.playbackSpeed.takeIf { preferences.value.rememberSelections } ?: 1f
+        val prefs = preferencesRepository.playerPreferences.first()
+
+        currentPlaybackPosition = currentVideoState!!.position.takeIf { prefs.resume == Resume.YES }
+        currentAudioTrackIndex = currentVideoState!!.audioTrackIndex.takeIf { prefs.rememberSelections }
+        currentSubtitleTrackIndex = currentVideoState!!.subtitleTrackIndex.takeIf { prefs.rememberSelections }
+        currentPlaybackSpeed = currentVideoState!!.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
 
         // TODO: update subs when stored in local storage
     }
@@ -95,7 +99,7 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed
+                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed
             )
         }
     }
@@ -111,6 +115,7 @@ class PlayerViewModel @Inject constructor(
         currentPlaybackSpeed = 1f
         currentAudioTrackIndex = null
         currentSubtitleTrackIndex = null
+        isPlaybackSpeedChanged = false
         if (!exceptSubtitles) currentExternalSubtitles.clear()
     }
 }

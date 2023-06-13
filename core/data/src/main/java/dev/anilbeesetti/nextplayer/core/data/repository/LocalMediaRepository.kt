@@ -41,9 +41,11 @@ class LocalMediaRepository @Inject constructor(
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
-        playbackSpeed: Float
+        playbackSpeed: Float?
     ) {
-        Timber.d("save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex]")
+        Timber.d(
+            "save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]"
+        )
 
         applicationScope.launch {
             mediumDao.updateMediumState(
@@ -52,6 +54,19 @@ class LocalMediaRepository @Inject constructor(
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed
+            )
+        }
+    }
+
+    override suspend fun saveVideoState(videoState: VideoState) {
+        Timber.d("saving state: $videoState")
+        applicationScope.launch {
+            mediumDao.updateMediumState(
+                path = videoState.path,
+                position = videoState.position,
+                audioTrackIndex = videoState.audioTrackIndex,
+                subtitleTrackIndex = videoState.subtitleTrackIndex,
+                playbackSpeed = videoState.playbackSpeed
             )
         }
     }

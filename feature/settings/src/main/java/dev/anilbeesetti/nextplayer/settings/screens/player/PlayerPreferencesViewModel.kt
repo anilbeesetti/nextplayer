@@ -147,6 +147,12 @@ class PlayerPreferencesViewModel @Inject constructor(
             preferencesRepository.updatePlayerPreferences { it.copy(playerScreenOrientation = value) }
         }
     }
+
+    fun updateDefaultPlaybackSpeed(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = value) }
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
@@ -160,6 +166,7 @@ sealed interface PlayerPreferenceDialog {
     object AudioLanguageDialog : PlayerPreferenceDialog
     object SubtitleLanguageDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
+    object DefaultPlaybackSpeedDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 

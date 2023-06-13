@@ -2,20 +2,29 @@ package dev.anilbeesetti.nextplayer.settings.screens.player
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
@@ -23,7 +32,10 @@ import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
+import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
@@ -93,6 +105,14 @@ fun PlayerPreferencesScreen(
                 }
                 resumeSetting(
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) }
+                )
+                defaultPlaybackSpeedSetting(
+                    currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
+                    onClick = {
+                        viewModel.showDialog(
+                            PlayerPreferenceDialog.DefaultPlaybackSpeedDialog
+                        )
+                    }
                 )
                 rememberBrightnessSetting(
                     isChecked = preferences.rememberPlayerBrightness,
@@ -237,7 +257,49 @@ fun PlayerPreferencesScreen(
                         }
                     }
                 }
-                PlayerPreferenceDialog.None -> { /* Do nothing */ }
+
+                PlayerPreferenceDialog.DefaultPlaybackSpeedDialog -> {
+                    var defaultPlaybackSpeed by remember {
+                        mutableStateOf(
+                            preferences.defaultPlaybackSpeed
+                        )
+                    }
+
+                    NextDialog(
+                        title = { Text(text = stringResource(R.string.default_playback_speed)) },
+                        confirmButton = {
+                            DoneButton(
+                                onClick = {
+                                    viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        },
+                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) },
+                        onDismissRequest = viewModel::hideDialog,
+                        content = {
+                            Text(
+                                text = "$defaultPlaybackSpeed",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = defaultPlaybackSpeed,
+                                onValueChange = {
+                                    defaultPlaybackSpeed = String.format("%.1f", it).toFloat()
+                                },
+                                valueRange = 0.2f..4.0f,
+                                steps = 37
+                            )
+                        }
+                    )
+                }
+
+                PlayerPreferenceDialog.None -> { /* Do nothing */
+                }
             }
         }
     }
@@ -298,6 +360,20 @@ fun LazyListScope.resumeSetting(
             title = stringResource(id = R.string.resume),
             description = stringResource(id = R.string.resume_description),
             icon = NextIcons.Resume,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.defaultPlaybackSpeedSetting(
+    currentDefaultPlaybackSpeed: Float,
+    onClick: () -> Unit
+) {
+    item {
+        ClickablePreferenceItem(
+            title = stringResource(id = R.string.default_playback_speed),
+            description = currentDefaultPlaybackSpeed.toString(),
+            icon = NextIcons.Speed,
             onClick = onClick
         )
     }
