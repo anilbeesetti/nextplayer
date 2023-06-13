@@ -105,4 +105,5 @@
     <string name="newest">Найновіше</string>
     <string name="oldest">Найстаріше</string>
     <string name="date">Дата</string>
+    <string name="default_playback_speed">Швидкість відтворення за замовчуванням</string>
 </resources>
