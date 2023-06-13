@@ -187,9 +187,9 @@ class PlayerActivity : AppCompatActivity() {
     private fun createPlayer() {
         Timber.d("Creating player")
 
-        val renderersFactory = FfmpegRenderersFactory(application).setExtensionRendererMode(
-            FfmpegRenderersFactory.EXTENSION_RENDERER_MODE_ON
-        )
+        val renderersFactory = FfmpegRenderersFactory(application)
+            .setExtensionRendererMode(FfmpegRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+            .setEnableDecoderFallback(true)
 
         trackSelector = DefaultTrackSelector(applicationContext)
 

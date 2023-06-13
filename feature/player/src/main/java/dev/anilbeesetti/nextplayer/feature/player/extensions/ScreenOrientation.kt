@@ -12,7 +12,6 @@ fun ScreenOrientation.toActivityOrientation(videoOrientation: Int? = null): Int 
         ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         ScreenOrientation.SYSTEM_DEFAULT -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         ScreenOrientation.VIDEO_ORIENTATION ->
-            videoOrientation
-                ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            videoOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 }
