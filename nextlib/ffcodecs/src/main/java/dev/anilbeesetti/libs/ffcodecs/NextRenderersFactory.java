@@ -10,8 +10,10 @@ import androidx.media3.exoplayer.Renderer;
 import androidx.media3.exoplayer.audio.AudioRendererEventListener;
 import androidx.media3.exoplayer.audio.AudioSink;
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector;
+import androidx.media3.exoplayer.video.VideoRendererEventListener;
 
-import java.lang.reflect.Constructor;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+
 import java.util.ArrayList;
 
 @UnstableApi
@@ -23,9 +25,10 @@ public class NextRenderersFactory extends DefaultRenderersFactory {
     public NextRenderersFactory(Context context) {
         super(context);
     }
+
+    private boolean useExperimentalRenderers;
     
     private static final String TAG = "NextRenderersFactory";
-
     @Override
     protected void buildAudioRenderers(Context context, int extensionRendererMode, MediaCodecSelector mediaCodecSelector, boolean enableDecoderFallback, AudioSink audioSink, Handler eventHandler, AudioRendererEventListener eventListener, ArrayList<Renderer> out) {
         super.buildAudioRenderers(context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, audioSink, eventHandler, eventListener, out);
@@ -39,22 +42,33 @@ public class NextRenderersFactory extends DefaultRenderersFactory {
         }
 
         try {
-            // Full class names used for constructor args so the LINT rule triggers if any of them move.
-            Class<?> clazz = Class.forName("dev.anilbeesetti.libs.ffcodecs.FfmpegAudioRenderer");
-            Constructor<?> constructor =
-                    clazz.getConstructor(
-                            android.os.Handler.class,
-                            androidx.media3.exoplayer.audio.AudioRendererEventListener.class,
-                            androidx.media3.exoplayer.audio.AudioSink.class);
-            Renderer renderer =
-                    (Renderer) constructor.newInstance(eventHandler, eventListener, audioSink);
+            Renderer renderer = new FfmpegAudioRenderer(eventHandler, eventListener, audioSink);
             out.add(extensionRendererIndex++, renderer);
             Log.i(TAG, "Loaded FfmpegAudioRenderer.");
-        } catch (ClassNotFoundException e) {
-            // Expected if the app was built without the extension.
         } catch (Exception e) {
             // The extension is present, but instantiation failed.
             throw new RuntimeException("Error instantiating FFmpeg extension", e);
         }
+    }
+
+    @Override
+    protected void buildVideoRenderers(Context context, int extensionRendererMode, MediaCodecSelector mediaCodecSelector, boolean enableDecoderFallback, Handler eventHandler, VideoRendererEventListener eventListener, long allowedVideoJoiningTimeMs, ArrayList<Renderer> out) {
+        super.buildVideoRenderers(context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener, allowedVideoJoiningTimeMs, out);
+
+        if (!useExperimentalRenderers) return;
+        try {
+            Renderer renderer = new FfmpegVideoRenderer(allowedVideoJoiningTimeMs, eventHandler, eventListener, MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY);
+            out.add(renderer);
+            Log.i(TAG, "Loaded FfmpegVideoRenderer.");
+        } catch (Exception e) {
+            // The extension is present, but instantiation failed.
+            throw new RuntimeException("Error instantiating FFmpeg extension", e);
+        }
+    }
+
+    @CanIgnoreReturnValue
+    public NextRenderersFactory setUseExperimentalRenderers(boolean useExperimentalRenderers) {
+        this.useExperimentalRenderers = useExperimentalRenderers;
+        return this;
     }
 }
