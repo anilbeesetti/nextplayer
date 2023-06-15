@@ -136,44 +136,55 @@ internal fun MediaPickerScreen(
             } else {
                 VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
             }
-            if (showMenu) {
-                QuickSettingsDialog(
-                    preferences = preferences,
-                    onDismiss = { showMenu = false },
-                    updatePreferences = updatePreferences
-                )
-            }
-            if (showUrlDialog) {
-                var url by rememberSaveable { mutableStateOf("") }
-                NextDialog(
-                    onDismissRequest = { showUrlDialog = false },
-                    title = { Text(stringResource(R.string.network_stream)) },
-                    content = {
-                        Text(text = stringResource(R.string.enter_a_network_url))
-                        Spacer(modifier = Modifier.height(10.dp))
-                        OutlinedTextField(
-                            value = url,
-                            onValueChange = { url = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(text = stringResource(R.string.example_url)) }
-                        )
-                    },
-                    confirmButton = {
-                        DoneButton(
-                            onClick = {
-                                showUrlDialog = false
-                                if (url.isNotEmpty()) {
-                                    onVideoClick(Uri.parse(url))
-                                }
-                            }
-                        )
-                    },
-                    dismissButton = { CancelButton(onClick = { showUrlDialog = false }) }
-                )
-            }
+        }
+        if (showMenu) {
+            QuickSettingsDialog(
+                preferences = preferences,
+                onDismiss = { showMenu = false },
+                updatePreferences = updatePreferences
+            )
+        }
+        if (showUrlDialog) {
+            NetworkStreamDialog(
+                onDismiss = { showUrlDialog = false },
+                onDone = {
+                    showUrlDialog = false
+                    if (it.isNotBlank()) onVideoClick(Uri.parse(it))
+                }
+            )
         }
     }
 }
+
+
+@Composable
+fun NetworkStreamDialog(
+    onDismiss: () -> Unit,
+    onDone: (String) -> Unit
+) {
+    var url by rememberSaveable { mutableStateOf("") }
+    NextDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.network_stream)) },
+        content = {
+            Text(text = stringResource(R.string.enter_a_network_url))
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedTextField(
+                value = url,
+                onValueChange = { url = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = stringResource(R.string.example_url)) }
+            )
+        },
+        confirmButton = {
+            DoneButton(
+                onClick = { onDone(url) }
+            )
+        },
+        dismissButton = { CancelButton(onClick = onDismiss) }
+    )
+}
+
 
 @DevicePreviews
 @Composable
