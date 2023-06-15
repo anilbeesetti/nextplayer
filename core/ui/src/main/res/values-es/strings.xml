@@ -106,4 +106,6 @@
     <string name="oldest">Más antiguo</string>
     <string name="date">Fecha</string>
     <string name="default_playback_speed">Velocidad de reproducción predeterminada</string>
+    <string name="enter_a_network_url">Introduce una URL de la red:</string>
+    <string name="network_stream">Flujo de la red</string>
 </resources>
