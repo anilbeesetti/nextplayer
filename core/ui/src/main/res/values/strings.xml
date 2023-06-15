@@ -107,4 +107,7 @@
     <string name="oldest">Oldest</string>
     <string name="date">Date</string>
     <string name="default_playback_speed">Default playback speed</string>
+    <string name="enter_a_network_url">Enter a network URL:</string>
+    <string name="example_url" translatable="false">http://example.com/example.mp4</string>
+    <string name="network_stream">Network Stream</string>
 </resources>
