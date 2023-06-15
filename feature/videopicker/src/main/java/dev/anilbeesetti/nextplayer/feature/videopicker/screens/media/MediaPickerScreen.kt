@@ -114,7 +114,7 @@ internal fun MediaPickerScreen(
             FloatingActionButton(
                 onClick = { showUrlDialog = true }
             ) {
-                Icon(imageVector = NextIcons.Add, contentDescription = null)
+                Icon(imageVector = NextIcons.Link, contentDescription = null)
             }
         }
     ) { paddingValues ->
