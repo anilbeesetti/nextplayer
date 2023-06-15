@@ -132,6 +132,8 @@ public final class FfmpegLibrary {
       case MimeTypes.AUDIO_ALAW -> "pcm_alaw";
       case MimeTypes.VIDEO_H264 -> "h264";
       case MimeTypes.VIDEO_H265 -> "hevc";
+      case MimeTypes.VIDEO_MPEG -> "mpegvideo";
+      case MimeTypes.VIDEO_MPEG2 -> "mpeg2video";
       default -> null;
     };
   }

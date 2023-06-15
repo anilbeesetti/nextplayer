@@ -2,6 +2,7 @@ package dev.anilbeesetti.libs.ffcodecs;
 
 import android.util.Log;
 import android.view.Surface;
+
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.Format;
@@ -38,17 +39,18 @@ final class FfmpegVideoDecoder extends
     private final byte[] extraData;
     private Format format;
 
-    @C.VideoOutputMode private volatile int outputMode;
+    @C.VideoOutputMode
+    private volatile int outputMode;
 
     /**
      * Creates a Ffmpeg video Decoder.
      *
-     * @param numInputBuffers Number of input buffers.
-     * @param numOutputBuffers Number of output buffers.
+     * @param numInputBuffers        Number of input buffers.
+     * @param numOutputBuffers       Number of output buffers.
      * @param initialInputBufferSize The initial size of each input buffer, in bytes.
-     * @param threads Number of threads libgav1 will use to decode.
+     * @param threads                Number of threads libgav1 will use to decode.
      * @throws FfmpegDecoderException Thrown if an exception occurs when initializing the
-     * decoder.
+     *                                decoder.
      */
     public FfmpegVideoDecoder(
             int numInputBuffers, int numOutputBuffers, int initialInputBufferSize, int threads, Format format)
@@ -140,8 +142,7 @@ final class FfmpegVideoDecoder extends
         ByteBuffer inputData = Util.castNonNull(inputBuffer.data);
         int inputSize = inputData.limit();
         // enqueue origin data
-        int sendPacketResult = ffmpegSendPacket(nativeContext, inputData, inputSize,
-                inputBuffer.timeUs);
+        int sendPacketResult = ffmpegSendPacket(nativeContext, inputData, inputSize, inputBuffer.timeUs);
         if (sendPacketResult == VIDEO_DECODER_ERROR_INVALID_DATA) {
             outputBuffer.setFlags(C.BUFFER_FLAG_DECODE_ONLY);
             return null;
@@ -184,9 +185,9 @@ final class FfmpegVideoDecoder extends
      * C#VIDEO_OUTPUT_MODE_SURFACE_YUV} mode.
      *
      * @param outputBuffer Output buffer.
-     * @param surface Output surface.
+     * @param surface      Output surface.
      * @throws FfmpegDecoderException Thrown if called with invalid output mode or frame
-     * rendering fails.
+     *                                rendering fails.
      */
     public void renderToSurface(VideoDecoderOutputBuffer outputBuffer, Surface surface)
             throws FfmpegDecoderException {

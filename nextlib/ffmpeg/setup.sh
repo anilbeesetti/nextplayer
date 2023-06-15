@@ -98,7 +98,6 @@ if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
             --disable-everything \
             --disable-avdevice \
             --disable-avformat \
-            --disable-swscale \
             --disable-postproc \
             --disable-avfilter \
             --disable-symver \
