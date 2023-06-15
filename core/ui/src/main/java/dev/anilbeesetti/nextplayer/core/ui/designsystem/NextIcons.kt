@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOff
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Palette
@@ -51,6 +52,7 @@ object NextIcons {
     val FolderOff = Icons.Rounded.FolderOff
     val Info = Icons.Rounded.Info
     val Length = Icons.Rounded.Straighten
+    val Link = Icons.Rounded.Link
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
     val Player = Icons.Rounded.PlayCircle
