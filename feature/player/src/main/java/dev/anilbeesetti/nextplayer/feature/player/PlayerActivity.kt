@@ -187,7 +187,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun createPlayer() {
         Timber.d("Creating player")
 
-        val renderersFactory = NextRenderersFactory(application)
+        val renderersFactory = NextRenderersFactory(applicationContext)
             .setUseExperimentalRenderers(true)
             .setExtensionRendererMode(NextRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
 

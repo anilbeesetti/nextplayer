@@ -136,8 +136,6 @@ final class FfmpegVideoDecoder extends
             }
         }
 
-        Log.d(TAG, "decode: Video decoder decoding");
-
         // send packet
         ByteBuffer inputData = Util.castNonNull(inputBuffer.data);
         int inputSize = inputData.limit();
