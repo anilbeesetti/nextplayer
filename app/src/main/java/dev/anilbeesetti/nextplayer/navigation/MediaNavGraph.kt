@@ -24,7 +24,7 @@ fun NavGraphBuilder.mediaNavGraph(
         route = MEDIA_ROUTE
     ) {
         mediaPickerScreen(
-            onVideoClick = context::startPlayerActivity,
+            onPlayVideo = context::startPlayerActivity,
             onFolderClick = navController::navigateToMediaPickerFolderScreen,
             onSettingsClick = navController::navigateToSettings
         )

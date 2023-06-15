@@ -22,7 +22,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,7 +55,7 @@ const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 @Composable
 fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
-    onVideoClick: (uri: Uri) -> Unit,
+    onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel()
 ) {
@@ -69,19 +68,19 @@ fun MediaPickerRoute(
         foldersState = foldersState,
         preferences = preferences,
         onSettingsClick = onSettingsClick,
-        onVideoClick = onVideoClick,
+        onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
         updatePreferences = viewModel::updateMenu
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerScreen(
     videosState: VideosState,
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
-    onVideoClick: (uri: Uri) -> Unit = {},
+    onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     updatePreferences: (SortBy, SortOrder, Boolean) -> Unit = { _, _, _ -> }
@@ -128,7 +127,7 @@ internal fun MediaPickerScreen(
             if (preferences.groupVideosByFolder) {
                 FoldersListFromState(foldersState = foldersState, onFolderClick = onFolderClick)
             } else {
-                VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
+                VideosListFromState(videosState = videosState, onVideoClick = onPlayVideo)
             }
         }
         if (showMenu) {
@@ -143,7 +142,7 @@ internal fun MediaPickerScreen(
                 onDismiss = { showUrlDialog = false },
                 onDone = {
                     showUrlDialog = false
-                    if (it.isNotBlank()) onVideoClick(Uri.parse(it))
+                    if (it.isNotBlank()) onPlayVideo(Uri.parse(it))
                 }
             )
         }
@@ -193,7 +192,7 @@ fun MediaPickerScreenPreview(
                     ),
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
-                    onVideoClick = {},
+                    onPlayVideo = {},
                     onFolderClick = {}
                 )
             }
@@ -224,7 +223,7 @@ fun MediaPickerNoVideosFoundPreview() {
                     data = emptyList()
                 ),
                 preferences = ApplicationPreferences(),
-                onVideoClick = {},
+                onPlayVideo = {},
                 onFolderClick = {}
             )
         }
@@ -240,7 +239,7 @@ fun MediaPickerLoadingPreview() {
                 videosState = VideosState.Loading,
                 foldersState = FoldersState.Loading,
                 preferences = ApplicationPreferences(),
-                onVideoClick = {},
+                onPlayVideo = {},
                 onFolderClick = {}
             )
         }
