@@ -106,4 +106,6 @@
     <string name="oldest">最老</string>
     <string name="date">日期</string>
     <string name="default_playback_speed">默认播放速度</string>
+    <string name="network_stream">网络流</string>
+    <string name="enter_a_network_url">输入一个网络 URL：</string>
 </resources>
