@@ -96,7 +96,7 @@
     <string name="manage_folders">Gerenciar pastas</string>
     <string name="screen_rotation">Rotação de tela</string>
     <string name="landscape">Paisagem</string>
-    <string name="landscape_reverse">Paisagem reversa</string>
+    <string name="landscape_reverse">Paisagem (invertido)</string>
     <string name="portrait">Retrato</string>
     <string name="automatic">Automático (detectar)</string>
     <string name="player_screen_orientation">Orientação de tela do player</string>
@@ -106,4 +106,6 @@
     <string name="date">Data</string>
     <string name="newest">Mais recente</string>
     <string name="default_playback_speed">Velocidade de reprodução padrão</string>
+    <string name="enter_a_network_url">Digite uma URL de conexão:</string>
+    <string name="network_stream">Conexão de transmissão</string>
 </resources>
