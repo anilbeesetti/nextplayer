@@ -173,6 +173,7 @@ final class FfmpegAudioDecoder
    */
   @Nullable
   private static byte[] getExtraData(String mimeType, List<byte[]> initializationData) {
+    if (initializationData.isEmpty()) return null;
     return switch (mimeType) {
       case MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_OPUS -> initializationData.get(0);
       case MimeTypes.AUDIO_ALAC -> getAlacExtraData(initializationData);

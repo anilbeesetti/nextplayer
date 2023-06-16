@@ -52,12 +52,9 @@ final class FfmpegVideoDecoder extends
      * @throws FfmpegDecoderException Thrown if an exception occurs when initializing the
      *                                decoder.
      */
-    public FfmpegVideoDecoder(
-            int numInputBuffers, int numOutputBuffers, int initialInputBufferSize, int threads, Format format)
-            throws FfmpegDecoderException {
-        super(
-                new DecoderInputBuffer[numInputBuffers],
-                new VideoDecoderOutputBuffer[numOutputBuffers]);
+    public FfmpegVideoDecoder(int numInputBuffers, int numOutputBuffers, int initialInputBufferSize, int threads, Format format) throws FfmpegDecoderException {
+        super(new DecoderInputBuffer[numInputBuffers], new VideoDecoderOutputBuffer[numOutputBuffers]);
+
         if (!FfmpegLibrary.isAvailable()) {
             throw new FfmpegDecoderException("Failed to load decoder native library.");
         }
@@ -78,6 +75,7 @@ final class FfmpegVideoDecoder extends
      */
     @Nullable
     private static byte[] getExtraData(String mimeType, List<byte[]> initializationData) {
+        if (initializationData.isEmpty()) return null;
         switch (mimeType) {
             case MimeTypes.VIDEO_H264 -> {
                 byte[] sps = initializationData.get(0);
@@ -195,8 +193,7 @@ final class FfmpegVideoDecoder extends
         if (ffmpegRenderFrame(
                 nativeContext, surface,
                 outputBuffer, outputBuffer.width, outputBuffer.height) == VIDEO_DECODER_ERROR_OTHER) {
-            throw new FfmpegDecoderException(
-                    "Buffer render error: ");
+            throw new FfmpegDecoderException("Buffer render error: ");
         }
     }
 
