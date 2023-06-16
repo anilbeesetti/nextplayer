@@ -27,15 +27,15 @@ public class NextRenderersFactory extends DefaultRenderersFactory {
     }
 
     private boolean useExperimentalRenderers;
-    
+
     private static final String TAG = "NextRenderersFactory";
+
     @Override
     protected void buildAudioRenderers(Context context, int extensionRendererMode, MediaCodecSelector mediaCodecSelector, boolean enableDecoderFallback, AudioSink audioSink, Handler eventHandler, AudioRendererEventListener eventListener, ArrayList<Renderer> out) {
         super.buildAudioRenderers(context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, audioSink, eventHandler, eventListener, out);
 
-        if (extensionRendererMode == EXTENSION_RENDERER_MODE_OFF) {
-            return;
-        }
+        if (extensionRendererMode == EXTENSION_RENDERER_MODE_OFF) return;
+
         int extensionRendererIndex = out.size();
         if (extensionRendererMode == EXTENSION_RENDERER_MODE_PREFER) {
             extensionRendererIndex--;
@@ -56,9 +56,16 @@ public class NextRenderersFactory extends DefaultRenderersFactory {
         super.buildVideoRenderers(context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener, allowedVideoJoiningTimeMs, out);
 
         if (!useExperimentalRenderers) return;
+        if (extensionRendererMode == EXTENSION_RENDERER_MODE_OFF) return;
+
+        int extensionRendererIndex = out.size();
+        if (extensionRendererMode == EXTENSION_RENDERER_MODE_PREFER) {
+            extensionRendererIndex--;
+        }
+
         try {
             Renderer renderer = new FfmpegVideoRenderer(allowedVideoJoiningTimeMs, eventHandler, eventListener, MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY);
-            out.add(renderer);
+            out.add(extensionRendererIndex++, renderer);
             Log.i(TAG, "Loaded FfmpegVideoRenderer.");
         } catch (Exception e) {
             // The extension is present, but instantiation failed.
