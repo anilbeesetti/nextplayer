@@ -22,10 +22,10 @@ import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
+import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")

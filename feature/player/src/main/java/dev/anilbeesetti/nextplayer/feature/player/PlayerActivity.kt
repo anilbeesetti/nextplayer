@@ -45,6 +45,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -63,7 +64,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -207,7 +207,9 @@ class PlayerActivity : AppCompatActivity() {
             .setTrackSelector(trackSelector)
             .setAudioAttributes(getAudioAttributes(), true)
             .setHandleAudioBecomingNoisy(true)
-            .setSeekParameters(if (viewModel.preferences.value.fastSeek != FastSeek.DISABLE) SeekParameters.CLOSEST_SYNC else SeekParameters.DEFAULT)
+            .setSeekParameters(
+                if (viewModel.preferences.value.fastSeek != FastSeek.DISABLE) SeekParameters.CLOSEST_SYNC else SeekParameters.DEFAULT
+            )
             .build()
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
@@ -454,7 +456,9 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
-                    Timber.d("Current: ${playlistManager.currentIndex()} - ${playlistManager.getCurrent()}")
+                    Timber.d(
+                        "Current: ${playlistManager.currentIndex()} - ${playlistManager.getCurrent()}"
+                    )
                     if (viewModel.preferences.value.shouldFastSeekDisable(player.duration)) {
                         player.setSeekParameters(SeekParameters.DEFAULT)
                     }
