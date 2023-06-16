@@ -105,4 +105,5 @@
     <string name="newest">Νεότερο</string>
     <string name="oldest">Παλαιότερο</string>
     <string name="date">Ημερομηνία</string>
+    <string name="default_playback_speed">Εξ ορισμού ταχύτητα αναπαραγωγής</string>
 </resources>

@@ -105,4 +105,5 @@
     <string name="newest">最新</string>
     <string name="oldest">最老</string>
     <string name="date">日期</string>
+    <string name="default_playback_speed">默认播放速度</string>
 </resources>

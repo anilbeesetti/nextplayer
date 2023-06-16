@@ -105,4 +105,5 @@
     <string name="oldest">Mais antigo</string>
     <string name="date">Data</string>
     <string name="newest">Mais recente</string>
+    <string name="default_playback_speed">Velocidade de reprodução padrão</string>
 </resources>
