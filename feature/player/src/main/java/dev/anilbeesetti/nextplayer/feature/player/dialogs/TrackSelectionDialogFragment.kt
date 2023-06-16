@@ -28,8 +28,8 @@ class TrackSelectionDialogFragment(
                         trackGroup.mediaTrackGroup.getName(type, index)
                     }.toTypedArray()
 
-                    val selectedTrackIndex = audioTracks.indexOfFirst { it.isSelected }
-                        .takeIf { it != -1 } ?: audioTracks.size
+                    val selectedTrackIndex = audioTracks
+                        .indexOfFirst { it.isSelected }.takeIf { it != -1 } ?: audioTracks.size
 
                     MaterialAlertDialogBuilder(activity)
                         .setTitle(getString(R.string.select_audio_track))
@@ -37,16 +37,13 @@ class TrackSelectionDialogFragment(
                             arrayOf(*trackNames, getString(R.string.disable)),
                             selectedTrackIndex
                         ) { dialog, trackIndex ->
-                            if (trackIndex == trackNames.size) {
-                                onTrackSelected(-1)
-                            } else if (selectedTrackIndex != trackIndex) {
-                                onTrackSelected(trackIndex)
-                            }
+                            onTrackSelected(trackIndex.takeIf { it < trackNames.size } ?: -1)
                             dialog.dismiss()
                         }
                         .create()
                 } ?: throw IllegalStateException("Activity cannot be null")
             }
+
             C.TRACK_TYPE_TEXT -> {
                 return activity?.let { activity ->
                     val textTracks = tracks.groups
@@ -56,8 +53,8 @@ class TrackSelectionDialogFragment(
                         trackGroup.mediaTrackGroup.getName(type, index)
                     }.toTypedArray()
 
-                    val selectedTrackIndex = textTracks.indexOfFirst { it.isSelected }
-                        .takeIf { it != -1 } ?: textTracks.size
+                    val selectedTrackIndex = textTracks
+                        .indexOfFirst { it.isSelected }.takeIf { it != -1 } ?: textTracks.size
 
                     MaterialAlertDialogBuilder(activity)
                         .setTitle(getString(R.string.select_subtitle_track))
@@ -65,16 +62,13 @@ class TrackSelectionDialogFragment(
                             arrayOf(*trackNames, getString(R.string.disable)),
                             selectedTrackIndex
                         ) { dialog, trackIndex ->
-                            if (trackIndex == trackNames.size) {
-                                onTrackSelected(-1)
-                            } else if (selectedTrackIndex != trackIndex) {
-                                onTrackSelected(trackIndex)
-                            }
+                            onTrackSelected(trackIndex.takeIf { it < trackNames.size } ?: -1)
                             dialog.dismiss()
                         }
                         .create()
                 } ?: throw IllegalStateException("Activity cannot be null")
             }
+
             else -> {
                 throw IllegalArgumentException(
                     "Track type not supported. Track type must be either TRACK_TYPE_AUDIO or TRACK_TYPE_TEXT"
