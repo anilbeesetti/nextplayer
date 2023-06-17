@@ -44,7 +44,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -61,6 +60,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -300,21 +300,14 @@ class PlayerActivity : AppCompatActivity() {
         }
         screenRotationButton.setOnClickListener {
             requestedOrientation = when (resources.configuration.orientation) {
-                Configuration.ORIENTATION_LANDSCAPE -> {
-                    screenRotationButton.setImageDrawable(this, coreUiR.drawable.ic_portrait)
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                }
-                else -> {
-                    screenRotationButton.setImageDrawable(this,coreUiR.drawable.ic_landscape)
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                }
+                Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
         }
         screenRotationButton.setOnLongClickListener {
-            screenRotationButton.setImageDrawable(this, coreUiR.drawable.ic_screen_rotation)
-            requestedOrientation = viewModel.preferences.value.playerScreenOrientation
-                .toActivityOrientation(videoOrientation = currentVideoOrientation)
-            currentOrientation = null
+            viewModel.preferences.value.playerScreenOrientation.also {
+                requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
+            }
             true
         }
         backButton.setOnClickListener { finish() }
@@ -501,6 +494,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    override fun setRequestedOrientation(requestedOrientation: Int) {
+        super.setRequestedOrientation(requestedOrientation)
+        screenRotationButton.setImageDrawable(this, getRotationDrawable())
+    }
+
     private fun getAudioAttributes(): AudioAttributes {
         return AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -546,6 +544,25 @@ private val VideoSize.isPortrait: Boolean
         return if (isRotated) this.width > this.height else this.height > this.width
     }
 
-fun ImageButton.setImageDrawable(context: Context, id: Int) {
+private fun ImageButton.setImageDrawable(context: Context, id: Int) {
     setImageDrawable(ContextCompat.getDrawable(context, id))
+}
+
+private fun Activity.getRotationDrawable(): Int {
+    return when (requestedOrientation) {
+        ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR,
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR -> coreUiR.drawable.ic_screen_rotation
+
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
+        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
+        ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
+        ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT -> coreUiR.drawable.ic_portrait
+
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+        ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
+        ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE -> coreUiR.drawable.ic_landscape
+
+        else -> coreUiR.drawable.ic_screen_rotation_alt
+    }
 }
