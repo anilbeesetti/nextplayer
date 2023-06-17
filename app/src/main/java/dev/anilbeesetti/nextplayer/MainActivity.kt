@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
                         PermissionScreen(
                             permission = storagePermissionState.permission,
                             permissionStatus = storagePermissionState.status,
-                            onGrantPermissionClick = { storagePermissionState.launchPermissionRequest() }
+                            onGrantPermissionClick = storagePermissionState::launchPermissionRequest
                         )
                     }
                 }
