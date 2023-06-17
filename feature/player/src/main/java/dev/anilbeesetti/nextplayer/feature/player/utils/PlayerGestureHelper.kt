@@ -20,9 +20,6 @@ import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
-import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlin.math.abs
@@ -80,17 +77,11 @@ class PlayerGestureHelper(
 
                         playerView.player?.let { player ->
                             if (event.x.toInt() < viewCenterX) {
-                                player.seekBack(
-                                    positionMs = (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS)
-                                        .coerceAtLeast(0),
-                                    fastSeek = playerPreferences.shouldFastSeek(player.duration)
-                                )
+                                val newPosition = currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS
+                                player.seekTo(newPosition.coerceAtLeast(0))
                             } else {
-                                player.seekForward(
-                                    positionMs = (currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
-                                        .coerceAtMost(player.duration),
-                                    fastSeek = playerPreferences.shouldFastSeek(player.duration)
-                                )
+                                val newPosition = currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
+                                player.seekTo(newPosition.coerceAtMost(player.duration))
                             }
                         }
                     }
@@ -101,18 +92,12 @@ class PlayerGestureHelper(
                         playerView.player?.let { player ->
                             when {
                                 eventPositionPercentageX < 0.35 -> {
-                                    player.seekBack(
-                                        positionMs = (currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS)
-                                            .coerceAtLeast(0),
-                                        fastSeek = playerPreferences.shouldFastSeek(player.duration)
-                                    )
+                                    val newPosition = currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS
+                                    player.seekTo(newPosition.coerceAtLeast(0))
                                 }
                                 eventPositionPercentageX > 0.65 -> {
-                                    player.seekForward(
-                                        positionMs = (currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS)
-                                            .coerceAtMost(player.duration),
-                                        fastSeek = playerPreferences.shouldFastSeek(player.duration)
-                                    )
+                                    val newPosition = currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
+                                    player.seekTo(newPosition.coerceAtMost(player.duration))
                                 }
                                 else -> {
                                     playerView.togglePlayPause()
@@ -167,10 +152,7 @@ class PlayerGestureHelper(
                             it + seekStart < player.duration
                         } ?: (player.duration - seekStart)
                         position = (seekStart + seekChange).coerceAtMost(player.duration)
-                        player.seekForward(
-                            position,
-                            playerPreferences.shouldFastSeek(player.duration)
-                        )
+                        player.seekTo(position)
                     }
                 } else {
                     playerView.player?.let { player ->
@@ -178,7 +160,7 @@ class PlayerGestureHelper(
                             it + seekStart > 0
                         } ?: (0 - seekStart)
                         position = seekStart + seekChange
-                        player.seekBack(position, playerPreferences.shouldFastSeek(player.duration))
+                        player.seekTo(position)
                     }
                 }
                 activity.binding.progressScrubberLayout.visibility = View.VISIBLE

@@ -16,6 +16,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.Dimension
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -28,8 +29,8 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
-import androidx.media3.common.text.Cue
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -41,6 +42,7 @@ import dev.anilbeesetti.libs.ffcodecs.NextRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -50,6 +52,8 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFr
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
+import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeekDisable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
@@ -203,6 +207,9 @@ class PlayerActivity : AppCompatActivity() {
             .setTrackSelector(trackSelector)
             .setAudioAttributes(getAudioAttributes(), true)
             .setHandleAudioBecomingNoisy(true)
+            .setSeekParameters(
+                if (viewModel.preferences.value.fastSeek != FastSeek.DISABLE) SeekParameters.CLOSEST_SYNC else SeekParameters.DEFAULT
+            )
             .build()
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
@@ -219,7 +226,7 @@ class PlayerActivity : AppCompatActivity() {
             )
         }
 
-        binding.playerView.subtitleView?.setFixedTextSize(Cue.TEXT_SIZE_TYPE_ABSOLUTE, 24f)
+        binding.playerView.subtitleView?.setFixedTextSize(Dimension.SP, 21f)
 
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
@@ -452,6 +459,9 @@ class PlayerActivity : AppCompatActivity() {
                     Timber.d(
                         "Current: ${playlistManager.currentIndex()} - ${playlistManager.getCurrent()}"
                     )
+                    if (viewModel.preferences.value.shouldFastSeekDisable(player.duration)) {
+                        player.setSeekParameters(SeekParameters.DEFAULT)
+                    }
                     Timber.d(playlistManager.toString())
                     isFileLoaded = true
                 }
