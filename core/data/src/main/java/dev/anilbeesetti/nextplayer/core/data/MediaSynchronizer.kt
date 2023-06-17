@@ -10,13 +10,18 @@ import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import java.io.File
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
+@Singleton
 class MediaSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
     private val directoryDao: DirectoryDao,
@@ -24,15 +29,20 @@ class MediaSynchronizer @Inject constructor(
     @ApplicationScope private val applicationScope: CoroutineScope
 ) {
 
-    fun sync(scope: CoroutineScope? = null) {
-        mediaSource.getMediaVideosFlow().onEach { media ->
-            Timber.d("Syncing: $media")
-            applicationScope.launch { updateDirectories(media) }
-            applicationScope.launch { updateMedia(media) }
-        }.launchIn(scope ?: applicationScope)
+    private var mediaSyncingJob: Job? = null
+
+    fun sync(scope: CoroutineScope = applicationScope) {
+        if (mediaSyncingJob != null) return
+        mediaSyncingJob = mediaSource.getMediaVideosFlow().onEach { media ->
+            Timber.d("Syncing ${media.size} media ${this.hashCode()}")
+            scope.launch { updateDirectories(media) }
+            scope.launch { updateMedia(media) }
+        }.launchIn(scope)
     }
 
-    private suspend fun updateDirectories(media: List<MediaVideo>) {
+    private suspend fun updateDirectories(media: List<MediaVideo>) = withContext(
+        Dispatchers.Default
+    ) {
         val directories = media.groupBy { File(it.data).parentFile!! }.map { (file, videos) ->
             DirectoryEntity(
                 path = file.path,
@@ -53,7 +63,7 @@ class MediaSynchronizer @Inject constructor(
         directoryDao.delete(unwantedDirectories)
     }
 
-    private suspend fun updateMedia(media: List<MediaVideo>) {
+    private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
         val mediumEntities = media.map {
             val file = File(it.data)
             val mediumEntity = mediumDao.get(it.data)
