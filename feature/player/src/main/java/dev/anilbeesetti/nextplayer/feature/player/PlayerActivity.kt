@@ -15,7 +15,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.Dimension
 import androidx.appcompat.app.AppCompatActivity
@@ -46,7 +46,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -65,6 +64,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -98,14 +98,13 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val subtitleFileLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
-                isSubtitleLauncherHasUri = true
-                viewModel.currentExternalSubtitles.add(uri)
-            }
-            playVideo()
+    private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
+        if (uri != null) {
+            isSubtitleLauncherHasUri = true
+            viewModel.currentExternalSubtitles.add(uri)
         }
+        playVideo()
+    }
 
     /**
      * Player controller views
@@ -257,8 +256,10 @@ class PlayerActivity : AppCompatActivity() {
                     MimeTypes.APPLICATION_SUBRIP,
                     MimeTypes.APPLICATION_TTML,
                     MimeTypes.TEXT_VTT,
-                    MimeTypes.TEXT_SSA
-                )
+                    MimeTypes.TEXT_SSA,
+                    MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                    MimeTypes.BASE_TYPE_TEXT + "/*"
+                ),
             )
             true
         }
