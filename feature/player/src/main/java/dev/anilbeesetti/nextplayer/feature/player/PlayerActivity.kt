@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -298,30 +299,19 @@ class PlayerActivity : AppCompatActivity() {
             toggleSystemBars(showBars = true)
         }
         screenRotationButton.setOnClickListener {
-            screenRotationButton.setImageDrawable(
-                ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation_alt)
-            )
-            requestedOrientation =
-                if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                } else {
-                    when (viewModel.preferences.value.playerScreenOrientation) {
-                        ScreenOrientation.PORTRAIT,
-                        ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-
-                        ScreenOrientation.VIDEO_ORIENTATION,
-                        ScreenOrientation.SYSTEM_DEFAULT,
-                        ScreenOrientation.AUTOMATIC,
-                        ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-
-                        ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
-                    }
+            requestedOrientation = when (resources.configuration.orientation) {
+                Configuration.ORIENTATION_LANDSCAPE -> {
+                    screenRotationButton.setImageDrawable(this, coreUiR.drawable.ic_portrait)
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 }
+                else -> {
+                    screenRotationButton.setImageDrawable(this,coreUiR.drawable.ic_landscape)
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                }
+            }
         }
         screenRotationButton.setOnLongClickListener {
-            screenRotationButton.setImageDrawable(
-                ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation)
-            )
+            screenRotationButton.setImageDrawable(this, coreUiR.drawable.ic_screen_rotation)
             requestedOrientation = viewModel.preferences.value.playerScreenOrientation
                 .toActivityOrientation(videoOrientation = currentVideoOrientation)
             currentOrientation = null
@@ -555,3 +545,7 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
+
+fun ImageButton.setImageDrawable(context: Context, id: Int) {
+    setImageDrawable(ContextCompat.getDrawable(context, id))
+}
