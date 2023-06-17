@@ -11,10 +11,13 @@ import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class MediaSynchronizer @Inject constructor(
@@ -32,7 +35,7 @@ class MediaSynchronizer @Inject constructor(
         }.launchIn(scope ?: applicationScope)
     }
 
-    private suspend fun updateDirectories(media: List<MediaVideo>) {
+    private suspend fun updateDirectories(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
         val directories = media.groupBy { File(it.data).parentFile!! }.map { (file, videos) ->
             DirectoryEntity(
                 path = file.path,
@@ -53,7 +56,7 @@ class MediaSynchronizer @Inject constructor(
         directoryDao.delete(unwantedDirectories)
     }
 
-    private suspend fun updateMedia(media: List<MediaVideo>) {
+    private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
         val mediumEntities = media.map {
             val file = File(it.data)
             val mediumEntity = mediumDao.get(it.data)
