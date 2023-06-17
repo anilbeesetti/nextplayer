@@ -94,4 +94,17 @@
     <string name="video">видео</string>
     <string name="videos">видео</string>
     <string name="manage_folders">Управление папками</string>
+    <string name="screen_rotation">Поворот экрана</string>
+    <string name="player_screen_orientation">Ориентация экрана проигрывателя</string>
+    <string name="automatic">Автоматически (сенсор)</string>
+    <string name="landscape">Горизонтальный</string>
+    <string name="landscape_auto">Горизонтальный (сенсор)</string>
+    <string name="portrait">Портрет</string>
+    <string name="video_orientation">Ориентация Видео</string>
+    <string name="newest">Новейший</string>
+    <string name="oldest">Старейший</string>
+    <string name="date">Дата</string>
+    <string name="enter_a_network_url">Введите URL-адрес сети:</string>
+    <string name="network_stream">Стриминг</string>
+    <string name="default_playback_speed">Скорость воспроизведения по умолчанию</string>
 </resources>
