@@ -19,7 +19,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import javax.inject.Singleton
 
+@Singleton
 class MediaSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
     private val directoryDao: DirectoryDao,
@@ -27,12 +29,15 @@ class MediaSynchronizer @Inject constructor(
     @ApplicationScope private val applicationScope: CoroutineScope
 ) {
 
-    fun sync(scope: CoroutineScope? = null) {
-        mediaSource.getMediaVideosFlow().onEach { media ->
-            Timber.d("Syncing: $media")
-            applicationScope.launch { updateDirectories(media) }
-            applicationScope.launch { updateMedia(media) }
-        }.launchIn(scope ?: applicationScope)
+    private var mediaSyncingJob: Job? = null
+
+    fun sync(scope: CoroutineScope = applicationScope) {
+        if (mediaSyncingJob != null) return
+        mediaSyncingJob = mediaSource.getMediaVideosFlow().onEach { media ->
+            Timber.d("Syncing ${media.size} media ${this.hashCode()}")
+            scope.launch { updateDirectories(media) }
+            scope.launch { updateMedia(media) }
+        }.launchIn(scope)
     }
 
     private suspend fun updateDirectories(media: List<MediaVideo>) = withContext(Dispatchers.Default) {

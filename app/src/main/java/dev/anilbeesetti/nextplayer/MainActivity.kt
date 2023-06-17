@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var synchronizer: MediaSynchronizer
 
-    val viewModel: MainActivityViewModel by viewModels()
+    private val viewModel: MainActivityViewModel by viewModels()
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
                         if (storagePermissionState.status.isGranted) {
-                            synchronizer.sync(lifecycleScope)
+                            synchronizer.sync()
                         }
                     }
 
