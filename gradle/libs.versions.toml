@@ -26,7 +26,7 @@ kotlin = "1.8.21"
 kotlinxCoroutines = "1.6.4"
 kotlinxSerializationJson = "1.5.1"
 ktlint = "11.4.0"
-landscapist = "2.2.1"
+landscapist = "2.2.2"
 room = "2.5.1"
 timber = "5.0.1"
 
