@@ -354,7 +354,7 @@ class PlayerActivity : AppCompatActivity() {
             val subs = currentUri.getSubs(
                 context = this@PlayerActivity,
                 extras = intent.extras,
-                externalSubtitles = viewModel.currentExternalSubtitles
+                externalSubtitles = viewModel.currentExternalSubtitles.toList()
             )
 
             // current uri as MediaItem with subs

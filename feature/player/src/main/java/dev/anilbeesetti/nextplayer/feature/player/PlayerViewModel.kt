@@ -37,7 +37,7 @@ class PlayerViewModel @Inject constructor(
 
     var isPlaybackSpeedChanged: Boolean = false
 
-    val currentExternalSubtitles = mutableListOf<Uri>()
+    val currentExternalSubtitles = mutableSetOf<Uri>()
 
     private var currentVideoState: VideoState? = null
 
