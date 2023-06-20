@@ -46,6 +46,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -64,7 +65,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -259,7 +259,7 @@ class PlayerActivity : AppCompatActivity() {
                     MimeTypes.TEXT_SSA,
                     MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
                     MimeTypes.BASE_TYPE_TEXT + "/*"
-                ),
+                )
             )
             true
         }
