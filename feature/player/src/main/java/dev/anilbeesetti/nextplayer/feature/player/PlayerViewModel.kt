@@ -53,8 +53,8 @@ class PlayerViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    suspend fun updateState(path: String?, shouldUpdateSubtitles: Boolean) {
-        resetToDefaults(exceptSubtitles = !shouldUpdateSubtitles)
+    suspend fun updateState(path: String?) {
+        resetToDefaults()
         if (path == null) return
         currentVideoState = mediaRepository.getVideoState(path) ?: return
 
@@ -110,12 +110,20 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun resetToDefaults(exceptSubtitles: Boolean = false) {
+    fun resetToDefaults() {
         currentPlaybackPosition = null
         currentPlaybackSpeed = 1f
         currentAudioTrackIndex = null
         currentSubtitleTrackIndex = null
         isPlaybackSpeedChanged = false
-        if (!exceptSubtitles) currentExternalSubtitles.clear()
+    }
+
+    fun resetAllToDefaults() {
+        currentPlaybackPosition = null
+        currentPlaybackSpeed = 1f
+        currentAudioTrackIndex = null
+        currentSubtitleTrackIndex = null
+        isPlaybackSpeedChanged = false
+        currentExternalSubtitles.clear()
     }
 }

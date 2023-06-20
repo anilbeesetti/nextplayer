@@ -277,12 +277,14 @@ class PlayerActivity : AppCompatActivity() {
         nextButton.setOnClickListener {
             if (playlistManager.hasNext()) {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
+                viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
             if (playlistManager.hasPrev()) {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
+                viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getPrev()!!)
             }
         }
@@ -340,10 +342,7 @@ class PlayerActivity : AppCompatActivity() {
 
             val currentUri = playlistManager.getCurrent()!!
 
-            viewModel.updateState(
-                path = getPath(currentUri),
-                shouldUpdateSubtitles = !isSubtitleLauncherHasUri
-            )
+            viewModel.updateState(path = getPath(currentUri))
 
             if (isSubtitleLauncherHasUri) viewModel.currentSubtitleTrackIndex = null
 
