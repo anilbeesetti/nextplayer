@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -305,33 +306,15 @@ class PlayerActivity : AppCompatActivity() {
             toggleSystemBars(showBars = true)
         }
         screenRotationButton.setOnClickListener {
-            screenRotationButton.setImageDrawable(
-                ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation_alt)
-            )
-            requestedOrientation =
-                if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                } else {
-                    when (viewModel.preferences.value.playerScreenOrientation) {
-                        ScreenOrientation.PORTRAIT,
-                        ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-
-                        ScreenOrientation.VIDEO_ORIENTATION,
-                        ScreenOrientation.SYSTEM_DEFAULT,
-                        ScreenOrientation.AUTOMATIC,
-                        ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-
-                        ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
-                    }
-                }
+            requestedOrientation = when (resources.configuration.orientation) {
+                Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
         }
         screenRotationButton.setOnLongClickListener {
-            screenRotationButton.setImageDrawable(
-                ContextCompat.getDrawable(this, coreUiR.drawable.ic_screen_rotation)
-            )
-            requestedOrientation = viewModel.preferences.value.playerScreenOrientation
-                .toActivityOrientation(videoOrientation = currentVideoOrientation)
-            currentOrientation = null
+            viewModel.preferences.value.playerScreenOrientation.also {
+                requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
+            }
             true
         }
         backButton.setOnClickListener { finish() }
@@ -521,6 +504,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    override fun setRequestedOrientation(requestedOrientation: Int) {
+        super.setRequestedOrientation(requestedOrientation)
+        screenRotationButton.setImageDrawable(this, getRotationDrawable())
+    }
+
     private fun getAudioAttributes(): AudioAttributes {
         return AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -565,3 +553,26 @@ private val VideoSize.isPortrait: Boolean
         val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
         return if (isRotated) this.width > this.height else this.height > this.width
     }
+
+private fun ImageButton.setImageDrawable(context: Context, id: Int) {
+    setImageDrawable(ContextCompat.getDrawable(context, id))
+}
+
+private fun Activity.getRotationDrawable(): Int {
+    return when (requestedOrientation) {
+        ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR,
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR -> coreUiR.drawable.ic_screen_rotation
+
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
+        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
+        ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
+        ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT -> coreUiR.drawable.ic_portrait
+
+        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+        ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
+        ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE -> coreUiR.drawable.ic_landscape
+
+        else -> coreUiR.drawable.ic_screen_rotation_alt
+    }
+}

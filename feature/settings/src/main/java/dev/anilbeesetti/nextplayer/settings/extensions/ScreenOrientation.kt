@@ -13,7 +13,6 @@ fun ScreenOrientation.name(): String {
         ScreenOrientation.LANDSCAPE_REVERSE -> R.string.landscape_reverse
         ScreenOrientation.LANDSCAPE_AUTO -> R.string.landscape_auto
         ScreenOrientation.PORTRAIT -> R.string.portrait
-        ScreenOrientation.SYSTEM_DEFAULT -> R.string.system_default
         ScreenOrientation.VIDEO_ORIENTATION -> R.string.video_orientation
     }
 
