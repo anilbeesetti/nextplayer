@@ -51,4 +51,6 @@
     <string name="system_default">Predefinito di sistema</string>
     <string name="on">Attivato</string>
     <string name="enable">Abilita</string>
+    <string name="select_audio_track">Seleziona traccia audio</string>
+    <string name="select_subtitle_track">Seleziona traccia sottotitoli</string>
 </resources>
