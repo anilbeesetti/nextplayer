@@ -344,8 +344,6 @@ class PlayerActivity : AppCompatActivity() {
 
             viewModel.updateState(path = getPath(currentUri))
 
-            if (isSubtitleLauncherHasUri) viewModel.currentSubtitleTrackIndex = null
-
             if (intent.data == currentUri && intent.extras?.containsKey(API_POSITION) == true) {
                 viewModel.currentPlaybackPosition = intent.extras?.getInt(API_POSITION)?.toLong()
             }
@@ -373,7 +371,6 @@ class PlayerActivity : AppCompatActivity() {
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
-            isSubtitleLauncherHasUri = false
         }
     }
 
@@ -467,6 +464,13 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onTracksChanged(tracks: Tracks) {
             if (!isFirstFrameRendered) {
+                if (isSubtitleLauncherHasUri) {
+                    val textTracks = player.currentTracks.groups
+                        .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
+
+                    viewModel.currentSubtitleTrackIndex = textTracks.size - 1
+                }
+                isSubtitleLauncherHasUri = false
                 player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
                 player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
                 player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
