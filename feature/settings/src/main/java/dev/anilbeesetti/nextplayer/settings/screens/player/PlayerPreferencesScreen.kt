@@ -139,6 +139,7 @@ fun PlayerPreferencesScreen(
                     PreferenceSubtitle(text = stringResource(id = R.string.audio))
                 }
                 preferredAudioLanguageSetting(
+                    currentLanguage = getDisplayTitle(preferences.preferredAudioLanguage),
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.AudioLanguageDialog) }
                 )
             }
@@ -419,12 +420,15 @@ fun LazyListScope.screenOrientationSetting(
 }
 
 fun LazyListScope.preferredAudioLanguageSetting(
+    currentLanguage: String,
     onClick: () -> Unit
 ) {
     item {
         ClickablePreferenceItem(
             title = stringResource(id = R.string.preferred_audio_lang),
-            description = stringResource(id = R.string.preferred_audio_lang_description),
+            description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
+                id = R.string.preferred_audio_lang_description
+            ),
             icon = NextIcons.AudioTrack,
             onClick = onClick
         )
@@ -441,5 +445,14 @@ fun getLanguages(): List<Pair<String, String>> {
     } catch (e: Exception) {
         e.printStackTrace()
         listOf()
+    }
+}
+
+fun getDisplayTitle(key: String): String {
+    return try {
+        Locale.getAvailableLocales().first { it.isO3Language == key }.displayLanguage
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ""
     }
 }

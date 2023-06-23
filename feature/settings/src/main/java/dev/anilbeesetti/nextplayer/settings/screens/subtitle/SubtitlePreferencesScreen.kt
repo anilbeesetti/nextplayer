@@ -24,6 +24,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
+import dev.anilbeesetti.nextplayer.settings.screens.player.getDisplayTitle
 import dev.anilbeesetti.nextplayer.settings.screens.player.getLanguages
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +62,7 @@ fun SubtitlePreferencesScreen(
         ) {
             item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
             preferredSubtitleLanguageSetting(
+                currentLanguage = getDisplayTitle(preferences.preferredSubtitleLanguage),
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) }
             )
             item { PreferenceSubtitle(text = stringResource(id = R.string.appearance_name)) }
@@ -84,19 +86,21 @@ fun SubtitlePreferencesScreen(
                     }
                 }
             }
-            SubtitlePreferenceDialog.None -> { }
+
+            SubtitlePreferenceDialog.None -> {}
         }
     }
 }
 
 
 fun LazyListScope.preferredSubtitleLanguageSetting(
+    currentLanguage: String,
     onClick: () -> Unit
 ) {
     item {
         ClickablePreferenceItem(
             title = stringResource(id = R.string.preferred_subtitle_lang),
-            description = stringResource(
+            description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
                 id = R.string.preferred_subtitle_lang_description
             ),
             icon = NextIcons.Subtitle,
