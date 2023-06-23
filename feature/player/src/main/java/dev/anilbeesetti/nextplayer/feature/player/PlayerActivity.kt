@@ -25,6 +25,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -51,16 +52,20 @@ import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBind
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubs
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeekDisable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
+import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,6 +78,7 @@ class PlayerActivity : AppCompatActivity() {
     lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
+    private val currentContext = this
 
     private var playWhenReady = true
     private var isPlaybackFinished = false
@@ -93,6 +99,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playlistManager: PlaylistManager
     private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var mediaSession: MediaSession
+    private lateinit var playerApi: PlayerApi
 
     /**
      * Listeners
@@ -101,7 +108,7 @@ class PlayerActivity : AppCompatActivity() {
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null) {
             isSubtitleLauncherHasUri = true
-            viewModel.currentExternalSubtitles.add(uri)
+            viewModel.externalSubtitles.add(uri)
         }
         playVideo()
     }
@@ -124,6 +131,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        prettyPrintIntent()
 
         AppCompatDelegate.setDefaultNightMode(
             when (viewModel.applicationPreferences.value.themeConfig) {
@@ -156,6 +164,7 @@ class PlayerActivity : AppCompatActivity() {
         )
 
         playlistManager = PlaylistManager()
+        playerApi = PlayerApi(this)
 
         // Initializing views
         audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
@@ -194,13 +203,13 @@ class PlayerActivity : AppCompatActivity() {
         val renderersFactory = NextRenderersFactory(application)
             .setExtensionRendererMode(NextRenderersFactory.EXTENSION_RENDERER_MODE_ON)
 
-        trackSelector = DefaultTrackSelector(applicationContext)
-
-        trackSelector.setParameters(
-            trackSelector.buildUponParameters()
-                .setPreferredAudioLanguage(viewModel.preferences.value.preferredAudioLanguage)
-                .setPreferredTextLanguage(viewModel.preferences.value.preferredSubtitleLanguage)
-        )
+        trackSelector = DefaultTrackSelector(applicationContext).apply {
+            this.setParameters(
+                this.buildUponParameters()
+                    .setPreferredAudioLanguage(viewModel.preferences.value.preferredAudioLanguage)
+                    .setPreferredTextLanguage(viewModel.preferences.value.preferredSubtitleLanguage)
+            )
+        }
 
         player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
@@ -214,6 +223,11 @@ class PlayerActivity : AppCompatActivity() {
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
         player.addListener(playbackStateListener)
+    }
+
+    private fun setOrientation() {
+        requestedOrientation = currentOrientation
+            ?: viewModel.preferences.value.playerScreenOrientation.toActivityOrientation()
     }
 
     private fun initializePlayerView() {
@@ -344,30 +358,31 @@ class PlayerActivity : AppCompatActivity() {
 
             viewModel.updateState(path = getPath(currentUri))
 
-            if (intent.data == currentUri && intent.extras?.containsKey(API_POSITION) == true) {
-                viewModel.currentPlaybackPosition = intent.extras?.getInt(API_POSITION)?.toLong()
+            if (intent.data == currentUri && playerApi.hasPosition) {
+                viewModel.currentPlaybackPosition = playerApi.position?.toLong()
             }
 
             // Get all subtitles for current uri
-            val subs = currentUri.getSubs(
-                context = this@PlayerActivity,
-                extras = intent.extras,
-                externalSubtitles = viewModel.currentExternalSubtitles.toList()
-            )
+            val apiSubs = if (intent.data == currentUri) playerApi.getSubs() else emptyList()
+            val localSubs = currentUri.getLocalSubtitles(currentContext)
+            val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
 
             // current uri as MediaItem with subs
-            val mediaItem = currentUri.toMediaItem(type = intent.type, subtitles = subs)
+            val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
+            val mediaStream = createMediaStream(currentUri, intent.type).buildUpon()
+                .setSubtitleConfigurations(subtitleStreams)
+                .build()
 
             withContext(Dispatchers.Main) {
                 // Set api title if current uri is intent uri and intent extras contains api title
-                if (intent.data == currentUri && intent.extras?.containsKey(API_TITLE) == true) {
-                    videoTitleTextView.text = intent.extras?.getString(API_TITLE)
+                if (intent.data == currentUri && playerApi.hasTitle) {
+                    videoTitleTextView.text = playerApi.title
                 } else {
                     videoTitleTextView.text = getFilenameFromUri(currentUri)
                 }
 
                 // Set media and start player
-                player.setMediaItem(mediaItem, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
+                player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
@@ -436,13 +451,10 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
-                    Timber.d(
-                        "Current: ${playlistManager.currentIndex()} - ${playlistManager.getCurrent()}"
-                    )
+                    Timber.d(playlistManager.toString())
                     if (viewModel.preferences.value.shouldFastSeekDisable(player.duration)) {
                         player.setSeekParameters(SeekParameters.DEFAULT)
                     }
-                    Timber.d(playlistManager.toString())
                     isFileLoaded = true
                 }
 
@@ -463,34 +475,28 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onTracksChanged(tracks: Tracks) {
-            if (!isFirstFrameRendered) {
-                if (isSubtitleLauncherHasUri) {
-                    val textTracks = player.currentTracks.groups
-                        .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
+            super.onTracksChanged(tracks)
+            if (isFirstFrameRendered) return
 
-                    viewModel.currentSubtitleTrackIndex = textTracks.size - 1
-                }
-                isSubtitleLauncherHasUri = false
-                player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
-                player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
-                player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
+            if (isSubtitleLauncherHasUri) {
+                val textTracks = player.currentTracks.groups
+                    .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
+                viewModel.currentSubtitleTrackIndex = textTracks.size - 1
             }
+            isSubtitleLauncherHasUri = false
+            player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
+            player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
+            player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
         }
     }
 
     override fun finish() {
-        if (intent.extras != null && intent.extras!!.containsKey(API_RETURN_RESULT)) {
-            val result = Intent(API_RESULT_INTENT)
-            result.putExtra(API_END_BY, if (isPlaybackFinished) "playback_completion" else "user")
-            if (!isPlaybackFinished) {
-                player.also {
-                    if (it.duration != C.TIME_UNSET) {
-                        result.putExtra(API_DURATION, it.duration.toInt())
-                    }
-                    result.putExtra(API_POSITION, it.currentPosition.toInt())
-                }
-            }
-            Timber.d("Sending result: $result")
+        if (playerApi.shouldReturnResult) {
+            val result = playerApi.getResult(
+                isPlaybackFinished = isPlaybackFinished,
+                duration = player.duration,
+                position = player.currentPosition
+            )
             setResult(Activity.RESULT_OK, result)
         }
         super.finish()
@@ -499,10 +505,10 @@ class PlayerActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         if (intent != null) {
-            Timber.d("new intent: ${intent.data}")
             playlistManager.clearQueue()
             viewModel.resetToDefaults()
             setIntent(intent)
+            prettyPrintIntent()
             shouldFetchPlaylist = true
             playVideo()
         }
@@ -534,21 +540,25 @@ class PlayerActivity : AppCompatActivity() {
         isFirstFrameRendered = false
     }
 
-    private fun setOrientation() {
-        requestedOrientation = currentOrientation
-            ?: viewModel.preferences.value.playerScreenOrientation.toActivityOrientation()
+    private fun createMediaStream(uri: Uri, mimeType: String?): MediaItem {
+        return MediaItem.Builder().apply {
+            setMediaId(uri.toString())
+            setUri(uri)
+            mimeType?.let { setMimeType(mimeType) }
+        }.build()
     }
 
-    companion object {
-        const val API_TITLE = "title"
-        const val API_POSITION = "position"
-        const val API_DURATION = "duration"
-        const val API_RETURN_RESULT = "return_result"
-        const val API_END_BY = "end_by"
-        const val API_SUBS = "subs"
-        const val API_SUBS_ENABLE = "subs.enable"
-        const val API_SUBS_NAME = "subs.name"
-        const val API_RESULT_INTENT = "com.mxtech.intent.result.VIEW"
+    private fun createExternalSubtitleStreams(
+        subtitles: List<Subtitle>
+    ): List<MediaItem.SubtitleConfiguration> {
+        return subtitles.map {
+            MediaItem.SubtitleConfiguration.Builder(it.uri).apply {
+                setId(it.uri.toString())
+                setMimeType(it.uri.getSubtitleMime())
+                setLabel(it.name)
+                if (it.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+            }.build()
+        }
     }
 }
 
@@ -564,9 +574,6 @@ private fun ImageButton.setImageDrawable(context: Context, id: Int) {
 
 private fun Activity.getRotationDrawable(): Int {
     return when (requestedOrientation) {
-        ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR,
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR -> coreUiR.drawable.ic_screen_rotation
-
         ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
         ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
         ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
@@ -577,6 +584,27 @@ private fun Activity.getRotationDrawable(): Int {
         ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
         ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE -> coreUiR.drawable.ic_landscape
 
-        else -> coreUiR.drawable.ic_screen_rotation_alt
+        else -> coreUiR.drawable.ic_screen_rotation
+    }
+}
+
+@Suppress("DEPRECATION")
+fun Activity.prettyPrintIntent() {
+    Timber.apply {
+        d("* action: ${intent.action}")
+        d("* data: ${intent.data}")
+        d("* type: ${intent.type}")
+        d("* package: ${intent.`package`}")
+        d("* component: ${intent.component}")
+        d("* flags: ${intent.flags}")
+        intent.extras?.let { bundle ->
+            d("=== Extras ===")
+            bundle.keySet().forEachIndexed { i, key ->
+                buildString {
+                    append("${i + 1}) $key: ")
+                    bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
+                }.also { d(it) }
+            }
+        }
     }
 }
