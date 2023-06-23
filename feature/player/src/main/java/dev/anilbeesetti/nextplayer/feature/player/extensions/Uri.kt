@@ -10,7 +10,6 @@ import androidx.media3.common.MimeTypes
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
-import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import java.io.File
 
@@ -34,55 +33,24 @@ fun Uri.getSubtitleMime(): String {
     }
 }
 
-fun Uri.getSubs(
-    context: Context,
-    extras: Bundle?,
-    externalSubtitles: List<Uri> = emptyList()
-): List<Subtitle> {
-    val subtitles = mutableListOf<Subtitle>()
-
-    if (extras != null && extras.containsKey(PlayerActivity.API_SUBS)) {
-        val subsEnable = extras.getParcelableUriArray(PlayerActivity.API_SUBS_ENABLE)
-
-        val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
-
-        val subs = extras.getParcelableUriArray(PlayerActivity.API_SUBS)
-        val subsName = extras.getStringArray(PlayerActivity.API_SUBS_NAME)
-
-        if (!subs.isNullOrEmpty()) {
-            subtitles += subs.mapIndexed { index, parcelable ->
-                val subtitleUri = parcelable as Uri
-                val subtitleName =
-                    if (subsName != null && subsName.size > index) subsName[index] else null
-                Subtitle(
-                    name = subtitleName,
-                    uri = subtitleUri,
-                    isSelected = subtitleUri == defaultSub && externalSubtitles.isEmpty()
-                )
-            }
-        }
-    }
-
-    context.getPath(this)?.let { path ->
-        subtitles += File(path).getSubtitles().mapIndexed { index, file ->
+fun Uri.getLocalSubtitles(context: Context): List<Subtitle> {
+    return context.getPath(this)?.let { path ->
+        File(path).getSubtitles().map { file ->
             Subtitle(
                 name = file.name,
                 uri = file.toUri(),
-                isSelected = index == 0 && externalSubtitles.isEmpty()
+                isSelected = false
             )
         }
-    }
-
-    subtitles += externalSubtitles.mapIndexed { index, uri ->
-        Subtitle(
-            name = context.getFilenameFromUri(uri),
-            uri = uri,
-            isSelected = index == (externalSubtitles.size - 1)
-        )
-    }
-
-    return subtitles
+    } ?: emptyList()
 }
+
+fun Uri.toSubtitle(context: Context) = Subtitle(
+    name = context.getFilenameFromUri(this),
+    uri = this,
+    isSelected = false
+)
+
 
 @Suppress("DEPRECATION")
 fun Bundle.getParcelableUriArray(key: String): Array<out Parcelable>? {
