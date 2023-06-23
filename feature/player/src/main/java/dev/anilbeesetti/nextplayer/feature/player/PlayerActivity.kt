@@ -15,7 +15,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.Dimension
 import androidx.appcompat.app.AppCompatActivity
@@ -98,14 +98,13 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private val subtitleFileLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
-                isSubtitleLauncherHasUri = true
-                viewModel.currentExternalSubtitles.add(uri)
-            }
-            playVideo()
+    private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
+        if (uri != null) {
+            isSubtitleLauncherHasUri = true
+            viewModel.currentExternalSubtitles.add(uri)
         }
+        playVideo()
+    }
 
     /**
      * Player controller views
@@ -257,7 +256,9 @@ class PlayerActivity : AppCompatActivity() {
                     MimeTypes.APPLICATION_SUBRIP,
                     MimeTypes.APPLICATION_TTML,
                     MimeTypes.TEXT_VTT,
-                    MimeTypes.TEXT_SSA
+                    MimeTypes.TEXT_SSA,
+                    MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                    MimeTypes.BASE_TYPE_TEXT + "/*"
                 )
             )
             true
@@ -276,12 +277,14 @@ class PlayerActivity : AppCompatActivity() {
         nextButton.setOnClickListener {
             if (playlistManager.hasNext()) {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
+                viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getNext()!!)
             }
         }
         prevButton.setOnClickListener {
             if (playlistManager.hasPrev()) {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
+                viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getPrev()!!)
             }
         }
@@ -339,12 +342,7 @@ class PlayerActivity : AppCompatActivity() {
 
             val currentUri = playlistManager.getCurrent()!!
 
-            viewModel.updateState(
-                path = getPath(currentUri),
-                shouldUpdateSubtitles = !isSubtitleLauncherHasUri
-            )
-
-            if (isSubtitleLauncherHasUri) viewModel.currentSubtitleTrackIndex = null
+            viewModel.updateState(path = getPath(currentUri))
 
             if (intent.data == currentUri && intent.extras?.containsKey(API_POSITION) == true) {
                 viewModel.currentPlaybackPosition = intent.extras?.getInt(API_POSITION)?.toLong()
@@ -354,7 +352,7 @@ class PlayerActivity : AppCompatActivity() {
             val subs = currentUri.getSubs(
                 context = this@PlayerActivity,
                 extras = intent.extras,
-                externalSubtitles = viewModel.currentExternalSubtitles
+                externalSubtitles = viewModel.currentExternalSubtitles.toList()
             )
 
             // current uri as MediaItem with subs
@@ -373,7 +371,6 @@ class PlayerActivity : AppCompatActivity() {
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
-            isSubtitleLauncherHasUri = false
         }
     }
 
@@ -467,6 +464,13 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onTracksChanged(tracks: Tracks) {
             if (!isFirstFrameRendered) {
+                if (isSubtitleLauncherHasUri) {
+                    val textTracks = player.currentTracks.groups
+                        .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
+
+                    viewModel.currentSubtitleTrackIndex = textTracks.size - 1
+                }
+                isSubtitleLauncherHasUri = false
                 player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
                 player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
                 player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
