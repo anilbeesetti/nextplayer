@@ -451,13 +451,10 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
-                    Timber.d(
-                        "Current: ${playlistManager.currentIndex()} - ${playlistManager.getCurrent()}"
-                    )
+                    Timber.d(playlistManager.toString())
                     if (viewModel.preferences.value.shouldFastSeekDisable(player.duration)) {
                         player.setSeekParameters(SeekParameters.DEFAULT)
                     }
-                    Timber.d(playlistManager.toString())
                     isFileLoaded = true
                 }
 
@@ -478,18 +475,18 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onTracksChanged(tracks: Tracks) {
-            if (!isFirstFrameRendered) {
-                if (isSubtitleLauncherHasUri) {
-                    val textTracks = player.currentTracks.groups
-                        .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
+            super.onTracksChanged(tracks)
+            if (isFirstFrameRendered) return
 
-                    viewModel.currentSubtitleTrackIndex = textTracks.size - 1
-                }
-                isSubtitleLauncherHasUri = false
-                player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
-                player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
-                player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
+            if (isSubtitleLauncherHasUri) {
+                val textTracks = player.currentTracks.groups
+                    .filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
+                viewModel.currentSubtitleTrackIndex = textTracks.size - 1
             }
+            isSubtitleLauncherHasUri = false
+            player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
+            player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
+            player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
         }
     }
 
@@ -559,7 +556,7 @@ class PlayerActivity : AppCompatActivity() {
                 setId(it.uri.toString())
                 setMimeType(it.uri.getSubtitleMime())
                 setLabel(it.name)
-                if (it.isSelected) setSelectionFlags(C.SELECTION_FLAG_FORCED)
+                if (it.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
             }.build()
         }
     }
@@ -577,9 +574,6 @@ private fun ImageButton.setImageDrawable(context: Context, id: Int) {
 
 private fun Activity.getRotationDrawable(): Int {
     return when (requestedOrientation) {
-        ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR,
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR -> coreUiR.drawable.ic_screen_rotation
-
         ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
         ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
         ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
@@ -590,10 +584,11 @@ private fun Activity.getRotationDrawable(): Int {
         ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
         ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE -> coreUiR.drawable.ic_landscape
 
-        else -> coreUiR.drawable.ic_screen_rotation_alt
+        else -> coreUiR.drawable.ic_screen_rotation
     }
 }
 
+@Suppress("DEPRECATION")
 fun Activity.prettyPrintIntent() {
     Timber.apply {
         d("* action: ${intent.action}")
@@ -605,13 +600,10 @@ fun Activity.prettyPrintIntent() {
         intent.extras?.let { bundle ->
             d("=== Extras ===")
             bundle.keySet().forEachIndexed { i, key ->
-                val extra = buildString {
+                buildString {
                     append("${i + 1}) $key: ")
-                    bundle.get(key).let {
-                        append(if (it is Array<*>) Arrays.toString(it) else it)
-                    }
-                }
-                d(extra)
+                    bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
+                }.also { d(it) }
             }
         }
     }

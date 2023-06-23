@@ -17,7 +17,6 @@ class PlayerApi(val activity: PlayerActivity) {
     val position: Int? get() = if (hasPosition) extras?.getInt(API_POSITION) else null
     val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
 
-
     fun getSubs(): List<Subtitle> {
         if (extras == null) return emptyList()
         if (!extras.containsKey(API_SUBS)) return emptyList()
