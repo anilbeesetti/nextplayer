@@ -141,12 +141,6 @@ fun PlayerPreferencesScreen(
                 preferredAudioLanguageSetting(
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.AudioLanguageDialog) }
                 )
-                item {
-                    PreferenceSubtitle(text = stringResource(id = R.string.subtitle))
-                }
-                preferredSubtitleLanguageSetting(
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.SubtitleLanguageDialog) }
-                )
             }
 
             when (uiState.showDialog) {
@@ -215,24 +209,6 @@ fun PlayerPreferencesScreen(
                                 selected = it.second == preferences.preferredAudioLanguage,
                                 onClick = {
                                     viewModel.updateAudioLanguage(it.second)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.SubtitleLanguageDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.preferred_subtitle_lang),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(languages) {
-                            RadioTextButton(
-                                text = it.first,
-                                selected = it.second == preferences.preferredSubtitleLanguage,
-                                onClick = {
-                                    viewModel.updateSubtitleLanguage(it.second)
                                     viewModel.hideDialog()
                                 }
                             )
@@ -450,21 +426,6 @@ fun LazyListScope.preferredAudioLanguageSetting(
             title = stringResource(id = R.string.preferred_audio_lang),
             description = stringResource(id = R.string.preferred_audio_lang_description),
             icon = NextIcons.AudioTrack,
-            onClick = onClick
-        )
-    }
-}
-
-fun LazyListScope.preferredSubtitleLanguageSetting(
-    onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.preferred_subtitle_lang),
-            description = stringResource(
-                id = R.string.preferred_subtitle_lang_description
-            ),
-            icon = NextIcons.Subtitle,
             onClick = onClick
         )
     }
