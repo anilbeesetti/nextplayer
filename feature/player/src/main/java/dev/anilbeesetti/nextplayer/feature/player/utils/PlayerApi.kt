@@ -40,14 +40,14 @@ class PlayerApi(val activity: PlayerActivity) {
         }
     }
 
-    fun getResult(player: Player, isPlaybackFinished: Boolean): Intent {
+    fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent {
         return Intent(API_RESULT_INTENT).apply {
             if (isPlaybackFinished) {
                 putExtra(API_END_BY, API_END_BY_COMPLETION)
             } else {
                 putExtra(API_END_BY, API_END_BY_USER)
-                if (player.duration != C.TIME_UNSET) putExtra(API_DURATION, player.duration.toInt())
-                putExtra(API_POSITION, player.currentPosition.toInt())
+                if (duration != C.TIME_UNSET) putExtra(API_DURATION, duration.toInt())
+                if (position != C.TIME_UNSET) putExtra(API_POSITION, position.toInt())
             }
         }
     }

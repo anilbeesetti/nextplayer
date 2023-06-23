@@ -493,7 +493,12 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun finish() {
         if (playerApi.shouldReturnResult) {
-            setResult(Activity.RESULT_OK, playerApi.getResult(player, isPlaybackFinished))
+            val result = playerApi.getResult(
+                isPlaybackFinished = isPlaybackFinished,
+                duration = player.duration,
+                position = player.currentPosition
+            )
+            setResult(Activity.RESULT_OK, result)
         }
         super.finish()
     }
