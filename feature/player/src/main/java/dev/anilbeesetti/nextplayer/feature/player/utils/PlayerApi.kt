@@ -64,5 +64,4 @@ class PlayerApi(val activity: PlayerActivity) {
         private const val API_END_BY_USER = "user"
         private const val API_END_BY_COMPLETION = "playback_completion"
     }
-
 }

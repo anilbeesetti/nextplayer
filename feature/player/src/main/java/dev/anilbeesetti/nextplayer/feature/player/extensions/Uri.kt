@@ -51,7 +51,6 @@ fun Uri.toSubtitle(context: Context) = Subtitle(
     isSelected = false
 )
 
-
 @Suppress("DEPRECATION")
 fun Bundle.getParcelableUriArray(key: String): Array<out Parcelable>? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
