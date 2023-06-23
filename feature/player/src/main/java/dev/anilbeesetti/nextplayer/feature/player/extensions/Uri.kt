@@ -6,14 +6,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import androidx.core.net.toUri
-import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
-import dev.anilbeesetti.nextplayer.feature.player.model.toSubtitleConfiguration
 import java.io.File
 
 fun Uri.getSubtitleMime(): String {
@@ -34,20 +32,6 @@ fun Uri.getSubtitleMime(): String {
             MimeTypes.APPLICATION_SUBRIP
         }
     }
-}
-
-/**
- * Converts [Uri] to [MediaItem]
- */
-fun Uri.toMediaItem(subtitles: List<Subtitle>, type: String?): MediaItem {
-    val subtitleConfigurations = subtitles.map(Subtitle::toSubtitleConfiguration)
-    val mediaItemBuilder = MediaItem.Builder()
-        .setUri(this)
-        .setSubtitleConfigurations(subtitleConfigurations)
-
-    type?.let { mediaItemBuilder.setMimeType(type) }
-
-    return mediaItemBuilder.build()
 }
 
 fun Uri.getSubs(

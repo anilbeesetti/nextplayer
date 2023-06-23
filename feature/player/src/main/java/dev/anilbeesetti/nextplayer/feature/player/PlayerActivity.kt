@@ -25,6 +25,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -46,25 +47,26 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubs
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeekDisable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toMediaItem
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -194,13 +196,13 @@ class PlayerActivity : AppCompatActivity() {
         val renderersFactory = NextRenderersFactory(application)
             .setExtensionRendererMode(NextRenderersFactory.EXTENSION_RENDERER_MODE_ON)
 
-        trackSelector = DefaultTrackSelector(applicationContext)
-
-        trackSelector.setParameters(
-            trackSelector.buildUponParameters()
-                .setPreferredAudioLanguage(viewModel.preferences.value.preferredAudioLanguage)
-                .setPreferredTextLanguage(viewModel.preferences.value.preferredSubtitleLanguage)
-        )
+        trackSelector = DefaultTrackSelector(applicationContext).apply {
+            this.setParameters(
+                this.buildUponParameters()
+                    .setPreferredAudioLanguage(viewModel.preferences.value.preferredAudioLanguage)
+                    .setPreferredTextLanguage(viewModel.preferences.value.preferredSubtitleLanguage)
+            )
+        }
 
         player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
@@ -214,6 +216,11 @@ class PlayerActivity : AppCompatActivity() {
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
         player.addListener(playbackStateListener)
+    }
+
+    private fun setOrientation() {
+        requestedOrientation = currentOrientation
+            ?: viewModel.preferences.value.playerScreenOrientation.toActivityOrientation()
     }
 
     private fun initializePlayerView() {
@@ -356,7 +363,10 @@ class PlayerActivity : AppCompatActivity() {
             )
 
             // current uri as MediaItem with subs
-            val mediaItem = currentUri.toMediaItem(type = intent.type, subtitles = subs)
+            val subtitleStreams = createExternalSubtitleStreams(subs)
+            val mediaStream = createMediaStream(currentUri, intent.type).buildUpon()
+                .setSubtitleConfigurations(subtitleStreams)
+                .build()
 
             withContext(Dispatchers.Main) {
                 // Set api title if current uri is intent uri and intent extras contains api title
@@ -367,7 +377,7 @@ class PlayerActivity : AppCompatActivity() {
                 }
 
                 // Set media and start player
-                player.setMediaItem(mediaItem, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
+                player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
                 player.prepare()
             }
@@ -534,9 +544,24 @@ class PlayerActivity : AppCompatActivity() {
         isFirstFrameRendered = false
     }
 
-    private fun setOrientation() {
-        requestedOrientation = currentOrientation
-            ?: viewModel.preferences.value.playerScreenOrientation.toActivityOrientation()
+    private fun createMediaStream(uri: Uri, mimeType: String?): MediaItem {
+        return MediaItem.Builder().apply {
+            setMediaId(uri.toString())
+            setUri(uri)
+            mimeType?.let { setMimeType(mimeType) }
+        }.build()
+    }
+
+    private fun createExternalSubtitleStreams(
+        subtitles: List<Subtitle>
+    ): List<MediaItem.SubtitleConfiguration> {
+        return subtitles.map {
+            MediaItem.SubtitleConfiguration.Builder(it.uri).apply {
+                setMimeType(it.uri.getSubtitleMime())
+                setLabel(it.name)
+                if (it.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+            }.build()
+        }
     }
 
     companion object {

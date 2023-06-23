@@ -10,14 +10,3 @@ data class Subtitle(
     val uri: Uri,
     val isSelected: Boolean
 )
-
-fun Subtitle.toSubtitleConfiguration(): MediaItem.SubtitleConfiguration {
-    val subtitleConfigurationBuilder = MediaItem.SubtitleConfiguration
-        .Builder(uri)
-        .setMimeType(uri.getSubtitleMime())
-        .setLabel(name)
-    if (isSelected) {
-        subtitleConfigurationBuilder.setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-    }
-    return subtitleConfigurationBuilder.build()
-}
