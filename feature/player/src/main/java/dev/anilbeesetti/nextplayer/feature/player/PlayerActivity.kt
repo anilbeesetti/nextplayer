@@ -68,6 +68,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Arrays
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -130,6 +131,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        prettyPrintIntent()
 
         AppCompatDelegate.setDefaultNightMode(
             when (viewModel.applicationPreferences.value.themeConfig) {
@@ -506,10 +508,10 @@ class PlayerActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         if (intent != null) {
-            Timber.d("new intent: ${intent.data}")
             playlistManager.clearQueue()
             viewModel.resetToDefaults()
             setIntent(intent)
+            prettyPrintIntent()
             shouldFetchPlaylist = true
             playVideo()
         }
@@ -589,5 +591,28 @@ private fun Activity.getRotationDrawable(): Int {
         ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE -> coreUiR.drawable.ic_landscape
 
         else -> coreUiR.drawable.ic_screen_rotation_alt
+    }
+}
+
+fun Activity.prettyPrintIntent() {
+    Timber.apply {
+        d("* action: ${intent.action}")
+        d("* data: ${intent.data}")
+        d("* type: ${intent.type}")
+        d("* package: ${intent.`package`}")
+        d("* component: ${intent.component}")
+        d("* flags: ${intent.flags}")
+        intent.extras?.let { bundle ->
+            d("=== Extras ===")
+            bundle.keySet().forEachIndexed { i, key ->
+                val extra = buildString {
+                    append("${i + 1}) $key: ")
+                    bundle.get(key).let {
+                        append(if (it is Array<*>) Arrays.toString(it) else it)
+                    }
+                }
+                d(extra)
+            }
+        }
     }
 }
