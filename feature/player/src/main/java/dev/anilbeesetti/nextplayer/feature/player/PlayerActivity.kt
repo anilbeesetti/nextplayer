@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.Typeface
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
@@ -36,6 +38,7 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -60,6 +63,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeekDisab
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
@@ -240,7 +244,21 @@ class PlayerActivity : AppCompatActivity() {
             )
         }
 
-        binding.playerView.subtitleView?.setFixedTextSize(Dimension.SP, 21f)
+        binding.playerView.subtitleView?.let { subtitleView ->
+            with(viewModel.preferences.value) {
+                val style = CaptionStyleCompat(
+                    Color.parseColor(subtitleTextColor),
+                    Color.parseColor(subtitleBackgroundColor)
+                        .takeIf { subtitleBackground } ?: Color.TRANSPARENT,
+                    Color.TRANSPARENT,
+                    CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
+                    Color.BLACK,
+                    Typeface.create(subtitleFont.toTypeface(), Typeface.BOLD)
+                )
+                subtitleView.setStyle(style)
+                subtitleView.setFixedTextSize(Dimension.SP, subtitleTextSize.toFloat())
+            }
+        }
 
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
