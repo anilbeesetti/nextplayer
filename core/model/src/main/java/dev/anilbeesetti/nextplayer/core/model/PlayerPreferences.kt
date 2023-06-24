@@ -16,5 +16,16 @@ data class PlayerPreferences(
     val preferredAudioLanguage: String = "",
     val preferredSubtitleLanguage: String = "",
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
-    val defaultPlaybackSpeed: Float = 1.0f
+    val defaultPlaybackSpeed: Float = 1.0f,
+    val subtitleTextSize: Int = 23,
+    val subtitleTextColor: String = "#FFFFFF",
+    val subtitleBackground: Boolean = false,
+    val subtitleBackgroundColor: String = "#000000",
+    val subtitleFont: Font = Font.DEFAULT,
+    val subtitleTextBold: Boolean = true
 )
+
+
+enum class Font {
+    DEFAULT, MONOSPACE, SANS_SERIF, SERIF
+}
