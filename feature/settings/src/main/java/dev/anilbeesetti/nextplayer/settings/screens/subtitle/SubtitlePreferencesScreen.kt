@@ -21,6 +21,7 @@ import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
@@ -71,6 +72,10 @@ fun SubtitlePreferencesScreen(
             subtitleFontPreference(
                 currentFont = preferences.subtitleFont,
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) }
+            )
+            subtitleTextBoldPreference(
+                isChecked = preferences.subtitleTextBold,
+                onClick = viewModel::toggleSubtitleTextBold
             )
         }
 
@@ -144,4 +149,17 @@ fun LazyListScope.subtitleFontPreference(
             onClick = onClick
         )
     }
+}
+
+fun LazyListScope.subtitleTextBoldPreference(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.subtitle_text_bold),
+        description = "nothing",
+        icon = NextIcons.Bold,
+        isChecked = isChecked,
+        onClick = onClick
+    )
 }

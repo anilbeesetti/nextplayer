@@ -253,7 +253,10 @@ class PlayerActivity : AppCompatActivity() {
                     Color.TRANSPARENT,
                     CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                     Color.BLACK,
-                    Typeface.create(subtitleFont.toTypeface(), Typeface.BOLD)
+                    Typeface.create(
+                        subtitleFont.toTypeface(),
+                        Typeface.BOLD.takeIf { subtitleTextBold } ?: Typeface.NORMAL
+                    )
                 )
                 subtitleView.setStyle(style)
                 subtitleView.setFixedTextSize(Dimension.SP, subtitleTextSize.toFloat())

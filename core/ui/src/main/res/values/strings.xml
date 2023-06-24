@@ -115,4 +115,5 @@
     <string name="sans_serif">Sans Serif</string>
     <string name="serif">Serif</string>
     <string name="subtitle_font">Subtitle font</string>
+    <string name="subtitle_text_bold">Bold subtitle text</string>
 </resources>
