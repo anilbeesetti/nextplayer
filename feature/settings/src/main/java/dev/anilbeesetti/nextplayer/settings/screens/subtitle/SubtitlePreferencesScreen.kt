@@ -134,7 +134,6 @@ fun SubtitlePreferencesScreen(
             }
 
             SubtitlePreferenceDialog.SubtitleSizeDialog -> {
-
                 var size by remember { mutableStateOf(preferences.subtitleTextSize) }
 
                 NextDialog(
@@ -171,7 +170,6 @@ fun SubtitlePreferencesScreen(
     }
 }
 
-
 fun LazyListScope.preferredSubtitleLanguageSetting(
     currentLanguage: String,
     onClick: () -> Unit
@@ -199,7 +197,6 @@ fun LazyListScope.subtitleFontPreference(
         onClick = onClick
     )
 }
-
 
 fun LazyListScope.subtitleTextBoldPreference(
     isChecked: Boolean,

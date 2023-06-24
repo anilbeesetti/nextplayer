@@ -24,8 +24,3 @@ data class PlayerPreferences(
     val subtitleFont: Font = Font.DEFAULT,
     val subtitleTextBold: Boolean = true
 )
-
-
-enum class Font {
-    DEFAULT, MONOSPACE, SANS_SERIF, SERIF
-}
