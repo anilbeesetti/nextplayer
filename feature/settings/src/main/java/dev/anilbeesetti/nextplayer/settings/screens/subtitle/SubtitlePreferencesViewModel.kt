@@ -60,6 +60,14 @@ class SubtitlePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateSubtitleFontSize(value: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(subtitleTextSize = value)
+            }
+        }
+    }
 }
 
 data class SubtitlePreferencesUIState(
@@ -69,6 +77,7 @@ data class SubtitlePreferencesUIState(
 sealed interface SubtitlePreferenceDialog {
     object SubtitleLanguageDialog : SubtitlePreferenceDialog
     object SubtitleFontDialog : SubtitlePreferenceDialog
+    object SubtitleSizeDialog : SubtitlePreferenceDialog
     object None : SubtitlePreferenceDialog
 }
 

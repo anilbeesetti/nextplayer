@@ -1,25 +1,38 @@
 package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
+import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
@@ -46,7 +59,7 @@ fun SubtitlePreferencesScreen(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
-                title = stringResource(id = R.string.player_name),
+                title = stringResource(id = R.string.subtitle),
                 scrollBehavior = scrollBehaviour,
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
@@ -76,6 +89,10 @@ fun SubtitlePreferencesScreen(
             subtitleTextBoldPreference(
                 isChecked = preferences.subtitleTextBold,
                 onClick = viewModel::toggleSubtitleTextBold
+            )
+            subtitleTextSizePreference(
+                currentSize = preferences.subtitleTextSize,
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) }
             )
         }
 
@@ -115,6 +132,40 @@ fun SubtitlePreferencesScreen(
                     }
                 }
             }
+
+            SubtitlePreferenceDialog.SubtitleSizeDialog -> {
+
+                var size by remember { mutableStateOf(preferences.subtitleTextSize) }
+
+                NextDialog(
+                    onDismissRequest = viewModel::hideDialog,
+                    title = { Text(text = stringResource(id = R.string.subtitle_text_size)) },
+                    content = {
+                        Text(
+                            text = size.toString(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 20.dp),
+                            textAlign = TextAlign.Center,
+                            fontSize = size.sp,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Slider(
+                            value = size.toFloat(),
+                            onValueChange = { size = it.toInt() },
+                            valueRange = 15f..60f
+                        )
+                    },
+                    confirmButton = {
+                        DoneButton(onClick = {
+                            viewModel.updateSubtitleFontSize(size)
+                            viewModel.hideDialog()
+                        })
+                    },
+                    dismissButton = { CancelButton(onClick = viewModel::hideDialog) }
+                )
+            }
+
             SubtitlePreferenceDialog.None -> {}
         }
     }
@@ -140,16 +191,15 @@ fun LazyListScope.preferredSubtitleLanguageSetting(
 fun LazyListScope.subtitleFontPreference(
     currentFont: Font,
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.subtitle_font),
-            description = currentFont.name(),
-            icon = NextIcons.Subtitle,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.subtitle_font),
+        description = currentFont.name(),
+        icon = NextIcons.Font,
+        onClick = onClick
+    )
 }
+
 
 fun LazyListScope.subtitleTextBoldPreference(
     isChecked: Boolean,
@@ -157,9 +207,21 @@ fun LazyListScope.subtitleTextBoldPreference(
 ) = item {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_text_bold),
-        description = "nothing",
+        description = stringResource(id = R.string.subtitle_text_bold_desc),
         icon = NextIcons.Bold,
         isChecked = isChecked,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.subtitleTextSizePreference(
+    currentSize: Int,
+    onClick: () -> Unit
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.subtitle_text_size),
+        description = currentSize.toString(),
+        icon = NextIcons.FontSize,
         onClick = onClick
     )
 }

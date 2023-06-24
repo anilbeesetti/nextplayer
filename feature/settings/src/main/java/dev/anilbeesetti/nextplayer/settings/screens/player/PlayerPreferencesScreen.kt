@@ -237,9 +237,7 @@ fun PlayerPreferencesScreen(
 
                 PlayerPreferenceDialog.DefaultPlaybackSpeedDialog -> {
                     var defaultPlaybackSpeed by remember {
-                        mutableStateOf(
-                            preferences.defaultPlaybackSpeed
-                        )
+                        mutableStateOf(preferences.defaultPlaybackSpeed)
                     }
 
                     NextDialog(

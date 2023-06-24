@@ -73,7 +73,7 @@ fun SettingsScreen(
             item {
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.subtitle),
-                    description = "Subtitle appearance, playback options",
+                    description = stringResource(R.string.subtitle_desc),
                     icon = NextIcons.Subtitle,
                     onClick = { onItemClick(Setting.SUBTITLE) }
                 )

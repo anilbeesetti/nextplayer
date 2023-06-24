@@ -116,4 +116,7 @@
     <string name="serif">Serif</string>
     <string name="subtitle_font">Subtitle font</string>
     <string name="subtitle_text_bold">Bold subtitle text</string>
+    <string name="subtitle_text_bold_desc">Use bold text for subtitle</string>
+    <string name="subtitle_text_size">Subtitle text size</string>
+    <string name="subtitle_desc">Subtitle appearance, playback options</string>
 </resources>

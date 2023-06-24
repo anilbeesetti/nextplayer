@@ -17,7 +17,9 @@ import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOff
+import androidx.compose.material.icons.rounded.FontDownload
 import androidx.compose.material.icons.rounded.FormatBold
+import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
@@ -52,6 +54,8 @@ object NextIcons {
     val Fast = Icons.Rounded.FastForward
     val Folder = Icons.Rounded.Folder
     val FolderOff = Icons.Rounded.FolderOff
+    val Font = Icons.Rounded.FontDownload
+    val FontSize = Icons.Rounded.FormatSize
     val Info = Icons.Rounded.Info
     val Length = Icons.Rounded.Straighten
     val Link = Icons.Rounded.Link
