@@ -17,6 +17,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -24,6 +25,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
+import dev.anilbeesetti.nextplayer.settings.extensions.name
 import dev.anilbeesetti.nextplayer.settings.screens.player.getDisplayTitle
 import dev.anilbeesetti.nextplayer.settings.screens.player.getLanguages
 
@@ -66,6 +68,10 @@ fun SubtitlePreferencesScreen(
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) }
             )
             item { PreferenceSubtitle(text = stringResource(id = R.string.appearance_name)) }
+            subtitleFontPreference(
+                currentFont = preferences.subtitleFont,
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) }
+            )
         }
 
         when (uiState.showDialog) {
@@ -87,6 +93,23 @@ fun SubtitlePreferencesScreen(
                 }
             }
 
+            SubtitlePreferenceDialog.SubtitleFontDialog -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.subtitle_font),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(Font.values()) {
+                        RadioTextButton(
+                            text = it.name(),
+                            selected = it == preferences.subtitleFont,
+                            onClick = {
+                                viewModel.updateSubtitleFont(it)
+                                viewModel.hideDialog()
+                            }
+                        )
+                    }
+                }
+            }
             SubtitlePreferenceDialog.None -> {}
         }
     }
@@ -103,6 +126,20 @@ fun LazyListScope.preferredSubtitleLanguageSetting(
             description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
                 id = R.string.preferred_subtitle_lang_description
             ),
+            icon = NextIcons.Subtitle,
+            onClick = onClick
+        )
+    }
+}
+
+fun LazyListScope.subtitleFontPreference(
+    currentFont: Font,
+    onClick: () -> Unit
+) {
+    item {
+        ClickablePreferenceItem(
+            title = stringResource(id = R.string.subtitle_font),
+            description = currentFont.name(),
             icon = NextIcons.Subtitle,
             onClick = onClick
         )

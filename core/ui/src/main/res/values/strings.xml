@@ -110,4 +110,9 @@
     <string name="enter_a_network_url">Enter a network URL:</string>
     <string name="example_url" translatable="false">http://example.com/example.mp4</string>
     <string name="network_stream">Network Stream</string>
+    <string name="default_name">Default</string>
+    <string name="monospace">Monospace</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="serif">Serif</string>
+    <string name="subtitle_font">Subtitle font</string>
 </resources>

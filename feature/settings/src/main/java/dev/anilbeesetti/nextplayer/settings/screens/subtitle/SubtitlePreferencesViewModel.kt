@@ -4,14 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
-import dev.anilbeesetti.nextplayer.core.model.FastSeek
+import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
-import dev.anilbeesetti.nextplayer.core.model.Resume
-import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
-import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferenceDialog
-import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesEvent
-import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,6 +44,14 @@ class SubtitlePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateSubtitleFont(value: Font) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(subtitleFont = value)
+            }
+        }
+    }
 }
 
 data class SubtitlePreferencesUIState(
@@ -58,6 +60,7 @@ data class SubtitlePreferencesUIState(
 
 sealed interface SubtitlePreferenceDialog {
     object SubtitleLanguageDialog : SubtitlePreferenceDialog
+    object SubtitleFontDialog : SubtitlePreferenceDialog
     object None : SubtitlePreferenceDialog
 }
 
