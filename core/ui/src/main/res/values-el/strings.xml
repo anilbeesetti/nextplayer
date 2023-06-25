@@ -119,4 +119,6 @@
     <string name="subtitle_text_bold_desc">Έντονο κείμενο υποτίτλων</string>
     <string name="subtitle_background">Φόντο υποτίτλων</string>
     <string name="subtitle_background_desc">Ενεργοποίηση φόντου υποτίτλων</string>
+    <string name="play_file">Άνοιγμα βίντεο</string>
+    <string name="play_url">Εισαγωγή url βίντεο</string>
 </resources>
