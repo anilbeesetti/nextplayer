@@ -108,4 +108,15 @@
     <string name="default_playback_speed">Ταχύτητα αναπαραγωγής</string>
     <string name="network_stream">Δικτυακή ροή</string>
     <string name="enter_a_network_url">Εισάγετε μια διεύθυνση URL:</string>
+    <string name="monospace">Monospace</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="serif">Serif</string>
+    <string name="subtitle_text_size">Μέγεθος κειμένου</string>
+    <string name="subtitle_desc">Εμφάνιση υποτίτλων, επιλογές αναπαραγωγής</string>
+    <string name="default_name">Εξ ορισμού</string>
+    <string name="subtitle_font">Γραμματοσειρά υποτίτλων</string>
+    <string name="subtitle_text_bold">Έντονο κείμενο</string>
+    <string name="subtitle_text_bold_desc">Έντονο κείμενο υποτίτλων</string>
+    <string name="subtitle_background">Φόντο υποτίτλων</string>
+    <string name="subtitle_background_desc">Ενεργοποίηση φόντου υποτίτλων</string>
 </resources>
