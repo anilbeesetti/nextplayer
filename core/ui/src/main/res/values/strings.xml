@@ -119,4 +119,6 @@
     <string name="subtitle_text_bold_desc">Use bold text for subtitle</string>
     <string name="subtitle_text_size">Subtitle text size</string>
     <string name="subtitle_desc">Subtitle appearance, playback options</string>
+    <string name="subtitle_background">Subtitle background</string>
+    <string name="subtitle_background_desc">Enable background to subtitle text</string>
 </resources>

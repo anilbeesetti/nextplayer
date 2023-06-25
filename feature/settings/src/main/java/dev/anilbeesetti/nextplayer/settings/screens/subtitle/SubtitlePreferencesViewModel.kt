@@ -68,6 +68,14 @@ class SubtitlePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleSubtitleBackground() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(subtitleBackground = !it.subtitleBackground)
+            }
+        }
+    }
 }
 
 data class SubtitlePreferencesUIState(

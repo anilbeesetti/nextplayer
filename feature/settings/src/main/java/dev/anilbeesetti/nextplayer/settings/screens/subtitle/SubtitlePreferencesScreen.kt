@@ -94,6 +94,10 @@ fun SubtitlePreferencesScreen(
                 currentSize = preferences.subtitleTextSize,
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) }
             )
+            subtitleBackgroundPreference(
+                isChecked = preferences.subtitleBackground,
+                onClick = viewModel::toggleSubtitleBackground
+            )
         }
 
         when (uiState.showDialog) {
@@ -219,6 +223,19 @@ fun LazyListScope.subtitleTextSizePreference(
         title = stringResource(id = R.string.subtitle_text_size),
         description = currentSize.toString(),
         icon = NextIcons.FontSize,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.subtitleBackgroundPreference(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.subtitle_background),
+        description = stringResource(id = R.string.subtitle_background_desc),
+        icon = NextIcons.Background,
+        isChecked = isChecked,
         onClick = onClick
     )
 }

@@ -18,9 +18,7 @@ data class PlayerPreferences(
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     val defaultPlaybackSpeed: Float = 1.0f,
     val subtitleTextSize: Int = 23,
-    val subtitleTextColor: String = "#FFFFFF",
     val subtitleBackground: Boolean = false,
-    val subtitleBackgroundColor: String = "#000000",
     val subtitleFont: Font = Font.DEFAULT,
     val subtitleTextBold: Boolean = true
 )

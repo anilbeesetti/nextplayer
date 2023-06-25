@@ -247,9 +247,8 @@ class PlayerActivity : AppCompatActivity() {
         binding.playerView.subtitleView?.let { subtitleView ->
             with(viewModel.preferences.value) {
                 val style = CaptionStyleCompat(
-                    Color.parseColor(subtitleTextColor),
-                    Color.parseColor(subtitleBackgroundColor)
-                        .takeIf { subtitleBackground } ?: Color.TRANSPARENT,
+                    Color.WHITE,
+                    Color.BLACK.takeIf { subtitleBackground } ?: Color.TRANSPARENT,
                     Color.TRANSPARENT,
                     CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                     Color.BLACK,
