@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.FlipToBack
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOff
@@ -54,6 +55,7 @@ object NextIcons {
     val DashBoard = Icons.Rounded.Dashboard
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Fast = Icons.Rounded.FastForward
+    val FileOpen = Icons.Rounded.FileOpen
     val Folder = Icons.Rounded.Folder
     val FolderOff = Icons.Rounded.FolderOff
     val Font = Icons.Rounded.FontDownload

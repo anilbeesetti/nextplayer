@@ -1,8 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -88,6 +92,13 @@ internal fun MediaPickerScreen(
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
 
+    val selectVideoFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let(onPlayVideo)
+        }
+    )
+
     Scaffold(
         topBar = {
             NextCenterAlignedTopAppBar(
@@ -111,10 +122,25 @@ internal fun MediaPickerScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showUrlDialog = true }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(imageVector = NextIcons.Link, contentDescription = null)
+                FloatingActionButton(
+                    onClick = { selectVideoFileLauncher.launch("video/*") }
+                ) {
+                    Icon(
+                        imageVector = NextIcons.FileOpen,
+                        contentDescription = stringResource(id = R.string.play_file)
+                    )
+                }
+                FloatingActionButton(
+                    onClick = { showUrlDialog = true }
+                ) {
+                    Icon(
+                        imageVector = NextIcons.Link,
+                        contentDescription = stringResource(id = R.string.play_url)
+                    )
+                }
             }
         }
     ) { paddingValues ->
