@@ -106,4 +106,6 @@
     <string name="oldest">Найстаріше</string>
     <string name="date">Дата</string>
     <string name="default_playback_speed">Швидкість відтворення за замовчуванням</string>
+    <string name="enter_a_network_url">Введіть URL-адресу мережі:</string>
+    <string name="network_stream">Мережева трансляція</string>
 </resources>
