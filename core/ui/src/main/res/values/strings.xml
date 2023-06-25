@@ -110,4 +110,6 @@
     <string name="enter_a_network_url">Enter a network URL:</string>
     <string name="example_url" translatable="false">http://example.com/example.mp4</string>
     <string name="network_stream">Network Stream</string>
+    <string name="play_file">Open video file to play</string>
+    <string name="play_url">Enter video url to play</string>
 </resources>
