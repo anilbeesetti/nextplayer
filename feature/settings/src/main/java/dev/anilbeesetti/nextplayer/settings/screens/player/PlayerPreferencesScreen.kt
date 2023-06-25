@@ -139,13 +139,8 @@ fun PlayerPreferencesScreen(
                     PreferenceSubtitle(text = stringResource(id = R.string.audio))
                 }
                 preferredAudioLanguageSetting(
+                    currentLanguage = getDisplayTitle(preferences.preferredAudioLanguage),
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.AudioLanguageDialog) }
-                )
-                item {
-                    PreferenceSubtitle(text = stringResource(id = R.string.subtitle))
-                }
-                preferredSubtitleLanguageSetting(
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.SubtitleLanguageDialog) }
                 )
             }
 
@@ -222,24 +217,6 @@ fun PlayerPreferencesScreen(
                     }
                 }
 
-                PlayerPreferenceDialog.SubtitleLanguageDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.preferred_subtitle_lang),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(languages) {
-                            RadioTextButton(
-                                text = it.first,
-                                selected = it.second == preferences.preferredSubtitleLanguage,
-                                onClick = {
-                                    viewModel.updateSubtitleLanguage(it.second)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
                 PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.player_screen_orientation),
@@ -260,9 +237,7 @@ fun PlayerPreferencesScreen(
 
                 PlayerPreferenceDialog.DefaultPlaybackSpeedDialog -> {
                     var defaultPlaybackSpeed by remember {
-                        mutableStateOf(
-                            preferences.defaultPlaybackSpeed
-                        )
+                        mutableStateOf(preferences.defaultPlaybackSpeed)
                     }
 
                     NextDialog(
@@ -443,28 +418,16 @@ fun LazyListScope.screenOrientationSetting(
 }
 
 fun LazyListScope.preferredAudioLanguageSetting(
+    currentLanguage: String,
     onClick: () -> Unit
 ) {
     item {
         ClickablePreferenceItem(
             title = stringResource(id = R.string.preferred_audio_lang),
-            description = stringResource(id = R.string.preferred_audio_lang_description),
-            icon = NextIcons.AudioTrack,
-            onClick = onClick
-        )
-    }
-}
-
-fun LazyListScope.preferredSubtitleLanguageSetting(
-    onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.preferred_subtitle_lang),
-            description = stringResource(
-                id = R.string.preferred_subtitle_lang_description
+            description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
+                id = R.string.preferred_audio_lang_description
             ),
-            icon = NextIcons.Subtitle,
+            icon = NextIcons.AudioTrack,
             onClick = onClick
         )
     }
@@ -480,5 +443,14 @@ fun getLanguages(): List<Pair<String, String>> {
     } catch (e: Exception) {
         e.printStackTrace()
         listOf()
+    }
+}
+
+fun getDisplayTitle(key: String): String {
+    return try {
+        Locale.getAvailableLocales().first { it.isO3Language == key }.displayLanguage
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ""
     }
 }
