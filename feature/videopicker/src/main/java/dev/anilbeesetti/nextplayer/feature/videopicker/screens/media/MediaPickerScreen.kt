@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
-import android.content.ContentResolver.MimeTypeInfo
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -93,7 +92,7 @@ internal fun MediaPickerScreen(
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
 
-    val fileLauncher = rememberLauncherForActivityResult(
+    val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
             uri?.let(onPlayVideo)
@@ -127,7 +126,7 @@ internal fun MediaPickerScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FloatingActionButton(
-                    onClick = { fileLauncher.launch("video/*") }
+                    onClick = { selectVideoFileLauncher.launch("video/*") }
                 ) {
                     Icon(
                         imageVector = NextIcons.FileOpen,
