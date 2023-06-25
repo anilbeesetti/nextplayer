@@ -177,17 +177,15 @@ fun SubtitlePreferencesScreen(
 fun LazyListScope.preferredSubtitleLanguageSetting(
     currentLanguage: String,
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.preferred_subtitle_lang),
-            description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
-                id = R.string.preferred_subtitle_lang_description
-            ),
-            icon = NextIcons.Subtitle,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.preferred_subtitle_lang),
+        description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
+            id = R.string.preferred_subtitle_lang_description
+        ),
+        icon = NextIcons.Subtitle,
+        onClick = onClick
+    )
 }
 
 fun LazyListScope.subtitleFontPreference(
