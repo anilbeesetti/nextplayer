@@ -16,8 +16,12 @@ import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FileOpen
+import androidx.compose.material.icons.rounded.FlipToBack
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOff
+import androidx.compose.material.icons.rounded.FontDownload
+import androidx.compose.material.icons.rounded.FormatBold
+import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
@@ -42,6 +46,8 @@ object NextIcons {
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val AudioTrack = Icons.Rounded.Audiotrack
+    val Background = Icons.Rounded.FlipToBack
+    val Bold = Icons.Rounded.FormatBold
     val Brightness = Icons.Rounded.BrightnessHigh
     val Calendar = Icons.Rounded.CalendarMonth
     val Check = Icons.Rounded.Check
@@ -52,6 +58,8 @@ object NextIcons {
     val FileOpen = Icons.Rounded.FileOpen
     val Folder = Icons.Rounded.Folder
     val FolderOff = Icons.Rounded.FolderOff
+    val Font = Icons.Rounded.FontDownload
+    val FontSize = Icons.Rounded.FormatSize
     val Info = Icons.Rounded.Info
     val Length = Icons.Rounded.Straighten
     val Link = Icons.Rounded.Link
