@@ -62,3 +62,29 @@ fun Player.setSeekParameters(seekParameters: SeekParameters) {
         is ExoPlayer -> this.setSeekParameters(seekParameters)
     }
 }
+
+/**
+ * Seeks to the specified position.
+ *
+ * @param positionMs The position to seek to, in milliseconds.
+ * @param shouldFastSeek Whether to seek to the nearest keyframe.
+ */
+@UnstableApi
+fun Player.seekBack(positionMs: Long, shouldFastSeek: Boolean = false) {
+    setSeekParameters(
+        SeekParameters.PREVIOUS_SYNC.takeIf { shouldFastSeek } ?: SeekParameters.DEFAULT
+    )
+    this.seekTo(positionMs)
+}
+
+/**
+ * Seeks to the specified position.
+ *
+ * @param positionMs The position to seek to, in milliseconds.
+ * @param shouldFastSeek Whether to seek to the nearest keyframe.
+ */
+@UnstableApi
+fun Player.seekForward(positionMs: Long, shouldFastSeek: Boolean = false) {
+    setSeekParameters(SeekParameters.NEXT_SYNC.takeIf { shouldFastSeek } ?: SeekParameters.DEFAULT)
+    this.seekTo(positionMs)
+}
