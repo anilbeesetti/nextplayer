@@ -5,11 +5,11 @@ import dagger.hilt.android.HiltAndroidApp
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltAndroidApp
 class NextPlayerApplication : Application() {
