@@ -10,6 +10,7 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    implementation("com.ibm.icu:icu4j:73.2")
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)

@@ -44,6 +44,8 @@ import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.libs.ffcodecs.NextRenderersFactory
+import dev.anilbeesetti.nextplayer.core.common.extensions.clearCache
+import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
@@ -511,6 +513,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun finish() {
+        clearCache()
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
@@ -572,7 +575,7 @@ class PlayerActivity : AppCompatActivity() {
         subtitles: List<Subtitle>
     ): List<MediaItem.SubtitleConfiguration> {
         return subtitles.map {
-            MediaItem.SubtitleConfiguration.Builder(it.uri).apply {
+            MediaItem.SubtitleConfiguration.Builder(convertToUTF8(it.uri)).apply {
                 setId(it.uri.toString())
                 setMimeType(it.uri.getSubtitleMime())
                 setLabel(it.name)
