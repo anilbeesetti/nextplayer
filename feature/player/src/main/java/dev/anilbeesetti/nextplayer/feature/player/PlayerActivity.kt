@@ -34,7 +34,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -47,10 +46,8 @@ import dev.anilbeesetti.libs.ffcodecs.NextRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
-import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -58,8 +55,6 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
-import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeekDisable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
@@ -69,11 +64,12 @@ import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
-import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Arrays
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -220,9 +216,6 @@ class PlayerActivity : AppCompatActivity() {
             .setTrackSelector(trackSelector)
             .setAudioAttributes(getAudioAttributes(), true)
             .setHandleAudioBecomingNoisy(true)
-            .setSeekParameters(
-                if (viewModel.preferences.value.fastSeek != FastSeek.DISABLE) SeekParameters.CLOSEST_SYNC else SeekParameters.DEFAULT
-            )
             .build()
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
@@ -472,9 +465,6 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
                     Timber.d(playlistManager.toString())
-                    if (viewModel.preferences.value.shouldFastSeekDisable(player.duration)) {
-                        player.setSeekParameters(SeekParameters.DEFAULT)
-                    }
                     isFileLoaded = true
                 }
 
