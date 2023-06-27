@@ -71,7 +71,9 @@ fun Player.setSeekParameters(seekParameters: SeekParameters) {
  */
 @UnstableApi
 fun Player.seekBack(positionMs: Long, shouldFastSeek: Boolean = false) {
-    setSeekParameters(SeekParameters.PREVIOUS_SYNC.takeIf { shouldFastSeek } ?: SeekParameters.DEFAULT)
+    setSeekParameters(
+        SeekParameters.PREVIOUS_SYNC.takeIf { shouldFastSeek } ?: SeekParameters.DEFAULT
+    )
     this.seekTo(positionMs)
 }
 
