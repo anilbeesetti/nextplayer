@@ -12,17 +12,14 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.widget.Toast
-import androidx.core.net.toUri
 import androidx.core.text.isDigitsOnly
 import com.ibm.icu.text.CharsetDetector
 import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.InputStream
-import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 
 val VIDEO_COLLECTION_URI: Uri
@@ -213,7 +210,6 @@ fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
     }
 }
 
-
 fun Context.convertToUTF8(uri: Uri): Uri {
     try {
         if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
@@ -225,7 +221,6 @@ fun Context.convertToUTF8(uri: Uri): Uri {
     }
     return uri
 }
-
 
 fun Context.convertToUTF8(inputUri: Uri, inputStream: InputStream): Uri {
     val charsetDetector = CharsetDetector()
