@@ -214,7 +214,7 @@ fun Context.convertToUTF8(uri: Uri): Uri {
     try {
         if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
         contentResolver.openInputStream(uri)?.use { inputStream ->
-            convertToUTF8(uri, inputStream)
+            return convertToUTF8(uri, inputStream)
         }
     } catch (exception: Exception) {
         exception.printStackTrace()
