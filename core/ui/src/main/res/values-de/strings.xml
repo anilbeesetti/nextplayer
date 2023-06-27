@@ -101,4 +101,8 @@
     <string name="landscape_auto">Horizontal (Sensor)</string>
     <string name="portrait">Vertikal</string>
     <string name="video_orientation">Video-Ausrichtung</string>
+    <string name="newest">Neueste</string>
+    <string name="date">Datum</string>
+    <string name="duration">Dauer</string>
+    <string name="oldest">Älteste</string>
 </resources>
