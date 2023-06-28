@@ -115,4 +115,10 @@
     <string name="network_stream">네트워크 스트림</string>
     <string name="ff_rewind">빨리감기/되감기</string>
     <string name="play_pause_ff_rewind">재생/일시정지 및 빨리감기/되감기</string>
+    <string name="shortest">짧은 순</string>
+    <string name="longest">긴 순</string>
+    <string name="smallest">작은 순</string>
+    <string name="largest">큰 순</string>
+    <string name="newest">새로운 순</string>
+    <string name="oldest">오래된 순</string>
 </resources>
