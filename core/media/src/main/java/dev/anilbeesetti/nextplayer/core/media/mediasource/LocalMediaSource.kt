@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import java.io.File
 
 class LocalMediaSource @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -57,7 +58,7 @@ class LocalMediaSource @Inject constructor(
                 mediaVideos.add(cursor.toMediaVideo)
             }
         }
-        return mediaVideos
+        return mediaVideos.filter { File(it.data).exists() }
     }
 }
 
