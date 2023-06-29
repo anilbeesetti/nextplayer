@@ -6,7 +6,7 @@ import androidx.media3.common.util.UnstableApi
 import java.util.Locale
 
 @UnstableApi
-fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String? {
+fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {
     val format = this.getFormat(0)
     val language = format.language
     val label = format.label
