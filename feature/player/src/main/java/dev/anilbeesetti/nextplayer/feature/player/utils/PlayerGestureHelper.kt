@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.res.Resources
 import android.media.AudioManager
 import android.os.Build
@@ -44,8 +45,8 @@ class PlayerGestureHelper(
     private val shouldFastSeek: Boolean
         get() = playerView.player?.duration?.let { playerPreferences.shouldFastSeek(it) } == true
 
-    private var swipeGestureVolumeTrackerValue = -1f
-    private var swipeGestureBrightnessTrackerValue = -1f
+    private var volumeTrackerValue = -1f
+    private var brightnessTrackerValue = -1f
     private var seeking = false
     private var seekStart = 0L
     private var position = 0L
@@ -53,8 +54,8 @@ class PlayerGestureHelper(
     private var isPlayingOnSeekStart: Boolean = false
     private var isControllerAutoShow = false
 
-    private var swipeGestureVolumeOpen = false
-    private var swipeGestureBrightnessOpen = false
+    private var gestureVolumeOpen = false
+    private var gestureBrightnessOpen = false
 
     private var hideVolumeGestureJob: Job? = null
     private var hideBrightnessGestureJob: Job? = null
@@ -150,7 +151,7 @@ class PlayerGestureHelper(
                 if (activity.isControlsLocked) return false
 
                 if (abs(distanceX / distanceY) < 2) return false
-                if (swipeGestureVolumeOpen || swipeGestureBrightnessOpen) return false
+                if (gestureVolumeOpen || gestureBrightnessOpen) return false
                 playerView.controllerAutoShow = playerView.isControllerFullyVisible
 
                 if (!seeking) {
@@ -202,88 +203,76 @@ class PlayerGestureHelper(
             ): Boolean {
                 // Excludes area where app gestures conflicting with system gestures
                 if (inExclusionArea(firstEvent)) return false
-
-                // Disables gesture if view is locked
                 if (activity.isControlsLocked) return false
 
-                val viewCenterX = playerView.measuredWidth / 2
-
-                if (abs(distanceY / distanceX) < 2) return false
                 if (seeking) return false
+                if (abs(distanceY / distanceX) < 2) return false
 
+                val viewCenterX = playerView.measuredWidth / 2
                 val distanceFull = playerView.measuredHeight * FULL_SWIPE_RANGE_SCREEN_RATIO
                 val ratioChange = distanceY / distanceFull
 
                 if (firstEvent.x.toInt() > viewCenterX) {
                     hideVolumeGestureJob?.cancel()
+
                     val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    if (swipeGestureVolumeTrackerValue == -1f) {
-                        swipeGestureVolumeTrackerValue =
-                            currentVolume.toFloat()
+                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+                    if (volumeTrackerValue == -1f) {
+                        volumeTrackerValue = currentVolume.toFloat()
                     }
 
-                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     val change = ratioChange * maxVolume
-                    swipeGestureVolumeTrackerValue = (swipeGestureVolumeTrackerValue + change)
-                        .coerceIn(
-                            minimumValue = 0f,
-                            maximumValue = maxVolume.toFloat()
-                        )
+                    volumeTrackerValue = (volumeTrackerValue + change)
+                        .coerceIn(0f, maxVolume.toFloat())
 
                     audioManager.setStreamVolume(
                         AudioManager.STREAM_MUSIC,
-                        swipeGestureVolumeTrackerValue.toInt(),
+                        volumeTrackerValue.toInt(),
                         0
                     )
 
-                    val volumePercentage = (swipeGestureVolumeTrackerValue / maxVolume.toFloat())
-                        .times(100).toInt()
-                    val volumeText = "$volumePercentage%"
+                    val volumePercentage =
+                        (volumeTrackerValue / maxVolume.toFloat()).times(100).toInt()
 
-                    activity.binding.gestureVolumeLayout.visibility = View.VISIBLE
-                    activity.binding.gestureVolumeProgressBar.max = maxVolume
-                    activity.binding.gestureVolumeProgressBar.progress =
-                        swipeGestureVolumeTrackerValue.toInt()
-                    activity.binding.gestureVolumeText.text = volumeText
-
-                    swipeGestureVolumeOpen = true
+                    with(activity.binding) {
+                        gestureVolumeLayout.visibility = View.VISIBLE
+                        gestureVolumeProgressBar.max = maxVolume.times(100)
+                        gestureVolumeProgressBar.progress = volumeTrackerValue.times(100).toInt()
+                        gestureVolumeText.text = volumePercentage.toString()
+                        gestureVolumeOpen = true
+                    }
                 } else {
                     hideBrightnessGestureJob?.cancel()
-                    val brightnessRange = BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL
-                    if (swipeGestureBrightnessTrackerValue == -1f) {
-                        val brightness = activity.window.attributes.screenBrightness
-                        swipeGestureBrightnessTrackerValue = when (brightness) {
-                            in brightnessRange -> brightness
-                            else -> Settings.System.getFloat(
-                                activity.contentResolver,
-                                Settings.System.SCREEN_BRIGHTNESS
-                            ) / 255
-                        }
+
+                    val currentBrightness = activity.currentBrightness
+                    val maxBrightness = BRIGHTNESS_OVERRIDE_FULL
+
+                    if (brightnessTrackerValue == -1f) {
+                        brightnessTrackerValue = currentBrightness
                     }
 
-                    swipeGestureBrightnessTrackerValue =
-                        (swipeGestureBrightnessTrackerValue + ratioChange).coerceIn(brightnessRange)
+                    val change = ratioChange * maxBrightness
+                    brightnessTrackerValue = (brightnessTrackerValue + change)
+                        .coerceIn(BRIGHTNESS_OVERRIDE_OFF, maxBrightness)
+
                     val layoutParams = activity.window.attributes
-                    layoutParams.screenBrightness = swipeGestureBrightnessTrackerValue
+                    layoutParams.screenBrightness = brightnessTrackerValue
                     activity.window.attributes = layoutParams
 
                     // fixes a bug which makes the action bar reappear after changing the brightness
                     activity.swipeToShowStatusBars()
 
                     val brightnessPercentage =
-                        (layoutParams.screenBrightness / BRIGHTNESS_OVERRIDE_FULL)
-                            .times(100).toInt()
-                    val brightnessText = "$brightnessPercentage%"
+                        (brightnessTrackerValue / maxBrightness).times(100).toInt()
 
-                    activity.binding.gestureBrightnessLayout.visibility = View.VISIBLE
-                    activity.binding.gestureBrightnessProgressBar.max = BRIGHTNESS_OVERRIDE_FULL
-                        .times(100).toInt()
-                    activity.binding.gestureBrightnessProgressBar.progress =
-                        layoutParams.screenBrightness
-                            .times(100).toInt()
-                    activity.binding.gestureBrightnessText.text = brightnessText
-
-                    swipeGestureBrightnessOpen = true
+                    with(activity.binding) {
+                        gestureBrightnessLayout.visibility = View.VISIBLE
+                        gestureBrightnessProgressBar.max = maxBrightness.times(100).toInt()
+                        gestureBrightnessProgressBar.progress = brightnessTrackerValue.times(100).toInt()
+                        gestureBrightnessText.text = brightnessPercentage.toString()
+                        gestureBrightnessOpen = true
+                    }
                 }
                 return true
             }
@@ -299,7 +288,7 @@ class PlayerGestureHelper(
                         delay(HIDE_DELAY_MILLIS)
                         visibility = View.GONE
                     }
-                    swipeGestureVolumeOpen = false
+                    gestureVolumeOpen = false
                 }
             }
             // hide the brightness indicator
@@ -312,7 +301,7 @@ class PlayerGestureHelper(
                     if (playerPreferences.rememberPlayerBrightness) {
                         viewModel.setPlayerBrightness(activity.window.attributes.screenBrightness)
                     }
-                    swipeGestureBrightnessOpen = false
+                    gestureBrightnessOpen = false
                 }
             }
 
@@ -393,3 +382,10 @@ class PlayerGestureHelper(
 }
 
 fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
+
+val Activity.currentBrightness: Float
+    get() = when (val brightness = window.attributes.screenBrightness) {
+        in BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL -> brightness
+        else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
+    }
+
