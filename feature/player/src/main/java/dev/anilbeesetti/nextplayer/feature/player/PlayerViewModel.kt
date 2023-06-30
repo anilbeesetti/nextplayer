@@ -53,19 +53,17 @@ class PlayerViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    suspend fun updateState(path: String?) {
-        resetToDefaults()
-        if (path == null) return
+    suspend fun updateState(path: String) {
         currentVideoState = mediaRepository.getVideoState(path) ?: return
 
         Timber.d("$currentVideoState")
 
         val prefs = preferencesRepository.playerPreferences.first()
 
-        currentPlaybackPosition = currentVideoState!!.position.takeIf { prefs.resume == Resume.YES }
-        currentAudioTrackIndex = currentVideoState!!.audioTrackIndex.takeIf { prefs.rememberSelections }
-        currentSubtitleTrackIndex = currentVideoState!!.subtitleTrackIndex.takeIf { prefs.rememberSelections }
-        currentPlaybackSpeed = currentVideoState!!.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
+        currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES }
+        currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections }
+        currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections }
+        currentPlaybackSpeed = currentVideoState?.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
 
         // TODO: update subs when stored in local storage
     }

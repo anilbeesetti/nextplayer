@@ -369,7 +369,7 @@ class PlayerActivity : AppCompatActivity() {
 
             val currentUri = playlistManager.getCurrent()!!
 
-            viewModel.updateState(path = getPath(currentUri))
+            getPath(currentUri)?.let { viewModel.updateState(it) }
 
             if (intent.data == currentUri && playerApi.hasPosition) {
                 viewModel.currentPlaybackPosition = playerApi.position?.toLong()
@@ -394,6 +394,7 @@ class PlayerActivity : AppCompatActivity() {
                     videoTitleTextView.text = getFilenameFromUri(currentUri)
                 }
 
+                Timber.d("position: ${viewModel.currentPlaybackPosition}")
                 // Set media and start player
                 player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
@@ -516,7 +517,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent != null) {
             playlistManager.clearQueue()
-            viewModel.resetToDefaults()
+            viewModel.resetAllToDefaults()
             setIntent(intent)
             prettyPrintIntent()
             shouldFetchPlaylist = true
