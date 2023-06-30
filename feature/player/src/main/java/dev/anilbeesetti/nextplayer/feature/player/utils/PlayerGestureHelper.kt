@@ -39,7 +39,7 @@ class PlayerGestureHelper(
     private val audioManager: AudioManager
 ) {
     private val playerPreferences: PlayerPreferences
-        get() = viewModel.preferences.value
+        get() = viewModel.playerPrefs.value
 
     private val shouldFastSeek: Boolean
         get() = playerView.player?.duration?.let { playerPreferences.shouldFastSeek(it) } == true

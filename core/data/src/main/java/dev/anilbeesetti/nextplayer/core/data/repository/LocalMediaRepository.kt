@@ -58,16 +58,4 @@ class LocalMediaRepository @Inject constructor(
         }
     }
 
-    override suspend fun saveVideoState(videoState: VideoState) {
-        Timber.d("saving state: $videoState")
-        applicationScope.launch {
-            mediumDao.updateMediumState(
-                path = videoState.path,
-                position = videoState.position,
-                audioTrackIndex = videoState.audioTrackIndex,
-                subtitleTrackIndex = videoState.subtitleTrackIndex,
-                playbackSpeed = videoState.playbackSpeed
-            )
-        }
-    }
 }
