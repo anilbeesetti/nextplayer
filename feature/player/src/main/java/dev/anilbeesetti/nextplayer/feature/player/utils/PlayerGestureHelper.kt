@@ -146,12 +146,11 @@ class PlayerGestureHelper(
             ): Boolean {
                 // Excludes area where app gestures conflicting with system gestures
                 if (inExclusionArea(firstEvent)) return false
-
-                // Disables gesture if view is locked
                 if (activity.isControlsLocked) return false
 
-                if (abs(distanceX / distanceY) < 2) return false
                 if (gestureVolumeOpen || gestureBrightnessOpen) return false
+                if (abs(distanceX / distanceY) < 2) return false
+
                 playerView.controllerAutoShow = playerView.isControllerFullyVisible
 
                 if (!seeking) {
@@ -167,26 +166,26 @@ class PlayerGestureHelper(
                 val distanceDiff =
                     0.5f.coerceAtLeast(abs(Utils.pxToDp(distanceX) / 4).coerceAtMost(10.0f))
 
-                val change = distanceDiff * SEEK_STEP_MS
+                val change = (distanceDiff * SEEK_STEP_MS).toLong()
                 if (distanceX < 0L) {
-                    playerView.player?.let { player ->
-                        seekChange = (seekChange + change.toLong()).takeIf {
-                            it + seekStart < player.duration
-                        } ?: (player.duration - seekStart)
-                        position = (seekStart + seekChange).coerceAtMost(player.duration)
-                        player.seekForward(positionMs = position, shouldFastSeek = shouldFastSeek)
+                    playerView.player?.run {
+                        seekChange = (seekChange + change)
+                            .takeIf { it + seekStart < duration } ?: (duration - seekStart)
+                        position = (seekStart + seekChange).coerceAtMost(duration)
+                        seekForward(positionMs = position, shouldFastSeek = shouldFastSeek)
                     }
                 } else {
-                    playerView.player?.let { player ->
-                        seekChange = (seekChange - change.toLong()).takeIf {
-                            it + seekStart > 0
-                        } ?: (0 - seekStart)
+                    playerView.player?.run {
+                        seekChange = (seekChange - change)
+                            .takeIf { it + seekStart > 0 } ?: (0 - seekStart)
                         position = seekStart + seekChange
-                        player.seekBack(positionMs = position, shouldFastSeek = shouldFastSeek)
+                        seekBack(positionMs = position, shouldFastSeek = shouldFastSeek)
                     }
                 }
-                activity.binding.progressScrubberLayout.visibility = View.VISIBLE
-                activity.binding.seekProgressText.text = Utils.formatDurationMillisSign(seekChange)
+                with(activity.binding) {
+                    progressScrubberLayout.visibility = View.VISIBLE
+                    seekProgressText.text = Utils.formatDurationMillisSign(seekChange)
+                }
                 return true
             }
         }
@@ -269,7 +268,8 @@ class PlayerGestureHelper(
                     with(activity.binding) {
                         gestureBrightnessLayout.visibility = View.VISIBLE
                         gestureBrightnessProgressBar.max = maxBrightness.times(100).toInt()
-                        gestureBrightnessProgressBar.progress = brightnessTrackerValue.times(100).toInt()
+                        gestureBrightnessProgressBar.progress =
+                            brightnessTrackerValue.times(100).toInt()
                         gestureBrightnessText.text = brightnessPercentage.toString()
                         gestureBrightnessOpen = true
                     }
