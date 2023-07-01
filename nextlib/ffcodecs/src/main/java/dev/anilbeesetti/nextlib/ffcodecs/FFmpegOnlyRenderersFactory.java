@@ -22,26 +22,11 @@ public class FFmpegOnlyRenderersFactory extends DefaultRenderersFactory {
 
     @Override
     protected void buildVideoRenderers(Context context, int extensionRendererMode, MediaCodecSelector mediaCodecSelector, boolean enableDecoderFallback, Handler eventHandler, VideoRendererEventListener eventListener, long allowedVideoJoiningTimeMs, ArrayList<Renderer> out) {
-        out.add(
-                new FfmpegVideoRenderer(
-                        DEFAULT_ALLOWED_VIDEO_JOINING_TIME_MS,
-                        eventHandler,
-                        eventListener,
-                        DefaultRenderersFactory.MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY
-                )
-        );
+        out.add(new FfmpegVideoRenderer(allowedVideoJoiningTimeMs, eventHandler, eventListener, MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY));
     }
 
     @Override
     protected void buildAudioRenderers(Context context, int extensionRendererMode, MediaCodecSelector mediaCodecSelector, boolean enableDecoderFallback, AudioSink audioSink, Handler eventHandler, AudioRendererEventListener eventListener, ArrayList<Renderer> out) {
-        out.add(
-                new FfmpegAudioRenderer(eventHandler, eventListener, new DefaultAudioSink.Builder()
-                        .setAudioCapabilities(AudioCapabilities.getCapabilities(context))
-                        .setEnableFloatOutput(true)
-                        .setEnableAudioTrackPlaybackParams(true)
-                        .setOffloadMode(DefaultAudioSink.OFFLOAD_MODE_ENABLED_GAPLESS_REQUIRED)
-                        .build()
-                )
-        );
+        out.add(new FfmpegAudioRenderer(eventHandler, eventListener, audioSink));
     }
 }
