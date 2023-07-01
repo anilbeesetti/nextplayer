@@ -113,9 +113,9 @@
     <string name="play_url">Digitar URL de vídeo para reproduzir</string>
     <string name="default_name">Padrão</string>
     <string name="sans_serif">Sans Serif</string>
-    <string name="subtitle_text_bold">Legenda com texto em negrito</string>
+    <string name="subtitle_text_bold">Texto em negrito</string>
     <string name="subtitle_text_bold_desc">Use texto em negrito para a legenda</string>
-    <string name="subtitle_text_size">Tamanho do texto da legenda</string>
+    <string name="subtitle_text_size">Tamanho do texto</string>
     <string name="subtitle_background_desc">Ativar fundo para texto da legenda</string>
     <string name="monospace">Monospace</string>
     <string name="subtitle_font">Fonte da legenda</string>
