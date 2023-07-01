@@ -90,7 +90,7 @@
     <string name="manage_folders_desc">Selecione as pastas a serem excluídas na biblioteca de mídia</string>
     <string name="video">vídeo</string>
     <string name="scan">Verificar</string>
-    <string name="force_rescan_storage">Forçar verificação do armazenamento</string>
+    <string name="force_rescan_storage">Verificar armazenamento</string>
     <string name="media_library_description">Verificar e gerenciar a biblioteca de mídia</string>
     <string name="scanning_storage">Verificando armazenamento…</string>
     <string name="manage_folders">Gerenciar pastas</string>
