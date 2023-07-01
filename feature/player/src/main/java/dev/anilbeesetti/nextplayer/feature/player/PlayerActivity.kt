@@ -190,8 +190,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        binding.gestureVolumeLayout.visibility = View.GONE
-        binding.gestureBrightnessLayout.visibility = View.GONE
+        binding.volumeGestureLayout.visibility = View.GONE
+        binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
         releasePlayer()
         super.onStop()

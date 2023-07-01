@@ -222,10 +222,10 @@ class PlayerGestureHelper(
                         (volumeTrackerValue / maxVolume.toFloat()).times(100).toInt()
 
                     with(activity.binding) {
-                        gestureVolumeLayout.visibility = View.VISIBLE
-                        gestureVolumeProgressBar.max = maxVolume.times(100)
-                        gestureVolumeProgressBar.progress = volumeTrackerValue.times(100).toInt()
-                        gestureVolumeText.text = volumePercentage.toString()
+                        volumeGestureLayout.visibility = View.VISIBLE
+                        volumeProgressBar.max = maxVolume.times(100)
+                        volumeProgressBar.progress = volumeTrackerValue.times(100).toInt()
+                        volumeProgressText.text = volumePercentage.toString()
                         gestureVolumeOpen = true
                     }
                 } else {
@@ -253,11 +253,10 @@ class PlayerGestureHelper(
                         (brightnessTrackerValue / maxBrightness).times(100).toInt()
 
                     with(activity.binding) {
-                        gestureBrightnessLayout.visibility = View.VISIBLE
-                        gestureBrightnessProgressBar.max = maxBrightness.times(100).toInt()
-                        gestureBrightnessProgressBar.progress =
-                            brightnessTrackerValue.times(100).toInt()
-                        gestureBrightnessText.text = brightnessPercentage.toString()
+                        brightnessGestureLayout.visibility = View.VISIBLE
+                        brightnessProgressBar.max = maxBrightness.times(100).toInt()
+                        brightnessProgressBar.progress = brightnessTrackerValue.times(100).toInt()
+                        brightnessProgressText.text = brightnessPercentage.toString()
                         gestureBrightnessOpen = true
                     }
                 }
@@ -269,7 +268,7 @@ class PlayerGestureHelper(
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
             // hide the volume indicator
-            activity.binding.gestureVolumeLayout.apply {
+            activity.binding.volumeGestureLayout.apply {
                 if (visibility == View.VISIBLE) {
                     hideVolumeGestureJob = activity.lifecycleScope.launch {
                         delay(HIDE_DELAY_MILLIS)
@@ -279,7 +278,7 @@ class PlayerGestureHelper(
                 }
             }
             // hide the brightness indicator
-            activity.binding.gestureBrightnessLayout.apply {
+            activity.binding.brightnessGestureLayout.apply {
                 if (visibility == View.VISIBLE) {
                     hideBrightnessGestureJob = activity.lifecycleScope.launch {
                         delay(HIDE_DELAY_MILLIS)
@@ -375,4 +374,3 @@ val Activity.currentBrightness: Float
         in BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL -> brightness
         else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
     }
-
