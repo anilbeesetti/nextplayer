@@ -46,6 +46,7 @@ import dev.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -201,8 +202,15 @@ class PlayerActivity : AppCompatActivity() {
         Timber.d("Creating player")
 
         val renderersFactory = NextRenderersFactory(applicationContext)
-            .setUseExperimentalRenderers(true)
-            .setExtensionRendererMode(NextRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            .setUseExperimentalRenderers(viewModel.playerPrefs.value.enableExperimentalVideoDecoders)
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(
+                when (viewModel.playerPrefs.value.decoderPriority) {
+                    DecoderPriority.DEVICE_ONLY -> NextRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DecoderPriority.PREFER_DEVICE -> NextRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                    DecoderPriority.PREFER_APP -> NextRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                }
+            )
 
         trackSelector = DefaultTrackSelector(applicationContext).apply {
             this.setParameters(
