@@ -183,7 +183,7 @@ int transformError(int errorNumber) {
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegInitialize(JNIEnv *env,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegAudioDecoder_ffmpegInitialize(JNIEnv *env,
                                                                         jobject thiz,
                                                                         jstring codec_name,
                                                                         jbyteArray extra_data,
@@ -201,7 +201,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegInitialize(JNIEnv *
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegDecode(JNIEnv *env,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegAudioDecoder_ffmpegDecode(JNIEnv *env,
                                                                     jobject thiz,
                                                                     jlong context,
                                                                     jobject input_data,
@@ -244,7 +244,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegDecode(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegGetChannelCount(
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegAudioDecoder_ffmpegGetChannelCount(
         JNIEnv *env, jobject thiz, jlong context) {
     if (!context) {
         LOGE("Context must be non-NULL.");
@@ -255,7 +255,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegGetChannelCount(
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegGetSampleRate(JNIEnv *env,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegAudioDecoder_ffmpegGetSampleRate(JNIEnv *env,
                                                                            jobject thiz,
                                                                            jlong context) {
     if (!context) {
@@ -267,7 +267,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegGetSampleRate(JNIEn
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegReset(JNIEnv *env,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegAudioDecoder_ffmpegReset(JNIEnv *env,
                                                                    jobject thiz,
                                                                    jlong jContext,
                                                                    jbyteArray extra_data) {
@@ -300,7 +300,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegReset(JNIEnv *env,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegAudioDecoder_ffmpegRelease(JNIEnv *env,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegAudioDecoder_ffmpegRelease(JNIEnv *env,
                                                                      jobject thiz,
                                                                      jlong context) {
     if (context) {

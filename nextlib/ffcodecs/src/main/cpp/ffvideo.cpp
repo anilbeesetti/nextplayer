@@ -138,7 +138,7 @@ JniContext *createVideoContext(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegInitialize(JNIEnv *env, jobject thiz,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegInitialize(JNIEnv *env, jobject thiz,
                                                                         jstring codec_name,
                                                                         jbyteArray extra_data,
                                                                         jint threads) {
@@ -153,7 +153,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegInitialize(JNIEnv *
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegReset(JNIEnv *env, jobject thiz,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegReset(JNIEnv *env, jobject thiz,
                                                                    jlong jContext) {
     auto *const jniContext = reinterpret_cast<JniContext *>(jContext);
     AVCodecContext *context = jniContext->codecContext;
@@ -168,7 +168,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegReset(JNIEnv *env, 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegRelease(JNIEnv *env, jobject thiz,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRelease(JNIEnv *env, jobject thiz,
                                                                      jlong jContext) {
     auto *const jniContext = reinterpret_cast<JniContext *>(jContext);
     AVCodecContext *context = jniContext->codecContext;
@@ -180,7 +180,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegRelease(JNIEnv *env
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIEnv *env, jobject thiz,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIEnv *env, jobject thiz,
                                                                          jlong jContext,
                                                                          jobject surface,
                                                                          jobject output_buffer,
@@ -290,7 +290,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIEnv 
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEnv *env, jobject thiz,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEnv *env, jobject thiz,
                                                                         jlong jContext,
                                                                         jobject encoded_data,
                                                                         jint length,
@@ -324,7 +324,7 @@ Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEnv *
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_libs_ffcodecs_FfmpegVideoDecoder_ffmpegReceiveFrame(JNIEnv *env, jobject thiz,
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegReceiveFrame(JNIEnv *env, jobject thiz,
                                                                           jlong jContext,
                                                                           jint output_mode,
                                                                           jobject output_buffer,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
-package dev.anilbeesetti.libs.ffcodecs;
+package dev.anilbeesetti.nextlib.ffcodecs;
 
-import androidx.media3.common.util.NonNullApi;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.decoder.DecoderException;
+
+/** Thrown when an FFmpeg decoder error occurs. */
+@UnstableApi
+public final class FfmpegDecoderException extends DecoderException {
+
+  /* package */ FfmpegDecoderException(String message) {
+    super(message);
+  }
+
+  /* package */ FfmpegDecoderException(String message, Throwable cause) {
+    super(message, cause);
+  }
+}

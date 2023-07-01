@@ -37,7 +37,7 @@ import androidx.media3.ui.PlayerView
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.libs.ffcodecs.NextRenderersFactory
+import dev.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
