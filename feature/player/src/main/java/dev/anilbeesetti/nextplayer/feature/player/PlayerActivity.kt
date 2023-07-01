@@ -134,14 +134,14 @@ class PlayerActivity : AppCompatActivity() {
         prettyPrintIntent()
 
         AppCompatDelegate.setDefaultNightMode(
-            when (viewModel.applicationPreferences.value.themeConfig) {
+            when (viewModel.appPrefs.value.themeConfig) {
                 ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
                 ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
                 ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
             }
         )
 
-        if (viewModel.applicationPreferences.value.useDynamicColors) {
+        if (viewModel.appPrefs.value.useDynamicColors) {
             DynamicColors.applyToActivityIfAvailable(this)
         }
 
@@ -206,8 +206,8 @@ class PlayerActivity : AppCompatActivity() {
         trackSelector = DefaultTrackSelector(applicationContext).apply {
             this.setParameters(
                 this.buildUponParameters()
-                    .setPreferredAudioLanguage(viewModel.preferences.value.preferredAudioLanguage)
-                    .setPreferredTextLanguage(viewModel.preferences.value.preferredSubtitleLanguage)
+                    .setPreferredAudioLanguage(viewModel.playerPrefs.value.preferredAudioLanguage)
+                    .setPreferredTextLanguage(viewModel.playerPrefs.value.preferredSubtitleLanguage)
             )
         }
 
@@ -224,7 +224,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setOrientation() {
         requestedOrientation = currentOrientation
-            ?: viewModel.preferences.value.playerScreenOrientation.toActivityOrientation()
+            ?: viewModel.playerPrefs.value.playerScreenOrientation.toActivityOrientation()
     }
 
     private fun initializePlayerView() {
@@ -238,7 +238,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         binding.playerView.subtitleView?.let { subtitleView ->
-            with(viewModel.preferences.value) {
+            with(viewModel.playerPrefs.value) {
                 val style = CaptionStyleCompat(
                     Color.WHITE,
                     Color.BLACK.takeIf { subtitleBackground } ?: Color.TRANSPARENT,
@@ -342,7 +342,7 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         screenRotationButton.setOnLongClickListener {
-            viewModel.preferences.value.playerScreenOrientation.also {
+            viewModel.playerPrefs.value.playerScreenOrientation.also {
                 requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
             }
             true
@@ -369,7 +369,7 @@ class PlayerActivity : AppCompatActivity() {
 
             val currentUri = playlistManager.getCurrent()!!
 
-            viewModel.updateState(path = getPath(currentUri))
+            getPath(currentUri)?.let { viewModel.updateState(it) }
 
             if (intent.data == currentUri && playerApi.hasPosition) {
                 viewModel.currentPlaybackPosition = playerApi.position?.toLong()
@@ -394,6 +394,7 @@ class PlayerActivity : AppCompatActivity() {
                     videoTitleTextView.text = getFilenameFromUri(currentUri)
                 }
 
+                Timber.d("position: ${viewModel.currentPlaybackPosition}")
                 // Set media and start player
                 player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
@@ -421,7 +422,7 @@ class PlayerActivity : AppCompatActivity() {
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             if (currentOrientation != null) return
 
-            if (viewModel.preferences.value.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
+            if (viewModel.playerPrefs.value.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
                 currentVideoOrientation = if (videoSize.isPortrait) {
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 } else {
@@ -516,7 +517,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent != null) {
             playlistManager.clearQueue()
-            viewModel.resetToDefaults()
+            viewModel.resetAllToDefaults()
             setIntent(intent)
             prettyPrintIntent()
             shouldFetchPlaylist = true

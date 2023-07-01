@@ -31,8 +31,6 @@ interface MediaRepository {
         playbackSpeed: Float?
     )
 
-    suspend fun saveVideoState(videoState: VideoState)
-
     /**
      * Get video state
      * @param path path of the video
