@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.anilbeesetti.libs.ffcodecs"
+    namespace = "dev.anilbeesetti.nextlib.ffcodecs"
 
     defaultConfig {
 
