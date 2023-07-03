@@ -2,4 +2,8 @@
 <resources>
     <string name="about_description">バージョン、クレジット</string>
     <string name="about_name">Next Playerについて</string>
+    <string name="appearance_description">お好みに合わせてアプリを設定</string>
+    <string name="cancel">キャンセル</string>
+    <string name="double_tap">ダブルタップジェスチャー</string>
+    <string name="double_tap_description">ダブルタップジェスチャーで実行するアクションを選択してください</string>
 </resources>
