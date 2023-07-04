@@ -52,7 +52,6 @@ class DecoderPreferencesViewModel @Inject constructor(
             }
         }
     }
-
 }
 
 data class DecoderPreferencesUIState(
@@ -60,7 +59,7 @@ data class DecoderPreferencesUIState(
 )
 
 sealed interface DecoderPreferenceDialog {
-    object DecoderPriorityDialog: DecoderPreferenceDialog
+    object DecoderPriorityDialog : DecoderPreferenceDialog
     object None : DecoderPreferenceDialog
 }
 

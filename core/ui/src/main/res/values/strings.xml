@@ -124,7 +124,7 @@
     <string name="subtitle_background">Subtitle background</string>
     <string name="subtitle_background_desc">Enable background to subtitle text</string>
     <string name="decoder">Decoder</string>
-    <string name="decoder_desc">Decoder preference, playback decoder options</string>
+    <string name="decoder_desc">Decoder priority, playback decoder options</string>
     <string name="video_software_decoders">Software video decoders</string>
     <string name="video_software_decoders_desc">Use application software video decoders (experimental)</string>
     <string name="decoder_priority">Decoder priority</string>

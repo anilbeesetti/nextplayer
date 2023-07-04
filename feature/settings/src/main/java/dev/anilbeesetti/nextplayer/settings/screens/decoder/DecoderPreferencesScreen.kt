@@ -93,7 +93,6 @@ fun DecoderPreferencesScreen(
     }
 }
 
-
 fun LazyListScope.videoSoftwareDecodersSetting(
     isChecked: Boolean,
     onClick: () -> Unit
@@ -106,7 +105,6 @@ fun LazyListScope.videoSoftwareDecodersSetting(
         onClick = onClick
     )
 }
-
 
 fun LazyListScope.decoderPrioritySetting(
     currentValue: DecoderPriority,
