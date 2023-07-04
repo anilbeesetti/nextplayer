@@ -121,4 +121,12 @@
     <string name="subtitle_background_desc">Ενεργοποίηση φόντου υποτίτλων</string>
     <string name="play_file">Άνοιγμα βίντεο</string>
     <string name="play_url">Εισαγωγή url βίντεο</string>
+    <string name="decoder">Αποκωδικοποιητής</string>
+    <string name="video_software_decoders">Λογισμικού</string>
+    <string name="decoder_desc">Προτεραιότητα, επιλογές αναπαραγωγής</string>
+    <string name="video_software_decoders_desc">Χρήση αποκωδικοποιητών εφαρμογής (πειραματικό)</string>
+    <string name="prefer_device_decoders">Προτίμηση αποκωδικοποιητών συσκευής</string>
+    <string name="prefer_app_decoders">Προτίμηση αποκωδικοποιητών εφαρμογής</string>
+    <string name="device_decoders_only">Μόνο αποκωδικοποιητές συσκευής</string>
+    <string name="decoder_priority">Προτεραιότητα</string>
 </resources>
