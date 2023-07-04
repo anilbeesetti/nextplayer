@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CompareArrows
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.FastForward
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.ScreenRotationAlt
 import androidx.compose.material.icons.rounded.Settings
@@ -38,6 +40,7 @@ import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.VideoSettings
 
 object NextIcons {
     val Add = Icons.Rounded.Add
@@ -53,6 +56,8 @@ object NextIcons {
     val Check = Icons.Rounded.Check
     val DarkMode = Icons.Rounded.DarkMode
     val DashBoard = Icons.Rounded.Dashboard
+    val Decoder = Icons.Rounded.DeveloperBoard
+    val DecoderVideo = Icons.Rounded.VideoSettings
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Fast = Icons.Rounded.FastForward
     val FileOpen = Icons.Rounded.FileOpen
@@ -66,6 +71,7 @@ object NextIcons {
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
     val Player = Icons.Rounded.PlayCircle
+    val Priority = Icons.Rounded.PriorityHigh
     val Resume = Icons.Rounded.ResetTv
     val Rotation = Icons.Rounded.ScreenRotationAlt
     val Selection = Icons.Rounded.DoneAll
