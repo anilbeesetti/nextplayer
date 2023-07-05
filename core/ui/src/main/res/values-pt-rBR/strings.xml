@@ -121,4 +121,12 @@
     <string name="subtitle_font">Fonte da legenda</string>
     <string name="subtitle_desc">Aparência da legenda, opções de reprodução</string>
     <string name="subtitle_background">Fundo da legenda</string>
+    <string name="decoder">Decodificador</string>
+    <string name="decoder_desc">Prioridade do decodificador, opções de reprodução do decodificador</string>
+    <string name="video_software_decoders">Software de decodificadores de vídeo</string>
+    <string name="video_software_decoders_desc">Use software de decodificadores de vídeo (experimental)</string>
+    <string name="decoder_priority">Prioridade do decodificador</string>
+    <string name="prefer_device_decoders">Prefira dispositivos de decodificação</string>
+    <string name="prefer_app_decoders">Prefira aplicativos de decodificação</string>
+    <string name="device_decoders_only">Somente dispositivos de decodificação</string>
 </resources>
