@@ -10,6 +10,7 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
@@ -57,7 +58,7 @@ class LocalMediaSource @Inject constructor(
                 mediaVideos.add(cursor.toMediaVideo)
             }
         }
-        return mediaVideos
+        return mediaVideos.filter { File(it.data).exists() }
     }
 }
 

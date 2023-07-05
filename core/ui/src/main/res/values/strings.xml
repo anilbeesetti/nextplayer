@@ -106,4 +106,29 @@
     <string name="newest">Newest</string>
     <string name="oldest">Oldest</string>
     <string name="date">Date</string>
+    <string name="default_playback_speed">Default playback speed</string>
+    <string name="enter_a_network_url">Enter a network URL:</string>
+    <string name="example_url" translatable="false">http://example.com/example.mp4</string>
+    <string name="network_stream">Network Stream</string>
+    <string name="play_file">Open video file to play</string>
+    <string name="play_url">Enter video url to play</string>
+    <string name="default_name">Default</string>
+    <string name="monospace">Monospace</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="serif">Serif</string>
+    <string name="subtitle_font">Subtitle font</string>
+    <string name="subtitle_text_bold">Bold subtitle text</string>
+    <string name="subtitle_text_bold_desc">Use bold text for subtitle</string>
+    <string name="subtitle_text_size">Subtitle text size</string>
+    <string name="subtitle_desc">Subtitle appearance, playback options</string>
+    <string name="subtitle_background">Subtitle background</string>
+    <string name="subtitle_background_desc">Enable background to subtitle text</string>
+    <string name="decoder">Decoder</string>
+    <string name="decoder_desc">Decoder priority, playback decoder options</string>
+    <string name="video_software_decoders">Software video decoders</string>
+    <string name="video_software_decoders_desc">Use application software video decoders (experimental)</string>
+    <string name="decoder_priority">Decoder priority</string>
+    <string name="prefer_device_decoders">Prefer device decoders</string>
+    <string name="prefer_app_decoders">Prefer app decoders</string>
+    <string name="device_decoders_only">Device decoders only</string>
 </resources>

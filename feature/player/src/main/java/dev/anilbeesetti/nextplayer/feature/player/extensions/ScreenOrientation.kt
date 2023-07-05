@@ -10,9 +10,7 @@ fun ScreenOrientation.toActivityOrientation(videoOrientation: Int? = null): Int 
         ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
         ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        ScreenOrientation.SYSTEM_DEFAULT -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         ScreenOrientation.VIDEO_ORIENTATION ->
-            videoOrientation
-                ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            videoOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 }

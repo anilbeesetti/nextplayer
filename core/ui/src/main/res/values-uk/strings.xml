@@ -102,4 +102,23 @@
     <string name="video_orientation">Орієнтація відео</string>
     <string name="landscape_reverse">Перевернутий альбомний</string>
     <string name="landscape_auto">Альбомний (датчик)</string>
+    <string name="newest">Найновіше</string>
+    <string name="oldest">Найстаріше</string>
+    <string name="date">Дата</string>
+    <string name="default_playback_speed">Швидкість відтворення за замовчуванням</string>
+    <string name="enter_a_network_url">Введіть URL-адресу мережі:</string>
+    <string name="network_stream">Мережева трансляція</string>
+    <string name="monospace">Monospace</string>
+    <string name="subtitle_text_bold_desc">Використовувати жирний текст для субтитрів</string>
+    <string name="subtitle_text_size">Розмір тексту субтитрів</string>
+    <string name="serif">Serif</string>
+    <string name="subtitle_font">Шрифт субтитрів</string>
+    <string name="subtitle_desc">Вигляд субтитрів, параметри відтворення</string>
+    <string name="subtitle_background_desc">Ввімкнути фон для тексту субтитрів</string>
+    <string name="play_file">Відкрити відеофайл для відтворення</string>
+    <string name="play_url">Введіть URL-адресу відео для відтворення</string>
+    <string name="default_name">За замовчуванням</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="subtitle_text_bold">Текст субтитрів виділено жирним шрифтом</string>
+    <string name="subtitle_background">Фон субтитрів</string>
 </resources>

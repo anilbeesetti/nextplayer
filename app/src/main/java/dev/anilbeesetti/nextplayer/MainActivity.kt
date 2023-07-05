@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -35,6 +36,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
 import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
+import dev.anilbeesetti.nextplayer.core.data.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
@@ -42,12 +44,16 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    val viewModel: MainActivityViewModel by viewModels()
+    @Inject
+    lateinit var synchronizer: MediaSynchronizer
+
+    private val viewModel: MainActivityViewModel by viewModels()
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +100,12 @@ class MainActivity : ComponentActivity() {
                         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                     }
 
+                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
+                        if (storagePermissionState.status.isGranted) {
+                            synchronizer.sync()
+                        }
+                    }
+
                     val navController = rememberNavController()
 
                     if (storagePermissionState.status.isGranted) {
@@ -111,7 +123,7 @@ class MainActivity : ComponentActivity() {
                         PermissionScreen(
                             permission = storagePermissionState.permission,
                             permissionStatus = storagePermissionState.status,
-                            onGrantPermissionClick = { storagePermissionState.launchPermissionRequest() }
+                            onGrantPermissionClick = storagePermissionState::launchPermissionRequest
                         )
                     }
                 }

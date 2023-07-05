@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedDirectoriesUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.SortBy
@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
-    getSortedFoldersUseCase: GetSortedFoldersUseCase,
+    getSortedDirectoriesUseCase: GetSortedDirectoriesUseCase,
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
@@ -32,7 +32,7 @@ class MediaPickerViewModel @Inject constructor(
             initialValue = VideosState.Loading
         )
 
-    val foldersState = getSortedFoldersUseCase.invoke()
+    val foldersState = getSortedDirectoriesUseCase.invoke()
         .map { FoldersState.Success(it) }
         .stateIn(
             scope = viewModelScope,

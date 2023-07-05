@@ -3,12 +3,13 @@ package dev.anilbeesetti.nextplayer.feature.player.dialogs
 import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
-import androidx.media3.common.Player
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 class PlaybackSpeedSelectionDialogFragment(
-    private val player: Player
+    private val currentSpeed: Float,
+    private val onChange: (Float) -> Unit
+//    private val player: Player
 ) : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -20,9 +21,9 @@ class PlaybackSpeedSelectionDialogFragment(
             builder.setTitle(getString(coreUiR.string.select_playback_speed))
                 .setSingleChoiceItems(
                     speedTexts.toTypedArray(),
-                    speedNumbers.indexOf(player.playbackParameters.speed)
+                    speedNumbers.indexOf(currentSpeed)
                 ) { dialog, which ->
-                    player.setPlaybackSpeed(speedNumbers[which])
+                    onChange(speedNumbers[which])
                     dialog.dismiss()
                 }
             builder.create()

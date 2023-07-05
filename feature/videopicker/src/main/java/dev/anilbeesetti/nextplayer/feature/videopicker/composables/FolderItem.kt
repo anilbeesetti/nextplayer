@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -34,7 +34,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun FolderItem(
-    folder: Folder,
+    directory: Directory,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -66,7 +66,7 @@ fun FolderItem(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = folder.name,
+                    text = directory.name,
                     maxLines = 2,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -74,7 +74,7 @@ fun FolderItem(
                 )
                 Spacer(modifier = Modifier.height(3.dp))
                 Text(
-                    text = folder.path,
+                    text = directory.path,
                     maxLines = 2,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -87,9 +87,9 @@ fun FolderItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     InfoChip(
-                        text = "${folder.mediaCount} ${
+                        text = "${directory.mediaCount} ${
                         stringResource(
-                            id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos
+                            id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
                         )
                         }",
                         modifier = Modifier.padding(vertical = 5.dp)
@@ -105,12 +105,11 @@ fun FolderItem(
 fun FolderItemPreview() {
     NextPlayerTheme {
         FolderItem(
-            folder = Folder(
+            directory = Directory(
                 name = "Folder 1",
                 path = "/storage/emulated/0/DCIM/Camera/Live Photos",
                 mediaSize = 1000,
                 mediaCount = 1,
-                isExcluded = false,
                 dateModified = 2000
             ),
             onClick = { }

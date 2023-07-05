@@ -15,5 +15,20 @@ data class PlayerPreferences(
     val rememberSelections: Boolean = true,
     val preferredAudioLanguage: String = "",
     val preferredSubtitleLanguage: String = "",
-    val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION
+    val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
+    val defaultPlaybackSpeed: Float = 1.0f,
+
+    // Subtitle Preferences
+    val subtitleTextSize: Int = 23,
+    val subtitleBackground: Boolean = false,
+    val subtitleFont: Font = Font.DEFAULT,
+    val subtitleTextBold: Boolean = true,
+
+    // Decoder Preferences
+    val enableExperimentalVideoDecoders: Boolean = false,
+    val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE
 )
+
+enum class DecoderPriority {
+    PREFER_DEVICE, PREFER_APP, DEVICE_ONLY
+}

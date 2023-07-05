@@ -102,4 +102,10 @@
     <string name="video_orientation">Orientación del vídeo</string>
     <string name="landscape_auto">Apaisado (sensor)</string>
     <string name="portrait">Retrato</string>
+    <string name="newest">Más reciente</string>
+    <string name="oldest">Más antiguo</string>
+    <string name="date">Fecha</string>
+    <string name="default_playback_speed">Velocidad de reproducción predeterminada</string>
+    <string name="enter_a_network_url">Introduce una URL de la red:</string>
+    <string name="network_stream">Flujo de la red</string>
 </resources>

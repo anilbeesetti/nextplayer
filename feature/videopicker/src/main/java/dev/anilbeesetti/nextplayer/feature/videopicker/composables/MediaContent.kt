@@ -89,7 +89,7 @@ fun FoldersListFromState(
             MediaLazyList {
                 items(foldersState.data, key = { it.path }) {
                     FolderItem(
-                        folder = it,
+                        directory = it,
                         onClick = { onFolderClick(it.path) }
                     )
                 }
