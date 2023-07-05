@@ -97,8 +97,7 @@ JniContext *createVideoContext(JNIEnv *env,
     if (extraData) {
         jsize size = env->GetArrayLength(extraData);
         codecContext->extradata_size = size;
-        codecContext->extradata =
-                (uint8_t *) av_malloc(size + AV_INPUT_BUFFER_PADDING_SIZE);
+        codecContext->extradata = (uint8_t *) av_malloc(size + AV_INPUT_BUFFER_PADDING_SIZE);
         if (!codecContext->extradata) {
             LOGE("Failed to allocate extradata.");
             releaseContext(codecContext);
@@ -119,12 +118,11 @@ JniContext *createVideoContext(JNIEnv *env,
     jniContext->codecContext = codecContext;
 
     // Populate JNI References.
-    jclass outputBufferClass = env->FindClass(
-            "androidx/media3/decoder/VideoDecoderOutputBuffer");
+    jclass outputBufferClass = env->FindClass("androidx/media3/decoder/VideoDecoderOutputBuffer");
     jniContext->data_field = env->GetFieldID(outputBufferClass, "data", "Ljava/nio/ByteBuffer;");
+    jniContext->yuvStrides_field = env->GetFieldID(outputBufferClass, "yuvStrides", "[I");
     jniContext->yuvPlanes_field =
             env->GetFieldID(outputBufferClass, "yuvPlanes", "[Ljava/nio/ByteBuffer;");
-    jniContext->yuvStrides_field = env->GetFieldID(outputBufferClass, "yuvStrides", "[I");
     jniContext->init_for_private_frame_method =
             env->GetMethodID(outputBufferClass, "initForPrivateFrame", "(II)V");
     jniContext->init_for_yuv_frame_method =
@@ -138,10 +136,11 @@ JniContext *createVideoContext(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegInitialize(JNIEnv *env, jobject thiz,
-                                                                        jstring codec_name,
-                                                                        jbyteArray extra_data,
-                                                                        jint threads) {
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegInitialize(JNIEnv *env,
+                                                                           jobject thiz,
+                                                                           jstring codec_name,
+                                                                           jbyteArray extra_data,
+                                                                           jint threads) {
     AVCodec *codec = getCodecByName(env, codec_name);
     if (!codec) {
         LOGE("Codec not found.");
@@ -154,7 +153,7 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegInitialize(JNIEn
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegReset(JNIEnv *env, jobject thiz,
-                                                                   jlong jContext) {
+                                                                      jlong jContext) {
     auto *const jniContext = reinterpret_cast<JniContext *>(jContext);
     AVCodecContext *context = jniContext->codecContext;
     if (!context) {
@@ -169,7 +168,7 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegReset(JNIEnv *en
 extern "C"
 JNIEXPORT void JNICALL
 Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRelease(JNIEnv *env, jobject thiz,
-                                                                     jlong jContext) {
+                                                                        jlong jContext) {
     auto *const jniContext = reinterpret_cast<JniContext *>(jContext);
     AVCodecContext *context = jniContext->codecContext;
     if (context) {
@@ -180,12 +179,13 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRelease(JNIEnv *
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIEnv *env, jobject thiz,
-                                                                         jlong jContext,
-                                                                         jobject surface,
-                                                                         jobject output_buffer,
-                                                                         jint displayed_width,
-                                                                         jint displayed_height) {
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIEnv *env,
+                                                                            jobject thiz,
+                                                                            jlong jContext,
+                                                                            jobject surface,
+                                                                            jobject output_buffer,
+                                                                            jint displayed_width,
+                                                                            jint displayed_height) {
     auto *const jniContext = reinterpret_cast<JniContext *>(jContext);
     if (!jniContext->MaybeAcquireNativeWindow(env, surface)) {
         return VIDEO_DECODER_ERROR_OTHER;
@@ -193,6 +193,7 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIE
 
     if (jniContext->native_window_width != displayed_width ||
         jniContext->native_window_height != displayed_height) {
+
         if (ANativeWindow_setBuffersGeometry(
                 jniContext->native_window,
                 displayed_width,
@@ -201,9 +202,9 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIE
             LOGE("kJniStatusANativeWindowError");
             return VIDEO_DECODER_ERROR_OTHER;
         }
+
         jniContext->native_window_width = displayed_width;
         jniContext->native_window_height = displayed_height;
-
 
         // Initializing swsContext with AV_PIX_FMT_YUV420P, which is equivalent to YV12.
         // The only difference is the order of the u and v planes.
@@ -231,50 +232,57 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIE
         return VIDEO_DECODER_ERROR_OTHER;
     }
 
-    // src planes from VideoDecoderOutputBuffer
+    // source planes from VideoDecoderOutputBuffer
     jobject yuvPlanes_object = env->GetObjectField(output_buffer, jniContext->yuvPlanes_field);
     auto yuvPlanes_array = jobjectArray(yuvPlanes_object);
     jobject yuvPlanesY = env->GetObjectArrayElement(yuvPlanes_array, kPlaneY);
     jobject yuvPlanesU = env->GetObjectArrayElement(yuvPlanes_array, kPlaneU);
     jobject yuvPlanesV = env->GetObjectArrayElement(yuvPlanes_array, kPlaneV);
+
     auto *planeY = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(yuvPlanesY));
     auto *planeU = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(yuvPlanesU));
     auto *planeV = reinterpret_cast<uint8_t *>(env->GetDirectBufferAddress(yuvPlanesV));
 
-    // src strides from VideoDecoderOutputBuffer
+    // source strides from VideoDecoderOutputBuffer
     jobject yuvStrides_object = env->GetObjectField(output_buffer, jniContext->yuvStrides_field);
     auto *yuvStrides_array = reinterpret_cast<jintArray *>(&yuvStrides_object);
     int *yuvStrides = env->GetIntArrayElements(*yuvStrides_array, nullptr);
+
     int strideY = yuvStrides[kPlaneY];
     int strideU = yuvStrides[kPlaneU];
     int strideV = yuvStrides[kPlaneV];
 
 
-    const int y_plane_size = native_window_buffer.stride * native_window_buffer.height;
     const int32_t native_window_buffer_uv_height = (native_window_buffer.height + 1) / 2;
+    auto native_window_buffer_bits = reinterpret_cast<uint8_t *>(native_window_buffer.bits);
     const int native_window_buffer_uv_stride = ALIGN(native_window_buffer.stride / 2, 16);
     const int v_plane_height = std::min(native_window_buffer_uv_height, displayed_height);
+
+    const int y_plane_size = native_window_buffer.stride * native_window_buffer.height;
     const int v_plane_size = v_plane_height * native_window_buffer_uv_stride;
 
+    // source data
+    uint8_t *src[3] = {planeY, planeU, planeV};
 
-    // src data with swapped u and v planes
-    uint8_t *src[3] = {planeY, planeV, planeU};
-    int src_stride[3] = {strideY, strideV, strideU};
+    // source strides
+    int src_stride[3] = {strideY, strideU, strideV};
 
+    // destination data with u and v swapped
+    uint8_t *dest[3] = {native_window_buffer_bits,
+                        native_window_buffer_bits + y_plane_size + v_plane_size,
+                        native_window_buffer_bits + y_plane_size};
 
-    // dest data
-    uint8_t *dest[3] = {reinterpret_cast<uint8_t *>(native_window_buffer.bits),
-                        reinterpret_cast<uint8_t *>(native_window_buffer.bits) + y_plane_size,
-                        reinterpret_cast<uint8_t *>(native_window_buffer.bits) + y_plane_size +
-                        v_plane_size};
-    int dest_stride[3] = {native_window_buffer.stride, native_window_buffer_uv_stride,
+    // destination strides
+    int dest_stride[3] = {native_window_buffer.stride,
+                          native_window_buffer_uv_stride,
                           native_window_buffer_uv_stride};
 
 
     //Perform color space conversion using sws_scale.
     //Convert the source data (src) with specified strides (src_stride) and displayed height,
     //and store the result in the destination data (dest) with corresponding strides (dest_stride).
-    sws_scale(jniContext->swsContext, src, src_stride,
+    sws_scale(jniContext->swsContext,
+              src, src_stride,
               0, displayed_height,
               dest, dest_stride);
 
@@ -290,11 +298,12 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegRenderFrame(JNIE
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEnv *env, jobject thiz,
-                                                                        jlong jContext,
-                                                                        jobject encoded_data,
-                                                                        jint length,
-                                                                        jlong input_time) {
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEnv *env,
+                                                                           jobject thiz,
+                                                                           jlong jContext,
+                                                                           jobject encoded_data,
+                                                                           jint length,
+                                                                           jlong input_time) {
     auto *const jniContext = reinterpret_cast<JniContext *>(jContext);
     AVCodecContext *avContext = jniContext->codecContext;
 
@@ -304,9 +313,8 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEn
     packet.size = length;
     packet.pts = input_time;
 
-    int result = 0;
     // Queue input data.
-    result = avcodec_send_packet(avContext, &packet);
+    int result = avcodec_send_packet(avContext, &packet);
     if (result) {
         logError("avcodec_send_packet", result);
         if (result == AVERROR_INVALIDDATA) {
@@ -324,21 +332,21 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEn
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegReceiveFrame(JNIEnv *env, jobject thiz,
-                                                                          jlong jContext,
-                                                                          jint output_mode,
-                                                                          jobject output_buffer,
-                                                                          jboolean decode_only) {
+Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegReceiveFrame(JNIEnv *env,
+                                                                             jobject thiz,
+                                                                             jlong jContext,
+                                                                             jint output_mode,
+                                                                             jobject output_buffer,
+                                                                             jboolean decode_only) {
     auto *const jniContext = reinterpret_cast<JniContext *>(jContext);
     AVCodecContext *avContext = jniContext->codecContext;
-    int result = 0;
 
     AVFrame *frame = av_frame_alloc();
     if (!frame) {
         LOGE("Failed to allocate output frame.");
         return VIDEO_DECODER_ERROR_OTHER;
     }
-    result = avcodec_receive_frame(avContext, frame);
+    int result = avcodec_receive_frame(avContext, frame);
 
     // fail
     if (decode_only || result == AVERROR(EAGAIN)) {
