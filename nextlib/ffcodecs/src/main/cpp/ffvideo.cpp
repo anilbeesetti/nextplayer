@@ -313,9 +313,8 @@ Java_dev_anilbeesetti_nextlib_ffcodecs_FfmpegVideoDecoder_ffmpegSendPacket(JNIEn
     packet.size = length;
     packet.pts = input_time;
 
-    int result = 0;
     // Queue input data.
-    result = avcodec_send_packet(avContext, &packet);
+    int result = avcodec_send_packet(avContext, &packet);
     if (result) {
         logError("avcodec_send_packet", result);
         if (result == AVERROR_INVALIDDATA) {
