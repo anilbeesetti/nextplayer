@@ -106,4 +106,19 @@
     <string name="oldest">En eski</string>
     <string name="date">Tarih</string>
     <string name="default_playback_speed">Varsayılan oynatma hızı</string>
+    <string name="subtitle_text_bold">Kalın altyazı metni</string>
+    <string name="subtitle_background">Altyazı arkaplanı</string>
+    <string name="play_url">Oynatmak için video URL\'sini girin</string>
+    <string name="serif">Serif</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="subtitle_font">Altyazı fontu</string>
+    <string name="default_name">Varsayılan</string>
+    <string name="subtitle_desc">Altyazı görünümü, oynatma seçenekleri</string>
+    <string name="monospace">Monospace</string>
+    <string name="play_file">Oynatmak için video dosyasını açın</string>
+    <string name="subtitle_text_bold_desc">Altyazı için kalın metin kullan</string>
+    <string name="subtitle_text_size">Altyazı metin boyutu</string>
+    <string name="subtitle_background_desc">Altyazı metni için arkaplanı etkinleştir</string>
+    <string name="enter_a_network_url">Bir ağ URL\'si girin:</string>
+    <string name="network_stream">Ağ Akışı</string>
 </resources>

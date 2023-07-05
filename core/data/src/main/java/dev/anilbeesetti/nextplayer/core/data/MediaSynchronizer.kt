@@ -93,6 +93,6 @@ class MediaSynchronizer @Inject constructor(
             .map { it.path }
             .filterNot { it in currentMediaPaths }
 
-        directoryDao.delete(unwantedMedia)
+        mediumDao.delete(unwantedMedia)
     }
 }

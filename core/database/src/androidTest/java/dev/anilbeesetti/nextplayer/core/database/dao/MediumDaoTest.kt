@@ -107,7 +107,7 @@ class MediumDaoTest {
         val toBeDeletedMediumEntities = mediumEntities.filterIndexed { index, _ -> index % 2 == 0 }
         val remainingMediumEntities = mediumEntities.filterNot { it in toBeDeletedMediumEntities }
 
-        mediumDao.deleteMedia(toBeDeletedMediumEntities.map { it.path })
+        mediumDao.delete(toBeDeletedMediumEntities.map { it.path })
 
         val result = mediumDao.getAll().first()
 

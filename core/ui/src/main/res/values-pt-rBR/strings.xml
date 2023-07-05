@@ -108,4 +108,17 @@
     <string name="default_playback_speed">Velocidade de reprodução padrão</string>
     <string name="enter_a_network_url">Digite uma URL de conexão:</string>
     <string name="network_stream">Conexão de transmissão</string>
+    <string name="serif">Serif</string>
+    <string name="play_file">Abrir arquivo de vídeo para reproduzir</string>
+    <string name="play_url">Digitar URL de vídeo para reproduzir</string>
+    <string name="default_name">Padrão</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="subtitle_text_bold">Legenda com texto em negrito</string>
+    <string name="subtitle_text_bold_desc">Use texto em negrito para a legenda</string>
+    <string name="subtitle_text_size">Tamanho do texto da legenda</string>
+    <string name="subtitle_background_desc">Ativar fundo para texto da legenda</string>
+    <string name="monospace">Monospace</string>
+    <string name="subtitle_font">Fonte da legenda</string>
+    <string name="subtitle_desc">Aparência da legenda, opções de reprodução</string>
+    <string name="subtitle_background">Fundo da legenda</string>
 </resources>

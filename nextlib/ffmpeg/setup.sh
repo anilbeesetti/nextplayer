@@ -5,7 +5,7 @@ BASE_DIR=$(cd "$(dirname "$0")" && pwd)
 NDK_HOME=$ANDROID_NDK_HOME
 FFMPEG_VERSION=6.0
 ANDROID_ABIS="x86 x86_64 armeabi-v7a arm64-v8a"
-ENABLED_DECODERS="vorbis opus flac alac pcm_mulaw pcm_alaw mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd"
+ENABLED_DECODERS="vorbis opus flac alac pcm_mulaw pcm_alaw mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd h264 hevc mpeg2video mpegvideo"
 HOST_PLATFORM="linux-x86_64"
 BUILD_DIR=$BASE_DIR/build
 OUTPUT_DIR=$BASE_DIR/output
@@ -53,7 +53,7 @@ if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
         # Set up environment variables
         case $ABI in
         armeabi-v7a)
-            TOOLCHAIN=armv7a-linux-androideabi16-
+            TOOLCHAIN=armv7a-linux-androideabi21-
             CPU=armv7-a
             ARCH=arm
             ;;
@@ -63,7 +63,7 @@ if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
             ARCH=aarch64
             ;;
         x86)
-            TOOLCHAIN=i686-linux-android16-
+            TOOLCHAIN=i686-linux-android21-
             CPU=i686
             ARCH=i686
             EXTRA_BUILD_CONFIGURATION_FLAGS=--disable-asm
@@ -98,11 +98,11 @@ if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
             --disable-everything \
             --disable-avdevice \
             --disable-avformat \
-            --disable-swscale \
             --disable-postproc \
             --disable-avfilter \
             --disable-symver \
             --enable-swresample \
+            --enable-version3 \
             --extra-ldexeflags=-pie \
             ${EXTRA_BUILD_CONFIGURATION_FLAGS} \
             ${COMMON_OPTIONS}

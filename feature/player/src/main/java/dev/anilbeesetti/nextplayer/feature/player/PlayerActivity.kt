@@ -34,7 +34,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -43,13 +42,13 @@ import androidx.media3.ui.PlayerView
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.libs.ffcodecs.NextRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.clearCache
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
+import dev.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
-import dev.anilbeesetti.nextplayer.core.model.FastSeek
+import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -60,8 +59,6 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setSeekParameters
-import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeekDisable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
@@ -140,14 +137,14 @@ class PlayerActivity : AppCompatActivity() {
         prettyPrintIntent()
 
         AppCompatDelegate.setDefaultNightMode(
-            when (viewModel.applicationPreferences.value.themeConfig) {
+            when (viewModel.appPrefs.value.themeConfig) {
                 ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
                 ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
                 ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
             }
         )
 
-        if (viewModel.applicationPreferences.value.useDynamicColors) {
+        if (viewModel.appPrefs.value.useDynamicColors) {
             DynamicColors.applyToActivityIfAvailable(this)
         }
 
@@ -196,8 +193,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        binding.gestureVolumeLayout.visibility = View.GONE
-        binding.gestureBrightnessLayout.visibility = View.GONE
+        binding.volumeGestureLayout.visibility = View.GONE
+        binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
         releasePlayer()
         super.onStop()
@@ -206,14 +203,24 @@ class PlayerActivity : AppCompatActivity() {
     private fun createPlayer() {
         Timber.d("Creating player")
 
-        val renderersFactory = NextRenderersFactory(application)
-            .setExtensionRendererMode(NextRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+        val renderersFactory = NextRenderersFactory(applicationContext)
+            .setUseExperimentalRenderers(
+                viewModel.playerPrefs.value.enableExperimentalVideoDecoders
+            )
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(
+                when (viewModel.playerPrefs.value.decoderPriority) {
+                    DecoderPriority.DEVICE_ONLY -> NextRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DecoderPriority.PREFER_DEVICE -> NextRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                    DecoderPriority.PREFER_APP -> NextRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                }
+            )
 
         trackSelector = DefaultTrackSelector(applicationContext).apply {
             this.setParameters(
                 this.buildUponParameters()
-                    .setPreferredAudioLanguage(viewModel.preferences.value.preferredAudioLanguage)
-                    .setPreferredTextLanguage(viewModel.preferences.value.preferredSubtitleLanguage)
+                    .setPreferredAudioLanguage(viewModel.playerPrefs.value.preferredAudioLanguage)
+                    .setPreferredTextLanguage(viewModel.playerPrefs.value.preferredSubtitleLanguage)
             )
         }
 
@@ -222,9 +229,6 @@ class PlayerActivity : AppCompatActivity() {
             .setTrackSelector(trackSelector)
             .setAudioAttributes(getAudioAttributes(), true)
             .setHandleAudioBecomingNoisy(true)
-            .setSeekParameters(
-                if (viewModel.preferences.value.fastSeek != FastSeek.DISABLE) SeekParameters.CLOSEST_SYNC else SeekParameters.DEFAULT
-            )
             .build()
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
@@ -233,7 +237,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setOrientation() {
         requestedOrientation = currentOrientation
-            ?: viewModel.preferences.value.playerScreenOrientation.toActivityOrientation()
+            ?: viewModel.playerPrefs.value.playerScreenOrientation.toActivityOrientation()
     }
 
     private fun initializePlayerView() {
@@ -247,7 +251,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         binding.playerView.subtitleView?.let { subtitleView ->
-            with(viewModel.preferences.value) {
+            with(viewModel.playerPrefs.value) {
                 val style = CaptionStyleCompat(
                     Color.WHITE,
                     Color.BLACK.takeIf { subtitleBackground } ?: Color.TRANSPARENT,
@@ -351,7 +355,7 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         screenRotationButton.setOnLongClickListener {
-            viewModel.preferences.value.playerScreenOrientation.also {
+            viewModel.playerPrefs.value.playerScreenOrientation.also {
                 requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
             }
             true
@@ -378,7 +382,7 @@ class PlayerActivity : AppCompatActivity() {
 
             val currentUri = playlistManager.getCurrent()!!
 
-            viewModel.updateState(path = getPath(currentUri))
+            getPath(currentUri)?.let { viewModel.updateState(it) }
 
             if (intent.data == currentUri && playerApi.hasPosition) {
                 viewModel.currentPlaybackPosition = playerApi.position?.toLong()
@@ -403,6 +407,7 @@ class PlayerActivity : AppCompatActivity() {
                     videoTitleTextView.text = getFilenameFromUri(currentUri)
                 }
 
+                Timber.d("position: ${viewModel.currentPlaybackPosition}")
                 // Set media and start player
                 player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 player.playWhenReady = playWhenReady
@@ -430,7 +435,7 @@ class PlayerActivity : AppCompatActivity() {
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             if (currentOrientation != null) return
 
-            if (viewModel.preferences.value.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
+            if (viewModel.playerPrefs.value.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
                 currentVideoOrientation = if (videoSize.isPortrait) {
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 } else {
@@ -474,9 +479,6 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
                     Timber.d(playlistManager.toString())
-                    if (viewModel.preferences.value.shouldFastSeekDisable(player.duration)) {
-                        player.setSeekParameters(SeekParameters.DEFAULT)
-                    }
                     isFileLoaded = true
                 }
 
@@ -529,7 +531,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent != null) {
             playlistManager.clearQueue()
-            viewModel.resetToDefaults()
+            viewModel.resetAllToDefaults()
             setIntent(intent)
             prettyPrintIntent()
             shouldFetchPlaylist = true

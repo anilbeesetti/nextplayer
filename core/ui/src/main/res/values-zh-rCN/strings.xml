@@ -108,4 +108,17 @@
     <string name="default_playback_speed">默认播放速度</string>
     <string name="network_stream">网络流</string>
     <string name="enter_a_network_url">输入一个网络 URL：</string>
+    <string name="monospace">等宽字体</string>
+    <string name="serif">衬线</string>
+    <string name="subtitle_text_size">字幕文本大小</string>
+    <string name="subtitle_text_bold_desc">为字幕使用粗体</string>
+    <string name="subtitle_background">字幕背景</string>
+    <string name="subtitle_background_desc">启用字幕背景</string>
+    <string name="subtitle_font">字幕字体</string>
+    <string name="default_name">默认</string>
+    <string name="sans_serif">无衬线字体</string>
+    <string name="subtitle_text_bold">粗体字幕文本</string>
+    <string name="subtitle_desc">字幕外观、播放选项</string>
+    <string name="play_file">打开视频文件进行播放</string>
+    <string name="play_url">输入视频 URL 进行播放</string>
 </resources>

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.anilbeesetti.libs.ffcodecs;
+package dev.anilbeesetti.nextlib.ffcodecs;
 
 import android.annotation.SuppressLint;
 
@@ -27,6 +27,7 @@ import androidx.media3.common.util.Util;
 import androidx.media3.decoder.DecoderInputBuffer;
 import androidx.media3.decoder.SimpleDecoder;
 import androidx.media3.decoder.SimpleDecoderOutputBuffer;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -172,18 +173,14 @@ final class FfmpegAudioDecoder
    */
   @Nullable
   private static byte[] getExtraData(String mimeType, List<byte[]> initializationData) {
-    switch (mimeType) {
-      case MimeTypes.AUDIO_AAC:
-      case MimeTypes.AUDIO_OPUS:
-        return initializationData.get(0);
-      case MimeTypes.AUDIO_ALAC:
-        return getAlacExtraData(initializationData);
-      case MimeTypes.AUDIO_VORBIS:
-        return getVorbisExtraData(initializationData);
-      default:
-        // Other codecs do not require extra data.
-        return null;
-    }
+    if (initializationData.isEmpty()) return null;
+    return switch (mimeType) {
+      case MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_OPUS -> initializationData.get(0);
+      case MimeTypes.AUDIO_ALAC -> getAlacExtraData(initializationData);
+      case MimeTypes.AUDIO_VORBIS -> getVorbisExtraData(initializationData);
+      // Other codecs do not require extra data.
+      default -> null;
+    };
   }
 
   private static byte[] getAlacExtraData(List<byte[]> initializationData) {

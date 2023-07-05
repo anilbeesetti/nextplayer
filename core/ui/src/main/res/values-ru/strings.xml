@@ -107,4 +107,14 @@
     <string name="enter_a_network_url">Введите URL-адрес сети:</string>
     <string name="network_stream">Стриминг</string>
     <string name="default_playback_speed">Скорость воспроизведения по умолчанию</string>
+    <string name="default_name">По умолчанию</string>
+    <string name="subtitle_text_bold_desc">Использовать жирный текст для субтитров</string>
+    <string name="play_url">Введите URL-адрес видео для воспроизведения</string>
+    <string name="play_file">Открыть видео файл для воспроизведения</string>
+    <string name="subtitle_font">Шрифт субтитров</string>
+    <string name="subtitle_text_bold">Жирный текст субтитров</string>
+    <string name="subtitle_text_size">Размер текста субтитров</string>
+    <string name="subtitle_desc">Внешний вид субтитров, параметры воспроизведения</string>
+    <string name="subtitle_background">Фон субтитров</string>
+    <string name="subtitle_background_desc">Включить фон для текста субтитров</string>
 </resources>
