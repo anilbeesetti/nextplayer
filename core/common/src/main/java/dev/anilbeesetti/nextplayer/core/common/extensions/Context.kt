@@ -13,7 +13,14 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.core.text.isDigitsOnly
+import com.ibm.icu.text.CharsetDetector
+import java.io.BufferedInputStream
+import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.io.File
+import java.io.FileWriter
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -203,5 +210,51 @@ fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
     }
 }
 
-fun Context.getFolderFromSAF() {
+fun Context.convertToUTF8(uri: Uri): Uri {
+    try {
+        if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            return convertToUTF8(uri, inputStream)
+        }
+    } catch (exception: Exception) {
+        exception.printStackTrace()
+    }
+    return uri
+}
+
+fun Context.convertToUTF8(inputUri: Uri, inputStream: InputStream): Uri {
+    val charsetDetector = CharsetDetector()
+    val bufferedInputStream = BufferedInputStream(inputStream)
+    charsetDetector.setText(bufferedInputStream)
+    val inputCharset = charsetDetector.detect()
+
+    if (!StandardCharsets.UTF_8.displayName().equals(inputCharset.name)) {
+        val fileName = getFilenameFromUri(inputUri)
+        val file = File(cacheDir, fileName)
+        val bufferedReader = BufferedReader(inputCharset.reader)
+        val bufferedWriter = BufferedWriter(FileWriter(file))
+
+        val buffer = CharArray(512)
+        var bytesRead: Int
+
+        while (bufferedReader.read(buffer).also { bytesRead = it } != -1) {
+            bufferedWriter.write(buffer, 0, bytesRead)
+        }
+
+        bufferedWriter.close()
+        bufferedReader.close()
+
+        return Uri.fromFile(file)
+    }
+    return inputUri
+}
+
+fun Context.clearCache() {
+    try {
+        cacheDir.listFiles()?.onEach {
+            if (it.isFile) it.delete()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }

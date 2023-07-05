@@ -21,6 +21,7 @@ androidxTestExt = "1.1.5"
 checkerQual = "3.34.0"
 googleErrorProne = "2.18.0"
 hilt = "2.46.1"
+icu4j = "73.2"
 junit4 = "4.13.2"
 kotlin = "1.8.22"
 kotlinxCoroutines = "1.6.4"
@@ -75,6 +76,7 @@ google-android-material = { group = "com.google.android.material", name = "mater
 google-errorprone-annotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "googleErrorProne" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+ibm-icu4j = { group = "com.ibm.icu", name = "icu4j", version.ref = "icu4j" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlin-annotations-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-annotations-jvm", version.ref = "kotlin" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
