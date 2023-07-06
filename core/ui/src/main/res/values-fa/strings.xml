@@ -1,2 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="error_playing_video">خطا: نمیتوان ویدیو را پخش کرد</string>
+    <string name="fast_seek_description">رفتن به نزدیک ترین فریم بجای دقیق ترین</string>
+    <string name="group_videos">گروه بندی ویدیو ها براساس پوشه</string>
+    <string name="appearance_name">ظاهر</string>
+    <string name="appearance_description">سفارشی سازی برنامه</string>
+    <string name="disable">غیرفعال کردن</string>
+    <string name="done">اتمام</string>
+    <string name="double_tap">دوبار ضربه زدن</string>
+    <string name="double_tap_description">انتخاب حرکت دوبار ضربه زدن</string>
+    <string name="fast_seek">سریع گشتن</string>
+    <string name="grant_permission">اجازه دادن</string>
+    <string name="cancel">لغو</string>
+    <string name="about_description">نسخه، سازندگان</string>
+    <string name="about_name">درباره ما</string>
+    <string name="ascending">صعودی</string>
+    <string name="descending">نزولی</string>
+    <string name="duration">مدت</string>
+</resources>
