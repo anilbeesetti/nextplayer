@@ -2,10 +2,8 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,7 +51,7 @@ fun PreferenceItem(
             Text(
                 text = title,
                 maxLines = 1,
-                style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp)
             )
         },
         supportingContent = {

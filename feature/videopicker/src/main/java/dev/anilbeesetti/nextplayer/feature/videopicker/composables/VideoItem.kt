@@ -47,7 +47,7 @@ fun VideoItem(
             Box(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
-                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),)
+                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
                     .widthIn(max = 400.dp)
                     .fillMaxWidth(0.5f)
                     .aspectRatio(16f / 10f)

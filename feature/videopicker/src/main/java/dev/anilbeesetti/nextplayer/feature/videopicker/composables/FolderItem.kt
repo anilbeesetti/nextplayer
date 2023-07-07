@@ -75,9 +75,9 @@ fun FolderItem(
             ) {
                 InfoChip(
                     text = "${directory.mediaCount} ${
-                        stringResource(
-                            id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
-                        )
+                    stringResource(
+                        id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
+                    )
                     }",
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
@@ -106,7 +106,6 @@ fun FolderItemPreview() {
         )
     }
 }
-
 
 fun Modifier.negativeVerticalPadding(vertical: Dp) = layout { measurable, constraints ->
     val placeable = measurable.measure(constraints.offset(vertical = (-vertical * 2).roundToPx()))
