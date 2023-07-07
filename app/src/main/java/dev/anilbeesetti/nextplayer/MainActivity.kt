@@ -7,42 +7,44 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
-import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
 import dev.anilbeesetti.nextplayer.core.data.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
+import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
-import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -106,25 +108,21 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val navController = rememberNavController()
+                    val mainNavController = rememberNavController()
+                    val mediaNavController = rememberNavController()
 
-                    if (storagePermissionState.status.isGranted) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = MEDIA_ROUTE
-                        ) {
-                            mediaNavGraph(
-                                context = this@MainActivity,
-                                navController = navController
+                    NavHost(
+                        navController = mainNavController,
+                        startDestination = MAIN_ROUTE
+                    ) {
+                        composable(MAIN_ROUTE) {
+                            MainScreen(
+                                permissionState = storagePermissionState,
+                                mainNavController = mainNavController,
+                                mediaNavController = mediaNavController
                             )
-                            settingsNavGraph(navController = navController)
                         }
-                    } else {
-                        PermissionScreen(
-                            permission = storagePermissionState.permission,
-                            permissionStatus = storagePermissionState.status,
-                            onGrantPermissionClick = storagePermissionState::launchPermissionRequest
-                        )
+                        settingsNavGraph(navController = mainNavController)
                     }
                 }
             }
@@ -132,27 +130,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
-fun PermissionScreen(
-    permission: String,
-    permissionStatus: PermissionStatus,
-    onGrantPermissionClick: () -> Unit
-) {
-    Column {
-        NextCenterAlignedTopAppBar(title = stringResource(id = R.string.app_name))
-        if (permissionStatus.shouldShowRationale) {
-            PermissionRationaleDialog(
-                text = stringResource(id = R.string.permission_info, permission),
-                onConfirmButtonClick = onGrantPermissionClick
-            )
-        } else {
-            PermissionDetailView(
-                text = stringResource(id = R.string.permission_settings, permission)
-            )
-        }
-    }
-}
 
 /**
  * Returns `true` if dark theme should be used, as a function of the [uiState] and the

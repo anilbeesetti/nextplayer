@@ -90,63 +90,30 @@ internal fun MediaPickerScreen(
     updatePreferences: (SortBy, SortOrder, Boolean) -> Unit = { _, _, _ -> }
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
-    var showUrlDialog by rememberSaveable { mutableStateOf(false) }
 
-    val selectVideoFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            uri?.let(onPlayVideo)
-        }
-    )
 
-    Scaffold(
-        topBar = {
-            NextCenterAlignedTopAppBar(
-                title = stringResource(id = R.string.app_name),
-                navigationIcon = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(id = R.string.settings)
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(
-                            imageVector = NextIcons.DashBoard,
-                            contentDescription = stringResource(id = R.string.menu)
-                        )
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                FloatingActionButton(
-                    onClick = { selectVideoFileLauncher.launch("video/*") }
-                ) {
+    Column {
+        NextCenterAlignedTopAppBar(
+            title = stringResource(id = R.string.app_name),
+            navigationIcon = {
+                IconButton(onClick = onSettingsClick) {
                     Icon(
-                        imageVector = NextIcons.FileOpen,
-                        contentDescription = stringResource(id = R.string.play_file)
+                        imageVector = NextIcons.Settings,
+                        contentDescription = stringResource(id = R.string.settings)
                     )
                 }
-                FloatingActionButton(
-                    onClick = { showUrlDialog = true }
-                ) {
+            },
+            actions = {
+                IconButton(onClick = { showMenu = true }) {
                     Icon(
-                        imageVector = NextIcons.Link,
-                        contentDescription = stringResource(id = R.string.play_url)
+                        imageVector = NextIcons.DashBoard,
+                        contentDescription = stringResource(id = R.string.menu)
                     )
                 }
             }
-        }
-    ) { paddingValues ->
+        )
         Box(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
@@ -163,44 +130,8 @@ internal fun MediaPickerScreen(
                 updatePreferences = updatePreferences
             )
         }
-        if (showUrlDialog) {
-            NetworkStreamDialog(
-                onDismiss = { showUrlDialog = false },
-                onDone = {
-                    showUrlDialog = false
-                    if (it.isNotBlank()) onPlayVideo(Uri.parse(it))
-                }
-            )
-        }
-    }
-}
 
-@Composable
-fun NetworkStreamDialog(
-    onDismiss: () -> Unit,
-    onDone: (String) -> Unit
-) {
-    var url by rememberSaveable { mutableStateOf("") }
-    NextDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.network_stream)) },
-        content = {
-            Text(text = stringResource(R.string.enter_a_network_url))
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(R.string.example_url)) }
-            )
-        },
-        confirmButton = {
-            DoneButton(
-                onClick = { onDone(url) }
-            )
-        },
-        dismissButton = { CancelButton(onClick = onDismiss) }
-    )
+    }
 }
 
 @DevicePreviews
