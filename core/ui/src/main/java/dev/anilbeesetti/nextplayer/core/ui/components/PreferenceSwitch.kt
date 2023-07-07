@@ -31,7 +31,7 @@ fun PreferenceSwitch(
             NextSwitch(
                 checked = isChecked,
                 onCheckedChange = null,
-                modifier = Modifier.padding(start = 20.dp, end = 6.dp),
+                modifier = Modifier.padding(start = 20.dp),
                 enabled = enabled
             )
         }
