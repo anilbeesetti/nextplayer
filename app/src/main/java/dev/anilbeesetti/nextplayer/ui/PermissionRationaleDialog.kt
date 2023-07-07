@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.composables
+package dev.anilbeesetti.nextplayer.ui
 
 import android.Manifest
 import androidx.compose.material3.AlertDialog

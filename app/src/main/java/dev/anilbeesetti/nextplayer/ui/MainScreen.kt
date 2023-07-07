@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer
+package dev.anilbeesetti.nextplayer.ui
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -31,8 +31,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.shouldShowRationale
-import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
-import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton

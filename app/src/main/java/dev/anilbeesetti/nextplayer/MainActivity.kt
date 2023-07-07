@@ -34,6 +34,8 @@ import dev.anilbeesetti.nextplayer.core.data.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
+import dev.anilbeesetti.nextplayer.ui.MAIN_ROUTE
+import dev.anilbeesetti.nextplayer.ui.MainScreen
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
