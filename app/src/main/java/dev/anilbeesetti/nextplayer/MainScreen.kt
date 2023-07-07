@@ -44,7 +44,6 @@ import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.startPlayerActivity
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
-
 const val MAIN_ROUTE = "main_screen_route"
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -136,7 +135,6 @@ fun MainScreen(
         }
     }
 }
-
 
 @Composable
 fun NetworkUrlDialog(

@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
@@ -118,7 +117,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 
 /**
  * Returns `true` if dark theme should be used, as a function of the [uiState] and the

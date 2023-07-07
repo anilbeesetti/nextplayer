@@ -74,7 +74,6 @@ internal fun MediaPickerScreen(
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
-
     Column {
         NextCenterAlignedTopAppBar(
             title = stringResource(id = R.string.app_name),

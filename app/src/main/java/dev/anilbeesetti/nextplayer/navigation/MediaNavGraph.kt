@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.navigation
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.navigation
