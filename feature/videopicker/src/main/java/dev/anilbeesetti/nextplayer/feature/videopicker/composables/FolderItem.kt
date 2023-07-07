@@ -20,7 +20,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -76,9 +75,9 @@ fun FolderItem(
             ) {
                 InfoChip(
                     text = "${directory.mediaCount} ${
-                        stringResource(
-                            id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
-                        )
+                    stringResource(
+                        id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
+                    )
                     }",
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
