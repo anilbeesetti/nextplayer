@@ -90,7 +90,7 @@
     <string name="manage_folders_desc">Selecione as pastas a serem excluídas na biblioteca de mídia</string>
     <string name="video">vídeo</string>
     <string name="scan">Verificar</string>
-    <string name="force_rescan_storage">Forçar verificação do armazenamento</string>
+    <string name="force_rescan_storage">Verificar armazenamento</string>
     <string name="media_library_description">Verificar e gerenciar a biblioteca de mídia</string>
     <string name="scanning_storage">Verificando armazenamento…</string>
     <string name="manage_folders">Gerenciar pastas</string>
@@ -113,12 +113,20 @@
     <string name="play_url">Digitar URL de vídeo para reproduzir</string>
     <string name="default_name">Padrão</string>
     <string name="sans_serif">Sans Serif</string>
-    <string name="subtitle_text_bold">Legenda com texto em negrito</string>
+    <string name="subtitle_text_bold">Texto em negrito</string>
     <string name="subtitle_text_bold_desc">Use texto em negrito para a legenda</string>
-    <string name="subtitle_text_size">Tamanho do texto da legenda</string>
+    <string name="subtitle_text_size">Tamanho do texto</string>
     <string name="subtitle_background_desc">Ativar fundo para texto da legenda</string>
     <string name="monospace">Monospace</string>
     <string name="subtitle_font">Fonte da legenda</string>
     <string name="subtitle_desc">Aparência da legenda, opções de reprodução</string>
     <string name="subtitle_background">Fundo da legenda</string>
+    <string name="decoder">Decodificador</string>
+    <string name="decoder_desc">Prioridade do decodificador, opções de reprodução do decodificador</string>
+    <string name="video_software_decoders">Software de decodificadores de vídeo</string>
+    <string name="video_software_decoders_desc">Use software de decodificadores de vídeo (experimental)</string>
+    <string name="decoder_priority">Prioridade do decodificador</string>
+    <string name="prefer_device_decoders">Prefira dispositivos de decodificação</string>
+    <string name="prefer_app_decoders">Prefira aplicativos de decodificação</string>
+    <string name="device_decoders_only">Somente dispositivos de decodificação</string>
 </resources>

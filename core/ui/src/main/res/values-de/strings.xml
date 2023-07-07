@@ -105,4 +105,14 @@
     <string name="date">Datum</string>
     <string name="duration">Dauer</string>
     <string name="oldest">Älteste</string>
+    <string name="default_name">Standard</string>
+    <string name="serif">Serifen</string>
+    <string name="subtitle_font">Untertitel-Schriftart</string>
+    <string name="subtitle_text_bold">Fettgedruckter Untertiteltext</string>
+    <string name="subtitle_text_bold_desc">Fettgedruckten Text für Untertitel verwenden</string>
+    <string name="subtitle_text_size">Untertitel-Textgröße</string>
+    <string name="subtitle_desc">Aussehen der Untertitel, Wiedergabeoptionen</string>
+    <string name="subtitle_background">Untertitel-Hintergrund</string>
+    <string name="subtitle_background_desc">Hintergrund für Untertiteltext aktivieren</string>
+    <string name="default_playback_speed">Standard-Wiedergabegeschwindigkeit</string>
 </resources>

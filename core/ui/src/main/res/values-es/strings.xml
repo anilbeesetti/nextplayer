@@ -108,4 +108,25 @@
     <string name="default_playback_speed">Velocidad de reproducción predeterminada</string>
     <string name="enter_a_network_url">Introduce una URL de la red:</string>
     <string name="network_stream">Flujo de la red</string>
+    <string name="decoder">Descodificador</string>
+    <string name="decoder_desc">Prioridad del decodificador, opciones del decodificador de reproducción</string>
+    <string name="video_software_decoders">Descodificadores de vídeo por software</string>
+    <string name="prefer_device_decoders">Preferir los descodificadores de los dispositivos</string>
+    <string name="prefer_app_decoders">Prefiero los descodificadores de las aplicaciones</string>
+    <string name="device_decoders_only">Sólo descodificadores de los dispositivos</string>
+    <string name="play_file">Abrir el archivo de vídeo para reproducirlo</string>
+    <string name="play_url">Introduce la url del vídeo para reproducirlo</string>
+    <string name="monospace">Monospace</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="subtitle_font">Fuente del subtítulo</string>
+    <string name="subtitle_text_bold">Texto del subtítulo en negrita</string>
+    <string name="subtitle_desc">Aspecto de los subtítulos, opciones de reproducción</string>
+    <string name="subtitle_background_desc">Activar el fondo del texto de los subtítulos</string>
+    <string name="serif">Serif</string>
+    <string name="default_name">Por defecto</string>
+    <string name="subtitle_text_size">Tamaño del texto de los subtítulos</string>
+    <string name="subtitle_text_bold_desc">Utiliza el texto en negrita para el subtítulo</string>
+    <string name="subtitle_background">Fondo de los subtítulos</string>
+    <string name="video_software_decoders_desc">Utilizar descodificadores de vídeo con software de la aplicación (experimental)</string>
+    <string name="decoder_priority">Prioridad del descodificador</string>
 </resources>

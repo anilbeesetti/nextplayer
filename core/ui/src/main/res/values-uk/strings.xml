@@ -121,4 +121,12 @@
     <string name="sans_serif">Sans Serif</string>
     <string name="subtitle_text_bold">Текст субтитрів виділено жирним шрифтом</string>
     <string name="subtitle_background">Фон субтитрів</string>
+    <string name="video_software_decoders">Програмні відеодекодери</string>
+    <string name="video_software_decoders_desc">Використовувати програмні відеодекодери застосунку (експериментально)</string>
+    <string name="prefer_app_decoders">Надавати перевагу декодерам застосунків</string>
+    <string name="device_decoders_only">Тільки декодери пристроїв</string>
+    <string name="decoder">Декодер</string>
+    <string name="decoder_desc">Пріоритет декодера, вибір декодера для відтворення</string>
+    <string name="decoder_priority">Пріоритет декодера</string>
+    <string name="prefer_device_decoders">Надавати перевагу декодерам пристроїв</string>
 </resources>
