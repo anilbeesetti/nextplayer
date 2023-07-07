@@ -163,7 +163,7 @@ class PlayerActivity : AppCompatActivity() {
             viewModel = viewModel,
             activity = this,
             playerView = binding.playerView,
-            audioManager = getSystemService(AudioManager::class.java)
+            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         )
 
         playlistManager = PlaylistManager()
