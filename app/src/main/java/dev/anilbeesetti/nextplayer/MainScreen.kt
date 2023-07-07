@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,6 +42,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.startPlayerActivity
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 
 
 const val MAIN_ROUTE = "main_screen_route"
@@ -97,7 +99,17 @@ fun MainScreen(
             }
         } else {
             Column {
-                NextCenterAlignedTopAppBar(title = stringResource(id = R.string.app_name))
+                NextCenterAlignedTopAppBar(
+                    title = stringResource(id = R.string.app_name),
+                    navigationIcon = {
+                        IconButton(onClick = mainNavController::navigateToSettings) {
+                            Icon(
+                                imageVector = NextIcons.Settings,
+                                contentDescription = stringResource(id = R.string.settings)
+                            )
+                        }
+                    }
+                )
                 if (permissionState.status.shouldShowRationale) {
                     PermissionRationaleDialog(
                         text = stringResource(
