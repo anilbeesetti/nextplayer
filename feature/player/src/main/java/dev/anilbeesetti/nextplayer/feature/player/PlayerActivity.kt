@@ -91,14 +91,6 @@ class PlayerActivity : AppCompatActivity() {
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
 
-    private val audioManager: AudioManager by lazy {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            getSystemService(AudioManager::class.java)
-        } else {
-            getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        }
-    }
-
     /**
      * Player
      */
@@ -168,7 +160,7 @@ class PlayerActivity : AppCompatActivity() {
             viewModel = viewModel,
             activity = this,
             playerView = binding.playerView,
-            audioManager = audioManager
+            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         )
 
         playlistManager = PlaylistManager()
