@@ -41,13 +41,14 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
 @Composable
 fun QuickSettingsDialog(
-    preferences: ApplicationPreferences,
+    applicationPreferences: ApplicationPreferences,
     onDismiss: () -> Unit,
-    updatePreferences: (SortBy, SortOrder, Boolean) -> Unit
+    updatePreferences: (ApplicationPreferences) -> Unit
 ) {
-    var selectedSortBy by remember { mutableStateOf(preferences.sortBy) }
-    var selectedSortOrder by remember { mutableStateOf(preferences.sortOrder) }
-    var groupVideos by remember { mutableStateOf(preferences.groupVideosByFolder) }
+    var selectedSortBy by remember { mutableStateOf(applicationPreferences.sortBy) }
+    var selectedSortOrder by remember { mutableStateOf(applicationPreferences.sortOrder) }
+    var groupVideos by remember { mutableStateOf(applicationPreferences.groupVideosByFolder) }
+    var preferences by remember { mutableStateOf(applicationPreferences) }
 
     NextDialog(
         onDismissRequest = onDismiss,
@@ -61,27 +62,31 @@ fun QuickSettingsDialog(
             ) {
                 DialogSectionTitle(text = stringResource(R.string.sort))
                 SortOptions(
-                    selectedSortBy = selectedSortBy,
-                    onOptionSelected = { selectedSortBy = it }
+                    selectedSortBy = preferences.sortBy,
+                    onOptionSelected = { preferences = preferences.copy(sortBy = it) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 SortOrderSegmentedButton(
-                    selectedSortBy = selectedSortBy,
-                    selectedSortOrder = selectedSortOrder,
-                    onOptionSelected = { selectedSortOrder = it }
+                    selectedSortBy = preferences.sortBy,
+                    selectedSortOrder = preferences.sortOrder,
+                    onOptionSelected = { preferences = preferences.copy(sortOrder = it) }
                 )
                 Divider(modifier = Modifier.padding(top = 16.dp))
                 DialogPreferenceSwitch(
                     text = stringResource(id = R.string.group_videos),
-                    isChecked = groupVideos,
-                    onClick = { groupVideos = !groupVideos }
+                    isChecked = preferences.groupVideosByFolder,
+                    onClick = {
+                        preferences = preferences.copy(
+                            groupVideosByFolder = !preferences.groupVideosByFolder
+                        )
+                    }
                 )
             }
         },
         confirmButton = {
             DoneButton(
                 onClick = {
-                    updatePreferences(selectedSortBy, selectedSortOrder, groupVideos)
+                    updatePreferences(preferences)
                     onDismiss()
                 }
             )

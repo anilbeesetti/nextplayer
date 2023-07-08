@@ -17,7 +17,8 @@ const val MEDIA_ROUTE = "media_nav_route"
 
 fun NavGraphBuilder.mediaNavGraph(
     context: Context,
-    navController: NavHostController
+    mainNavController: NavHostController,
+    mediaNavController: NavHostController
 ) {
     navigation(
         startDestination = mediaPickerNavigationRoute,
@@ -25,11 +26,11 @@ fun NavGraphBuilder.mediaNavGraph(
     ) {
         mediaPickerScreen(
             onPlayVideo = context::startPlayerActivity,
-            onFolderClick = navController::navigateToMediaPickerFolderScreen,
-            onSettingsClick = navController::navigateToSettings
+            onFolderClick = mediaNavController::navigateToMediaPickerFolderScreen,
+            onSettingsClick = mainNavController::navigateToSettings
         )
         mediaPickerFolderScreen(
-            onNavigateUp = navController::popBackStack,
+            onNavigateUp = mediaNavController::popBackStack,
             onVideoClick = context::startPlayerActivity
         )
     }

@@ -7,8 +7,6 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedDirectoriesUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.SortBy
-import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
@@ -47,15 +45,9 @@ class MediaPickerViewModel @Inject constructor(
             initialValue = ApplicationPreferences()
         )
 
-    fun updateMenu(sortBy: SortBy, sortOrder: SortOrder, groupVideosByFolder: Boolean) {
+    fun updateMenu(applicationPreferences: ApplicationPreferences) {
         viewModelScope.launch {
-            preferencesRepository.updateApplicationPreferences {
-                it.copy(
-                    sortBy = sortBy,
-                    sortOrder = sortOrder,
-                    groupVideosByFolder = groupVideosByFolder
-                )
-            }
+            preferencesRepository.updateApplicationPreferences { applicationPreferences }
         }
     }
 }
