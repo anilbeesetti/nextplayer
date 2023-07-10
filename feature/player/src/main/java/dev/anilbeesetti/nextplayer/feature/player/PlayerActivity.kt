@@ -51,7 +51,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -68,11 +67,13 @@ import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
-import java.util.Arrays
+import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Arrays
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -243,14 +244,13 @@ class PlayerActivity : AppCompatActivity() {
     private fun initializePlayerView() {
         binding.playerView.apply {
             player = this@PlayerActivity.player
+            val preferences = viewModel.playerPrefs.value
+            controllerShowTimeoutMs = preferences.controllerAutoHideTimeout.toMillis
             setControllerVisibilityListener(
                 PlayerView.ControllerVisibilityListener { visibility ->
                     toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
                 }
             )
-            val preferences = viewModel.playerPrefs.value
-
-            controllerShowTimeoutMs = preferences.controllerAutoHideTimeout * 1000
 
             subtitleView?.let {
                 val style = CaptionStyleCompat(
