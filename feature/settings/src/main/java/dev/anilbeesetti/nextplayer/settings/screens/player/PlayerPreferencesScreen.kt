@@ -36,6 +36,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogWithDoneAndCancelButtons
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
@@ -240,18 +241,13 @@ fun PlayerPreferencesScreen(
                         mutableStateOf(preferences.defaultPlaybackSpeed)
                     }
 
-                    NextDialog(
-                        title = { Text(text = stringResource(R.string.default_playback_speed)) },
-                        confirmButton = {
-                            DoneButton(
-                                onClick = {
-                                    viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
-                                    viewModel.hideDialog()
-                                }
-                            )
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.default_playback_speed),
+                        onDoneClick = {
+                            viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
+                            viewModel.hideDialog()
                         },
-                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) },
-                        onDismissRequest = viewModel::hideDialog,
+                        onDismissClick = viewModel::hideDialog,
                         content = {
                             Text(
                                 text = "$defaultPlaybackSpeed",
@@ -274,23 +270,17 @@ fun PlayerPreferencesScreen(
                 }
 
                 PlayerPreferenceDialog.ControllerTimeoutDialog -> {
-
                     var controllerAutoHideSec by remember {
                         mutableStateOf(preferences.controllerAutoHideTimeout)
                     }
 
-                    NextDialog(
-                        title = { Text(text = stringResource(R.string.default_playback_speed)) },
-                        confirmButton = {
-                            DoneButton(
-                                onClick = {
-                                    viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
-                                    viewModel.hideDialog()
-                                }
-                            )
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.default_playback_speed),
+                        onDoneClick = {
+                            viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
+                            viewModel.hideDialog()
                         },
-                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) },
-                        onDismissRequest = viewModel::hideDialog,
+                        onDismissClick = viewModel::hideDialog,
                         content = {
                             Text(
                                 text = "$controllerAutoHideSec sec",
@@ -302,9 +292,7 @@ fun PlayerPreferencesScreen(
                             )
                             Slider(
                                 value = controllerAutoHideSec.toFloat(),
-                                onValueChange = {
-                                    controllerAutoHideSec = it.toInt()
-                                },
+                                onValueChange = { controllerAutoHideSec = it.toInt() },
                                 valueRange = 1.0f..60.0f,
                                 steps = 60
                             )
@@ -505,41 +493,4 @@ fun getDisplayTitle(key: String): String {
         e.printStackTrace()
         ""
     }
-}
-
-
-@Composable
-fun SliderDialog(
-    title: String,
-    sliderValue: Float,
-    sliderValueText: String,
-    onValueChange: (Float) -> Unit,
-    onDoneClick: () -> Unit,
-    onDismissClick: () -> Unit,
-    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
-) {
-    NextDialog(
-        title = { Text(text = stringResource(R.string.default_playback_speed)) },
-        confirmButton = {
-            DoneButton(onClick = onDoneClick)
-        },
-        dismissButton = { CancelButton(onClick = onDismissClick) },
-        onDismissRequest = onDismissClick,
-        content = {
-            Text(
-                text = sliderValueText,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 20.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Slider(
-                value = sliderValue,
-                onValueChange = onValueChange,
-                valueRange = 0.2f..4.0f,
-                steps = 37
-            )
-        }
-    )
 }

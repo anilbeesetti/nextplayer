@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -33,6 +34,23 @@ fun NextDialog(
         properties = dialogProperties
     )
 }
+
+@Composable
+fun NextDialogWithDoneAndCancelButtons(
+    title: String,
+    onDoneClick: () -> Unit,
+    onDismissClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    NextDialog(
+        title = { Text(text = title) },
+        confirmButton = { DoneButton(onClick = onDoneClick) },
+        dismissButton = { CancelButton(onClick = onDismissClick) },
+        onDismissRequest = onDismissClick,
+        content = content
+    )
+}
+
 
 object NextDialogDefaults {
     val dialogProperties: DialogProperties = DialogProperties(
