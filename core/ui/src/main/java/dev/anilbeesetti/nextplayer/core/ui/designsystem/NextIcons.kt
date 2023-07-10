@@ -35,6 +35,7 @@ import androidx.compose.material.icons.rounded.ScreenRotationAlt
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Straighten
+import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
@@ -76,6 +77,7 @@ object NextIcons {
     val Rotation = Icons.Rounded.ScreenRotationAlt
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
+    val Style = Icons.Rounded.Style
     val Subtitle = Icons.Rounded.Subtitles
     val Size = Icons.Rounded.CompareArrows
     val Speed = Icons.Rounded.Speed

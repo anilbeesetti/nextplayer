@@ -264,6 +264,7 @@ class PlayerActivity : AppCompatActivity() {
                     )
                 )
                 subtitleView.setStyle(style)
+                subtitleView.setApplyEmbeddedStyles(applyEmbeddedStyles)
                 subtitleView.setFixedTextSize(Dimension.SP, subtitleTextSize.toFloat())
             }
         }

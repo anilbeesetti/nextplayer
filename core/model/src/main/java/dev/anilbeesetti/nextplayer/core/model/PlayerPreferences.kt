@@ -23,12 +23,10 @@ data class PlayerPreferences(
     val subtitleBackground: Boolean = false,
     val subtitleFont: Font = Font.DEFAULT,
     val subtitleTextBold: Boolean = true,
+    val applyEmbeddedStyles: Boolean = true,
 
     // Decoder Preferences
     val enableExperimentalVideoDecoders: Boolean = false,
     val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE
 )
 
-enum class DecoderPriority {
-    PREFER_DEVICE, PREFER_APP, DEVICE_ONLY
-}

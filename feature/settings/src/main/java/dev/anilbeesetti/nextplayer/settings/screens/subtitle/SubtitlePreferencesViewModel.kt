@@ -76,6 +76,14 @@ class SubtitlePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleApplyEmbeddedStyles() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(applyEmbeddedStyles = !it.applyEmbeddedStyles)
+            }
+        }
+    }
 }
 
 data class SubtitlePreferencesUIState(
