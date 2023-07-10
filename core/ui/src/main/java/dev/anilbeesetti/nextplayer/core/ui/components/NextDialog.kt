@@ -51,7 +51,6 @@ fun NextDialogWithDoneAndCancelButtons(
     )
 }
 
-
 object NextDialogDefaults {
     val dialogProperties: DialogProperties = DialogProperties(
         usePlatformDefaultWidth = false,

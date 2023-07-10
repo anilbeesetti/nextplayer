@@ -32,10 +32,7 @@ import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
-import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogWithDoneAndCancelButtons
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
@@ -302,7 +299,6 @@ fun PlayerPreferencesScreen(
 
                 PlayerPreferenceDialog.None -> { /* Do nothing */
                 }
-
             }
         }
     }

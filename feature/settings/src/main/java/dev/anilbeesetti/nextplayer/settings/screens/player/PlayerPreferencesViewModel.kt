@@ -156,7 +156,9 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     fun updateControlAutoHideTimeout(value: Int) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(controllerAutoHideTimeout = value) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(controllerAutoHideTimeout = value)
+            }
         }
     }
 }
