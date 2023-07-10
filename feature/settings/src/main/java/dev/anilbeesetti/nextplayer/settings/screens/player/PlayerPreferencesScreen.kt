@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -94,8 +96,12 @@ fun PlayerPreferencesScreen(
                 onChecked = viewModel::toggleDoubleTapGesture,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
             )
+            seekIncrementPreference(
+                currentValue = preferences.seekIncrement,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) }
+            )
             controllerTimeoutPreference(
-                description = "${preferences.controllerAutoHideTimeout} sec",
+                currentValue = preferences.controllerAutoHideTimeout,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) }
             )
             item {
@@ -266,7 +272,7 @@ fun PlayerPreferencesScreen(
                 }
 
                 NextDialogWithDoneAndCancelButtons(
-                    title = stringResource(R.string.default_playback_speed),
+                    title = stringResource(R.string.controller_timeout),
                     onDoneClick = {
                         viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
                         viewModel.hideDialog()
@@ -274,7 +280,7 @@ fun PlayerPreferencesScreen(
                     onDismissClick = viewModel::hideDialog,
                     content = {
                         Text(
-                            text = "$controllerAutoHideSec sec",
+                            text = stringResource(R.string.seconds, controllerAutoHideSec),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 20.dp),
@@ -291,8 +297,38 @@ fun PlayerPreferencesScreen(
                 )
             }
 
-            PlayerPreferenceDialog.None -> { /* Do nothing */
+            PlayerPreferenceDialog.SeekIncrementDialog -> {
+                var seekIncrement by remember {
+                    mutableStateOf(preferences.seekIncrement)
+                }
+
+                NextDialogWithDoneAndCancelButtons(
+                    title = stringResource(R.string.seek_increment),
+                    onDoneClick = {
+                        viewModel.updateSeekIncrement(seekIncrement)
+                        viewModel.hideDialog()
+                    },
+                    onDismissClick = viewModel::hideDialog,
+                    content = {
+                        Text(
+                            text = stringResource(R.string.seconds, seekIncrement),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 20.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Slider(
+                            value = seekIncrement.toFloat(),
+                            onValueChange = { seekIncrement = it.toInt() },
+                            valueRange = 1.0f..60.0f,
+                            steps = 60
+                        )
+                    }
+                )
             }
+
+            PlayerPreferenceDialog.None -> Unit
         }
     }
 }
@@ -338,13 +374,25 @@ fun LazyListScope.doubleTapGestureSetting(
     )
 }
 
+fun LazyListScope.seekIncrementPreference(
+    currentValue: Int,
+    onClick: () -> Unit
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(R.string.seek_increment),
+        description = stringResource(R.string.seconds, currentValue),
+        icon = NextIcons.Replay,
+        onClick = onClick
+    )
+}
+
 fun LazyListScope.controllerTimeoutPreference(
-    description: String,
+    currentValue: Int,
     onClick: () -> Unit
 ) = item {
     ClickablePreferenceItem(
         title = stringResource(R.string.controller_timeout),
-        description = description,
+        description = stringResource(R.string.seconds, currentValue),
         icon = NextIcons.Timer,
         onClick = onClick
     )
