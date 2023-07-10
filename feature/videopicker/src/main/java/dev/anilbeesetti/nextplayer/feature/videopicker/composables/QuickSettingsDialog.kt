@@ -45,9 +45,6 @@ fun QuickSettingsDialog(
     onDismiss: () -> Unit,
     updatePreferences: (ApplicationPreferences) -> Unit
 ) {
-    var selectedSortBy by remember { mutableStateOf(applicationPreferences.sortBy) }
-    var selectedSortOrder by remember { mutableStateOf(applicationPreferences.sortOrder) }
-    var groupVideos by remember { mutableStateOf(applicationPreferences.groupVideosByFolder) }
     var preferences by remember { mutableStateOf(applicationPreferences) }
 
     NextDialog(

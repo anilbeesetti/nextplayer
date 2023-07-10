@@ -29,4 +29,3 @@ data class PlayerPreferences(
     val enableExperimentalVideoDecoders: Boolean = false,
     val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE
 )
-
