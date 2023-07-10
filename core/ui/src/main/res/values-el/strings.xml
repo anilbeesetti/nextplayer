@@ -129,4 +129,6 @@
     <string name="prefer_app_decoders">Προτίμηση αποκωδικοποιητών εφαρμογής</string>
     <string name="device_decoders_only">Μόνο αποκωδικοποιητές συσκευής</string>
     <string name="decoder_priority">Προτεραιότητα</string>
+    <string name="embedded_styles">Ενσωματωμένο στυλ</string>
+    <string name="embedded_styles_desc">Εφαρμογή των ενσωματωμένων στυλ που υπάρχουν σε αρχεία υποτίτλων, όπως ASS κλπ</string>
 </resources>
