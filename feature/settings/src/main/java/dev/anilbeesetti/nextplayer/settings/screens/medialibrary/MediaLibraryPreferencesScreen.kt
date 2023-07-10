@@ -83,7 +83,6 @@ fun LazyListScope.hideFoldersSettings(
     )
 }
 
-
 fun LazyListScope.forceRescanStorageSetting(
     onClick: () -> Unit
 ) = item {

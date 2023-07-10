@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.settings.screens.player
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -311,7 +310,6 @@ fun LazyListScope.seekGestureSetting(
     )
 }
 
-
 fun LazyListScope.swipeGestureSetting(
     isChecked: Boolean,
     onClick: () -> Unit
@@ -324,7 +322,6 @@ fun LazyListScope.swipeGestureSetting(
         onClick = onClick
     )
 }
-
 
 fun LazyListScope.doubleTapGestureSetting(
     isChecked: Boolean,
@@ -340,7 +337,6 @@ fun LazyListScope.doubleTapGestureSetting(
         onClick = onClick
     )
 }
-
 
 fun LazyListScope.controllerTimeoutPreference(
     description: String,
@@ -363,7 +359,6 @@ fun LazyListScope.resumeSetting(
         icon = NextIcons.Resume,
         onClick = onClick
     )
-
 }
 
 fun LazyListScope.defaultPlaybackSpeedSetting(
@@ -376,7 +371,6 @@ fun LazyListScope.defaultPlaybackSpeedSetting(
         icon = NextIcons.Speed,
         onClick = onClick
     )
-
 }
 
 fun LazyListScope.rememberBrightnessSetting(
@@ -392,7 +386,6 @@ fun LazyListScope.rememberBrightnessSetting(
         isChecked = isChecked,
         onClick = onClick
     )
-
 }
 
 fun LazyListScope.rememberSelectionsSetting(
@@ -406,7 +399,6 @@ fun LazyListScope.rememberSelectionsSetting(
         isChecked = isChecked,
         onClick = onClick
     )
-
 }
 
 fun LazyListScope.fastSeekSetting(
@@ -424,7 +416,6 @@ fun LazyListScope.fastSeekSetting(
     )
 }
 
-
 fun LazyListScope.screenOrientationSetting(
     currentOrientationPreference: ScreenOrientation,
     onClick: () -> Unit
@@ -435,7 +426,6 @@ fun LazyListScope.screenOrientationSetting(
         icon = NextIcons.Rotation,
         onClick = onClick
     )
-
 }
 
 fun LazyListScope.preferredAudioLanguageSetting(
@@ -450,7 +440,6 @@ fun LazyListScope.preferredAudioLanguageSetting(
         icon = NextIcons.AudioTrack,
         onClick = onClick
     )
-
 }
 
 fun getLanguages(): List<Pair<String, String>> {

@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.settings.screens.appearance
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -114,7 +113,6 @@ fun LazyListScope.darkThemeSetting(
     )
 }
 
-
 fun LazyListScope.dynamicThemingSetting(
     isChecked: Boolean,
     onClick: () -> Unit
@@ -129,4 +127,3 @@ fun LazyListScope.dynamicThemingSetting(
         )
     }
 }
-
