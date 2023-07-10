@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VideoSettings
@@ -83,6 +84,7 @@ object NextIcons {
     val Speed = Icons.Rounded.Speed
     val SwipeHorizontal = Icons.Rounded.Swipe
     val SwipeVertical = Icons.Rounded.SwipeVertical
+    val Timer = Icons.Rounded.Timer
     val Title = Icons.Rounded.Title
     val Update = Icons.Rounded.Update
 }

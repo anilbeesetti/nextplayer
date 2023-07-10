@@ -17,6 +17,7 @@ data class PlayerPreferences(
     val preferredSubtitleLanguage: String = "",
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     val defaultPlaybackSpeed: Float = 1.0f,
+    val controllerAutoHideTimeout: Int = 2,
 
     // Subtitle Preferences
     val subtitleTextSize: Int = 23,

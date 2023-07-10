@@ -153,6 +153,12 @@ class PlayerPreferencesViewModel @Inject constructor(
             preferencesRepository.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = value) }
         }
     }
+
+    fun updateControlAutoHideTimeout(value: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(controllerAutoHideTimeout = value) }
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
@@ -165,7 +171,8 @@ sealed interface PlayerPreferenceDialog {
     object FastSeekDialog : PlayerPreferenceDialog
     object AudioLanguageDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
-    object DefaultPlaybackSpeedDialog : PlayerPreferenceDialog
+    object PlayerbackSpeedDialog : PlayerPreferenceDialog
+    object ControllerTimeoutDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 

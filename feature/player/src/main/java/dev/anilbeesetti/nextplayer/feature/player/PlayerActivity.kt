@@ -248,24 +248,25 @@ class PlayerActivity : AppCompatActivity() {
                     toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
                 }
             )
-        }
+            val preferences = viewModel.playerPrefs.value
 
-        binding.playerView.subtitleView?.let { subtitleView ->
-            with(viewModel.playerPrefs.value) {
+            controllerShowTimeoutMs = preferences.controllerAutoHideTimeout * 1000
+
+            subtitleView?.let {
                 val style = CaptionStyleCompat(
                     Color.WHITE,
-                    Color.BLACK.takeIf { subtitleBackground } ?: Color.TRANSPARENT,
+                    Color.BLACK.takeIf { preferences.subtitleBackground } ?: Color.TRANSPARENT,
                     Color.TRANSPARENT,
                     CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                     Color.BLACK,
                     Typeface.create(
-                        subtitleFont.toTypeface(),
-                        Typeface.BOLD.takeIf { subtitleTextBold } ?: Typeface.NORMAL
+                        preferences.subtitleFont.toTypeface(),
+                        Typeface.BOLD.takeIf { preferences.subtitleTextBold } ?: Typeface.NORMAL
                     )
                 )
-                subtitleView.setStyle(style)
-                subtitleView.setApplyEmbeddedStyles(applyEmbeddedStyles)
-                subtitleView.setFixedTextSize(Dimension.SP, subtitleTextSize.toFloat())
+                it.setStyle(style)
+                it.setApplyEmbeddedStyles(preferences.applyEmbeddedStyles)
+                it.setFixedTextSize(Dimension.SP, preferences.subtitleTextSize.toFloat())
             }
         }
 
