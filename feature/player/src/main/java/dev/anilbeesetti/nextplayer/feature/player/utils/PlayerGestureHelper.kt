@@ -361,5 +361,4 @@ val Activity.currentBrightness: Float
         else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
     }
 
-
 inline val Int.toMillis get() = this * 1000
