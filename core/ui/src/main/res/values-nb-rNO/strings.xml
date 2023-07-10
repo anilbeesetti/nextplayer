@@ -121,4 +121,17 @@
     <string name="ff_rewind">Hurtig-spoling/-tilbakespoling</string>
     <string name="play_pause_ff_rewind">Spill av/pause og hurtig-spoling/-tilbakespoling</string>
     <string name="force_rescan_storage_desc">Advarsel: Full reskanning av lagringen kan forårsake økt ressursbruk på enheten din</string>
+    <string name="decoder">Dekoder</string>
+    <string name="decoder_desc">Dekoderprioritet, avspillingsdekoderalternativer</string>
+    <string name="video_software_decoders">Programvarevideodekodere</string>
+    <string name="video_software_decoders_desc">Bruk programvarebaserte videodekodere (eksperimentelt)</string>
+    <string name="decoder_priority">Dekoderprioritet</string>
+    <string name="prefer_device_decoders">Foretrekk enhetsdekodere</string>
+    <string name="prefer_app_decoders">Foretrekk programvaredekodere</string>
+    <string name="device_decoders_only">Kun enhetsdekodere</string>
+    <string name="embedded_styles">Innebygde stiler</string>
+    <string name="embedded_styles_desc">Bruk de innebygde stilene som finnes i undertekstfiler, som f.eks. ASS, osv.</string>
+    <string name="controller_timeout">Kontroller-tidsavbrudd</string>
+    <string name="seconds">%1$s sekunder</string>
+    <string name="seek_increment">Blafringsinkrement</string>
 </resources>
