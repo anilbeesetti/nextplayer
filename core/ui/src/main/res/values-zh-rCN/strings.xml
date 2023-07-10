@@ -132,4 +132,6 @@
     <string name="embedded_styles_desc">应用字幕文件中存在的嵌入样式，例如 ASS 等</string>
     <string name="embedded_styles">嵌入样式</string>
     <string name="controller_timeout">控制器超时</string>
+    <string name="seek_increment">寻求增量</string>
+    <string name="seconds">%1$s 秒</string>
 </resources>
