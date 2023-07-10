@@ -129,4 +129,9 @@
     <string name="decoder_desc">Пріоритет декодера, вибір декодера для відтворення</string>
     <string name="decoder_priority">Пріоритет декодера</string>
     <string name="prefer_device_decoders">Надавати перевагу декодерам пристроїв</string>
+    <string name="embedded_styles">Вбудовані стилі</string>
+    <string name="controller_timeout">Час очікування контролера</string>
+    <string name="seek_increment">Розширений пошук</string>
+    <string name="seconds">%1$s секунд</string>
+    <string name="embedded_styles_desc">Застосовувати вбудовані стилі, присутні у файлах субтитрів, такі як ASS тощо</string>
 </resources>
