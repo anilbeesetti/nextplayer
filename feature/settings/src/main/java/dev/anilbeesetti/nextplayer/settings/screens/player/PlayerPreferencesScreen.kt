@@ -32,10 +32,8 @@ import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
-import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogWithDoneAndCancelButtons
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
@@ -100,6 +98,10 @@ fun PlayerPreferencesScreen(
                     onChecked = viewModel::toggleDoubleTapGesture,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
                 )
+                controllerTimeoutPreference(
+                    description = "${preferences.controllerAutoHideTimeout} sec",
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) }
+                )
                 item {
                     PreferenceSubtitle(text = stringResource(id = R.string.playback))
                 }
@@ -108,11 +110,7 @@ fun PlayerPreferencesScreen(
                 )
                 defaultPlaybackSpeedSetting(
                     currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
-                    onClick = {
-                        viewModel.showDialog(
-                            PlayerPreferenceDialog.DefaultPlaybackSpeedDialog
-                        )
-                    }
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlayerbackSpeedDialog) }
                 )
                 rememberBrightnessSetting(
                     isChecked = preferences.rememberPlayerBrightness,
@@ -235,23 +233,18 @@ fun PlayerPreferencesScreen(
                     }
                 }
 
-                PlayerPreferenceDialog.DefaultPlaybackSpeedDialog -> {
+                PlayerPreferenceDialog.PlayerbackSpeedDialog -> {
                     var defaultPlaybackSpeed by remember {
                         mutableStateOf(preferences.defaultPlaybackSpeed)
                     }
 
-                    NextDialog(
-                        title = { Text(text = stringResource(R.string.default_playback_speed)) },
-                        confirmButton = {
-                            DoneButton(
-                                onClick = {
-                                    viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
-                                    viewModel.hideDialog()
-                                }
-                            )
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.default_playback_speed),
+                        onDoneClick = {
+                            viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
+                            viewModel.hideDialog()
                         },
-                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) },
-                        onDismissRequest = viewModel::hideDialog,
+                        onDismissClick = viewModel::hideDialog,
                         content = {
                             Text(
                                 text = "$defaultPlaybackSpeed",
@@ -268,6 +261,37 @@ fun PlayerPreferencesScreen(
                                 },
                                 valueRange = 0.2f..4.0f,
                                 steps = 37
+                            )
+                        }
+                    )
+                }
+
+                PlayerPreferenceDialog.ControllerTimeoutDialog -> {
+                    var controllerAutoHideSec by remember {
+                        mutableStateOf(preferences.controllerAutoHideTimeout)
+                    }
+
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.default_playback_speed),
+                        onDoneClick = {
+                            viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
+                            viewModel.hideDialog()
+                        },
+                        onDismissClick = viewModel::hideDialog,
+                        content = {
+                            Text(
+                                text = "$controllerAutoHideSec sec",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = controllerAutoHideSec.toFloat(),
+                                onValueChange = { controllerAutoHideSec = it.toInt() },
+                                valueRange = 1.0f..60.0f,
+                                steps = 60
                             )
                         }
                     )
@@ -325,6 +349,18 @@ fun LazyListScope.doubleTapGestureSetting(
             onClick = onClick
         )
     }
+}
+
+fun LazyListScope.controllerTimeoutPreference(
+    description: String,
+    onClick: () -> Unit
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(R.string.controller_timeout),
+        description = description,
+        icon = NextIcons.Timer,
+        onClick = onClick
+    )
 }
 
 fun LazyListScope.resumeSetting(
