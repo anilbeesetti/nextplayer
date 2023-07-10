@@ -132,4 +132,6 @@
     <string name="embedded_styles">Estilos embutidos</string>
     <string name="embedded_styles_desc">Aplicar os estilos embutidos que estão presentes em arquivos de legendas, como ASS e assim por diante</string>
     <string name="controller_timeout">Tempo limite do controlador</string>
+    <string name="seek_increment">Procurar incremento</string>
+    <string name="seconds">%1$s segundos</string>
 </resources>
