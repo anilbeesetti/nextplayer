@@ -18,6 +18,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
@@ -70,54 +71,41 @@ class PlayerGestureHelper(
             }
 
             override fun onDoubleTap(event: MotionEvent): Boolean {
-                // Disables double tap gestures if view is locked
                 if (activity.isControlsLocked) return false
 
-                when (playerPreferences.doubleTapGesture) {
-                    DoubleTapGesture.PLAY_PAUSE -> playerView.togglePlayPause()
+                playerView.player?.run {
+                    when (playerPreferences.doubleTapGesture) {
+                        DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
+                            val viewCenterX = playerView.measuredWidth / 2
 
-                    DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
-                        val viewCenterX = playerView.measuredWidth / 2
-                        val currentPos = playerView.player?.currentPosition ?: 0
-
-                        if (event.x.toInt() < viewCenterX) {
-                            val newPosition = currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS
-                            playerView.player?.run {
+                            if (event.x.toInt() < viewCenterX) {
+                                val newPosition = currentPosition - 10_000
                                 seekBack(newPosition.coerceAtLeast(0), shouldFastSeek)
-                            }
-                        } else {
-                            val newPosition = currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
-                            playerView.player?.run {
+                            } else {
+                                val newPosition = currentPosition + 10_000
                                 seekForward(newPosition.coerceAtMost(duration), shouldFastSeek)
                             }
                         }
-                    }
 
-                    DoubleTapGesture.BOTH -> {
-                        val eventPositionX = event.x / playerView.measuredWidth
-                        val currentPos = playerView.player?.currentPosition ?: 0
+                        DoubleTapGesture.BOTH -> {
+                            val eventPositionX = event.x / playerView.measuredWidth
 
-                        when {
-                            eventPositionX < 0.35 -> {
-                                val newPosition = currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS
-                                playerView.player?.run {
-                                    seekBack(newPosition.coerceAtLeast(0), shouldFastSeek)
-                                }
+                            if (eventPositionX < 0.35) {
+                                val newPosition = currentPosition - 10_000
+                                seekBack(newPosition.coerceAtLeast(0), shouldFastSeek)
+                            } else if (eventPositionX > 0.65) {
+                                val newPosition = currentPosition + 10_000
+                                seekForward(newPosition.coerceAtMost(duration), shouldFastSeek)
+                            } else {
+                                playerView.togglePlayPause()
                             }
-
-                            eventPositionX > 0.65 -> {
-                                val newPosition = currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
-                                playerView.player?.run {
-                                    seekForward(newPosition.coerceAtMost(duration), shouldFastSeek)
-                                }
-                            }
-
-                            else -> playerView.togglePlayPause()
                         }
-                    }
 
-                    DoubleTapGesture.NONE -> return false
-                }
+                        DoubleTapGesture.PLAY_PAUSE -> playerView.togglePlayPause()
+
+                        DoubleTapGesture.NONE -> return false
+                    }
+                } ?: return false
                 return true
             }
         }
