@@ -173,7 +173,7 @@ fun SubtitlePreferencesScreen(
                 )
             }
 
-            SubtitlePreferenceDialog.None -> {}
+            SubtitlePreferenceDialog.None -> Unit
         }
     }
 }

@@ -88,7 +88,7 @@ fun DecoderPreferencesScreen(
                     }
                 }
             }
-            DecoderPreferenceDialog.None -> {}
+            DecoderPreferenceDialog.None -> Unit
         }
     }
 }
