@@ -18,6 +18,7 @@ data class PlayerPreferences(
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     val defaultPlaybackSpeed: Float = 1.0f,
     val controllerAutoHideTimeout: Int = 2,
+    val seekIncrement: Int = 10,
 
     // Subtitle Preferences
     val subtitleTextSize: Int = 23,

@@ -13,7 +13,6 @@ import android.view.WindowInsets
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
@@ -39,11 +38,11 @@ class PlayerGestureHelper(
     private val playerView: PlayerView,
     private val audioManager: AudioManager
 ) {
-    private val playerPreferences: PlayerPreferences
+    private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
 
     private val shouldFastSeek: Boolean
-        get() = playerView.player?.duration?.let { playerPreferences.shouldFastSeek(it) } == true
+        get() = playerView.player?.duration?.let { prefs.shouldFastSeek(it) } == true
 
     private var volumeTrackerValue = -1f
     private var brightnessTrackerValue = -1f
@@ -70,54 +69,41 @@ class PlayerGestureHelper(
             }
 
             override fun onDoubleTap(event: MotionEvent): Boolean {
-                // Disables double tap gestures if view is locked
                 if (activity.isControlsLocked) return false
 
-                when (playerPreferences.doubleTapGesture) {
-                    DoubleTapGesture.PLAY_PAUSE -> playerView.togglePlayPause()
+                playerView.player?.run {
+                    when (prefs.doubleTapGesture) {
+                        DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
+                            val viewCenterX = playerView.measuredWidth / 2
 
-                    DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
-                        val viewCenterX = playerView.measuredWidth / 2
-                        val currentPos = playerView.player?.currentPosition ?: 0
-
-                        if (event.x.toInt() < viewCenterX) {
-                            val newPosition = currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS
-                            playerView.player?.run {
+                            if (event.x.toInt() < viewCenterX) {
+                                val newPosition = currentPosition - prefs.seekIncrement.toMillis
                                 seekBack(newPosition.coerceAtLeast(0), shouldFastSeek)
-                            }
-                        } else {
-                            val newPosition = currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
-                            playerView.player?.run {
+                            } else {
+                                val newPosition = currentPosition + prefs.seekIncrement.toMillis
                                 seekForward(newPosition.coerceAtMost(duration), shouldFastSeek)
                             }
                         }
-                    }
 
-                    DoubleTapGesture.BOTH -> {
-                        val eventPositionX = event.x / playerView.measuredWidth
-                        val currentPos = playerView.player?.currentPosition ?: 0
+                        DoubleTapGesture.BOTH -> {
+                            val eventPositionX = event.x / playerView.measuredWidth
 
-                        when {
-                            eventPositionX < 0.35 -> {
-                                val newPosition = currentPos - C.DEFAULT_SEEK_BACK_INCREMENT_MS
-                                playerView.player?.run {
-                                    seekBack(newPosition.coerceAtLeast(0), shouldFastSeek)
-                                }
+                            if (eventPositionX < 0.35) {
+                                val newPosition = currentPosition - prefs.seekIncrement.toMillis
+                                seekBack(newPosition.coerceAtLeast(0), shouldFastSeek)
+                            } else if (eventPositionX > 0.65) {
+                                val newPosition = currentPosition + prefs.seekIncrement.toMillis
+                                seekForward(newPosition.coerceAtMost(duration), shouldFastSeek)
+                            } else {
+                                playerView.togglePlayPause()
                             }
-
-                            eventPositionX > 0.65 -> {
-                                val newPosition = currentPos + C.DEFAULT_SEEK_FORWARD_INCREMENT_MS
-                                playerView.player?.run {
-                                    seekForward(newPosition.coerceAtMost(duration), shouldFastSeek)
-                                }
-                            }
-
-                            else -> playerView.togglePlayPause()
                         }
-                    }
 
-                    DoubleTapGesture.NONE -> return false
-                }
+                        DoubleTapGesture.PLAY_PAUSE -> playerView.togglePlayPause()
+
+                        DoubleTapGesture.NONE -> return false
+                    }
+                } ?: return false
                 return true
             }
         }
@@ -284,7 +270,7 @@ class PlayerGestureHelper(
                         delay(HIDE_DELAY_MILLIS)
                         visibility = View.GONE
                     }
-                    if (playerPreferences.rememberPlayerBrightness) {
+                    if (prefs.rememberPlayerBrightness) {
                         viewModel.setPlayerBrightness(activity.window.attributes.screenBrightness)
                     }
                     gestureBrightnessOpen = false
@@ -333,18 +319,18 @@ class PlayerGestureHelper(
     }
 
     init {
-        if (playerPreferences.rememberPlayerBrightness) {
-            activity.window.attributes.screenBrightness = playerPreferences.playerBrightness
+        if (prefs.rememberPlayerBrightness) {
+            activity.window.attributes.screenBrightness = prefs.playerBrightness
         }
 
         playerView.setOnTouchListener { _, motionEvent ->
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
-                    if (playerPreferences.useSwipeControls) {
+                    if (prefs.useSwipeControls) {
                         volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
                     }
-                    if (playerPreferences.useSeekControls && activity.isFileLoaded) {
+                    if (prefs.useSeekControls && activity.isFileLoaded) {
                         seekGestureDetector.onTouchEvent(motionEvent)
                     }
                 }
@@ -374,3 +360,5 @@ val Activity.currentBrightness: Float
         in BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL -> brightness
         else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
     }
+
+inline val Int.toMillis get() = this * 1000

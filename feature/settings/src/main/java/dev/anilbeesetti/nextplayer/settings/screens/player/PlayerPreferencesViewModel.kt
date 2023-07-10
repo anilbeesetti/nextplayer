@@ -161,6 +161,14 @@ class PlayerPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateSeekIncrement(value: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(seekIncrement = value)
+            }
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
@@ -175,6 +183,7 @@ sealed interface PlayerPreferenceDialog {
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
+    object SeekIncrementDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 

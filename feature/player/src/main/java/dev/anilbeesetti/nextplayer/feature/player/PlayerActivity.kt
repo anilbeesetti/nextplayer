@@ -68,6 +68,7 @@ import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
+import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -82,6 +83,8 @@ class PlayerActivity : AppCompatActivity() {
 
     private val viewModel: PlayerViewModel by viewModels()
     private val currentContext = this
+    private val applicationPreferences get() = viewModel.appPrefs.value
+    private val playerPreferences get() = viewModel.playerPrefs.value
 
     private var playWhenReady = true
     private var isPlaybackFinished = false
@@ -137,14 +140,14 @@ class PlayerActivity : AppCompatActivity() {
         prettyPrintIntent()
 
         AppCompatDelegate.setDefaultNightMode(
-            when (viewModel.appPrefs.value.themeConfig) {
+            when (applicationPreferences.themeConfig) {
                 ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
                 ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
                 ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
             }
         )
 
-        if (viewModel.appPrefs.value.useDynamicColors) {
+        if (applicationPreferences.useDynamicColors) {
             DynamicColors.applyToActivityIfAvailable(this)
         }
 
@@ -204,12 +207,10 @@ class PlayerActivity : AppCompatActivity() {
         Timber.d("Creating player")
 
         val renderersFactory = NextRenderersFactory(applicationContext)
-            .setUseExperimentalRenderers(
-                viewModel.playerPrefs.value.enableExperimentalVideoDecoders
-            )
+            .setUseExperimentalRenderers(playerPreferences.enableExperimentalVideoDecoders)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(
-                when (viewModel.playerPrefs.value.decoderPriority) {
+                when (playerPreferences.decoderPriority) {
                     DecoderPriority.DEVICE_ONLY -> NextRenderersFactory.EXTENSION_RENDERER_MODE_OFF
                     DecoderPriority.PREFER_DEVICE -> NextRenderersFactory.EXTENSION_RENDERER_MODE_ON
                     DecoderPriority.PREFER_APP -> NextRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
@@ -219,8 +220,8 @@ class PlayerActivity : AppCompatActivity() {
         trackSelector = DefaultTrackSelector(applicationContext).apply {
             this.setParameters(
                 this.buildUponParameters()
-                    .setPreferredAudioLanguage(viewModel.playerPrefs.value.preferredAudioLanguage)
-                    .setPreferredTextLanguage(viewModel.playerPrefs.value.preferredSubtitleLanguage)
+                    .setPreferredAudioLanguage(playerPreferences.preferredAudioLanguage)
+                    .setPreferredTextLanguage(playerPreferences.preferredSubtitleLanguage)
             )
         }
 
@@ -237,36 +238,34 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setOrientation() {
         requestedOrientation = currentOrientation
-            ?: viewModel.playerPrefs.value.playerScreenOrientation.toActivityOrientation()
+            ?: playerPreferences.playerScreenOrientation.toActivityOrientation()
     }
 
     private fun initializePlayerView() {
         binding.playerView.apply {
             player = this@PlayerActivity.player
+            controllerShowTimeoutMs = playerPreferences.controllerAutoHideTimeout.toMillis
             setControllerVisibilityListener(
                 PlayerView.ControllerVisibilityListener { visibility ->
                     toggleSystemBars(showBars = visibility == View.VISIBLE && !isControlsLocked)
                 }
             )
-            val preferences = viewModel.playerPrefs.value
-
-            controllerShowTimeoutMs = preferences.controllerAutoHideTimeout * 1000
 
             subtitleView?.let {
                 val style = CaptionStyleCompat(
                     Color.WHITE,
-                    Color.BLACK.takeIf { preferences.subtitleBackground } ?: Color.TRANSPARENT,
+                    Color.BLACK.takeIf { playerPreferences.subtitleBackground } ?: Color.TRANSPARENT,
                     Color.TRANSPARENT,
                     CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                     Color.BLACK,
                     Typeface.create(
-                        preferences.subtitleFont.toTypeface(),
-                        Typeface.BOLD.takeIf { preferences.subtitleTextBold } ?: Typeface.NORMAL
+                        playerPreferences.subtitleFont.toTypeface(),
+                        Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold } ?: Typeface.NORMAL
                     )
                 )
                 it.setStyle(style)
-                it.setApplyEmbeddedStyles(preferences.applyEmbeddedStyles)
-                it.setFixedTextSize(Dimension.SP, preferences.subtitleTextSize.toFloat())
+                it.setApplyEmbeddedStyles(playerPreferences.applyEmbeddedStyles)
+                it.setFixedTextSize(Dimension.SP, playerPreferences.subtitleTextSize.toFloat())
             }
         }
 
@@ -357,7 +356,7 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         screenRotationButton.setOnLongClickListener {
-            viewModel.playerPrefs.value.playerScreenOrientation.also {
+            playerPreferences.playerScreenOrientation.also {
                 requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
             }
             true
@@ -437,7 +436,7 @@ class PlayerActivity : AppCompatActivity() {
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             if (currentOrientation != null) return
 
-            if (viewModel.playerPrefs.value.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
+            if (playerPreferences.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
                 currentVideoOrientation = if (videoSize.isPortrait) {
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 } else {
