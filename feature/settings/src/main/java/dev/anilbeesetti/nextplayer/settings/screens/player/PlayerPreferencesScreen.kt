@@ -74,231 +74,225 @@ fun PlayerPreferencesScreen(
             )
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize()
+        LazyColumn(
+            contentPadding = innerPadding,
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            LazyColumn(
-                contentPadding = innerPadding,
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                item {
-                    PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
+            item {
+                PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
+            }
+            seekGestureSetting(
+                isChecked = preferences.useSeekControls,
+                onClick = viewModel::toggleSeekControls
+            )
+            swipeGestureSetting(
+                isChecked = preferences.useSwipeControls,
+                onClick = viewModel::toggleSwipeControls
+            )
+            doubleTapGestureSetting(
+                isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
+                onChecked = viewModel::toggleDoubleTapGesture,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
+            )
+            controllerTimeoutPreference(
+                description = "${preferences.controllerAutoHideTimeout} sec",
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) }
+            )
+            item {
+                PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            }
+            resumeSetting(
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) }
+            )
+            defaultPlaybackSpeedSetting(
+                currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) }
+            )
+            rememberBrightnessSetting(
+                isChecked = preferences.rememberPlayerBrightness,
+                onClick = viewModel::toggleRememberBrightnessLevel
+            )
+            rememberSelectionsSetting(
+                isChecked = preferences.rememberSelections,
+                onClick = viewModel::toggleRememberSelections
+            )
+            fastSeekSetting(
+                isChecked = (preferences.fastSeek != FastSeek.DISABLE),
+                onChecked = viewModel::toggleFastSeek,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
+            )
+            screenOrientationSetting(
+                currentOrientationPreference = preferences.playerScreenOrientation,
+                onClick = {
+                    viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
                 }
-                seekGestureSetting(
-                    isChecked = preferences.useSeekControls,
-                    onClick = viewModel::toggleSeekControls
-                )
-                swipeGestureSetting(
-                    isChecked = preferences.useSwipeControls,
-                    onClick = viewModel::toggleSwipeControls
-                )
-                doubleTapGestureSetting(
-                    isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
-                    onChecked = viewModel::toggleDoubleTapGesture,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
-                )
-                controllerTimeoutPreference(
-                    description = "${preferences.controllerAutoHideTimeout} sec",
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) }
-                )
-                item {
-                    PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            )
+            item {
+                PreferenceSubtitle(text = stringResource(id = R.string.audio))
+            }
+            preferredAudioLanguageSetting(
+                currentLanguage = getDisplayTitle(preferences.preferredAudioLanguage),
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.AudioLanguageDialog) }
+            )
+        }
+
+        when (uiState.showDialog) {
+            PlayerPreferenceDialog.ResumeDialog -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.resume),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(Resume.values()) {
+                        RadioTextButton(
+                            text = it.name(),
+                            selected = (it == preferences.resume),
+                            onClick = {
+                                viewModel.updatePlaybackResume(it)
+                                viewModel.hideDialog()
+                            }
+                        )
+                    }
                 }
-                resumeSetting(
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) }
-                )
-                defaultPlaybackSpeedSetting(
-                    currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) }
-                )
-                rememberBrightnessSetting(
-                    isChecked = preferences.rememberPlayerBrightness,
-                    onClick = viewModel::toggleRememberBrightnessLevel
-                )
-                rememberSelectionsSetting(
-                    isChecked = preferences.rememberSelections,
-                    onClick = viewModel::toggleRememberSelections
-                )
-                fastSeekSetting(
-                    isChecked = (preferences.fastSeek != FastSeek.DISABLE),
-                    onChecked = viewModel::toggleFastSeek,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
-                )
-                screenOrientationSetting(
-                    currentOrientationPreference = preferences.playerScreenOrientation,
-                    onClick = {
-                        viewModel.showDialog(
-                            PlayerPreferenceDialog.PlayerScreenOrientationDialog
+            }
+
+            PlayerPreferenceDialog.DoubleTapDialog -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.double_tap),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(DoubleTapGesture.values()) {
+                        RadioTextButton(
+                            text = it.name(),
+                            selected = (it == preferences.doubleTapGesture),
+                            onClick = {
+                                viewModel.updateDoubleTapGesture(it)
+                                viewModel.hideDialog()
+                            }
+                        )
+                    }
+                }
+            }
+
+            PlayerPreferenceDialog.FastSeekDialog -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.fast_seek),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(FastSeek.values()) {
+                        RadioTextButton(
+                            text = it.name(),
+                            selected = (it == preferences.fastSeek),
+                            onClick = {
+                                viewModel.updateFastSeek(it)
+                                viewModel.hideDialog()
+                            }
+                        )
+                    }
+                }
+            }
+
+            PlayerPreferenceDialog.AudioLanguageDialog -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.preferred_audio_lang),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(languages) {
+                        RadioTextButton(
+                            text = it.first,
+                            selected = it.second == preferences.preferredAudioLanguage,
+                            onClick = {
+                                viewModel.updateAudioLanguage(it.second)
+                                viewModel.hideDialog()
+                            }
+                        )
+                    }
+                }
+            }
+
+            PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.player_screen_orientation),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(ScreenOrientation.values()) {
+                        RadioTextButton(
+                            text = it.name(),
+                            selected = it == preferences.playerScreenOrientation,
+                            onClick = {
+                                viewModel.updatePreferredPlayerOrientation(it)
+                                viewModel.hideDialog()
+                            }
+                        )
+                    }
+                }
+            }
+
+            PlayerPreferenceDialog.PlaybackSpeedDialog -> {
+                var defaultPlaybackSpeed by remember {
+                    mutableStateOf(preferences.defaultPlaybackSpeed)
+                }
+
+                NextDialogWithDoneAndCancelButtons(
+                    title = stringResource(R.string.default_playback_speed),
+                    onDoneClick = {
+                        viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
+                        viewModel.hideDialog()
+                    },
+                    onDismissClick = viewModel::hideDialog,
+                    content = {
+                        Text(
+                            text = "$defaultPlaybackSpeed",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 20.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Slider(
+                            value = defaultPlaybackSpeed,
+                            onValueChange = {
+                                defaultPlaybackSpeed = String.format("%.1f", it).toFloat()
+                            },
+                            valueRange = 0.2f..4.0f,
+                            steps = 37
                         )
                     }
                 )
-                item {
-                    PreferenceSubtitle(text = stringResource(id = R.string.audio))
+            }
+
+            PlayerPreferenceDialog.ControllerTimeoutDialog -> {
+                var controllerAutoHideSec by remember {
+                    mutableStateOf(preferences.controllerAutoHideTimeout)
                 }
-                preferredAudioLanguageSetting(
-                    currentLanguage = getDisplayTitle(preferences.preferredAudioLanguage),
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.AudioLanguageDialog) }
+
+                NextDialogWithDoneAndCancelButtons(
+                    title = stringResource(R.string.default_playback_speed),
+                    onDoneClick = {
+                        viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
+                        viewModel.hideDialog()
+                    },
+                    onDismissClick = viewModel::hideDialog,
+                    content = {
+                        Text(
+                            text = "$controllerAutoHideSec sec",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 20.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Slider(
+                            value = controllerAutoHideSec.toFloat(),
+                            onValueChange = { controllerAutoHideSec = it.toInt() },
+                            valueRange = 1.0f..60.0f,
+                            steps = 60
+                        )
+                    }
                 )
             }
 
-            when (uiState.showDialog) {
-                PlayerPreferenceDialog.ResumeDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.resume),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(Resume.values()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == preferences.resume),
-                                onClick = {
-                                    viewModel.updatePlaybackResume(it)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.DoubleTapDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.double_tap),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(DoubleTapGesture.values()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == preferences.doubleTapGesture),
-                                onClick = {
-                                    viewModel.updateDoubleTapGesture(it)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.FastSeekDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.fast_seek),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(FastSeek.values()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == preferences.fastSeek),
-                                onClick = {
-                                    viewModel.updateFastSeek(it)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.AudioLanguageDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(languages) {
-                            RadioTextButton(
-                                text = it.first,
-                                selected = it.second == preferences.preferredAudioLanguage,
-                                onClick = {
-                                    viewModel.updateAudioLanguage(it.second)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.player_screen_orientation),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(ScreenOrientation.values()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = it == preferences.playerScreenOrientation,
-                                onClick = {
-                                    viewModel.updatePreferredPlayerOrientation(it)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.PlaybackSpeedDialog -> {
-                    var defaultPlaybackSpeed by remember {
-                        mutableStateOf(preferences.defaultPlaybackSpeed)
-                    }
-
-                    NextDialogWithDoneAndCancelButtons(
-                        title = stringResource(R.string.default_playback_speed),
-                        onDoneClick = {
-                            viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
-                            viewModel.hideDialog()
-                        },
-                        onDismissClick = viewModel::hideDialog,
-                        content = {
-                            Text(
-                                text = "$defaultPlaybackSpeed",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Slider(
-                                value = defaultPlaybackSpeed,
-                                onValueChange = {
-                                    defaultPlaybackSpeed = String.format("%.1f", it).toFloat()
-                                },
-                                valueRange = 0.2f..4.0f,
-                                steps = 37
-                            )
-                        }
-                    )
-                }
-
-                PlayerPreferenceDialog.ControllerTimeoutDialog -> {
-                    var controllerAutoHideSec by remember {
-                        mutableStateOf(preferences.controllerAutoHideTimeout)
-                    }
-
-                    NextDialogWithDoneAndCancelButtons(
-                        title = stringResource(R.string.default_playback_speed),
-                        onDoneClick = {
-                            viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
-                            viewModel.hideDialog()
-                        },
-                        onDismissClick = viewModel::hideDialog,
-                        content = {
-                            Text(
-                                text = "$controllerAutoHideSec sec",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Slider(
-                                value = controllerAutoHideSec.toFloat(),
-                                onValueChange = { controllerAutoHideSec = it.toInt() },
-                                valueRange = 1.0f..60.0f,
-                                steps = 60
-                            )
-                        }
-                    )
-                }
-
-                PlayerPreferenceDialog.None -> { /* Do nothing */
-                }
+            PlayerPreferenceDialog.None -> { /* Do nothing */
             }
         }
     }
@@ -307,49 +301,46 @@ fun PlayerPreferencesScreen(
 fun LazyListScope.seekGestureSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) {
-    item {
-        PreferenceSwitch(
-            title = stringResource(id = R.string.seek_gesture),
-            description = stringResource(id = R.string.seek_gesture_description),
-            icon = NextIcons.SwipeHorizontal,
-            isChecked = isChecked,
-            onClick = onClick
-        )
-    }
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.seek_gesture),
+        description = stringResource(id = R.string.seek_gesture_description),
+        icon = NextIcons.SwipeHorizontal,
+        isChecked = isChecked,
+        onClick = onClick
+    )
 }
+
 
 fun LazyListScope.swipeGestureSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) {
-    item {
-        PreferenceSwitch(
-            title = stringResource(id = R.string.swipe_gesture),
-            description = stringResource(id = R.string.swipe_gesture_description),
-            icon = NextIcons.SwipeVertical,
-            isChecked = isChecked,
-            onClick = onClick
-        )
-    }
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.swipe_gesture),
+        description = stringResource(id = R.string.swipe_gesture_description),
+        icon = NextIcons.SwipeVertical,
+        isChecked = isChecked,
+        onClick = onClick
+    )
 }
+
 
 fun LazyListScope.doubleTapGestureSetting(
     isChecked: Boolean,
     onChecked: () -> Unit,
     onClick: () -> Unit
-) {
-    item {
-        PreferenceSwitchWithDivider(
-            title = stringResource(id = R.string.double_tap),
-            description = stringResource(id = R.string.double_tap_description),
-            isChecked = isChecked,
-            onChecked = onChecked,
-            icon = NextIcons.DoubleTap,
-            onClick = onClick
-        )
-    }
+) = item {
+    PreferenceSwitchWithDivider(
+        title = stringResource(id = R.string.double_tap),
+        description = stringResource(id = R.string.double_tap_description),
+        isChecked = isChecked,
+        onChecked = onChecked,
+        icon = NextIcons.DoubleTap,
+        onClick = onClick
+    )
 }
+
 
 fun LazyListScope.controllerTimeoutPreference(
     description: String,
@@ -365,108 +356,101 @@ fun LazyListScope.controllerTimeoutPreference(
 
 fun LazyListScope.resumeSetting(
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.resume),
-            description = stringResource(id = R.string.resume_description),
-            icon = NextIcons.Resume,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.resume),
+        description = stringResource(id = R.string.resume_description),
+        icon = NextIcons.Resume,
+        onClick = onClick
+    )
+
 }
 
 fun LazyListScope.defaultPlaybackSpeedSetting(
     currentDefaultPlaybackSpeed: Float,
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.default_playback_speed),
-            description = currentDefaultPlaybackSpeed.toString(),
-            icon = NextIcons.Speed,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.default_playback_speed),
+        description = currentDefaultPlaybackSpeed.toString(),
+        icon = NextIcons.Speed,
+        onClick = onClick
+    )
+
 }
 
 fun LazyListScope.rememberBrightnessSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) {
-    item {
-        PreferenceSwitch(
-            title = stringResource(id = R.string.remember_brightness_level),
-            description = stringResource(
-                id = R.string.remember_brightness_level_description
-            ),
-            icon = NextIcons.Brightness,
-            isChecked = isChecked,
-            onClick = onClick
-        )
-    }
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.remember_brightness_level),
+        description = stringResource(
+            id = R.string.remember_brightness_level_description
+        ),
+        icon = NextIcons.Brightness,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+
 }
 
 fun LazyListScope.rememberSelectionsSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) {
-    item {
-        PreferenceSwitch(
-            title = stringResource(id = R.string.remember_selections),
-            description = stringResource(id = R.string.remember_selections_description),
-            icon = NextIcons.Selection,
-            isChecked = isChecked,
-            onClick = onClick
-        )
-    }
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.remember_selections),
+        description = stringResource(id = R.string.remember_selections_description),
+        icon = NextIcons.Selection,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+
 }
 
 fun LazyListScope.fastSeekSetting(
     isChecked: Boolean,
     onChecked: () -> Unit,
     onClick: () -> Unit
-) {
-    item {
-        PreferenceSwitchWithDivider(
-            title = stringResource(id = R.string.fast_seek),
-            description = stringResource(id = R.string.fast_seek_description),
-            isChecked = isChecked,
-            onChecked = onChecked,
-            icon = NextIcons.Fast,
-            onClick = onClick
-        )
-    }
+) = item {
+    PreferenceSwitchWithDivider(
+        title = stringResource(id = R.string.fast_seek),
+        description = stringResource(id = R.string.fast_seek_description),
+        isChecked = isChecked,
+        onChecked = onChecked,
+        icon = NextIcons.Fast,
+        onClick = onClick
+    )
 }
+
 
 fun LazyListScope.screenOrientationSetting(
     currentOrientationPreference: ScreenOrientation,
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.player_screen_orientation),
-            description = currentOrientationPreference.name(),
-            icon = NextIcons.Rotation,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.player_screen_orientation),
+        description = currentOrientationPreference.name(),
+        icon = NextIcons.Rotation,
+        onClick = onClick
+    )
+
 }
 
 fun LazyListScope.preferredAudioLanguageSetting(
     currentLanguage: String,
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.preferred_audio_lang),
-            description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
-                id = R.string.preferred_audio_lang_description
-            ),
-            icon = NextIcons.AudioTrack,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.preferred_audio_lang),
+        description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
+            id = R.string.preferred_audio_lang_description
+        ),
+        icon = NextIcons.AudioTrack,
+        onClick = onClick
+    )
+
 }
 
 fun getLanguages(): List<Pair<String, String>> {

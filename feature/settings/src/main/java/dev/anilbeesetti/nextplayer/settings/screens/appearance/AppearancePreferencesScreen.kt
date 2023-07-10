@@ -57,49 +57,44 @@ fun AppearancePreferencesScreen(
             )
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize()
+        LazyColumn(
+            contentPadding = innerPadding,
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            LazyColumn(
-                contentPadding = innerPadding,
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                item {
-                    PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
-                }
-                darkThemeSetting(
-                    currentPreference = preferences.themeConfig,
-                    onChecked = viewModel::toggleDarkTheme,
-                    onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) }
-                )
-                dynamicThemingSetting(
-                    isChecked = preferences.useDynamicColors,
-                    onClick = viewModel::toggleUseDynamicColors
-                )
+            item {
+                PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
             }
-            when (uiState.showDialog) {
-                AppearancePreferenceDialog.Theme -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.dark_theme),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(ThemeConfig.values()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == preferences.themeConfig),
-                                onClick = {
-                                    viewModel.updateThemeConfig(it)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
+            darkThemeSetting(
+                currentPreference = preferences.themeConfig,
+                onChecked = viewModel::toggleDarkTheme,
+                onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) }
+            )
+            dynamicThemingSetting(
+                isChecked = preferences.useDynamicColors,
+                onClick = viewModel::toggleUseDynamicColors
+            )
+        }
+        when (uiState.showDialog) {
+            AppearancePreferenceDialog.Theme -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.dark_theme),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(ThemeConfig.values()) {
+                        RadioTextButton(
+                            text = it.name(),
+                            selected = (it == preferences.themeConfig),
+                            onClick = {
+                                viewModel.updateThemeConfig(it)
+                                viewModel.hideDialog()
+                            }
+                        )
                     }
                 }
-
-                AppearancePreferenceDialog.None -> { /* Do nothing */
-                }
             }
+
+            AppearancePreferenceDialog.None -> Unit
         }
     }
 }
@@ -108,32 +103,30 @@ fun LazyListScope.darkThemeSetting(
     currentPreference: ThemeConfig,
     onChecked: () -> Unit,
     onClick: () -> Unit
-) {
-    item {
-        PreferenceSwitchWithDivider(
-            title = stringResource(id = R.string.dark_theme),
-            description = currentPreference.name(),
-            isChecked = currentPreference == ThemeConfig.ON,
-            onChecked = onChecked,
-            icon = NextIcons.DarkMode,
-            onClick = onClick
-        )
-    }
+) = item {
+    PreferenceSwitchWithDivider(
+        title = stringResource(id = R.string.dark_theme),
+        description = currentPreference.name(),
+        isChecked = currentPreference == ThemeConfig.ON,
+        onChecked = onChecked,
+        icon = NextIcons.DarkMode,
+        onClick = onClick
+    )
 }
+
 
 fun LazyListScope.dynamicThemingSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) {
-    item {
-        if (supportsDynamicTheming()) {
-            PreferenceSwitch(
-                title = stringResource(id = R.string.dynamic_theme),
-                description = stringResource(id = R.string.dynamic_theme_description),
-                isChecked = isChecked,
-                onClick = onClick,
-                icon = NextIcons.Appearance
-            )
-        }
+) = item {
+    if (supportsDynamicTheming()) {
+        PreferenceSwitch(
+            title = stringResource(id = R.string.dynamic_theme),
+            description = stringResource(id = R.string.dynamic_theme_description),
+            isChecked = isChecked,
+            onClick = onClick,
+            icon = NextIcons.Appearance
+        )
     }
 }
+

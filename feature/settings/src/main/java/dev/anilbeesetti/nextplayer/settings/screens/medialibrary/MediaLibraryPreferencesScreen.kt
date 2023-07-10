@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -11,8 +10,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +34,6 @@ fun MediaLibraryPreferencesScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
-            // TODO: Check why the appbar flickers when changing the theme with small appbar and not with large appbar
             NextTopAppBar(
                 title = stringResource(id = R.string.media_library),
                 scrollBehavior = scrollBehaviour,
@@ -52,56 +48,49 @@ fun MediaLibraryPreferencesScreen(
             )
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize()
+        LazyColumn(
+            contentPadding = innerPadding,
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            LazyColumn(
-                contentPadding = innerPadding,
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                item {
-                    PreferenceSubtitle(text = stringResource(id = R.string.scan))
-                }
-                hideFoldersSettings(
-                    onClick = onFolderSettingClick
-                )
-                forceRescanStorageSetting(
-                    onClick = {
-                        context.scanStorage()
-                        context.showToast(
-                            string = context.getString(R.string.scanning_storage),
-                            duration = Toast.LENGTH_LONG
-                        )
-                    }
-                )
+            item {
+                PreferenceSubtitle(text = stringResource(id = R.string.scan))
             }
+            hideFoldersSettings(
+                onClick = onFolderSettingClick
+            )
+            forceRescanStorageSetting(
+                onClick = {
+                    context.scanStorage()
+                    context.showToast(
+                        string = context.getString(R.string.scanning_storage),
+                        duration = Toast.LENGTH_LONG
+                    )
+                }
+            )
         }
     }
 }
 
 fun LazyListScope.hideFoldersSettings(
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.manage_folders),
-            description = stringResource(id = R.string.manage_folders_desc),
-            icon = NextIcons.FolderOff,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.manage_folders),
+        description = stringResource(id = R.string.manage_folders_desc),
+        icon = NextIcons.FolderOff,
+        onClick = onClick
+    )
 }
+
 
 fun LazyListScope.forceRescanStorageSetting(
     onClick: () -> Unit
-) {
-    item {
-        ClickablePreferenceItem(
-            title = stringResource(id = R.string.force_rescan_storage),
-            description = stringResource(id = R.string.force_rescan_storage_desc),
-            icon = NextIcons.Update,
-            onClick = onClick
-        )
-    }
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.force_rescan_storage),
+        description = stringResource(id = R.string.force_rescan_storage_desc),
+        icon = NextIcons.Update,
+        onClick = onClick
+    )
 }

@@ -43,8 +43,7 @@ fun SettingsScreen(
     ) { innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             item {
                 ClickablePreferenceItem(
