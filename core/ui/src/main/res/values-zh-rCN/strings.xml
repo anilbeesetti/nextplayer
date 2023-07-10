@@ -129,4 +129,7 @@
     <string name="prefer_app_decoders">优先选择应用解码器</string>
     <string name="device_decoders_only">仅限设备解码器</string>
     <string name="decoder_desc">解码器优先，播放解码器选项</string>
+    <string name="embedded_styles_desc">应用字幕文件中存在的嵌入样式，例如 ASS 等</string>
+    <string name="embedded_styles">嵌入样式</string>
+    <string name="controller_timeout">控制器超时</string>
 </resources>
