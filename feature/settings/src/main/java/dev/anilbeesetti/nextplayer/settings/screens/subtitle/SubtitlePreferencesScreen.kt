@@ -247,8 +247,8 @@ fun LazyListScope.subtitleEmbeddedStylesPreference(
     onClick: () -> Unit
 ) = item {
     PreferenceSwitch(
-        title = "Embedded styles",
-        description = "Apply the embedded styles that are present in subtitle files, such as ASS and so on",
+        title = stringResource(R.string.embedded_styles),
+        description = stringResource(R.string.embedded_styles_desc),
         icon = NextIcons.Style,
         isChecked = isChecked,
         onClick = onClick
