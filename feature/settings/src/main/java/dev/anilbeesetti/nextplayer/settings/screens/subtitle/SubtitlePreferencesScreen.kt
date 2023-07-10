@@ -98,6 +98,10 @@ fun SubtitlePreferencesScreen(
                 isChecked = preferences.subtitleBackground,
                 onClick = viewModel::toggleSubtitleBackground
             )
+            subtitleEmbeddedStylesPreference(
+                isChecked = preferences.applyEmbeddedStyles,
+                onClick = viewModel::toggleApplyEmbeddedStyles
+            )
         }
 
         when (uiState.showDialog) {
@@ -233,6 +237,19 @@ fun LazyListScope.subtitleBackgroundPreference(
         title = stringResource(id = R.string.subtitle_background),
         description = stringResource(id = R.string.subtitle_background_desc),
         icon = NextIcons.Background,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.subtitleEmbeddedStylesPreference(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(R.string.embedded_styles),
+        description = stringResource(R.string.embedded_styles_desc),
+        icon = NextIcons.Style,
         isChecked = isChecked,
         onClick = onClick
     )
