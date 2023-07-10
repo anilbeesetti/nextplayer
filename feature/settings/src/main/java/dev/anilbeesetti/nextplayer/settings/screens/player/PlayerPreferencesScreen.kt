@@ -110,7 +110,7 @@ fun PlayerPreferencesScreen(
                 )
                 defaultPlaybackSpeedSetting(
                     currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlayerbackSpeedDialog) }
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) }
                 )
                 rememberBrightnessSetting(
                     isChecked = preferences.rememberPlayerBrightness,
@@ -233,7 +233,7 @@ fun PlayerPreferencesScreen(
                     }
                 }
 
-                PlayerPreferenceDialog.PlayerbackSpeedDialog -> {
+                PlayerPreferenceDialog.PlaybackSpeedDialog -> {
                     var defaultPlaybackSpeed by remember {
                         mutableStateOf(preferences.defaultPlaybackSpeed)
                     }

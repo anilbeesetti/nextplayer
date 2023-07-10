@@ -173,7 +173,7 @@ sealed interface PlayerPreferenceDialog {
     object FastSeekDialog : PlayerPreferenceDialog
     object AudioLanguageDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
-    object PlayerbackSpeedDialog : PlayerPreferenceDialog
+    object PlaybackSpeedDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
