@@ -19,7 +19,6 @@ subprojects {
         android.set(true)
         outputColorName.set("RED")
         ignoreFailures.set(false)
-        disabledRules.add("max-line-length")
     }
 }
 
