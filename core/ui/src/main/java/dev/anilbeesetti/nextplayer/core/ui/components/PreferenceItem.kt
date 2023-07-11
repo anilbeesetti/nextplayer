@@ -70,6 +70,56 @@ fun PreferenceItem(
     )
 }
 
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SelectablePreference(
+    title: String,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    selected: Boolean = false,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
+) {
+    ListItem(
+        headlineContent = {
+            Text(
+                text = title,
+                maxLines = 1,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
+                )
+            )
+        },
+        supportingContent = {
+            description?.let {
+                Text(
+                    text = it,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
+                    )
+                )
+            }
+        },
+        trailingContent = {
+            Checkbox(
+                modifier = Modifier.semantics { contentDescription = title },
+                checked = selected,
+                onCheckedChange = null
+            )
+        },
+        modifier = modifier
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
+            .padding(start = 10.dp)
+            .padding(vertical = 2.dp)
+    )
+}
+
 @Preview
 @Composable
 fun PreferenceItemPreview() {
@@ -80,71 +130,11 @@ fun PreferenceItemPreview() {
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@Preview
 @Composable
-fun SelectablePreference(
-    title: String = "",
-    description: String? = null,
-    selected: Boolean = false,
-    icon: ImageVector? = null,
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {}
-) {
-    Surface(
-        modifier = Modifier.combinedClickable(
-            onClick = onClick,
-            onLongClick = onLongClick
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp, 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            icon?.let {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(start = 8.dp, end = 16.dp)
-                        .size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f)
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = if (icon == null) 12.dp else 0.dp)
-                    .padding(end = 8.dp)
-            ) {
-                with(MaterialTheme) {
-                    Text(
-                        text = title,
-                        maxLines = 1,
-                        color = colorScheme.onSurface,
-                        style = typography.titleMedium.copy(
-                            textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
-                        )
-                    )
-                    description?.let {
-                        Text(
-                            text = it,
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            style = typography.bodyMedium.copy(
-                                textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
-                            )
-                        )
-                    }
-                }
-            }
-            Checkbox(
-                modifier = Modifier.semantics { contentDescription = title },
-                checked = selected,
-                onCheckedChange = null
-            )
-        }
-    }
+fun SelectablePreferencePreview() {
+    SelectablePreference(
+        title = "Title",
+        description = "Description of the preference item goes here."
+    )
 }
