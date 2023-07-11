@@ -90,19 +90,20 @@ if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
             --ar="${TOOLCHAIN_PREFIX}/llvm-ar" \
             --ranlib="${TOOLCHAIN_PREFIX}/llvm-ranlib" \
             --strip="${TOOLCHAIN_PREFIX}/llvm-strip" \
+            --pkg-config="$(which pkg-config)" \
             --target-os=android \
             --enable-shared \
             --disable-static \
             --disable-doc \
             --disable-programs \
             --disable-everything \
+            --disable-vulkan \
             --disable-avdevice \
             --disable-avformat \
             --disable-postproc \
             --disable-avfilter \
             --disable-symver \
             --enable-swresample \
-            --enable-version3 \
             --extra-ldexeflags=-pie \
             ${EXTRA_BUILD_CONFIGURATION_FLAGS} \
             ${COMMON_OPTIONS}
