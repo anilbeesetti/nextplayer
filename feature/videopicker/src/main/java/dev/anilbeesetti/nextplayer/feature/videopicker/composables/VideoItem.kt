@@ -49,7 +49,7 @@ fun VideoItem(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .widthIn(max = 500.dp)
+                    .widthIn(max = 450.dp)
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f)
             ) {
