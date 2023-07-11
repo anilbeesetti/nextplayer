@@ -31,6 +31,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
@@ -48,8 +49,8 @@ fun VideoItem(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .widthIn(max = 400.dp)
-                    .fillMaxWidth(0.5f)
+                    .widthIn(max = 500.dp)
+                    .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f)
             ) {
                 if (video.uriString.isNotEmpty()) {
@@ -113,6 +114,7 @@ fun VideoItem(
 }
 
 @DayNightPreview
+@DevicePreviews
 @Composable
 fun VideoItemPreview() {
     NextPlayerTheme {

@@ -75,19 +75,18 @@ fun FolderItem(
             ) {
                 InfoChip(
                     text = "${directory.mediaCount} ${
-                    stringResource(
-                        id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
-                    )
+                        stringResource(
+                            id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
+                        )
                     }",
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
             }
         },
-        modifier = modifier
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
-            )
+        modifier = modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+        )
     )
 }
 
