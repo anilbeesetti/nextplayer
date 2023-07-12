@@ -57,7 +57,7 @@ fun MediaPickerRoute(
         onSettingsClick = onSettingsClick,
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
-        updatePreferences = viewModel::updateMenu,
+        updatePreferences = viewModel::updateMenu
     )
 }
 
@@ -131,7 +131,7 @@ fun MediaPickerScreenPreview(
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                     onPlayVideo = {},
-                    onFolderClick = {},
+                    onFolderClick = {}
                 )
             }
         }
@@ -162,7 +162,7 @@ fun MediaPickerNoVideosFoundPreview() {
                 ),
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
-                onFolderClick = {},
+                onFolderClick = {}
             )
         }
     }
@@ -178,7 +178,7 @@ fun MediaPickerLoadingPreview() {
                 foldersState = FoldersState.Loading,
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
-                onFolderClick = {},
+                onFolderClick = {}
             )
         }
     }

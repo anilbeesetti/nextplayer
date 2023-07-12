@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.core.common.extensions
 import android.app.RecoverableSecurityException
 import android.content.ContentResolver
 import android.content.ContentUris
-import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.media.MediaScannerConnection

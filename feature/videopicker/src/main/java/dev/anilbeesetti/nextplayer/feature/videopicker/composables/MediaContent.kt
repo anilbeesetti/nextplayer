@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.CircularProgressIndicator
@@ -91,14 +90,14 @@ fun NoVideosFound() {
 @Composable
 fun VideosListFromState(
     videosState: VideosState,
-    onVideoClick: (Uri) -> Unit,
+    onVideoClick: (Uri) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
     var deleteAction: Video? by rememberSaveable { mutableStateOf(null) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val bottomSheetState = rememberModalBottomSheetState()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = {}
@@ -160,11 +159,14 @@ fun VideosListFromState(
                 },
                 modifier = Modifier.clickable {
                     val mediaStoreUri = Uri.parse(it.uriString)
-                    val intent = Intent.createChooser(Intent().apply {
-                        type = "video/*"
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_STREAM, mediaStoreUri)
-                    }, null)
+                    val intent = Intent.createChooser(
+                        Intent().apply {
+                            type = "video/*"
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_STREAM, mediaStoreUri)
+                        },
+                        null
+                    )
                     context.startActivity(intent)
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null

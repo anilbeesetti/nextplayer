@@ -16,7 +16,7 @@ data class Video(
     val dateModified: Long = 0,
     val formattedDuration: String = "",
     val formattedFileSize: String = ""
-): Serializable {
+) : Serializable {
 
     companion object {
         val sample = Video(
