@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onParent
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -64,6 +65,7 @@ class MediaPickerScreenTest {
                 videoItemsTestData[0].displayName,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
         composeTestRule
@@ -71,6 +73,7 @@ class MediaPickerScreenTest {
                 videoItemsTestData[1].displayName,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
     }
@@ -99,6 +102,7 @@ class MediaPickerScreenTest {
                 foldersTestData[0].name,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
         composeTestRule
@@ -106,6 +110,7 @@ class MediaPickerScreenTest {
                 foldersTestData[1].name,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
     }
