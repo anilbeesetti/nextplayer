@@ -1,28 +1,57 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFile
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
+import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
+import kotlinx.coroutines.launch
 
 @Composable
 fun MediaLazyList(
@@ -57,13 +86,22 @@ fun NoVideosFound() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideosListFromState(
     videosState: VideosState,
     onVideoClick: (Uri) -> Unit,
-    onVideoLongClick: (Video) -> Unit = {},
 ) {
     val haptic = LocalHapticFeedback.current
+    var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
+    var deleteAction: Video? by rememberSaveable { mutableStateOf(null) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val bottomSheetState = rememberModalBottomSheetState()
+    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = {}
+    )
 
     when (videosState) {
         VideosState.Loading -> CenterCircularProgressBar()
@@ -77,12 +115,98 @@ fun VideosListFromState(
                         onClick = { onVideoClick(Uri.parse(it.uriString)) },
                         onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onVideoLongClick(it)
+                            showMediaActionsFor = it
                         }
                     )
                 }
             }
         }
+    }
+
+    showMediaActionsFor?.let {
+        ModalBottomSheet(
+            onDismissRequest = { showMediaActionsFor = null }
+        ) {
+            Text(
+                text = it.displayName,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            ListItem(
+                leadingContent = {
+                    Icon(imageVector = Icons.Rounded.Delete, contentDescription = null)
+                },
+                headlineContent = { Text(text = "Delete") },
+                modifier = Modifier.clickable {
+                    deleteAction = it
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showMediaActionsFor = null
+                    }
+                }
+            )
+            ListItem(
+                leadingContent = {
+                    Icon(imageVector = Icons.Rounded.Share, contentDescription = null)
+                },
+                headlineContent = { Text(text = "Share") },
+                modifier = Modifier.clickable {
+                    val mediaStoreUri = Uri.parse(it.uriString)
+                    val intent = Intent.createChooser(Intent().apply {
+                        type = "video/*"
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_STREAM, mediaStoreUri)
+                    }, null)
+                    context.startActivity(intent)
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showMediaActionsFor = null
+                    }
+                }
+            )
+        }
+    }
+
+    deleteAction?.let {
+        NextDialog(
+            onDismissRequest = { deleteAction = null },
+            title = {
+                Text(text = "Delete the following file")
+            },
+            confirmButton = {
+                DoneButton(
+                    onClick = {
+                        context.deleteFile(Uri.parse(it.uriString), deleteIntentSenderLauncher)
+                        deleteAction = null
+                    }
+                )
+            },
+            dismissButton = {
+                CancelButton(onClick = { deleteAction = null })
+            },
+            content = {
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            text = it.displayName,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            text = it.path,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                )
+            }
+        )
     }
 }
 

@@ -49,16 +49,9 @@ class MediaPickerViewModel @Inject constructor(
             initialValue = ApplicationPreferences()
         )
 
-    private val _showMediaActionsFor = MutableStateFlow<Video?>(null)
-    val showMediaActionsFor = _showMediaActionsFor.asStateFlow()
-
     fun updateMenu(applicationPreferences: ApplicationPreferences) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences { applicationPreferences }
         }
-    }
-
-    fun showMediaActionsFor(video: Video?) {
-        _showMediaActionsFor.update { video }
     }
 }
