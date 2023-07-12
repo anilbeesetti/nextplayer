@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CompareArrows
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.ScreenRotationAlt
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Style
@@ -61,6 +63,7 @@ object NextIcons {
     val DashBoard = Icons.Rounded.Dashboard
     val Decoder = Icons.Rounded.DeveloperBoard
     val DecoderVideo = Icons.Rounded.VideoSettings
+    val Delete = Icons.Rounded.Delete
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Fast = Icons.Rounded.FastForward
     val FileOpen = Icons.Rounded.FileOpen
@@ -80,6 +83,7 @@ object NextIcons {
     val Rotation = Icons.Rounded.ScreenRotationAlt
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
+    val Share = Icons.Rounded.Share
     val Style = Icons.Rounded.Style
     val Subtitle = Icons.Rounded.Subtitles
     val Size = Icons.Rounded.CompareArrows

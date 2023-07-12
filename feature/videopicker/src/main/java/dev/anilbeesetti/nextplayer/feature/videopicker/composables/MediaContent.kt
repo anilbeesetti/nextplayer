@@ -48,6 +48,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
@@ -140,9 +141,9 @@ fun VideosListFromState(
             Spacer(modifier = Modifier.height(20.dp))
             ListItem(
                 leadingContent = {
-                    Icon(imageVector = Icons.Rounded.Delete, contentDescription = null)
+                    Icon(imageVector = NextIcons.Delete, contentDescription = null)
                 },
-                headlineContent = { Text(text = "Delete") },
+                headlineContent = { Text(text = stringResource(R.string.delete)) },
                 modifier = Modifier.clickable {
                     deleteAction = it
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
@@ -152,9 +153,11 @@ fun VideosListFromState(
             )
             ListItem(
                 leadingContent = {
-                    Icon(imageVector = Icons.Rounded.Share, contentDescription = null)
+                    Icon(imageVector = NextIcons.Share, contentDescription = null)
                 },
-                headlineContent = { Text(text = "Share") },
+                headlineContent = {
+                    Text(text = stringResource(R.string.share))
+                },
                 modifier = Modifier.clickable {
                     val mediaStoreUri = Uri.parse(it.uriString)
                     val intent = Intent.createChooser(Intent().apply {
@@ -175,7 +178,7 @@ fun VideosListFromState(
         NextDialog(
             onDismissRequest = { deleteAction = null },
             title = {
-                Text(text = "Delete the following file")
+                Text(text = stringResource(R.string.delete_file))
             },
             confirmButton = {
                 DoneButton(
