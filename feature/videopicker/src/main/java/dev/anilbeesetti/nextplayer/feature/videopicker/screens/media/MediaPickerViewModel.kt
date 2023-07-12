@@ -7,12 +7,16 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedDirectoriesUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -45,9 +49,16 @@ class MediaPickerViewModel @Inject constructor(
             initialValue = ApplicationPreferences()
         )
 
+    private val _showMediaActionsFor = MutableStateFlow<Video?>(null)
+    val showMediaActionsFor = _showMediaActionsFor.asStateFlow()
+
     fun updateMenu(applicationPreferences: ApplicationPreferences) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences { applicationPreferences }
         }
+    }
+
+    fun showMediaActionsFor(video: Video?) {
+        _showMediaActionsFor.update { video }
     }
 }

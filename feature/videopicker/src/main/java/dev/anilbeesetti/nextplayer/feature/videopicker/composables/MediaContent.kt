@@ -13,9 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
@@ -57,8 +60,11 @@ fun NoVideosFound() {
 @Composable
 fun VideosListFromState(
     videosState: VideosState,
-    onVideoClick: (Uri) -> Unit
+    onVideoClick: (Uri) -> Unit,
+    onVideoLongClick: (Video) -> Unit = {},
 ) {
+    val haptic = LocalHapticFeedback.current
+
     when (videosState) {
         VideosState.Loading -> CenterCircularProgressBar()
         is VideosState.Success -> if (videosState.data.isEmpty()) {
@@ -68,7 +74,11 @@ fun VideosListFromState(
                 items(videosState.data, key = { it.path }) {
                     VideoItem(
                         video = it,
-                        onClick = { onVideoClick(Uri.parse(it.uriString)) }
+                        onClick = { onVideoClick(Uri.parse(it.uriString)) },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onVideoLongClick(it)
+                        }
                     )
                 }
             }

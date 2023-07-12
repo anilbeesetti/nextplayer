@@ -39,10 +39,9 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 fun VideoItem(
     video: Video,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
-
     ListItem(
         leadingContent = {
             Box(
@@ -108,7 +107,7 @@ fun VideoItem(
         },
         modifier = modifier.combinedClickable(
             onClick = onClick,
-            onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+            onLongClick = onLongClick
         )
     )
 }
@@ -121,7 +120,8 @@ fun VideoItemPreview() {
         Surface {
             VideoItem(
                 video = Video.sample,
-                onClick = {}
+                onClick = {},
+                onLongClick = {}
             )
         }
     }
