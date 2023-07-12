@@ -28,7 +28,7 @@
     <string name="permission_request">Permission Request</string>
     <string name="permission_settings">The Next Player app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission from settings since it was permanently denied.</string>
     <string name="player_controls_exit">Navigate up</string>
-    <string name="player_controls_next">Player next</string>
+    <string name="player_controls_next">Play next</string>
     <string name="player_controls_play_pause">Player play pause</string>
     <string name="player_controls_previous">Player previous</string>
     <string name="player_controls_progress">Player progress bar</string>
