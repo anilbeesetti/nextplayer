@@ -1,2 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="appearance_description">ਐਪ ਨੂੰ ਆਪਣੀ ਪਸੰਦ ਦੇ ਮੁਤਾਬਿਕ ਐਡਜਸਟ ਕਰੋ</string>
+    <string name="ascending">ਵਧਦੇ ਕ੍ਰਮ ਵਿੱਚ</string>
+    <string name="cancel">ਰੱਦ ਕਰੋ</string>
+    <string name="descending">ਘਟਦੇ ਕ੍ਮ ਵਿੱਚ</string>
+    <string name="disable">ਡਿਸੇਬਲ ਕਰੋ</string>
+    <string name="done">ਠੀਕ</string>
+    <string name="double_tap">ਡਬਲ ਟੈਪ ਸੰਕੇਤ</string>
+    <string name="double_tap_description">ਡਬਲ ਟੈਪ ਸੰਕੇਤ ਐਕਸ਼ਨ ਚੁਣੋ</string>
+    <string name="fast_seek">ਫਾਸਟ ਸੀਕਿੰਗ</string>
+    <string name="fast_seek_description">ਸਟੀਕ ਦੀ ਬਜਾਏ ਨਜ਼ਦੀਕੀ ਕੀ ਫਰੇਮ ਤੇ ਸੀਕ ਕਰੋ।</string>
+    <string name="grant_permission">ਆਗਿਆ ਦਿਓ</string>
+    <string name="duration">ਮਿਆਦ</string>
+    <string name="menu">ਮੀਨੂ</string>
+    <string name="location">ਲੋਕੇਸ਼ਨ</string>
+    <string name="navigate_up">ਉੱਪਰ ਨੈਵੀਗੇਟ ਕਰੋ</string>
+    <string name="no_videos_found">ਕੋਈ ਵੀਡੀਓਜ਼ ਨਹੀਂ ਮਿਲੇ</string>
+    <string name="open_settings">ਸੈਟਿੰਗਾਂ ਖੋਲ੍ਹੋ</string>
+    <string name="player_controls_exit">ਉੱਪਰ ਨੈਵੀਗੇਟ ਕਰੋ</string>
+    <string name="player_name">ਪਲੇਅਰ</string>
+    <string name="player_controls_progress">ਪਲੇਅਰ ਪ੍ਰਗਤੀ ਪੱਟੀ</string>
+    <string name="player_description">ਪਲੇਅਰ ਦੀ ਦਿੱਖ, ਪਲੇਬੈਕ ਕੰਟਰੋਲਜ਼</string>
+    <string name="player_controls_previous">ਪਲੇਅਰ ਪਰੀਵੀਅਸ</string>
+    <string name="player_controls_play_pause">ਪਲੇਅਰ ਚਲਾਓ ਰੋਕੋ</string>
+    <string name="player_controls_next">ਪਲੇਅਰ ਨੈਕਸਟ</string>
+    <string name="quick_settings">ਤਤਕਾਲ ਸੈਟਿੰਗਾਂ</string>
+    <string name="remember_brightness_level">ਚਮਕ ਦਾ ਪੱਧਰ ਯਾਦ ਰੱਖੋ</string>
+    <string name="remember_brightness_level_description">ਪਲੇਬੈਕ ਸੈਸ਼ਨਾਂ ਵਿਚਕਾਰ ਚਮਕ ਦਾ ਪੱਧਰ ਯਾਦ ਰੱਖੋ</string>
+    <string name="appearance_name">ਦਿਖਾਵਟ</string>
+    <string name="about_description">ਸੰਸਕਰਣ, ਆਭਾਰ</string>
+    <string name="about_name">ਐਪ ਦੇ ਬਾਰੇ</string>
+    <string name="group_videos">ਵੀਡੀਓਜ਼ ਨੂੰ ਫ਼ੋਲਡਰ ਅਨੁਸਾਰ ਗਰੁੱਪ ਕਰੋ</string>
+    <string name="permission_info">ਨੈਕਸਟ ਪਲੇਅਰ ਐਪ ਨੂੰ ਮੀਡੀਆ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਅਤੇ ਚਲਾਉਣ ਲਈ \"%1$s\" ਅਨੁਮਤੀ ਦੀ ਲੋੜ ਹੈ। ਇਸ ਤੋਂ ਬਿਨਾਂ, ਮੀਡੀਆ ਪਹੁੰਚ ਅਤੇ ਪਲੇਬੈਕ ਕੰਮ ਨਹੀਂ ਕਰਨਗੇ। ਐਪ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਵਰਤਣ ਲਈ, ਪਰਮਿਸ਼ਨ ਦਿਓ।</string>
+    <string name="permission_request">ਪਰਮਿਸ਼ਨ ਲਈ ਬੇਨਤੀ</string>
+    <string name="error_playing_video">ਤਰੁੱਟੀ: ਵੀਡੀਓ ਚਲਾਇਆ ਨਹੀਂ ਜਾ ਸਕਦਾ</string>
+    <string name="permission_not_granted">ਪਰਮਿਸ਼ਨ ਨਹੀਂ ਦਿੱਤੀ ਗਈ</string>
+    <string name="permission_settings">ਨੈਕਸਟ ਪਲੇਅਰ ਐਪ ਨੂੰ ਮੀਡੀਆ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਅਤੇ ਚਲਾਉਣ ਲਈ \"%1$s\" ਪਰਮਿਸ਼ਨ ਦੀ ਲੋੜ ਹੈ। ਇਸ ਤੋਂ ਬਿਨਾਂ, ਮੀਡੀਆ ਪਹੁੰਚ ਅਤੇ ਪਲੇਬੈਕ ਕੰਮ ਨਹੀਂ ਕਰਨਗੇ। ਐਪ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਵਰਤਣ ਲਈ, ਸੈਟਿੰਗਾਂ ਤੋਂ ਇਜਾਜ਼ਤ ਦਿਓ ਕਿਉਂਕਿ ਇਸਨੂੰ ਸਥਾਈ ਤੌਰ \'ਤੇ ਅਸਵੀਕਾਰ ਕੀਤਾ ਗਿਆ ਸੀ।</string>
+</resources>
