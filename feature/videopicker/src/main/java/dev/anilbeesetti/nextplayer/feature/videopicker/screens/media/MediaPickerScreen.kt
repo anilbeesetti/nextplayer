@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -229,7 +230,18 @@ internal fun MediaPickerScreen(
                     Icon(imageVector = Icons.Rounded.Share, contentDescription = null)
                 },
                 headlineContent = { Text(text = "Share") },
-                modifier = Modifier.clickable { }
+                modifier = Modifier.clickable {
+                    val mediaStoreUri = Uri.parse(video.uriString)
+                    val intent = Intent.createChooser(Intent().apply {
+                        type = "video/*"
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_STREAM, mediaStoreUri)
+                    }, null)
+                    context.startActivity(intent)
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) onVideoLongClick(null)
+                    }
+                }
             )
         }
     }
