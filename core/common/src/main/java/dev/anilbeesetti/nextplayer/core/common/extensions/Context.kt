@@ -243,6 +243,7 @@ fun detectCharset(inputStream: BufferedInputStream): Charset {
     }
     inputStream.reset()
 
+    // TODO: Improve charset detection
     val charsets = listOf("UTF-8", "ISO-8859-1", "ISO-8859-7").map { Charset.forName(it) }
 
     for (charset in charsets) {

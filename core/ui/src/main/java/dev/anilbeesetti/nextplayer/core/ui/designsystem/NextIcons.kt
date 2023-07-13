@@ -46,7 +46,6 @@ import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VideoSettings
-import org.intellij.lang.annotations.Language
 
 object NextIcons {
     val Add = Icons.Rounded.Add
