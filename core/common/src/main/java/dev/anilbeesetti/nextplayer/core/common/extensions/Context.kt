@@ -211,7 +211,7 @@ fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
     }
 }
 
-fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri {
+fun Context.convertToUTF8(uri: Uri, charset: Charset?): Uri {
     try {
         if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
         contentResolver.openInputStream(uri)?.use { inputStream ->
