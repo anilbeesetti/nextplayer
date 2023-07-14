@@ -22,9 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
@@ -39,10 +37,9 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 fun VideoItem(
     video: Video,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
-
     ListItem(
         leadingContent = {
             Box(
@@ -108,7 +105,7 @@ fun VideoItem(
         },
         modifier = modifier.combinedClickable(
             onClick = onClick,
-            onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+            onLongClick = onLongClick
         )
     )
 }
@@ -121,7 +118,8 @@ fun VideoItemPreview() {
         Surface {
             VideoItem(
                 video = Video.sample,
-                onClick = {}
+                onClick = {},
+                onLongClick = {}
             )
         }
     }

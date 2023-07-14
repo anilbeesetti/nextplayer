@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.model
 
+import java.io.Serializable
+
 data class Video(
     val id: Long,
     val path: String,
@@ -14,7 +16,7 @@ data class Video(
     val dateModified: Long = 0,
     val formattedDuration: String = "",
     val formattedFileSize: String = ""
-) {
+) : Serializable {
 
     companion object {
         val sample = Video(

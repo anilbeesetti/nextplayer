@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.common.extensions
 
+import android.app.RecoverableSecurityException
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
@@ -12,6 +13,8 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.core.text.isDigitsOnly
 import java.io.BufferedInputStream
 import java.io.BufferedReader
@@ -290,5 +293,28 @@ fun Context.clearCache() {
         }
     } catch (e: Exception) {
         e.printStackTrace()
+    }
+}
+
+fun Context.deleteFile(uri: Uri, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+    try {
+        contentResolver.delete(uri, null, null)
+    } catch (e: SecurityException) {
+        val intentSender = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+                MediaStore.createDeleteRequest(contentResolver, listOf(uri)).intentSender
+            }
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                val recoverableSecurityException = e as? RecoverableSecurityException
+                recoverableSecurityException?.userAction?.actionIntent?.intentSender
+            }
+
+            else -> null
+        }
+
+        intentSender?.let {
+            intentSenderLauncher.launch(IntentSenderRequest.Builder(it).build())
+        }
     }
 }

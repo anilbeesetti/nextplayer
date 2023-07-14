@@ -136,5 +136,8 @@
     <string name="controller_timeout">Controller timeout</string>
     <string name="seek_increment">Seek increment</string>
     <string name="seconds">%1$s seconds</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="delete_file">Delete the following file</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
 </resources>
