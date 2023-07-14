@@ -134,4 +134,8 @@
     <string name="controller_timeout">控制器超时</string>
     <string name="seek_increment">寻求增量</string>
     <string name="seconds">%1$s 秒</string>
+    <string name="subtitle_text_encoding">字幕文本编码</string>
+    <string name="share">分享</string>
+    <string name="delete_file">删除以下文件</string>
+    <string name="delete">删除</string>
 </resources>
