@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -52,6 +53,7 @@ fun SubtitlePreferencesScreen(
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val languages = remember { listOf(Pair("None", "")) + getLanguages() }
+    val charsetResource = stringArrayResource(id = R.array.charsets_list)
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -80,6 +82,10 @@ fun SubtitlePreferencesScreen(
             preferredSubtitleLanguageSetting(
                 currentLanguage = getDisplayTitle(preferences.preferredSubtitleLanguage),
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) }
+            )
+            subtitleTextEncodingPreference(
+                currentEncoding = charsetResource.first { it.contains(preferences.subtitleTextEncoding) },
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) }
             )
             item { PreferenceSubtitle(text = stringResource(id = R.string.appearance_name)) }
             subtitleFontPreference(
@@ -173,6 +179,25 @@ fun SubtitlePreferencesScreen(
                 )
             }
 
+            SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
+                OptionsDialog(
+                    text = stringResource(id = R.string.subtitle_text_encoding),
+                    onDismissClick = viewModel::hideDialog
+                ) {
+                    items(charsetResource) {
+                        val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
+                        RadioTextButton(
+                            text = it,
+                            selected = currentCharset == preferences.subtitleTextEncoding,
+                            onClick = {
+                                viewModel.updateSubtitleEncoding(currentCharset)
+                                viewModel.hideDialog()
+                            }
+                        )
+                    }
+                }
+            }
+
             SubtitlePreferenceDialog.None -> Unit
         }
     }
@@ -187,7 +212,19 @@ fun LazyListScope.preferredSubtitleLanguageSetting(
         description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
             id = R.string.preferred_subtitle_lang_description
         ),
-        icon = NextIcons.Subtitle,
+        icon = NextIcons.Language,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.subtitleTextEncodingPreference(
+    currentEncoding: String,
+    onClick: () -> Unit
+) = item {
+    ClickablePreferenceItem(
+        title = stringResource(R.string.subtitle_text_encoding),
+        description = currentEncoding,
+        icon = NextIcons.Caption,
         onClick = onClick
     )
 }

@@ -84,6 +84,12 @@ class SubtitlePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateSubtitleEncoding(value: String) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextEncoding = value) }
+        }
+    }
 }
 
 data class SubtitlePreferencesUIState(
@@ -94,6 +100,7 @@ sealed interface SubtitlePreferenceDialog {
     object SubtitleLanguageDialog : SubtitlePreferenceDialog
     object SubtitleFontDialog : SubtitlePreferenceDialog
     object SubtitleSizeDialog : SubtitlePreferenceDialog
+    object SubtitleEncodingDialog : SubtitlePreferenceDialog
     object None : SubtitlePreferenceDialog
 }
 

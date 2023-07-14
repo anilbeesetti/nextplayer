@@ -13,13 +13,14 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.core.text.isDigitsOnly
-import com.ibm.icu.text.CharsetDetector
 import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
-import java.io.InputStream
+import java.io.InputStreamReader
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 val VIDEO_COLLECTION_URI: Uri
@@ -210,11 +211,13 @@ fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
     }
 }
 
-fun Context.convertToUTF8(uri: Uri): Uri {
+fun Context.convertToUTF8(uri: Uri, charset: Charset?): Uri {
     try {
         if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
         contentResolver.openInputStream(uri)?.use { inputStream ->
-            return convertToUTF8(uri, inputStream)
+            val bufferedInputStream = BufferedInputStream(inputStream)
+            val detectedCharset = charset ?: detectCharset(bufferedInputStream)
+            return convertToUTF8(uri, bufferedInputStream.reader(detectedCharset))
         }
     } catch (exception: Exception) {
         exception.printStackTrace()
@@ -222,16 +225,47 @@ fun Context.convertToUTF8(uri: Uri): Uri {
     return uri
 }
 
-fun Context.convertToUTF8(inputUri: Uri, inputStream: InputStream): Uri {
-    val charsetDetector = CharsetDetector()
-    val bufferedInputStream = BufferedInputStream(inputStream)
-    charsetDetector.setText(bufferedInputStream)
-    val inputCharset = charsetDetector.detect()
+fun detectCharset(inputStream: BufferedInputStream): Charset {
+    val bufferSize = 8000
+    inputStream.mark(bufferSize)
+    val rawInput = ByteArray(bufferSize)
 
-    if (!StandardCharsets.UTF_8.displayName().equals(inputCharset.name)) {
+    var rawLength = 0
+    var remainingLength = bufferSize
+    while (remainingLength > 0) {
+        // read() may give data in smallish chunks, esp. for remote sources.  Hence, this loop.
+        val bytesRead = inputStream.read(rawInput, rawLength, remainingLength)
+        if (bytesRead <= 0) {
+            break
+        }
+        rawLength += bytesRead
+        remainingLength -= bytesRead
+    }
+    inputStream.reset()
+
+    // TODO: Improve charset detection
+    val charsets = listOf("UTF-8", "ISO-8859-1", "ISO-8859-7").map { Charset.forName(it) }
+
+    for (charset in charsets) {
+        try {
+            val decodedBytes = charset.decode(ByteBuffer.wrap(rawInput))
+            if (!decodedBytes.contains("�")) {
+                return charset
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return StandardCharsets.UTF_8
+        }
+    }
+
+    return StandardCharsets.UTF_8
+}
+
+fun Context.convertToUTF8(inputUri: Uri, inputStreamReader: InputStreamReader): Uri {
+    if (!StandardCharsets.UTF_8.displayName().equals(inputStreamReader.encoding)) {
         val fileName = getFilenameFromUri(inputUri)
         val file = File(cacheDir, fileName)
-        val bufferedReader = BufferedReader(inputCharset.reader)
+        val bufferedReader = BufferedReader(inputStreamReader)
         val bufferedWriter = BufferedWriter(FileWriter(file))
 
         val buffer = CharArray(512)

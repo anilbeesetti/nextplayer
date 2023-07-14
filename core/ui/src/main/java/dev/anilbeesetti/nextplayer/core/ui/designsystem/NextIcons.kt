@@ -9,6 +9,7 @@ import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ClosedCaption
 import androidx.compose.material.icons.rounded.CompareArrows
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Title
+import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VideoSettings
 
@@ -56,6 +58,7 @@ object NextIcons {
     val Bold = Icons.Rounded.FormatBold
     val Brightness = Icons.Rounded.BrightnessHigh
     val Calendar = Icons.Rounded.CalendarMonth
+    val Caption = Icons.Rounded.ClosedCaption
     val Check = Icons.Rounded.Check
     val DarkMode = Icons.Rounded.DarkMode
     val DashBoard = Icons.Rounded.Dashboard
@@ -69,6 +72,7 @@ object NextIcons {
     val Font = Icons.Rounded.FontDownload
     val FontSize = Icons.Rounded.FormatSize
     val Info = Icons.Rounded.Info
+    val Language = Icons.Rounded.Translate
     val Length = Icons.Rounded.Straighten
     val Link = Icons.Rounded.Link
     val Location = Icons.Rounded.LocationOn
