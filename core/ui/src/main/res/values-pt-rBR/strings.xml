@@ -134,4 +134,8 @@
     <string name="controller_timeout">Tempo limite do controlador</string>
     <string name="seek_increment">Procurar incremento</string>
     <string name="seconds">%1$s segundos</string>
+    <string name="subtitle_text_encoding">Codificação do texto da legenda</string>
+    <string name="share">Compartilhar</string>
+    <string name="delete">Excluir</string>
+    <string name="delete_file">Exclua o seguinte arquivo</string>
 </resources>
