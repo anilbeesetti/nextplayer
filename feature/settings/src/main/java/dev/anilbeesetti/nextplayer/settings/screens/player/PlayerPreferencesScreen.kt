@@ -483,7 +483,7 @@ fun LazyListScope.preferredAudioLanguageSetting(
         description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
             id = R.string.preferred_audio_lang_description
         ),
-        icon = NextIcons.AudioTrack,
+        icon = NextIcons.Language,
         onClick = onClick
     )
 }

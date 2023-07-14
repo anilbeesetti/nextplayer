@@ -69,6 +69,7 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
+import java.nio.charset.Charset
 import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -578,7 +579,16 @@ class PlayerActivity : AppCompatActivity() {
         subtitles: List<Subtitle>
     ): List<MediaItem.SubtitleConfiguration> {
         return subtitles.map {
-            MediaItem.SubtitleConfiguration.Builder(convertToUTF8(it.uri)).apply {
+            MediaItem.SubtitleConfiguration.Builder(
+                convertToUTF8(
+                    uri = it.uri,
+                    charset = if (playerPreferences.subtitleTextEncoding.isNotBlank()) {
+                        Charset.forName(playerPreferences.subtitleTextEncoding)
+                    } else {
+                        null
+                    }
+                )
+            ).apply {
                 setId(it.uri.toString())
                 setMimeType(it.uri.getSubtitleMime())
                 setLabel(it.name)

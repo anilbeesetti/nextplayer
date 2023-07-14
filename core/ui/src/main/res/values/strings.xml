@@ -139,4 +139,5 @@
     <string name="share">Share</string>
     <string name="delete">Delete</string>
     <string name="delete_file">Delete the following file</string>
+    <string name="subtitle_text_encoding">Subtitle text encoding</string>
 </resources>

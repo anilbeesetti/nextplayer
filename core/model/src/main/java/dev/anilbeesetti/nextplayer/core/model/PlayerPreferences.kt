@@ -14,13 +14,14 @@ data class PlayerPreferences(
     val useSeekControls: Boolean = true,
     val rememberSelections: Boolean = true,
     val preferredAudioLanguage: String = "",
-    val preferredSubtitleLanguage: String = "",
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     val defaultPlaybackSpeed: Float = 1.0f,
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
 
     // Subtitle Preferences
+    val preferredSubtitleLanguage: String = "",
+    val subtitleTextEncoding: String = "",
     val subtitleTextSize: Int = 23,
     val subtitleBackground: Boolean = false,
     val subtitleFont: Font = Font.DEFAULT,
