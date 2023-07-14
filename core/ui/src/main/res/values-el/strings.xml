@@ -134,4 +134,5 @@
     <string name="controller_timeout">Εμφάνιση διεπαφής</string>
     <string name="seek_increment">Διάστημα αναζήτησης</string>
     <string name="seconds">%1$s δευτ/τα</string>
+    <string name="subtitle_text_encoding">Κωδικοποίηση υποτίτλων</string>
 </resources>
