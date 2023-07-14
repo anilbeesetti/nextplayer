@@ -135,4 +135,7 @@
     <string name="seek_increment">Διάστημα αναζήτησης</string>
     <string name="seconds">%1$s δευτ/τα</string>
     <string name="subtitle_text_encoding">Κωδικοποίηση υποτίτλων</string>
+    <string name="share">Κοινοποίηση</string>
+    <string name="delete">Διαγραφή</string>
+    <string name="delete_file">Διαγραφή του ακόλουθου αρχείου</string>
 </resources>
