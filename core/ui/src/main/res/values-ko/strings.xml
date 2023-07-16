@@ -121,4 +121,19 @@
     <string name="largest">큰 순</string>
     <string name="newest">새로운 순</string>
     <string name="oldest">오래된 순</string>
+    <string name="decoder">디코더</string>
+    <string name="decoder_desc">디코더 우선 순위, 디코더 옵션</string>
+    <string name="video_software_decoders">소프트웨어 동영상 디코더</string>
+    <string name="prefer_device_decoders">기기 디코더 우선</string>
+    <string name="prefer_app_decoders">앱 내장 디코더 우선</string>
+    <string name="device_decoders_only">기기 디코더만 사용</string>
+    <string name="embedded_styles">자막 내장 스타일 사용</string>
+    <string name="embedded_styles_desc">자막 파일(ASS 자막 등)에 내장되어 있는 스타일 적용</string>
+    <string name="seconds">%1$s초</string>
+    <string name="share">공유</string>
+    <string name="delete">삭제</string>
+    <string name="delete_file">다음 파일 삭제</string>
+    <string name="decoder_priority">디코더 우선 순위</string>
+    <string name="video_software_decoders_desc">애플리케이션 내장 동영상 디코더 사용(실험용 기능)</string>
+    <string name="subtitle_text_encoding">자막 텍스트 인코딩</string>
 </resources>

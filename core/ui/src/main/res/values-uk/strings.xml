@@ -40,7 +40,7 @@
     <string name="quick_settings">Швидкі налаштування</string>
     <string name="permission_settings">Для доступу до медіафайлів та їх відтворення застосунку Next Player потрібен дозвіл \"%1$s\". Без нього доступ до медіафайлів та їх відтворення не працюватиме. Щоб повноцінно користуватися застосунком, надайте дозвіл у налаштуваннях, оскільки він був постійно заборонений.</string>
     <string name="player_controls_exit">Перейти вгору</string>
-    <string name="player_controls_next">Грати далі</string>
+    <string name="player_controls_next">Відтворити далі</string>
     <string name="a_z">А-Я</string>
     <string name="player_name">Плеєр</string>
     <string name="remember_brightness_level">Запам\'ятати рівень яскравості</string>
@@ -129,4 +129,9 @@
     <string name="decoder_desc">Пріоритет декодера, вибір декодера для відтворення</string>
     <string name="decoder_priority">Пріоритет декодера</string>
     <string name="prefer_device_decoders">Надавати перевагу декодерам пристроїв</string>
+    <string name="embedded_styles">Вбудовані стилі</string>
+    <string name="controller_timeout">Час очікування контролера</string>
+    <string name="seek_increment">Розширений пошук</string>
+    <string name="seconds">%1$s секунд</string>
+    <string name="embedded_styles_desc">Застосовувати вбудовані стилі, присутні у файлах субтитрів, такі як ASS тощо</string>
 </resources>

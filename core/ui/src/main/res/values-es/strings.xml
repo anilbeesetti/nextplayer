@@ -129,4 +129,9 @@
     <string name="subtitle_background">Fondo de los subtítulos</string>
     <string name="video_software_decoders_desc">Utilizar descodificadores de vídeo con software de la aplicación (experimental)</string>
     <string name="decoder_priority">Prioridad del descodificador</string>
+    <string name="embedded_styles">Estilos incorporados</string>
+    <string name="embedded_styles_desc">Aplica los estilos incorporados en los archivos de subtítulos, como ASS, etc</string>
+    <string name="controller_timeout">Tiempo de espera del controlador</string>
+    <string name="seek_increment">Incremento en la búsqueda</string>
+    <string name="seconds">%1$s segundos</string>
 </resources>
