@@ -38,6 +38,7 @@ Next Player is an Android native video player written in Kotlin. It provides a s
 ## Features
 - Native Android app with simple and easy-to-use interface
 - Completely free and open source and without any ads or excessive permissions
+- Software decoders for h264 and hevc
 - Audio/Subtitle track selection
 - Vertical swipe to change brightness (left) / volume (right)
 - Horizontal swipe to seek through video
