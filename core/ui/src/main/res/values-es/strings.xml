@@ -134,4 +134,8 @@
     <string name="controller_timeout">Tiempo de espera del controlador</string>
     <string name="seek_increment">Incremento en la búsqueda</string>
     <string name="seconds">%1$s segundos</string>
+    <string name="subtitle_text_encoding">Codificación del texto de los subtítulos</string>
+    <string name="share">Compartir</string>
+    <string name="delete">Borrar</string>
+    <string name="delete_file">Borrar el siguiente archivo</string>
 </resources>
