@@ -12,11 +12,11 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -48,13 +48,12 @@ class PlayerViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    suspend fun updateState(path: String) {
-        currentVideoState = mediaRepository.getVideoState(path) ?: return
+    suspend fun updateState(path: String?) {
+        currentVideoState = path?.let { mediaRepository.getVideoState(it) }
 
         Timber.d("$currentVideoState")
 
         val prefs = playerPrefs.value
-
         currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES }
         currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections }
         currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections }
