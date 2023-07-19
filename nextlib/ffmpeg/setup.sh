@@ -1,19 +1,22 @@
 #!/bin/bash
 
-# Variables
-BASE_DIR=$(cd "$(dirname "$0")" && pwd)
-NDK_HOME=$ANDROID_NDK_HOME
-FFMPEG_VERSION=6.0
+# Versions
 VPX_VERSION=1.13.0
+FFMPEG_VERSION=6.0
+
+# Directories
+BASE_DIR=$(cd "$(dirname "$0")" && pwd)
+BUILD_DIR=$BASE_DIR/build
+OUTPUT_DIR=$BASE_DIR/output
+SOURCES_DIR=$BASE_DIR/sources
+FFMPEG_DIR=$SOURCES_DIR/ffmpeg-$FFMPEG_VERSION
+VPX_DIR=$SOURCES_DIR/libvpx-$VPX_VERSION
+
 ANDROID_ABIS="x86 x86_64 armeabi-v7a arm64-v8a"
 ENABLED_DECODERS="vorbis opus flac alac pcm_mulaw pcm_alaw mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd h264 hevc mpeg2video mpegvideo libvpx_vp8 libvpx_vp9"
 HOST_PLATFORM="linux-x86_64"
-BUILD_DIR=$BASE_DIR/build
-OUTPUT_DIR=$BASE_DIR/output
-FFMPEG_DIR=$BASE_DIR/ffmpeg-$FFMPEG_VERSION
-VPX_DIR=$BASE_DIR/libvpx-$VPX_VERSION
 JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || sysctl -n hw.pysicalcpu || echo 4)
-TOOLCHAIN_PREFIX="${NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}"
+TOOLCHAIN_PREFIX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}"
 
 # Set up host platform variables
 case "$OSTYPE" in
@@ -27,7 +30,7 @@ case "$OSTYPE" in
         ;;
 esac
 
-cd "$BASE_DIR" || exit 1
+cd "$SOURCES_DIR" || exit 1
 # Download libvpx source code if it doesn't exist
 if [[ ! -d "$VPX_DIR" ]]; then
     # Download FFmpeg source code
@@ -101,7 +104,7 @@ for ABI in $ANDROID_ABIS; do
       make install
 done
 
-cd "$BASE_DIR" || exit 1
+cd "$SOURCES_DIR" || exit 1
 # Download FFmpeg source code if it doesn't exist
 if [[ ! -d "$FFMPEG_DIR" ]]; then
     # Download FFmpeg source code
