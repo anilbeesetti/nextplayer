@@ -36,3 +36,4 @@ google-services.json
 nextlib/ffmpeg/build
 nextlib/ffmpeg/output
 nextlib/ffmpeg/ffmpeg-6.0
+nextlib/ffmpeg/libvpx-1.13.0
