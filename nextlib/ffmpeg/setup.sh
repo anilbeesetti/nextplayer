@@ -53,163 +53,177 @@ function downloadFfmpeg() {
   popd
 }
 
-if [[ ! -d "$VPX_DIR" ]]; then
-  downloadLibVpx
-fi
-cd "$VPX_DIR" || exit 1
+function buildLibVpx() {
+  pushd $VPX_DIR
 
-VPX_AS=${TOOLCHAIN_PREFIX}/bin/llvm-as
+  VPX_AS=${TOOLCHAIN_PREFIX}/bin/llvm-as
+  for ABI in $ANDROID_ABIS; do
+    # Set up environment variables
+    case $ABI in
+    armeabi-v7a)
+      EXTRA_BUILD_FLAGS="--force-target=armv7-android-gcc --disable-neon"
+      TOOLCHAIN=armv7a-linux-androideabi21-
+      ;;
+    arm64-v8a)
+      EXTRA_BUILD_FLAGS="--force-target=armv8-android-gcc"
+      TOOLCHAIN=aarch64-linux-android21-
+      ;;
+    x86)
+      EXTRA_BUILD_FLAGS="--force-target=x86-android-gcc --disable-sse2 --disable-sse3 --disable-ssse3 --disable-sse4_1 --disable-avx --disable-avx2 --enable-pic"
+      VPX_AS=${TOOLCHAIN_PREFIX}/bin/yasm
+      TOOLCHAIN=i686-linux-android21-
+      ;;
+    x86_64)
+      EXTRA_BUILD_FLAGS="--force-target=x86_64-android-gcc --disable-sse2 --disable-sse3 --disable-ssse3 --disable-sse4_1 --disable-avx --disable-avx2 --enable-pic --disable-neon --disable-neon-asm"
+      VPX_AS=${TOOLCHAIN_PREFIX}/bin/yasm
+      TOOLCHAIN=x86_64-linux-android21-
+      ;;
+    *)
+      echo "Unsupported architecture: $ABI"
+      exit 1
+      ;;
+    esac
 
-for ABI in $ANDROID_ABIS; do
-  # Set up environment variables
-  case $ABI in
-  armeabi-v7a)
-    EXTRA_BUILD_FLAGS="--force-target=armv7-android-gcc --disable-neon"
-    TOOLCHAIN=armv7a-linux-androideabi21-
-    ;;
-  arm64-v8a)
-    EXTRA_BUILD_FLAGS="--force-target=armv8-android-gcc"
-    TOOLCHAIN=aarch64-linux-android21-
-    ;;
-  x86)
-    EXTRA_BUILD_FLAGS="--force-target=x86-android-gcc --disable-sse2 --disable-sse3 --disable-ssse3 --disable-sse4_1 --disable-avx --disable-avx2 --enable-pic"
-    VPX_AS=${TOOLCHAIN_PREFIX}/bin/yasm
-    TOOLCHAIN=i686-linux-android21-
-    ;;
-  x86_64)
-    EXTRA_BUILD_FLAGS="--force-target=x86_64-android-gcc --disable-sse2 --disable-sse3 --disable-ssse3 --disable-sse4_1 --disable-avx --disable-avx2 --enable-pic --disable-neon --disable-neon-asm"
-    VPX_AS=${TOOLCHAIN_PREFIX}/bin/yasm
-    TOOLCHAIN=x86_64-linux-android21-
-    ;;
-  *)
-    echo "Unsupported architecture: $ABI"
-    exit 1
-    ;;
-  esac
+    CC=${TOOLCHAIN_PREFIX}/bin/${TOOLCHAIN}clang \
+      CXX=${CC}++ \
+      LD=${CC} \
+      AR=${TOOLCHAIN_PREFIX}/bin/llvm-ar \
+      AS=${VPX_AS} \
+      STRIP=${TOOLCHAIN_PREFIX}/bin/llvm-strip \
+      NM=${TOOLCHAIN_PREFIX}/bin/llvm-nm \
+      ./configure \
+      --prefix=$BUILD_DIR/external/$ABI \
+      --libc="${TOOLCHAIN_PREFIX}/sysroot" \
+      --enable-vp8 \
+      --enable-vp9 \
+      --enable-static \
+      --disable-shared \
+      --disable-examples \
+      --disable-docs \
+      --enable-realtime-only \
+      --enable-install-libs \
+      --enable-multithread \
+      --disable-webm-io \
+      --disable-libyuv \
+      --enable-better-hw-compatibility \
+      --disable-runtime-cpu-detect \
+      ${EXTRA_BUILD_FLAGS}
 
-  CC=${TOOLCHAIN_PREFIX}/bin/${TOOLCHAIN}clang \
-    CXX=${CC}++ \
-    LD=${CC} \
-    AR=${TOOLCHAIN_PREFIX}/bin/llvm-ar \
-    AS=${VPX_AS} \
-    STRIP=${TOOLCHAIN_PREFIX}/bin/llvm-strip \
-    NM=${TOOLCHAIN_PREFIX}/bin/llvm-nm \
+    make clean
+    make -j"$JOBS"
+    make install
+  done
+  popd
+}
+
+function buildFfmpeg() {
+  pushd $FFMPEG_DIR
+  EXTRA_BUILD_CONFIGURATION_FLAGS=""
+  COMMON_OPTIONS=""
+
+  # Add enabled decoders to FFmpeg build configuration
+  for decoder in $ENABLED_DECODERS; do
+    COMMON_OPTIONS="${COMMON_OPTIONS} --enable-decoder=${decoder}"
+  done
+
+  # Build FFmpeg for each architecture and platform
+  for ABI in $ANDROID_ABIS; do
+
+    # Set up environment variables
+    case $ABI in
+    armeabi-v7a)
+      TOOLCHAIN=armv7a-linux-androideabi21-
+      CPU=armv7-a
+      ARCH=arm
+      ;;
+    arm64-v8a)
+      TOOLCHAIN=aarch64-linux-android21-
+      CPU=armv8-a
+      ARCH=aarch64
+      ;;
+    x86)
+      TOOLCHAIN=i686-linux-android21-
+      CPU=i686
+      ARCH=i686
+      EXTRA_BUILD_CONFIGURATION_FLAGS=--disable-asm
+      ;;
+    x86_64)
+      TOOLCHAIN=x86_64-linux-android21-
+      CPU=x86_64
+      ARCH=x86_64
+      ;;
+    *)
+      echo "Unsupported architecture: $ABI"
+      exit 1
+      ;;
+    esac
+
+    # Referencing dependencies without pkgconfig
+    DEP_CFLAGS="-I$BUILD_DIR/external/$ABI/include"
+    DEP_LD_FLAGS="-L$BUILD_DIR/external/$ABI/lib"
+
+    # Configure FFmpeg build
     ./configure \
-    --prefix=$BUILD_DIR/external/$ABI \
-    --libc="${TOOLCHAIN_PREFIX}/sysroot" \
-    --enable-vp8 \
-    --enable-vp9 \
-    --enable-static \
-    --disable-shared \
-    --disable-examples \
-    --disable-docs \
-    --enable-realtime-only \
-    --enable-install-libs \
-    --enable-multithread \
-    --disable-webm-io \
-    --disable-libyuv \
-    --enable-better-hw-compatibility \
-    --disable-runtime-cpu-detect \
-    ${EXTRA_BUILD_FLAGS}
+      --prefix=$BUILD_DIR/$ABI \
+      --enable-cross-compile \
+      --arch=$ARCH \
+      --cpu=$CPU \
+      --cross-prefix="${TOOLCHAIN_PREFIX}/bin/$TOOLCHAIN" \
+      --nm="${TOOLCHAIN_PREFIX}/bin/llvm-nm" \
+      --ar="${TOOLCHAIN_PREFIX}/bin/llvm-ar" \
+      --ranlib="${TOOLCHAIN_PREFIX}/bin/llvm-ranlib" \
+      --strip="${TOOLCHAIN_PREFIX}/bin/llvm-strip" \
+      --extra-cflags="-O3 -fPIC $DEP_CFLAGS" \
+      --extra-ldflags="$DEP_LD_FLAGS" \
+      --pkg-config="$(which pkg-config)" \
+      --target-os=android \
+      --enable-shared \
+      --disable-static \
+      --disable-doc \
+      --disable-programs \
+      --disable-everything \
+      --disable-vulkan \
+      --disable-avdevice \
+      --disable-avformat \
+      --disable-postproc \
+      --disable-avfilter \
+      --disable-symver \
+      --enable-swresample \
+      --enable-libvpx \
+      --extra-ldexeflags=-pie \
+      ${EXTRA_BUILD_CONFIGURATION_FLAGS} \
+      ${COMMON_OPTIONS}
 
-  make clean
-  make -j"$JOBS"
-  make install
-done
+    # Build FFmpeg
+    echo "Building FFmpeg for $ARCH..."
+    make clean
+    make -j"$JOBS"
+    make install
 
-if [[ ! -d "$FFMPEG_DIR" ]]; then
-  downloadFfmpeg
+    OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
+    mkdir -p "${OUTPUT_LIB}"
+    cp "${BUILD_DIR}"/"${ABI}"/lib/*.so "${OUTPUT_LIB}"
+
+    OUTPUT_HEADERS=${OUTPUT_DIR}/include/${ABI}
+    mkdir -p "${OUTPUT_HEADERS}"
+    cp -r "${BUILD_DIR}"/"${ABI}"/include/* "${OUTPUT_HEADERS}"
+
+  done
+  popd
+}
+
+if [[ ! -d "$OUTPUT_DIR" && ! -d "$BUILD_DIR" ]]; then
+  # Download Vpx source code if it doesn't exist
+  if [[ ! -d "$VPX_DIR" ]]; then
+    downloadLibVpx
+  fi
+
+  # Download Ffmpeg source code if it doesn't exist
+  if [[ ! -d "$FFMPEG_DIR" ]]; then
+    downloadFfmpeg
+  fi
+
+  # Building library
+  buildLibVpx
+  buildFfmpeg
 fi
-cd "$FFMPEG_DIR" || exit 1
-
-EXTRA_BUILD_CONFIGURATION_FLAGS=""
-COMMON_OPTIONS=""
-
-# Add enabled decoders to FFmpeg build configuration
-for decoder in $ENABLED_DECODERS; do
-  COMMON_OPTIONS="${COMMON_OPTIONS} --enable-decoder=${decoder}"
-done
-
-# Build FFmpeg for each architecture and platform
-for ABI in $ANDROID_ABIS; do
-
-  # Set up environment variables
-  case $ABI in
-  armeabi-v7a)
-    TOOLCHAIN=armv7a-linux-androideabi21-
-    CPU=armv7-a
-    ARCH=arm
-    ;;
-  arm64-v8a)
-    TOOLCHAIN=aarch64-linux-android21-
-    CPU=armv8-a
-    ARCH=aarch64
-    ;;
-  x86)
-    TOOLCHAIN=i686-linux-android21-
-    CPU=i686
-    ARCH=i686
-    EXTRA_BUILD_CONFIGURATION_FLAGS=--disable-asm
-    ;;
-  x86_64)
-    TOOLCHAIN=x86_64-linux-android21-
-    CPU=x86_64
-    ARCH=x86_64
-    ;;
-  *)
-    echo "Unsupported architecture: $ABI"
-    exit 1
-    ;;
-  esac
-
-  # Referencing dependencies without pkgconfig
-  DEP_CFLAGS="-I$BUILD_DIR/external/$ABI/include"
-  DEP_LD_FLAGS="-L$BUILD_DIR/external/$ABI/lib"
-
-  # Configure FFmpeg build
-  ./configure \
-    --prefix=$BUILD_DIR/$ABI \
-    --enable-cross-compile \
-    --arch=$ARCH \
-    --cpu=$CPU \
-    --cross-prefix="${TOOLCHAIN_PREFIX}/bin/$TOOLCHAIN" \
-    --nm="${TOOLCHAIN_PREFIX}/bin/llvm-nm" \
-    --ar="${TOOLCHAIN_PREFIX}/bin/llvm-ar" \
-    --ranlib="${TOOLCHAIN_PREFIX}/bin/llvm-ranlib" \
-    --strip="${TOOLCHAIN_PREFIX}/bin/llvm-strip" \
-    --extra-cflags="-O3 -fPIC $DEP_CFLAGS" \
-    --extra-ldflags="$DEP_LD_FLAGS" \
-    --pkg-config="$(which pkg-config)" \
-    --target-os=android \
-    --enable-shared \
-    --disable-static \
-    --disable-doc \
-    --disable-programs \
-    --disable-everything \
-    --disable-vulkan \
-    --disable-avdevice \
-    --disable-avformat \
-    --disable-postproc \
-    --disable-avfilter \
-    --disable-symver \
-    --enable-swresample \
-    --enable-libvpx \
-    --extra-ldexeflags=-pie \
-    ${EXTRA_BUILD_CONFIGURATION_FLAGS} \
-    ${COMMON_OPTIONS}
-
-  # Build FFmpeg
-  echo "Building FFmpeg for $ARCH..."
-  make clean
-  make -j"$JOBS"
-  make install
-
-  OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
-  mkdir -p "${OUTPUT_LIB}"
-  cp "${BUILD_DIR}"/"${ABI}"/lib/*.so "${OUTPUT_LIB}"
-
-  OUTPUT_HEADERS=${OUTPUT_DIR}/include/${ABI}
-  mkdir -p "${OUTPUT_HEADERS}"
-  cp -r "${BUILD_DIR}"/"${ABI}"/include/* "${OUTPUT_HEADERS}"
-
-done
