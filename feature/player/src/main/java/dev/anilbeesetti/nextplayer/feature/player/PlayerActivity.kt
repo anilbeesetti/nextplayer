@@ -384,8 +384,7 @@ class PlayerActivity : AppCompatActivity() {
 
             val currentUri = playlistManager.getCurrent()!!
 
-            getPath(currentUri)?.let { viewModel.updateState(it) }
-
+            viewModel.updateState(getPath(currentUri))
             if (intent.data == currentUri && playerApi.hasPosition) {
                 viewModel.currentPlaybackPosition = playerApi.position?.toLong()
             }

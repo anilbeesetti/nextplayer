@@ -48,13 +48,12 @@ class PlayerViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    suspend fun updateState(path: String) {
-        currentVideoState = mediaRepository.getVideoState(path) ?: return
+    suspend fun updateState(path: String?) {
+        currentVideoState = path?.let { mediaRepository.getVideoState(it) }
 
         Timber.d("$currentVideoState")
 
         val prefs = playerPrefs.value
-
         currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES }
         currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections }
         currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections }
