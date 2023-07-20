@@ -116,6 +116,7 @@ public final class FfmpegLibrary {
   @Nullable
   /* package */ static String getCodecName(String mimeType) {
     return switch (mimeType) {
+      // Audio codecs
       case MimeTypes.AUDIO_AAC -> "aac";
       case MimeTypes.AUDIO_MPEG, MimeTypes.AUDIO_MPEG_L1, MimeTypes.AUDIO_MPEG_L2 -> "mp3";
       case MimeTypes.AUDIO_AC3 -> "ac3";
@@ -130,10 +131,14 @@ public final class FfmpegLibrary {
       case MimeTypes.AUDIO_ALAC -> "alac";
       case MimeTypes.AUDIO_MLAW -> "pcm_mulaw";
       case MimeTypes.AUDIO_ALAW -> "pcm_alaw";
+
+      // Video codecs
       case MimeTypes.VIDEO_H264 -> "h264";
       case MimeTypes.VIDEO_H265 -> "hevc";
       case MimeTypes.VIDEO_MPEG -> "mpegvideo";
       case MimeTypes.VIDEO_MPEG2 -> "mpeg2video";
+      case MimeTypes.VIDEO_VP8 -> "libvpx";
+      case MimeTypes.VIDEO_VP9 -> "libvpx-vp9";
       default -> null;
     };
   }
