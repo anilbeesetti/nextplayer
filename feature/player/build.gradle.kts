@@ -30,7 +30,7 @@ dependencies {
 
     // Media3
     implementation(libs.bundles.media3)
-    implementation(project(":nextlib:ffcodecs"))
+    implementation(libs.github.anilbeesetti.nextlib)
 
     implementation(libs.timber)
 
