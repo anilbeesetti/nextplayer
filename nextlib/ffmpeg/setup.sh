@@ -37,7 +37,7 @@ function downloadLibVpx() {
   pushd $SOURCES_DIR
   echo "Downloading Vpx source code of version $VPX_VERSION..."
   VPX_FILE=libvpx-$VPX_VERSION.tar.gz
-  wget https://github.com/webmproject/libvpx/archive/refs/tags/v$VPX_VERSION.tar.gz -O $VPX_FILE
+  curl -L https://github.com/webmproject/libvpx/archive/refs/tags/v$VPX_VERSION.tar.gz -o $VPX_FILE
   tar -zxf $VPX_FILE
   rm $VPX_FILE
   popd
@@ -47,7 +47,7 @@ function downloadFfmpeg() {
   pushd $SOURCES_DIR
   echo "Downloading FFmpeg source code of version $FFMPEG_VERSION..."
   FFMPEG_FILE=ffmpeg-$FFMPEG_VERSION.tar.gz
-  wget https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.gz -O $FFMPEG_FILE
+  curl -L https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.gz -o $FFMPEG_FILE
   tar -zxf $FFMPEG_FILE
   rm $FFMPEG_FILE
   popd
