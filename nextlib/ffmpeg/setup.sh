@@ -15,11 +15,10 @@ VPX_DIR=$SOURCES_DIR/libvpx-$VPX_VERSION
 # Configuration
 ANDROID_ABIS="x86 x86_64 armeabi-v7a arm64-v8a"
 ENABLED_DECODERS="vorbis opus flac alac pcm_mulaw pcm_alaw mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd h264 hevc mpeg2video mpegvideo libvpx_vp8 libvpx_vp9"
-HOST_PLATFORM="linux-x86_64"
 JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || sysctl -n hw.pysicalcpu || echo 4)
-TOOLCHAIN_PREFIX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}"
 
 # Set up host platform variables
+HOST_PLATFORM="linux-x86_64"
 case "$OSTYPE" in
 darwin*) HOST_PLATFORM="darwin-x86_64" ;;
 linux*) HOST_PLATFORM="linux-x86_64" ;;
@@ -31,6 +30,7 @@ msys)
   ;;
 esac
 
+TOOLCHAIN_PREFIX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/${HOST_PLATFORM}"
 mkdir -p $SOURCES_DIR
 
 function downloadLibVpx() {
