@@ -4,7 +4,6 @@ accompanist = "0.30.1"
 androidGradlePlugin = "8.0.2"
 androidMaterial = "1.9.0"
 androidxActivity = "1.7.2"
-androidxAnnotation = "1.6.0"
 androidxAppCompat = "1.6.1"
 androidxComposeCompiler = "1.4.8"
 androidxComposeBom = "2023.06.01"
@@ -18,8 +17,6 @@ androidxMedia3 = "1.1.0"
 androidxNavigation = "2.6.0"
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.5"
-checkerQual = "3.34.0"
-googleErrorProne = "2.18.0"
 hilt = "2.47"
 junit4 = "4.13.2"
 kotlin = "1.8.22"
@@ -27,6 +24,7 @@ kotlinxCoroutines = "1.6.4"
 kotlinxSerializationJson = "1.5.1"
 ktlint = "11.5.0"
 landscapist = "2.2.2"
+nextlib = "v0.1.0"
 room = "2.5.2"
 timber = "5.0.1"
 
@@ -38,7 +36,6 @@ aboutlibraries-compose = { group = "com.mikepenz", name = "aboutlibraries-compos
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
-androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotation" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
 androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
@@ -69,14 +66,12 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
-checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerQual" }
+github-anilbeesetti-nextlib = { group = "com.github.anilbeesetti", name = "nextlib", version.ref = "nextlib" }
 github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist" }
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }
-google-errorprone-annotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "googleErrorProne" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
-kotlin-annotations-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-annotations-jvm", version.ref = "kotlin" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
