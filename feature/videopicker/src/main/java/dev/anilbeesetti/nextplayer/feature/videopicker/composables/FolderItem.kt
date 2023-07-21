@@ -81,6 +81,10 @@ fun FolderItem(
                     }",
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
+                InfoChip(
+                    text = directory.formattedMediaSize,
+                    modifier = Modifier.padding(vertical = 5.dp)
+                )
             }
         },
         modifier = modifier.combinedClickable(
@@ -95,13 +99,7 @@ fun FolderItem(
 fun FolderItemPreview() {
     NextPlayerTheme {
         FolderItem(
-            directory = Directory(
-                name = "Folder 1",
-                path = "/storage/emulated/0/DCIM/Camera/Live Photos",
-                mediaSize = 1000,
-                mediaCount = 1,
-                dateModified = 2000
-            ),
+            directory = Directory.sample,
             onClick = { }
         )
     }

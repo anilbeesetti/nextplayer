@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.mappers
 
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.model.Directory
 
@@ -8,5 +9,6 @@ fun DirectoryEntity.toDirectory() = Directory(
     path = path,
     mediaSize = size,
     mediaCount = mediaCount,
-    dateModified = modified
+    dateModified = modified,
+    formattedMediaSize = Utils.formatFileSize(size)
 )
