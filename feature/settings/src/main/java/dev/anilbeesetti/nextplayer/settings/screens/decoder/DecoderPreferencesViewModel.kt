@@ -37,14 +37,6 @@ class DecoderPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleExperimentalVideoDecoders() {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(enableExperimentalVideoDecoders = !it.enableExperimentalVideoDecoders)
-            }
-        }
-    }
-
     fun updateDecoderPriority(value: DecoderPriority) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {

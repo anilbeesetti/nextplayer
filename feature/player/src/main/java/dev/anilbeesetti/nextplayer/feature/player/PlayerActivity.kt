@@ -208,7 +208,6 @@ class PlayerActivity : AppCompatActivity() {
         Timber.d("Creating player")
 
         val renderersFactory = NextRenderersFactory(applicationContext)
-            .setUseExperimentalRenderers(playerPreferences.enableExperimentalVideoDecoders)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(
                 when (playerPreferences.decoderPriority) {

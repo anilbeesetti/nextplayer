@@ -20,7 +20,6 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
@@ -60,10 +59,6 @@ fun DecoderPreferencesScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
-            videoSoftwareDecodersSetting(
-                isChecked = preferences.enableExperimentalVideoDecoders,
-                onClick = viewModel::toggleExperimentalVideoDecoders
-            )
             decoderPrioritySetting(
                 currentValue = preferences.decoderPriority,
                 onClick = { viewModel.showDialog(DecoderPreferenceDialog.DecoderPriorityDialog) }
@@ -91,19 +86,6 @@ fun DecoderPreferencesScreen(
             DecoderPreferenceDialog.None -> Unit
         }
     }
-}
-
-fun LazyListScope.videoSoftwareDecodersSetting(
-    isChecked: Boolean,
-    onClick: () -> Unit
-) = item {
-    PreferenceSwitch(
-        title = stringResource(R.string.video_software_decoders),
-        description = stringResource(R.string.video_software_decoders_desc),
-        icon = NextIcons.DecoderVideo,
-        isChecked = isChecked,
-        onClick = onClick
-    )
 }
 
 fun LazyListScope.decoderPrioritySetting(

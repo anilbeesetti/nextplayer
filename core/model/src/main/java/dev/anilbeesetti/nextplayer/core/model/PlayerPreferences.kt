@@ -29,6 +29,5 @@ data class PlayerPreferences(
     val applyEmbeddedStyles: Boolean = true,
 
     // Decoder Preferences
-    val enableExperimentalVideoDecoders: Boolean = false,
     val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE
 )
