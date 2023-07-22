@@ -9,12 +9,15 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 object PlayerPreferencesSerializer : Serializer<PlayerPreferences> {
+
+    private val jsonFormat = Json { ignoreUnknownKeys = true }
+
     override val defaultValue: PlayerPreferences
         get() = PlayerPreferences()
 
     override suspend fun readFrom(input: InputStream): PlayerPreferences {
         try {
-            return Json.decodeFromString(
+            return jsonFormat.decodeFromString(
                 deserializer = PlayerPreferences.serializer(),
                 string = input.readBytes().decodeToString()
             )
@@ -26,7 +29,7 @@ object PlayerPreferencesSerializer : Serializer<PlayerPreferences> {
     @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun writeTo(t: PlayerPreferences, output: OutputStream) {
         output.write(
-            Json.encodeToString(
+            jsonFormat.encodeToString(
                 serializer = PlayerPreferences.serializer(),
                 value = t
             ).encodeToByteArray()

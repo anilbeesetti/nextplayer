@@ -60,10 +60,6 @@ fun DecoderPreferencesScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
-            videoSoftwareDecodersSetting(
-                isChecked = preferences.enableExperimentalVideoDecoders,
-                onClick = viewModel::toggleExperimentalVideoDecoders
-            )
             decoderPrioritySetting(
                 currentValue = preferences.decoderPriority,
                 onClick = { viewModel.showDialog(DecoderPreferenceDialog.DecoderPriorityDialog) }
@@ -91,19 +87,6 @@ fun DecoderPreferencesScreen(
             DecoderPreferenceDialog.None -> Unit
         }
     }
-}
-
-fun LazyListScope.videoSoftwareDecodersSetting(
-    isChecked: Boolean,
-    onClick: () -> Unit
-) = item {
-    PreferenceSwitch(
-        title = stringResource(R.string.video_software_decoders),
-        description = stringResource(R.string.video_software_decoders_desc),
-        icon = NextIcons.DecoderVideo,
-        isChecked = isChecked,
-        onClick = onClick
-    )
 }
 
 fun LazyListScope.decoderPrioritySetting(
