@@ -54,4 +54,14 @@
     <string name="select_audio_track">Seleziona traccia audio</string>
     <string name="select_subtitle_track">Seleziona traccia sottotitoli</string>
     <string name="grant_permission">Concedi autorizzazione</string>
+    <string name="default_name">Predefinito</string>
+    <string name="serif">Serif</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="play_file">Apri file video da riprodurre</string>
+    <string name="monospace">Monospazio</string>
+    <string name="play_url">Inserisci URL del video da riprodurre</string>
+    <string name="seconds">%1$s secondi</string>
+    <string name="share">Condividi</string>
+    <string name="delete">Elimina</string>
+    <string name="delete_file">Elimina il seguente file</string>
 </resources>
