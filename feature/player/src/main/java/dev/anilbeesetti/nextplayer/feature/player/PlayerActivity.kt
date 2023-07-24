@@ -62,6 +62,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
+import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
@@ -103,6 +104,9 @@ class PlayerActivity : AppCompatActivity() {
     private var isPlayingOnScrubStart: Boolean = false
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
+
+    private val shouldFastSeek: Boolean
+        get() = playerPreferences.shouldFastSeek(player.duration)
 
     /**
      * Player
@@ -586,9 +590,9 @@ class PlayerActivity : AppCompatActivity() {
         if (isFrameRendered) {
             isFrameRendered = false
             if (position > previousScrubPosition) {
-                player.seekForward(position, true)
+                player.seekForward(position, shouldFastSeek)
             } else {
-                player.seekBack(position, true)
+                player.seekBack(position, shouldFastSeek)
             }
             previousScrubPosition = position
         }
