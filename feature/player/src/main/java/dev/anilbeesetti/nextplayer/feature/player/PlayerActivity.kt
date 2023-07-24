@@ -39,6 +39,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.TimeBar
 import com.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -51,7 +52,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -59,6 +59,8 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
@@ -69,12 +71,13 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
-import java.nio.charset.Charset
-import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.nio.charset.Charset
+import java.util.Arrays
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -95,6 +98,9 @@ class PlayerActivity : AppCompatActivity() {
     private var shouldFetchPlaylist = true
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
+    private var isFrameRendered = false
+    private var previousScrubPosition = 0L
+    private var isPlayingOnScrubStart: Boolean = false
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
 
@@ -131,6 +137,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerControls: FrameLayout
     private lateinit var prevButton: ImageButton
     private lateinit var screenRotationButton: ImageButton
+    private lateinit var seekBar: TimeBar
     private lateinit var subtitleTrackButton: ImageButton
     private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
@@ -163,16 +170,6 @@ class PlayerActivity : AppCompatActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        playerGestureHelper = PlayerGestureHelper(
-            viewModel = viewModel,
-            activity = this,
-            playerView = binding.playerView,
-            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        )
-
-        playlistManager = PlaylistManager()
-        playerApi = PlayerApi(this)
-
         // Initializing views
         audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
         backButton = binding.playerView.findViewById(R.id.back_button)
@@ -182,10 +179,44 @@ class PlayerActivity : AppCompatActivity() {
         playerControls = binding.playerView.findViewById(R.id.player_controls)
         prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
         screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
+        seekBar = binding.playerView.findViewById(R.id.exo_progress)
         subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
+
+        playerGestureHelper = PlayerGestureHelper(
+            viewModel = viewModel,
+            activity = this,
+            playerView = binding.playerView,
+            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        )
+
+        seekBar.addListener(object : TimeBar.OnScrubListener {
+            override fun onScrubStart(timeBar: TimeBar, position: Long) {
+                if (player.isPlaying) {
+                    isPlayingOnScrubStart = true
+                    player.pause()
+                }
+                isFrameRendered = true
+                previousScrubPosition = player.currentPosition
+                scrub(position)
+            }
+
+            override fun onScrubMove(timeBar: TimeBar, position: Long) {
+                scrub(position)
+            }
+
+            override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                if (isPlayingOnScrubStart) {
+                    player.play()
+                }
+            }
+        })
+
+        playlistManager = PlaylistManager()
+        playerApi = PlayerApi(this)
+
     }
 
     override fun onStart() {
@@ -479,6 +510,7 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
                     Timber.d(playlistManager.toString())
+                    isFrameRendered = true
                     isFileLoaded = true
                 }
 
@@ -549,6 +581,18 @@ class PlayerActivity : AppCompatActivity() {
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
             .build()
+    }
+
+    private fun scrub(position: Long) {
+        if (isFrameRendered) {
+            isFrameRendered = false
+            if (position > previousScrubPosition) {
+                player.seekForward(position, true)
+            } else {
+                player.seekBack(position, true)
+            }
+            previousScrubPosition = position
+        }
     }
 
     private fun savePlayerState(uri: Uri) {
