@@ -107,11 +107,11 @@
     <string name="date">日期</string>
     <string name="default_playback_speed">默认播放速度</string>
     <string name="network_stream">网络流</string>
-    <string name="enter_a_network_url">输入一个网络 URL：</string>
+    <string name="enter_a_network_url">输入一个网络 URL 进行播放：</string>
     <string name="monospace">等宽字体</string>
-    <string name="serif">衬线</string>
+    <string name="serif">衬线字体</string>
     <string name="subtitle_text_size">字幕文本大小</string>
-    <string name="subtitle_text_bold_desc">为字幕使用粗体</string>
+    <string name="subtitle_text_bold_desc">字幕使用粗体</string>
     <string name="subtitle_background">字幕背景</string>
     <string name="subtitle_background_desc">启用字幕背景</string>
     <string name="subtitle_font">字幕字体</string>
@@ -132,7 +132,7 @@
     <string name="embedded_styles_desc">应用字幕文件中存在的嵌入样式，例如 ASS 等</string>
     <string name="embedded_styles">嵌入样式</string>
     <string name="controller_timeout">控制器超时</string>
-    <string name="seek_increment">寻求增量</string>
+    <string name="seek_increment">快进增量</string>
     <string name="seconds">%1$s 秒</string>
     <string name="subtitle_text_encoding">字幕文本编码</string>
     <string name="share">分享</string>

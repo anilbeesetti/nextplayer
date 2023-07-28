@@ -130,10 +130,10 @@
     <string name="device_decoders_only">Μόνο αποκωδικοποιητές συσκευής</string>
     <string name="decoder_priority">Προτεραιότητα</string>
     <string name="embedded_styles">Ενσωματωμένο στυλ</string>
-    <string name="embedded_styles_desc">Εφαρμογή των ενσωματωμένων στυλ που υπάρχουν σε αρχεία υποτίτλων, όπως ASS κλπ</string>
+    <string name="embedded_styles_desc">Εφαρμογή των στυλ των αρχείων υποτίτλων</string>
     <string name="controller_timeout">Εμφάνιση διεπαφής</string>
     <string name="seek_increment">Διάστημα αναζήτησης</string>
-    <string name="seconds">%1$s δευτ/τα</string>
+    <string name="seconds">%1$s δευτερόλεπτα</string>
     <string name="subtitle_text_encoding">Κωδικοποίηση υποτίτλων</string>
     <string name="share">Κοινοποίηση</string>
     <string name="delete">Διαγραφή</string>

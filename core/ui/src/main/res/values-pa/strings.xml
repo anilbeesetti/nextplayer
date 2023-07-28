@@ -41,7 +41,7 @@
     <string name="remember_selections_description">ਹਰੇਕ ਫਾਈਲ ਲਈ ਚੋਣ ਯਾਦ ਰੱਖੋ ਜਿਵੇਂ ਆਡੀਓ ਟਰੈਕ, ਉਪਸਿਰਲੇਖ ਟਰੈਕ, ਆਦਿ</string>
     <string name="seek_gesture">ਸੀਕ ਸੰਕੇਤ</string>
     <string name="select_audio_track">ਆਡੀਓ ਟਰੈਕ ਚੁਣੋ</string>
-    <string name="seek_gesture_description">ਅੱਗੇ ਜਾਂ ਪਿੱਛੇ ਜਾਣ ਲਈ ਹਰਾਈਜੌਂਟਲ ਸਵਾਈਪ ਕਰੋ</string>
+    <string name="seek_gesture_description">ਅੱਗੇ ਜਾਂ ਪਿੱਛੇ ਜਾਣ ਲਈ ਹੌਰੀਜੌਂਟਲ ਸਵਾਈਪ ਕਰੋ</string>
     <string name="select_subtitle_track">ਸਬਟਾਈਟਲ ਟਰੈਕ ਚੁਣੋ</string>
     <string name="settings">ਸੈਟਿੰਗਜ਼</string>
     <string name="size">ਆਕਾਰ</string>
@@ -91,8 +91,8 @@
     <string name="network_stream">ਨੈੱਟਵਰਕ ਸਟ੍ਰੀਮ</string>
     <string name="default_name">ਡਿਫ਼ਾਲਟ</string>
     <string name="monospace">ਮੋਨੋਸਪੇਸ</string>
-    <string name="sans_serif">Sans Serif</string>
-    <string name="serif">Serif</string>
+    <string name="sans_serif">ਬਿਨਾਂ ਸੇਰਿਫ ਦੇ</string>
+    <string name="serif">ਸੇਰਿਫ</string>
     <string name="subtitle_font">ਸਬਟਾਈਟਲ ਫੌਂਟ</string>
     <string name="subtitle_text_bold">ਬੋਲਡ ਸਬਟਾਈਟਲ ਫੌਂਟ</string>
     <string name="subtitle_text_bold_desc">ਸਬਟਾਈਟਲ ਲਈ ਬੋਲਡ ਟੈਕਸਟ ਦੀ ਵਰਤੋਂ ਕਰੋ</string>
@@ -106,7 +106,7 @@
     <string name="device_decoders_only">ਸਿਰਫ਼ ਡਿਵਾਈਸ ਡੀਕੋਡਰ</string>
     <string name="embedded_styles_desc">ਏਮਬੈਡਡ ਸਟਾਈਲ ਲਾਗੂ ਕਰੋ ਜੋ ਸਬਟਾਈਟਲ ਫਾਈਲਾਂ ਵਿੱਚ ਮੌਜੂਦ ਹਨ, ਜਿਵੇਂ ਕਿ ASS ਅਤੇ ਹੋਰ</string>
     <string name="controller_timeout">ਕੰਟਰੋਲਰ ਟਾਈਮਆਊਟ</string>
-    <string name="seek_increment">ਸੀਕ ਵਿੱਚ ਵਧੌਤਰੀ</string>
+    <string name="seek_increment">ਸੀਕ ਵਧੌਤਰੀ</string>
     <string name="seconds">%1$s ਸਕਿੰਟ</string>
     <string name="remember_selections">ਚੋਣ ਯਾਦ ਰੱਖੋ</string>
     <string name="title">ਸਿਰਲੇਖ</string>
@@ -134,4 +134,8 @@
     <string name="subtitle_background_desc">ਸਬਟਾਈਟਲ ਲਿਖਤ ਲਈ ਬੈਕਗ੍ਰਾਉਂਡ ਨੂੰ ਸਮਰੱਥ ਬਣਾਓ</string>
     <string name="prefer_device_decoders">ਡਿਵਾਈਸ ਡੀਕੋਡਰਾਂ ਨੂੰ ਤਰਜੀਹ ਦਿਓ</string>
     <string name="embedded_styles">ਏਮਬੈੱਡ ਸਟਾਈਲ</string>
+    <string name="subtitle_text_encoding">ਸਬ- ਟਾਈਟਲ ਟੈਕਸਟ ਇਨਕੋਡਿੰਗ</string>
+    <string name="share">ਸਾਂਝਾ ਕਰੋ</string>
+    <string name="delete">ਮਿਟਾਓ</string>
+    <string name="delete_file">ਹੇਠ ਦਿੱਤੀ ਫਾਇਲ ਮਿਟਾਓ</string>
 </resources>
