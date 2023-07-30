@@ -197,18 +197,25 @@ fun Context.showToast(string: String, duration: Int = Toast.LENGTH_SHORT) {
 }
 
 fun Context.scanPaths(paths: List<String>, callback: ((String?, Uri?) -> Unit)? = null) {
-    MediaScannerConnection.scanFile(
-        this,
-        paths.toTypedArray(),
-        arrayOf("video/*"),
-        callback
-    )
+    MediaScannerConnection.scanFile(this, paths.toTypedArray(), arrayOf("video/*"), callback)
+}
+
+fun Context.scanPath(file: File) {
+    if (file.isDirectory) {
+        file.listFiles()?.forEach { scanPath(it) }
+    } else {
+        scanPaths(listOf(file.path))
+    }
 }
 
 fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
     val storagePath = Environment.getExternalStorageDirectory()?.path
     if (storagePath != null) {
-        scanPaths(listOf(storagePath), callback)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            scanPaths(listOf(storagePath), callback)
+        } else {
+            scanPath(File(storagePath))
+        }
     } else {
         callback?.invoke(null, null)
     }
