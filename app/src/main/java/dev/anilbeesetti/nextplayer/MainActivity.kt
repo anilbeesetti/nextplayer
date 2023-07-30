@@ -73,10 +73,10 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     val storagePermissionState = rememberPermissionState(
-                        permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            Manifest.permission.READ_MEDIA_VIDEO
-                        } else {
-                            Manifest.permission.READ_EXTERNAL_STORAGE
+                        permission = when {
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_VIDEO
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> Manifest.permission.READ_EXTERNAL_STORAGE
+                            else -> Manifest.permission.WRITE_EXTERNAL_STORAGE
                         }
                     )
 
