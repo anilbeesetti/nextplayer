@@ -54,9 +54,9 @@ class PlayerViewModel @Inject constructor(
         Timber.d("$currentVideoState")
 
         val prefs = playerPrefs.value
-        currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES }
-        currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections }
-        currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections }
+        currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES } ?: currentPlaybackPosition
+        currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections } ?: currentAudioTrackIndex
+        currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections } ?: currentSubtitleTrackIndex
         currentPlaybackSpeed = currentVideoState?.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
 
         // TODO: update subs when stored in local storage
