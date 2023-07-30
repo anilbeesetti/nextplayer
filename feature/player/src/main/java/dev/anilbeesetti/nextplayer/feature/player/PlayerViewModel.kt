@@ -55,15 +55,22 @@ class PlayerViewModel @Inject constructor(
 
         val prefs = playerPrefs.value
         currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES }
-        currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections }
-        currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections }
-        currentPlaybackSpeed = currentVideoState?.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
+        currentAudioTrackIndex =
+            currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections }
+        currentSubtitleTrackIndex =
+            currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections }
+        currentPlaybackSpeed = currentVideoState?.playbackSpeed.takeIf { prefs.rememberSelections }
+            ?: prefs.defaultPlaybackSpeed
 
         // TODO: update subs when stored in local storage
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Uri> {
         return getSortedPlaylistUseCase.invoke(uri)
+    }
+
+    suspend fun getShuffledPlaylist(uri: Uri): List<Uri> {
+        return getPlaylistFromUri(uri).shuffled()
     }
 
     fun saveState(
@@ -91,7 +98,8 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed
+                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged }
+                    ?: currentVideoState?.playbackSpeed
             )
         }
     }

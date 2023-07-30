@@ -75,6 +75,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Collections
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -254,13 +255,15 @@ class PlayerActivity : AppCompatActivity() {
             subtitleView?.let {
                 val style = CaptionStyleCompat(
                     Color.WHITE,
-                    Color.BLACK.takeIf { playerPreferences.subtitleBackground } ?: Color.TRANSPARENT,
+                    Color.BLACK.takeIf { playerPreferences.subtitleBackground }
+                        ?: Color.TRANSPARENT,
                     Color.TRANSPARENT,
                     CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                     Color.BLACK,
                     Typeface.create(
                         playerPreferences.subtitleFont.toTypeface(),
-                        Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold } ?: Typeface.NORMAL
+                        Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold }
+                            ?: Typeface.NORMAL
                     )
                 )
                 it.setStyle(style)
@@ -372,7 +375,11 @@ class PlayerActivity : AppCompatActivity() {
 
                 if (mediaUri != null) {
                     launch(Dispatchers.IO) {
-                        val playlist = viewModel.getPlaylistFromUri(mediaUri)
+                        var playlist = viewModel.getPlaylistFromUri(mediaUri)
+                        if (applicationPreferences.isShuffleOn) {
+                            playlist = viewModel.getShuffledPlaylist(mediaUri)
+                            Collections.swap(playlist, 0, playlist.indexOf(mediaUri))
+                        }
                         playlistManager.setPlaylist(playlist)
                     }
                 }

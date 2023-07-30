@@ -9,5 +9,6 @@ data class ApplicationPreferences(
     val groupVideosByFolder: Boolean = true,
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
     val useDynamicColors: Boolean = true,
-    val excludeFolders: List<String> = emptyList()
+    val excludeFolders: List<String> = emptyList(),
+    val isShuffleOn:Boolean = false
 )

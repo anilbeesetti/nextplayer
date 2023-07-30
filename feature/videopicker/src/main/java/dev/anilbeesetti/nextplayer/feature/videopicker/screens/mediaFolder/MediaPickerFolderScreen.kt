@@ -1,16 +1,19 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -39,7 +42,8 @@ fun MediaPickerFolderRoute(
         folderPath = viewModel.folderPath,
         videosState = videosState,
         onVideoClick = onVideoClick,
-        onNavigateUp = onNavigateUp
+        onNavigateUp = onNavigateUp,
+        viewModel = viewModel
     )
 }
 
@@ -49,8 +53,11 @@ internal fun MediaPickerFolderScreen(
     folderPath: String,
     videosState: VideosState,
     onVideoClick: (uri: Uri) -> Unit,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    viewModel: MediaPickerFolderViewModel
 ) {
+    val prefs = viewModel.appPrefs.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     Column {
         NextTopAppBar(
             title = File(folderPath).prettyName,
@@ -59,6 +66,22 @@ internal fun MediaPickerFolderScreen(
                     Icon(
                         imageVector = NextIcons.ArrowBack,
                         contentDescription = stringResource(id = R.string.navigate_up)
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = {
+                    if(!prefs.value.isShuffleOn)
+                        Toast.makeText(context,"Shuffle disabled",Toast.LENGTH_SHORT).show()
+                    else
+                        Toast.makeText(context,"Shuffle enabled",Toast.LENGTH_SHORT).show()
+                    viewModel.toggleShuffle()
+                }) {
+                    Icon(
+                        imageVector = if (prefs.value.isShuffleOn)
+                            NextIcons.ShuffleOn else NextIcons.Shuffle,
+                        contentDescription = "",
+                        tint = if (prefs.value.isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                     )
                 }
             }
