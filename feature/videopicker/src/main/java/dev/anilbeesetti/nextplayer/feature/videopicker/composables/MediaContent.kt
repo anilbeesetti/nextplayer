@@ -210,7 +210,6 @@ fun FoldersListFromState(
     }
 }
 
-
 @Composable
 fun DeleteConfirmationDialog(
     onConfirm: () -> Unit,
@@ -227,7 +226,7 @@ fun DeleteConfirmationDialog(
                 Text(
                     text = it,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
