@@ -12,6 +12,7 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -305,25 +306,20 @@ fun Context.clearCache() {
     }
 }
 
-suspend fun Context.deleteFile(uri: Uri, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) = withContext(Dispatchers.IO) {
+/**
+ * For this to work set android:requestLegacyExternalStorage=true in AndroidManifest.xml
+ */
+suspend fun Context.deleteFiles(uris: List<Uri>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) = withContext(Dispatchers.IO) {
     try {
-        contentResolver.delete(uri, null, null)
-    } catch (e: SecurityException) {
-        val intentSender = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
-                MediaStore.createDeleteRequest(contentResolver, listOf(uri)).intentSender
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val intentSender = MediaStore.createDeleteRequest(contentResolver, uris).intentSender
+            intentSenderLauncher.launch(IntentSenderRequest.Builder(intentSender).build())
+        } else {
+            for (uri in uris) {
+                contentResolver.delete(uri, null, null)
             }
-
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                val recoverableSecurityException = e as? RecoverableSecurityException
-                recoverableSecurityException?.userAction?.actionIntent?.intentSender
-            }
-
-            else -> null
         }
-
-        intentSender?.let {
-            intentSenderLauncher.launch(IntentSenderRequest.Builder(it).build())
-        }
+    } catch (e: Exception) {
+        Log.d("CONTEXT", "deleteFiles: ${e.printStackTrace()}")
     }
 }

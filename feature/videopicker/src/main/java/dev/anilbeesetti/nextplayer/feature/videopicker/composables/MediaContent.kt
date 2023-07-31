@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,7 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFile
+import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -186,7 +184,7 @@ fun VideosListFromState(
                 DoneButton(
                     onClick = {
                         scope.launch {
-                            context.deleteFile(Uri.parse(it.uriString), deleteIntentSenderLauncher)
+                            context.deleteFiles(listOf(Uri.parse(it.uriString)), deleteIntentSenderLauncher)
                             deleteAction = null
                         }
                     }
