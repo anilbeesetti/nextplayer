@@ -71,18 +71,25 @@ internal fun MediaPickerFolderScreen(
             },
             actions = {
                 IconButton(onClick = {
-                    if(!prefs.value.isShuffleOn)
-                        Toast.makeText(context,"Shuffle disabled",Toast.LENGTH_SHORT).show()
+                    if (prefs.value.isShuffleOn)
+                        Toast.makeText(context, R.string.shuffle_disabled, Toast.LENGTH_SHORT)
+                            .show()
                     else
-                        Toast.makeText(context,"Shuffle enabled",Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, R.string.shuffle_enabled, Toast.LENGTH_SHORT).show()
                     viewModel.toggleShuffle()
                 }) {
-                    Icon(
-                        imageVector = if (prefs.value.isShuffleOn)
-                            NextIcons.ShuffleOn else NextIcons.Shuffle,
-                        contentDescription = "",
-                        tint = if (prefs.value.isShuffleOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                    )
+                    if (prefs.value.isShuffleOn)
+                        Icon(
+                            imageVector = NextIcons.ShuffleOn,
+                            contentDescription = stringResource(id = R.string.shuffle_enabled),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    else
+                        Icon(
+                            imageVector = NextIcons.Shuffle,
+                            contentDescription = stringResource(id = R.string.shuffle_enabled),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
                 }
             }
         )

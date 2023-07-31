@@ -140,4 +140,6 @@
     <string name="delete">Delete</string>
     <string name="delete_file">Delete the following file</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
+    <string name="shuffle_enabled">Shuffle enabled</string>
+    <string name="shuffle_disabled">Shuffle disabled</string>
 </resources>
