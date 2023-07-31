@@ -185,8 +185,10 @@ fun VideosListFromState(
             confirmButton = {
                 DoneButton(
                     onClick = {
-                        context.deleteFile(Uri.parse(it.uriString), deleteIntentSenderLauncher)
-                        deleteAction = null
+                        scope.launch {
+                            context.deleteFile(Uri.parse(it.uriString), deleteIntentSenderLauncher)
+                            deleteAction = null
+                        }
                     }
                 )
             },

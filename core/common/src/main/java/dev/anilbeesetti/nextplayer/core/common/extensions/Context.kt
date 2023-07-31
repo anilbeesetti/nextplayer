@@ -16,6 +16,8 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.text.isDigitsOnly
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -303,7 +305,7 @@ fun Context.clearCache() {
     }
 }
 
-fun Context.deleteFile(uri: Uri, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+suspend fun Context.deleteFile(uri: Uri, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) = withContext(Dispatchers.IO) {
     try {
         contentResolver.delete(uri, null, null)
     } catch (e: SecurityException) {
