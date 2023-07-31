@@ -74,8 +74,15 @@ internal fun MediaPickerFolderScreen(
                     if (prefs.value.isShuffleOn)
                         Toast.makeText(context, R.string.shuffle_disabled, Toast.LENGTH_SHORT)
                             .show()
-                    else
+                    else {
                         Toast.makeText(context, R.string.shuffle_enabled, Toast.LENGTH_SHORT).show()
+                        when(videosState){
+                            is VideosState.Success->{
+                                onVideoClick(Uri.parse(videosState.data.shuffled().first().uriString))
+                            }
+                            else -> { }
+                        }
+                    }
                     viewModel.toggleShuffle()
                 }) {
                     if (prefs.value.isShuffleOn)
