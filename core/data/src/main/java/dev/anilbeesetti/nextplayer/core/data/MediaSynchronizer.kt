@@ -70,7 +70,7 @@ class MediaSynchronizer @Inject constructor(
             MediumEntity(
                 path = it.data,
                 uriString = it.uri.toString(),
-                name = file.nameWithoutExtension,
+                name = file.name,
                 parentPath = file.parent!!,
                 modified = it.dateModified,
                 size = it.size,

@@ -175,42 +175,15 @@ fun VideosListFromState(
     }
 
     deleteAction?.let {
-        NextDialog(
-            onDismissRequest = { deleteAction = null },
-            title = {
-                Text(text = stringResource(R.string.delete_file))
+        DeleteConfirmationDialog(
+            onCancel = { deleteAction = null },
+            onConfirm = {
+                scope.launch {
+                    context.deleteFiles(listOf(Uri.parse(it.uriString)), deleteIntentSenderLauncher)
+                    deleteAction = null
+                }
             },
-            confirmButton = {
-                DoneButton(
-                    onClick = {
-                        scope.launch {
-                            context.deleteFiles(listOf(Uri.parse(it.uriString)), deleteIntentSenderLauncher)
-                            deleteAction = null
-                        }
-                    }
-                )
-            },
-            dismissButton = {
-                CancelButton(onClick = { deleteAction = null })
-            },
-            content = {
-                ListItem(
-                    headlineContent = {
-                        Text(
-                            text = it.displayName,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = it.path,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                )
-            }
+            deleteVideos = listOf(it.nameWithExtension)
         )
     }
 }
@@ -235,4 +208,28 @@ fun FoldersListFromState(
             }
         }
     }
+}
+
+
+@Composable
+fun DeleteConfirmationDialog(
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    deleteVideos: List<String>
+) {
+    NextDialog(
+        onDismissRequest = onCancel,
+        title = { Text(text = stringResource(R.string.delete_file)) },
+        confirmButton = { DoneButton(onClick = onConfirm) },
+        dismissButton = { CancelButton(onClick = onCancel) },
+        content = {
+            deleteVideos.map {
+                Text(
+                    text = it,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    )
 }
