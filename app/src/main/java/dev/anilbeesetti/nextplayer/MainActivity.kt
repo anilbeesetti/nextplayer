@@ -30,7 +30,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.core.data.MediaSynchronizer
+import dev.anilbeesetti.nextplayer.core.media.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
