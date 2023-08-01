@@ -254,13 +254,15 @@ class PlayerActivity : AppCompatActivity() {
             subtitleView?.let {
                 val style = CaptionStyleCompat(
                     Color.WHITE,
-                    Color.BLACK.takeIf { playerPreferences.subtitleBackground } ?: Color.TRANSPARENT,
+                    Color.BLACK.takeIf { playerPreferences.subtitleBackground }
+                        ?: Color.TRANSPARENT,
                     Color.TRANSPARENT,
                     CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                     Color.BLACK,
                     Typeface.create(
                         playerPreferences.subtitleFont.toTypeface(),
-                        Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold } ?: Typeface.NORMAL
+                        Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold }
+                            ?: Typeface.NORMAL
                     )
                 )
                 it.setStyle(style)

@@ -35,7 +35,6 @@
             android:textColor="@android:color/white" />
     </LinearLayout>
 
-
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
