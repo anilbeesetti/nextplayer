@@ -36,8 +36,8 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import dev.anilbeesetti.nextplayer.ui.MAIN_ROUTE
 import dev.anilbeesetti.nextplayer.ui.MainScreen
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
