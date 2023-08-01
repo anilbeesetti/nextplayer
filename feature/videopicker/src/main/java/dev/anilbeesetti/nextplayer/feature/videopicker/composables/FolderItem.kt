@@ -36,7 +36,6 @@ fun FolderItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-
     ListItem(
         leadingContent = {
             Icon(

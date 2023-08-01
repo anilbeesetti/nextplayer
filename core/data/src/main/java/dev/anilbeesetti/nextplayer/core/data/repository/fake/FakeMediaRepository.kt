@@ -42,5 +42,4 @@ class FakeMediaRepository : MediaRepository {
     override suspend fun deleteFolders(folderPaths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
         TODO("Not yet implemented")
     }
-
 }
