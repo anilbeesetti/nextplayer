@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,15 +33,19 @@ fun MediaPickerFolderRoute(
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
-    val videosState by viewModel.videos.collectAsStateWithLifecycle(
-        minActiveState = Lifecycle.State.RESUMED
+    val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+
+    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = {}
     )
 
     MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
         onVideoClick = onVideoClick,
-        onNavigateUp = onNavigateUp
+        onNavigateUp = onNavigateUp,
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) }
     )
 }
 
@@ -48,8 +54,9 @@ fun MediaPickerFolderRoute(
 internal fun MediaPickerFolderScreen(
     folderPath: String,
     videosState: VideosState,
-    onVideoClick: (uri: Uri) -> Unit,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onVideoClick: (Uri) -> Unit,
+    onDeleteVideoClick: (String) -> Unit
 ) {
     Column {
         NextTopAppBar(
@@ -68,7 +75,7 @@ internal fun MediaPickerFolderScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
+            VideosListFromState(videosState = videosState, onVideoClick = onVideoClick, onDeleteVideoClick = onDeleteVideoClick)
         }
     }
 }
