@@ -33,7 +33,9 @@ class MediaPickerScreenTest {
                 MediaPickerScreen(
                     videosState = VideosState.Loading,
                     foldersState = FoldersState.Loading,
-                    preferences = ApplicationPreferences()
+                    preferences = ApplicationPreferences(),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -55,7 +57,9 @@ class MediaPickerScreenTest {
                         data = videoItemsTestData
                     ),
                     foldersState = FoldersState.Loading,
-                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -92,7 +96,9 @@ class MediaPickerScreenTest {
                     foldersState = FoldersState.Success(
                         data = foldersTestData
                     ),
-                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -129,7 +135,9 @@ class MediaPickerScreenTest {
                         data = emptyList()
                     ),
                     foldersState = FoldersState.Loading,
-                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -156,7 +164,9 @@ class MediaPickerScreenTest {
                     foldersState = FoldersState.Success(
                         data = emptyList()
                     ),
-                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }

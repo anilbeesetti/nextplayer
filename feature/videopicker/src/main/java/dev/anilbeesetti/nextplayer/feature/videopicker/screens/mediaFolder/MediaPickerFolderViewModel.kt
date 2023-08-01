@@ -1,9 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -19,6 +22,7 @@ import kotlinx.coroutines.launch
 class MediaPickerFolderViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     savedStateHandle: SavedStateHandle,
+    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
@@ -32,11 +36,19 @@ class MediaPickerFolderViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    val videos = getSortedVideosUseCase.invoke(folderPath).map { VideosState.Success(it) }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = VideosState.Loading
-    )
+    val videos = getSortedVideosUseCase.invoke(folderPath)
+        .map { VideosState.Success(it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = VideosState.Loading
+        )
+
+    fun deleteVideos(uris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            mediaRepository.deleteVideos(uris, intentSenderLauncher)
+        }
+    }
 
     fun toggleShuffle() {
         viewModelScope.launch {

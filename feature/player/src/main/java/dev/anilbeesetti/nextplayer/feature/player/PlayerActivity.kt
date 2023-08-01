@@ -71,11 +71,11 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import java.nio.charset.Charset
 import java.util.Arrays
+import java.util.Collections
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.Collections
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint

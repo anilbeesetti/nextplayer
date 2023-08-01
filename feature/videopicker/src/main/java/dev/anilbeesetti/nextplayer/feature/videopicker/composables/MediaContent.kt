@@ -2,10 +2,9 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import android.content.Intent
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -31,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -39,7 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
+import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -60,8 +61,7 @@ fun MediaLazyList(
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 10.dp),
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement,
         content = content
@@ -88,7 +88,8 @@ fun NoVideosFound() {
 @Composable
 fun VideosListFromState(
     videosState: VideosState,
-    onVideoClick: (Uri) -> Unit
+    onVideoClick: (Uri) -> Unit,
+    onDeleteVideoClick: (String) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -96,10 +97,6 @@ fun VideosListFromState(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {}
-    )
 
     when (videosState) {
         VideosState.Loading -> CenterCircularProgressBar()
@@ -122,40 +119,24 @@ fun VideosListFromState(
     }
 
     showMediaActionsFor?.let {
-        ModalBottomSheet(
-            onDismissRequest = { showMediaActionsFor = null }
+        OptionsBottomSheet(
+            title = it.displayName,
+            onDismiss = { showMediaActionsFor = null }
         ) {
-            Text(
-                text = it.displayName,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .padding(horizontal = 20.dp)
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            ListItem(
-                leadingContent = {
-                    Icon(imageVector = NextIcons.Delete, contentDescription = null)
-                },
-                headlineContent = { Text(text = stringResource(R.string.delete)) },
-                modifier = Modifier.clickable {
+            BottomSheetItem(
+                text = stringResource(R.string.delete),
+                icon = NextIcons.Delete,
+                onClick = {
                     deleteAction = it
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
                 }
             )
-            ListItem(
-                leadingContent = {
-                    Icon(imageVector = NextIcons.Share, contentDescription = null)
-                },
-                headlineContent = {
-                    Text(text = stringResource(R.string.share))
-                },
-                modifier = Modifier.clickable {
+            BottomSheetItem(
+                text = stringResource(R.string.share),
+                icon = NextIcons.Share,
+                onClick = {
                     val mediaStoreUri = Uri.parse(it.uriString)
                     val intent = Intent.createChooser(
                         Intent().apply {
@@ -178,21 +159,27 @@ fun VideosListFromState(
         DeleteConfirmationDialog(
             onCancel = { deleteAction = null },
             onConfirm = {
-                scope.launch {
-                    context.deleteFiles(listOf(Uri.parse(it.uriString)), deleteIntentSenderLauncher)
-                    deleteAction = null
-                }
+                onDeleteVideoClick(it.uriString)
+                deleteAction = null
             },
-            deleteVideos = listOf(it.nameWithExtension)
+            deleteItems = listOf(it.nameWithExtension)
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoldersListFromState(
     foldersState: FoldersState,
-    onFolderClick: (folderPath: String) -> Unit
+    onFolderClick: (String) -> Unit,
+    onDeleteFolderClick: (String) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+    var showDirectoryActionsFor: Directory? by rememberSaveable { mutableStateOf(null) }
+    var deleteAction: Directory? by rememberSaveable { mutableStateOf(null) }
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     when (foldersState) {
         FoldersState.Loading -> CenterCircularProgressBar()
         is FoldersState.Success -> if (foldersState.data.isEmpty()) {
@@ -202,11 +189,44 @@ fun FoldersListFromState(
                 items(foldersState.data, key = { it.path }) {
                     FolderItem(
                         directory = it,
-                        onClick = { onFolderClick(it.path) }
+                        onClick = { onFolderClick(it.path) },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showDirectoryActionsFor = it
+                        }
                     )
                 }
             }
         }
+    }
+
+    showDirectoryActionsFor?.let {
+        OptionsBottomSheet(
+            title = it.name,
+            onDismiss = { showDirectoryActionsFor = null }
+        ) {
+            BottomSheetItem(
+                text = stringResource(R.string.delete),
+                icon = NextIcons.Delete,
+                onClick = {
+                    deleteAction = it
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showDirectoryActionsFor = null
+                    }
+                }
+            )
+        }
+    }
+
+    deleteAction?.let {
+        DeleteConfirmationDialog(
+            onCancel = { deleteAction = null },
+            onConfirm = {
+                onDeleteFolderClick(it.path)
+                deleteAction = null
+            },
+            deleteItems = listOf(it.name)
+        )
     }
 }
 
@@ -214,15 +234,15 @@ fun FoldersListFromState(
 fun DeleteConfirmationDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
-    deleteVideos: List<String>
+    deleteItems: List<String>
 ) {
     NextDialog(
         onDismissRequest = onCancel,
-        title = { Text(text = stringResource(R.string.delete_file)) },
+        title = { Text(text = stringResource(R.string.delete_file), modifier = Modifier.fillMaxWidth()) },
         confirmButton = { DoneButton(onClick = onConfirm) },
         dismissButton = { CancelButton(onClick = onCancel) },
         content = {
-            deleteVideos.map {
+            deleteItems.map {
                 Text(
                     text = it,
                     maxLines = 1,
@@ -230,5 +250,46 @@ fun DeleteConfirmationDialog(
                 )
             }
         }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OptionsBottomSheet(
+    title: String,
+    onDismiss: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(),
+    content: @Composable ColumnScope.() -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        content()
+    }
+}
+
+@Composable
+fun BottomSheetItem(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ListItem(
+        leadingContent = { Icon(imageVector = icon, contentDescription = null) },
+        headlineContent = { Text(text = text) },
+        modifier = modifier.clickable(onClick = onClick)
     )
 }

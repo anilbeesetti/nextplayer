@@ -2,6 +2,8 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,8 +36,11 @@ fun MediaPickerFolderRoute(
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
-    val videosState by viewModel.videos.collectAsStateWithLifecycle(
-        minActiveState = Lifecycle.State.RESUMED
+    val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+
+    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = {}
     )
 
     MediaPickerFolderScreen(
@@ -43,6 +48,7 @@ fun MediaPickerFolderRoute(
         videosState = videosState,
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
         viewModel = viewModel
     )
 }
@@ -52,8 +58,9 @@ fun MediaPickerFolderRoute(
 internal fun MediaPickerFolderScreen(
     folderPath: String,
     videosState: VideosState,
-    onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit,
+    onVideoClick: (Uri) -> Unit,
+    onDeleteVideoClick: (String) -> Unit,
     viewModel: MediaPickerFolderViewModel
 ) {
     val prefs = viewModel.appPrefs.collectAsStateWithLifecycle()
@@ -67,48 +74,49 @@ internal fun MediaPickerFolderScreen(
                 )
             }
         }, actions = {
-            IconButton(onClick = {
-                if (prefs.value.isShuffleOn) {
-                    Toast.makeText(
-                        context,
-                        R.string.shuffle_disabled,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(context, R.string.shuffle_enabled, Toast.LENGTH_SHORT).show()
-                    when (videosState) {
-                        is VideosState.Success -> {
-                            onVideoClick(
-                                Uri.parse(
-                                    videosState.data.shuffled().first().uriString
+                IconButton(onClick = {
+                    if (prefs.value.isShuffleOn) {
+                        Toast.makeText(
+                            context,
+                            R.string.shuffle_disabled,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(context, R.string.shuffle_enabled, Toast.LENGTH_SHORT).show()
+                        when (videosState) {
+                            is VideosState.Success -> {
+                                onVideoClick(
+                                    Uri.parse(
+                                        videosState.data.shuffled().first().uriString
+                                    )
                                 )
-                            )
-                        }
+                            }
 
-                        else -> {}
+                            else -> {}
+                        }
+                    }
+                    viewModel.toggleShuffle()
+                }) {
+                    if (prefs.value.isShuffleOn) {
+                        Icon(
+                            imageVector = NextIcons.ShuffleOn,
+                            contentDescription = stringResource(id = R.string.shuffle_enabled),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Icon(
+                            imageVector = NextIcons.Shuffle,
+                            contentDescription = stringResource(id = R.string.shuffle_enabled),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
-                viewModel.toggleShuffle()
-            }) {
-                if (prefs.value.isShuffleOn) {
-                    Icon(
-                        imageVector = NextIcons.ShuffleOn,
-                        contentDescription = stringResource(id = R.string.shuffle_enabled),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    Icon(
-                        imageVector = NextIcons.Shuffle,
-                        contentDescription = stringResource(id = R.string.shuffle_enabled),
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-        })
+            })
         Box(
-            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
+            VideosListFromState(videosState = videosState, onVideoClick = onVideoClick, onDeleteVideoClick = onDeleteVideoClick)
         }
     }
 }

@@ -1,8 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedDirectoriesUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
@@ -19,6 +22,7 @@ import kotlinx.coroutines.launch
 class MediaPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     getSortedDirectoriesUseCase: GetSortedDirectoriesUseCase,
+    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
@@ -48,6 +52,18 @@ class MediaPickerViewModel @Inject constructor(
     fun updateMenu(applicationPreferences: ApplicationPreferences) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences { applicationPreferences }
+        }
+    }
+
+    fun deleteVideos(uris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            mediaRepository.deleteVideos(uris, intentSenderLauncher)
+        }
+    }
+
+    fun deleteFolders(paths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            mediaRepository.deleteFolders(paths, intentSenderLauncher)
         }
     }
 }

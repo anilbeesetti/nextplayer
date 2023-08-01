@@ -16,9 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -35,10 +33,9 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 fun FolderItem(
     directory: Directory,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
-
     ListItem(
         leadingContent = {
             Icon(
@@ -89,7 +86,7 @@ fun FolderItem(
         },
         modifier = modifier.combinedClickable(
             onClick = onClick,
-            onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+            onLongClick = onLongClick
         )
     )
 }
@@ -100,7 +97,8 @@ fun FolderItemPreview() {
     NextPlayerTheme {
         FolderItem(
             directory = Directory.sample,
-            onClick = { }
+            onClick = { },
+            onLongClick = { }
         )
     }
 }
