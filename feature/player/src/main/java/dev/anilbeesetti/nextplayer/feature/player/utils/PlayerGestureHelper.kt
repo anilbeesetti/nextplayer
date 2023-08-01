@@ -5,6 +5,8 @@ import android.app.Activity
 import android.content.res.Resources
 import android.media.AudioManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -25,10 +27,11 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
-import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
+
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -51,6 +54,7 @@ class PlayerGestureHelper(
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
+    private val playbackSpeedHandler = Handler(Looper.getMainLooper())
 
     private var gestureVolumeOpen = false
     private var gestureBrightnessOpen = false
@@ -251,6 +255,18 @@ class PlayerGestureHelper(
         }
     )
 
+    private fun longPressHoldAction(event: MotionEvent){
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            activity.binding.progressScrubberLayout.apply {
+                playbackSpeedHandler.postDelayed({
+                    // Your Code
+                    viewModel.isPlaybackSpeedChanged = true
+                    playerView.player?.setPlaybackSpeed(2f)
+                }, 1000)
+            }
+        }
+    }
+
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
             // hide the volume indicator
@@ -278,6 +294,9 @@ class PlayerGestureHelper(
             }
 
             activity.binding.progressScrubberLayout.apply {
+                playbackSpeedHandler.removeCallbacksAndMessages(null)
+                viewModel.isPlaybackSpeedChanged = false
+                playerView.player?.setPlaybackSpeed(1f)
                 if (visibility == View.VISIBLE) {
                     visibility = View.GONE
                     if (isPlayingOnSeekStart) playerView.player?.play()
@@ -339,6 +358,7 @@ class PlayerGestureHelper(
                     // Do nothing for now
                 }
             }
+            longPressHoldAction(motionEvent)
             releaseAction(motionEvent)
             true
         }
