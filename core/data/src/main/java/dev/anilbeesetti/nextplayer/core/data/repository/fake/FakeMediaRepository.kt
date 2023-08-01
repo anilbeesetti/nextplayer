@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.repository.fake
 
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.model.Directory
@@ -31,5 +33,13 @@ class FakeMediaRepository : MediaRepository {
 
     override suspend fun getVideoState(path: String): VideoState? {
         return null
+    }
+
+    override suspend fun deleteVideos(videoUris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteFolders(folderPaths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        TODO("Not yet implemented")
     }
 }
