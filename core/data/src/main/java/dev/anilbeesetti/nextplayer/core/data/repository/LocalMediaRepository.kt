@@ -44,10 +44,18 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.get(path)?.toVideoState()
     }
 
-    override suspend fun deleteFolder(path: String, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
-        val mediumEntities = mediumDao.getAllFromDirectory(path).first()
-        val uris = mediumEntities.map { Uri.parse(it.uriString) }
-        context.deleteFiles(uris, intentSenderLauncher)
+    override suspend fun deleteVideos(videoUris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        val mediaUrisToDelete = videoUris.map { Uri.parse(it) }
+        context.deleteFiles(mediaUrisToDelete, intentSenderLauncher)
+    }
+
+    override suspend fun deleteFolders(folderPaths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        val mediumEntitiesToDelete = mutableListOf<MediumEntity>()
+        for (path in folderPaths) {
+            mediumEntitiesToDelete += mediumDao.getAllFromDirectory(path).first()
+        }
+        val mediaUrisToDelete = mediumEntitiesToDelete.map { Uri.parse(it.uriString) }
+        context.deleteFiles(mediaUrisToDelete, intentSenderLauncher)
     }
 
     override suspend fun saveVideoState(

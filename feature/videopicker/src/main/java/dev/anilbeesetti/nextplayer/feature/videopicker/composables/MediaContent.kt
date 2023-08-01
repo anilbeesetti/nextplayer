@@ -42,7 +42,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -91,7 +90,8 @@ fun NoVideosFound() {
 @Composable
 fun VideosListFromState(
     videosState: VideosState,
-    onVideoClick: (Uri) -> Unit
+    onVideoClick: (Uri) -> Unit,
+    onDeleteVideoClick: (String) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -99,10 +99,6 @@ fun VideosListFromState(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {}
-    )
 
     when (videosState) {
         VideosState.Loading -> CenterCircularProgressBar()
@@ -165,10 +161,8 @@ fun VideosListFromState(
         DeleteConfirmationDialog(
             onCancel = { deleteAction = null },
             onConfirm = {
-                scope.launch {
-                    context.deleteFiles(listOf(Uri.parse(it.uriString)), deleteIntentSenderLauncher)
-                    deleteAction = null
-                }
+                onDeleteVideoClick(it.uriString)
+                deleteAction = null
             },
             deleteItems = listOf(it.nameWithExtension)
         )

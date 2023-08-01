@@ -55,9 +55,15 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    fun deleteFolder(path: String, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+    fun deleteVideos(uris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
         viewModelScope.launch {
-            mediaRepository.deleteFolder(path, intentSenderLauncher)
+            mediaRepository.deleteVideos(uris, intentSenderLauncher)
+        }
+    }
+
+    fun deleteFolders(paths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            mediaRepository.deleteFolders(paths, intentSenderLauncher)
         }
     }
 }
