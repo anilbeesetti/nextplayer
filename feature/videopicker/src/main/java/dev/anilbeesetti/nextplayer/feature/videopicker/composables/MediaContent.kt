@@ -205,7 +205,7 @@ fun DeleteConfirmationDialog(
 ) {
     NextDialog(
         onDismissRequest = onCancel,
-        title = { Text(text = stringResource(R.string.delete_file)) },
+        title = { Text(text = stringResource(R.string.delete_file), modifier = Modifier.fillMaxWidth()) },
         confirmButton = { DoneButton(onClick = onConfirm) },
         dismissButton = { CancelButton(onClick = onCancel) },
         content = {
