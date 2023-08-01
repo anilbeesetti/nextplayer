@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
-import android.database.Cursor
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
@@ -141,41 +140,43 @@ class LocalMediaSynchronizer @Inject constructor(
             selectionArgs,
             sortOrder
         )?.use { cursor ->
+
+            val idColumn = cursor.getColumnIndex(MediaStore.Video.Media._ID)
+            val dataColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+            val durationColumn = cursor.getColumnIndex(MediaStore.Video.Media.DURATION)
+            val widthColumn = cursor.getColumnIndex(MediaStore.Video.Media.WIDTH)
+            val heightColumn = cursor.getColumnIndex(MediaStore.Video.Media.HEIGHT)
+            val sizeColumn = cursor.getColumnIndex(MediaStore.Video.Media.SIZE)
+            val dateModifiedColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_MODIFIED)
+
             while (cursor.moveToNext()) {
-                mediaVideos.add(cursor.toMediaVideo)
+                val id = cursor.getLong(idColumn)
+                mediaVideos.add(
+                    MediaVideo(
+                        id = id,
+                        data = cursor.getString(dataColumn),
+                        duration = cursor.getLong(durationColumn),
+                        uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
+                        width = cursor.getInt(widthColumn),
+                        height = cursor.getInt(heightColumn),
+                        size = cursor.getLong(sizeColumn),
+                        dateModified = cursor.getLong(dateModifiedColumn)
+                    )
+                )
             }
         }
         return mediaVideos.filter { File(it.data).exists() }
     }
-}
 
-
-private val VIDEO_PROJECTION
-    get() = arrayOf(
-        MediaStore.Video.Media._ID,
-        MediaStore.Video.Media.DATA,
-        MediaStore.Video.Media.DURATION,
-        MediaStore.Video.Media.HEIGHT,
-        MediaStore.Video.Media.WIDTH,
-        MediaStore.Video.Media.SIZE,
-        MediaStore.Video.Media.DATE_MODIFIED
-    )
-
-/**
- * convert cursor to video item
- * @see MediaVideo
- */
-private inline val Cursor.toMediaVideo: MediaVideo
-    get() {
-        val id = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
-        return MediaVideo(
-            id = id,
-            data = getString(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)),
-            duration = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-            uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
-            width = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
-            height = getInt(this.getColumnIndexOrThrow(MediaStore.Video.Media.HEIGHT)),
-            size = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)),
-            dateModified = getLong(this.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED))
+    companion object {
+        val VIDEO_PROJECTION = arrayOf(
+            MediaStore.Video.Media._ID,
+            MediaStore.Video.Media.DATA,
+            MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media.HEIGHT,
+            MediaStore.Video.Media.WIDTH,
+            MediaStore.Video.Media.SIZE,
+            MediaStore.Video.Media.DATE_MODIFIED
         )
     }
+}
