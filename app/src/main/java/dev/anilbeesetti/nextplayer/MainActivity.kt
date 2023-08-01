@@ -30,14 +30,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.core.media.MediaSynchronizer
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import dev.anilbeesetti.nextplayer.ui.MAIN_ROUTE
 import dev.anilbeesetti.nextplayer.ui.MainScreen
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
                         if (storagePermissionState.status.isGranted) {
-                            synchronizer.sync()
+                            synchronizer.startSync()
                         }
                     }
 

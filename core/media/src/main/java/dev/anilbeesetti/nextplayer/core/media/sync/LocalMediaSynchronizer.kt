@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.core.media
+package dev.anilbeesetti.nextplayer.core.media.sync
 
 import android.content.ContentUris
 import android.content.Context
@@ -32,25 +32,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class MediaSynchronizer @Inject constructor(
+class LocalMediaSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
     private val directoryDao: DirectoryDao,
     @ApplicationScope private val applicationScope: CoroutineScope,
     @ApplicationContext private val context: Context,
     @Dispatcher(NextDispatchers.IO) private val dispatcher: CoroutineDispatcher
-) {
+) : MediaSynchronizer {
 
     private var mediaSyncingJob: Job? = null
 
-    fun sync(scope: CoroutineScope = applicationScope) {
+    override fun startSync() {
         if (mediaSyncingJob != null) return
         mediaSyncingJob = getMediaVideosFlow().onEach { media ->
-            scope.launch { updateDirectories(media) }
-            scope.launch { updateMedia(media) }
-        }.launchIn(scope)
+            applicationScope.launch { updateDirectories(media) }
+            applicationScope.launch { updateMedia(media) }
+        }.launchIn(applicationScope)
+    }
+
+    override fun stopSync() {
+        mediaSyncingJob?.cancel()
     }
 
     private suspend fun updateDirectories(media: List<MediaVideo>) = withContext(
@@ -109,7 +111,6 @@ class MediaSynchronizer @Inject constructor(
         mediumDao.delete(unwantedMedia)
     }
 
-
     private fun getMediaVideosFlow(
         selection: String? = null,
         selectionArgs: Array<String>? = null,
@@ -147,6 +148,7 @@ class MediaSynchronizer @Inject constructor(
         return mediaVideos.filter { File(it.data).exists() }
     }
 }
+
 
 private val VIDEO_PROJECTION
     get() = arrayOf(
