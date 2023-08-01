@@ -12,15 +12,11 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnTouchListener
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.Dimension
@@ -55,6 +51,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -72,14 +69,12 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
+import java.nio.charset.Charset
+import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.nio.charset.Charset
-import java.util.Arrays
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
-
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -366,7 +361,6 @@ class PlayerActivity : AppCompatActivity() {
             }
             true
         }
-
         backButton.setOnClickListener { finish() }
     }
 

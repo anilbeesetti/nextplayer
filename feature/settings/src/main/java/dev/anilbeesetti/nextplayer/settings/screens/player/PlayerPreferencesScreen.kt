@@ -125,6 +125,10 @@ fun PlayerPreferencesScreen(
                 onChecked = viewModel::toggleFastSeek,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
             )
+            fastPlaybackOnLongPress(
+                isChecked = preferences.fastPlaybackOnLongPress,
+                onClick = viewModel::toggleFastPlaybackOnLongPress
+            )
             screenOrientationSetting(
                 currentOrientationPreference = preferences.playerScreenOrientation,
                 onClick = {
@@ -458,6 +462,19 @@ fun LazyListScope.fastSeekSetting(
         isChecked = isChecked,
         onChecked = onChecked,
         icon = NextIcons.Fast,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.fastPlaybackOnLongPress(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.long_press_for_fast_playback),
+        description = stringResource(id = R.string.long_press_for_fast_playback_desc),
+        isChecked = isChecked,
+        icon = NextIcons.Speed,
         onClick = onClick
     )
 }

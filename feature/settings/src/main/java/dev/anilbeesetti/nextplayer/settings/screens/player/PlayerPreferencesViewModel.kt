@@ -70,6 +70,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun toggleFastPlaybackOnLongPress() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(fastPlaybackOnLongPress = !it.fastPlaybackOnLongPress)
+            }
+        }
+    }
+
     fun toggleDoubleTapGesture() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {

@@ -27,11 +27,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
+import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
-
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -255,11 +254,11 @@ class PlayerGestureHelper(
         }
     )
 
-    private fun longPressHoldAction(event: MotionEvent){
+    private fun longPressHoldAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_DOWN) {
             activity.binding.progressScrubberLayout.apply {
                 playbackSpeedHandler.postDelayed({
-                    // Your Code
+                    activity.binding.fastSpeedLayout.visibility = View.VISIBLE
                     viewModel.isPlaybackSpeedChanged = true
                     playerView.player?.setPlaybackSpeed(2f)
                 }, 1000)
@@ -294,9 +293,12 @@ class PlayerGestureHelper(
             }
 
             activity.binding.progressScrubberLayout.apply {
-                playbackSpeedHandler.removeCallbacksAndMessages(null)
-                viewModel.isPlaybackSpeedChanged = false
-                playerView.player?.setPlaybackSpeed(1f)
+                if (prefs.fastPlaybackOnLongPress) {
+                    playbackSpeedHandler.removeCallbacksAndMessages(null)
+                    viewModel.isPlaybackSpeedChanged = false
+                    playerView.player?.setPlaybackSpeed(1f)
+                    activity.binding.fastSpeedLayout.visibility = View.GONE
+                }
                 if (visibility == View.VISIBLE) {
                     visibility = View.GONE
                     if (isPlayingOnSeekStart) playerView.player?.play()
@@ -358,7 +360,9 @@ class PlayerGestureHelper(
                     // Do nothing for now
                 }
             }
-            longPressHoldAction(motionEvent)
+            if (prefs.fastPlaybackOnLongPress) {
+                longPressHoldAction(motionEvent)
+            }
             releaseAction(motionEvent)
             true
         }
