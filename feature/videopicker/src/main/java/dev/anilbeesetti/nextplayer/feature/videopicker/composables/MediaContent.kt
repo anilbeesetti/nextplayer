@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
+import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -63,8 +64,7 @@ fun MediaLazyList(
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 10.dp),
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement,
         content = content
@@ -170,16 +170,24 @@ fun VideosListFromState(
                     deleteAction = null
                 }
             },
-            deleteVideos = listOf(it.nameWithExtension)
+            deleteItems = listOf(it.nameWithExtension)
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoldersListFromState(
     foldersState: FoldersState,
-    onFolderClick: (folderPath: String) -> Unit
+    onFolderClick: (String) -> Unit,
+    onDeleteFolderClick: (String) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+    var showDirectoryActionsFor: Directory? by rememberSaveable { mutableStateOf(null) }
+    var deleteAction: Directory? by rememberSaveable { mutableStateOf(null) }
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     when (foldersState) {
         FoldersState.Loading -> CenterCircularProgressBar()
         is FoldersState.Success -> if (foldersState.data.isEmpty()) {
@@ -189,11 +197,44 @@ fun FoldersListFromState(
                 items(foldersState.data, key = { it.path }) {
                     FolderItem(
                         directory = it,
-                        onClick = { onFolderClick(it.path) }
+                        onClick = { onFolderClick(it.path) },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showDirectoryActionsFor = it
+                        }
                     )
                 }
             }
         }
+    }
+
+    showDirectoryActionsFor?.let {
+        OptionsBottomSheet(
+            title = it.name,
+            onDismiss = { showDirectoryActionsFor = null }
+        ) {
+            BottomSheetItem(
+                text = stringResource(R.string.delete),
+                icon = NextIcons.Delete,
+                onClick = {
+                    deleteAction = it
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showDirectoryActionsFor = null
+                    }
+                }
+            )
+        }
+    }
+
+    deleteAction?.let {
+        DeleteConfirmationDialog(
+            onCancel = { deleteAction = null },
+            onConfirm = {
+                onDeleteFolderClick(it.path)
+                deleteAction = null
+            },
+            deleteItems = listOf(it.name)
+        )
     }
 }
 
@@ -201,7 +242,7 @@ fun FoldersListFromState(
 fun DeleteConfirmationDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
-    deleteVideos: List<String>
+    deleteItems: List<String>
 ) {
     NextDialog(
         onDismissRequest = onCancel,
@@ -209,7 +250,7 @@ fun DeleteConfirmationDialog(
         confirmButton = { DoneButton(onClick = onConfirm) },
         dismissButton = { CancelButton(onClick = onCancel) },
         content = {
-            deleteVideos.map {
+            deleteItems.map {
                 Text(
                     text = it,
                     maxLines = 1,

@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -37,4 +39,7 @@ interface MediaRepository {
      * @return [VideoState] of the video
      */
     suspend fun getVideoState(path: String): VideoState?
+
+
+    suspend fun deleteFolder(path: String, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>)
 }

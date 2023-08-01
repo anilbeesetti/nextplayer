@@ -1,6 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -50,6 +54,11 @@ fun MediaPickerRoute(
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
+    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = {}
+    )
+
     MediaPickerScreen(
         videosState = videosState,
         foldersState = foldersState,
@@ -57,7 +66,8 @@ fun MediaPickerRoute(
         onSettingsClick = onSettingsClick,
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
-        updatePreferences = viewModel::updateMenu
+        updatePreferences = viewModel::updateMenu,
+        onDeleteFolderClick = { viewModel.deleteFolder(it, deleteIntentSenderLauncher) }
     )
 }
 
@@ -70,7 +80,8 @@ internal fun MediaPickerScreen(
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    updatePreferences: (ApplicationPreferences) -> Unit = {}
+    updatePreferences: (ApplicationPreferences) -> Unit = {},
+    onDeleteFolderClick: (String) -> Unit
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
@@ -99,7 +110,7 @@ internal fun MediaPickerScreen(
             contentAlignment = Alignment.Center
         ) {
             if (preferences.groupVideosByFolder) {
-                FoldersListFromState(foldersState = foldersState, onFolderClick = onFolderClick)
+                FoldersListFromState(foldersState = foldersState, onFolderClick = onFolderClick, onDeleteFolderClick = onDeleteFolderClick)
             } else {
                 VideosListFromState(videosState = videosState, onVideoClick = onPlayVideo)
             }
@@ -131,7 +142,8 @@ fun MediaPickerScreenPreview(
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                     onPlayVideo = {},
-                    onFolderClick = {}
+                    onFolderClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -162,7 +174,8 @@ fun MediaPickerNoVideosFoundPreview() {
                 ),
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
-                onFolderClick = {}
+                onFolderClick = {},
+                onDeleteFolderClick = {}
             )
         }
     }
@@ -178,7 +191,8 @@ fun MediaPickerLoadingPreview() {
                 foldersState = FoldersState.Loading,
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
-                onFolderClick = {}
+                onFolderClick = {},
+                onDeleteFolderClick = {}
             )
         }
     }

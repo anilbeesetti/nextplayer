@@ -35,9 +35,9 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 fun FolderItem(
     directory: Directory,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
 
     ListItem(
         leadingContent = {
@@ -89,7 +89,7 @@ fun FolderItem(
         },
         modifier = modifier.combinedClickable(
             onClick = onClick,
-            onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+            onLongClick = onLongClick
         )
     )
 }
@@ -100,7 +100,8 @@ fun FolderItemPreview() {
     NextPlayerTheme {
         FolderItem(
             directory = Directory.sample,
-            onClick = { }
+            onClick = { },
+            onLongClick = { }
         )
     }
 }
