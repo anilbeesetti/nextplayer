@@ -40,6 +40,5 @@ interface MediaRepository {
      */
     suspend fun getVideoState(path: String): VideoState?
 
-
     suspend fun deleteFolder(path: String, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>)
 }

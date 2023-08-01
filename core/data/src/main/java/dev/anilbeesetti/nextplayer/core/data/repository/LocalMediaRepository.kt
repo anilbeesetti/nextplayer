@@ -15,7 +15,6 @@ import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
-import dev.anilbeesetti.nextplayer.core.media.mediasource.MediaSource
 import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +28,6 @@ import javax.inject.Inject
 class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
     private val directoryDao: DirectoryDao,
-    private val mediaSource: MediaSource,
     @ApplicationContext private val context: Context,
     @ApplicationScope private val applicationScope: CoroutineScope
 ) : MediaRepository {

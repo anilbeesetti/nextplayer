@@ -261,7 +261,6 @@ fun DeleteConfirmationDialog(
     )
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OptionsBottomSheet(
@@ -288,7 +287,6 @@ fun OptionsBottomSheet(
         content()
     }
 }
-
 
 @Composable
 fun BottomSheetItem(
