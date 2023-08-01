@@ -59,51 +59,54 @@ internal fun MediaPickerFolderScreen(
     val prefs = viewModel.appPrefs.collectAsStateWithLifecycle()
     val context = LocalContext.current
     Column {
-        NextTopAppBar(
-            title = File(folderPath).prettyName,
-            navigationIcon = {
-                IconButton(onClick = onNavigateUp) {
+        NextTopAppBar(title = File(folderPath).prettyName, navigationIcon = {
+            IconButton(onClick = onNavigateUp) {
+                Icon(
+                    imageVector = NextIcons.ArrowBack,
+                    contentDescription = stringResource(id = R.string.navigate_up)
+                )
+            }
+        }, actions = {
+            IconButton(onClick = {
+                if (prefs.value.isShuffleOn) {
+                    Toast.makeText(
+                        context,
+                        R.string.shuffle_disabled,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(context, R.string.shuffle_enabled, Toast.LENGTH_SHORT).show()
+                    when (videosState) {
+                        is VideosState.Success -> {
+                            onVideoClick(
+                                Uri.parse(
+                                    videosState.data.shuffled().first().uriString
+                                )
+                            )
+                        }
+
+                        else -> {}
+                    }
+                }
+                viewModel.toggleShuffle()
+            }) {
+                if (prefs.value.isShuffleOn) {
                     Icon(
-                        imageVector = NextIcons.ArrowBack,
-                        contentDescription = stringResource(id = R.string.navigate_up)
+                        imageVector = NextIcons.ShuffleOn,
+                        contentDescription = stringResource(id = R.string.shuffle_enabled),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    Icon(
+                        imageVector = NextIcons.Shuffle,
+                        contentDescription = stringResource(id = R.string.shuffle_enabled),
+                        tint = MaterialTheme.colorScheme.secondary
                     )
                 }
-            },
-            actions = {
-                IconButton(onClick = {
-                    if (prefs.value.isShuffleOn)
-                        Toast.makeText(context, R.string.shuffle_disabled, Toast.LENGTH_SHORT)
-                            .show()
-                    else {
-                        Toast.makeText(context, R.string.shuffle_enabled, Toast.LENGTH_SHORT).show()
-                        when(videosState){
-                            is VideosState.Success->{
-                                onVideoClick(Uri.parse(videosState.data.shuffled().first().uriString))
-                            }
-                            else -> { }
-                        }
-                    }
-                    viewModel.toggleShuffle()
-                }) {
-                    if (prefs.value.isShuffleOn)
-                        Icon(
-                            imageVector = NextIcons.ShuffleOn,
-                            contentDescription = stringResource(id = R.string.shuffle_enabled),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    else
-                        Icon(
-                            imageVector = NextIcons.Shuffle,
-                            contentDescription = stringResource(id = R.string.shuffle_enabled),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                }
             }
-        )
+        })
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
             VideosListFromState(videosState = videosState, onVideoClick = onVideoClick)
         }

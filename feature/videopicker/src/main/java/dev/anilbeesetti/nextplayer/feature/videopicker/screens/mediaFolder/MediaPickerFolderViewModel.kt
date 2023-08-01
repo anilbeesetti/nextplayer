@@ -32,13 +32,11 @@ class MediaPickerFolderViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    val videos = getSortedVideosUseCase.invoke(folderPath)
-        .map { VideosState.Success(it) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VideosState.Loading
-        )
+    val videos = getSortedVideosUseCase.invoke(folderPath).map { VideosState.Success(it) }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = VideosState.Loading
+    )
 
     fun toggleShuffle() {
         viewModelScope.launch {

@@ -10,5 +10,5 @@ data class ApplicationPreferences(
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
     val useDynamicColors: Boolean = true,
     val excludeFolders: List<String> = emptyList(),
-    val isShuffleOn:Boolean = false
+    val isShuffleOn: Boolean = false
 )
