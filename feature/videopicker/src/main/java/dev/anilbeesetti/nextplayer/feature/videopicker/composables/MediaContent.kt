@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.Directory
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -157,12 +158,13 @@ fun VideosListFromState(
 
     deleteAction?.let {
         DeleteConfirmationDialog(
+            subText = "The following files will be deleted permanently",
             onCancel = { deleteAction = null },
             onConfirm = {
                 onDeleteVideoClick(it.uriString)
                 deleteAction = null
             },
-            deleteItems = listOf(it.nameWithExtension)
+            fileNames = listOf(it.nameWithExtension)
         )
     }
 }
@@ -220,36 +222,59 @@ fun FoldersListFromState(
 
     deleteAction?.let {
         DeleteConfirmationDialog(
+            subText = "The following files will be deleted permanently",
             onCancel = { deleteAction = null },
             onConfirm = {
                 onDeleteFolderClick(it.path)
                 deleteAction = null
             },
-            deleteItems = listOf(it.name)
+            fileNames = listOf(it.name)
         )
     }
 }
 
 @Composable
 fun DeleteConfirmationDialog(
+    subText: String,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
-    deleteItems: List<String>
+    fileNames: List<String>,
+    modifier: Modifier = Modifier
 ) {
     NextDialog(
         onDismissRequest = onCancel,
-        title = { Text(text = stringResource(R.string.delete_file), modifier = Modifier.fillMaxWidth()) },
+        title = { Text(text = stringResource(R.string.delete), modifier = Modifier.fillMaxWidth()) },
         confirmButton = { DoneButton(onClick = onConfirm) },
         dismissButton = { CancelButton(onClick = onCancel) },
+        modifier = modifier,
         content = {
-            deleteItems.map {
-                Text(
-                    text = it,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            Text(
+                text = subText,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            LazyColumn {
+                items(fileNames) {
+                    Text(
+                        text = it,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
+    )
+}
+
+
+@Preview
+@Composable
+fun DeleteDialogPreview() {
+    DeleteConfirmationDialog(
+        subText = "The following files will be deleted permanently",
+        onConfirm = { /*TODO*/ },
+        onCancel = { /*TODO*/ },
+        fileNames = listOf("Harry potter 1","Harry potter 2","Harry potter 3","Harry potter 4")
     )
 }
 
