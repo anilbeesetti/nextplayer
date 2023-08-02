@@ -23,7 +23,7 @@ class GetSortedVideosUseCase @Inject constructor(
     operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
 
         val videosFlow = if (folderPath != null) {
-            mediaRepository.getVideosFlowFromDirectory(folderPath)
+            mediaRepository.getVideosFlowFromFolderPath(folderPath)
         } else {
             mediaRepository.getVideosFlow()
         }
@@ -33,28 +33,28 @@ class GetSortedVideosUseCase @Inject constructor(
             preferencesRepository.applicationPreferences
         ) { videoItems, preferences ->
 
-            val filteredVideos = videoItems.filterNot {
+            val nonExcludedVideos = videoItems.filterNot {
                 it.parentPath in preferences.excludeFolders
             }
 
             when (preferences.sortOrder) {
                 SortOrder.ASCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> filteredVideos.sortedBy { it.displayName.lowercase() }
-                        SortBy.LENGTH -> filteredVideos.sortedBy { it.duration }
-                        SortBy.PATH -> filteredVideos.sortedBy { it.path.lowercase() }
-                        SortBy.SIZE -> filteredVideos.sortedBy { it.size }
-                        SortBy.DATE -> filteredVideos.sortedBy { it.dateModified }
+                        SortBy.TITLE -> nonExcludedVideos.sortedBy { it.displayName.lowercase() }
+                        SortBy.LENGTH -> nonExcludedVideos.sortedBy { it.duration }
+                        SortBy.PATH -> nonExcludedVideos.sortedBy { it.path.lowercase() }
+                        SortBy.SIZE -> nonExcludedVideos.sortedBy { it.size }
+                        SortBy.DATE -> nonExcludedVideos.sortedBy { it.dateModified }
                     }
                 }
 
                 SortOrder.DESCENDING -> {
                     when (preferences.sortBy) {
-                        SortBy.TITLE -> filteredVideos.sortedByDescending { it.displayName.lowercase() }
-                        SortBy.LENGTH -> filteredVideos.sortedByDescending { it.duration }
-                        SortBy.PATH -> filteredVideos.sortedByDescending { it.path.lowercase() }
-                        SortBy.SIZE -> filteredVideos.sortedByDescending { it.size }
-                        SortBy.DATE -> filteredVideos.sortedByDescending { it.dateModified }
+                        SortBy.TITLE -> nonExcludedVideos.sortedByDescending { it.displayName.lowercase() }
+                        SortBy.LENGTH -> nonExcludedVideos.sortedByDescending { it.duration }
+                        SortBy.PATH -> nonExcludedVideos.sortedByDescending { it.path.lowercase() }
+                        SortBy.SIZE -> nonExcludedVideos.sortedByDescending { it.size }
+                        SortBy.DATE -> nonExcludedVideos.sortedByDescending { it.dateModified }
                     }
                 }
             }
