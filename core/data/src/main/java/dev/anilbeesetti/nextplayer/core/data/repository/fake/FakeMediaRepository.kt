@@ -18,6 +18,10 @@ class FakeMediaRepository : MediaRepository {
         return flowOf(videos)
     }
 
+    override fun getVideosFlowFromDirectory(directoryPath: String): Flow<List<Video>> {
+        return flowOf(videos)
+    }
+
     override fun getDirectoriesFlow(): Flow<List<Directory>> {
         return flowOf(directories)
     }

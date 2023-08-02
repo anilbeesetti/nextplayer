@@ -14,6 +14,17 @@ interface MediaRepository {
      */
     fun getVideosFlow(): Flow<List<Video>>
 
+    /**
+     * Get list of [Video]s as flow for a specific directory
+     * @param directoryPath the path the directory from which the videos should be returned
+     * @return flow of list of video items
+     */
+    fun getVideosFlowFromDirectory(directoryPath: String): Flow<List<Video>>
+
+    /**
+     * Get list of [Directory]s as flow
+     * @return flow of list of directory items
+     */
     fun getDirectoriesFlow(): Flow<List<Directory>>
 
     /**
@@ -32,12 +43,6 @@ interface MediaRepository {
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?
     )
-
-    /**
-     * Get video state
-     * @param path path of the video
-     * @return [VideoState] of the video
-     */
     suspend fun getVideoState(path: String): VideoState?
 
     suspend fun deleteVideos(videoUris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>)

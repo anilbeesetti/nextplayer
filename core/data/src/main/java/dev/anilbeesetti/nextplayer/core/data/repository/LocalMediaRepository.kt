@@ -36,6 +36,10 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.getAll().map { it.map(MediumEntity::toVideo) }
     }
 
+    override fun getVideosFlowFromDirectory(directoryPath: String): Flow<List<Video>> {
+        return mediumDao.getAllFromDirectory(directoryPath).map { it.map(MediumEntity::toVideo) }
+    }
+
     override fun getDirectoriesFlow(): Flow<List<Directory>> {
         return directoryDao.getAll().map { it.map(DirectoryEntity::toDirectory) }
     }
