@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.model
 
-data class Directory(
+data class Folder(
     val name: String,
     val path: String,
     val mediaSize: Long,
@@ -10,7 +10,7 @@ data class Directory(
 ) {
 
     companion object {
-        val sample = Directory(
+        val sample = Folder(
             name = "Folder 1",
             path = "/storage/emulated/0/DCIM/Camera/Live Photos",
             mediaSize = 1024,

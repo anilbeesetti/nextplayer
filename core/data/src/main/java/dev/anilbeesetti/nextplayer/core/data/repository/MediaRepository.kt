@@ -3,7 +3,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
-import dev.anilbeesetti.nextplayer.core.model.Directory
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 
@@ -14,7 +14,18 @@ interface MediaRepository {
      */
     fun getVideosFlow(): Flow<List<Video>>
 
-    fun getDirectoriesFlow(): Flow<List<Directory>>
+    /**
+     * Get list of [Video]s as flow for a specific directory
+     * @param folderPath the path the directory from which the videos should be returned
+     * @return flow of list of video items
+     */
+    fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>>
+
+    /**
+     * Get list of [Folder]s as flow
+     * @return flow of list of folder items
+     */
+    fun getFoldersFlow(): Flow<List<Folder>>
 
     /**
      * Save video state
@@ -25,19 +36,8 @@ interface MediaRepository {
      * -1 to disable track
      * null to not change track
      */
-    suspend fun saveVideoState(
-        path: String,
-        position: Long,
-        audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?,
-        playbackSpeed: Float?
-    )
+    suspend fun saveVideoState(path: String, position: Long, audioTrackIndex: Int?, subtitleTrackIndex: Int?, playbackSpeed: Float?)
 
-    /**
-     * Get video state
-     * @param path path of the video
-     * @return [VideoState] of the video
-     */
     suspend fun getVideoState(path: String): VideoState?
 
     suspend fun deleteVideos(videoUris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>)

@@ -43,7 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.model.Directory
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -181,8 +181,8 @@ fun FoldersListFromState(
     onDeleteFolderClick: (String) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
-    var showDirectoryActionsFor: Directory? by rememberSaveable { mutableStateOf(null) }
-    var deleteAction: Directory? by rememberSaveable { mutableStateOf(null) }
+    var showFolderActionsFor: Folder? by rememberSaveable { mutableStateOf(null) }
+    var deleteAction: Folder? by rememberSaveable { mutableStateOf(null) }
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -194,12 +194,12 @@ fun FoldersListFromState(
             MediaLazyList {
                 items(foldersState.data, key = { it.path }) {
                     FolderItem(
-                        directory = it,
+                        folder = it,
                         modifier = Modifier.combinedClickable(
                             onClick = { onFolderClick(it.path) },
                             onLongClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showDirectoryActionsFor = it
+                                showFolderActionsFor = it
                             }
                         )
                     )
@@ -208,10 +208,10 @@ fun FoldersListFromState(
         }
     }
 
-    showDirectoryActionsFor?.let {
+    showFolderActionsFor?.let {
         OptionsBottomSheet(
             title = it.name,
-            onDismiss = { showDirectoryActionsFor = null }
+            onDismiss = { showFolderActionsFor = null }
         ) {
             BottomSheetItem(
                 text = stringResource(R.string.delete),
@@ -219,7 +219,7 @@ fun FoldersListFromState(
                 onClick = {
                     deleteAction = it
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
-                        if (!bottomSheetState.isVisible) showDirectoryActionsFor = null
+                        if (!bottomSheetState.isVisible) showFolderActionsFor = null
                     }
                 }
             )

@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onParent
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.Directory
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
@@ -84,7 +84,7 @@ class MediaPickerScreenTest {
 
     /**
      * This test is to check if the folder items are displayed
-     * when the [FoldersState.Success] is passed with list of [Directory],
+     * when the [FoldersState.Success] is passed with list of [Folder],
      * along with [ApplicationPreferences].groupVideosByFolder = true
      */
     @Test
@@ -206,14 +206,14 @@ val videoItemsTestData = listOf(
 )
 
 val foldersTestData = listOf(
-    Directory(
+    Folder(
         name = "Folder 1",
         path = "/storage/emulated/0/DCIM/Camera/Folder 1",
         mediaCount = 1,
         mediaSize = 1000,
         dateModified = 1000
     ),
-    Directory(
+    Folder(
         name = "Folder 2",
         path = "/storage/emulated/0/DCIM/Camera/Folder 2",
         mediaCount = 2,

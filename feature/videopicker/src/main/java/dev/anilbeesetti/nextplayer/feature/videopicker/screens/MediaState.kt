@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens
 
-import dev.anilbeesetti.nextplayer.core.model.Directory
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 
 sealed interface VideosState {
@@ -10,5 +10,5 @@ sealed interface VideosState {
 
 sealed interface FoldersState {
     object Loading : FoldersState
-    data class Success(val data: List<Directory>) : FoldersState
+    data class Success(val data: List<Folder>) : FoldersState
 }
