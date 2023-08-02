@@ -158,7 +158,7 @@ fun VideosListFromState(
 
     deleteAction?.let {
         DeleteConfirmationDialog(
-            subText = "The following files will be deleted permanently",
+            subText = stringResource(id = R.string.delete_file),
             onCancel = { deleteAction = null },
             onConfirm = {
                 onDeleteVideoClick(it.uriString)
@@ -222,7 +222,7 @@ fun FoldersListFromState(
 
     deleteAction?.let {
         DeleteConfirmationDialog(
-            subText = "The following files will be deleted permanently",
+            subText = stringResource(R.string.delete_folder),
             onCancel = { deleteAction = null },
             onConfirm = {
                 onDeleteFolderClick(it.path)

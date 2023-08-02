@@ -138,6 +138,7 @@
     <string name="seconds">%1$s seconds</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
-    <string name="delete_file">Delete the following file</string>
+    <string name="delete_file">The following file will be deleted permanently</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
+    <string name="delete_folder">All video files in the following folder will be deleted permanently.</string>
 </resources>
