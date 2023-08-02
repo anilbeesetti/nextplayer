@@ -1,8 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -32,13 +30,11 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VideoItem(
     video: Video,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     ListItem(
         leadingContent = {
@@ -103,10 +99,7 @@ fun VideoItem(
                 }
             }
         },
-        modifier = modifier.combinedClickable(
-            onClick = onClick,
-            onLongClick = onLongClick
-        )
+        modifier = modifier
     )
 }
 
@@ -116,11 +109,7 @@ fun VideoItem(
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(
-                video = Video.sample,
-                onClick = {},
-                onLongClick = {}
-            )
+            VideoItem(video = Video.sample)
         }
     }
 }
