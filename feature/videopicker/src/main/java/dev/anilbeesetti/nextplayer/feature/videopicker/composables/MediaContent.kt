@@ -116,7 +116,7 @@ fun VideosListFromState(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 showMediaActionsFor = it
                             }
-                        ),
+                        )
                     )
                 }
             }
@@ -201,7 +201,7 @@ fun FoldersListFromState(
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 showDirectoryActionsFor = it
                             }
-                        ),
+                        )
                     )
                 }
             }
@@ -271,7 +271,6 @@ fun DeleteConfirmationDialog(
         }
     )
 }
-
 
 @Preview
 @Composable

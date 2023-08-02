@@ -68,9 +68,9 @@ fun FolderItem(
             ) {
                 InfoChip(
                     text = "${directory.mediaCount} ${
-                        stringResource(
-                            id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
-                        )
+                    stringResource(
+                        id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
+                    )
                     }",
                     modifier = Modifier.padding(vertical = 5.dp)
                 )

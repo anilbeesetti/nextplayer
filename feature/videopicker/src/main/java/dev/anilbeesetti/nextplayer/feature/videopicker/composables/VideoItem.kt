@@ -109,7 +109,7 @@ fun VideoItem(
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(video = Video.sample,)
+            VideoItem(video = Video.sample)
         }
     }
 }
