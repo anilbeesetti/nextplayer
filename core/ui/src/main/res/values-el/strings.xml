@@ -137,5 +137,6 @@
     <string name="subtitle_text_encoding">Κωδικοποίηση υποτίτλων</string>
     <string name="share">Κοινοποίηση</string>
     <string name="delete">Διαγραφή</string>
-    <string name="delete_file">Διαγραφή του ακόλουθου αρχείου</string>
+    <string name="delete_file">Το παρακάτω αρχείο θα διαγραφεί οριστικά</string>
+    <string name="delete_folder">Όλα τα αρχεία βίντεο στον παρακάτω φάκελο θα διαγραφούν οριστικά.</string>
 </resources>
