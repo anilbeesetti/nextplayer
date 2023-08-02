@@ -2,7 +2,9 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -85,7 +87,7 @@ fun NoVideosFound() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun VideosListFromState(
     videosState: VideosState,
@@ -108,11 +110,13 @@ fun VideosListFromState(
                 items(videosState.data, key = { it.path }) {
                     VideoItem(
                         video = it,
-                        onClick = { onVideoClick(Uri.parse(it.uriString)) },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showMediaActionsFor = it
-                        }
+                        modifier = Modifier.combinedClickable(
+                            onClick = { onVideoClick(Uri.parse(it.uriString)) },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showMediaActionsFor = it
+                            }
+                        ),
                     )
                 }
             }
@@ -169,7 +173,7 @@ fun VideosListFromState(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun FoldersListFromState(
     foldersState: FoldersState,
@@ -191,11 +195,13 @@ fun FoldersListFromState(
                 items(foldersState.data, key = { it.path }) {
                     FolderItem(
                         directory = it,
-                        onClick = { onFolderClick(it.path) },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showDirectoryActionsFor = it
-                        }
+                        modifier = Modifier.combinedClickable(
+                            onClick = { onFolderClick(it.path) },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showDirectoryActionsFor = it
+                            }
+                        ),
                     )
                 }
             }
@@ -274,7 +280,7 @@ fun DeleteDialogPreview() {
         subText = "The following files will be deleted permanently",
         onConfirm = { /*TODO*/ },
         onCancel = { /*TODO*/ },
-        fileNames = listOf("Harry potter 1","Harry potter 2","Harry potter 3","Harry potter 4")
+        fileNames = listOf("Harry potter 1", "Harry potter 2", "Harry potter 3", "Harry potter 4")
     )
 }
 

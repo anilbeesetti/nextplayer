@@ -1,7 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -28,13 +26,11 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FolderItem(
     directory: Directory,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     ListItem(
         leadingContent = {
@@ -72,9 +68,9 @@ fun FolderItem(
             ) {
                 InfoChip(
                     text = "${directory.mediaCount} ${
-                    stringResource(
-                        id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
-                    )
+                        stringResource(
+                            id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
+                        )
                     }",
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
@@ -84,10 +80,7 @@ fun FolderItem(
                 )
             }
         },
-        modifier = modifier.combinedClickable(
-            onClick = onClick,
-            onLongClick = onLongClick
-        )
+        modifier = modifier
     )
 }
 
@@ -95,11 +88,7 @@ fun FolderItem(
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(
-            directory = Directory.sample,
-            onClick = { },
-            onLongClick = { }
-        )
+        FolderItem(directory = Directory.sample)
     }
 }
 
