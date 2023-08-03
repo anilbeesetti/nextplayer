@@ -13,7 +13,7 @@
     <string name="appearance_description">根据自己的喜好调整应用程序</string>
     <string name="double_tap">双击手势</string>
     <string name="double_tap_description">选择双击手势操作</string>
-    <string name="fast_seek_description">寻找最近的关键帧而不是精确的帧。</string>
+    <string name="fast_seek_description">跳转到最近的关键帧而不是精确的帧</string>
     <string name="no_videos_found">没有找到视频</string>
     <string name="permission_info">Next Player 应用需要\"%1$s\"权限来访问和播放媒体。没有它，将无法访问和播放媒体。为了完整使用应用，请授予该权限。</string>
     <string name="permission_not_granted">未授予权限</string>
@@ -25,7 +25,7 @@
     <string name="player_description">播放器外观、播放控件</string>
     <string name="quick_settings">快速设置</string>
     <string name="remember_brightness_level">记住亮度级别</string>
-    <string name="remember_brightness_level_description">记住播放会话之间的亮度级别</string>
+    <string name="remember_brightness_level_description">记住播放时的的亮度级别</string>
     <string name="remember_selections_description">记住每个文件的选择，如音轨、字幕轨等</string>
     <string name="resume_description">选择是否从你停止的地方恢复播放</string>
     <string name="seek_gesture">定位手势</string>
@@ -57,8 +57,8 @@
     <string name="controls_unlock">解锁控件</string>
     <string name="select_playback_speed">选择播放速度</string>
     <string name="size">大小</string>
-    <string name="about_description">版本，出处说明</string>
-    <string name="fast_seek">快速寻找</string>
+    <string name="about_description">版本，鸣谢</string>
+    <string name="fast_seek">快速跳转</string>
     <string name="grant_permission">授予权限</string>
     <string name="duration">时间</string>
     <string name="open_settings">打开设置</string>
@@ -128,7 +128,7 @@
     <string name="video_software_decoders_desc">使用应用软件的视频解码器（实验性的）</string>
     <string name="prefer_app_decoders">优先选择应用解码器</string>
     <string name="device_decoders_only">仅限设备解码器</string>
-    <string name="decoder_desc">解码器优先，播放解码器选项</string>
+    <string name="decoder_desc">解码器优先级，播放解码器选项</string>
     <string name="embedded_styles_desc">应用字幕文件中存在的嵌入样式，例如 ASS 等</string>
     <string name="embedded_styles">嵌入样式</string>
     <string name="controller_timeout">控制器超时</string>
@@ -136,6 +136,7 @@
     <string name="seconds">%1$s 秒</string>
     <string name="subtitle_text_encoding">字幕文本编码</string>
     <string name="share">分享</string>
-    <string name="delete_file">删除以下文件</string>
+    <string name="delete_file">以下文件将被永久删除</string>
     <string name="delete">删除</string>
+    <string name="delete_folder">以下文件夹中的所有视频文件将被永久删除。</string>
 </resources>
