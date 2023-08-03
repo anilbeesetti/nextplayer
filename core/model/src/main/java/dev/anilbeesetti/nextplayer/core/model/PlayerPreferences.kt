@@ -19,6 +19,7 @@ data class PlayerPreferences(
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
     val fastPlaybackOnLongPress: Boolean = false,
+    val playbackSpeedAtLongPress: Float = 2.0f,
 
     // Subtitle Preferences
     val preferredSubtitleLanguage: String = "",

@@ -162,6 +162,12 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun updatePlaybackSpeedOnLongPress(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(playbackSpeedAtLongPress = value) }
+        }
+    }
+
     fun updateControlAutoHideTimeout(value: Int) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -190,6 +196,7 @@ sealed interface PlayerPreferenceDialog {
     object AudioLanguageDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog
+    object PlaybackSpeedAtLongPressDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
     object SeekIncrementDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog

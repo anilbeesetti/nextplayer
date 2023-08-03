@@ -30,7 +30,7 @@
             android:id="@+id/fast_speed_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/twice_playback_speed"
+            android:text="@string/update_playback_speed"
             android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
             android:textColor="@android:color/white" />
     </LinearLayout>

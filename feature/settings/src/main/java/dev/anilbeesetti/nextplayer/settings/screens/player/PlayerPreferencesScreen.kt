@@ -125,9 +125,11 @@ fun PlayerPreferencesScreen(
                 onChecked = viewModel::toggleFastSeek,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
             )
-            fastPlaybackOnLongPress(
+            playbackSpeedOnLongPress(
                 isChecked = preferences.fastPlaybackOnLongPress,
-                onClick = viewModel::toggleFastPlaybackOnLongPress
+                onChecked = viewModel::toggleFastPlaybackOnLongPress,
+                playbackSpeed = preferences.playbackSpeedAtLongPress,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedAtLongPressDialog) }
             )
             screenOrientationSetting(
                 currentOrientationPreference = preferences.playerScreenOrientation,
@@ -260,6 +262,39 @@ fun PlayerPreferencesScreen(
                             value = defaultPlaybackSpeed,
                             onValueChange = {
                                 defaultPlaybackSpeed = String.format("%.1f", it).toFloat()
+                            },
+                            valueRange = 0.2f..4.0f,
+                            steps = 37
+                        )
+                    }
+                )
+            }
+
+            PlayerPreferenceDialog.PlaybackSpeedAtLongPressDialog -> {
+                var playbackSpeedAtLongPress by remember {
+                    mutableStateOf(preferences.playbackSpeedAtLongPress)
+                }
+
+                NextDialogWithDoneAndCancelButtons(
+                    title = stringResource(R.string.long_press_for_fast_playback),
+                    onDoneClick = {
+                        viewModel.updatePlaybackSpeedOnLongPress(playbackSpeedAtLongPress)
+                        viewModel.hideDialog()
+                    },
+                    onDismissClick = viewModel::hideDialog,
+                    content = {
+                        Text(
+                            text = "$playbackSpeedAtLongPress",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 20.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Slider(
+                            value = playbackSpeedAtLongPress,
+                            onValueChange = {
+                                playbackSpeedAtLongPress = String.format("%.1f", it).toFloat()
                             },
                             valueRange = 0.2f..4.0f,
                             steps = 37
@@ -466,14 +501,17 @@ fun LazyListScope.fastSeekSetting(
     )
 }
 
-fun LazyListScope.fastPlaybackOnLongPress(
+fun LazyListScope.playbackSpeedOnLongPress(
     isChecked: Boolean,
+    onChecked: () -> Unit,
+    playbackSpeed: Float,
     onClick: () -> Unit
 ) = item {
-    PreferenceSwitch(
+    PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.long_press_for_fast_playback),
-        description = stringResource(id = R.string.long_press_for_fast_playback_desc),
+        description = stringResource(id = R.string.long_press_for_fast_playback_desc, playbackSpeed),
         isChecked = isChecked,
+        onChecked = onChecked,
         icon = NextIcons.Speed,
         onClick = onClick
     )

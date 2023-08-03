@@ -27,10 +27,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
-import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -258,9 +258,13 @@ class PlayerGestureHelper(
         if (event.action == MotionEvent.ACTION_DOWN) {
             activity.binding.progressScrubberLayout.apply {
                 playbackSpeedHandler.postDelayed({
+                    activity.binding.fastSpeedText.text = resources.getString(
+                        dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
+                        prefs.playbackSpeedAtLongPress
+                    )
                     activity.binding.fastSpeedLayout.visibility = View.VISIBLE
                     viewModel.isPlaybackSpeedChanged = true
-                    playerView.player?.setPlaybackSpeed(2f)
+                    playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
                 }, 1000)
             }
         }
@@ -296,7 +300,7 @@ class PlayerGestureHelper(
                 if (prefs.fastPlaybackOnLongPress) {
                     playbackSpeedHandler.removeCallbacksAndMessages(null)
                     viewModel.isPlaybackSpeedChanged = false
-                    playerView.player?.setPlaybackSpeed(1f)
+                    playerView.player?.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
                     activity.binding.fastSpeedLayout.visibility = View.GONE
                 }
                 if (visibility == View.VISIBLE) {
