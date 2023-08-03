@@ -1,5 +1,6 @@
 plugins {
     id("nextplayer.android.library")
+    id("nextplayer.android.hilt")
 }
 
 android {

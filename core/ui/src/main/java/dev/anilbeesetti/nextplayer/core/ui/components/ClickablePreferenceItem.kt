@@ -1,12 +1,14 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ClickablePreferenceItem(
     title: String,
@@ -14,13 +16,18 @@ fun ClickablePreferenceItem(
     description: String? = null,
     enabled: Boolean = true,
     icon: ImageVector? = null,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     PreferenceItem(
         title = title,
         description = description,
         icon = icon,
-        modifier = modifier.clickable(onClick = onClick, enabled = enabled)
+        modifier = modifier.combinedClickable(
+            onClick = onClick,
+            enabled = enabled,
+            onLongClick = onLongClick
+        )
     )
 }
 

@@ -1,10 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import dev.anilbeesetti.nextplayer.core.data.models.Video
-import dev.anilbeesetti.nextplayer.core.data.repository.FakePreferencesRepository
-import dev.anilbeesetti.nextplayer.core.data.repository.FakeVideoRepository
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -14,17 +14,18 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetSortedVideosUseCaseTest {
 
-    private val videoRepository = FakeVideoRepository()
+    private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
-    val getSortedVideosUseCase = GetSortedVideosUseCase(videoRepository, preferencesRepository)
+    val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository)
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.TITLE)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.ASCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -33,10 +34,11 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.TITLE)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.DESCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -45,10 +47,11 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.LENGTH)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.ASCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -57,10 +60,11 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByDurationDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.LENGTH)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.DESCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -69,10 +73,11 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByPathAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.PATH)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.ASCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -81,10 +86,11 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByPathDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.PATH)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.DESCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -93,10 +99,11 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortBySizeAscending() = runTest {
-        preferencesRepository.setSortBy(SortBy.SIZE)
-        preferencesRepository.setSortOrder(SortOrder.ASCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.ASCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 
@@ -105,10 +112,11 @@ class GetSortedVideosUseCaseTest {
 
     @Test
     fun testGetSortedVideosUseCase_whenSortBySizeDescending() = runTest {
-        preferencesRepository.setSortBy(SortBy.SIZE)
-        preferencesRepository.setSortOrder(SortOrder.DESCENDING)
+        preferencesRepository.updateApplicationPreferences {
+            it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.DESCENDING)
+        }
 
-        videoRepository.videoItems.addAll(testVideoItems.shuffled())
+        mediaRepository.videos.addAll(testVideoItems.shuffled())
 
         val sortedVideos = getSortedVideosUseCase().first()
 

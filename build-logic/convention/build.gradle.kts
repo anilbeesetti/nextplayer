@@ -41,5 +41,9 @@ gradlePlugin {
             id = "nextplayer.android.test"
             implementationClass = "AndroidTestConventionPlugin"
         }
+        register("jvmLibrary") {
+            id = "nextplayer.jvm.library"
+            implementationClass = "JvmLibraryConventionPlugin"
+        }
     }
 }

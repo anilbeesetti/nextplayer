@@ -1,22 +1,18 @@
 package dev.anilbeesetti.nextplayer
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,39 +28,34 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.composables.PermissionDetailView
-import dev.anilbeesetti.nextplayer.composables.PermissionRationaleDialog
-import dev.anilbeesetti.nextplayer.core.datastore.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
+import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.folderVideoPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreenRoute
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToFolderVideoPickerScreen
-import dev.anilbeesetti.nextplayer.settings.Setting
-import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
-import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.settingsScreen
+import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
+import dev.anilbeesetti.nextplayer.ui.MAIN_ROUTE
+import dev.anilbeesetti.nextplayer.ui.MainScreen
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    val viewModel: MainActivityViewModel by viewModels()
+    @Inject
+    lateinit var synchronizer: MediaSynchronizer
+
+    private val viewModel: MainActivityViewModel by viewModels()
+
+    private val storagePermission = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_VIDEO
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Manifest.permission.READ_EXTERNAL_STORAGE
+        else -> Manifest.permission.WRITE_EXTERNAL_STORAGE
+    }
 
     @OptIn(ExperimentalPermissionsApi::class, ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,14 +82,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface
                 ) {
-                    val storagePermissionState = rememberPermissionState(
-                        permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            Manifest.permission.READ_MEDIA_VIDEO
-                        } else {
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                        }
-                    )
-
+                    val storagePermissionState = rememberPermissionState(permission = storagePermission)
                     val lifecycleOwner = LocalLifecycleOwner.current
 
                     DisposableEffect(key1 = lifecycleOwner) {
@@ -111,83 +95,32 @@ class MainActivity : ComponentActivity() {
                         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                     }
 
-                    val navController = rememberNavController()
+                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
+                        if (storagePermissionState.status.isGranted) {
+                            synchronizer.startSync()
+                        }
+                    }
 
-                    if (storagePermissionState.status.isGranted) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = mediaPickerScreenRoute,
-                            modifier = Modifier.semantics {
-                                testTagsAsResourceId = true
-                            }
-                        ) {
-                            mediaPickerScreen(
-                                onVideoItemClick = this@MainActivity::startPlayerActivity,
-                                onSettingsClick = navController::navigateToSettings,
-                                onFolderCLick = navController::navigateToFolderVideoPickerScreen
-                            )
-                            folderVideoPickerScreen(
-                                onNavigateUp = navController::popBackStack,
-                                onVideoItemClick = this@MainActivity::startPlayerActivity
-                            )
-                            settingsScreen(
-                                onNavigateUp = navController::popBackStack,
-                                onItemClick = { setting ->
-                                    when (setting) {
-                                        Setting.APPEARANCE -> navController.navigateToAppearancePreferences()
-                                        Setting.PLAYER -> navController.navigateToPlayerPreferences()
-                                        Setting.ABOUT -> navController.navigateToAboutPreferences()
-                                    }
-                                }
-                            )
-                            appearancePreferencesScreen(
-                                onNavigateUp = navController::popBackStack
-                            )
-                            playerPreferencesScreen(
-                                onNavigateUp = navController::popBackStack
-                            )
-                            aboutPreferencesScreen(
-                                onNavigateUp = navController::popBackStack
+                    val mainNavController = rememberNavController()
+                    val mediaNavController = rememberNavController()
+
+                    NavHost(
+                        navController = mainNavController,
+                        startDestination = MAIN_ROUTE
+                    ) {
+                        composable(MAIN_ROUTE) {
+                            MainScreen(
+                                permissionState = storagePermissionState,
+                                mainNavController = mainNavController,
+                                mediaNavController = mediaNavController
                             )
                         }
-                    } else {
-                        PermissionScreen(
-                            permission = storagePermissionState.permission,
-                            permissionStatus = storagePermissionState.status,
-                            onGrantPermissionClick = { storagePermissionState.launchPermissionRequest() }
-                        )
+                        settingsNavGraph(navController = mainNavController)
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
-fun PermissionScreen(
-    permission: String,
-    permissionStatus: PermissionStatus,
-    onGrantPermissionClick: () -> Unit
-) {
-    Column {
-        NextCenterAlignedTopAppBar(title = stringResource(id = R.string.app_name))
-        if (permissionStatus.shouldShowRationale) {
-            PermissionRationaleDialog(
-                text = stringResource(id = R.string.permission_info, permission),
-                onConfirmButtonClick = onGrantPermissionClick
-            )
-        } else {
-            PermissionDetailView(
-                text = stringResource(id = R.string.permission_settings, permission)
-            )
-        }
-    }
-}
-
-fun Context.startPlayerActivity(uri: Uri) {
-    val intent = Intent(Intent.ACTION_VIEW, uri, this, PlayerActivity::class.java)
-    startActivity(intent)
 }
 
 /**
@@ -201,8 +134,8 @@ private fun shouldUseDarkTheme(
     MainActivityUiState.Loading -> isSystemInDarkTheme()
     is MainActivityUiState.Success -> when (uiState.preferences.themeConfig) {
         ThemeConfig.SYSTEM -> isSystemInDarkTheme()
-        ThemeConfig.LIGHT -> false
-        ThemeConfig.DARK -> true
+        ThemeConfig.OFF -> false
+        ThemeConfig.ON -> true
     }
 }
 

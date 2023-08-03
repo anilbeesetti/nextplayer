@@ -1,17 +1,16 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import android.text.format.Formatter
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,65 +18,45 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.data.models.Video
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
+import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VideoItem(
     video: Video,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    val haptic = LocalHapticFeedback.current
-
-    Box(
-        modifier = Modifier
-            .combinedClickable(
-                onClick = { onClick() },
-                onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
-            )
-    ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        ) {
-            Box {
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-                    shape = MaterialTheme.shapes.small,
-                    modifier = Modifier
-                        .widthIn(max = 420.dp)
-                        .fillMaxWidth(0.45f)
-                        .aspectRatio(16f / 10f),
-                    content = {
-                        if (video.uriString.isNotEmpty()) {
-                            GlideImage(
-                                imageModel = { video.uriString },
-                                imageOptions = ImageOptions(
-                                    contentScale = ContentScale.Crop,
-                                    alignment = Alignment.Center
-                                )
-                            )
-                        }
-                    }
-                )
+    ListItem(
+        leadingContent = {
+            Box(
+                modifier = Modifier
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                    .widthIn(max = 450.dp)
+                    .fillMaxWidth(0.45f)
+                    .aspectRatio(16f / 10f)
+            ) {
+                if (video.uriString.isNotEmpty()) {
+                    GlideImage(
+                        imageModel = { video.uriString },
+                        imageOptions = ImageOptions(
+                            contentScale = ContentScale.Crop,
+                            alignment = Alignment.Center
+                        )
+                    )
+                }
                 InfoChip(
-                    text = Utils.formatDurationMillis(video.duration),
+                    text = video.formattedDuration,
                     modifier = Modifier
                         .padding(5.dp)
                         .align(Alignment.BottomEnd),
@@ -86,65 +65,51 @@ fun VideoItem(
                     shape = MaterialTheme.shapes.small.copy(CornerSize(3.dp))
                 )
             }
-            Column(
-                modifier = Modifier
-                    .padding(start = 12.dp, end = 12.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.Top
+        },
+        headlineContent = {
+            Text(
+                text = video.displayName,
+                maxLines = 2,
+                style = MaterialTheme.typography.titleMedium,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        supportingContent = {
+            Text(
+                text = video.path,
+                maxLines = 2,
+                style = MaterialTheme.typography.bodySmall,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = video.nameWithExtension,
-                    maxLines = 2,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Normal
-                    ),
-                    overflow = TextOverflow.Ellipsis
+                InfoChip(
+                    text = video.formattedFileSize,
+                    modifier = Modifier.padding(vertical = 5.dp)
                 )
-                Text(
-                    text = video.path,
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    ),
-                    overflow = TextOverflow.Ellipsis
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    video.subtitleExtensions.map { extension ->
-                        InfoChip(text = extension.uppercase())
-                    }
-                    val sizeString = Formatter.formatFileSize(context, video.size)
-                    InfoChip(text = sizeString)
+                if (video.width > 0 && video.height > 0) {
+                    InfoChip(
+                        text = "${video.width} x ${video.height}",
+                        modifier = Modifier.padding(vertical = 5.dp)
+                    )
                 }
             }
-        }
-    }
+        },
+        modifier = modifier
+    )
 }
 
 @DayNightPreview
+@DevicePreviews
 @Composable
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(
-                video = Video(
-                    id = 8,
-                    path = "/storage/emulated/0/Download/Avengers Endgame (2019) BluRay x264.mp4",
-                    uriString = "",
-                    nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
-                    duration = 1000,
-                    displayName = "Avengers Endgame (2019) BluRay x264",
-                    width = 1920,
-                    height = 1080,
-                    size = 1000
-                ),
-                onClick = {}
-            )
+            VideoItem(video = Video.sample)
         }
     }
 }

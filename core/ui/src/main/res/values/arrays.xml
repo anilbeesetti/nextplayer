@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string-array name="charsets_list" tools:ignore="TypographyDashes" translatable="false">
+        <item>Auto detect</item>
+        <item>Arabic (ISO-8859-6)</item>
+        <item>Arabic (Cp1256)</item>
+        <item>Baltic (Cp1257)</item>
+        <item>Baltic (ISO-8859-13)</item>
+        <item>Baltic, Scandinavia (ISO-8859-4)</item>
+        <item>Celtic (ISO-8859-14)</item>
+        <item>Central European, Slavic (ISO-8859-2)</item>
+        <item>Chinese, Simplified (MS936)</item>
+        <item>Chinese, Simplified (GB18030)</item>
+        <item>Chinese, Simplified (EUC_CN)</item>
+        <item>Chinese, Simplified (GBK)</item>
+        <item>Chinese, Simplified (ISO-2022-CN)</item>
+        <item>Chinese, Traditional (MS950)</item>
+        <item>Chinese, Traditional (Hong Kong) (MS950_HKSCS)</item>
+        <item>Chinese, Traditional (Big5)</item>
+        <item>Chinese, Traditional (Hong Kong) (Big5-HKSCS)</item>
+        <item>Cyrillic (Cp1251)</item>
+        <item>Cyrillic (ISO-8859-5)</item>
+        <item>Eastern European (Cp1250)</item>
+        <item>Greek (Cp1253)</item>
+        <item>Greek (ISO-8859-7)</item>
+        <item>Hebrew (ISO-8859-8)</item>
+        <item>Hebrew (Cp1255)</item>
+        <item>Indic scripts (ISCII91)</item>
+        <item>Japanese (MS932)</item>
+        <item>Japanese (EUC_JP)</item>
+        <item>Japanese (Shift_JIS)</item>
+        <item>Japanese (ISO-2022-JP)</item>
+        <item>Korean (MS949)</item>
+        <item>Korean (EUC_KR)</item>
+        <item>Korean (ISO-2022-KR)</item>
+        <item>Nordic (ISO-8859-10)</item>
+        <item>Romanian (ISO-8859-16)</item>
+        <item>Russian (KOI8_R)</item>
+        <item>South European (ISO-8859-3)</item>
+        <item>Thai (TIS-620)</item>
+        <item>Thai (ISO-8859-11)</item>
+        <item>Turkish (Cp1254)</item>
+        <item>Turkish (ISO-8859-9)</item>
+        <item>Unicode (UTF-8)</item>
+        <item>Unicode (UTF-16)</item>
+        <item>Unicode (UTF-16BE)</item>
+        <item>Unicode (UTF-16LE)</item>
+        <item>Unicode (UTF-32)</item>
+        <item>Unicode (UTF-32BE)</item>
+        <item>Unicode (UTF-32LE)</item>
+        <item>(US-ASCII)</item>
+        <item>Vietnamese (Cp1258)</item>
+        <item>Western European (ISO-8859-1)</item>
+        <item>Western European (ISO-8859-15)</item>
+        <item>Western European  (ANSI) (Cp1252)</item>
+    </string-array>
+</resources>

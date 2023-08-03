@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:domain"))
+    implementation(project(":core:model"))
     implementation(project(":core:ui"))
 
     implementation(libs.androidx.core.ktx)
@@ -29,7 +30,7 @@ dependencies {
 
     // Media3
     implementation(libs.bundles.media3)
-    implementation(project(":nextlib:ffcodecs"))
+    implementation(libs.github.anilbeesetti.nextlib)
 
     implementation(libs.timber)
 

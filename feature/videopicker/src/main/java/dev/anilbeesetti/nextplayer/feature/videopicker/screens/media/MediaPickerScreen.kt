@@ -1,14 +1,15 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,11 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
-import dev.anilbeesetti.nextplayer.core.data.models.Video
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -35,94 +33,97 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaContent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersListFromState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable
-fun MediaPickerScreen(
+fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
-    onVideoItemClick: (uri: Uri) -> Unit,
+    onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel()
 ) {
-    val mediaState by viewModel.mediaState.collectAsStateWithLifecycle()
+    val videosState by viewModel.videosState.collectAsStateWithLifecycle()
+    val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
+    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = {}
+    )
+
     MediaPickerScreen(
-        mediaState = mediaState,
+        videosState = videosState,
+        foldersState = foldersState,
         preferences = preferences,
-        onSettingsClick = onSettingsClick,
-        onVideoItemClick = onVideoItemClick,
+        onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
-        updatePreferences = viewModel::updateMenu
+        onSettingsClick = onSettingsClick,
+        updatePreferences = viewModel::updateMenu,
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
+        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerScreen(
-    mediaState: MediaState,
-    preferences: AppPreferences,
-    onVideoItemClick: (uri: Uri) -> Unit = {},
+    videosState: VideosState,
+    foldersState: FoldersState,
+    preferences: ApplicationPreferences,
+    onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    updatePreferences: (SortBy, SortOrder, Boolean) -> Unit = { _, _, _ -> }
+    updatePreferences: (ApplicationPreferences) -> Unit = {},
+    onDeleteVideoClick: (String) -> Unit,
+    onDeleteFolderClick: (String) -> Unit
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            NextCenterAlignedTopAppBar(
-                title = stringResource(id = R.string.app_name),
-                navigationIcon = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(id = R.string.settings)
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { showMenu = true },
-                        modifier = Modifier.testTag("videoPicker:quickSettings")
-                    ) {
-                        Icon(
-                            imageVector = NextIcons.DashBoard,
-                            contentDescription = stringResource(id = R.string.menu)
-                        )
-                    }
+    Column {
+        NextCenterAlignedTopAppBar(
+            title = stringResource(id = R.string.app_name),
+            navigationIcon = {
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        imageVector = NextIcons.Settings,
+                        contentDescription = stringResource(id = R.string.settings)
+                    )
                 }
-            )
-        }
-    ) { paddingValues ->
+            },
+            actions = {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(
+                        imageVector = NextIcons.DashBoard,
+                        contentDescription = stringResource(id = R.string.menu)
+                    )
+                }
+            }
+        )
         Box(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            MediaContent(
-                state = mediaState,
-                onMediaClick = {
-                    when (preferences.groupVideosByFolder) {
-                        true -> onFolderClick(it)
-                        false -> onVideoItemClick(Uri.parse(it))
-                    }
-                }
-            )
-            if (showMenu) {
-                QuickSettingsDialog(
-                    preferences = preferences,
-                    onDismiss = { showMenu = false },
-                    updatePreferences = updatePreferences
-                )
+            if (preferences.groupVideosByFolder) {
+                FoldersListFromState(foldersState = foldersState, onFolderClick = onFolderClick, onDeleteFolderClick = onDeleteFolderClick)
+            } else {
+                VideosListFromState(videosState = videosState, onVideoClick = onPlayVideo, onDeleteVideoClick = onDeleteVideoClick)
             }
         }
+    }
+
+    if (showMenu) {
+        QuickSettingsDialog(
+            applicationPreferences = preferences,
+            onDismiss = { showMenu = false },
+            updatePreferences = updatePreferences
+        )
     }
 }
 
@@ -136,13 +137,15 @@ fun MediaPickerScreenPreview(
         NextPlayerTheme {
             Surface {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
+                    videosState = VideosState.Success(
                         data = videos
                     ),
-                    preferences = AppPreferences(),
-                    onVideoItemClick = {},
-                    onFolderClick = {}
-                )
+                    foldersState = FoldersState.Loading,
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                    onPlayVideo = {},
+                    onFolderClick = {},
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
     }
@@ -166,13 +169,15 @@ fun MediaPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                mediaState = MediaState.Success(
-                    data = emptyList<Folder>()
+                videosState = VideosState.Loading,
+                foldersState = FoldersState.Success(
+                    data = emptyList()
                 ),
-                preferences = AppPreferences(),
-                onVideoItemClick = {},
-                onFolderClick = {}
-            )
+                preferences = ApplicationPreferences(),
+                onPlayVideo = {},
+                onFolderClick = {},
+                onDeleteVideoClick = {}
+            ) {}
         }
     }
 }
@@ -183,11 +188,13 @@ fun MediaPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                mediaState = MediaState.Loading,
-                preferences = AppPreferences(),
-                onVideoItemClick = {},
-                onFolderClick = {}
-            )
+                videosState = VideosState.Loading,
+                foldersState = FoldersState.Loading,
+                preferences = ApplicationPreferences(),
+                onPlayVideo = {},
+                onFolderClick = {},
+                onDeleteVideoClick = {}
+            ) {}
         }
     }
 }

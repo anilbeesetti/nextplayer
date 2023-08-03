@@ -4,10 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.datastore.DoubleTapGesture
-import dev.anilbeesetti.nextplayer.core.datastore.FastSeek
-import dev.anilbeesetti.nextplayer.core.datastore.PlayerPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.Resume
+import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.model.FastSeek
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,7 @@ class PlayerPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val preferencesFlow = preferencesRepository.playerPreferencesFlow
+    val preferencesFlow = preferencesRepository.playerPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -40,70 +41,132 @@ class PlayerPreferencesViewModel @Inject constructor(
     }
 
     fun updatePlaybackResume(resume: Resume) {
-        viewModelScope.launch { preferencesRepository.setPlaybackResume(resume) }
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    resume = resume
+                )
+            }
+        }
     }
 
     fun updateDoubleTapGesture(gesture: DoubleTapGesture) {
-        viewModelScope.launch { preferencesRepository.setDoubleTapGesture(gesture) }
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    doubleTapGesture = gesture
+                )
+            }
+        }
     }
 
     fun updateFastSeek(fastSeek: FastSeek) {
-        viewModelScope.launch { preferencesRepository.setFastSeek(fastSeek) }
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    fastSeek = fastSeek
+                )
+            }
+        }
     }
 
     fun toggleDoubleTapGesture() {
         viewModelScope.launch {
-            preferencesRepository.setDoubleTapGesture(
-                if (preferencesFlow.value.doubleTapGesture == DoubleTapGesture.NONE) {
-                    DoubleTapGesture.FAST_FORWARD_AND_REWIND
-                } else {
-                    DoubleTapGesture.NONE
-                }
-            )
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    doubleTapGesture = if (it.doubleTapGesture == DoubleTapGesture.NONE) {
+                        DoubleTapGesture.FAST_FORWARD_AND_REWIND
+                    } else {
+                        DoubleTapGesture.NONE
+                    }
+                )
+            }
         }
     }
 
     fun toggleFastSeek() {
         viewModelScope.launch {
-            preferencesRepository.setFastSeek(
-                if (preferencesFlow.value.fastSeek == FastSeek.DISABLE) {
-                    FastSeek.AUTO
-                } else {
-                    FastSeek.DISABLE
-                }
-            )
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    fastSeek = if (it.fastSeek == FastSeek.DISABLE) FastSeek.AUTO else FastSeek.DISABLE
+                )
+            }
         }
     }
 
     fun toggleRememberBrightnessLevel() {
         viewModelScope.launch {
-            preferencesRepository.shouldRememberPlayerBrightness(
-                !preferencesFlow.value.rememberPlayerBrightness
-            )
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(rememberPlayerBrightness = !it.rememberPlayerBrightness)
+            }
         }
     }
 
     fun toggleSwipeControls() {
         viewModelScope.launch {
-            preferencesRepository.setUseSwipeControls(
-                !preferencesFlow.value.useSwipeControls
-            )
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSwipeControls = !it.useSwipeControls)
+            }
         }
     }
 
     fun toggleRememberSelections() {
         viewModelScope.launch {
-            preferencesRepository.setRememberSelections(
-                !preferencesFlow.value.rememberSelections
-            )
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(rememberSelections = !it.rememberSelections)
+            }
         }
     }
 
     fun toggleSeekControls() {
         viewModelScope.launch {
-            preferencesRepository.setUseSeekControls(
-                !preferencesFlow.value.useSeekControls
-            )
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSeekControls = !it.useSeekControls)
+            }
+        }
+    }
+
+    fun updateAudioLanguage(value: String) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(preferredAudioLanguage = value) }
+        }
+    }
+
+    fun updateSubtitleLanguage(value: String) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    preferredSubtitleLanguage = value
+                )
+            }
+        }
+    }
+
+    fun updatePreferredPlayerOrientation(value: ScreenOrientation) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(playerScreenOrientation = value) }
+        }
+    }
+
+    fun updateDefaultPlaybackSpeed(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = value) }
+        }
+    }
+
+    fun updateControlAutoHideTimeout(value: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(controllerAutoHideTimeout = value)
+            }
+        }
+    }
+
+    fun updateSeekIncrement(value: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(seekIncrement = value)
+            }
         }
     }
 }
@@ -116,9 +179,22 @@ sealed interface PlayerPreferenceDialog {
     object ResumeDialog : PlayerPreferenceDialog
     object DoubleTapDialog : PlayerPreferenceDialog
     object FastSeekDialog : PlayerPreferenceDialog
+    object AudioLanguageDialog : PlayerPreferenceDialog
+    object PlayerScreenOrientationDialog : PlayerPreferenceDialog
+    object PlaybackSpeedDialog : PlayerPreferenceDialog
+    object ControllerTimeoutDialog : PlayerPreferenceDialog
+    object SeekIncrementDialog : PlayerPreferenceDialog
     object None : PlayerPreferenceDialog
 }
 
 sealed interface PlayerPreferencesEvent {
     data class ShowDialog(val value: PlayerPreferenceDialog) : PlayerPreferencesEvent
+}
+
+fun PlayerPreferencesViewModel.showDialog(dialog: PlayerPreferenceDialog) {
+    onEvent(PlayerPreferencesEvent.ShowDialog(dialog))
+}
+
+fun PlayerPreferencesViewModel.hideDialog() {
+    onEvent(PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None))
 }

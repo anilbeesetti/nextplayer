@@ -43,8 +43,7 @@ fun SettingsScreen(
     ) { innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             item {
                 ClickablePreferenceItem(
@@ -56,10 +55,34 @@ fun SettingsScreen(
             }
             item {
                 ClickablePreferenceItem(
+                    title = stringResource(id = R.string.media_library),
+                    description = stringResource(id = R.string.media_library_description),
+                    icon = NextIcons.Movie,
+                    onClick = { onItemClick(Setting.MEDIA_LIBRARY) }
+                )
+            }
+            item {
+                ClickablePreferenceItem(
                     title = stringResource(id = R.string.player_name),
                     description = stringResource(id = R.string.player_description),
                     icon = NextIcons.Player,
                     onClick = { onItemClick(Setting.PLAYER) }
+                )
+            }
+            item {
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.decoder),
+                    description = stringResource(R.string.decoder_desc),
+                    icon = NextIcons.Decoder,
+                    onClick = { onItemClick(Setting.DECODER) }
+                )
+            }
+            item {
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.subtitle),
+                    description = stringResource(R.string.subtitle_desc),
+                    icon = NextIcons.Subtitle,
+                    onClick = { onItemClick(Setting.SUBTITLE) }
                 )
             }
             item {
@@ -76,6 +99,9 @@ fun SettingsScreen(
 
 enum class Setting {
     APPEARANCE,
+    MEDIA_LIBRARY,
     PLAYER,
+    DECODER,
+    SUBTITLE,
     ABOUT
 }

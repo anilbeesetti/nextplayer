@@ -6,10 +6,13 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
-import dev.anilbeesetti.nextplayer.core.data.models.Video
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
+import androidx.compose.ui.test.onParent
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerScreen
 import org.junit.Rule
@@ -21,15 +24,18 @@ class MediaPickerScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     /**
-     * This test is to check if the CircularProgressIndicator is displayed when the [MediaState.Loading] is passed.
+     * This test is to check if the CircularProgressIndicator is displayed when the [VideosState.Loading] is passed.
      */
     @Test
     fun circularProgressIndicatorIsDisplayed_whenLoading() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Loading,
-                    preferences = AppPreferences()
+                    videosState = VideosState.Loading,
+                    foldersState = FoldersState.Loading,
+                    preferences = ApplicationPreferences(),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -39,18 +45,21 @@ class MediaPickerScreenTest {
 
     /**
      * This test is to check if the video items are displayed
-     * when the [MediaState.Success] is passed with list of [Video],
-     * along with [AppPreferences].groupVideosByFolder = false
+     * when the [VideosState.Success] is passed with list of [Video],
+     * along with [ApplicationPreferences].groupVideosByFolder = false
      */
     @Test
     fun videoItemsAreDisplayed_whenSuccessAndGroupVideosByFolderIsFalse() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
+                    videosState = VideosState.Success(
                         data = videoItemsTestData
                     ),
-                    preferences = AppPreferences().copy(groupVideosByFolder = false)
+                    foldersState = FoldersState.Loading,
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -60,6 +69,7 @@ class MediaPickerScreenTest {
                 videoItemsTestData[0].displayName,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
         composeTestRule
@@ -67,24 +77,28 @@ class MediaPickerScreenTest {
                 videoItemsTestData[1].displayName,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
     }
 
     /**
      * This test is to check if the folder items are displayed
-     * when the [MediaState.Success] is passed with list of [Folder],
-     * along with [AppPreferences].groupVideosByFolder = true
+     * when the [FoldersState.Success] is passed with list of [Folder],
+     * along with [ApplicationPreferences].groupVideosByFolder = true
      */
     @Test
     fun folderItemsAreDisplayed_whenSuccessAndGroupVideosByFolderIsTrue() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
+                    videosState = VideosState.Loading, // Don't care what the videos state is
+                    foldersState = FoldersState.Success(
                         data = foldersTestData
                     ),
-                    preferences = AppPreferences().copy(groupVideosByFolder = true)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -94,6 +108,7 @@ class MediaPickerScreenTest {
                 foldersTestData[0].name,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
         composeTestRule
@@ -101,24 +116,28 @@ class MediaPickerScreenTest {
                 foldersTestData[1].name,
                 substring = true
             )
+            .onParent()
             .assertExists()
             .assertHasClickAction()
     }
 
     /**
      * This test is to check if the no videos found text is displayed,
-     * when the [MediaState.Success] with empty list is passed,
-     * along with [AppPreferences].groupVideosByFolder = false
+     * when the [VideosState.Success] with empty list is passed,
+     * along with [ApplicationPreferences].groupVideosByFolder = false
      */
     @Test
     fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyListAndGroupVideosByFolderIsFalse() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
-                        data = emptyList<Video>()
+                    videosState = VideosState.Success(
+                        data = emptyList()
                     ),
-                    preferences = AppPreferences().copy(groupVideosByFolder = false)
+                    foldersState = FoldersState.Loading,
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -133,18 +152,21 @@ class MediaPickerScreenTest {
 
     /**
      * This test is to check if the no videos found text is displayed,
-     * when the [MediaState.Success] with empty list is passed,
-     * along with [AppPreferences].groupVideosByFolder = true
+     * when the [FoldersState.Success] with empty list is passed,
+     * along with [ApplicationPreferences].groupVideosByFolder = true
      */
     @Test
     fun noVideosFoundTextIsDisplayed_whenSuccessWithEmptyListAndGroupVideosByFolderIsTrue() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    mediaState = MediaState.Success(
-                        data = emptyList<Folder>()
+                    videosState = VideosState.Loading,
+                    foldersState = FoldersState.Success(
+                        data = emptyList()
                     ),
-                    preferences = AppPreferences().copy(groupVideosByFolder = true)
+                    preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
                 )
             }
         }
@@ -188,12 +210,14 @@ val foldersTestData = listOf(
         name = "Folder 1",
         path = "/storage/emulated/0/DCIM/Camera/Folder 1",
         mediaCount = 1,
-        mediaSize = 1000
+        mediaSize = 1000,
+        dateModified = 1000
     ),
     Folder(
         name = "Folder 2",
         path = "/storage/emulated/0/DCIM/Camera/Folder 2",
         mediaCount = 2,
-        mediaSize = 2000
+        mediaSize = 2000,
+        dateModified = 1000
     )
 )

@@ -1,13 +1,17 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
@@ -24,26 +28,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.SortBy
+import dev.anilbeesetti.nextplayer.core.model.SortOrder
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.prettyName
+import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
 @Composable
 fun QuickSettingsDialog(
-    preferences: AppPreferences,
+    applicationPreferences: ApplicationPreferences,
     onDismiss: () -> Unit,
-    updatePreferences: (SortBy, SortOrder, Boolean) -> Unit
+    updatePreferences: (ApplicationPreferences) -> Unit
 ) {
-    var selectedSortBy by remember { mutableStateOf(preferences.sortBy) }
-    var selectedSortOrder by remember { mutableStateOf(preferences.sortOrder) }
-    var groupVideos by remember { mutableStateOf(preferences.groupVideosByFolder) }
+    var preferences by remember { mutableStateOf(applicationPreferences) }
 
     NextDialog(
         onDismissRequest = onDismiss,
@@ -52,28 +54,36 @@ fun QuickSettingsDialog(
         },
         content = {
             Divider()
-            DialogSectionTitle(text = stringResource(R.string.sort))
-            SortOptions(
-                selectedSortBy = selectedSortBy,
-                onOptionSelected = { selectedSortBy = it }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            SortOrderSegmentedButton(
-                selectedSortBy = selectedSortBy,
-                selectedSortOrder = selectedSortOrder,
-                onOptionSelected = { selectedSortOrder = it }
-            )
-            Divider(modifier = Modifier.padding(top = 16.dp))
-            DialogPreferenceSwitch(
-                text = stringResource(id = R.string.group_videos),
-                isChecked = groupVideos,
-                onClick = { groupVideos = !groupVideos }
-            )
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                DialogSectionTitle(text = stringResource(R.string.sort))
+                SortOptions(
+                    selectedSortBy = preferences.sortBy,
+                    onOptionSelected = { preferences = preferences.copy(sortBy = it) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                SortOrderSegmentedButton(
+                    selectedSortBy = preferences.sortBy,
+                    selectedSortOrder = preferences.sortOrder,
+                    onOptionSelected = { preferences = preferences.copy(sortOrder = it) }
+                )
+                Divider(modifier = Modifier.padding(top = 16.dp))
+                DialogPreferenceSwitch(
+                    text = stringResource(id = R.string.group_videos),
+                    isChecked = preferences.groupVideosByFolder,
+                    onClick = {
+                        preferences = preferences.copy(
+                            groupVideosByFolder = !preferences.groupVideosByFolder
+                        )
+                    }
+                )
+            }
         },
         confirmButton = {
             DoneButton(
                 onClick = {
-                    updatePreferences(selectedSortBy, selectedSortOrder, groupVideos)
+                    updatePreferences(preferences)
                     onDismiss()
                 }
             )
@@ -101,7 +111,7 @@ fun SortOrderSegmentedButton(
         },
         labelOne = {
             Text(
-                text = SortOrder.ASCENDING.prettyName(selectedSortBy),
+                text = SortOrder.ASCENDING.name(selectedSortBy),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -115,7 +125,7 @@ fun SortOrderSegmentedButton(
         },
         labelTwo = {
             Text(
-                text = SortOrder.DESCENDING.prettyName(selectedSortBy),
+                text = SortOrder.DESCENDING.name(selectedSortBy),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -142,6 +152,7 @@ private fun SortOptions(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
     ) {
         TextIconToggleButton(
             text = stringResource(id = R.string.title),
@@ -150,22 +161,28 @@ private fun SortOptions(
             onClick = { onOptionSelected(SortBy.TITLE) }
         )
         TextIconToggleButton(
-            text = stringResource(id = R.string.length),
+            text = stringResource(id = R.string.duration),
             icon = NextIcons.Length,
             isSelected = selectedSortBy == SortBy.LENGTH,
             onClick = { onOptionSelected(SortBy.LENGTH) }
         )
         TextIconToggleButton(
-            text = stringResource(id = R.string.location),
-            icon = NextIcons.Location,
-            isSelected = selectedSortBy == SortBy.PATH,
-            onClick = { onOptionSelected(SortBy.PATH) }
+            text = stringResource(id = R.string.date),
+            icon = NextIcons.Calendar,
+            isSelected = selectedSortBy == SortBy.DATE,
+            onClick = { onOptionSelected(SortBy.DATE) }
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.size),
             icon = NextIcons.Size,
             isSelected = selectedSortBy == SortBy.SIZE,
             onClick = { onOptionSelected(SortBy.SIZE) }
+        )
+        TextIconToggleButton(
+            text = stringResource(id = R.string.location),
+            icon = NextIcons.Location,
+            isSelected = selectedSortBy == SortBy.PATH,
+            onClick = { onOptionSelected(SortBy.PATH) }
         )
     }
 }

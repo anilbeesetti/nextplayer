@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "dev.anilbeesetti.nextplayer"
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 6
+        versionName = "0.5.0"
     }
 
     buildFeatures {
@@ -59,7 +59,10 @@ android {
 
 dependencies {
 
+    implementation(project(":core:common"))
     implementation(project(":core:data"))
+    implementation(project(":core:media"))
+    implementation(project(":core:model"))
     implementation(project(":core:ui"))
     implementation(project(":feature:videopicker"))
     implementation(project(":feature:player"))

@@ -1,57 +1,69 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.datastore.AppPreferences
-import dev.anilbeesetti.nextplayer.core.datastore.SortBy
-import dev.anilbeesetti.nextplayer.core.datastore.SortOrder
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
-import dev.anilbeesetti.nextplayer.feature.videopicker.MediaState
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     getSortedFoldersUseCase: GetSortedFoldersUseCase,
+    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val mediaState = preferencesRepository.appPreferencesFlow.flatMapLatest { appPreferences ->
-        if (appPreferences.groupVideosByFolder) {
-            getSortedFoldersUseCase.invoke()
-                .map { MediaState.Success(it) }
-        } else {
-            getSortedVideosUseCase.invoke()
-                .map { MediaState.Success(it) }
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = MediaState.Loading
-    )
-
-    val preferences = preferencesRepository.appPreferencesFlow
+    val videosState = getSortedVideosUseCase.invoke()
+        .map { VideosState.Success(it) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AppPreferences()
+            initialValue = VideosState.Loading
         )
 
-    fun updateMenu(sortBy: SortBy, sortOrder: SortOrder, groupVideosByFolder: Boolean) {
+    val foldersState = getSortedFoldersUseCase.invoke()
+        .map { FoldersState.Success(it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = FoldersState.Loading
+        )
+
+    val preferences = preferencesRepository.applicationPreferences
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ApplicationPreferences()
+        )
+
+    fun updateMenu(applicationPreferences: ApplicationPreferences) {
         viewModelScope.launch {
-            preferencesRepository.setSortBy(sortBy)
-            preferencesRepository.setSortOrder(sortOrder)
-            preferencesRepository.setGroupVideosByFolder(groupVideosByFolder)
+            preferencesRepository.updateApplicationPreferences { applicationPreferences }
+        }
+    }
+
+    fun deleteVideos(uris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            mediaRepository.deleteVideos(uris, intentSenderLauncher)
+        }
+    }
+
+    fun deleteFolders(paths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            mediaRepository.deleteFolders(paths, intentSenderLauncher)
         }
     }
 }

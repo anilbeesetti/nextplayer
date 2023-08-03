@@ -14,7 +14,8 @@ Next Player is a native video player written in Kotlin and jetpack compose. It p
 ## Features
 - Native Android app with simple and easy-to-use interface
 - Completely free and open source and without any ads or excessive permissions
+- Material 3 (you) support
 - Audio/Subtitle track selection
 - Vertical swipe to change brightness (left) / volume (right)
 - Horizontal swipe to seek through video
-- File picker with folder and file view
+- Media picker with folder and file view

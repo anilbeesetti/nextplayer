@@ -13,15 +13,15 @@
         android:background="@android:color/black"
         app:animation_enabled="false"
         app:show_buffering="always"
-        tools:foreground="@color/player_background"/>
+        tools:foreground="@color/player_background" />
 
     <LinearLayout
         android:id="@+id/progress_scrubber_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginBottom="120dp"
         android:clickable="false"
         android:gravity="center"
-        android:layout_marginBottom="120dp"
         android:orientation="horizontal"
         android:visibility="gone"
         tools:visibility="visible">
@@ -37,7 +37,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/gesture_volume_layout"
+        android:id="@+id/volume_gesture_layout"
         android:layout_width="54dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|start"
@@ -50,7 +50,7 @@
         tools:visibility="visible">
 
         <TextView
-            android:id="@+id/gesture_volume_text"
+            android:id="@+id/volume_progress_text"
             android:layout_width="wrap_content"
             android:layout_height="24dp"
             android:layout_marginVertical="16dp"
@@ -59,7 +59,7 @@
             tools:text="58%" />
 
         <ProgressBar
-            android:id="@+id/gesture_volume_progress_bar"
+            android:id="@+id/volume_progress_bar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="6dp"
             android:layout_height="125dp"
@@ -67,7 +67,7 @@
             tools:progress="58" />
 
         <ImageView
-            android:id="@+id/gesture_volume_image"
+            android:id="@+id/volume_image"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginVertical="16dp"
@@ -76,7 +76,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/gesture_brightness_layout"
+        android:id="@+id/brightness_gesture_layout"
         android:layout_width="54dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|end"
@@ -89,7 +89,7 @@
         tools:visibility="visible">
 
         <TextView
-            android:id="@+id/gesture_brightness_text"
+            android:id="@+id/brightness_progress_text"
             android:layout_width="wrap_content"
             android:layout_height="24dp"
             android:layout_marginVertical="16dp"
@@ -98,7 +98,7 @@
             tools:text="58%" />
 
         <ProgressBar
-            android:id="@+id/gesture_brightness_progress_bar"
+            android:id="@+id/brightness_progress_bar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="6dp"
             android:layout_height="125dp"
@@ -106,7 +106,7 @@
             tools:progress="58" />
 
         <ImageView
-            android:id="@+id/gesture_brightness_image"
+            android:id="@+id/brightness_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginVertical="16dp"

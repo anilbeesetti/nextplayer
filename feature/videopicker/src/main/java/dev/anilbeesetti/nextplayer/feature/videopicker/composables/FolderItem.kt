@@ -1,111 +1,102 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.data.models.Folder
+import androidx.compose.ui.unit.offset
+import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FolderItem(
     folder: Folder,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val haptic = LocalHapticFeedback.current
-    Surface(
-        modifier = Modifier
-            .combinedClickable(
-                onClick = { onClick() },
-                onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
-            )
-    ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    ListItem(
+        leadingContent = {
             Icon(
                 imageVector = NextIcons.Folder,
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
+                    .negativeVerticalPadding(8.dp)
                     .sizeIn(maxWidth = 250.dp)
                     .fillMaxWidth(0.45f)
                     .aspectRatio(1f)
             )
-            Column(
-                modifier = Modifier
-                    .padding(start = 12.dp, end = 12.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.Top
+        },
+        headlineContent = {
+            Text(
+                text = folder.name,
+                maxLines = 2,
+                style = MaterialTheme.typography.titleMedium,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        supportingContent = {
+            Text(
+                text = folder.path,
+                maxLines = 2,
+                style = MaterialTheme.typography.bodySmall,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = folder.name,
-                    maxLines = 2,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Normal
-                    ),
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = folder.path,
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    ),
-                    overflow = TextOverflow.Ellipsis
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    InfoChip(
-                        text = "${folder.mediaCount} ${"video".takeIf { folder.mediaCount == 1 } ?: "videos"}"
+                InfoChip(
+                    text = "${folder.mediaCount} ${
+                    stringResource(
+                        id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos
                     )
-                }
+                    }",
+                    modifier = Modifier.padding(vertical = 5.dp)
+                )
+                InfoChip(
+                    text = folder.formattedMediaSize,
+                    modifier = Modifier.padding(vertical = 5.dp)
+                )
             }
-        }
-    }
+        },
+        modifier = modifier
+    )
 }
 
 @DayNightPreview
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(
-            folder = Folder(
-                name = "Folder 1",
-                path = "/storage/emulated/0/DCIM/Camera/Live Photos",
-                mediaSize = 1000,
-                mediaCount = 1
-            ),
-            onClick = { }
-        )
+        FolderItem(folder = Folder.sample)
     }
+}
+
+fun Modifier.negativeVerticalPadding(vertical: Dp) = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.offset(vertical = (-vertical * 2).roundToPx()))
+
+    layout(
+        width = placeable.width,
+        height = placeable.height - (vertical * 2).roundToPx()
+    ) { placeable.place(0, 0 - vertical.roundToPx()) }
 }

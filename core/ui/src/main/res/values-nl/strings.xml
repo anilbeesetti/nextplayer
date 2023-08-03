@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="permission_not_granted">Permissie niet toegestaan</string>
+    <string name="permission_request">Permissie vraag</string>
+    <string name="appearance_description">Pas de app aan</string>
+    <string name="ascending">Oplopend</string>
+    <string name="cancel">Annuleren</string>
+    <string name="descending">Aflopend</string>
+    <string name="disable">Uitzetten</string>
+    <string name="done">Klaar</string>
+    <string name="double_tap">Twee keer drukken</string>
+    <string name="double_tap_description">Kies een actie bij dubbel drukken</string>
+    <string name="error_playing_video">Fout: kan video niet afspelen</string>
+    <string name="fast_seek">Snel doorspoelen</string>
+    <string name="fast_seek_description">Spoel door naar volgende key frame in plaats van het exacte frame</string>
+    <string name="about_description">Versie, credits</string>
+    <string name="duration">Lengte</string>
+    <string name="about_name">Over</string>
+    <string name="menu">Menu</string>
+    <string name="appearance_name">Uiterlijk</string>
+    <string name="navigate_up">Navigeer omhoog</string>
+    <string name="grant_permission">Geef toestemming</string>
+    <string name="group_videos">Sorteer videos als map</string>
+    <string name="location">Locatie</string>
+    <string name="no_videos_found">Geen videos gevonden</string>
+    <string name="open_settings">Open instellingen</string>
+    <string name="permission_info">The Next Player heeft \"%1$s\" permissie nodig om media te kunnen vinden en afspelen. Zonder deze permissie zal dit niet werken. Geef toestemming om de app volledig te gebruiken.</string>
+</resources>

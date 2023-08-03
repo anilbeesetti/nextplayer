@@ -4,11 +4,14 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
+import android.os.Parcelable
+import androidx.core.net.toUri
 import androidx.media3.common.MimeTypes
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
-import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
+import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
+import java.io.File
 
 fun Uri.getSubtitleMime(): String {
     return when {
@@ -30,59 +33,29 @@ fun Uri.getSubtitleMime(): String {
     }
 }
 
-/**
- * Converts [Uri] to [MediaItem.SubtitleConfiguration]
- */
-fun Uri.toSubtitleConfiguration(
-    context: Context,
-    selected: Boolean,
-    name: String? = null
-): MediaItem.SubtitleConfiguration {
-    val subtitleConfigurationBuilder = MediaItem.SubtitleConfiguration
-        .Builder(this)
-        .setMimeType(getSubtitleMime())
-        .setLabel(name ?: context.getFilenameFromUri(this))
-    if (selected) {
-        subtitleConfigurationBuilder.setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-    }
-    return subtitleConfigurationBuilder.build()
+fun Uri.getLocalSubtitles(context: Context): List<Subtitle> {
+    return context.getPath(this)?.let { path ->
+        File(path).getSubtitles().map { file ->
+            Subtitle(
+                name = file.name,
+                uri = file.toUri(),
+                isSelected = false
+            )
+        }
+    } ?: emptyList()
 }
 
-/**
- * Converts [Uri] to [MediaItem]
- */
-fun Uri.toMediaItem(context: Context, extras: Bundle? = null): MediaItem {
-    val subtitleConfigurations = mutableListOf<MediaItem.SubtitleConfiguration>()
-    if (extras != null) {
-        val subsEnable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            extras.getParcelableArray(PlayerActivity.API_SUBS_ENABLE, Uri::class.java)
-        } else {
-            extras.getParcelableArray(PlayerActivity.API_SUBS_ENABLE)
-        }
-        val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
+fun Uri.toSubtitle(context: Context) = Subtitle(
+    name = context.getFilenameFromUri(this),
+    uri = this,
+    isSelected = false
+)
 
-        if (extras.containsKey(PlayerActivity.API_SUBS)) {
-            val subs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                extras.getParcelableArray(PlayerActivity.API_SUBS, Uri::class.java)
-            } else {
-                extras.getParcelableArray(PlayerActivity.API_SUBS)
-            }
-            val subsName = extras.getStringArray(PlayerActivity.API_SUBS_NAME)
-            if (!subs.isNullOrEmpty()) {
-                for (i in subs.indices) {
-                    val subtitle = subs[i] as Uri
-                    val subName = if (subsName != null && subsName.size > i) subsName[i] else null
-                    subtitleConfigurations += subtitle.toSubtitleConfiguration(
-                        context = context,
-                        selected = subtitle == defaultSub,
-                        name = subName
-                    )
-                }
-            }
-        }
+@Suppress("DEPRECATION")
+fun Bundle.getParcelableUriArray(key: String): Array<out Parcelable>? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableArray(key, Uri::class.java)
+    } else {
+        getParcelableArray(key)
     }
-    return MediaItem.Builder()
-        .setUri(this)
-        .setSubtitleConfigurations(subtitleConfigurations)
-        .build()
 }
