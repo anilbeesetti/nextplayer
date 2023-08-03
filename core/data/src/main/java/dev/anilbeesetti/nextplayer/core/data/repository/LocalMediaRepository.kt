@@ -7,7 +7,7 @@ import androidx.activity.result.IntentSenderRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
-import dev.anilbeesetti.nextplayer.core.data.mappers.toDirectory
+import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
@@ -15,7 +15,7 @@ import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
-import dev.anilbeesetti.nextplayer.core.model.Directory
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -36,8 +36,12 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.getAll().map { it.map(MediumEntity::toVideo) }
     }
 
-    override fun getDirectoriesFlow(): Flow<List<Directory>> {
-        return directoryDao.getAll().map { it.map(DirectoryEntity::toDirectory) }
+    override fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>> {
+        return mediumDao.getAllFromDirectory(folderPath).map { it.map(MediumEntity::toVideo) }
+    }
+
+    override fun getFoldersFlow(): Flow<List<Folder>> {
+        return directoryDao.getAll().map { it.map(DirectoryEntity::toFolder) }
     }
 
     override suspend fun getVideoState(path: String): VideoState? {

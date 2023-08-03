@@ -1,7 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -22,19 +20,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
-import dev.anilbeesetti.nextplayer.core.model.Directory
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FolderItem(
-    directory: Directory,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
+    folder: Folder,
+    modifier: Modifier = Modifier
 ) {
     ListItem(
         leadingContent = {
@@ -51,7 +47,7 @@ fun FolderItem(
         },
         headlineContent = {
             Text(
-                text = directory.name,
+                text = folder.name,
                 maxLines = 2,
                 style = MaterialTheme.typography.titleMedium,
                 overflow = TextOverflow.Ellipsis
@@ -59,7 +55,7 @@ fun FolderItem(
         },
         supportingContent = {
             Text(
-                text = directory.path,
+                text = folder.path,
                 maxLines = 2,
                 style = MaterialTheme.typography.bodySmall,
                 overflow = TextOverflow.Ellipsis,
@@ -71,23 +67,20 @@ fun FolderItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 InfoChip(
-                    text = "${directory.mediaCount} ${
+                    text = "${folder.mediaCount} ${
                     stringResource(
-                        id = R.string.video.takeIf { directory.mediaCount == 1 } ?: R.string.videos
+                        id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos
                     )
                     }",
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
                 InfoChip(
-                    text = directory.formattedMediaSize,
+                    text = folder.formattedMediaSize,
                     modifier = Modifier.padding(vertical = 5.dp)
                 )
             }
         },
-        modifier = modifier.combinedClickable(
-            onClick = onClick,
-            onLongClick = onLongClick
-        )
+        modifier = modifier
     )
 }
 
@@ -95,11 +88,7 @@ fun FolderItem(
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(
-            directory = Directory.sample,
-            onClick = { },
-            onLongClick = { }
-        )
+        FolderItem(folder = Folder.sample)
     }
 }
 
