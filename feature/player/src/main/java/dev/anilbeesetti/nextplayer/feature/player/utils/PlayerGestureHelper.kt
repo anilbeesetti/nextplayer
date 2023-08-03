@@ -113,12 +113,12 @@ class PlayerGestureHelper(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(
-                firstEvent: MotionEvent,
+                firstEvent: MotionEvent?,
                 currentEvent: MotionEvent,
                 distanceX: Float,
                 distanceY: Float
             ): Boolean {
-                // Excludes area where app gestures conflicting with system gestures
+                if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
                 if (activity.isControlsLocked) return false
 
@@ -168,12 +168,12 @@ class PlayerGestureHelper(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(
-                firstEvent: MotionEvent,
+                firstEvent: MotionEvent?,
                 currentEvent: MotionEvent,
                 distanceX: Float,
                 distanceY: Float
             ): Boolean {
-                // Excludes area where app gestures conflicting with system gestures
+                if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
                 if (activity.isControlsLocked) return false
 
