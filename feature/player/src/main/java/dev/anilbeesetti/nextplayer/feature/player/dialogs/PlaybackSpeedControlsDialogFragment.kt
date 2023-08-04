@@ -7,21 +7,20 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBinding
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
-class PlaybackSpeedSelectionDialogFragment(
+class PlaybackSpeedControlsDialogFragment(
     private val currentSpeed: Float,
     private val onChange: (Float) -> Unit
 ) : DialogFragment() {
 
-    lateinit var binding: PlaybackSpeedBinding
+    private lateinit var binding: PlaybackSpeedBinding
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         binding = PlaybackSpeedBinding.inflate(layoutInflater)
-
+        
         return activity?.let { activity ->
-
             binding.apply {
-                speed.value = currentSpeed
                 speedText.text = currentSpeed.toString()
+                speed.value = currentSpeed
                 speed.addOnChangeListener { _, _, _ ->
                     val newSpeed = String.format("%.1f", speed.value).toFloat()
                     onChange(newSpeed)
