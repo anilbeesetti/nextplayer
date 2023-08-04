@@ -5,8 +5,6 @@ import android.app.Activity
 import android.content.res.Resources
 import android.media.AudioManager
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -28,6 +26,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlin.math.abs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,7 +53,7 @@ class PlayerGestureHelper(
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
-    private val playbackSpeedHandler = Handler(Looper.getMainLooper())
+    private var playbackSpeedJob: Job? = null
 
     private var gestureVolumeOpen = false
     private var gestureBrightnessOpen = false
@@ -256,8 +256,9 @@ class PlayerGestureHelper(
 
     private fun longPressHoldAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_DOWN) {
-            activity.binding.progressScrubberLayout.apply {
-                playbackSpeedHandler.postDelayed({
+            playbackSpeedJob = CoroutineScope(Dispatchers.Main).launch {
+                delay(1000)
+                activity.binding.progressScrubberLayout.apply {
                     activity.binding.fastSpeedText.text = resources.getString(
                         dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
                         prefs.playbackSpeedAtLongPress
@@ -265,7 +266,7 @@ class PlayerGestureHelper(
                     activity.binding.fastSpeedLayout.visibility = View.VISIBLE
                     viewModel.isPlaybackSpeedChanged = true
                     playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
-                }, 1000)
+                }
             }
         }
     }
@@ -298,7 +299,7 @@ class PlayerGestureHelper(
 
             activity.binding.progressScrubberLayout.apply {
                 if (prefs.fastPlaybackOnLongPress) {
-                    playbackSpeedHandler.removeCallbacksAndMessages(null)
+                    playbackSpeedJob?.cancel()
                     viewModel.isPlaybackSpeedChanged = false
                     playerView.player?.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
                     activity.binding.fastSpeedLayout.visibility = View.GONE
