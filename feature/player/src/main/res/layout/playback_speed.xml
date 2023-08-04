@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-            app:icon="@drawable/ic_skip_next" />
+            app:icon="@drawable/ic_remove" />
 
         <TextView
             android:id="@+id/speed_text"
@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-            app:icon="@drawable/ic_skip_prev"/>
+            app:icon="@drawable/ic_add"/>
 
 
     </LinearLayout>
@@ -63,7 +63,7 @@
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             style="@style/Widget.Material3.Button.IconButton"
-            app:icon="@drawable/ic_skip_prev" />
+            app:icon="@drawable/ic_reset" />
     </LinearLayout>
 
 </LinearLayout>
