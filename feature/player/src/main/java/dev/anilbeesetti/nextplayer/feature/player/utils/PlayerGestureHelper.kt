@@ -254,22 +254,25 @@ class PlayerGestureHelper(
         }
     )
 
-    private fun longPressHoldAction(event: MotionEvent) {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            playbackSpeedJob = CoroutineScope(Dispatchers.Main).launch {
-                delay(1000)
-                activity.binding.progressScrubberLayout.apply {
-                    activity.binding.fastSpeedText.text = resources.getString(
-                        dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
-                        prefs.playbackSpeedAtLongPress
-                    )
-                    activity.binding.fastSpeedLayout.visibility = View.VISIBLE
-                    viewModel.isPlaybackSpeedChanged = true
-                    playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
+    private val longPressHoldGestureDetector = GestureDetector(
+        playerView.context,
+        object : GestureDetector.SimpleOnGestureListener() {
+            override fun onLongPress(e: MotionEvent) {
+                playbackSpeedJob = CoroutineScope(Dispatchers.Main).launch {
+                    delay(1000)
+                    activity.binding.progressScrubberLayout.apply {
+                        activity.binding.fastSpeedText.text = resources.getString(
+                            dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
+                            prefs.playbackSpeedAtLongPress
+                        )
+                        activity.binding.fastSpeedLayout.visibility = View.VISIBLE
+                        viewModel.isPlaybackSpeedChanged = true
+                        playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
+                    }
                 }
             }
         }
-    }
+    )
 
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
@@ -298,12 +301,6 @@ class PlayerGestureHelper(
             }
 
             activity.binding.progressScrubberLayout.apply {
-                if (prefs.fastPlaybackOnLongPress) {
-                    playbackSpeedJob?.cancel()
-                    viewModel.isPlaybackSpeedChanged = false
-                    playerView.player?.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
-                    activity.binding.fastSpeedLayout.visibility = View.GONE
-                }
                 if (visibility == View.VISIBLE) {
                     visibility = View.GONE
                     if (isPlayingOnSeekStart) playerView.player?.play()
@@ -312,7 +309,17 @@ class PlayerGestureHelper(
                     seeking = false
                 }
             }
+            disableFastPlaybackOnLongPress()
             seeking = false
+        }
+    }
+
+    private fun disableFastPlaybackOnLongPress() {
+        if (prefs.fastPlaybackOnLongPress) {
+            playbackSpeedJob?.cancel()
+            viewModel.isPlaybackSpeedChanged = false
+            playerView.player?.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
+            activity.binding.fastSpeedLayout.visibility = View.GONE
         }
     }
 
@@ -359,14 +366,14 @@ class PlayerGestureHelper(
                     if (prefs.useSeekControls && activity.isFileLoaded) {
                         seekGestureDetector.onTouchEvent(motionEvent)
                     }
+                    if (prefs.fastPlaybackOnLongPress) {
+                        longPressHoldGestureDetector.onTouchEvent(motionEvent)
+                    }
                 }
 
                 2 -> {
-                    // Do nothing for now
+                    disableFastPlaybackOnLongPress()
                 }
-            }
-            if (prefs.fastPlaybackOnLongPress) {
-                longPressHoldAction(motionEvent)
             }
             releaseAction(motionEvent)
             true
