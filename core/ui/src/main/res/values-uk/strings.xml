@@ -137,5 +137,6 @@
     <string name="subtitle_text_encoding">Кодування тексту субтитрів</string>
     <string name="share">Поділитися</string>
     <string name="delete">Видалити</string>
-    <string name="delete_file">Видалити наступний файл</string>
+    <string name="delete_file">Наступний файл буде видалено назавжди</string>
+    <string name="delete_folder">Всі відео файли в наступній теці будуть видалені назавжди.</string>
 </resources>
