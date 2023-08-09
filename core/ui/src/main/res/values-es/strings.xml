@@ -137,5 +137,6 @@
     <string name="subtitle_text_encoding">Codificación del texto de los subtítulos</string>
     <string name="share">Compartir</string>
     <string name="delete">Borrar</string>
-    <string name="delete_file">Borrar el siguiente archivo</string>
+    <string name="delete_file">El siguiente archivo se eliminará de forma permanente</string>
+    <string name="delete_folder">Todos los archivos de vídeo de la siguiente carpeta se eliminarán de forma permanente.</string>
 </resources>

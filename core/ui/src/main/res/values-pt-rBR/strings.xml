@@ -137,5 +137,6 @@
     <string name="subtitle_text_encoding">Codificação do texto da legenda</string>
     <string name="share">Compartilhar</string>
     <string name="delete">Excluir</string>
-    <string name="delete_file">Exclua o seguinte arquivo</string>
+    <string name="delete_file">O seguinte arquivo será excluído permanentemente</string>
+    <string name="delete_folder">Todos os arquivos de vídeo na pasta a seguir serão excluídos permanentemente.</string>
 </resources>
