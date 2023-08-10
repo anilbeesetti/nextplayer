@@ -25,9 +25,7 @@ fun PreferenceSwitch(
         modifier = Modifier.toggleable(
             value = isChecked,
             enabled = enabled,
-            onValueChange = {
-                onClick()
-            }
+            onValueChange = { onClick() }
         ),
         content = {
             NextSwitch(

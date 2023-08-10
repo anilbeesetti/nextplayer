@@ -258,21 +258,25 @@ class PlayerGestureHelper(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onLongPress(e: MotionEvent) {
-                playbackSpeedJob = CoroutineScope(Dispatchers.Main).launch {
-                    delay(1000)
-                    activity.binding.progressScrubberLayout.apply {
-                        activity.binding.fastSpeedText.text = resources.getString(
-                            dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
-                            prefs.playbackSpeedAtLongPress
-                        )
-                        activity.binding.fastSpeedLayout.visibility = View.VISIBLE
-                        viewModel.isPlaybackSpeedChanged = true
-                        playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
-                    }
-                }
+                longPressHoldForFastForward()
             }
         }
     )
+
+    private fun longPressHoldForFastForward() {
+        playbackSpeedJob = CoroutineScope(Dispatchers.Main).launch {
+            delay(1000)
+            activity.binding.progressScrubberLayout.apply {
+                activity.binding.fastSpeedText.text = resources.getString(
+                    dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
+                    prefs.playbackSpeedAtLongPress
+                )
+                activity.binding.fastSpeedLayout.visibility = View.VISIBLE
+                viewModel.isPlaybackSpeedChanged = true
+                playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
+            }
+        }
+    }
 
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
@@ -355,8 +359,9 @@ class PlayerGestureHelper(
         if (prefs.rememberPlayerBrightness) {
             activity.window.attributes.screenBrightness = prefs.playerBrightness
         }
-
+        var pointerCount = 0
         playerView.setOnTouchListener { _, motionEvent ->
+
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
@@ -368,10 +373,15 @@ class PlayerGestureHelper(
                     }
                     if (prefs.fastPlaybackOnLongPress) {
                         longPressHoldGestureDetector.onTouchEvent(motionEvent)
+                        if(pointerCount == 2){
+                            longPressHoldForFastForward()
+                            pointerCount = 0
+                        }
                     }
                 }
 
                 2 -> {
+                    pointerCount = 2
                     disableFastPlaybackOnLongPress()
                 }
             }
