@@ -54,7 +54,7 @@ import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedSelectionDialogFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
@@ -340,7 +340,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         playbackSpeedButton.setOnClickListener {
-            PlaybackSpeedSelectionDialogFragment(
+            PlaybackSpeedControlsDialogFragment(
                 currentSpeed = player.playbackParameters.speed,
                 onChange = {
                     viewModel.isPlaybackSpeedChanged = true

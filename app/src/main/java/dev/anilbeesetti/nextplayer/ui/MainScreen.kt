@@ -6,9 +6,18 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -45,7 +54,7 @@ import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 const val MAIN_ROUTE = "main_screen_route"
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MainScreen(
     permissionState: PermissionState,
@@ -62,7 +71,8 @@ fun MainScreen(
     Scaffold(
         floatingActionButton = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             ) {
                 FloatingActionButton(
                     onClick = { selectVideoFileLauncher.launch("video/*") }
@@ -83,19 +93,25 @@ fun MainScreen(
             }
         }
     ) {
-        if (permissionState.status.isGranted) {
-            NavHost(
-                navController = mediaNavController,
-                startDestination = MEDIA_ROUTE
-            ) {
-                mediaNavGraph(
-                    context = context,
-                    mainNavController = mainNavController,
-                    mediaNavController = mediaNavController
-                )
-            }
-        } else {
-            Column {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .consumeWindowInsets(it)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+        ) {
+            if (permissionState.status.isGranted) {
+                NavHost(
+                    navController = mediaNavController,
+                    startDestination = MEDIA_ROUTE
+                ) {
+                    mediaNavGraph(
+                        context = context,
+                        mainNavController = mainNavController,
+                        mediaNavController = mediaNavController
+                    )
+                }
+            } else {
                 NextCenterAlignedTopAppBar(
                     title = stringResource(id = R.string.app_name),
                     navigationIcon = {

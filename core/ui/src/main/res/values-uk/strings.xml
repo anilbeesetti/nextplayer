@@ -25,7 +25,7 @@
     <string name="disable">Вимкнути</string>
     <string name="done">Готово</string>
     <string name="grant_permission">Надати дозвіл</string>
-    <string name="double_tap_description">Виберіть дію жесту подвійного торкання</string>
+    <string name="double_tap_description">Виберіть дію жесту подвійного дотику</string>
     <string name="fast_seek">Швидкий пошук</string>
     <string name="fast_seek_description">Шукати найближчий ключовий кадр замість точного.</string>
     <string name="group_videos">Згрупувати відео за папками</string>
@@ -137,5 +137,6 @@
     <string name="subtitle_text_encoding">Кодування тексту субтитрів</string>
     <string name="share">Поділитися</string>
     <string name="delete">Видалити</string>
-    <string name="delete_file">Видалити наступний файл</string>
+    <string name="delete_file">Наступний файл буде видалено назавжди</string>
+    <string name="delete_folder">Всі відео файли в наступній теці будуть видалені назавжди.</string>
 </resources>

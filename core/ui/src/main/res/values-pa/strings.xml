@@ -137,5 +137,6 @@
     <string name="subtitle_text_encoding">ਸਬ- ਟਾਈਟਲ ਟੈਕਸਟ ਇਨਕੋਡਿੰਗ</string>
     <string name="share">ਸਾਂਝਾ ਕਰੋ</string>
     <string name="delete">ਮਿਟਾਓ</string>
-    <string name="delete_file">ਹੇਠ ਦਿੱਤੀ ਫਾਇਲ ਮਿਟਾਓ</string>
+    <string name="delete_file">ਹੇਠ ਦਿੱਤੀ ਫਾਇਲ ਸਥਾਈ ਤੌਰ ਤੇ ਮਿਟਾ ਦਿੱਤੀ ਜਾਵੇਗੀ</string>
+    <string name="delete_folder">ਹੇਠਾਂ ਦਿੱਤੇ ਫ਼ੋਲਡਰ ਵਿੱਚ ਸਾਰੀਆਂ ਵੀਡੀਓ ਫਾਈਲਾਂ ਸਥਾਈ ਤੌਰ \'ਤੇ ਮਿਟਾ ਦਿੱਤੀਆਂ ਜਾਣਗੀਆਂ।</string>
 </resources>
