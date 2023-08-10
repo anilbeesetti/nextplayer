@@ -373,7 +373,7 @@ class PlayerGestureHelper(
                     }
                     if (prefs.fastPlaybackOnLongPress) {
                         longPressHoldGestureDetector.onTouchEvent(motionEvent)
-                        if(pointerCount == 2){
+                        if (pointerCount == 2) {
                             longPressHoldForFastForward()
                             pointerCount = 0
                         }
