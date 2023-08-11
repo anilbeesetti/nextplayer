@@ -25,10 +25,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
+import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -208,7 +208,6 @@ class PlayerGestureHelper(
                     }
 
                     val volumePercentage = (volumeTrackerValue / maxStreamVolume.toFloat()).times(100).toInt()
-
                     with(activity.binding) {
                         volumeGestureLayout.visibility = View.VISIBLE
                         volumeProgressBar.max = maxVolume.times(100)
@@ -227,8 +226,7 @@ class PlayerGestureHelper(
                     }
 
                     val change = ratioChange * maxBrightness
-                    brightnessTrackerValue = (brightnessTrackerValue + change)
-                        .coerceIn(BRIGHTNESS_OVERRIDE_OFF, maxBrightness)
+                    brightnessTrackerValue = (brightnessTrackerValue + change).coerceIn(0f, maxBrightness)
 
                     val layoutParams = activity.window.attributes
                     layoutParams.screenBrightness = brightnessTrackerValue
@@ -237,9 +235,7 @@ class PlayerGestureHelper(
                     // fixes a bug which makes the action bar reappear after changing the brightness
                     activity.swipeToShowStatusBars()
 
-                    val brightnessPercentage =
-                        (brightnessTrackerValue / maxBrightness).times(100).toInt()
-
+                    val brightnessPercentage = (brightnessTrackerValue / maxBrightness).times(100).toInt()
                     with(activity.binding) {
                         brightnessGestureLayout.visibility = View.VISIBLE
                         brightnessProgressBar.max = maxBrightness.times(100).toInt()
