@@ -214,6 +214,13 @@ class PlayerActivity : AppCompatActivity() {
             }
         })
 
+        playerGestureHelper = PlayerGestureHelper(
+            viewModel = viewModel,
+            activity = this,
+            playerView = binding.playerView,
+            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        )
+
         playlistManager = PlaylistManager()
         playerApi = PlayerApi(this)
     }
@@ -299,13 +306,6 @@ class PlayerActivity : AppCompatActivity() {
                 it.setFixedTextSize(Dimension.SP, playerPreferences.subtitleTextSize.toFloat())
             }
         }
-
-        playerGestureHelper = PlayerGestureHelper(
-            viewModel = viewModel,
-            activity = this,
-            playerView = binding.playerView,
-            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        )
 
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
