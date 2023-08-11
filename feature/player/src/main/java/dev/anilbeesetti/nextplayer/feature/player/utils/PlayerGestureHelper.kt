@@ -198,12 +198,12 @@ class PlayerGestureHelper(
                     val change = ratioChange * maxStreamVolume
                     volumeTrackerValue = (volumeTrackerValue + change).coerceIn(0f, maxVolume.toFloat())
 
-                    if (volumeTrackerValue < maxStreamVolume) {
+                    if (volumeTrackerValue <= maxStreamVolume) {
                         activity.loudnessEnhancer?.enabled = false
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volumeTrackerValue.toInt(), 0)
                     } else {
                         activity.loudnessEnhancer?.enabled = true
-                        val loudness = (volumeTrackerValue - maxStreamVolume) * (2000 / maxStreamVolume)
+                        val loudness = (volumeTrackerValue - maxStreamVolume) * (MAX_VOLUME_BOOST / maxStreamVolume)
                         activity.loudnessEnhancer?.setTargetGain(loudness.toInt())
                     }
 
@@ -346,6 +346,7 @@ class PlayerGestureHelper(
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
         const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
+        const val MAX_VOLUME_BOOST = 2000
         const val SEEK_STEP_MS = 1000L
         const val HIDE_DELAY_MILLIS = 1000L
     }
