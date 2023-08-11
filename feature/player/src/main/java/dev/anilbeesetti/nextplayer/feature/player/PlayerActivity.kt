@@ -9,6 +9,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
 import android.media.AudioManager
+import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -57,6 +58,7 @@ import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBind
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
+import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
@@ -117,6 +119,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var mediaSession: MediaSession
     private lateinit var playerApi: PlayerApi
+    var loudnessEnhancer: LoudnessEnhancer? = null
 
     /**
      * Listeners
@@ -188,13 +191,6 @@ class PlayerActivity : AppCompatActivity() {
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
-
-        playerGestureHelper = PlayerGestureHelper(
-            viewModel = viewModel,
-            activity = this,
-            playerView = binding.playerView,
-            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        )
 
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
@@ -268,6 +264,7 @@ class PlayerActivity : AppCompatActivity() {
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
         player.addListener(playbackStateListener)
+        loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
     }
 
     private fun setOrientation() {
@@ -302,6 +299,13 @@ class PlayerActivity : AppCompatActivity() {
                 it.setFixedTextSize(Dimension.SP, playerPreferences.subtitleTextSize.toFloat())
             }
         }
+
+        playerGestureHelper = PlayerGestureHelper(
+            viewModel = viewModel,
+            activity = this,
+            playerView = binding.playerView,
+            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        )
 
         audioTrackButton.setOnClickListener {
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
@@ -463,6 +467,17 @@ class PlayerActivity : AppCompatActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
             super.onIsPlayingChanged(isPlaying)
+        }
+
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            super.onAudioSessionIdChanged(audioSessionId)
+            loudnessEnhancer?.release()
+
+            try {
+                loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         @SuppressLint("SourceLockedOrientationActivity")

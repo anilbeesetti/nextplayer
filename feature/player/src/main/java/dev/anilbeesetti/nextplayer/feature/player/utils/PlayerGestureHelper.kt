@@ -25,10 +25,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
-import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -187,25 +187,27 @@ class PlayerGestureHelper(
                 if (firstEvent.x.toInt() > viewCenterX) {
                     hideVolumeGestureJob?.cancel()
 
-                    val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val currentStreamVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    val maxStreamVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val maxVolume = maxStreamVolume.times(activity.loudnessEnhancer?.let { 2 } ?: 1)
 
                     if (volumeTrackerValue == -1f) {
-                        volumeTrackerValue = currentVolume.toFloat()
+                        volumeTrackerValue = currentStreamVolume.toFloat()
                     }
 
-                    val change = ratioChange * maxVolume
-                    volumeTrackerValue = (volumeTrackerValue + change)
-                        .coerceIn(0f, maxVolume.toFloat())
+                    val change = ratioChange * maxStreamVolume
+                    volumeTrackerValue = (volumeTrackerValue + change).coerceIn(0f, maxVolume.toFloat())
 
-                    audioManager.setStreamVolume(
-                        AudioManager.STREAM_MUSIC,
-                        volumeTrackerValue.toInt(),
-                        0
-                    )
+                    if (volumeTrackerValue < maxStreamVolume) {
+                        activity.loudnessEnhancer?.enabled = false
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volumeTrackerValue.toInt(), 0)
+                    } else {
+                        activity.loudnessEnhancer?.enabled = true
+                        val loudness = (volumeTrackerValue - maxStreamVolume) * (2000 / maxStreamVolume)
+                        activity.loudnessEnhancer?.setTargetGain(loudness.toInt())
+                    }
 
-                    val volumePercentage =
-                        (volumeTrackerValue / maxVolume.toFloat()).times(100).toInt()
+                    val volumePercentage = (volumeTrackerValue / maxStreamVolume.toFloat()).times(100).toInt()
 
                     with(activity.binding) {
                         volumeGestureLayout.visibility = View.VISIBLE
