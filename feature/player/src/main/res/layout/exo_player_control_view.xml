@@ -189,7 +189,7 @@
                         android:contentDescription="@string/video_zoom"
                         android:contextClickable="true"
                         android:padding="12dp"
-                        android:src="@drawable/ic_aspect_ratio"
+                        android:src="@drawable/ic_fit_screen"
                         app:tint="@android:color/white" />
 
                     <Space

@@ -369,12 +369,24 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         videoZoomButton.setOnClickListener {
-            binding.playerView.resizeMode =
-                if (binding.playerView.resizeMode != AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
-                    AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                } else {
-                    AspectRatioFrameLayout.RESIZE_MODE_FIT
+            when(binding.playerView.resizeMode) {
+                AspectRatioFrameLayout.RESIZE_MODE_FIT -> {
+                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
                 }
+                AspectRatioFrameLayout.RESIZE_MODE_FILL -> {
+                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
+                }
+                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> {
+                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
+                }
+                else -> {
+                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
+                }
+            }
         }
         lockControlsButton.setOnClickListener {
             playerControls.visibility = View.INVISIBLE
