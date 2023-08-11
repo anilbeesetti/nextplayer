@@ -12,7 +12,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
@@ -62,21 +61,21 @@ fun FolderItem(
                 modifier = Modifier.padding(vertical = 2.dp)
             )
             FlowRow(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 InfoChip(
                     text = "${folder.mediaCount} ${
                     stringResource(
                         id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos
                     )
-                    }",
-                    modifier = Modifier.padding(vertical = 5.dp)
+                    }"
                 )
                 InfoChip(
-                    text = folder.formattedMediaSize,
-                    modifier = Modifier.padding(vertical = 5.dp)
+                    text = folder.formattedMediaSize
                 )
             }
         },

@@ -83,19 +83,15 @@ fun VideoItem(
                 modifier = Modifier.padding(vertical = 2.dp)
             )
             FlowRow(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                InfoChip(
-                    text = video.formattedFileSize,
-                    modifier = Modifier.padding(vertical = 5.dp)
-                )
+                InfoChip(text = video.formattedFileSize)
                 if (video.width > 0 && video.height > 0) {
-                    InfoChip(
-                        text = "${video.width} x ${video.height}",
-                        modifier = Modifier.padding(vertical = 5.dp)
-                    )
+                    InfoChip(text = "${video.width} x ${video.height}")
                 }
             }
         },
