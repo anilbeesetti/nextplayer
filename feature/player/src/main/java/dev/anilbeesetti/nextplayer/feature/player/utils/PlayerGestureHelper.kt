@@ -296,8 +296,7 @@ class PlayerGestureHelper(
         val screenHeight = Resources.getSystem().displayMetrics.heightPixels
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val insets = playerView.rootWindowInsets
-                .getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
+            val insets = playerView.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
 
             if ((firstEvent.x < insets.left) || (firstEvent.x > (screenWidth - insets.right)) ||
                 (firstEvent.y < insets.top) || (firstEvent.y > (screenHeight - insets.bottom))
@@ -305,11 +304,9 @@ class PlayerGestureHelper(
                 return true
             }
         } else if (firstEvent.y < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
-            firstEvent.y > screenHeight - playerView.resources
-                .pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
+            firstEvent.y > screenHeight - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
             firstEvent.x < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL) ||
-            firstEvent.x > screenWidth - playerView.resources
-                .pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
+            firstEvent.x > screenWidth - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
         ) {
             return true
         }
