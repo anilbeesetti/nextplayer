@@ -49,7 +49,7 @@
                     app:layout_constraintEnd_toStartOf="@id/btn_playback_speed"
                     app:layout_constraintStart_toEndOf="@+id/back_button"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:text="The Avengers Endgame something. Avengers Endgame something-Avengers Endgame something-Avengers Endgame something" />
+                    tools:text="The Avengers Endgame" />
 
                 <ImageButton
                     android:id="@+id/btn_playback_speed"
@@ -94,47 +94,42 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-                android:contextClickable="true"
-                android:orientation="vertical">
+                android:contextClickable="true">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp">
+                    app:layout_constraintBottom_toTopOf="@id/exo_progress"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
                     <TextView
                         android:id="@+id/exo_position"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="8dp"
                         android:textColor="@android:color/white"
                         android:textSize="14sp"
+                        app:layout_constraintStart_toStartOf="parent"
                         tools:text="00:00" />
-
-                    <Space
-                        android:layout_width="8dp"
-                        android:layout_height="0dp" />
 
                     <View
                         android:layout_width="4dp"
                         android:layout_height="1dp"
                         android:background="@android:color/white" />
 
-                    <Space
-                        android:layout_width="8dp"
-                        android:layout_height="0dp" />
-
                     <TextView
                         android:id="@+id/exo_duration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="8dp"
                         android:textColor="@android:color/white"
                         android:textSize="14sp"
                         tools:text="24:21" />
@@ -146,11 +141,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:contentDescription="@string/player_controls_progress"
+                    app:layout_constraintBottom_toTopOf="@id/controls"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:played_color="?android:attr/colorPrimary" />
 
                 <LinearLayout
+                    android:id="@+id/controls"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
 
                     <ImageButton
                         android:id="@+id/btn_lock_controls"
@@ -194,8 +197,7 @@
                         app:tint="@android:color/white" />
 
                 </LinearLayout>
-
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </FrameLayout>
 
@@ -248,12 +250,13 @@
         android:id="@+id/btn_unlock_controls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:fitsSystemWindows="true"
+        android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
         android:background="@drawable/rounded_corner"
         android:contentDescription="@string/controls_unlock"
         android:padding="12dp"
         android:src="@drawable/ic_lock"
         android:visibility="invisible"
         app:tint="@android:color/white"
-        tools:visibility="gone" />
+        tools:visibility="visible" />
 </FrameLayout>
