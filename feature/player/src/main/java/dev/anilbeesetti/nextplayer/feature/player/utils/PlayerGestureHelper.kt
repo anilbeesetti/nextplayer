@@ -187,26 +187,27 @@ class PlayerGestureHelper(
                 if (firstEvent.x.toInt() > viewCenterX) {
                     hideVolumeGestureJob?.cancel()
 
-                    val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val currentStreamVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    val maxStreamVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val maxVolume = maxStreamVolume.times(activity.loudnessEnhancer?.let { 2 } ?: 1)
 
                     if (volumeTrackerValue == -1f) {
-                        volumeTrackerValue = currentVolume.toFloat()
+                        volumeTrackerValue = currentStreamVolume.toFloat()
                     }
 
-                    val change = ratioChange * maxVolume
-                    volumeTrackerValue = (volumeTrackerValue + change)
-                        .coerceIn(0f, maxVolume.toFloat())
+                    val change = ratioChange * maxStreamVolume
+                    volumeTrackerValue = (volumeTrackerValue + change).coerceIn(0f, maxVolume.toFloat())
 
-                    audioManager.setStreamVolume(
-                        AudioManager.STREAM_MUSIC,
-                        volumeTrackerValue.toInt(),
-                        0
-                    )
+                    if (volumeTrackerValue <= maxStreamVolume) {
+                        activity.loudnessEnhancer?.enabled = false
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volumeTrackerValue.toInt(), 0)
+                    } else {
+                        activity.loudnessEnhancer?.enabled = true
+                        val loudness = (volumeTrackerValue - maxStreamVolume) * (MAX_VOLUME_BOOST / maxStreamVolume)
+                        activity.loudnessEnhancer?.setTargetGain(loudness.toInt())
+                    }
 
-                    val volumePercentage =
-                        (volumeTrackerValue / maxVolume.toFloat()).times(100).toInt()
-
+                    val volumePercentage = (volumeTrackerValue / maxStreamVolume.toFloat()).times(100).toInt()
                     with(activity.binding) {
                         volumeGestureLayout.visibility = View.VISIBLE
                         volumeProgressBar.max = maxVolume.times(100)
@@ -225,8 +226,7 @@ class PlayerGestureHelper(
                     }
 
                     val change = ratioChange * maxBrightness
-                    brightnessTrackerValue = (brightnessTrackerValue + change)
-                        .coerceIn(BRIGHTNESS_OVERRIDE_OFF, maxBrightness)
+                    brightnessTrackerValue = (brightnessTrackerValue + change).coerceIn(0f, maxBrightness)
 
                     val layoutParams = activity.window.attributes
                     layoutParams.screenBrightness = brightnessTrackerValue
@@ -235,9 +235,7 @@ class PlayerGestureHelper(
                     // fixes a bug which makes the action bar reappear after changing the brightness
                     activity.swipeToShowStatusBars()
 
-                    val brightnessPercentage =
-                        (brightnessTrackerValue / maxBrightness).times(100).toInt()
-
+                    val brightnessPercentage = (brightnessTrackerValue / maxBrightness).times(100).toInt()
                     with(activity.binding) {
                         brightnessGestureLayout.visibility = View.VISIBLE
                         brightnessProgressBar.max = maxBrightness.times(100).toInt()
@@ -298,8 +296,7 @@ class PlayerGestureHelper(
         val screenHeight = Resources.getSystem().displayMetrics.heightPixels
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val insets = playerView.rootWindowInsets
-                .getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
+            val insets = playerView.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
 
             if ((firstEvent.x < insets.left) || (firstEvent.x > (screenWidth - insets.right)) ||
                 (firstEvent.y < insets.top) || (firstEvent.y > (screenHeight - insets.bottom))
@@ -307,11 +304,9 @@ class PlayerGestureHelper(
                 return true
             }
         } else if (firstEvent.y < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
-            firstEvent.y > screenHeight - playerView.resources
-                .pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
+            firstEvent.y > screenHeight - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
             firstEvent.x < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL) ||
-            firstEvent.x > screenWidth - playerView.resources
-                .pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
+            firstEvent.x > screenWidth - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
         ) {
             return true
         }
@@ -344,10 +339,21 @@ class PlayerGestureHelper(
         }
     }
 
+    fun onStart() {
+        val maxStreamVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+        if (volumeTrackerValue > maxStreamVolume) {
+            activity.loudnessEnhancer?.enabled = true
+            val loudness = (volumeTrackerValue - maxStreamVolume) * (MAX_VOLUME_BOOST / maxStreamVolume)
+            activity.loudnessEnhancer?.setTargetGain(loudness.toInt())
+        }
+    }
+
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
         const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
+        const val MAX_VOLUME_BOOST = 2000
         const val SEEK_STEP_MS = 1000L
         const val HIDE_DELAY_MILLIS = 1000L
     }
