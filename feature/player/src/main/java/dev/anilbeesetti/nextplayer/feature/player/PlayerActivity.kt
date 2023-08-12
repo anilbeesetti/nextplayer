@@ -230,6 +230,7 @@ class PlayerActivity : AppCompatActivity() {
         setOrientation()
         initializePlayerView()
         playVideo()
+        playerGestureHelper.onStart()
         super.onStart()
     }
 

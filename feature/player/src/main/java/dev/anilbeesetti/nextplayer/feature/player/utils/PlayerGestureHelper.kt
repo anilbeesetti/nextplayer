@@ -342,6 +342,16 @@ class PlayerGestureHelper(
         }
     }
 
+    fun onStart() {
+        val maxStreamVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+        if (volumeTrackerValue > maxStreamVolume) {
+            activity.loudnessEnhancer?.enabled = true
+            val loudness = (volumeTrackerValue - maxStreamVolume) * (MAX_VOLUME_BOOST / maxStreamVolume)
+            activity.loudnessEnhancer?.setTargetGain(loudness.toInt())
+        }
+    }
+
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
