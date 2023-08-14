@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <FrameLayout
-        android:id="@+id/player_controls"
+        android:id="@+id/player_unlock_controls"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/player_background">
@@ -256,17 +256,24 @@
 
     </FrameLayout>
 
-    <ImageButton
-        android:id="@+id/btn_unlock_controls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-        android:background="@drawable/rounded_corner"
-        android:contentDescription="@string/controls_unlock"
-        android:fitsSystemWindows="true"
-        android:padding="12dp"
-        android:src="@drawable/ic_lock"
+    <FrameLayout
+        android:id="@+id/player_lock_controls"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:visibility="invisible"
-        app:tint="@android:color/white"
-        tools:visibility="visible" />
+        android:fitsSystemWindows="true">
+
+        <ImageButton
+            android:id="@+id/btn_unlock_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/dimen_controls_horizontal"
+            android:background="@drawable/rounded_corner"
+            android:contentDescription="@string/controls_unlock"
+            android:padding="12dp"
+            android:src="@drawable/ic_lock"
+            app:tint="@android:color/white" />
+
+    </FrameLayout>
+
 </FrameLayout>
