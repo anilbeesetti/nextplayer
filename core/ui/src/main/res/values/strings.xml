@@ -62,7 +62,7 @@
     <string name="smallest">Smallest</string>
     <string name="largest">Largest</string>
     <string name="dark_theme">Dark theme</string>
-    <string name="video_zoom">Video Zoom</string>
+    <string name="video_zoom">Video zoom</string>
     <string name="dynamic_theme">Dynamic color theme</string>
     <string name="dynamic_theme_description">Apply colors from system wallpaper to the application theme</string>
     <string name="controls_lock">Lock controls</string>
@@ -141,4 +141,8 @@
     <string name="delete_file">The following file will be deleted permanently</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="delete_folder">All video files in the following folder will be deleted permanently.</string>
+    <string name="best_fit">Best fit</string>
+    <string name="stretch">Stretch</string>
+    <string name="crop">Crop</string>
+    <string name="hundred_percent">100%</string>
 </resources>

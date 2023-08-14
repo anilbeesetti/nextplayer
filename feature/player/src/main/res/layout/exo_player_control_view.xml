@@ -178,7 +178,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:tint="@android:color/white" />
 
-
                 <ImageButton
                     android:id="@+id/btn_video_zoom"
                     android:layout_width="wrap_content"
@@ -187,7 +186,7 @@
                     android:background="@drawable/transparent_circle_background"
                     android:contentDescription="@string/video_zoom"
                     android:padding="12dp"
-                    android:src="@drawable/ic_aspect_ratio"
+                    android:src="@drawable/ic_fit_screen"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/btn_lock_controls"
                     app:layout_constraintTop_toTopOf="parent"
