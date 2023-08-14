@@ -670,26 +670,29 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun resetExoContentFrameWidthAndHeight() {
+        exoContentFrameLayout.layoutParams.width = binding.playerView.width
+        exoContentFrameLayout.layoutParams.height = binding.playerView.height
+        exoContentFrameLayout.requestLayout()
+    }
+
     private fun applyVideoZoom(videoZoom: VideoZoom) {
         viewModel.setVideoZoom(videoZoom)
         when (videoZoom) {
             VideoZoom.BEST_FIT -> {
-                exoContentFrameLayout.layoutParams.width = binding.playerView.width
-                exoContentFrameLayout.layoutParams.height = binding.playerView.height
+                resetExoContentFrameWidthAndHeight()
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
             }
 
             VideoZoom.STRETCH -> {
-                exoContentFrameLayout.layoutParams.width = binding.playerView.width
-                exoContentFrameLayout.layoutParams.height = binding.playerView.height
+                resetExoContentFrameWidthAndHeight()
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
             }
 
             VideoZoom.CROP -> {
-                exoContentFrameLayout.layoutParams.width = binding.playerView.width
-                exoContentFrameLayout.layoutParams.height = binding.playerView.height
+                resetExoContentFrameWidthAndHeight()
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
             }
@@ -698,6 +701,7 @@ class PlayerActivity : AppCompatActivity() {
                 currentVideoSize?.let {
                     exoContentFrameLayout.layoutParams.width = it.width
                     exoContentFrameLayout.layoutParams.height = it.height
+                    exoContentFrameLayout.requestLayout()
                 }
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_width_wide)
