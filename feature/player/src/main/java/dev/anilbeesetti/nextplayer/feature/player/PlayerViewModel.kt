@@ -12,6 +12,7 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -99,6 +100,12 @@ class PlayerViewModel @Inject constructor(
     fun setPlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }
+        }
+    }
+
+    fun setVideoZoom(videoZoom: VideoZoom) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = videoZoom) }
         }
     }
 

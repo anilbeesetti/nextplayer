@@ -53,6 +53,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
@@ -106,6 +107,7 @@ class PlayerActivity : AppCompatActivity() {
     private var isPlayingOnScrubStart: Boolean = false
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
+    private var currentVideoSize: VideoSize? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -138,6 +140,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private lateinit var audioTrackButton: ImageButton
     private lateinit var backButton: ImageButton
+    private lateinit var exoContentFrameLayout: AspectRatioFrameLayout
     private lateinit var lockControlsButton: ImageButton
     private lateinit var nextButton: ImageButton
     private lateinit var playbackSpeedButton: ImageButton
@@ -180,6 +183,7 @@ class PlayerActivity : AppCompatActivity() {
         // Initializing views
         audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
         backButton = binding.playerView.findViewById(R.id.back_button)
+        exoContentFrameLayout = binding.playerView.findViewById(R.id.exo_content_frame)
         lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
         nextButton = binding.playerView.findViewById(R.id.btn_play_next)
         playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
@@ -369,24 +373,9 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         videoZoomButton.setOnClickListener {
-            when(binding.playerView.resizeMode) {
-                AspectRatioFrameLayout.RESIZE_MODE_FIT -> {
-                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
-                }
-                AspectRatioFrameLayout.RESIZE_MODE_FILL -> {
-                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
-                }
-                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> {
-                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
-                }
-                else -> {
-                    binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
-                }
-            }
+            val videoZoom = playerPreferences.playerVideoZoom.next()
+            viewModel.setVideoZoom(videoZoom)
+            applyVideoZoom(videoZoom)
         }
         lockControlsButton.setOnClickListener {
             playerControls.visibility = View.INVISIBLE
@@ -495,6 +484,9 @@ class PlayerActivity : AppCompatActivity() {
 
         @SuppressLint("SourceLockedOrientationActivity")
         override fun onVideoSizeChanged(videoSize: VideoSize) {
+            currentVideoSize = videoSize
+            applyVideoZoom(playerPreferences.playerVideoZoom)
+
             if (currentOrientation != null) return
 
             if (playerPreferences.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
@@ -669,6 +661,38 @@ class PlayerActivity : AppCompatActivity() {
             }.build()
         }
     }
+
+
+    private fun applyVideoZoom(videoZoom: VideoZoom) {
+        when(videoZoom) {
+            VideoZoom.BEST_FIT -> {
+                exoContentFrameLayout.layoutParams.width = binding.playerView.width
+                exoContentFrameLayout.layoutParams.height = binding.playerView.height
+                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
+            }
+            VideoZoom.STRETCH -> {
+                exoContentFrameLayout.layoutParams.width = binding.playerView.width
+                exoContentFrameLayout.layoutParams.height = binding.playerView.height
+                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
+            }
+            VideoZoom.CROP -> {
+                exoContentFrameLayout.layoutParams.width = binding.playerView.width
+                exoContentFrameLayout.layoutParams.height = binding.playerView.height
+                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
+            }
+            VideoZoom.HUNDRED_PERCENT -> {
+                currentVideoSize?.let {
+                    exoContentFrameLayout.layoutParams.width = it.width
+                    exoContentFrameLayout.layoutParams.height = it.height
+                }
+                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_width_wide)
+            }
+        }
+    }
 }
 
 private val VideoSize.isPortrait: Boolean
@@ -716,4 +740,10 @@ fun Activity.prettyPrintIntent() {
             }
         }
     }
+}
+
+inline fun <reified T : Enum<T>> T.next(): T {
+    val values = enumValues<T>()
+    val nextOrdinal = (ordinal + 1) % values.size
+    return values[nextOrdinal]
 }
