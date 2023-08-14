@@ -5,7 +5,7 @@
     <string name="cancel">ਰੱਦ ਕਰੋ</string>
     <string name="descending">ਘਟਦੇ ਕ੍ਮ ਵਿੱਚ</string>
     <string name="disable">ਡਿਸੇਬਲ ਕਰੋ</string>
-    <string name="done">ਠੀਕ</string>
+    <string name="done">ਠੀਕ ਹੈ</string>
     <string name="double_tap">ਡਬਲ ਟੈਪ ਸੰਕੇਤ</string>
     <string name="double_tap_description">ਡਬਲ ਟੈਪ ਸੰਕੇਤ ਐਕਸ਼ਨ ਚੁਣੋ</string>
     <string name="fast_seek">ਫਾਸਟ ਸੀਕਿੰਗ</string>
@@ -139,4 +139,8 @@
     <string name="delete">ਮਿਟਾਓ</string>
     <string name="delete_file">ਹੇਠ ਦਿੱਤੀ ਫਾਇਲ ਸਥਾਈ ਤੌਰ ਤੇ ਮਿਟਾ ਦਿੱਤੀ ਜਾਵੇਗੀ</string>
     <string name="delete_folder">ਹੇਠਾਂ ਦਿੱਤੇ ਫ਼ੋਲਡਰ ਵਿੱਚ ਸਾਰੀਆਂ ਵੀਡੀਓ ਫਾਈਲਾਂ ਸਥਾਈ ਤੌਰ \'ਤੇ ਮਿਟਾ ਦਿੱਤੀਆਂ ਜਾਣਗੀਆਂ।</string>
+    <string name="stretch">ਫੈਲਾਓ</string>
+    <string name="crop">ਕਰੋਪ</string>
+    <string name="best_fit">ਵਧੀਆ ਫਿੱਟ</string>
+    <string name="hundred_percent">੧੦੦%</string>
 </resources>
