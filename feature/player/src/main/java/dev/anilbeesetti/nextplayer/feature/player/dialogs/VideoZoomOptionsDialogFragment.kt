@@ -14,7 +14,6 @@ class VideoZoomOptionsDialogFragment(
     private val onVideoZoomOptionSelected: (videoZoom: VideoZoom) -> Unit
 ) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-
         val videoZoomValues = VideoZoom.values()
 
         return activity?.let { activity ->
@@ -30,7 +29,6 @@ class VideoZoomOptionsDialogFragment(
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 }
-
 
 fun VideoZoom.nameRes(): Int {
     val stringRes = when (this) {
