@@ -54,10 +54,10 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
@@ -76,12 +76,13 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
-import java.nio.charset.Charset
-import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.nio.charset.Charset
+import java.util.Arrays
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -372,11 +373,6 @@ class PlayerActivity : AppCompatActivity() {
                 playVideo(playlistManager.getPrev()!!)
             }
         }
-        videoZoomButton.setOnClickListener {
-            val videoZoom = playerPreferences.playerVideoZoom.next()
-            viewModel.setVideoZoom(videoZoom)
-            applyVideoZoom(videoZoom)
-        }
         lockControlsButton.setOnClickListener {
             playerControls.visibility = View.INVISIBLE
             unlockControlsButton.visibility = View.VISIBLE
@@ -388,6 +384,18 @@ class PlayerActivity : AppCompatActivity() {
             playerControls.visibility = View.VISIBLE
             isControlsLocked = false
             toggleSystemBars(showBars = true)
+        }
+        videoZoomButton.setOnClickListener {
+            val videoZoom = playerPreferences.playerVideoZoom.next()
+            applyVideoZoom(videoZoom)
+        }
+
+        videoZoomButton.setOnLongClickListener {
+            VideoZoomOptionsDialogFragment(
+                currentVideoZoom = playerPreferences.playerVideoZoom,
+                onVideoZoomOptionSelected = { applyVideoZoom(it) }
+            ).show(supportFragmentManager, "VideoZoomOptionsDialog")
+            true
         }
         screenRotationButton.setOnClickListener {
             requestedOrientation = when (resources.configuration.orientation) {
@@ -664,25 +672,29 @@ class PlayerActivity : AppCompatActivity() {
 
 
     private fun applyVideoZoom(videoZoom: VideoZoom) {
-        when(videoZoom) {
+        viewModel.setVideoZoom(videoZoom)
+        when (videoZoom) {
             VideoZoom.BEST_FIT -> {
                 exoContentFrameLayout.layoutParams.width = binding.playerView.width
                 exoContentFrameLayout.layoutParams.height = binding.playerView.height
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
             }
+
             VideoZoom.STRETCH -> {
                 exoContentFrameLayout.layoutParams.width = binding.playerView.width
                 exoContentFrameLayout.layoutParams.height = binding.playerView.height
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
             }
+
             VideoZoom.CROP -> {
                 exoContentFrameLayout.layoutParams.width = binding.playerView.width
                 exoContentFrameLayout.layoutParams.height = binding.playerView.height
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
             }
+
             VideoZoom.HUNDRED_PERCENT -> {
                 currentVideoSize?.let {
                     exoContentFrameLayout.layoutParams.width = it.width
