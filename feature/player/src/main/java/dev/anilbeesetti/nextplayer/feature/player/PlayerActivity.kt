@@ -141,7 +141,8 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var lockControlsButton: ImageButton
     private lateinit var nextButton: ImageButton
     private lateinit var playbackSpeedButton: ImageButton
-    private lateinit var playerControls: FrameLayout
+    private lateinit var playerLockControls: FrameLayout
+    private lateinit var playerUnlockControls: FrameLayout
     private lateinit var prevButton: ImageButton
     private lateinit var screenRotationButton: ImageButton
     private lateinit var seekBar: TimeBar
@@ -183,7 +184,8 @@ class PlayerActivity : AppCompatActivity() {
         lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
         nextButton = binding.playerView.findViewById(R.id.btn_play_next)
         playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
-        playerControls = binding.playerView.findViewById(R.id.player_controls)
+        playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
+        playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
         prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
         screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
@@ -377,14 +379,14 @@ class PlayerActivity : AppCompatActivity() {
                 }
         }
         lockControlsButton.setOnClickListener {
-            playerControls.visibility = View.INVISIBLE
-            unlockControlsButton.visibility = View.VISIBLE
+            playerUnlockControls.visibility = View.INVISIBLE
+            playerLockControls.visibility = View.VISIBLE
             isControlsLocked = true
             toggleSystemBars(showBars = false)
         }
         unlockControlsButton.setOnClickListener {
-            unlockControlsButton.visibility = View.INVISIBLE
-            playerControls.visibility = View.VISIBLE
+            playerLockControls.visibility = View.INVISIBLE
+            playerUnlockControls.visibility = View.VISIBLE
             isControlsLocked = false
             toggleSystemBars(showBars = true)
         }
