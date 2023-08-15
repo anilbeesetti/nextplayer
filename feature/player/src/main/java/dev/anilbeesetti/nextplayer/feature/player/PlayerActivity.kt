@@ -108,7 +108,7 @@ class PlayerActivity : AppCompatActivity() {
     private var isPlayingOnScrubStart: Boolean = false
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
-    private var currentVideoSize: VideoSize? = null
+    var currentVideoSize: VideoSize? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -675,26 +675,26 @@ class PlayerActivity : AppCompatActivity() {
     private fun resetExoContentFrameWidthAndHeight() {
         exoContentFrameLayout.layoutParams.width = binding.playerView.width
         exoContentFrameLayout.layoutParams.height = binding.playerView.height
+        exoContentFrameLayout.scaleX = 1.0f
+        exoContentFrameLayout.scaleY = 1.0f
         exoContentFrameLayout.requestLayout()
     }
 
     private fun applyVideoZoom(videoZoom: VideoZoom) {
         viewModel.setVideoZoom(videoZoom)
+        resetExoContentFrameWidthAndHeight()
         when (videoZoom) {
             VideoZoom.BEST_FIT -> {
-                resetExoContentFrameWidthAndHeight()
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
             }
 
             VideoZoom.STRETCH -> {
-                resetExoContentFrameWidthAndHeight()
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
             }
 
             VideoZoom.CROP -> {
-                resetExoContentFrameWidthAndHeight()
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
             }

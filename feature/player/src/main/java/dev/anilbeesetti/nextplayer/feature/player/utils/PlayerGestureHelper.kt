@@ -8,27 +8,31 @@ import android.os.Build
 import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
+import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
-import kotlin.math.abs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import kotlin.math.abs
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -44,6 +48,8 @@ class PlayerGestureHelper(
     private val shouldFastSeek: Boolean
         get() = playerView.player?.duration?.let { prefs.shouldFastSeek(it) } == true
 
+    private var exoContentFrameLayout: AspectRatioFrameLayout = playerView.findViewById(R.id.exo_content_frame)
+
     private var volumeTrackerValue = -1f
     private var brightnessTrackerValue = -1f
     private var seeking = false
@@ -51,6 +57,7 @@ class PlayerGestureHelper(
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
+    private var scaleFactor = 1.0f
 
     private var gestureVolumeOpen = false
     private var gestureBrightnessOpen = false
@@ -249,6 +256,28 @@ class PlayerGestureHelper(
         }
     )
 
+
+    private val zoomGestureDetector = ScaleGestureDetector(
+        playerView.context,
+        object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            private val SCALE_RANGE = 0.25f..4.0f
+
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                activity.currentVideoSize?.let {
+                    val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / it.width.toFloat()
+
+                    Timber.d("scale: $currentVideoScale")
+                    if ((detector.scaleFactor >= 1.0f && currentVideoScale < 4.0f) || (detector.scaleFactor <= 1.0f && currentVideoScale > 0.25f)) {
+                        scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor).coerceIn(SCALE_RANGE)
+                        exoContentFrameLayout.scaleX = scaleFactor
+                        exoContentFrameLayout.scaleY = scaleFactor
+                    }
+                }
+                return true
+            }
+        }
+    )
+
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
             // hide the volume indicator
@@ -331,7 +360,7 @@ class PlayerGestureHelper(
                 }
 
                 2 -> {
-                    // Do nothing for now
+                    zoomGestureDetector.onTouchEvent(motionEvent)
                 }
             }
             releaseAction(motionEvent)
