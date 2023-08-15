@@ -31,6 +31,7 @@ import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.PlayCircleFilled
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.ResetTv
@@ -56,6 +57,7 @@ object NextIcons {
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val AudioTrack = Icons.Rounded.Audiotrack
+    val Autoplay = Icons.Rounded.PlayCircleFilled
     val Background = Icons.Rounded.FlipToBack
     val Bold = Icons.Rounded.FormatBold
     val Brightness = Icons.Rounded.BrightnessHigh
