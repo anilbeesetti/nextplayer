@@ -31,7 +31,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import kotlin.math.abs
 
 @UnstableApi
@@ -57,7 +56,6 @@ class PlayerGestureHelper(
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
-    private var scaleFactor = 1.0f
 
     private var gestureVolumeOpen = false
     private var gestureBrightnessOpen = false
@@ -264,11 +262,9 @@ class PlayerGestureHelper(
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
                 activity.currentVideoSize?.let {
-                    val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / it.width.toFloat()
-
-                    Timber.d("scale: $currentVideoScale")
-                    if ((detector.scaleFactor >= 1.0f && currentVideoScale < 4.0f) || (detector.scaleFactor <= 1.0f && currentVideoScale > 0.25f)) {
-                        scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor).coerceIn(SCALE_RANGE)
+                    val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
+                    val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / it.width.toFloat()
+                    if (updatedVideoScale in SCALE_RANGE) {
                         exoContentFrameLayout.scaleX = scaleFactor
                         exoContentFrameLayout.scaleY = scaleFactor
                     }
