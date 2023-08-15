@@ -21,7 +21,7 @@
     <string name="dark_theme">حالت تاریک</string>
     <string name="permission_settings">برنامه Next Player برای دسترسی و پخش رسانه به مجوز «%1$s» نیاز دارد. بدون آن، دسترسی به رسانه و پخش کار نخواهد کرد. برای استفاده کامل از برنامه، از تنظیمات اجازه دهید زیرا مجوز برای همیشه رد شده است.</string>
     <string name="resume_description">انتخاب کنید که آیا ویدیوهای پخش شده از نقطه‌ای که متوقف شده است از سر گرفته شود یا خیر</string>
-    <string name="player_name">پخش</string>
+    <string name="player_name">پخش کننده</string>
     <string name="remember_brightness_level_description">سطح روشنایی بین پخش‌ها را به خاطر بسپار</string>
     <string name="remember_selections">انتخاب‌ها را به خاطر بسپار</string>
     <string name="remember_selections_description">انتخاب‌های هر فایل مانند فایل صوتی، فایل زیرنویس و غیره را به خاطر بسپار</string>
@@ -38,7 +38,7 @@
     <string name="menu">فهرست</string>
     <string name="location">مکان</string>
     <string name="no_videos_found">هیچ فیلمی پیدا نشد</string>
-    <string name="open_settings">تنظیمات</string>
+    <string name="open_settings">باز کردن تنظیمات</string>
     <string name="navigate_up">پیمایش به بالا</string>
     <string name="permission_not_granted">مجوز اعطا نشده است</string>
     <string name="permission_info">برنامه Next Player برای دسترسی و پخش رسانه به مجوز «%1$s» نیاز دارد. بدون آن، دسترسی به رسانه و پخش کار نخواهد کرد. برای استفاده کامل از برنامه، اجازه دهید.</string>
@@ -71,7 +71,7 @@
     <string name="smallest">کوچک‌ترین</string>
     <string name="playback">پخش</string>
     <string name="controls_lock">قفل کنترل‌ها</string>
-    <string name="video_zoom">بزرگنمایی ویدیو</string>
+    <string name="video_zoom">زوم فیلم</string>
     <string name="dynamic_theme">تم پویا</string>
     <string name="controls_unlock">باز کردن کنترل‌ها</string>
     <string name="preferred_audio_lang">زبان صوتی ترجیحی</string>
@@ -139,4 +139,8 @@
     <string name="delete">حذف</string>
     <string name="delete_file">فایل زیر برای همیشه حذف خواهد شد</string>
     <string name="delete_folder">تمامی فایل های ویدیویی موجود در پوشه زیر برای همیشه حذف خواهند شد.</string>
+    <string name="best_fit">بهترین تناسب</string>
+    <string name="stretch">کشیده</string>
+    <string name="crop">بُرش</string>
+    <string name="hundred_percent">۱۰۰٪</string>
 </resources>
