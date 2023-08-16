@@ -32,6 +32,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -261,12 +262,17 @@ class PlayerGestureHelper(
             private val SCALE_RANGE = 0.25f..4.0f
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                activity.currentVideoSize?.let {
+                activity.currentVideoSize?.let { videoSize ->
                     val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
-                    val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / it.width.toFloat()
+                    val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / videoSize.width.toFloat()
                     if (updatedVideoScale in SCALE_RANGE) {
                         exoContentFrameLayout.scaleX = scaleFactor
                         exoContentFrameLayout.scaleY = scaleFactor
+                    }
+                    val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
+                    with(activity.binding) {
+                        progressScrubberLayout.visibility = View.VISIBLE
+                        "${(currentVideoScale * 100).roundToInt()}%".also { seekProgressText.text = it }
                     }
                 }
                 return true
