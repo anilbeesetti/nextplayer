@@ -261,6 +261,8 @@ class PlayerGestureHelper(
             private val SCALE_RANGE = 0.25f..4.0f
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
+                if (activity.isControlsLocked) return false
+
                 activity.currentVideoSize?.let { videoSize ->
                     val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
                     val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / videoSize.width.toFloat()
