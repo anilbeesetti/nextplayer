@@ -143,4 +143,6 @@
     <string name="crop">Περικοπή</string>
     <string name="hundred_percent">100%</string>
     <string name="best_fit">Ταίριασμα</string>
+    <string name="autoplay_settings">Αυτόματη αναπαραγωγή</string>
+    <string name="autoplay_settings_description">Αυτόματη αναπαραγωγή του επόμενου βίντεο στον φάκελο</string>
 </resources>
