@@ -112,6 +112,11 @@ fun PlayerPreferencesScreen(
                 currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) }
             )
+            autoplaySetting(
+                isChecked = preferences.autoplay,
+                onClick = viewModel::toggleAutoplay
+            )
+
             rememberBrightnessSetting(
                 isChecked = preferences.rememberPlayerBrightness,
                 onClick = viewModel::toggleRememberBrightnessLevel
@@ -419,7 +424,20 @@ fun LazyListScope.defaultPlaybackSpeedSetting(
     )
 }
 
-fun LazyListScope.rememberBrightnessSetting(
+fun LazyListScope.autoplaySetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.autoplay_settings),
+        description = stringResource(
+            id = R.string.autoplay_settings_description
+        ),
+        icon = NextIcons.Player,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+} fun LazyListScope.rememberBrightnessSetting(
     isChecked: Boolean,
     onClick: () -> Unit
 ) = item {

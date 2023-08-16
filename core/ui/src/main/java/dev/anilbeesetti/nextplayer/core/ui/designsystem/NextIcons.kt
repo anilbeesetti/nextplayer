@@ -1,11 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.ui.designsystem
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Check
@@ -47,15 +45,12 @@ import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
-import androidx.compose.material.icons.rounded.VideoSettings
 
 object NextIcons {
-    val Add = Icons.Rounded.Add
     val Appearance = Icons.Rounded.Palette
     val ArrowBack = Icons.Rounded.ArrowBack
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
-    val AudioTrack = Icons.Rounded.Audiotrack
     val Background = Icons.Rounded.FlipToBack
     val Bold = Icons.Rounded.FormatBold
     val Brightness = Icons.Rounded.BrightnessHigh
@@ -65,7 +60,6 @@ object NextIcons {
     val DarkMode = Icons.Rounded.DarkMode
     val DashBoard = Icons.Rounded.Dashboard
     val Decoder = Icons.Rounded.DeveloperBoard
-    val DecoderVideo = Icons.Rounded.VideoSettings
     val Delete = Icons.Rounded.Delete
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Fast = Icons.Rounded.FastForward

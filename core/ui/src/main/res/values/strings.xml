@@ -35,6 +35,8 @@
     <string name="player_description">Player appearance, playback controls</string>
     <string name="player_name">Player</string>
     <string name="quick_settings">Quick Settings</string>
+    <string name="autoplay_settings">Autoplay</string>
+    <string name="autoplay_settings_description">Automatically play the next video in the current folder</string>
     <string name="remember_brightness_level">Remember brightness level</string>
     <string name="remember_brightness_level_description">Remember brightness level between playback sessions</string>
     <string name="remember_selections">Remember selections</string>

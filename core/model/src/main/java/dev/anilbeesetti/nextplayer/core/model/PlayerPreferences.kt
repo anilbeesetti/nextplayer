@@ -19,6 +19,7 @@ data class PlayerPreferences(
     val defaultPlaybackSpeed: Float = 1.0f,
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
+    val autoplay: Boolean = true,
 
     // Subtitle Preferences
     val preferredSubtitleLanguage: String = "",

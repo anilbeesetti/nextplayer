@@ -534,7 +534,9 @@ class PlayerActivity : AppCompatActivity() {
                     isPlaybackFinished = true
                     if (playlistManager.hasNext()) {
                         playlistManager.getCurrent()?.let { savePlayerState(it) }
-                        playVideo(playlistManager.getNext()!!)
+                        if (playerPreferences.autoplay) {
+                            playVideo(playlistManager.getNext()!!)
+                        }
                     } else {
                         finish()
                     }
