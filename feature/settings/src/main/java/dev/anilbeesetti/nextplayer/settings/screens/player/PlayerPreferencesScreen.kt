@@ -433,7 +433,7 @@ fun LazyListScope.autoplaySetting(
         description = stringResource(
             id = R.string.autoplay_settings_description
         ),
-        icon = NextIcons.Autoplay,
+        icon = NextIcons.Player,
         isChecked = isChecked,
         onClick = onClick
     )
