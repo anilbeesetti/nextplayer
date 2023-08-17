@@ -33,6 +33,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -66,6 +67,7 @@ class PlayerGestureHelper(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
+                Timber.d("single tap")
                 with(playerView) {
                     if (!isControllerFullyVisible) showController() else hideController()
                 }
@@ -132,6 +134,7 @@ class PlayerGestureHelper(
                 if (currentGestureAction == null) {
                     seekChange = 0L
                     seekStart = playerView.player?.currentPosition ?: 0L
+                    playerView.controllerAutoShow = playerView.isControllerFullyVisible
                     if (playerView.player?.isPlaying == true) {
                         playerView.player?.pause()
                         isPlayingOnSeekStart = true
@@ -139,8 +142,6 @@ class PlayerGestureHelper(
                     currentGestureAction = GestureAction.SEEK
                 }
                 if (currentGestureAction != GestureAction.SEEK) return false
-
-                playerView.controllerAutoShow = playerView.isControllerFullyVisible
 
                 val distanceDiff = abs(Utils.pxToDp(distanceX) / 4).coerceIn(0.5f, 10f)
                 val change = (distanceDiff * SEEK_STEP_MS).toLong()
