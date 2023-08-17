@@ -143,4 +143,6 @@
     <string name="crop">ਕਰੋਪ</string>
     <string name="best_fit">ਵਧੀਆ ਫਿੱਟ</string>
     <string name="hundred_percent">੧੦੦%</string>
+    <string name="autoplay_settings">ਆਟੋ-ਪਲੇਅ</string>
+    <string name="autoplay_settings_description">ਮੌਜੂਦਾ ਫੋਲਡਰ ਵਿੱਚ ਆਪਣੇ ਆਪ ਅਗਲੀ ਵੀਡੀਓ ਚਲਾਓ</string>
 </resources>
