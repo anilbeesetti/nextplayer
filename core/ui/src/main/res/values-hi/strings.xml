@@ -143,4 +143,6 @@
     <string name="crop">क्रोप</string>
     <string name="hundred_percent">१००%</string>
     <string name="best_fit">बेस्ट फिट</string>
+    <string name="autoplay_settings">स्वत: प्ले</string>
+    <string name="autoplay_settings_description">वर्तमान फ़ोल्डर में अगला वीडियो स्वचालित रूप से चलाएं</string>
 </resources>
