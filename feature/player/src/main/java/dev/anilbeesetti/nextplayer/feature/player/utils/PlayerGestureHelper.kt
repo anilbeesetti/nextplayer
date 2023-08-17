@@ -52,14 +52,12 @@ class PlayerGestureHelper(
 
     private var volumeTrackerValue = -1f
     private var brightnessTrackerValue = -1f
+    private var currentGestureAction: GestureAction? = null
     private var seeking = false
     private var seekStart = 0L
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
-
-    private var gestureVolumeOpen = false
-    private var gestureBrightnessOpen = false
 
     private var hideVolumeGestureJob: Job? = null
     private var hideBrightnessGestureJob: Job? = null
@@ -126,22 +124,23 @@ class PlayerGestureHelper(
             ): Boolean {
                 if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
+                if (!prefs.useSeekControls) return false
                 if (activity.isControlsLocked) return false
-
-                if (gestureVolumeOpen || gestureBrightnessOpen) return false
+                if (!activity.isFileLoaded) return false
                 if (abs(distanceX / distanceY) < 2) return false
 
-                playerView.controllerAutoShow = playerView.isControllerFullyVisible
-
-                if (!seeking) {
+                if (currentGestureAction == null) {
                     seekChange = 0L
                     seekStart = playerView.player?.currentPosition ?: 0L
                     if (playerView.player?.isPlaying == true) {
                         playerView.player?.pause()
                         isPlayingOnSeekStart = true
                     }
-                    seeking = true
+                    currentGestureAction = GestureAction.SEEK
                 }
+                if (currentGestureAction != GestureAction.SEEK) return false
+
+                playerView.controllerAutoShow = playerView.isControllerFullyVisible
 
                 val distanceDiff = abs(Utils.pxToDp(distanceX) / 4).coerceIn(0.5f, 10f)
                 val change = (distanceDiff * SEEK_STEP_MS).toLong()
@@ -161,6 +160,7 @@ class PlayerGestureHelper(
                         seekBack(positionMs = position, shouldFastSeek = shouldFastSeek)
                     }
                 }
+
                 with(activity.binding) {
                     progressScrubberLayout.visibility = View.VISIBLE
                     seekProgressText.text = Utils.formatDurationMillisSign(seekChange)
@@ -181,10 +181,14 @@ class PlayerGestureHelper(
             ): Boolean {
                 if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
+                if (!prefs.useSwipeControls) return false
                 if (activity.isControlsLocked) return false
-
-                if (seeking) return false
                 if (abs(distanceY / distanceX) < 2) return false
+
+                if (currentGestureAction == null) {
+                    currentGestureAction = GestureAction.SWIPE
+                }
+                if (currentGestureAction != GestureAction.SWIPE) return false
 
                 val viewCenterX = playerView.measuredWidth / 2
                 val distanceFull = playerView.measuredHeight * FULL_SWIPE_RANGE_SCREEN_RATIO
@@ -219,7 +223,6 @@ class PlayerGestureHelper(
                         volumeProgressBar.max = maxVolume.times(100)
                         volumeProgressBar.progress = volumeTrackerValue.times(100).toInt()
                         volumeProgressText.text = volumePercentage.toString()
-                        gestureVolumeOpen = true
                     }
                 } else {
                     hideBrightnessGestureJob?.cancel()
@@ -247,7 +250,6 @@ class PlayerGestureHelper(
                         brightnessProgressBar.max = maxBrightness.times(100).toInt()
                         brightnessProgressBar.progress = brightnessTrackerValue.times(100).toInt()
                         brightnessProgressText.text = brightnessPercentage.toString()
-                        gestureBrightnessOpen = true
                     }
                 }
                 return true
@@ -262,6 +264,11 @@ class PlayerGestureHelper(
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
                 if (activity.isControlsLocked) return false
+
+                if (currentGestureAction == null) {
+                    currentGestureAction = GestureAction.ZOOM
+                }
+                if (currentGestureAction != GestureAction.ZOOM) return false
 
                 activity.currentVideoSize?.let { videoSize ->
                     val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
@@ -290,7 +297,6 @@ class PlayerGestureHelper(
                         delay(HIDE_DELAY_MILLIS)
                         visibility = View.GONE
                     }
-                    gestureVolumeOpen = false
                 }
             }
             // hide the brightness indicator
@@ -303,7 +309,6 @@ class PlayerGestureHelper(
                     if (prefs.rememberPlayerBrightness) {
                         viewModel.setPlayerBrightness(activity.window.attributes.screenBrightness)
                     }
-                    gestureBrightnessOpen = false
                 }
             }
 
@@ -317,6 +322,7 @@ class PlayerGestureHelper(
                 }
             }
             seeking = false
+            currentGestureAction = null
         }
     }
 
@@ -354,12 +360,8 @@ class PlayerGestureHelper(
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
-                    if (prefs.useSwipeControls) {
-                        volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
-                    }
-                    if (prefs.useSeekControls && activity.isFileLoaded) {
-                        seekGestureDetector.onTouchEvent(motionEvent)
-                    }
+                    volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
+                    seekGestureDetector.onTouchEvent(motionEvent)
                 }
 
                 2 -> {
@@ -400,3 +402,7 @@ val Activity.currentBrightness: Float
     }
 
 inline val Int.toMillis get() = this * 1000
+
+enum class GestureAction {
+    SWIPE, SEEK, ZOOM
+}
