@@ -5,8 +5,8 @@ import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
-import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBinding
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
+import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBinding
 
 class PlaybackSpeedControlsDialogFragment(
     private val currentSpeed: Float,
