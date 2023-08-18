@@ -41,7 +41,6 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
-import com.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -77,6 +76,7 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
+import io.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import java.nio.charset.Charset
 import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
