@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -260,7 +261,7 @@ fun PlayerPreferencesScreen(
                         Slider(
                             value = defaultPlaybackSpeed,
                             onValueChange = {
-                                defaultPlaybackSpeed = String.format("%.1f", it).toFloat()
+                                defaultPlaybackSpeed = it.round(2)
                             },
                             valueRange = 0.2f..4.0f,
                             steps = 37
