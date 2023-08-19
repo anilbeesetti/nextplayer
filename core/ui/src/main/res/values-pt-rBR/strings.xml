@@ -139,4 +139,5 @@
     <string name="delete">Excluir</string>
     <string name="delete_file">O seguinte arquivo será excluído permanentemente</string>
     <string name="delete_folder">Todos os arquivos de vídeo na pasta a seguir serão excluídos permanentemente.</string>
+    <string name="autoplay_settings">Reprodução automática</string>
 </resources>
