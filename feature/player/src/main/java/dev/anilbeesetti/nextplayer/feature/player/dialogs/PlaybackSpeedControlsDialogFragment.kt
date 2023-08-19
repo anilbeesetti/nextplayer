@@ -21,9 +21,9 @@ class PlaybackSpeedControlsDialogFragment(
         return activity?.let { activity ->
             binding.apply {
                 speedText.text = currentSpeed.toString()
-                speed.value = currentSpeed.round(2)
+                speed.value = currentSpeed.round(1)
                 speed.addOnChangeListener { _, _, _ ->
-                    val newSpeed = speed.value.round(2)
+                    val newSpeed = speed.value.round(1)
                     onChange(newSpeed)
                     speedText.text = newSpeed.toString()
                 }
@@ -32,12 +32,12 @@ class PlaybackSpeedControlsDialogFragment(
                 }
                 incSpeed.setOnClickListener {
                     if (speed.value < 4.0f) {
-                        speed.value = (speed.value + 0.1f).round(2)
+                        speed.value = (speed.value + 0.1f).round(1)
                     }
                 }
                 decSpeed.setOnClickListener {
                     if (speed.value > 0.2f) {
-                        speed.value = (speed.value - 0.1f).round(2)
+                        speed.value = (speed.value - 0.1f).round(1)
                     }
                 }
             }
