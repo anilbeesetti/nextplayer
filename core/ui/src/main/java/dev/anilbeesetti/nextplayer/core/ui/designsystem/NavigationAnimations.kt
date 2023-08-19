@@ -10,5 +10,4 @@ object NavigationAnimations {
 
     val slideEnter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(tween(300))
     val slideExit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(tween(300))
-
 }
