@@ -31,7 +31,7 @@ fun NavGraphBuilder.settingsNavGraph(
         route = SETTINGS_ROUTE
     ) {
         settingsScreen(
-            onNavigateUp = navController::popBackStack,
+            onNavigateUp = navController::navigateUp,
             onItemClick = { setting ->
                 when (setting) {
                     Setting.APPEARANCE -> navController.navigateToAppearancePreferences()
@@ -44,26 +44,26 @@ fun NavGraphBuilder.settingsNavGraph(
             }
         )
         appearancePreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         mediaLibraryPreferencesScreen(
-            onNavigateUp = navController::popBackStack,
+            onNavigateUp = navController::navigateUp,
             onFolderSettingClick = navController::navigateToFolderPreferencesScreen
         )
         folderPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         playerPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         decoderPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         subtitlePreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         aboutPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
     }
 }
