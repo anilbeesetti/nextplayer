@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -675,8 +676,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun resetExoContentFrameWidthAndHeight() {
-        exoContentFrameLayout.layoutParams.width = binding.playerView.width
-        exoContentFrameLayout.layoutParams.height = binding.playerView.height
+        exoContentFrameLayout.layoutParams.width = LayoutParams.MATCH_PARENT
+        exoContentFrameLayout.layoutParams.height = LayoutParams.MATCH_PARENT
         exoContentFrameLayout.scaleX = 1.0f
         exoContentFrameLayout.scaleY = 1.0f
         exoContentFrameLayout.requestLayout()
