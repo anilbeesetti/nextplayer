@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NavigationAnimations
 import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.SettingsScreen
 
@@ -14,7 +15,12 @@ fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.settingsScreen(onNavigateUp: () -> Unit, onItemClick: (Setting) -> Unit) {
-    composable(route = settingsNavigationRoute) {
+    composable(
+        route = settingsNavigationRoute,
+        enterTransition = { NavigationAnimations.slideEnter },
+        popExitTransition = { NavigationAnimations.slideExit },
+        popEnterTransition = null
+    ) {
         SettingsScreen(onNavigateUp = onNavigateUp, onItemClick = onItemClick)
     }
 }
