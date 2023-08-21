@@ -16,7 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -242,7 +243,7 @@ fun PlayerPreferencesScreen(
 
             PlayerPreferenceDialog.PlaybackSpeedDialog -> {
                 var defaultPlaybackSpeed by remember {
-                    mutableStateOf(preferences.defaultPlaybackSpeed)
+                    mutableFloatStateOf(preferences.defaultPlaybackSpeed)
                 }
 
                 NextDialogWithDoneAndCancelButtons(
@@ -272,7 +273,7 @@ fun PlayerPreferencesScreen(
 
             PlayerPreferenceDialog.ControllerTimeoutDialog -> {
                 var controllerAutoHideSec by remember {
-                    mutableStateOf(preferences.controllerAutoHideTimeout)
+                    mutableIntStateOf(preferences.controllerAutoHideTimeout)
                 }
 
                 NextDialogWithDoneAndCancelButtons(
@@ -302,7 +303,7 @@ fun PlayerPreferencesScreen(
 
             PlayerPreferenceDialog.SeekIncrementDialog -> {
                 var seekIncrement by remember {
-                    mutableStateOf(preferences.seekIncrement)
+                    mutableIntStateOf(preferences.seekIncrement)
                 }
 
                 NextDialogWithDoneAndCancelButtons(

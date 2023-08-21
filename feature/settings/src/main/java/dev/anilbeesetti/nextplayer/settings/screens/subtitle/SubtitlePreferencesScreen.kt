@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -148,7 +148,7 @@ fun SubtitlePreferencesScreen(
             }
 
             SubtitlePreferenceDialog.SubtitleSizeDialog -> {
-                var size by remember { mutableStateOf(preferences.subtitleTextSize) }
+                var size by remember { mutableIntStateOf(preferences.subtitleTextSize) }
 
                 NextDialog(
                     onDismissRequest = viewModel::hideDialog,
