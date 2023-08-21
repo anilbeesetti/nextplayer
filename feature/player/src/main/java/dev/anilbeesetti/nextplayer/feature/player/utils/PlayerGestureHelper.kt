@@ -264,6 +264,7 @@ class PlayerGestureHelper(
             private val SCALE_RANGE = 0.25f..4.0f
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
+                if (!prefs.useZoomControls) return false
                 if (activity.isControlsLocked) return false
 
                 if (currentGestureAction == null) {

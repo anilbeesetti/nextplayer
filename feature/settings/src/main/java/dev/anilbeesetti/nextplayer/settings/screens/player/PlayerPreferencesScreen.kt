@@ -89,6 +89,10 @@ fun PlayerPreferencesScreen(
                 isChecked = preferences.useSwipeControls,
                 onClick = viewModel::toggleSwipeControls
             )
+            zoomGestureSetting(
+                isChecked = preferences.useZoomControls,
+                onClick = viewModel::toggleZoomControls
+            )
             doubleTapGestureSetting(
                 isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
                 onChecked = viewModel::toggleDoubleTapGesture,
@@ -352,6 +356,19 @@ fun LazyListScope.swipeGestureSetting(
         title = stringResource(id = R.string.swipe_gesture),
         description = stringResource(id = R.string.swipe_gesture_description),
         icon = NextIcons.SwipeVertical,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.zoomGestureSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.zoom_gesture),
+        description = stringResource(id = R.string.zoom_gesture_description),
+        icon = NextIcons.Pinch,
         isChecked = isChecked,
         onClick = onClick
     )

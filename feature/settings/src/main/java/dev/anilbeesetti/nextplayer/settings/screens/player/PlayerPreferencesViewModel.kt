@@ -134,19 +134,17 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateAudioLanguage(value: String) {
+    fun toggleZoomControls() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(preferredAudioLanguage = value) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useZoomControls = !it.useZoomControls)
+            }
         }
     }
 
-    fun updateSubtitleLanguage(value: String) {
+    fun updateAudioLanguage(value: String) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    preferredSubtitleLanguage = value
-                )
-            }
+            preferencesRepository.updatePlayerPreferences { it.copy(preferredAudioLanguage = value) }
         }
     }
 
