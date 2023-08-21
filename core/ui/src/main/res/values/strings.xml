@@ -147,4 +147,6 @@
     <string name="stretch">Stretch</string>
     <string name="crop">Crop</string>
     <string name="hundred_percent">100%</string>
+    <string name="zoom_gesture">Zoom gesture</string>
+    <string name="zoom_gesture_description">Pinch to zoom the video</string>
 </resources>

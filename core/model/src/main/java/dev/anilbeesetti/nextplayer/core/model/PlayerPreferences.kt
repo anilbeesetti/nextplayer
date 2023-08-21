@@ -12,6 +12,7 @@ data class PlayerPreferences(
     val minDurationForFastSeek: Long = 120000L,
     val useSwipeControls: Boolean = true,
     val useSeekControls: Boolean = true,
+    val useZoomControls: Boolean = true,
     val rememberSelections: Boolean = true,
     val preferredAudioLanguage: String = "",
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,

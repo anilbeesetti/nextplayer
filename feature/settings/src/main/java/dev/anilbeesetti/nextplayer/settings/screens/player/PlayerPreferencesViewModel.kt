@@ -110,10 +110,26 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleSwipeControls() {
+    fun toggleUseSwipeControls() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(useSwipeControls = !it.useSwipeControls)
+            }
+        }
+    }
+
+    fun toggleUseSeekControls() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSeekControls = !it.useSeekControls)
+            }
+        }
+    }
+
+    fun toggleUseZoomControls() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useZoomControls = !it.useZoomControls)
             }
         }
     }
@@ -126,27 +142,9 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleSeekControls() {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(useSeekControls = !it.useSeekControls)
-            }
-        }
-    }
-
     fun updateAudioLanguage(value: String) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(preferredAudioLanguage = value) }
-        }
-    }
-
-    fun updateSubtitleLanguage(value: String) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    preferredSubtitleLanguage = value
-                )
-            }
         }
     }
 
