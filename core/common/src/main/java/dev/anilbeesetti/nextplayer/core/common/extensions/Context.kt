@@ -16,9 +16,6 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.text.isDigitsOnly
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -28,6 +25,9 @@ import java.io.InputStreamReader
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
