@@ -134,4 +134,17 @@
     <string name="controller_timeout">Kontroller-tidsavbrudd</string>
     <string name="seconds">%1$s sekunder</string>
     <string name="seek_increment">Blafringsinkrement</string>
+    <string name="hundred_percent">100%</string>
+    <string name="autoplay_settings">Autospilling</string>
+    <string name="autoplay_settings_description">Spill neste video i aktuell mappe automatisk</string>
+    <string name="delete">Slett</string>
+    <string name="delete_file">Følgende fil vil bli slettet for godt</string>
+    <string name="best_fit">Beste passform</string>
+    <string name="stretch">Strekk</string>
+    <string name="subtitle_text_encoding">Tegnkoding for undertekster</string>
+    <string name="delete_folder">Alle videofiler i følgende mappe vil bli slettet for godt.</string>
+    <string name="crop">Beskjær</string>
+    <string name="zoom_gesture">Forstørrelseshåndvending</string>
+    <string name="zoom_gesture_description">Klyp for å forstørre videoen</string>
+    <string name="share">Del</string>
 </resources>
