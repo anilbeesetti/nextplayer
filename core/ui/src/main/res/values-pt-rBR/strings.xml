@@ -132,11 +132,17 @@
     <string name="embedded_styles">Estilos embutidos</string>
     <string name="embedded_styles_desc">Aplicar os estilos embutidos que estão presentes em arquivos de legendas, como ASS e assim por diante</string>
     <string name="controller_timeout">Tempo limite do controlador</string>
-    <string name="seek_increment">Procurar incremento</string>
+    <string name="seek_increment">Retroceder/avançar</string>
     <string name="seconds">%1$s segundos</string>
     <string name="subtitle_text_encoding">Codificação do texto da legenda</string>
     <string name="share">Compartilhar</string>
     <string name="delete">Excluir</string>
     <string name="delete_file">O seguinte arquivo será excluído permanentemente</string>
     <string name="delete_folder">Todos os arquivos de vídeo na pasta a seguir serão excluídos permanentemente.</string>
+    <string name="autoplay_settings">Reprodução automática</string>
+    <string name="best_fit">Melhor ajuste</string>
+    <string name="stretch">Esticar</string>
+    <string name="crop">Cortar</string>
+    <string name="hundred_percent">100%</string>
+    <string name="autoplay_settings_description">Reproduzir automaticamente o próximo vídeo da pasta atual</string>
 </resources>
