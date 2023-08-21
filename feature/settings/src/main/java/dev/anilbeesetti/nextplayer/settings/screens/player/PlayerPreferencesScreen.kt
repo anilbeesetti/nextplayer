@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -41,7 +42,6 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
-import java.lang.Exception
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -259,11 +259,8 @@ fun PlayerPreferencesScreen(
                         )
                         Slider(
                             value = defaultPlaybackSpeed,
-                            onValueChange = {
-                                defaultPlaybackSpeed = String.format("%.1f", it).toFloat()
-                            },
-                            valueRange = 0.2f..4.0f,
-                            steps = 37
+                            onValueChange = { defaultPlaybackSpeed = it.round(1) },
+                            valueRange = 0.2f..4.0f
                         )
                     }
                 )
@@ -293,8 +290,7 @@ fun PlayerPreferencesScreen(
                         Slider(
                             value = controllerAutoHideSec.toFloat(),
                             onValueChange = { controllerAutoHideSec = it.toInt() },
-                            valueRange = 1.0f..60.0f,
-                            steps = 60
+                            valueRange = 1.0f..60.0f
                         )
                     }
                 )
@@ -324,8 +320,7 @@ fun PlayerPreferencesScreen(
                         Slider(
                             value = seekIncrement.toFloat(),
                             onValueChange = { seekIncrement = it.toInt() },
-                            valueRange = 1.0f..60.0f,
-                            steps = 60
+                            valueRange = 1.0f..60.0f
                         )
                     }
                 )
@@ -437,7 +432,9 @@ fun LazyListScope.autoplaySetting(
         isChecked = isChecked,
         onClick = onClick
     )
-} fun LazyListScope.rememberBrightnessSetting(
+}
+
+fun LazyListScope.rememberBrightnessSetting(
     isChecked: Boolean,
     onClick: () -> Unit
 ) = item {
