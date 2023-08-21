@@ -83,15 +83,15 @@ fun PlayerPreferencesScreen(
             }
             seekGestureSetting(
                 isChecked = preferences.useSeekControls,
-                onClick = viewModel::toggleSeekControls
+                onClick = viewModel::toggleUseSeekControls
             )
             swipeGestureSetting(
                 isChecked = preferences.useSwipeControls,
-                onClick = viewModel::toggleSwipeControls
+                onClick = viewModel::toggleUseSwipeControls
             )
             zoomGestureSetting(
                 isChecked = preferences.useZoomControls,
-                onClick = viewModel::toggleZoomControls
+                onClick = viewModel::toggleUseZoomControls
             )
             doubleTapGestureSetting(
                 isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
