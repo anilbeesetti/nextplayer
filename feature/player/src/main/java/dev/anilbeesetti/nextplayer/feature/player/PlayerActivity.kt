@@ -28,6 +28,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.doOnLayout
+import androidx.core.view.updatePaddingRelative
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -207,7 +208,7 @@ class PlayerActivity : AppCompatActivity() {
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
 
         playerCenterControls.doOnLayout {
-            binding.infoLayout.setPadding(0, 0, 0, it.measuredHeight + 50)
+            binding.infoLayout.updatePaddingRelative(bottom = it.measuredHeight)
         }
 
         seekBar.addListener(object : TimeBar.OnScrubListener {
