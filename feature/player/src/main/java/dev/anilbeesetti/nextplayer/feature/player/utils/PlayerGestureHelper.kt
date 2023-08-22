@@ -320,7 +320,6 @@ class PlayerGestureHelper(
                     if (isPlayingOnSeekStart) playerView.player?.play()
                     playerView.controllerAutoShow = true
                     isPlayingOnSeekStart = false
-                    seeking = false
                 }
             }
             seeking = false
