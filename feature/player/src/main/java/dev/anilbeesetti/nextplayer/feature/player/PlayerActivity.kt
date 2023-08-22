@@ -290,6 +290,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun initializePlayerView() {
         binding.playerView.apply {
+            setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
             player = this@PlayerActivity.player
             controllerShowTimeoutMs = playerPreferences.controllerAutoHideTimeout.toMillis
             setControllerVisibilityListener(
