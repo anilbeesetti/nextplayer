@@ -18,6 +18,7 @@ import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
@@ -26,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -60,6 +62,7 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsD
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
@@ -81,6 +84,7 @@ import io.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import java.nio.charset.Charset
 import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -148,6 +152,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playbackSpeedButton: ImageButton
     private lateinit var playerLockControls: FrameLayout
     private lateinit var playerUnlockControls: FrameLayout
+    private lateinit var playerCenterControls: LinearLayout
     private lateinit var prevButton: ImageButton
     private lateinit var screenRotationButton: ImageButton
     private lateinit var seekBar: TimeBar
@@ -192,6 +197,7 @@ class PlayerActivity : AppCompatActivity() {
         playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
         playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
         playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
+        playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
         prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
         screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
@@ -199,6 +205,10 @@ class PlayerActivity : AppCompatActivity() {
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
+
+        playerCenterControls.doOnLayout {
+            binding.infoLayout.setPadding(0, 0, 0, it.measuredHeight + 50)
+        }
 
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
@@ -390,13 +400,13 @@ class PlayerActivity : AppCompatActivity() {
         }
         videoZoomButton.setOnClickListener {
             val videoZoom = playerPreferences.playerVideoZoom.next()
-            applyVideoZoom(videoZoom)
+            applyVideoZoom(videoZoom = videoZoom, showInfo = true)
         }
 
         videoZoomButton.setOnLongClickListener {
             VideoZoomOptionsDialogFragment(
                 currentVideoZoom = playerPreferences.playerVideoZoom,
-                onVideoZoomOptionSelected = { applyVideoZoom(it) }
+                onVideoZoomOptionSelected = { applyVideoZoom(videoZoom = it, showInfo = true) }
             ).show(supportFragmentManager, "VideoZoomOptionsDialog")
             true
         }
@@ -496,7 +506,7 @@ class PlayerActivity : AppCompatActivity() {
         @SuppressLint("SourceLockedOrientationActivity")
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             currentVideoSize = videoSize
-            applyVideoZoom(playerPreferences.playerVideoZoom)
+            applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
 
             if (currentOrientation != null) return
 
@@ -683,7 +693,7 @@ class PlayerActivity : AppCompatActivity() {
         exoContentFrameLayout.requestLayout()
     }
 
-    private fun applyVideoZoom(videoZoom: VideoZoom) {
+    private fun applyVideoZoom(videoZoom: VideoZoom, showInfo: Boolean) {
         viewModel.setVideoZoom(videoZoom)
         resetExoContentFrameWidthAndHeight()
         when (videoZoom) {
@@ -710,6 +720,14 @@ class PlayerActivity : AppCompatActivity() {
                 }
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_width_wide)
+            }
+        }
+        if (showInfo) {
+            lifecycleScope.launch {
+                binding.infoLayout.visibility = View.VISIBLE
+                binding.infoText.text = getString(videoZoom.nameRes())
+                delay(1000L)
+                binding.infoLayout.visibility = View.GONE
             }
         }
     }
