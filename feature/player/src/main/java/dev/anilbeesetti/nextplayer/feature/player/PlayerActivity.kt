@@ -563,6 +563,7 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onRenderedFirstFrame() {
             isFirstFrameRendered = true
+            binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
             super.onRenderedFirstFrame()
         }
 
