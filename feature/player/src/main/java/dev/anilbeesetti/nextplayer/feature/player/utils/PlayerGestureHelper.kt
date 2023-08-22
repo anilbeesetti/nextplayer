@@ -163,8 +163,8 @@ class PlayerGestureHelper(
                 }
 
                 with(activity.binding) {
-                    progressScrubberLayout.visibility = View.VISIBLE
-                    seekProgressText.text = Utils.formatDurationMillisSign(seekChange)
+                    infoLayout.visibility = View.VISIBLE
+                    "[${Utils.formatDurationMillisSign(seekChange)}]".also { infoText.text = it }
                 }
                 return true
             }
@@ -281,8 +281,8 @@ class PlayerGestureHelper(
                     }
                     val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
                     with(activity.binding) {
-                        progressScrubberLayout.visibility = View.VISIBLE
-                        "${(currentVideoScale * 100).roundToInt()}%".also { seekProgressText.text = it }
+                        infoLayout.visibility = View.VISIBLE
+                        "${(currentVideoScale * 100).roundToInt()}%".also { infoText.text = it }
                     }
                 }
                 return true
@@ -314,13 +314,12 @@ class PlayerGestureHelper(
                 }
             }
 
-            activity.binding.progressScrubberLayout.apply {
+            activity.binding.infoLayout.apply {
                 if (visibility == View.VISIBLE) {
                     visibility = View.GONE
                     if (isPlayingOnSeekStart) playerView.player?.play()
                     playerView.controllerAutoShow = true
                     isPlayingOnSeekStart = false
-                    seeking = false
                 }
             }
             seeking = false
