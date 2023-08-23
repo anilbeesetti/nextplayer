@@ -143,4 +143,6 @@
     <string name="stretch">کشیده</string>
     <string name="crop">بُرش</string>
     <string name="hundred_percent">۱۰۰٪</string>
+    <string name="autoplay_settings">پخش خودکار</string>
+    <string name="autoplay_settings_description">به صورت خودکار فیلم بعدی در این پوشه پخش شود</string>
 </resources>
