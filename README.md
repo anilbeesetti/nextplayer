@@ -49,9 +49,9 @@ Next Player is an Android native video player written in Kotlin. It provides a s
 - Play videos from storage access framework (Android Document picker)
 - Control playback speed
 - External Subtitle support
+- Zoom gesture
 
 ## Planned Features
-- Zoom gesture
 - External Audio support
 - Picture-in-picture mode
 
