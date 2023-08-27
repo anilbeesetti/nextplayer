@@ -145,4 +145,6 @@
     <string name="hundred_percent">੧੦੦%</string>
     <string name="autoplay_settings">ਆਟੋ-ਪਲੇਅ</string>
     <string name="autoplay_settings_description">ਮੌਜੂਦਾ ਫੋਲਡਰ ਵਿੱਚ ਆਪਣੇ ਆਪ ਅਗਲੀ ਵੀਡੀਓ ਚਲਾਓ</string>
+    <string name="zoom_gesture_description">ਵੀਡੀਓ ਨੂੰ ਜ਼ੂਮ ਕਰਨ ਲਈ ਪਿੰਚ ਕਰੋ</string>
+    <string name="zoom_gesture">ਜ਼ੂਮ ਇਸ਼ਾਰਾ</string>
 </resources>

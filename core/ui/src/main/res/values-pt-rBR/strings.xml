@@ -145,4 +145,6 @@
     <string name="crop">Cortar</string>
     <string name="hundred_percent">100%</string>
     <string name="autoplay_settings_description">Reproduzir automaticamente o próximo vídeo da pasta atual</string>
+    <string name="zoom_gesture">Gesto de zoom</string>
+    <string name="zoom_gesture_description">Pinçar para ampliar o vídeo</string>
 </resources>

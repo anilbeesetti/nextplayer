@@ -139,4 +139,11 @@
     <string name="delete">Видалити</string>
     <string name="delete_file">Наступний файл буде видалено назавжди</string>
     <string name="delete_folder">Всі відео файли в наступній теці будуть видалені назавжди.</string>
+    <string name="hundred_percent">100%</string>
+    <string name="autoplay_settings">Автовідтворення</string>
+    <string name="autoplay_settings_description">Автоматично відтворювати наступне відео у поточній теці</string>
+    <string name="best_fit">Найкраще підходить</string>
+    <string name="stretch">Розтягнути</string>
+    <string name="crop">Обрізати</string>
+    <string name="zoom_gesture">Жест масштабування</string>
 </resources>

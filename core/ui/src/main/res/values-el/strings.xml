@@ -145,4 +145,6 @@
     <string name="best_fit">Ταίριασμα</string>
     <string name="autoplay_settings">Αυτόματη αναπαραγωγή</string>
     <string name="autoplay_settings_description">Αυτόματη αναπαραγωγή του επόμενου βίντεο στον φάκελο</string>
+    <string name="zoom_gesture">Μεγέθυνση</string>
+    <string name="zoom_gesture_description">Χειρονομία μεγέθυνσης βίντεο</string>
 </resources>
