@@ -80,11 +80,13 @@ import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
+import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import java.nio.charset.Charset
 import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -115,6 +117,7 @@ class PlayerActivity : AppCompatActivity() {
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
+    private var hideVolumeIndicatorJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -128,6 +131,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var mediaSession: MediaSession
     private lateinit var playerApi: PlayerApi
+    private lateinit var volumeManager: VolumeManager
     var loudnessEnhancer: LoudnessEnhancer? = null
 
     /**
@@ -233,11 +237,12 @@ class PlayerActivity : AppCompatActivity() {
             }
         })
 
+        volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
             activity = this,
             playerView = binding.playerView,
-            audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            volumeManager = volumeManager
         )
 
         playlistManager = PlaylistManager()
@@ -249,7 +254,6 @@ class PlayerActivity : AppCompatActivity() {
         setOrientation()
         initializePlayerView()
         playVideo()
-        playerGestureHelper.onStart()
         super.onStart()
     }
 
@@ -292,6 +296,7 @@ class PlayerActivity : AppCompatActivity() {
         mediaSession = MediaSession.Builder(applicationContext, player).build()
         player.addListener(playbackStateListener)
         loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+        volumeManager.loudnessEnhancer = loudnessEnhancer
     }
 
     private fun setOrientation() {
@@ -644,6 +649,24 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    fun showVolumeGestureLayout() {
+        hideVolumeIndicatorJob?.cancel()
+        with(binding) {
+            volumeGestureLayout.visibility = View.VISIBLE
+            volumeProgressBar.max = volumeManager.maxVolume.times(100)
+            volumeProgressBar.progress = volumeManager.currentVolume.times(100).toInt()
+            volumeProgressText.text = volumeManager.volumePercentage.toString()
+        }
+    }
+
+    fun hideVolumeGestureLayout() {
+        if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
+        hideVolumeIndicatorJob = lifecycleScope.launch {
+            delay(HIDE_DELAY_MILLIS)
+            binding.volumeGestureLayout.visibility = View.GONE
+        }
+    }
+
     private fun savePlayerState(uri: Uri) {
         if (isFirstFrameRendered) {
             viewModel.saveState(
@@ -733,6 +756,10 @@ class PlayerActivity : AppCompatActivity() {
                 binding.infoLayout.visibility = View.GONE
             }
         }
+    }
+
+    companion object {
+        const val HIDE_DELAY_MILLIS = 1000L
     }
 }
 

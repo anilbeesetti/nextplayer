@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.Resources
-import android.media.AudioManager
 import android.os.Build
 import android.provider.Settings
 import android.view.GestureDetector
@@ -33,7 +32,6 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -41,7 +39,7 @@ class PlayerGestureHelper(
     private val viewModel: PlayerViewModel,
     private val activity: PlayerActivity,
     private val playerView: PlayerView,
-    private val audioManager: AudioManager
+    private val volumeManager: VolumeManager
 ) {
     private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
@@ -51,7 +49,6 @@ class PlayerGestureHelper(
 
     private var exoContentFrameLayout: AspectRatioFrameLayout = playerView.findViewById(R.id.exo_content_frame)
 
-    private var volumeTrackerValue = -1f
     private var brightnessTrackerValue = -1f
     private var currentGestureAction: GestureAction? = null
     private var seeking = false
@@ -60,14 +57,12 @@ class PlayerGestureHelper(
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
 
-    private var hideVolumeGestureJob: Job? = null
     private var hideBrightnessGestureJob: Job? = null
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
-                Timber.d("single tap")
                 with(playerView) {
                     if (!isControllerFullyVisible) showController() else hideController()
                 }
@@ -196,35 +191,9 @@ class PlayerGestureHelper(
                 val ratioChange = distanceY / distanceFull
 
                 if (firstEvent.x.toInt() > viewCenterX) {
-                    hideVolumeGestureJob?.cancel()
-
-                    val currentStreamVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    val maxStreamVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                    val maxVolume = maxStreamVolume.times(activity.loudnessEnhancer?.let { 2 } ?: 1)
-
-                    if (volumeTrackerValue == -1f) {
-                        volumeTrackerValue = currentStreamVolume.toFloat()
-                    }
-
-                    val change = ratioChange * maxStreamVolume
-                    volumeTrackerValue = (volumeTrackerValue + change).coerceIn(0f, maxVolume.toFloat())
-
-                    if (volumeTrackerValue <= maxStreamVolume) {
-                        activity.loudnessEnhancer?.enabled = false
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volumeTrackerValue.toInt(), 0)
-                    } else {
-                        activity.loudnessEnhancer?.enabled = true
-                        val loudness = (volumeTrackerValue - maxStreamVolume) * (MAX_VOLUME_BOOST / maxStreamVolume)
-                        activity.loudnessEnhancer?.setTargetGain(loudness.toInt())
-                    }
-
-                    val volumePercentage = (volumeTrackerValue / maxStreamVolume.toFloat()).times(100).toInt()
-                    with(activity.binding) {
-                        volumeGestureLayout.visibility = View.VISIBLE
-                        volumeProgressBar.max = maxVolume.times(100)
-                        volumeProgressBar.progress = volumeTrackerValue.times(100).toInt()
-                        volumeProgressText.text = volumePercentage.toString()
-                    }
+                    val change = ratioChange * volumeManager.maxStreamVolume
+                    volumeManager.setVolume(volumeManager.currentVolume + change)
+                    activity.showVolumeGestureLayout()
                 } else {
                     hideBrightnessGestureJob?.cancel()
 
@@ -293,14 +262,7 @@ class PlayerGestureHelper(
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
             // hide the volume indicator
-            activity.binding.volumeGestureLayout.apply {
-                if (visibility == View.VISIBLE) {
-                    hideVolumeGestureJob = activity.lifecycleScope.launch {
-                        delay(HIDE_DELAY_MILLIS)
-                        visibility = View.GONE
-                    }
-                }
-            }
+            activity.hideVolumeGestureLayout()
             // hide the brightness indicator
             activity.binding.brightnessGestureLayout.apply {
                 if (visibility == View.VISIBLE) {
@@ -374,21 +336,10 @@ class PlayerGestureHelper(
         }
     }
 
-    fun onStart() {
-        val maxStreamVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-
-        if (volumeTrackerValue > maxStreamVolume) {
-            activity.loudnessEnhancer?.enabled = true
-            val loudness = (volumeTrackerValue - maxStreamVolume) * (MAX_VOLUME_BOOST / maxStreamVolume)
-            activity.loudnessEnhancer?.setTargetGain(loudness.toInt())
-        }
-    }
-
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
         const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
-        const val MAX_VOLUME_BOOST = 2000
         const val SEEK_STEP_MS = 1000L
         const val HIDE_DELAY_MILLIS = 1000L
     }
