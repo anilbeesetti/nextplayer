@@ -7,11 +7,11 @@ class VolumeManager(private val audioManager: AudioManager) {
 
     var loudnessEnhancer: LoudnessEnhancer? = null
         set(value) {
-            field = value
             if (currentVolume > maxStreamVolume) {
-                loudnessEnhancer?.enabled = true
-                loudnessEnhancer?.setTargetGain(currentLoudnessGain.toInt())
+                value?.enabled = true
+                value?.setTargetGain(currentLoudnessGain.toInt())
             }
+            field = value
         }
     val currentStreamVolume get() = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
     val maxStreamVolume get() = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
