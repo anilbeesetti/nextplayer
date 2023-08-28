@@ -122,8 +122,8 @@ fun LazyListScope.highContrastDarkThemeSetting(
     onClick: () -> Unit
 ) = item {
     PreferenceSwitch(
-        title = "High contrast dark theme",
-        description = "Use pure black background for dark theme",
+        title = stringResource(R.string.high_contrast_dark_theme),
+        description = stringResource(R.string.high_contrast_dark_theme_desc),
         isChecked = isChecked,
         onClick = onClick,
         icon = NextIcons.Contrast

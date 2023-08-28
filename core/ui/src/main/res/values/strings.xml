@@ -149,4 +149,6 @@
     <string name="hundred_percent">100%</string>
     <string name="zoom_gesture">Zoom gesture</string>
     <string name="zoom_gesture_description">Pinch to zoom the video</string>
+    <string name="high_contrast_dark_theme">High contrast dark theme</string>
+    <string name="high_contrast_dark_theme_desc">Use pure black background for dark theme</string>
 </resources>
