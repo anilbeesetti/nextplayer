@@ -4,7 +4,6 @@ import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -76,10 +75,4 @@ class TrackSelectionDialogFragment(
             }
         }
     }
-}
-
-fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
-    return currentTracks.groups
-        .filter { it.type == type && it.isSupported }
-        .indexOfFirst { it.isSelected }
 }
