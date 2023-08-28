@@ -64,16 +64,15 @@ class AppearancePreferencesViewModel @Inject constructor(
 }
 
 data class AppearancePreferencesUiState(
-    val showDialog: AppearancePreferenceDialog = AppearancePreferenceDialog.None
+    val showDialog: AppearancePreferenceDialog? = null
 )
 
 sealed interface AppearancePreferencesEvent {
-    data class ShowDialog(val value: AppearancePreferenceDialog) : AppearancePreferencesEvent
+    data class ShowDialog(val value: AppearancePreferenceDialog?) : AppearancePreferencesEvent
 }
 
 sealed interface AppearancePreferenceDialog {
     object Theme : AppearancePreferenceDialog
-    object None : AppearancePreferenceDialog
 }
 
 fun AppearancePreferencesViewModel.showDialog(dialog: AppearancePreferenceDialog) {
@@ -81,5 +80,5 @@ fun AppearancePreferencesViewModel.showDialog(dialog: AppearancePreferenceDialog
 }
 
 fun AppearancePreferencesViewModel.hideDialog() {
-    onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.None))
+    onEvent(AppearancePreferencesEvent.ShowDialog(null))
 }
