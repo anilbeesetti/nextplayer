@@ -78,26 +78,27 @@ fun AppearancePreferencesScreen(
                 onClick = viewModel::toggleUseDynamicColors
             )
         }
-        when (uiState.showDialog) {
-            AppearancePreferenceDialog.Theme -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.dark_theme),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(ThemeConfig.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = (it == preferences.themeConfig),
-                            onClick = {
-                                viewModel.updateThemeConfig(it)
-                                viewModel.hideDialog()
-                            }
-                        )
+
+        uiState.showDialog?.let { showDialog ->
+            when (showDialog) {
+                AppearancePreferenceDialog.Theme -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.dark_theme),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(ThemeConfig.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == preferences.themeConfig),
+                                onClick = {
+                                    viewModel.updateThemeConfig(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
             }
-
-            AppearancePreferenceDialog.None -> Unit
         }
     }
 }

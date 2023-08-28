@@ -65,25 +65,26 @@ fun DecoderPreferencesScreen(
             )
         }
 
-        when (uiState.showDialog) {
-            DecoderPreferenceDialog.DecoderPriorityDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.decoder_priority),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(DecoderPriority.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = it == preferences.decoderPriority,
-                            onClick = {
-                                viewModel.updateDecoderPriority(it)
-                                viewModel.hideDialog()
-                            }
-                        )
+        uiState.showDialog?.let { showDialog ->
+            when (showDialog) {
+                DecoderPreferenceDialog.DecoderPriorityDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.decoder_priority),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(DecoderPriority.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = it == preferences.decoderPriority,
+                                onClick = {
+                                    viewModel.updateDecoderPriority(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
             }
-            DecoderPreferenceDialog.None -> Unit
         }
     }
 }

@@ -150,188 +150,188 @@ fun PlayerPreferencesScreen(
             )
         }
 
-        when (uiState.showDialog) {
-            PlayerPreferenceDialog.ResumeDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.resume),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(Resume.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = (it == preferences.resume),
-                            onClick = {
-                                viewModel.updatePlaybackResume(it)
-                                viewModel.hideDialog()
-                            }
-                        )
+        uiState.showDialog?.let {
+            when (it) {
+                PlayerPreferenceDialog.ResumeDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.resume),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(Resume.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == preferences.resume),
+                                onClick = {
+                                    viewModel.updatePlaybackResume(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            PlayerPreferenceDialog.DoubleTapDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.double_tap),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(DoubleTapGesture.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = (it == preferences.doubleTapGesture),
-                            onClick = {
-                                viewModel.updateDoubleTapGesture(it)
-                                viewModel.hideDialog()
-                            }
-                        )
+                PlayerPreferenceDialog.DoubleTapDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.double_tap),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(DoubleTapGesture.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == preferences.doubleTapGesture),
+                                onClick = {
+                                    viewModel.updateDoubleTapGesture(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            PlayerPreferenceDialog.FastSeekDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.fast_seek),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(FastSeek.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = (it == preferences.fastSeek),
-                            onClick = {
-                                viewModel.updateFastSeek(it)
-                                viewModel.hideDialog()
-                            }
-                        )
+                PlayerPreferenceDialog.FastSeekDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.fast_seek),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(FastSeek.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == preferences.fastSeek),
+                                onClick = {
+                                    viewModel.updateFastSeek(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            PlayerPreferenceDialog.AudioLanguageDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.preferred_audio_lang),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(languages) {
-                        RadioTextButton(
-                            text = it.first,
-                            selected = it.second == preferences.preferredAudioLanguage,
-                            onClick = {
-                                viewModel.updateAudioLanguage(it.second)
-                                viewModel.hideDialog()
-                            }
-                        )
+                PlayerPreferenceDialog.AudioLanguageDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.preferred_audio_lang),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(languages) {
+                            RadioTextButton(
+                                text = it.first,
+                                selected = it.second == preferences.preferredAudioLanguage,
+                                onClick = {
+                                    viewModel.updateAudioLanguage(it.second)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.player_screen_orientation),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(ScreenOrientation.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = it == preferences.playerScreenOrientation,
-                            onClick = {
-                                viewModel.updatePreferredPlayerOrientation(it)
-                                viewModel.hideDialog()
-                            }
-                        )
+                PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.player_screen_orientation),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(ScreenOrientation.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = it == preferences.playerScreenOrientation,
+                                onClick = {
+                                    viewModel.updatePreferredPlayerOrientation(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            PlayerPreferenceDialog.PlaybackSpeedDialog -> {
-                var defaultPlaybackSpeed by remember {
-                    mutableFloatStateOf(preferences.defaultPlaybackSpeed)
+                PlayerPreferenceDialog.PlaybackSpeedDialog -> {
+                    var defaultPlaybackSpeed by remember {
+                        mutableFloatStateOf(preferences.defaultPlaybackSpeed)
+                    }
+
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.default_playback_speed),
+                        onDoneClick = {
+                            viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
+                            viewModel.hideDialog()
+                        },
+                        onDismissClick = viewModel::hideDialog,
+                        content = {
+                            Text(
+                                text = "$defaultPlaybackSpeed",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = defaultPlaybackSpeed,
+                                onValueChange = { defaultPlaybackSpeed = it.round(1) },
+                                valueRange = 0.2f..4.0f
+                            )
+                        }
+                    )
                 }
 
-                NextDialogWithDoneAndCancelButtons(
-                    title = stringResource(R.string.default_playback_speed),
-                    onDoneClick = {
-                        viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
-                        viewModel.hideDialog()
-                    },
-                    onDismissClick = viewModel::hideDialog,
-                    content = {
-                        Text(
-                            text = "$defaultPlaybackSpeed",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Slider(
-                            value = defaultPlaybackSpeed,
-                            onValueChange = { defaultPlaybackSpeed = it.round(1) },
-                            valueRange = 0.2f..4.0f
-                        )
+                PlayerPreferenceDialog.ControllerTimeoutDialog -> {
+                    var controllerAutoHideSec by remember {
+                        mutableIntStateOf(preferences.controllerAutoHideTimeout)
                     }
-                )
-            }
 
-            PlayerPreferenceDialog.ControllerTimeoutDialog -> {
-                var controllerAutoHideSec by remember {
-                    mutableIntStateOf(preferences.controllerAutoHideTimeout)
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.controller_timeout),
+                        onDoneClick = {
+                            viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
+                            viewModel.hideDialog()
+                        },
+                        onDismissClick = viewModel::hideDialog,
+                        content = {
+                            Text(
+                                text = stringResource(R.string.seconds, controllerAutoHideSec),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = controllerAutoHideSec.toFloat(),
+                                onValueChange = { controllerAutoHideSec = it.toInt() },
+                                valueRange = 1.0f..60.0f
+                            )
+                        }
+                    )
                 }
 
-                NextDialogWithDoneAndCancelButtons(
-                    title = stringResource(R.string.controller_timeout),
-                    onDoneClick = {
-                        viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
-                        viewModel.hideDialog()
-                    },
-                    onDismissClick = viewModel::hideDialog,
-                    content = {
-                        Text(
-                            text = stringResource(R.string.seconds, controllerAutoHideSec),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Slider(
-                            value = controllerAutoHideSec.toFloat(),
-                            onValueChange = { controllerAutoHideSec = it.toInt() },
-                            valueRange = 1.0f..60.0f
-                        )
+                PlayerPreferenceDialog.SeekIncrementDialog -> {
+                    var seekIncrement by remember {
+                        mutableIntStateOf(preferences.seekIncrement)
                     }
-                )
-            }
 
-            PlayerPreferenceDialog.SeekIncrementDialog -> {
-                var seekIncrement by remember {
-                    mutableIntStateOf(preferences.seekIncrement)
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.seek_increment),
+                        onDoneClick = {
+                            viewModel.updateSeekIncrement(seekIncrement)
+                            viewModel.hideDialog()
+                        },
+                        onDismissClick = viewModel::hideDialog,
+                        content = {
+                            Text(
+                                text = stringResource(R.string.seconds, seekIncrement),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = seekIncrement.toFloat(),
+                                onValueChange = { seekIncrement = it.toInt() },
+                                valueRange = 1.0f..60.0f
+                            )
+                        }
+                    )
                 }
-
-                NextDialogWithDoneAndCancelButtons(
-                    title = stringResource(R.string.seek_increment),
-                    onDoneClick = {
-                        viewModel.updateSeekIncrement(seekIncrement)
-                        viewModel.hideDialog()
-                    },
-                    onDismissClick = viewModel::hideDialog,
-                    content = {
-                        Text(
-                            text = stringResource(R.string.seconds, seekIncrement),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Slider(
-                            value = seekIncrement.toFloat(),
-                            onValueChange = { seekIncrement = it.toInt() },
-                            valueRange = 1.0f..60.0f
-                        )
-                    }
-                )
             }
-
-            PlayerPreferenceDialog.None -> Unit
         }
     }
 }

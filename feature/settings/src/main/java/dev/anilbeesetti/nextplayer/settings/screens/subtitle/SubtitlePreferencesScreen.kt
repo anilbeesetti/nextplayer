@@ -110,95 +110,95 @@ fun SubtitlePreferencesScreen(
             )
         }
 
-        when (uiState.showDialog) {
-            SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.preferred_subtitle_lang),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(languages) {
-                        RadioTextButton(
-                            text = it.first,
-                            selected = it.second == preferences.preferredSubtitleLanguage,
-                            onClick = {
-                                viewModel.updateSubtitleLanguage(it.second)
+        uiState.showDialog?.let {
+            when (it) {
+                SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.preferred_subtitle_lang),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(languages) {
+                            RadioTextButton(
+                                text = it.first,
+                                selected = it.second == preferences.preferredSubtitleLanguage,
+                                onClick = {
+                                    viewModel.updateSubtitleLanguage(it.second)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
+                    }
+                }
+
+                SubtitlePreferenceDialog.SubtitleFontDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.subtitle_font),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(Font.values()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = it == preferences.subtitleFont,
+                                onClick = {
+                                    viewModel.updateSubtitleFont(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
+                    }
+                }
+
+                SubtitlePreferenceDialog.SubtitleSizeDialog -> {
+                    var size by remember { mutableIntStateOf(preferences.subtitleTextSize) }
+
+                    NextDialog(
+                        onDismissRequest = viewModel::hideDialog,
+                        title = { Text(text = stringResource(id = R.string.subtitle_text_size)) },
+                        content = {
+                            Text(
+                                text = size.toString(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                fontSize = size.sp,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = size.toFloat(),
+                                onValueChange = { size = it.toInt() },
+                                valueRange = 15f..60f
+                            )
+                        },
+                        confirmButton = {
+                            DoneButton(onClick = {
+                                viewModel.updateSubtitleFontSize(size)
                                 viewModel.hideDialog()
-                            }
-                        )
+                            })
+                        },
+                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) }
+                    )
+                }
+
+                SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.subtitle_text_encoding),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(charsetResource) {
+                            val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
+                            RadioTextButton(
+                                text = it,
+                                selected = currentCharset == preferences.subtitleTextEncoding,
+                                onClick = {
+                                    viewModel.updateSubtitleEncoding(currentCharset)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
                     }
                 }
             }
-
-            SubtitlePreferenceDialog.SubtitleFontDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.subtitle_font),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(Font.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = it == preferences.subtitleFont,
-                            onClick = {
-                                viewModel.updateSubtitleFont(it)
-                                viewModel.hideDialog()
-                            }
-                        )
-                    }
-                }
-            }
-
-            SubtitlePreferenceDialog.SubtitleSizeDialog -> {
-                var size by remember { mutableIntStateOf(preferences.subtitleTextSize) }
-
-                NextDialog(
-                    onDismissRequest = viewModel::hideDialog,
-                    title = { Text(text = stringResource(id = R.string.subtitle_text_size)) },
-                    content = {
-                        Text(
-                            text = size.toString(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
-                            textAlign = TextAlign.Center,
-                            fontSize = size.sp,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Slider(
-                            value = size.toFloat(),
-                            onValueChange = { size = it.toInt() },
-                            valueRange = 15f..60f
-                        )
-                    },
-                    confirmButton = {
-                        DoneButton(onClick = {
-                            viewModel.updateSubtitleFontSize(size)
-                            viewModel.hideDialog()
-                        })
-                    },
-                    dismissButton = { CancelButton(onClick = viewModel::hideDialog) }
-                )
-            }
-
-            SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.subtitle_text_encoding),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(charsetResource) {
-                        val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
-                        RadioTextButton(
-                            text = it,
-                            selected = currentCharset == preferences.subtitleTextEncoding,
-                            onClick = {
-                                viewModel.updateSubtitleEncoding(currentCharset)
-                                viewModel.hideDialog()
-                            }
-                        )
-                    }
-                }
-            }
-
-            SubtitlePreferenceDialog.None -> Unit
         }
     }
 }
