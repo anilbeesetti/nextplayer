@@ -69,6 +69,10 @@ fun AppearancePreferencesScreen(
                 onChecked = viewModel::toggleDarkTheme,
                 onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) }
             )
+            highContrastDarkThemeSetting(
+                isChecked = preferences.useHighContrastDarkTheme,
+                onClick = viewModel::toggleUseHighContrastDarkTheme
+            )
             dynamicThemingSetting(
                 isChecked = preferences.useDynamicColors,
                 onClick = viewModel::toggleUseDynamicColors
@@ -110,6 +114,19 @@ fun LazyListScope.darkThemeSetting(
         onChecked = onChecked,
         icon = NextIcons.DarkMode,
         onClick = onClick
+    )
+}
+
+fun LazyListScope.highContrastDarkThemeSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(R.string.high_contrast_dark_theme),
+        description = stringResource(R.string.high_contrast_dark_theme_desc),
+        isChecked = isChecked,
+        onClick = onClick,
+        icon = NextIcons.Contrast
     )
 }
 

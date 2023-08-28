@@ -8,6 +8,7 @@ data class ApplicationPreferences(
     val sortOrder: SortOrder = SortOrder.ASCENDING,
     val groupVideosByFolder: Boolean = true,
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
+    val useHighContrastDarkTheme: Boolean = false,
     val useDynamicColors: Boolean = true,
     val excludeFolders: List<String> = emptyList()
 )
