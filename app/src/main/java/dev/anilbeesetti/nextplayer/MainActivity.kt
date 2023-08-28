@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             NextPlayerTheme(
                 darkTheme = shouldUseDarkTheme(uiState = uiState),
+                highContrastDarkTheme = shouldUseHighContrastDarkTheme(uiState = uiState),
                 dynamicColor = shouldUseDynamicTheming(uiState = uiState)
             ) {
                 Surface(
@@ -133,6 +134,14 @@ private fun shouldUseDarkTheme(
         ThemeConfig.OFF -> false
         ThemeConfig.ON -> true
     }
+}
+
+@Composable
+fun shouldUseHighContrastDarkTheme(
+    uiState: MainActivityUiState
+): Boolean = when (uiState) {
+    MainActivityUiState.Loading -> false
+    is MainActivityUiState.Success -> uiState.preferences.useHighContrastDarkTheme
 }
 
 /**
