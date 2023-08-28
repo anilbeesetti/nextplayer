@@ -147,4 +147,6 @@
     <string name="hundred_percent">100%</string>
     <string name="zoom_gesture">缩放手势</string>
     <string name="zoom_gesture_description">捏合手势缩放视频</string>
+    <string name="high_contrast_dark_theme">高对比度暗色主题</string>
+    <string name="high_contrast_dark_theme_desc">在暗色主题中使用纯黑色背景</string>
 </resources>
