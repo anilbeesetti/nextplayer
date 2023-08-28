@@ -47,16 +47,15 @@ class DecoderPreferencesViewModel @Inject constructor(
 }
 
 data class DecoderPreferencesUIState(
-    val showDialog: DecoderPreferenceDialog = DecoderPreferenceDialog.None
+    val showDialog: DecoderPreferenceDialog? = null
 )
 
 sealed interface DecoderPreferenceDialog {
     object DecoderPriorityDialog : DecoderPreferenceDialog
-    object None : DecoderPreferenceDialog
 }
 
 sealed interface DecoderPreferencesEvent {
-    data class ShowDialog(val value: DecoderPreferenceDialog) : DecoderPreferencesEvent
+    data class ShowDialog(val value: DecoderPreferenceDialog?) : DecoderPreferencesEvent
 }
 
 fun DecoderPreferencesViewModel.showDialog(dialog: DecoderPreferenceDialog) {
@@ -64,5 +63,5 @@ fun DecoderPreferencesViewModel.showDialog(dialog: DecoderPreferenceDialog) {
 }
 
 fun DecoderPreferencesViewModel.hideDialog() {
-    onEvent(DecoderPreferencesEvent.ShowDialog(DecoderPreferenceDialog.None))
+    onEvent(DecoderPreferencesEvent.ShowDialog(null))
 }
