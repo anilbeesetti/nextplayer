@@ -32,7 +32,6 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -341,7 +340,6 @@ class PlayerGestureHelper(
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
         const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
-        const val MAX_VOLUME_BOOST = 2000
         const val SEEK_STEP_MS = 1000L
         const val HIDE_DELAY_MILLIS = 1000L
     }

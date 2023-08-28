@@ -118,7 +118,6 @@ class PlayerActivity : AppCompatActivity() {
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
-    private var hideBrightnessIndicatorJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
