@@ -1,11 +1,13 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import android.app.Activity
+import android.provider.Settings
+import android.view.WindowManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type
 import androidx.core.view.WindowInsetsControllerCompat
-import timber.log.Timber
 import java.util.Arrays
+import timber.log.Timber
 
 /**
 * Must call this function after any configuration done to activity to keep system bars behaviour
@@ -26,6 +28,12 @@ fun Activity.toggleSystemBars(showBars: Boolean, @Type.InsetsType types: Int = T
         if (showBars) show(types) else hide(types)
     }
 }
+
+val Activity.currentBrightness: Float
+    get() = when (val brightness = window.attributes.screenBrightness) {
+        in WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF..WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL -> brightness
+        else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
+    }
 
 @Suppress("DEPRECATION")
 fun Activity.prettyPrintIntent() {

@@ -1,9 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
-import android.app.Activity
-import android.provider.Settings
 import android.view.WindowManager
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.extensions.currentBrightness
 import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 
 class BrightnessManager(private val activity: PlayerActivity) {
@@ -23,9 +22,3 @@ class BrightnessManager(private val activity: PlayerActivity) {
         activity.swipeToShowStatusBars()
     }
 }
-
-val Activity.currentBrightness: Float
-    get() = when (val brightness = window.attributes.screenBrightness) {
-        in WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF..WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL -> brightness
-        else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
-    }

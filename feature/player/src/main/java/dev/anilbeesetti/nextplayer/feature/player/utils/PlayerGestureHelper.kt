@@ -50,7 +50,6 @@ class PlayerGestureHelper(
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
 
-
     private val tapGestureDetector = GestureDetector(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
