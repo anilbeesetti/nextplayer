@@ -57,6 +57,7 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -82,15 +83,14 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
+import java.nio.charset.Charset
+import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.nio.charset.Charset
-import java.util.Arrays
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -118,7 +118,7 @@ class PlayerActivity : AppCompatActivity() {
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
-
+    private var hideBrightnessIndicatorJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -667,7 +667,6 @@ class PlayerActivity : AppCompatActivity() {
             binding.volumeGestureLayout.visibility = View.GONE
         }
     }
-
 
     private fun savePlayerState(uri: Uri) {
         if (isFirstFrameRendered) {

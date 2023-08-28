@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.Resources
-import android.media.AudioManager
 import android.os.Build
 import android.provider.Settings
 import android.view.GestureDetector
@@ -65,7 +64,6 @@ class PlayerGestureHelper(
         playerView.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
-                Timber.d("single tap")
                 with(playerView) {
                     if (!isControllerFullyVisible) showController() else hideController()
                 }

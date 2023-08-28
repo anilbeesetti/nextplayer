@@ -3,9 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 
-class VolumeManager(
-    private val audioManager: AudioManager
-) {
+class VolumeManager(private val audioManager: AudioManager) {
 
     var loudnessEnhancer: LoudnessEnhancer? = null
         set(value) {
