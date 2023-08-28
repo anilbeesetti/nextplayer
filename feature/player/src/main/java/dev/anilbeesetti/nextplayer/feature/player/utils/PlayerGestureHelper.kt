@@ -1,18 +1,13 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.res.Resources
 import android.os.Build
-import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowInsets
-import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
-import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
-import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -25,25 +20,23 @@ import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
 class PlayerGestureHelper(
     private val viewModel: PlayerViewModel,
     private val activity: PlayerActivity,
-    private val playerView: PlayerView,
     private val volumeManager: VolumeManager,
     private val brightnessManager: BrightnessManager
 ) {
     private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
+
+    private val playerView: PlayerView
+        get() = activity.binding.playerView
 
     private val shouldFastSeek: Boolean
         get() = playerView.player?.duration?.let { prefs.shouldFastSeek(it) } == true
@@ -281,10 +274,6 @@ class PlayerGestureHelper(
     }
 
     init {
-        if (prefs.rememberPlayerBrightness) {
-            activity.window.attributes.screenBrightness = prefs.playerBrightness
-        }
-
         playerView.setOnTouchListener { _, motionEvent ->
             when (motionEvent.pointerCount) {
                 1 -> {
@@ -307,7 +296,6 @@ class PlayerGestureHelper(
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
         const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
         const val SEEK_STEP_MS = 1000L
-        const val HIDE_DELAY_MILLIS = 1000L
     }
 }
 

@@ -25,7 +25,6 @@ import androidx.activity.viewModels
 import androidx.annotation.Dimension
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePaddingRelative
@@ -57,7 +56,6 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -67,9 +65,13 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
+import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
+import dev.anilbeesetti.nextplayer.feature.player.extensions.next
+import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
@@ -84,14 +86,14 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
-import java.nio.charset.Charset
-import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.nio.charset.Charset
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -245,7 +247,6 @@ class PlayerActivity : AppCompatActivity() {
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
             activity = this,
-            playerView = binding.playerView,
             volumeManager = volumeManager,
             brightnessManager = brightnessManager
         )
@@ -255,6 +256,9 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStart() {
+        if (playerPreferences.rememberPlayerBrightness) {
+            brightnessManager.setBrightness(playerPreferences.playerBrightness)
+        }
         createPlayer()
         setOrientation()
         initializePlayerView()
@@ -674,18 +678,18 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    fun hideVolumeGestureLayout() {
+    fun hideVolumeGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
         hideVolumeIndicatorJob = lifecycleScope.launch {
-            delay(HIDE_DELAY_MILLIS)
+            delay(delayTimeMillis)
             binding.volumeGestureLayout.visibility = View.GONE
         }
     }
 
-    fun hideBrightnessGestureLayout() {
+    fun hideBrightnessGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.brightnessGestureLayout.visibility != View.VISIBLE) return
         hideBrightnessIndicatorJob = lifecycleScope.launch {
-            delay(HIDE_DELAY_MILLIS)
+            delay(delayTimeMillis)
             binding.brightnessGestureLayout.visibility = View.GONE
         }
         if (playerPreferences.rememberPlayerBrightness) {
@@ -789,16 +793,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 }
 
-private val VideoSize.isPortrait: Boolean
-    get() {
-        val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
-        return if (isRotated) this.width > this.height else this.height > this.width
-    }
-
-private fun ImageButton.setImageDrawable(context: Context, id: Int) {
-    setImageDrawable(ContextCompat.getDrawable(context, id))
-}
-
 private fun Activity.getRotationDrawable(): Int {
     return when (requestedOrientation) {
         ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
@@ -815,29 +809,3 @@ private fun Activity.getRotationDrawable(): Int {
     }
 }
 
-@Suppress("DEPRECATION")
-fun Activity.prettyPrintIntent() {
-    Timber.apply {
-        d("* action: ${intent.action}")
-        d("* data: ${intent.data}")
-        d("* type: ${intent.type}")
-        d("* package: ${intent.`package`}")
-        d("* component: ${intent.component}")
-        d("* flags: ${intent.flags}")
-        intent.extras?.let { bundle ->
-            d("=== Extras ===")
-            bundle.keySet().forEachIndexed { i, key ->
-                buildString {
-                    append("${i + 1}) $key: ")
-                    bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
-                }.also { d(it) }
-            }
-        }
-    }
-}
-
-inline fun <reified T : Enum<T>> T.next(): T {
-    val values = enumValues<T>()
-    val nextOrdinal = (ordinal + 1) % values.size
-    return values[nextOrdinal]
-}

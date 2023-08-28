@@ -4,6 +4,8 @@ import android.app.Activity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type
 import androidx.core.view.WindowInsetsControllerCompat
+import timber.log.Timber
+import java.util.Arrays
 
 /**
 * Must call this function after any configuration done to activity to keep system bars behaviour
@@ -22,5 +24,26 @@ fun Activity.toggleSystemBars(showBars: Boolean, @Type.InsetsType types: Int = T
     WindowCompat.getInsetsController(window, window.decorView).apply {
         systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         if (showBars) show(types) else hide(types)
+    }
+}
+
+@Suppress("DEPRECATION")
+fun Activity.prettyPrintIntent() {
+    Timber.apply {
+        d("* action: ${intent.action}")
+        d("* data: ${intent.data}")
+        d("* type: ${intent.type}")
+        d("* package: ${intent.`package`}")
+        d("* component: ${intent.component}")
+        d("* flags: ${intent.flags}")
+        intent.extras?.let { bundle ->
+            d("=== Extras ===")
+            bundle.keySet().forEachIndexed { i, key ->
+                buildString {
+                    append("${i + 1}) $key: ")
+                    bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
+                }.also { d(it) }
+            }
+        }
     }
 }
