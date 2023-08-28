@@ -61,6 +61,14 @@ class AppearancePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleUseHighContrastDarkTheme() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(useHighContrastDarkTheme = !it.useHighContrastDarkTheme)
+            }
+        }
+    }
 }
 
 data class AppearancePreferencesUiState(
