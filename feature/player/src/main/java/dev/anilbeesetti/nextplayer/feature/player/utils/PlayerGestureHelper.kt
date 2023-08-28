@@ -39,7 +39,8 @@ class PlayerGestureHelper(
     private val viewModel: PlayerViewModel,
     private val activity: PlayerActivity,
     private val playerView: PlayerView,
-    private val volumeManager: VolumeManager
+    private val volumeManager: VolumeManager,
+    private val brightnessManager: BrightnessManager
 ) {
     private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
@@ -49,7 +50,6 @@ class PlayerGestureHelper(
 
     private var exoContentFrameLayout: AspectRatioFrameLayout = playerView.findViewById(R.id.exo_content_frame)
 
-    private var brightnessTrackerValue = -1f
     private var currentGestureAction: GestureAction? = null
     private var seeking = false
     private var seekStart = 0L
@@ -57,7 +57,6 @@ class PlayerGestureHelper(
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
 
-    private var hideBrightnessGestureJob: Job? = null
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
@@ -195,32 +194,9 @@ class PlayerGestureHelper(
                     volumeManager.setVolume(volumeManager.currentVolume + change)
                     activity.showVolumeGestureLayout()
                 } else {
-                    hideBrightnessGestureJob?.cancel()
-
-                    val currentBrightness = activity.currentBrightness
-                    val maxBrightness = BRIGHTNESS_OVERRIDE_FULL
-
-                    if (brightnessTrackerValue == -1f) {
-                        brightnessTrackerValue = currentBrightness
-                    }
-
-                    val change = ratioChange * maxBrightness
-                    brightnessTrackerValue = (brightnessTrackerValue + change).coerceIn(0f, maxBrightness)
-
-                    val layoutParams = activity.window.attributes
-                    layoutParams.screenBrightness = brightnessTrackerValue
-                    activity.window.attributes = layoutParams
-
-                    // fixes a bug which makes the action bar reappear after changing the brightness
-                    activity.swipeToShowStatusBars()
-
-                    val brightnessPercentage = (brightnessTrackerValue / maxBrightness).times(100).toInt()
-                    with(activity.binding) {
-                        brightnessGestureLayout.visibility = View.VISIBLE
-                        brightnessProgressBar.max = maxBrightness.times(100).toInt()
-                        brightnessProgressBar.progress = brightnessTrackerValue.times(100).toInt()
-                        brightnessProgressText.text = brightnessPercentage.toString()
-                    }
+                    val change = ratioChange * brightnessManager.maxBrightness
+                    brightnessManager.setBrightness(brightnessManager.currentBrightness + change)
+                    activity.showBrightnessGestureLayout()
                 }
                 return true
             }
@@ -264,17 +240,7 @@ class PlayerGestureHelper(
             // hide the volume indicator
             activity.hideVolumeGestureLayout()
             // hide the brightness indicator
-            activity.binding.brightnessGestureLayout.apply {
-                if (visibility == View.VISIBLE) {
-                    hideBrightnessGestureJob = activity.lifecycleScope.launch {
-                        delay(HIDE_DELAY_MILLIS)
-                        visibility = View.GONE
-                    }
-                    if (prefs.rememberPlayerBrightness) {
-                        viewModel.setPlayerBrightness(activity.window.attributes.screenBrightness)
-                    }
-                }
-            }
+            activity.hideBrightnessGestureLayout()
 
             activity.binding.infoLayout.apply {
                 if (visibility == View.VISIBLE) {
@@ -346,12 +312,6 @@ class PlayerGestureHelper(
 }
 
 fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
-
-val Activity.currentBrightness: Float
-    get() = when (val brightness = window.attributes.screenBrightness) {
-        in BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL -> brightness
-        else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
-    }
 
 inline val Int.toMillis get() = this * 1000
 

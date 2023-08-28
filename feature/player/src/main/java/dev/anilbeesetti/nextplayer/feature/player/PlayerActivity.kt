@@ -77,6 +77,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
+import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
@@ -118,6 +119,7 @@ class PlayerActivity : AppCompatActivity() {
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
+    private var hideBrightnessIndicatorJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -132,6 +134,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var mediaSession: MediaSession
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
+    private lateinit var brightnessManager: BrightnessManager
     var loudnessEnhancer: LoudnessEnhancer? = null
 
     /**
@@ -238,11 +241,13 @@ class PlayerActivity : AppCompatActivity() {
         })
 
         volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+        brightnessManager = BrightnessManager(activity = this)
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
             activity = this,
             playerView = binding.playerView,
-            volumeManager = volumeManager
+            volumeManager = volumeManager,
+            brightnessManager = brightnessManager
         )
 
         playlistManager = PlaylistManager()
@@ -659,11 +664,32 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    fun showBrightnessGestureLayout() {
+        hideBrightnessIndicatorJob?.cancel()
+        with(binding) {
+            brightnessGestureLayout.visibility = View.VISIBLE
+            brightnessProgressBar.max = brightnessManager.maxBrightness.times(100).toInt()
+            brightnessProgressBar.progress = brightnessManager.currentBrightness.times(100).toInt()
+            brightnessProgressText.text = brightnessManager.brightnessPercentage.toString()
+        }
+    }
+
     fun hideVolumeGestureLayout() {
         if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
         hideVolumeIndicatorJob = lifecycleScope.launch {
             delay(HIDE_DELAY_MILLIS)
             binding.volumeGestureLayout.visibility = View.GONE
+        }
+    }
+
+    fun hideBrightnessGestureLayout() {
+        if (binding.brightnessGestureLayout.visibility != View.VISIBLE) return
+        hideBrightnessIndicatorJob = lifecycleScope.launch {
+            delay(HIDE_DELAY_MILLIS)
+            binding.brightnessGestureLayout.visibility = View.GONE
+        }
+        if (playerPreferences.rememberPlayerBrightness) {
+            viewModel.setPlayerBrightness(window.attributes.screenBrightness)
         }
     }
 
@@ -752,7 +778,7 @@ class PlayerActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 binding.infoLayout.visibility = View.VISIBLE
                 binding.infoText.text = getString(videoZoom.nameRes())
-                delay(1000L)
+                delay(HIDE_DELAY_MILLIS)
                 binding.infoLayout.visibility = View.GONE
             }
         }
