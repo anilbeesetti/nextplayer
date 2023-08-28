@@ -95,3 +95,9 @@ val Player.audioSessionId: Int
         is ExoPlayer -> this.audioSessionId
         else -> C.AUDIO_SESSION_ID_UNSET
     }
+
+fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
+    return currentTracks.groups
+        .filter { it.type == type && it.isSupported }
+        .indexOfFirst { it.isSelected }
+}

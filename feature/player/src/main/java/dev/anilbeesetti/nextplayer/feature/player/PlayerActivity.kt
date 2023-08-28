@@ -25,7 +25,6 @@ import androidx.activity.viewModels
 import androidx.annotation.Dimension
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePaddingRelative
@@ -62,14 +61,18 @@ import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBind
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
+import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
+import dev.anilbeesetti.nextplayer.feature.player.extensions.next
+import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
@@ -77,6 +80,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
+import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
@@ -84,7 +88,6 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.ffcodecs.NextRenderersFactory
 import java.nio.charset.Charset
-import java.util.Arrays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -118,6 +121,7 @@ class PlayerActivity : AppCompatActivity() {
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
+    private var hideBrightnessIndicatorJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -132,6 +136,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var mediaSession: MediaSession
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
+    private lateinit var brightnessManager: BrightnessManager
     var loudnessEnhancer: LoudnessEnhancer? = null
 
     /**
@@ -238,11 +243,12 @@ class PlayerActivity : AppCompatActivity() {
         })
 
         volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+        brightnessManager = BrightnessManager(activity = this)
         playerGestureHelper = PlayerGestureHelper(
             viewModel = viewModel,
             activity = this,
-            playerView = binding.playerView,
-            volumeManager = volumeManager
+            volumeManager = volumeManager,
+            brightnessManager = brightnessManager
         )
 
         playlistManager = PlaylistManager()
@@ -250,6 +256,9 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStart() {
+        if (playerPreferences.rememberPlayerBrightness) {
+            brightnessManager.setBrightness(playerPreferences.playerBrightness)
+        }
         createPlayer()
         setOrientation()
         initializePlayerView()
@@ -659,11 +668,32 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    fun hideVolumeGestureLayout() {
+    fun showBrightnessGestureLayout() {
+        hideBrightnessIndicatorJob?.cancel()
+        with(binding) {
+            brightnessGestureLayout.visibility = View.VISIBLE
+            brightnessProgressBar.max = brightnessManager.maxBrightness.times(100).toInt()
+            brightnessProgressBar.progress = brightnessManager.currentBrightness.times(100).toInt()
+            brightnessProgressText.text = brightnessManager.brightnessPercentage.toString()
+        }
+    }
+
+    fun hideVolumeGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
         hideVolumeIndicatorJob = lifecycleScope.launch {
-            delay(HIDE_DELAY_MILLIS)
+            delay(delayTimeMillis)
             binding.volumeGestureLayout.visibility = View.GONE
+        }
+    }
+
+    fun hideBrightnessGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
+        if (binding.brightnessGestureLayout.visibility != View.VISIBLE) return
+        hideBrightnessIndicatorJob = lifecycleScope.launch {
+            delay(delayTimeMillis)
+            binding.brightnessGestureLayout.visibility = View.GONE
+        }
+        if (playerPreferences.rememberPlayerBrightness) {
+            viewModel.setPlayerBrightness(window.attributes.screenBrightness)
         }
     }
 
@@ -752,7 +782,7 @@ class PlayerActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 binding.infoLayout.visibility = View.VISIBLE
                 binding.infoText.text = getString(videoZoom.nameRes())
-                delay(1000L)
+                delay(HIDE_DELAY_MILLIS)
                 binding.infoLayout.visibility = View.GONE
             }
         }
@@ -761,16 +791,6 @@ class PlayerActivity : AppCompatActivity() {
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
     }
-}
-
-private val VideoSize.isPortrait: Boolean
-    get() {
-        val isRotated = this.unappliedRotationDegrees == 90 || this.unappliedRotationDegrees == 270
-        return if (isRotated) this.width > this.height else this.height > this.width
-    }
-
-private fun ImageButton.setImageDrawable(context: Context, id: Int) {
-    setImageDrawable(ContextCompat.getDrawable(context, id))
 }
 
 private fun Activity.getRotationDrawable(): Int {
@@ -787,31 +807,4 @@ private fun Activity.getRotationDrawable(): Int {
 
         else -> coreUiR.drawable.ic_screen_rotation
     }
-}
-
-@Suppress("DEPRECATION")
-fun Activity.prettyPrintIntent() {
-    Timber.apply {
-        d("* action: ${intent.action}")
-        d("* data: ${intent.data}")
-        d("* type: ${intent.type}")
-        d("* package: ${intent.`package`}")
-        d("* component: ${intent.component}")
-        d("* flags: ${intent.flags}")
-        intent.extras?.let { bundle ->
-            d("=== Extras ===")
-            bundle.keySet().forEachIndexed { i, key ->
-                buildString {
-                    append("${i + 1}) $key: ")
-                    bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
-                }.also { d(it) }
-            }
-        }
-    }
-}
-
-inline fun <reified T : Enum<T>> T.next(): T {
-    val values = enumValues<T>()
-    val nextOrdinal = (ordinal + 1) % values.size
-    return values[nextOrdinal]
 }
