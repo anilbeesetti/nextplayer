@@ -13,6 +13,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
@@ -637,6 +638,34 @@ class PlayerActivity : AppCompatActivity() {
     override fun setRequestedOrientation(requestedOrientation: Int) {
         super.setRequestedOrientation(requestedOrientation)
         screenRotationButton.setImageDrawable(this, getRotationDrawable())
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                volumeManager.increaseVolume()
+                showVolumeGestureLayout()
+                return true
+            }
+
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                volumeManager.decreaseVolume()
+                showVolumeGestureLayout()
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP,
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                hideVolumeGestureLayout()
+                return true
+            }
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     private fun getAudioAttributes(): AudioAttributes {
