@@ -147,4 +147,6 @@
     <string name="autoplay_settings_description">वर्तमान फ़ोल्डर में अगला वीडियो स्वचालित रूप से चलाएं</string>
     <string name="zoom_gesture_description">वीडियो को ज़ूम करने के लिए पिंच करें</string>
     <string name="zoom_gesture">ज़ूम इशारा</string>
+    <string name="high_contrast_dark_theme">उच्च कंट्रास्ट डार्क थीम</string>
+    <string name="high_contrast_dark_theme_desc">डार्क थीम के लिए शुद्ध काले बैकग्राउंड का उपयोग करें</string>
 </resources>
