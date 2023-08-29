@@ -43,6 +43,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 import dev.anilbeesetti.nextplayer.settings.screens.player.getDisplayTitle
 import dev.anilbeesetti.nextplayer.settings.screens.player.getLanguages
+import java.nio.charset.Charset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,8 +111,8 @@ fun SubtitlePreferencesScreen(
             )
         }
 
-        uiState.showDialog?.let {
-            when (it) {
+        uiState.showDialog?.let { showDialog ->
+            when (showDialog) {
                 SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_subtitle_lang),
@@ -187,14 +188,16 @@ fun SubtitlePreferencesScreen(
                     ) {
                         items(charsetResource) {
                             val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
-                            RadioTextButton(
-                                text = it,
-                                selected = currentCharset == preferences.subtitleTextEncoding,
-                                onClick = {
-                                    viewModel.updateSubtitleEncoding(currentCharset)
-                                    viewModel.hideDialog()
-                                }
-                            )
+                            if (currentCharset.isEmpty() || Charset.isSupported(currentCharset)) {
+                                RadioTextButton(
+                                    text = it,
+                                    selected = currentCharset == preferences.subtitleTextEncoding,
+                                    onClick = {
+                                        viewModel.updateSubtitleEncoding(currentCharset)
+                                        viewModel.hideDialog()
+                                    }
+                                )
+                            }
                         }
                     }
                 }
