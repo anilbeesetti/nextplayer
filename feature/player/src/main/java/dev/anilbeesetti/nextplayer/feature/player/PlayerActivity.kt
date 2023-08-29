@@ -473,7 +473,7 @@ class PlayerActivity : AppCompatActivity() {
 
             // current uri as MediaItem with subs
             val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
-            val mediaStream = createMediaStream(currentUri, intent.type).buildUpon()
+            val mediaStream = createMediaStream(currentUri).buildUpon()
                 .setSubtitleConfigurations(subtitleStreams)
                 .build()
 
@@ -740,13 +740,10 @@ class PlayerActivity : AppCompatActivity() {
         isFirstFrameRendered = false
     }
 
-    private fun createMediaStream(uri: Uri, mimeType: String?): MediaItem {
-        return MediaItem.Builder().apply {
-            setMediaId(uri.toString())
-            setUri(uri)
-            mimeType?.let { setMimeType(mimeType) }
-        }.build()
-    }
+    private fun createMediaStream(uri: Uri) = MediaItem.Builder()
+        .setMediaId(uri.toString())
+        .setUri(uri)
+        .build()
 
     private fun createExternalSubtitleStreams(
         subtitles: List<Subtitle>
