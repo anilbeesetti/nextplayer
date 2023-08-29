@@ -745,18 +745,15 @@ class PlayerActivity : AppCompatActivity() {
         .setUri(uri)
         .build()
 
-    private fun createExternalSubtitleStreams(
-        subtitles: List<Subtitle>
-    ): List<MediaItem.SubtitleConfiguration> {
+    private fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
         return subtitles.map {
+            val charset = Charset.forName(playerPreferences.subtitleTextEncoding).takeIf {
+                with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }
+            }
             MediaItem.SubtitleConfiguration.Builder(
                 convertToUTF8(
                     uri = it.uri,
-                    charset = if (playerPreferences.subtitleTextEncoding.isNotBlank()) {
-                        Charset.forName(playerPreferences.subtitleTextEncoding)
-                    } else {
-                        null
-                    }
+                    charset = charset
                 )
             ).apply {
                 setId(it.uri.toString())
