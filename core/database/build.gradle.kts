@@ -1,15 +1,14 @@
 plugins {
     id("nextplayer.android.library")
     id("nextplayer.android.hilt")
+    alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "dev.anilbeesetti.nextplayer.core.database"
 
-    kapt {
-        arguments {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
     }
 }
 
@@ -20,7 +19,7 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
