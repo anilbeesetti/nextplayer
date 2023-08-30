@@ -22,6 +22,7 @@ junit4 = "4.13.2"
 kotlin = "1.8.22"
 kotlinxCoroutines = "1.6.4"
 kotlinxSerializationJson = "1.6.0"
+ksp = "1.8.22-1.0.11"
 ktlint = "11.5.1"
 landscapist = "2.2.7"
 nextlib = "0.3.0"
@@ -95,4 +96,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
