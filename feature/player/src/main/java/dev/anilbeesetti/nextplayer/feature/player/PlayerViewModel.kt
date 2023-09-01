@@ -59,8 +59,7 @@ class PlayerViewModel @Inject constructor(
         currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections } ?: currentAudioTrackIndex
         currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections } ?: currentSubtitleTrackIndex
         currentPlaybackSpeed = currentVideoState?.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
-
-        // TODO: update subs when stored in local storage
+        externalSubtitles += currentVideoState?.externalSubs ?: emptyList()
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Uri> {
@@ -92,7 +91,8 @@ class PlayerViewModel @Inject constructor(
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed
+                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed,
+                externalSubs = externalSubtitles.toList()
             )
         }
     }

@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
@@ -36,7 +37,7 @@ interface MediaRepository {
      * -1 to disable track
      * null to not change track
      */
-    suspend fun saveVideoState(path: String, position: Long, audioTrackIndex: Int?, subtitleTrackIndex: Int?, playbackSpeed: Float?)
+    suspend fun saveVideoState(path: String, position: Long, audioTrackIndex: Int?, subtitleTrackIndex: Int?, playbackSpeed: Float?, externalSubs: List<Uri>)
 
     suspend fun getVideoState(path: String): VideoState?
 

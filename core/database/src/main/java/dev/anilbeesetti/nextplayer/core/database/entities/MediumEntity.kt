@@ -8,9 +8,7 @@ import androidx.room.PrimaryKey
     tableName = "media"
 )
 data class MediumEntity(
-    @PrimaryKey
-    @ColumnInfo(name = "path")
-    val path: String,
+    @PrimaryKey @ColumnInfo(name = "path") val path: String,
     @ColumnInfo(name = "filename") val name: String,
     @ColumnInfo(name = "uri") val uriString: String,
     @ColumnInfo(name = "parent_path") val parentPath: String,
@@ -23,5 +21,6 @@ data class MediumEntity(
     @ColumnInfo(name = "audio_track_index") val audioTrackIndex: Int? = null,
     @ColumnInfo(name = "subtitle_track_index") val subtitleTrackIndex: Int? = null,
     @ColumnInfo(name = "playback_speed") val playbackSpeed: Float? = null,
-    @ColumnInfo(name = "media_store_id") val mediaStoreId: Long
+    @ColumnInfo(name = "media_store_id") val mediaStoreId: Long,
+    @ColumnInfo(name = "external_subs", defaultValue = "") val externalSubs: String = ""
 )
