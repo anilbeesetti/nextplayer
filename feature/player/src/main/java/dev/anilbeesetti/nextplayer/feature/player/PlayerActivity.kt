@@ -147,7 +147,7 @@ class PlayerActivity : AppCompatActivity() {
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null) {
-            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            lifecycleScope.launch { contentResolver.grantUriPermissionIfNotGranted(uri) }
             isSubtitleLauncherHasUri = true
             viewModel.externalSubtitles.add(uri)
         }
