@@ -8,21 +8,16 @@ import java.nio.charset.StandardCharsets
 object UriListConverter {
 
     fun fromListToString(urlList: List<Uri>): String {
-        var outputString = ""
-        urlList.forEach {
-            outputString += URLEncoder.encode(it.toString(), StandardCharsets.UTF_8.toString())
-        }
-        return outputString
+        if (urlList.isEmpty()) return ""
+        return urlList.map { URLEncoder.encode(it.toString(), StandardCharsets.UTF_8.toString()) }
+            .reduce { acc, s -> "$acc,$s" }
     }
 
     fun fromStringToList(urlString: String): List<Uri> {
-        val outputList = mutableListOf<Uri>()
-        if (urlString.isNotEmpty()) {
-            urlString.split(",").forEach {
-                val subString = URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
-                outputList.add(Uri.parse(subString))
-            }
+        if (urlString.isEmpty()) return emptyList()
+        return urlString.split(",").map {
+            val subString = URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            Uri.parse(subString)
         }
-        return outputList
     }
 }
