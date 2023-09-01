@@ -66,6 +66,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
+import dev.anilbeesetti.nextplayer.feature.player.extensions.grantUriPermissionIfNotGranted
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
@@ -146,21 +147,7 @@ class PlayerActivity : AppCompatActivity() {
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null) {
-            var permissionAlreadyTaken = false
-            for (uriPermission in contentResolver.persistedUriPermissions) {
-                if (uriPermission.uri.equals(uri)) {
-                    permissionAlreadyTaken = true
-                    break
-                }
-            }
-
-            if (!permissionAlreadyTaken) {
-                try {
-                    contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                } catch (e: SecurityException) {
-                    e.printStackTrace()
-                }
-            }
+            lifecycleScope.launch { contentResolver.grantUriPermissionIfNotGranted(uri) }
             isSubtitleLauncherHasUri = true
             viewModel.externalSubtitles.add(uri)
         }
