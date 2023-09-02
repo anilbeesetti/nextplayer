@@ -146,6 +146,7 @@ class PlayerActivity : AppCompatActivity() {
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null) {
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             isSubtitleLauncherHasUri = true
             viewModel.externalSubtitles.add(uri)
         }
@@ -747,8 +748,10 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
         return subtitles.map {
-            val charset = Charset.forName(playerPreferences.subtitleTextEncoding).takeIf {
-                with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }
+            val charset = if (with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
+                Charset.forName(playerPreferences.subtitleTextEncoding)
+            } else {
+                null
             }
             MediaItem.SubtitleConfiguration.Builder(
                 convertToUTF8(

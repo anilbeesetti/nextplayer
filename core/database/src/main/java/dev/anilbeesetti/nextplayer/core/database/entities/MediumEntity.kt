@@ -23,5 +23,6 @@ data class MediumEntity(
     @ColumnInfo(name = "audio_track_index") val audioTrackIndex: Int? = null,
     @ColumnInfo(name = "subtitle_track_index") val subtitleTrackIndex: Int? = null,
     @ColumnInfo(name = "playback_speed") val playbackSpeed: Float? = null,
-    @ColumnInfo(name = "media_store_id") val mediaStoreId: Long
+    @ColumnInfo(name = "media_store_id") val mediaStoreId: Long,
+    @ColumnInfo(name = "external_subs", defaultValue = "") val externalSubs: String = ""
 )

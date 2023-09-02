@@ -95,7 +95,8 @@ class LocalMediaSynchronizer @Inject constructor(
                 playbackPosition = mediumEntity?.playbackPosition ?: 0,
                 audioTrackIndex = mediumEntity?.audioTrackIndex,
                 subtitleTrackIndex = mediumEntity?.subtitleTrackIndex,
-                playbackSpeed = mediumEntity?.playbackSpeed
+                playbackSpeed = mediumEntity?.playbackSpeed,
+                externalSubs = mediumEntity?.externalSubs ?: ""
             )
         }
 

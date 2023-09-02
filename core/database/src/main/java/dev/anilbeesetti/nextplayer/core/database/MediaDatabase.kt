@@ -12,10 +12,11 @@ import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
     entities = [
         DirectoryEntity::class, MediumEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 3, to = 4)
     ]
 )
 abstract class MediaDatabase : RoomDatabase() {
