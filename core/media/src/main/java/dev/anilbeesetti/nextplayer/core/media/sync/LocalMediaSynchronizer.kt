@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.database.ContentObserver
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -10,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
@@ -71,10 +73,11 @@ class LocalMediaSynchronizer @Inject constructor(
         val currentDirectoryPaths = directories.map { it.path }
 
         val unwantedDirectories = directoryDao.getAll().first()
-            .map { it.path }
-            .filterNot { it in currentDirectoryPaths }
+            .filterNot { it.path in currentDirectoryPaths }
 
-        directoryDao.delete(unwantedDirectories)
+        val unwantedDirectoriesPaths = unwantedDirectories.map { it.path }
+
+        directoryDao.delete(unwantedDirectoriesPaths)
     }
 
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
@@ -105,10 +108,25 @@ class LocalMediaSynchronizer @Inject constructor(
         val currentMediaPaths = mediumEntities.map { it.path }
 
         val unwantedMedia = mediumDao.getAll().first()
-            .map { it.path }
-            .filterNot { it in currentMediaPaths }
+            .filterNot { it.path in currentMediaPaths }
 
-        mediumDao.delete(unwantedMedia)
+        val unwantedMediaPaths = unwantedMedia.map { it.path }
+
+        mediumDao.delete(unwantedMediaPaths)
+
+        // Release external subtitle uri permission if not used by any other media
+        launch {
+            val currentMediaExternalSubs = mediumEntities.flatMap { UriListConverter.fromStringToList(it.externalSubs) }.toSet()
+
+            unwantedMedia.onEach {
+                for (sub in UriListConverter.fromStringToList(it.externalSubs)) {
+                    if (sub !in currentMediaExternalSubs) {
+                        context.contentResolver.releasePersistableUriPermission(sub, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                }
+            }
+        }
+
     }
 
     private fun getMediaVideosFlow(
