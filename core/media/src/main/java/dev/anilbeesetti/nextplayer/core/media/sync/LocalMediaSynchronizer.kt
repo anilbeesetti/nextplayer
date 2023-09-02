@@ -126,7 +126,6 @@ class LocalMediaSynchronizer @Inject constructor(
                 }
             }
         }
-
     }
 
     private fun getMediaVideosFlow(
