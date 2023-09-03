@@ -26,7 +26,7 @@ dependencyResolutionManagement {
 //if (File(nextLibDirPath).exists()) {
 //    includeBuild(nextLibDirPath) {
 //        dependencySubstitution {
-//            substitute(module("com.github.anilbeesetti:nextlib")).using(project(":ffcodecs"))
+//            substitute(module("com.github.anilbeesetti:nextlib")).using(project(":media3ext"))
 //        }
 //    }
 //}
