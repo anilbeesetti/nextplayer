@@ -61,7 +61,7 @@ fun AudioPreferencesScreen(
         ) {
             item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
             preferredAudioLanguageSetting(
-                currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredSubtitleLanguage),
+                currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredAudioLanguage),
                 onClick = { viewModel.showDialog(AudioPreferenceDialog.AudioLanguageDialog) }
             )
         }
