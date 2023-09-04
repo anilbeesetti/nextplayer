@@ -14,13 +14,16 @@ data class PlayerPreferences(
     val useSeekControls: Boolean = true,
     val useZoomControls: Boolean = true,
     val rememberSelections: Boolean = true,
-    val preferredAudioLanguage: String = "",
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     val playerVideoZoom: VideoZoom = VideoZoom.BEST_FIT,
     val defaultPlaybackSpeed: Float = 1.0f,
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
+
+    // Audio Preferences
+    val preferredAudioLanguage: String = "",
+    val pauseOnHeadsetDisconnect: Boolean = true,
 
     // Subtitle Preferences
     val preferredSubtitleLanguage: String = "",

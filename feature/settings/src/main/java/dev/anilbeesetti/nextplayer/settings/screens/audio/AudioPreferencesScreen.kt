@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
@@ -64,6 +65,10 @@ fun AudioPreferencesScreen(
                 currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredAudioLanguage),
                 onClick = { viewModel.showDialog(AudioPreferenceDialog.AudioLanguageDialog) }
             )
+            pauseOnHeadsetDisconnectSetting(
+                isChecked = preferences.pauseOnHeadsetDisconnect,
+                onClick = viewModel::togglePauseOnHeadsetDisconnect
+            )
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -100,6 +105,19 @@ fun LazyListScope.preferredAudioLanguageSetting(
             id = R.string.preferred_audio_lang_description
         ),
         icon = NextIcons.Language,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.pauseOnHeadsetDisconnectSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.pause_on_headset_disconnect),
+        description = stringResource(id = R.string.pause_on_headset_disconnect_desc),
+        icon = NextIcons.HeadsetOff,
+        isChecked = isChecked,
         onClick = onClick
     )
 }
