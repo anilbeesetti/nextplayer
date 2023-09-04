@@ -470,7 +470,7 @@ class PlayerActivity : AppCompatActivity() {
 
             // Get all subtitles for current uri
             val apiSubs = if (intent.data == currentUri) playerApi.getSubs() else emptyList()
-            val localSubs = currentUri.getLocalSubtitles(currentContext)
+            val localSubs = currentUri.getLocalSubtitles(currentContext, viewModel.externalSubtitles.toList())
             val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
 
             // current uri as MediaItem with subs

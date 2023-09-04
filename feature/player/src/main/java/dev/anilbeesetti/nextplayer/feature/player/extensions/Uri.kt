@@ -33,14 +33,17 @@ fun Uri.getSubtitleMime(): String {
     }
 }
 
-fun Uri.getLocalSubtitles(context: Context): List<Subtitle> {
+fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyList()): List<Subtitle> {
     return context.getPath(this)?.let { path ->
-        File(path).getSubtitles().map { file ->
-            Subtitle(
-                name = file.name,
-                uri = file.toUri(),
-                isSelected = false
-            )
+        val excludeSubsPathList = excludeSubsList.mapNotNull { context.getPath(it) }
+        File(path).getSubtitles().mapNotNull { file ->
+            if (file.path !in excludeSubsPathList) {
+                Subtitle(
+                    name = file.name,
+                    uri = file.toUri(),
+                    isSelected = false
+                )
+            } else null
         }
     } ?: emptyList()
 }
