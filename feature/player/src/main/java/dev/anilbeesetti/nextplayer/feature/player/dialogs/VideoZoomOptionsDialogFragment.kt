@@ -14,7 +14,7 @@ class VideoZoomOptionsDialogFragment(
     private val onVideoZoomOptionSelected: (videoZoom: VideoZoom) -> Unit
 ) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val videoZoomValues = VideoZoom.values()
+        val videoZoomValues = VideoZoom.entries.toTypedArray()
 
         return activity?.let { activity ->
             MaterialAlertDialogBuilder(activity)

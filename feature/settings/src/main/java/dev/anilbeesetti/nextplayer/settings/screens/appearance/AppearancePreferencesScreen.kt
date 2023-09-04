@@ -86,7 +86,7 @@ fun AppearancePreferencesScreen(
                         text = stringResource(id = R.string.dark_theme),
                         onDismissClick = viewModel::hideDialog
                     ) {
-                        items(ThemeConfig.values()) {
+                        items(ThemeConfig.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == preferences.themeConfig),
