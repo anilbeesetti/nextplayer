@@ -152,6 +152,8 @@
     <string name="high_contrast_dark_theme">High contrast dark theme</string>
     <string name="high_contrast_dark_theme_desc">Use pure black background for dark theme</string>
     <string name="audio_desc">Audio playback options</string>
-    <string name="pause_on_headset_disconnect">Pause on headset disconnect</string>
+    <string name="pause_on_headset_disconnect">Pause on disconnect</string>
     <string name="pause_on_headset_disconnect_desc">Pause playback when headset disconnected from the device</string>
+    <string name="system_volume_panel">System volume panel</string>
+    <string name="system_volume_panel_desc">Show system volume panel while adjusting volume with headset on</string>
 </resources>

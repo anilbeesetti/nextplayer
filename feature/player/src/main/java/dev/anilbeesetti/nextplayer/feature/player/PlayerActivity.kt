@@ -645,13 +645,13 @@ class PlayerActivity : AppCompatActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                volumeManager.increaseVolume()
+                volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
                 showVolumeGestureLayout()
                 return true
             }
 
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                volumeManager.decreaseVolume()
+                volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
                 showVolumeGestureLayout()
                 return true
             }

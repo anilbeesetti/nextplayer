@@ -24,6 +24,7 @@ data class PlayerPreferences(
     // Audio Preferences
     val preferredAudioLanguage: String = "",
     val pauseOnHeadsetDisconnect: Boolean = true,
+    val showSystemVolumePanel: Boolean = true,
 
     // Subtitle Preferences
     val preferredSubtitleLanguage: String = "",
