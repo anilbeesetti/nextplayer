@@ -43,7 +43,9 @@ fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyLi
                     uri = file.toUri(),
                     isSelected = false
                 )
-            } else null
+            } else {
+                null
+            }
         }
     } ?: emptyList()
 }
