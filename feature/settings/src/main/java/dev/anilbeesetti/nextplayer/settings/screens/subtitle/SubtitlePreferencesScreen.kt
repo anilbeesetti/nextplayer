@@ -135,7 +135,7 @@ fun SubtitlePreferencesScreen(
                         text = stringResource(id = R.string.subtitle_font),
                         onDismissClick = viewModel::hideDialog
                     ) {
-                        items(Font.values()) {
+                        items(Font.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = it == preferences.subtitleFont,

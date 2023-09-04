@@ -141,14 +141,14 @@ fun PlayerPreferencesScreen(
             )
         }
 
-        uiState.showDialog?.let {
-            when (it) {
+        uiState.showDialog?.let { showDialog ->
+            when (showDialog) {
                 PlayerPreferenceDialog.ResumeDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.resume),
                         onDismissClick = viewModel::hideDialog
                     ) {
-                        items(Resume.values()) {
+                        items(Resume.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == preferences.resume),
@@ -166,7 +166,7 @@ fun PlayerPreferencesScreen(
                         text = stringResource(id = R.string.double_tap),
                         onDismissClick = viewModel::hideDialog
                     ) {
-                        items(DoubleTapGesture.values()) {
+                        items(DoubleTapGesture.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == preferences.doubleTapGesture),
@@ -184,7 +184,7 @@ fun PlayerPreferencesScreen(
                         text = stringResource(id = R.string.fast_seek),
                         onDismissClick = viewModel::hideDialog
                     ) {
-                        items(FastSeek.values()) {
+                        items(FastSeek.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = (it == preferences.fastSeek),
@@ -202,7 +202,7 @@ fun PlayerPreferencesScreen(
                         text = stringResource(id = R.string.player_screen_orientation),
                         onDismissClick = viewModel::hideDialog
                     ) {
-                        items(ScreenOrientation.values()) {
+                        items(ScreenOrientation.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = it == preferences.playerScreenOrientation,

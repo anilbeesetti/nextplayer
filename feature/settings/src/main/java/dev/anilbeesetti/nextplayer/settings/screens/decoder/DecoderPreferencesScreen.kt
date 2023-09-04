@@ -72,7 +72,7 @@ fun DecoderPreferencesScreen(
                         text = stringResource(id = R.string.decoder_priority),
                         onDismissClick = viewModel::hideDialog
                     ) {
-                        items(DecoderPriority.values()) {
+                        items(DecoderPriority.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = it == preferences.decoderPriority,
