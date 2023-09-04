@@ -43,7 +43,6 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +52,6 @@ fun PlayerPreferencesScreen(
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val languages = remember { listOf(Pair("None", "")) + getLanguages() }
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -141,13 +139,6 @@ fun PlayerPreferencesScreen(
                     viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
                 }
             )
-            item {
-                PreferenceSubtitle(text = stringResource(id = R.string.audio))
-            }
-            preferredAudioLanguageSetting(
-                currentLanguage = getDisplayTitle(preferences.preferredAudioLanguage),
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.AudioLanguageDialog) }
-            )
         }
 
         uiState.showDialog?.let {
@@ -199,24 +190,6 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.fastSeek),
                                 onClick = {
                                     viewModel.updateFastSeek(it)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.AudioLanguageDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(languages) {
-                            RadioTextButton(
-                                text = it.first,
-                                selected = it.second == preferences.preferredAudioLanguage,
-                                onClick = {
-                                    viewModel.updateAudioLanguage(it.second)
                                     viewModel.hideDialog()
                                 }
                             )
@@ -505,40 +478,4 @@ fun LazyListScope.screenOrientationSetting(
         icon = NextIcons.Rotation,
         onClick = onClick
     )
-}
-
-fun LazyListScope.preferredAudioLanguageSetting(
-    currentLanguage: String,
-    onClick: () -> Unit
-) = item {
-    ClickablePreferenceItem(
-        title = stringResource(id = R.string.preferred_audio_lang),
-        description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
-            id = R.string.preferred_audio_lang_description
-        ),
-        icon = NextIcons.Language,
-        onClick = onClick
-    )
-}
-
-fun getLanguages(): List<Pair<String, String>> {
-    return try {
-        Locale.getAvailableLocales().map {
-            val key = it.isO3Language
-            val language = it.displayLanguage
-            Pair(language, key)
-        }.distinctBy { it.second }.sortedBy { it.first }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        listOf()
-    }
-}
-
-fun getDisplayTitle(key: String): String {
-    return try {
-        Locale.getAvailableLocales().first { it.isO3Language == key }.displayLanguage
-    } catch (e: Exception) {
-        e.printStackTrace()
-        ""
-    }
 }
