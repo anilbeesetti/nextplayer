@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.FolderOff
 import androidx.compose.material.icons.rounded.FontDownload
 import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.FormatSize
+import androidx.compose.material.icons.rounded.HeadsetOff
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
@@ -73,6 +74,7 @@ object NextIcons {
     val FolderOff = Icons.Rounded.FolderOff
     val Font = Icons.Rounded.FontDownload
     val FontSize = Icons.Rounded.FormatSize
+    val HeadsetOff = Icons.Rounded.HeadsetOff
     val Info = Icons.Rounded.Info
     val Language = Icons.Rounded.Translate
     val Length = Icons.Rounded.Straighten

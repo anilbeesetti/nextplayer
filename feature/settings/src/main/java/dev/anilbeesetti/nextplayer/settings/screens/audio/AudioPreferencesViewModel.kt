@@ -42,6 +42,14 @@ class AudioPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun togglePauseOnHeadsetDisconnect() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(pauseOnHeadsetDisconnect = !it.pauseOnHeadsetDisconnect)
+            }
+        }
+    }
 }
 
 data class AudioPreferencesUIState(

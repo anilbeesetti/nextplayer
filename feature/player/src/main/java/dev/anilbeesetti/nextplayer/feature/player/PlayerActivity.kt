@@ -302,7 +302,7 @@ class PlayerActivity : AppCompatActivity() {
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setAudioAttributes(getAudioAttributes(), true)
-            .setHandleAudioBecomingNoisy(true)
+            .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
             .build()
 
         mediaSession = MediaSession.Builder(applicationContext, player).build()
