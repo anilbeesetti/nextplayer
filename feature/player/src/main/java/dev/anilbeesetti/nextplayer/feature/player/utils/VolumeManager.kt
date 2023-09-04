@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
+import android.os.Build
 
 class VolumeManager(private val audioManager: AudioManager) {
 
@@ -23,24 +24,29 @@ class VolumeManager(private val audioManager: AudioManager) {
     val currentLoudnessGain get() = (currentVolume - maxStreamVolume) * (MAX_VOLUME_BOOST / maxStreamVolume)
     val volumePercentage get() = (currentVolume / maxStreamVolume.toFloat()).times(100).toInt()
 
-    fun setVolume(volume: Float) {
+    @Suppress("DEPRECATION")
+    fun setVolume(volume: Float, showVolumePanel: Boolean = false) {
         currentVolume = volume.coerceIn(0f, maxVolume.toFloat())
 
         if (currentVolume <= maxStreamVolume) {
             loudnessEnhancer?.enabled = false
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume.toInt(), 0)
+            audioManager.setStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                currentVolume.toInt(),
+                if (showVolumePanel && audioManager.isWiredHeadsetOn) AudioManager.FLAG_SHOW_UI else 0
+            )
         } else {
             loudnessEnhancer?.enabled = true
             loudnessEnhancer?.setTargetGain(currentLoudnessGain.toInt())
         }
     }
 
-    fun increaseVolume() {
-        setVolume(currentVolume + 1)
+    fun increaseVolume(showVolumePanel: Boolean = false) {
+        setVolume(currentVolume + 1, showVolumePanel)
     }
 
-    fun decreaseVolume() {
-        setVolume(currentVolume - 1)
+    fun decreaseVolume(showVolumePanel: Boolean = false) {
+        setVolume(currentVolume - 1, showVolumePanel)
     }
 
     companion object {

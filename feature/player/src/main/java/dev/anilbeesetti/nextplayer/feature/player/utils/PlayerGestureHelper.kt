@@ -183,7 +183,7 @@ class PlayerGestureHelper(
 
                 if (firstEvent.x.toInt() > viewCenterX) {
                     val change = ratioChange * volumeManager.maxStreamVolume
-                    volumeManager.setVolume(volumeManager.currentVolume + change)
+                    volumeManager.setVolume(volumeManager.currentVolume + change, prefs.showSystemVolumePanel)
                     activity.showVolumeGestureLayout()
                 } else {
                     val change = ratioChange * brightnessManager.maxBrightness
