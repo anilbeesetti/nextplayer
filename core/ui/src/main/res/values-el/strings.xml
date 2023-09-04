@@ -150,4 +150,6 @@
     <string name="high_contrast_dark_theme">Σκοτεινό θέμα υψηλής αντίθεσης</string>
     <string name="high_contrast_dark_theme_desc">Χρήση μαύρου φόντου στο σκοτεινό θέμα</string>
     <string name="audio_desc">Επιλογές ήχου</string>
+    <string name="pause_on_headset_disconnect_desc">Παύση αναπαραγωγής κατά την αφαίρεση των ακουστικών</string>
+    <string name="pause_on_headset_disconnect">Αφαίρεση ακουστικών</string>
 </resources>
