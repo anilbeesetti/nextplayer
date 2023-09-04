@@ -137,14 +137,6 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateAudioLanguage(value: String) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(preferredAudioLanguage = value)
-            }
-        }
-    }
-
     fun updatePreferredPlayerOrientation(value: ScreenOrientation) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -186,7 +178,6 @@ sealed interface PlayerPreferenceDialog {
     object ResumeDialog : PlayerPreferenceDialog
     object DoubleTapDialog : PlayerPreferenceDialog
     object FastSeekDialog : PlayerPreferenceDialog
-    object AudioLanguageDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog

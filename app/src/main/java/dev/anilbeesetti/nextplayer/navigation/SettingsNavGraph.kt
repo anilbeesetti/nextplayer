@@ -6,11 +6,13 @@ import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.audioPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.decoderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.folderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.mediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAudioPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToDecoderPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaLibraryPreferencesScreen
@@ -38,6 +40,7 @@ fun NavGraphBuilder.settingsNavGraph(
                     Setting.MEDIA_LIBRARY -> navController.navigateToMediaLibraryPreferencesScreen()
                     Setting.PLAYER -> navController.navigateToPlayerPreferences()
                     Setting.DECODER -> navController.navigateToDecoderPreferences()
+                    Setting.AUDIO -> navController.navigateToAudioPreferences()
                     Setting.SUBTITLE -> navController.navigateToSubtitlePreferences()
                     Setting.ABOUT -> navController.navigateToAboutPreferences()
                 }
@@ -57,6 +60,9 @@ fun NavGraphBuilder.settingsNavGraph(
             onNavigateUp = navController::navigateUp
         )
         decoderPreferencesScreen(
+            onNavigateUp = navController::navigateUp
+        )
+        audioPreferencesScreen(
             onNavigateUp = navController::navigateUp
         )
         subtitlePreferencesScreen(

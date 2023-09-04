@@ -79,6 +79,14 @@ fun SettingsScreen(
             }
             item {
                 ClickablePreferenceItem(
+                    title = stringResource(id = R.string.audio),
+                    description = stringResource(R.string.audio_desc),
+                    icon = NextIcons.Audio,
+                    onClick = { onItemClick(Setting.AUDIO) }
+                )
+            }
+            item {
+                ClickablePreferenceItem(
                     title = stringResource(id = R.string.subtitle),
                     description = stringResource(R.string.subtitle_desc),
                     icon = NextIcons.Subtitle,
@@ -102,6 +110,7 @@ enum class Setting {
     MEDIA_LIBRARY,
     PLAYER,
     DECODER,
+    AUDIO,
     SUBTITLE,
     ABOUT
 }
