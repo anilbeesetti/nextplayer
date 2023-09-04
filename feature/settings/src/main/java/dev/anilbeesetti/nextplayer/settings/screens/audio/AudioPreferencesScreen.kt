@@ -86,12 +86,9 @@ fun AudioPreferencesScreen(
                     }
                 }
             }
-
         }
-
     }
 }
-
 
 fun LazyListScope.preferredAudioLanguageSetting(
     currentLanguage: String,

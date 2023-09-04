@@ -43,7 +43,6 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

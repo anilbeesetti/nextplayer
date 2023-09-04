@@ -5,19 +5,18 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class AudioPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
-
 
     val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
@@ -43,7 +42,6 @@ class AudioPreferencesViewModel @Inject constructor(
             }
         }
     }
-
 }
 
 data class AudioPreferencesUIState(
