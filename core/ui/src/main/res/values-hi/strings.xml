@@ -149,4 +149,9 @@
     <string name="zoom_gesture">ज़ूम इशारा</string>
     <string name="high_contrast_dark_theme">उच्च कंट्रास्ट डार्क थीम</string>
     <string name="high_contrast_dark_theme_desc">डार्क थीम के लिए शुद्ध काले बैकग्राउंड का उपयोग करें</string>
+    <string name="audio_desc">ऑडियो प्लेबैक विकल्प</string>
+    <string name="pause_on_headset_disconnect_desc">जब हेडसेट डिवाइस से डिस्कनेक्ट हो जाए तो प्लेबैक रोकें</string>
+    <string name="pause_on_headset_disconnect">डिस्कनेक्ट होने पर रोकें</string>
+    <string name="system_volume_panel">सिस्टम वॉल्यूम पैनल</string>
+    <string name="system_volume_panel_desc">हेडसेट उपयोग करते समय वॉल्यूम एडजस्ट करते वक्त सिस्टम वॉल्यूम पैनल दिखाएं</string>
 </resources>
