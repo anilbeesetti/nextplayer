@@ -152,4 +152,6 @@
     <string name="audio_desc">Επιλογές ήχου</string>
     <string name="pause_on_headset_disconnect_desc">Παύση αναπαραγωγής κατά την αφαίρεση των ακουστικών</string>
     <string name="pause_on_headset_disconnect">Αφαίρεση ακουστικών</string>
+    <string name="system_volume_panel">Ένταση συστήματος</string>
+    <string name="system_volume_panel_desc">Χρήση πίνακα έντασης συστήματος όταν χρησιμοποιούνται ακουστικά</string>
 </resources>
