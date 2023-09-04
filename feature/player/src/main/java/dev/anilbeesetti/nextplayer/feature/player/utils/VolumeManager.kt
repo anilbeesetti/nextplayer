@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
-import android.os.Build
 
 class VolumeManager(private val audioManager: AudioManager) {
 
