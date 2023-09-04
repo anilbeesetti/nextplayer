@@ -50,6 +50,14 @@ class AudioPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleShowSystemVolumePanel() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showSystemVolumePanel = !it.showSystemVolumePanel)
+            }
+        }
+    }
 }
 
 data class AudioPreferencesUIState(

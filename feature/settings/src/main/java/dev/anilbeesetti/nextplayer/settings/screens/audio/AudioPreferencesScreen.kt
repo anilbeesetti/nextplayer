@@ -69,6 +69,10 @@ fun AudioPreferencesScreen(
                 isChecked = preferences.pauseOnHeadsetDisconnect,
                 onClick = viewModel::togglePauseOnHeadsetDisconnect
             )
+            showSystemVolumePanelSetting(
+                isChecked = preferences.showSystemVolumePanel,
+                onClick = viewModel::toggleShowSystemVolumePanel
+            )
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -117,6 +121,19 @@ fun LazyListScope.pauseOnHeadsetDisconnectSetting(
         title = stringResource(id = R.string.pause_on_headset_disconnect),
         description = stringResource(id = R.string.pause_on_headset_disconnect_desc),
         icon = NextIcons.HeadsetOff,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.showSystemVolumePanelSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.system_volume_panel),
+        description = stringResource(id = R.string.system_volume_panel_desc),
+        icon = NextIcons.Headset,
         isChecked = isChecked,
         onClick = onClick
     )
