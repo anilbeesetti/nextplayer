@@ -147,7 +147,7 @@
     <string name="autoplay_settings_description">Αυτόματη αναπαραγωγή του επόμενου βίντεο στον φάκελο</string>
     <string name="zoom_gesture">Μεγέθυνση</string>
     <string name="zoom_gesture_description">Χειρονομία μεγέθυνσης βίντεο</string>
-    <string name="high_contrast_dark_theme">Σκοτεινό θέμα υψηλής αντίθεσης</string>
+    <string name="high_contrast_dark_theme">Μαύρο θέμα</string>
     <string name="high_contrast_dark_theme_desc">Χρήση μαύρου φόντου στο σκοτεινό θέμα</string>
     <string name="audio_desc">Επιλογές ήχου</string>
     <string name="pause_on_headset_disconnect_desc">Παύση αναπαραγωγής κατά την αφαίρεση των ακουστικών</string>
