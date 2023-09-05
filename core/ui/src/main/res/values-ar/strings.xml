@@ -114,7 +114,7 @@
     <string name="monospace">Monospace</string>
     <string name="sans_serif">Sans Serif</string>
     <string name="serif">Serif</string>
-    <string name="subtitle_font">شكل كتابة الترجمة</string>
+    <string name="subtitle_font">خط الترجمة</string>
     <string name="subtitle_text_bold">نص ترجمة عريض</string>
     <string name="subtitle_text_bold_desc">استخدم النص العريض للترجمة</string>
     <string name="subtitle_text_size">حجم نص الترجمة</string>
@@ -130,4 +130,9 @@
     <string name="share">نشر</string>
     <string name="delete">احذف</string>
     <string name="delete_file">احذف الملف التالي</string>
+    <string name="autoplay_settings_description">تشغيل الفيديو التالي تلقائيًا في المجلد الحالي</string>
+    <string name="autoplay_settings">تشغيل تلقائي</string>
+    <string name="decoder_desc">اولوية فاكَّ الشفرة، خيارات فاكَّ الشفرة</string>
+    <string name="decoder">فاكَّ الشفرة</string>
+    <string name="decoder_priority">أولوية فاكَّ الشفرة</string>
 </resources>
