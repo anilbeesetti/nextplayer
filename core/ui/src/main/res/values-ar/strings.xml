@@ -135,4 +135,7 @@
     <string name="decoder_desc">اولوية فاكَّ الشفرة، خيارات فاكَّ الشفرة</string>
     <string name="decoder">فاكَّ الشفرة</string>
     <string name="decoder_priority">أولوية فاكَّ الشفرة</string>
+    <string name="video_software_decoders">برامج فك ترميز الفيديو</string>
+    <string name="prefer_app_decoders">تفضل أجهزة فك ترميز التطبيق</string>
+    <string name="prefer_device_decoders">تفضل أجهزة فك التشفير</string>
 </resources>
