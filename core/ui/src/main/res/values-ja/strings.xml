@@ -9,4 +9,24 @@
     <string name="appearance_name">外観</string>
     <string name="error_playing_video">エラー：ビデオを再生出来ませんでした</string>
     <string name="fast_seek">高速シーク</string>
+    <string name="ascending">昇順</string>
+    <string name="navigate_up">上へ移動</string>
+    <string name="player_controls_play_pause">プレイヤーの再生を一時停止</string>
+    <string name="player_controls_exit">上へ移動</string>
+    <string name="descending">降順</string>
+    <string name="no_videos_found">動画が見つかりません</string>
+    <string name="group_videos">動画をフォルダごとにグループ化する</string>
+    <string name="grant_permission">許可を与える</string>
+    <string name="menu">メニュー</string>
+    <string name="permission_request">許可要求</string>
+    <string name="open_settings">設定を開く</string>
+    <string name="location">場所</string>
+    <string name="permission_settings">Next Playerがメディアにアクセスして再生するには、\"%1$s\"の権限が必要です。 これがないと、メディアへのアクセスと再生が機能しません。 アプリを完全に使用するには、永続的に許可がされていないため、設定から許可を与えてください。</string>
+    <string name="disable">無効</string>
+    <string name="permission_info">Next Playerがメディアにアクセスして再生するには、\"%1$s\"の権限が必要です。 これがないと、メディアへのアクセスと再生が機能しません。 アプリを完全に使用するには、権限を許可してください。</string>
+    <string name="fast_seek_description">正確なキーフレームではなく、最も近いキーフレームを検索します。</string>
+    <string name="player_controls_next">次のプレイヤー</string>
+    <string name="permission_not_granted">許可されていません</string>
+    <string name="duration">期間</string>
+    <string name="done">完了</string>
 </resources>

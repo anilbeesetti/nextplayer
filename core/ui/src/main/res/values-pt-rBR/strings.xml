@@ -149,4 +149,9 @@
     <string name="zoom_gesture_description">Pinçar para ampliar o vídeo</string>
     <string name="high_contrast_dark_theme">Tema escuro de alto contraste</string>
     <string name="high_contrast_dark_theme_desc">Use fundo preto puro para o tema escuro</string>
+    <string name="pause_on_headset_disconnect_desc">Pausar a reprodução quando o fone de ouvido for desconectado do dispositivo</string>
+    <string name="audio_desc">Opções de reprodução de áudio</string>
+    <string name="pause_on_headset_disconnect">Pausar ao desconectar</string>
+    <string name="system_volume_panel_desc">Mostrar painel de volume do sistema ao ajustar o volume com o fone de ouvido</string>
+    <string name="system_volume_panel">Painel de volume do sistema</string>
 </resources>

@@ -147,4 +147,11 @@
     <string name="zoom_gesture">Forstørrelseshåndvending</string>
     <string name="zoom_gesture_description">Klyp for å forstørre videoen</string>
     <string name="share">Del</string>
+    <string name="high_contrast_dark_theme_desc">Bruk helsvart bakgrunn for mørk drakt</string>
+    <string name="pause_on_headset_disconnect_desc">Ta pause i avspilling nå hodesett kobles fra enheten</string>
+    <string name="audio_desc">Lydavspillingsvalg</string>
+    <string name="high_contrast_dark_theme">Mørk høykontrastdrakt</string>
+    <string name="pause_on_headset_disconnect">Pause ved frakobling</string>
+    <string name="system_volume_panel_desc">Vis panel for systemets lydstyrke under justering av lydstyrke med hodesett tilkoblet</string>
+    <string name="system_volume_panel">System-lydstyrkepanel</string>
 </resources>
