@@ -93,7 +93,7 @@ fun NextPlayerTheme(
             val context = LocalContext.current
             when {
                 darkTheme && highContrastDarkTheme -> dynamicDarkColorScheme(context).copy(background = Color.Black, surface = Color.Black)
-                darkTheme -> dynamicDarkColorScheme(context).copy(background = Color.Black, surface = Color.Black)
+                darkTheme -> dynamicDarkColorScheme(context)
                 else -> dynamicLightColorScheme(context)
             }
         }
