@@ -11,11 +11,11 @@ Next Player is a native video player written in Kotlin and jetpack compose. It p
 - **Subtitles**: SRT, SSA, ASS, TTML, VTT, DVB
     - SSA/ASS has limited styling support
 
-## Features
-- Native Android app with simple and easy-to-use interface
-- Completely free and open source and without any ads or excessive permissions
-- Material 3 (you) support
-- Audio/Subtitle track selection
-- Vertical swipe to change brightness (left) / volume (right)
-- Horizontal swipe to seek through video
-- Media picker with folder and file view
+## Key Features:
+- 💎 Material3 Design: Next Player features a sleek and modern Material3 design that enhances your overall user experience, making it not only functional but also visually appealing. 📱✨
+- 📁 Play Local Videos: Browse and play your stored videos effortlessly. No more searching around – Next Player has got you covered!
+- 🌐 Stream Online Videos: Access your favorite online videos right within the app. Enjoy the content you love without any hassle.
+- 🎯 Intuitive Controls: Our user-friendly interface makes navigation a breeze. Just tap and play – it's that simple!
+- 📈 Performance: Next Player is optimized for speed and reliability, ensuring smooth video playback every time.
+- 🌟 Fully Open Source: Next Player is proudly open source! Join our community of users and developers to explore and contribute to the app, making it even better together. 🤝
+- 🚫 No Ads, No Distractions: Say goodbye to annoying interruptions! Next Player is 100% ad-free, allowing you to enjoy your videos without any distractions. 🎥🚀
