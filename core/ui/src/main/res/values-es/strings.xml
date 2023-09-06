@@ -147,4 +147,6 @@
     <string name="autoplay_settings_description">Reproduce automáticamente el siguiente vídeo de esta carpeta</string>
     <string name="zoom_gesture">Gesto del zoom</string>
     <string name="zoom_gesture_description">Pellizca para ampliar el vídeo</string>
+    <string name="high_contrast_dark_theme">Tema oscuro de alto contraste</string>
+    <string name="high_contrast_dark_theme_desc">Utiliza un fondo negro puro para el tema oscuro</string>
 </resources>
