@@ -115,4 +115,9 @@
     <string name="subtitle_background">Untertitel-Hintergrund</string>
     <string name="subtitle_background_desc">Hintergrund für Untertiteltext aktivieren</string>
     <string name="default_playback_speed">Standard-Wiedergabegeschwindigkeit</string>
+    <string name="network_stream">Netzwerk Stream</string>
+    <string name="play_file">Video öffnen und abspielen</string>
+    <string name="autoplay_settings_description">Nächstes Video im aktuellen Ordner automatisch abspielen</string>
+    <string name="autoplay_settings">Automatische Wiedergabe</string>
+    <string name="enter_a_network_url">Geben Sie eine Netzwerk-URL ein:</string>
 </resources>
