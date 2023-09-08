@@ -149,4 +149,9 @@
     <string name="zoom_gesture_description">Pellizca para ampliar el vídeo</string>
     <string name="high_contrast_dark_theme">Tema oscuro de alto contraste</string>
     <string name="high_contrast_dark_theme_desc">Utiliza un fondo negro puro para el tema oscuro</string>
+    <string name="pause_on_headset_disconnect_desc">Pausa la reproducción cuando el auricular se desconecta del dispositivo</string>
+    <string name="audio_desc">Opciones de reproducción</string>
+    <string name="pause_on_headset_disconnect">Pausa al desconectar</string>
+    <string name="system_volume_panel_desc">Mostrar el panel del volumen del sistema mientras se ajusta el volumen con los auriculares puestos</string>
+    <string name="system_volume_panel">Panel del volumen del sistema</string>
 </resources>
