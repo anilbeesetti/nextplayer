@@ -13,6 +13,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams
@@ -23,7 +24,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
-import androidx.annotation.Dimension
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
@@ -327,7 +327,7 @@ class PlayerActivity : AppCompatActivity() {
                 }
             )
 
-            subtitleView?.let {
+            subtitleView?.apply {
                 val style = CaptionStyleCompat(
                     Color.WHITE,
                     Color.BLACK.takeIf { playerPreferences.subtitleBackground } ?: Color.TRANSPARENT,
@@ -339,9 +339,9 @@ class PlayerActivity : AppCompatActivity() {
                         Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold } ?: Typeface.NORMAL
                     )
                 )
-                it.setStyle(style)
-                it.setApplyEmbeddedStyles(playerPreferences.applyEmbeddedStyles)
-                it.setFixedTextSize(Dimension.SP, playerPreferences.subtitleTextSize.toFloat())
+                setStyle(style)
+                setApplyEmbeddedStyles(playerPreferences.applyEmbeddedStyles)
+                setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
             }
         }
 
