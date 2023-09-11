@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
@@ -54,6 +58,7 @@ fun SubtitlePreferencesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
     val charsetResource = stringArrayResource(id = R.array.charsets_list)
+    val context = LocalContext.current
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -88,6 +93,11 @@ fun SubtitlePreferencesScreen(
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) }
             )
             item { PreferenceSubtitle(text = stringResource(id = R.string.appearance_name)) }
+            useSystemCaptionStyle(
+                isChecked = preferences.useSystemCaptionStyle,
+                onChecked = viewModel::toggleUseSystemCaptionStyle,
+                onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) }
+            )
             subtitleFontPreference(
                 currentFont = preferences.subtitleFont,
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) }
@@ -227,6 +237,21 @@ fun LazyListScope.subtitleTextEncodingPreference(
         title = stringResource(R.string.subtitle_text_encoding),
         description = currentEncoding,
         icon = NextIcons.Caption,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.useSystemCaptionStyle(
+    isChecked: Boolean,
+    onChecked: () -> Unit,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitchWithDivider(
+        title = "System caption style",
+        description = "use system caption style",
+        isChecked = isChecked,
+        onChecked = onChecked,
+        icon = NextIcons.DoubleTap,
         onClick = onClick
     )
 }

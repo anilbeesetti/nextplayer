@@ -33,7 +33,7 @@ fun ClickablePreferenceItem(
 
 @Preview
 @Composable
-fun ClickablePreferenceItemPreview() {
+private fun ClickablePreferenceItemPreview() {
     ClickablePreferenceItem(
         title = "Title",
         description = "Description of the preference item goes here.",

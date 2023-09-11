@@ -27,6 +27,7 @@ data class PlayerPreferences(
     val showSystemVolumePanel: Boolean = true,
 
     // Subtitle Preferences
+    val useSystemCaptionStyle: Boolean = false,
     val preferredSubtitleLanguage: String = "",
     val subtitleTextEncoding: String = "",
     val subtitleTextSize: Int = 23,
