@@ -8,8 +8,12 @@ class VolumeManager(private val audioManager: AudioManager) {
     var loudnessEnhancer: LoudnessEnhancer? = null
         set(value) {
             if (currentVolume > maxStreamVolume) {
-                value?.enabled = true
-                value?.setTargetGain(currentLoudnessGain.toInt())
+                try {
+                    value?.enabled = true
+                    value?.setTargetGain(currentLoudnessGain.toInt())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
             field = value
         }
@@ -35,8 +39,12 @@ class VolumeManager(private val audioManager: AudioManager) {
                 if (showVolumePanel && audioManager.isWiredHeadsetOn) AudioManager.FLAG_SHOW_UI else 0
             )
         } else {
-            loudnessEnhancer?.enabled = true
-            loudnessEnhancer?.setTargetGain(currentLoudnessGain.toInt())
+            try {
+                loudnessEnhancer?.enabled = true
+                loudnessEnhancer?.setTargetGain(currentLoudnessGain.toInt())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
