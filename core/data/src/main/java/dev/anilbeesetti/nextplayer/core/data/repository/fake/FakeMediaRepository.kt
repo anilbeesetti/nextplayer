@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository.fake
 
+import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
@@ -31,7 +32,8 @@ class FakeMediaRepository : MediaRepository {
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
-        playbackSpeed: Float?
+        playbackSpeed: Float?,
+        externalSubs: List<Uri>
     ) {
     }
 

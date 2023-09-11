@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
+import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
@@ -67,7 +68,8 @@ class LocalMediaRepository @Inject constructor(
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
-        playbackSpeed: Float?
+        playbackSpeed: Float?,
+        externalSubs: List<Uri>
     ) {
         Timber.d(
             "save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]"
@@ -79,7 +81,8 @@ class LocalMediaRepository @Inject constructor(
                 position = position,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed
+                playbackSpeed = playbackSpeed,
+                externalSubs = UriListConverter.fromListToString(externalSubs)
             )
         }
     }

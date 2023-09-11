@@ -134,4 +134,24 @@
     <string name="controller_timeout">Kontroller-tidsavbrudd</string>
     <string name="seconds">%1$s sekunder</string>
     <string name="seek_increment">Blafringsinkrement</string>
+    <string name="hundred_percent">100%</string>
+    <string name="autoplay_settings">Autospilling</string>
+    <string name="autoplay_settings_description">Spill neste video i aktuell mappe automatisk</string>
+    <string name="delete">Slett</string>
+    <string name="delete_file">Følgende fil vil bli slettet for godt</string>
+    <string name="best_fit">Beste passform</string>
+    <string name="stretch">Strekk</string>
+    <string name="subtitle_text_encoding">Tegnkoding for undertekster</string>
+    <string name="delete_folder">Alle videofiler i følgende mappe vil bli slettet for godt.</string>
+    <string name="crop">Beskjær</string>
+    <string name="zoom_gesture">Forstørrelseshåndvending</string>
+    <string name="zoom_gesture_description">Klyp for å forstørre videoen</string>
+    <string name="share">Del</string>
+    <string name="high_contrast_dark_theme_desc">Bruk helsvart bakgrunn for mørk drakt</string>
+    <string name="pause_on_headset_disconnect_desc">Ta pause i avspilling nå hodesett kobles fra enheten</string>
+    <string name="audio_desc">Lydavspillingsvalg</string>
+    <string name="high_contrast_dark_theme">Mørk høykontrastdrakt</string>
+    <string name="pause_on_headset_disconnect">Pause ved frakobling</string>
+    <string name="system_volume_panel_desc">Vis panel for systemets lydstyrke under justering av lydstyrke med hodesett tilkoblet</string>
+    <string name="system_volume_panel">System-lydstyrkepanel</string>
 </resources>

@@ -6,11 +6,13 @@ import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.audioPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.decoderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.folderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.mediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAudioPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToDecoderPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaLibraryPreferencesScreen
@@ -31,39 +33,43 @@ fun NavGraphBuilder.settingsNavGraph(
         route = SETTINGS_ROUTE
     ) {
         settingsScreen(
-            onNavigateUp = navController::popBackStack,
+            onNavigateUp = navController::navigateUp,
             onItemClick = { setting ->
                 when (setting) {
                     Setting.APPEARANCE -> navController.navigateToAppearancePreferences()
                     Setting.MEDIA_LIBRARY -> navController.navigateToMediaLibraryPreferencesScreen()
                     Setting.PLAYER -> navController.navigateToPlayerPreferences()
                     Setting.DECODER -> navController.navigateToDecoderPreferences()
+                    Setting.AUDIO -> navController.navigateToAudioPreferences()
                     Setting.SUBTITLE -> navController.navigateToSubtitlePreferences()
                     Setting.ABOUT -> navController.navigateToAboutPreferences()
                 }
             }
         )
         appearancePreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         mediaLibraryPreferencesScreen(
-            onNavigateUp = navController::popBackStack,
+            onNavigateUp = navController::navigateUp,
             onFolderSettingClick = navController::navigateToFolderPreferencesScreen
         )
         folderPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         playerPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         decoderPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
+        )
+        audioPreferencesScreen(
+            onNavigateUp = navController::navigateUp
         )
         subtitlePreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
         aboutPreferencesScreen(
-            onNavigateUp = navController::popBackStack
+            onNavigateUp = navController::navigateUp
         )
     }
 }

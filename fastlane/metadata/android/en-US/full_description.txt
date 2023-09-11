@@ -1,21 +1,27 @@
 Next Player is a native video player written in Kotlin and jetpack compose. It provides a simple and easy-to-use interface for users to play videos on their Android devices
 
-**This project is still in development and is expected to have bugs.**
+This project is still in development and is expected to have bugs
 
-## Supported formats
+Supported formats:
 
-- **Video**: H.263, H.264 AVC (Baseline Profile; Main Profile on Android 6+), H.265 HEVC, MPEG-4 SP, VP8, VP9, AV1
-    - Support depends on Android device
-- **Audio**: Vorbis, Opus, FLAC, ALAC, PCM/WAVE (μ-law, A-law), MP1, MP2, MP3, AMR (NB, WB), AAC (LC, ELD, HE; xHE on Android 9+), AC-3, E-AC-3, DTS, DTS-HD, TrueHD
-    - Support provided by ExoPlayer FFmpeg extension
-- **Subtitles**: SRT, SSA, ASS, TTML, VTT, DVB
-    - SSA/ASS has limited styling support
+ * Audio: Vorbis, Opus, FLAC, ALAC, PCM/WAVE (μ-law, A-law), MP1, MP2, MP3, AMR (NB, WB), AAC (LC, ELD, HE; xHE on Android 9+), AC-3, E-AC-3, DTS, DTS-HD, TrueHD
+ * Video: H.263, H.264 AVC (Baseline Profile; Main Profile on Android 6+), H.265 HEVC, MPEG-4 SP, VP8, VP9, AV1
+ * Streaming: DASH, HLS, RTSP
+ * Subtitles: SRT, SSA, ASS, TTML, VTT
 
-## Features
-- Native Android app with simple and easy-to-use interface
-- Completely free and open source and without any ads or excessive permissions
-- Material 3 (you) support
-- Audio/Subtitle track selection
-- Vertical swipe to change brightness (left) / volume (right)
-- Horizontal swipe to seek through video
-- Media picker with folder and file view
+Key Features:
+
+ * Native Android app with simple and easy-to-use interface
+ * Completely free and open source and without any ads or excessive permissions
+ * Material 3 (you) support
+ * Audio/Subtitle track selection
+ * Vertical swipe to change brightness (left) / volume (right)
+ * Horizontal swipe to seek through video
+ * Media picker with folder and file view
+ * Playback speed control
+ * Pinch to zoom in and zoom out
+ * Resize (fit/stretch/crop/100%)
+ * Volume boost
+ * External subtitle support (long press subtitle icon)
+ * Controls lock
+ * No ads, tracking or excessive permissions

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="Theme.NextPlayer.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="windowSplashScreenBackground">#171B1C</item>
+        <item name="postSplashScreenTheme">@style/Theme.NextPlayer</item>
+    </style>
+
     <style name="Theme.NextPlayer" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">
             @android:color/transparent

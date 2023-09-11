@@ -26,6 +26,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 val VIDEO_COLLECTION_URI: Uri
@@ -198,19 +199,29 @@ fun Context.showToast(string: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, string, duration).show()
 }
 
-fun Context.scanPaths(paths: List<String>, callback: ((String?, Uri?) -> Unit)? = null) {
-    MediaScannerConnection.scanFile(this, paths.toTypedArray(), arrayOf("video/*"), callback)
+suspend fun Context.scanPaths(
+    paths: List<String>,
+    callback: ((String?, Uri?) -> Unit)? = null
+) = withContext(Dispatchers.IO) {
+    MediaScannerConnection.scanFile(
+        this@scanPaths,
+        paths.toTypedArray(),
+        arrayOf("video/*"),
+        callback
+    )
 }
 
-fun Context.scanPath(file: File) {
-    if (file.isDirectory) {
-        file.listFiles()?.forEach { scanPath(it) }
-    } else {
-        scanPaths(listOf(file.path))
+suspend fun Context.scanPath(file: File) {
+    withContext(Dispatchers.IO) {
+        if (file.isDirectory) {
+            file.listFiles()?.forEach { scanPath(it) }
+        } else {
+            scanPaths(listOf(file.path))
+        }
     }
 }
 
-fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) {
+suspend fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) = withContext(Dispatchers.IO) {
     val storagePath = Environment.getExternalStorageDirectory()?.path
     if (storagePath != null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

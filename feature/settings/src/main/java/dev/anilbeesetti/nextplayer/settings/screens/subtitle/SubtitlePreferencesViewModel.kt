@@ -19,12 +19,11 @@ class SubtitlePreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val preferencesFlow = preferencesRepository.playerPreferences
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = PlayerPreferences()
-        )
+    val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = PlayerPreferences()
+    )
 
     private val _uiState = MutableStateFlow(SubtitlePreferencesUIState())
     val uiState = _uiState.asStateFlow()
@@ -93,7 +92,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
 }
 
 data class SubtitlePreferencesUIState(
-    val showDialog: SubtitlePreferenceDialog = SubtitlePreferenceDialog.None
+    val showDialog: SubtitlePreferenceDialog? = null
 )
 
 sealed interface SubtitlePreferenceDialog {
@@ -101,11 +100,10 @@ sealed interface SubtitlePreferenceDialog {
     object SubtitleFontDialog : SubtitlePreferenceDialog
     object SubtitleSizeDialog : SubtitlePreferenceDialog
     object SubtitleEncodingDialog : SubtitlePreferenceDialog
-    object None : SubtitlePreferenceDialog
 }
 
 sealed interface SubtitlePreferencesEvent {
-    data class ShowDialog(val value: SubtitlePreferenceDialog) : SubtitlePreferencesEvent
+    data class ShowDialog(val value: SubtitlePreferenceDialog?) : SubtitlePreferencesEvent
 }
 
 fun SubtitlePreferencesViewModel.showDialog(dialog: SubtitlePreferenceDialog) {
@@ -113,5 +111,5 @@ fun SubtitlePreferencesViewModel.showDialog(dialog: SubtitlePreferenceDialog) {
 }
 
 fun SubtitlePreferencesViewModel.hideDialog() {
-    onEvent(SubtitlePreferencesEvent.ShowDialog(SubtitlePreferenceDialog.None))
+    onEvent(SubtitlePreferencesEvent.ShowDialog(null))
 }

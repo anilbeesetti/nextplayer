@@ -22,12 +22,11 @@ class PlayerPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    val preferencesFlow = preferencesRepository.playerPreferences
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = PlayerPreferences()
-        )
+    val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = PlayerPreferences()
+    )
 
     private val _uiState = MutableStateFlow(PlayerPreferencesUIState())
     val uiState = _uiState.asStateFlow()
@@ -53,9 +52,7 @@ class PlayerPreferencesViewModel @Inject constructor(
     fun updateDoubleTapGesture(gesture: DoubleTapGesture) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    doubleTapGesture = gesture
-                )
+                it.copy(doubleTapGesture = gesture)
             }
         }
     }
@@ -63,9 +60,7 @@ class PlayerPreferencesViewModel @Inject constructor(
     fun updateFastSeek(fastSeek: FastSeek) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    fastSeek = fastSeek
-                )
+                it.copy(fastSeek = fastSeek)
             }
         }
     }
@@ -102,6 +97,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun toggleAutoplay() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(autoplay = !it.autoplay)
+            }
+        }
+    }
+
     fun toggleRememberBrightnessLevel() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -110,10 +113,26 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleSwipeControls() {
+    fun toggleUseSwipeControls() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(useSwipeControls = !it.useSwipeControls)
+            }
+        }
+    }
+
+    fun toggleUseSeekControls() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSeekControls = !it.useSeekControls)
+            }
+        }
+    }
+
+    fun toggleUseZoomControls() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useZoomControls = !it.useZoomControls)
             }
         }
     }
@@ -126,39 +145,19 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleSeekControls() {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(useSeekControls = !it.useSeekControls)
-            }
-        }
-    }
-
-    fun updateAudioLanguage(value: String) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(preferredAudioLanguage = value) }
-        }
-    }
-
-    fun updateSubtitleLanguage(value: String) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    preferredSubtitleLanguage = value
-                )
-            }
-        }
-    }
-
     fun updatePreferredPlayerOrientation(value: ScreenOrientation) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(playerScreenOrientation = value) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(playerScreenOrientation = value)
+            }
         }
     }
 
     fun updateDefaultPlaybackSpeed(value: Float) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(defaultPlaybackSpeed = value) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(defaultPlaybackSpeed = value)
+            }
         }
     }
 
@@ -186,24 +185,22 @@ class PlayerPreferencesViewModel @Inject constructor(
 }
 
 data class PlayerPreferencesUIState(
-    val showDialog: PlayerPreferenceDialog = PlayerPreferenceDialog.None
+    val showDialog: PlayerPreferenceDialog? = null
 )
 
 sealed interface PlayerPreferenceDialog {
     object ResumeDialog : PlayerPreferenceDialog
     object DoubleTapDialog : PlayerPreferenceDialog
     object FastSeekDialog : PlayerPreferenceDialog
-    object AudioLanguageDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog
     object PlaybackSpeedAtLongPressDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
     object SeekIncrementDialog : PlayerPreferenceDialog
-    object None : PlayerPreferenceDialog
 }
 
 sealed interface PlayerPreferencesEvent {
-    data class ShowDialog(val value: PlayerPreferenceDialog) : PlayerPreferencesEvent
+    data class ShowDialog(val value: PlayerPreferenceDialog?) : PlayerPreferencesEvent
 }
 
 fun PlayerPreferencesViewModel.showDialog(dialog: PlayerPreferenceDialog) {
@@ -211,5 +208,5 @@ fun PlayerPreferencesViewModel.showDialog(dialog: PlayerPreferenceDialog) {
 }
 
 fun PlayerPreferencesViewModel.hideDialog() {
-    onEvent(PlayerPreferencesEvent.ShowDialog(PlayerPreferenceDialog.None))
+    onEvent(PlayerPreferencesEvent.ShowDialog(null))
 }

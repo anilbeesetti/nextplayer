@@ -65,7 +65,7 @@
     <string name="dynamic_theme">Tema de colores dinámicos</string>
     <string name="shortest">El más corto</string>
     <string name="dark_theme">Tema oscuro</string>
-    <string name="video_zoom">Zoom de vídeo</string>
+    <string name="video_zoom">Zoom del vídeo</string>
     <string name="dynamic_theme_description">Aplicar los colores del fondo de pantalla del sistema al tema de la aplicación</string>
     <string name="auto">Automático</string>
     <string name="enable">Activado</string>
@@ -139,4 +139,19 @@
     <string name="delete">Borrar</string>
     <string name="delete_file">El siguiente archivo se eliminará de forma permanente</string>
     <string name="delete_folder">Todos los archivos de vídeo de la siguiente carpeta se eliminarán de forma permanente.</string>
+    <string name="best_fit">Mejor ajuste</string>
+    <string name="stretch">Estirar</string>
+    <string name="crop">Cosecha</string>
+    <string name="hundred_percent">100%</string>
+    <string name="autoplay_settings">Reproducción automática</string>
+    <string name="autoplay_settings_description">Reproduce automáticamente el siguiente vídeo de esta carpeta</string>
+    <string name="zoom_gesture">Gesto del zoom</string>
+    <string name="zoom_gesture_description">Pellizca para ampliar el vídeo</string>
+    <string name="high_contrast_dark_theme">Tema oscuro de alto contraste</string>
+    <string name="high_contrast_dark_theme_desc">Utiliza un fondo negro puro para el tema oscuro</string>
+    <string name="pause_on_headset_disconnect_desc">Pausa la reproducción cuando el auricular se desconecta del dispositivo</string>
+    <string name="audio_desc">Opciones de reproducción</string>
+    <string name="pause_on_headset_disconnect">Pausa al desconectar</string>
+    <string name="system_volume_panel_desc">Mostrar el panel del volumen del sistema mientras se ajusta el volumen con los auriculares puestos</string>
+    <string name="system_volume_panel">Panel del volumen del sistema</string>
 </resources>

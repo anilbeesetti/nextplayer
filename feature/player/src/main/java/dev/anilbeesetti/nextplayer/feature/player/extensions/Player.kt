@@ -88,3 +88,16 @@ fun Player.seekForward(positionMs: Long, shouldFastSeek: Boolean = false) {
     setSeekParameters(SeekParameters.NEXT_SYNC.takeIf { shouldFastSeek } ?: SeekParameters.DEFAULT)
     this.seekTo(positionMs)
 }
+
+@get:UnstableApi
+val Player.audioSessionId: Int
+    get() = when (this) {
+        is ExoPlayer -> this.audioSessionId
+        else -> C.AUDIO_SESSION_ID_UNSET
+    }
+
+fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
+    return currentTracks.groups
+        .filter { it.type == type && it.isSupported }
+        .indexOfFirst { it.isSelected }
+}

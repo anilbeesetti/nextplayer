@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "dev.anilbeesetti.nextplayer"
-        versionCode = 7
-        versionName = "0.6.0"
+        versionCode = 9
+        versionName = "0.8.0"
     }
 
     buildFeatures {
@@ -65,7 +65,7 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.accompanist.permissions)
 

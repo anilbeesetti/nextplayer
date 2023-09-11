@@ -1,29 +1,25 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.res.Resources
-import android.media.AudioManager
 import android.os.Build
-import android.provider.Settings
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowInsets
-import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
-import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
-import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
+import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.extensions.swipeToShowStatusBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
@@ -31,35 +27,34 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
 class PlayerGestureHelper(
     private val viewModel: PlayerViewModel,
     private val activity: PlayerActivity,
-    private val playerView: PlayerView,
-    private val audioManager: AudioManager
+    private val volumeManager: VolumeManager,
+    private val brightnessManager: BrightnessManager
 ) {
     private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
 
+    private val playerView: PlayerView
+        get() = activity.binding.playerView
+
     private val shouldFastSeek: Boolean
         get() = playerView.player?.duration?.let { prefs.shouldFastSeek(it) } == true
 
-    private var volumeTrackerValue = -1f
-    private var brightnessTrackerValue = -1f
+    private var exoContentFrameLayout: AspectRatioFrameLayout = playerView.findViewById(R.id.exo_content_frame)
+
+    private var currentGestureAction: GestureAction? = null
     private var seeking = false
     private var seekStart = 0L
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
     private var playbackSpeedJob: Job? = null
-
-    private var gestureVolumeOpen = false
-    private var gestureBrightnessOpen = false
-
-    private var hideVolumeGestureJob: Job? = null
-    private var hideBrightnessGestureJob: Job? = null
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
@@ -123,22 +118,22 @@ class PlayerGestureHelper(
             ): Boolean {
                 if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
+                if (!prefs.useSeekControls) return false
                 if (activity.isControlsLocked) return false
-
-                if (gestureVolumeOpen || gestureBrightnessOpen) return false
+                if (!activity.isFileLoaded) return false
                 if (abs(distanceX / distanceY) < 2) return false
 
-                playerView.controllerAutoShow = playerView.isControllerFullyVisible
-
-                if (!seeking) {
+                if (currentGestureAction == null) {
                     seekChange = 0L
                     seekStart = playerView.player?.currentPosition ?: 0L
+                    playerView.controllerAutoShow = playerView.isControllerFullyVisible
                     if (playerView.player?.isPlaying == true) {
                         playerView.player?.pause()
                         isPlayingOnSeekStart = true
                     }
-                    seeking = true
+                    currentGestureAction = GestureAction.SEEK
                 }
+                if (currentGestureAction != GestureAction.SEEK) return false
 
                 val distanceDiff = abs(Utils.pxToDp(distanceX) / 4).coerceIn(0.5f, 10f)
                 val change = (distanceDiff * SEEK_STEP_MS).toLong()
@@ -158,9 +153,10 @@ class PlayerGestureHelper(
                         seekBack(positionMs = position, shouldFastSeek = shouldFastSeek)
                     }
                 }
+
                 with(activity.binding) {
-                    progressScrubberLayout.visibility = View.VISIBLE
-                    seekProgressText.text = Utils.formatDurationMillisSign(seekChange)
+                    infoLayout.visibility = View.VISIBLE
+                    "[${Utils.formatDurationMillisSign(seekChange)}]".also { infoText.text = it }
                 }
                 return true
             }
@@ -178,75 +174,58 @@ class PlayerGestureHelper(
             ): Boolean {
                 if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
+                if (!prefs.useSwipeControls) return false
                 if (activity.isControlsLocked) return false
-
-                if (seeking) return false
                 if (abs(distanceY / distanceX) < 2) return false
+
+                if (currentGestureAction == null) {
+                    currentGestureAction = GestureAction.SWIPE
+                }
+                if (currentGestureAction != GestureAction.SWIPE) return false
 
                 val viewCenterX = playerView.measuredWidth / 2
                 val distanceFull = playerView.measuredHeight * FULL_SWIPE_RANGE_SCREEN_RATIO
                 val ratioChange = distanceY / distanceFull
 
                 if (firstEvent.x.toInt() > viewCenterX) {
-                    hideVolumeGestureJob?.cancel()
-
-                    val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-
-                    if (volumeTrackerValue == -1f) {
-                        volumeTrackerValue = currentVolume.toFloat()
-                    }
-
-                    val change = ratioChange * maxVolume
-                    volumeTrackerValue = (volumeTrackerValue + change)
-                        .coerceIn(0f, maxVolume.toFloat())
-
-                    audioManager.setStreamVolume(
-                        AudioManager.STREAM_MUSIC,
-                        volumeTrackerValue.toInt(),
-                        0
-                    )
-
-                    val volumePercentage =
-                        (volumeTrackerValue / maxVolume.toFloat()).times(100).toInt()
-
-                    with(activity.binding) {
-                        volumeGestureLayout.visibility = View.VISIBLE
-                        volumeProgressBar.max = maxVolume.times(100)
-                        volumeProgressBar.progress = volumeTrackerValue.times(100).toInt()
-                        volumeProgressText.text = volumePercentage.toString()
-                        gestureVolumeOpen = true
-                    }
+                    val change = ratioChange * volumeManager.maxStreamVolume
+                    volumeManager.setVolume(volumeManager.currentVolume + change, prefs.showSystemVolumePanel)
+                    activity.showVolumeGestureLayout()
                 } else {
-                    hideBrightnessGestureJob?.cancel()
+                    val change = ratioChange * brightnessManager.maxBrightness
+                    brightnessManager.setBrightness(brightnessManager.currentBrightness + change)
+                    activity.showBrightnessGestureLayout()
+                }
+                return true
+            }
+        }
+    )
 
-                    val currentBrightness = activity.currentBrightness
-                    val maxBrightness = BRIGHTNESS_OVERRIDE_FULL
+    private val zoomGestureDetector = ScaleGestureDetector(
+        playerView.context,
+        object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            private val SCALE_RANGE = 0.25f..4.0f
 
-                    if (brightnessTrackerValue == -1f) {
-                        brightnessTrackerValue = currentBrightness
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                if (!prefs.useZoomControls) return false
+                if (activity.isControlsLocked) return false
+
+                if (currentGestureAction == null) {
+                    currentGestureAction = GestureAction.ZOOM
+                }
+                if (currentGestureAction != GestureAction.ZOOM) return false
+
+                activity.currentVideoSize?.let { videoSize ->
+                    val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
+                    val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / videoSize.width.toFloat()
+                    if (updatedVideoScale in SCALE_RANGE) {
+                        exoContentFrameLayout.scaleX = scaleFactor
+                        exoContentFrameLayout.scaleY = scaleFactor
                     }
-
-                    val change = ratioChange * maxBrightness
-                    brightnessTrackerValue = (brightnessTrackerValue + change)
-                        .coerceIn(BRIGHTNESS_OVERRIDE_OFF, maxBrightness)
-
-                    val layoutParams = activity.window.attributes
-                    layoutParams.screenBrightness = brightnessTrackerValue
-                    activity.window.attributes = layoutParams
-
-                    // fixes a bug which makes the action bar reappear after changing the brightness
-                    activity.swipeToShowStatusBars()
-
-                    val brightnessPercentage =
-                        (brightnessTrackerValue / maxBrightness).times(100).toInt()
-
+                    val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
                     with(activity.binding) {
-                        brightnessGestureLayout.visibility = View.VISIBLE
-                        brightnessProgressBar.max = maxBrightness.times(100).toInt()
-                        brightnessProgressBar.progress = brightnessTrackerValue.times(100).toInt()
-                        brightnessProgressText.text = brightnessPercentage.toString()
-                        gestureBrightnessOpen = true
+                        infoLayout.visibility = View.VISIBLE
+                        "${(currentVideoScale * 100).roundToInt()}%".also { infoText.text = it }
                     }
                 }
                 return true
@@ -281,40 +260,21 @@ class PlayerGestureHelper(
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
             // hide the volume indicator
-            activity.binding.volumeGestureLayout.apply {
-                if (visibility == View.VISIBLE) {
-                    hideVolumeGestureJob = activity.lifecycleScope.launch {
-                        delay(HIDE_DELAY_MILLIS)
-                        visibility = View.GONE
-                    }
-                    gestureVolumeOpen = false
-                }
-            }
+            activity.hideVolumeGestureLayout()
             // hide the brightness indicator
-            activity.binding.brightnessGestureLayout.apply {
-                if (visibility == View.VISIBLE) {
-                    hideBrightnessGestureJob = activity.lifecycleScope.launch {
-                        delay(HIDE_DELAY_MILLIS)
-                        visibility = View.GONE
-                    }
-                    if (prefs.rememberPlayerBrightness) {
-                        viewModel.setPlayerBrightness(activity.window.attributes.screenBrightness)
-                    }
-                    gestureBrightnessOpen = false
-                }
-            }
+            activity.hideBrightnessGestureLayout()
 
-            activity.binding.progressScrubberLayout.apply {
+            activity.binding.infoLayout.apply {
                 if (visibility == View.VISIBLE) {
                     visibility = View.GONE
                     if (isPlayingOnSeekStart) playerView.player?.play()
                     playerView.controllerAutoShow = true
                     isPlayingOnSeekStart = false
-                    seeking = false
                 }
             }
             disableFastPlaybackOnLongPress()
             seeking = false
+            currentGestureAction = null
         }
     }
 
@@ -335,8 +295,7 @@ class PlayerGestureHelper(
         val screenHeight = Resources.getSystem().displayMetrics.heightPixels
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val insets = playerView.rootWindowInsets
-                .getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
+            val insets = playerView.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
 
             if ((firstEvent.x < insets.left) || (firstEvent.x > (screenWidth - insets.right)) ||
                 (firstEvent.y < insets.top) || (firstEvent.y > (screenHeight - insets.bottom))
@@ -344,11 +303,9 @@ class PlayerGestureHelper(
                 return true
             }
         } else if (firstEvent.y < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
-            firstEvent.y > screenHeight - playerView.resources
-                .pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
+            firstEvent.y > screenHeight - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
             firstEvent.x < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL) ||
-            firstEvent.x > screenWidth - playerView.resources
-                .pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
+            firstEvent.x > screenWidth - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
         ) {
             return true
         }
@@ -356,21 +313,13 @@ class PlayerGestureHelper(
     }
 
     init {
-        if (prefs.rememberPlayerBrightness) {
-            activity.window.attributes.screenBrightness = prefs.playerBrightness
-        }
         var pointerCount = 0
         playerView.setOnTouchListener { _, motionEvent ->
-
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
-                    if (prefs.useSwipeControls) {
-                        volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
-                    }
-                    if (prefs.useSeekControls && activity.isFileLoaded) {
-                        seekGestureDetector.onTouchEvent(motionEvent)
-                    }
+                    volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
+                    seekGestureDetector.onTouchEvent(motionEvent)
                     if (prefs.fastPlaybackOnLongPress) {
                         longPressHoldGestureDetector.onTouchEvent(motionEvent)
                         if (pointerCount == 2) {
@@ -383,6 +332,7 @@ class PlayerGestureHelper(
                 2 -> {
                     pointerCount = 2
                     disableFastPlaybackOnLongPress()
+                    zoomGestureDetector.onTouchEvent(motionEvent)
                 }
             }
             releaseAction(motionEvent)
@@ -395,16 +345,13 @@ class PlayerGestureHelper(
         const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
         const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
         const val SEEK_STEP_MS = 1000L
-        const val HIDE_DELAY_MILLIS = 1000L
     }
 }
 
 fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
 
-val Activity.currentBrightness: Float
-    get() = when (val brightness = window.attributes.screenBrightness) {
-        in BRIGHTNESS_OVERRIDE_OFF..BRIGHTNESS_OVERRIDE_FULL -> brightness
-        else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
-    }
-
 inline val Int.toMillis get() = this * 1000
+
+enum class GestureAction {
+    SWIPE, SEEK, ZOOM
+}

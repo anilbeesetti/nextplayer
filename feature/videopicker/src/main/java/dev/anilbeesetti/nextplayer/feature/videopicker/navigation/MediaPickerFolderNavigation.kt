@@ -8,6 +8,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NavigationAnimations
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder.MediaPickerFolderRoute
 
 const val mediaPickerFolderNavigationRoute = "media_picker_folder_screen"
@@ -34,7 +35,9 @@ fun NavGraphBuilder.mediaPickerFolderScreen(
         route = "$mediaPickerFolderNavigationRoute/{$folderIdArg}",
         arguments = listOf(
             navArgument(folderIdArg) { type = NavType.StringType }
-        )
+        ),
+        enterTransition = { NavigationAnimations.slideEnter },
+        popExitTransition = { NavigationAnimations.slideExit }
     ) {
         MediaPickerFolderRoute(
             onVideoClick = onVideoClick,

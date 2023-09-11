@@ -1,30 +1,32 @@
 [versions]
-aboutlibraries = "10.8.0"
-accompanist = "0.30.1"
-androidGradlePlugin = "8.1.0"
+aboutlibraries = "10.8.3"
+accompanist = "0.32.0"
+androidGradlePlugin = "8.1.1"
 androidMaterial = "1.9.0"
 androidxActivity = "1.7.2"
 androidxAppCompat = "1.6.1"
-androidxComposeCompiler = "1.4.8"
-androidxComposeBom = "2023.06.01"
+androidxComposeCompiler = "1.5.3"
+androidxComposeBom = "2023.09.00"
 androidxConstraintLayout = "2.1.4"
-androidxCore = "1.10.1"
+androidxCore = "1.12.0"
+androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.0.0"
 androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.0.0"
-androidxLifecycle = "2.6.1"
-androidxMedia3 = "1.1.0"
-androidxNavigation = "2.6.0"
+androidxLifecycle = "2.6.2"
+androidxMedia3 = "1.1.1"
+androidxNavigation = "2.7.2"
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.5"
-hilt = "2.47"
+hilt = "2.48"
 junit4 = "4.13.2"
-kotlin = "1.8.22"
+kotlin = "1.9.10"
 kotlinxCoroutines = "1.6.4"
-kotlinxSerializationJson = "1.5.1"
-ktlint = "11.5.0"
-landscapist = "2.2.5"
-nextlib = "0.2.0"
+kotlinxSerializationJson = "1.6.0"
+ksp = "1.9.10-1.0.13"
+ktlint = "11.5.1"
+landscapist = "2.2.8"
+nextlib = "0.4.0"
 room = "2.5.2"
 timber = "5.0.1"
 
@@ -47,6 +49,7 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidxConstraintLayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxCoreSplashscreen" }
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
@@ -82,7 +85,7 @@ android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", ver
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [bundles]
-compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-compose-material3", "androidx-lifecycle-runtimeCompose"]
+compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-compose-material3", "androidx-lifecycle-runtimeCompose", "androidx-navigation-compose"]
 media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media3-exoplayer-dash", "androidx-media3-exoplayer-hls", "androidx-media3-exoplayer-rtsp", "androidx-media3-ui", "androidx-media3-session"]
 
 
@@ -93,6 +96,6 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

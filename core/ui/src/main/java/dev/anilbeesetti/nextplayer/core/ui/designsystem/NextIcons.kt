@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.designsystem
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
@@ -11,6 +10,7 @@ import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ClosedCaption
 import androidx.compose.material.icons.rounded.CompareArrows
+import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Delete
@@ -25,11 +25,14 @@ import androidx.compose.material.icons.rounded.FolderOff
 import androidx.compose.material.icons.rounded.FontDownload
 import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.FormatSize
+import androidx.compose.material.icons.rounded.Headset
+import androidx.compose.material.icons.rounded.HeadsetOff
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Pinch
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.Replay10
@@ -47,25 +50,23 @@ import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
-import androidx.compose.material.icons.rounded.VideoSettings
 
 object NextIcons {
-    val Add = Icons.Rounded.Add
     val Appearance = Icons.Rounded.Palette
     val ArrowBack = Icons.Rounded.ArrowBack
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
-    val AudioTrack = Icons.Rounded.Audiotrack
+    val Audio = Icons.Rounded.Audiotrack
     val Background = Icons.Rounded.FlipToBack
     val Bold = Icons.Rounded.FormatBold
     val Brightness = Icons.Rounded.BrightnessHigh
     val Calendar = Icons.Rounded.CalendarMonth
     val Caption = Icons.Rounded.ClosedCaption
     val Check = Icons.Rounded.Check
+    val Contrast = Icons.Rounded.Contrast
     val DarkMode = Icons.Rounded.DarkMode
     val DashBoard = Icons.Rounded.Dashboard
     val Decoder = Icons.Rounded.DeveloperBoard
-    val DecoderVideo = Icons.Rounded.VideoSettings
     val Delete = Icons.Rounded.Delete
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Fast = Icons.Rounded.FastForward
@@ -74,12 +75,15 @@ object NextIcons {
     val FolderOff = Icons.Rounded.FolderOff
     val Font = Icons.Rounded.FontDownload
     val FontSize = Icons.Rounded.FormatSize
+    val Headset = Icons.Rounded.Headset
+    val HeadsetOff = Icons.Rounded.HeadsetOff
     val Info = Icons.Rounded.Info
     val Language = Icons.Rounded.Translate
     val Length = Icons.Rounded.Straighten
     val Link = Icons.Rounded.Link
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
+    val Pinch = Icons.Rounded.Pinch
     val Player = Icons.Rounded.PlayCircle
     val Priority = Icons.Rounded.PriorityHigh
     val Replay = Icons.Rounded.Replay10

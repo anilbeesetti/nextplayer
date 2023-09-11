@@ -139,4 +139,19 @@
     <string name="delete">Видалити</string>
     <string name="delete_file">Наступний файл буде видалено назавжди</string>
     <string name="delete_folder">Всі відео файли в наступній теці будуть видалені назавжди.</string>
+    <string name="hundred_percent">100%</string>
+    <string name="autoplay_settings">Автовідтворення</string>
+    <string name="autoplay_settings_description">Автоматично відтворювати наступне відео у поточній теці</string>
+    <string name="best_fit">Найкраще підходить</string>
+    <string name="stretch">Розтягнути</string>
+    <string name="crop">Обрізати</string>
+    <string name="zoom_gesture">Жест масштабування</string>
+    <string name="high_contrast_dark_theme_desc">Використовує чисто чорний фон для темної теми</string>
+    <string name="zoom_gesture_description">Жест для збільшення відео</string>
+    <string name="pause_on_headset_disconnect_desc">Призупинити відтворення, коли гарнітура від\'єднана від пристрою</string>
+    <string name="audio_desc">Параметри відтворення аудіо</string>
+    <string name="high_contrast_dark_theme">Висока контрастність темної теми</string>
+    <string name="pause_on_headset_disconnect">Призупинити від\'єднання</string>
+    <string name="system_volume_panel_desc">Показувати панель гучності системи під час регулювання гучності за допомогою гарнітури</string>
+    <string name="system_volume_panel">Панель гучності системи</string>
 </resources>

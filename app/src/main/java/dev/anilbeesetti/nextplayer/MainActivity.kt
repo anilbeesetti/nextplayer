@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -67,11 +68,13 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        installSplashScreen()
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             NextPlayerTheme(
                 darkTheme = shouldUseDarkTheme(uiState = uiState),
+                highContrastDarkTheme = shouldUseHighContrastDarkTheme(uiState = uiState),
                 dynamicColor = shouldUseDynamicTheming(uiState = uiState)
             ) {
                 Surface(
@@ -133,6 +136,14 @@ private fun shouldUseDarkTheme(
         ThemeConfig.OFF -> false
         ThemeConfig.ON -> true
     }
+}
+
+@Composable
+fun shouldUseHighContrastDarkTheme(
+    uiState: MainActivityUiState
+): Boolean = when (uiState) {
+    MainActivityUiState.Loading -> false
+    is MainActivityUiState.Success -> uiState.preferences.useHighContrastDarkTheme
 }
 
 /**

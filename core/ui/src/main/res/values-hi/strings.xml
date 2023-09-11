@@ -27,7 +27,7 @@
     <string name="cancel">रद्द करें</string>
     <string name="descending">घटते क्रम में</string>
     <string name="disable">डिसेबल करें</string>
-    <string name="done">ठीक</string>
+    <string name="done">ठीक है</string>
     <string name="double_tap">डबल टेप जेस्चर</string>
     <string name="double_tap_description">डबल टैप जेस्चर एक्शन चयन करें</string>
     <string name="error_playing_video">एरर: वीडियो प्ले नही हो सकती</string>
@@ -139,4 +139,19 @@
     <string name="delete_file">निम्न फ़ाइल स्थायी रूप से हटा दी जाएगी</string>
     <string name="prefer_device_decoders">डिवाइस डिकोडर्स को प्राथमिकता दें</string>
     <string name="delete_folder">निम्नलिखित फ़ोल्डर की सभी वीडियो फ़ाइलें स्थायी रूप से हटा दी जाएंगी।</string>
+    <string name="stretch">फैलाएं</string>
+    <string name="crop">क्रोप</string>
+    <string name="hundred_percent">१००%</string>
+    <string name="best_fit">बेस्ट फिट</string>
+    <string name="autoplay_settings">स्वत: प्ले</string>
+    <string name="autoplay_settings_description">वर्तमान फ़ोल्डर में अगला वीडियो स्वचालित रूप से चलाएं</string>
+    <string name="zoom_gesture_description">वीडियो को ज़ूम करने के लिए पिंच करें</string>
+    <string name="zoom_gesture">ज़ूम इशारा</string>
+    <string name="high_contrast_dark_theme">उच्च कंट्रास्ट डार्क थीम</string>
+    <string name="high_contrast_dark_theme_desc">डार्क थीम के लिए शुद्ध काले बैकग्राउंड का उपयोग करें</string>
+    <string name="audio_desc">ऑडियो प्लेबैक विकल्प</string>
+    <string name="pause_on_headset_disconnect_desc">जब हेडसेट डिवाइस से डिस्कनेक्ट हो जाए तो प्लेबैक रोकें</string>
+    <string name="pause_on_headset_disconnect">डिस्कनेक्ट होने पर रोकें</string>
+    <string name="system_volume_panel">सिस्टम वॉल्यूम पैनल</string>
+    <string name="system_volume_panel_desc">हेडसेट उपयोग करते समय वॉल्यूम एडजस्ट करते वक्त सिस्टम वॉल्यूम पैनल दिखाएं</string>
 </resources>

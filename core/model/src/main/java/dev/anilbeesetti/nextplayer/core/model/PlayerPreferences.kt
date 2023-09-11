@@ -12,14 +12,21 @@ data class PlayerPreferences(
     val minDurationForFastSeek: Long = 120000L,
     val useSwipeControls: Boolean = true,
     val useSeekControls: Boolean = true,
+    val useZoomControls: Boolean = true,
     val rememberSelections: Boolean = true,
-    val preferredAudioLanguage: String = "",
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
+    val playerVideoZoom: VideoZoom = VideoZoom.BEST_FIT,
     val defaultPlaybackSpeed: Float = 1.0f,
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
     val fastPlaybackOnLongPress: Boolean = false,
     val playbackSpeedAtLongPress: Float = 2.0f,
+    val autoplay: Boolean = true,
+
+    // Audio Preferences
+    val preferredAudioLanguage: String = "",
+    val pauseOnHeadsetDisconnect: Boolean = true,
+    val showSystemVolumePanel: Boolean = true,
 
     // Subtitle Preferences
     val preferredSubtitleLanguage: String = "",

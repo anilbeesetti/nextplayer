@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -41,8 +41,8 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
-import dev.anilbeesetti.nextplayer.settings.screens.player.getDisplayTitle
-import dev.anilbeesetti.nextplayer.settings.screens.player.getLanguages
+import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
+import java.nio.charset.Charset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +52,7 @@ fun SubtitlePreferencesScreen(
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val languages = remember { listOf(Pair("None", "")) + getLanguages() }
+    val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
     val charsetResource = stringArrayResource(id = R.array.charsets_list)
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
@@ -80,7 +80,7 @@ fun SubtitlePreferencesScreen(
         ) {
             item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
             preferredSubtitleLanguageSetting(
-                currentLanguage = getDisplayTitle(preferences.preferredSubtitleLanguage),
+                currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredSubtitleLanguage),
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) }
             )
             subtitleTextEncodingPreference(
@@ -110,95 +110,97 @@ fun SubtitlePreferencesScreen(
             )
         }
 
-        when (uiState.showDialog) {
-            SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.preferred_subtitle_lang),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(languages) {
-                        RadioTextButton(
-                            text = it.first,
-                            selected = it.second == preferences.preferredSubtitleLanguage,
-                            onClick = {
-                                viewModel.updateSubtitleLanguage(it.second)
+        uiState.showDialog?.let { showDialog ->
+            when (showDialog) {
+                SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.preferred_subtitle_lang),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(languages) {
+                            RadioTextButton(
+                                text = it.first,
+                                selected = it.second == preferences.preferredSubtitleLanguage,
+                                onClick = {
+                                    viewModel.updateSubtitleLanguage(it.second)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
+                    }
+                }
+
+                SubtitlePreferenceDialog.SubtitleFontDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.subtitle_font),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(Font.entries.toTypedArray()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = it == preferences.subtitleFont,
+                                onClick = {
+                                    viewModel.updateSubtitleFont(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
+                    }
+                }
+
+                SubtitlePreferenceDialog.SubtitleSizeDialog -> {
+                    var size by remember { mutableIntStateOf(preferences.subtitleTextSize) }
+
+                    NextDialog(
+                        onDismissRequest = viewModel::hideDialog,
+                        title = { Text(text = stringResource(id = R.string.subtitle_text_size)) },
+                        content = {
+                            Text(
+                                text = size.toString(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                fontSize = size.sp,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = size.toFloat(),
+                                onValueChange = { size = it.toInt() },
+                                valueRange = 15f..60f
+                            )
+                        },
+                        confirmButton = {
+                            DoneButton(onClick = {
+                                viewModel.updateSubtitleFontSize(size)
                                 viewModel.hideDialog()
+                            })
+                        },
+                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) }
+                    )
+                }
+
+                SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.subtitle_text_encoding),
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(charsetResource) {
+                            val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
+                            if (currentCharset.isEmpty() || Charset.isSupported(currentCharset)) {
+                                RadioTextButton(
+                                    text = it,
+                                    selected = currentCharset == preferences.subtitleTextEncoding,
+                                    onClick = {
+                                        viewModel.updateSubtitleEncoding(currentCharset)
+                                        viewModel.hideDialog()
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
                 }
             }
-
-            SubtitlePreferenceDialog.SubtitleFontDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.subtitle_font),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(Font.values()) {
-                        RadioTextButton(
-                            text = it.name(),
-                            selected = it == preferences.subtitleFont,
-                            onClick = {
-                                viewModel.updateSubtitleFont(it)
-                                viewModel.hideDialog()
-                            }
-                        )
-                    }
-                }
-            }
-
-            SubtitlePreferenceDialog.SubtitleSizeDialog -> {
-                var size by remember { mutableStateOf(preferences.subtitleTextSize) }
-
-                NextDialog(
-                    onDismissRequest = viewModel::hideDialog,
-                    title = { Text(text = stringResource(id = R.string.subtitle_text_size)) },
-                    content = {
-                        Text(
-                            text = size.toString(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
-                            textAlign = TextAlign.Center,
-                            fontSize = size.sp,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Slider(
-                            value = size.toFloat(),
-                            onValueChange = { size = it.toInt() },
-                            valueRange = 15f..60f
-                        )
-                    },
-                    confirmButton = {
-                        DoneButton(onClick = {
-                            viewModel.updateSubtitleFontSize(size)
-                            viewModel.hideDialog()
-                        })
-                    },
-                    dismissButton = { CancelButton(onClick = viewModel::hideDialog) }
-                )
-            }
-
-            SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
-                OptionsDialog(
-                    text = stringResource(id = R.string.subtitle_text_encoding),
-                    onDismissClick = viewModel::hideDialog
-                ) {
-                    items(charsetResource) {
-                        val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
-                        RadioTextButton(
-                            text = it,
-                            selected = currentCharset == preferences.subtitleTextEncoding,
-                            onClick = {
-                                viewModel.updateSubtitleEncoding(currentCharset)
-                                viewModel.hideDialog()
-                            }
-                        )
-                    }
-                }
-            }
-
-            SubtitlePreferenceDialog.None -> Unit
         }
     }
 }

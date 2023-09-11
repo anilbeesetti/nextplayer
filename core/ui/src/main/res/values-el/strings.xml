@@ -48,7 +48,7 @@
     <string name="smallest">Μικρότερο</string>
     <string name="largest">Μεγαλύτερο</string>
     <string name="dark_theme">Σκοτεινό θέμα</string>
-    <string name="video_zoom">Ζουμ βίντεο</string>
+    <string name="video_zoom">Μεγέθυνση βίντεο</string>
     <string name="dynamic_theme">Δυναμικό χρωματικό θέμα</string>
     <string name="dynamic_theme_description">Εφαρμογή χρωμάτων από την ταπετσαρία συστήματος στο θέμα της εφαρμογής</string>
     <string name="controls_lock">Κλείδωμα χειριστηρίων</string>
@@ -139,4 +139,19 @@
     <string name="delete">Διαγραφή</string>
     <string name="delete_file">Το παρακάτω αρχείο θα διαγραφεί οριστικά</string>
     <string name="delete_folder">Όλα τα αρχεία βίντεο στον παρακάτω φάκελο θα διαγραφούν οριστικά.</string>
+    <string name="stretch">Τέντωμα</string>
+    <string name="crop">Περικοπή</string>
+    <string name="hundred_percent">100%</string>
+    <string name="best_fit">Ταίριασμα</string>
+    <string name="autoplay_settings">Αυτόματη αναπαραγωγή</string>
+    <string name="autoplay_settings_description">Αυτόματη αναπαραγωγή του επόμενου βίντεο στον φάκελο</string>
+    <string name="zoom_gesture">Μεγέθυνση</string>
+    <string name="zoom_gesture_description">Χειρονομία μεγέθυνσης βίντεο</string>
+    <string name="high_contrast_dark_theme">Μαύρο θέμα</string>
+    <string name="high_contrast_dark_theme_desc">Χρήση μαύρου φόντου στο σκοτεινό θέμα</string>
+    <string name="audio_desc">Επιλογές ήχου</string>
+    <string name="pause_on_headset_disconnect_desc">Παύση αναπαραγωγής κατά την αφαίρεση των ακουστικών</string>
+    <string name="pause_on_headset_disconnect">Αφαίρεση ακουστικών</string>
+    <string name="system_volume_panel">Ένταση συστήματος</string>
+    <string name="system_volume_panel_desc">Χρήση πίνακα έντασης συστήματος όταν χρησιμοποιούνται ακουστικά</string>
 </resources>
