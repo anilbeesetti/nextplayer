@@ -100,19 +100,23 @@ fun SubtitlePreferencesScreen(
             )
             subtitleFontPreference(
                 currentFont = preferences.subtitleFont,
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) }
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) },
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleTextBoldPreference(
                 isChecked = preferences.subtitleTextBold,
-                onClick = viewModel::toggleSubtitleTextBold
+                onClick = viewModel::toggleSubtitleTextBold,
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleTextSizePreference(
                 currentSize = preferences.subtitleTextSize,
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) }
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) },
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleBackgroundPreference(
                 isChecked = preferences.subtitleBackground,
-                onClick = viewModel::toggleSubtitleBackground
+                onClick = viewModel::toggleSubtitleBackground,
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleEmbeddedStylesPreference(
                 isChecked = preferences.applyEmbeddedStyles,
@@ -258,51 +262,59 @@ fun LazyListScope.useSystemCaptionStyle(
 
 fun LazyListScope.subtitleFontPreference(
     currentFont: Font,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_font),
         description = currentFont.name(),
         icon = NextIcons.Font,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 
 fun LazyListScope.subtitleTextBoldPreference(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_text_bold),
         description = stringResource(id = R.string.subtitle_text_bold_desc),
         icon = NextIcons.Bold,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 
 fun LazyListScope.subtitleTextSizePreference(
     currentSize: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_text_size),
         description = currentSize.toString(),
         icon = NextIcons.FontSize,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 
 fun LazyListScope.subtitleBackgroundPreference(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_background),
         description = stringResource(id = R.string.subtitle_background_desc),
         icon = NextIcons.Background,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 

@@ -27,6 +27,7 @@ fun PreferenceSwitch(
             enabled = enabled,
             onValueChange = { onClick() }
         ),
+        enabled = enabled,
         content = {
             NextSwitch(
                 checked = isChecked,
