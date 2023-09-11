@@ -245,7 +245,7 @@ class PlayerGestureHelper(
     private fun longPressHoldForFastForward() {
         playbackSpeedJob = CoroutineScope(Dispatchers.Main).launch {
             delay(1000)
-            activity.binding.progressScrubberLayout.apply {
+            activity.binding.infoLayout.apply {
                 activity.binding.fastSpeedText.text = resources.getString(
                     dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
                     prefs.playbackSpeedAtLongPress

@@ -46,11 +46,10 @@
 
     <LinearLayout
         android:id="@+id/info_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clickable="false"
-        android:layout_gravity="center"
-        android:gravity="center_horizontal"
+        android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
         tools:visibility="visible">
