@@ -240,7 +240,7 @@ fun LazyListScope.subtitleTextEncodingPreference(
     ClickablePreferenceItem(
         title = stringResource(R.string.subtitle_text_encoding),
         description = currentEncoding,
-        icon = NextIcons.Caption,
+        icon = NextIcons.Subtitle,
         onClick = onClick
     )
 }
@@ -251,11 +251,11 @@ fun LazyListScope.useSystemCaptionStyle(
     onClick: () -> Unit
 ) = item {
     PreferenceSwitchWithDivider(
-        title = "System caption style",
-        description = "use system caption style",
+        title = stringResource(R.string.system_caption_style),
+        description = stringResource(R.string.system_caption_style_desc),
         isChecked = isChecked,
         onChecked = onChecked,
-        icon = NextIcons.DoubleTap,
+        icon = NextIcons.Caption,
         onClick = onClick
     )
 }
