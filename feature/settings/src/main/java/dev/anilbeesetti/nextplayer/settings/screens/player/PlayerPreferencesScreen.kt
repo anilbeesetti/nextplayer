@@ -135,9 +135,9 @@ fun PlayerPreferencesScreen(
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
             )
             playbackSpeedOnLongPress(
-                isChecked = preferences.fastPlaybackOnLongPress,
+                isChecked = preferences.useFastPlaybackControls,
                 onChecked = viewModel::toggleFastPlaybackOnLongPress,
-                playbackSpeed = preferences.playbackSpeedAtLongPress,
+                playbackSpeed = preferences.fastPlaybackControlsSpeed,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedAtLongPressDialog) }
             )
             screenOrientationSetting(
@@ -254,7 +254,7 @@ fun PlayerPreferencesScreen(
 
                 PlayerPreferenceDialog.PlaybackSpeedAtLongPressDialog -> {
                     var playbackSpeedAtLongPress by remember {
-                        mutableStateOf(preferences.playbackSpeedAtLongPress)
+                        mutableStateOf(preferences.fastPlaybackControlsSpeed)
                     }
 
                     NextDialogWithDoneAndCancelButtons(

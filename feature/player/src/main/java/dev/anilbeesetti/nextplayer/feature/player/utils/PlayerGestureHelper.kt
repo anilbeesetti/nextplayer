@@ -67,11 +67,11 @@ class PlayerGestureHelper(
                 }
                 if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
 
-                if (prefs.fastPlaybackOnLongPress) {
+                if (prefs.useFastPlaybackControls) {
                     activity.binding.apply {
-                        fastSpeedText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.playbackSpeedAtLongPress)
+                        fastSpeedText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.fastPlaybackControlsSpeed)
                         fastSpeedLayout.visibility = View.VISIBLE
-                        playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
+                        playerView.player?.setPlaybackSpeed(prefs.fastPlaybackControlsSpeed)
                     }
                 }
             }

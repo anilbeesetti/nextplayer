@@ -68,7 +68,7 @@ class PlayerPreferencesViewModel @Inject constructor(
     fun toggleFastPlaybackOnLongPress() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(fastPlaybackOnLongPress = !it.fastPlaybackOnLongPress)
+                it.copy(useFastPlaybackControls = !it.useFastPlaybackControls)
             }
         }
     }
@@ -163,7 +163,7 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     fun updatePlaybackSpeedOnLongPress(value: Float) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(playbackSpeedAtLongPress = value) }
+            preferencesRepository.updatePlayerPreferences { it.copy(fastPlaybackControlsSpeed = value) }
         }
     }
 
