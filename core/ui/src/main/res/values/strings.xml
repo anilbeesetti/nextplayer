@@ -144,8 +144,8 @@
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="delete_folder">All video files in the following folder will be deleted permanently.</string>
     <string name="fast_playback_speed">%.1fx speed</string>
-    <string name="long_press_for_fast_playback">Fast playback</string>
-    <string name="long_press_for_fast_playback_desc">Long press and hold for %.1fx speed</string>
+    <string name="long_press_gesture">Long press gesture</string>
+    <string name="long_press_gesture_desc">Press and hold to play at a speed of %.1fx</string>
     <string name="best_fit">Best fit</string>
     <string name="stretch">Stretch</string>
     <string name="crop">Crop</string>

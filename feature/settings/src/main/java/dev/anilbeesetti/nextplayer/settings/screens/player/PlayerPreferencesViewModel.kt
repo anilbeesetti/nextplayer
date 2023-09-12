@@ -65,10 +65,10 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleFastPlaybackOnLongPress() {
+    fun toggleUseLongPressControls() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(useFastPlaybackControls = !it.useFastPlaybackControls)
+                it.copy(useLongPressControls = !it.useLongPressControls)
             }
         }
     }
@@ -163,7 +163,7 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     fun updatePlaybackSpeedOnLongPress(value: Float) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(fastPlaybackControlsSpeed = value) }
+            preferencesRepository.updatePlayerPreferences { it.copy(longPressControlsSpeed = value) }
         }
     }
 
@@ -194,7 +194,7 @@ sealed interface PlayerPreferenceDialog {
     object FastSeekDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog
-    object PlaybackSpeedAtLongPressDialog : PlayerPreferenceDialog
+    object LongPressControlsSpeedDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
     object SeekIncrementDialog : PlayerPreferenceDialog
 }

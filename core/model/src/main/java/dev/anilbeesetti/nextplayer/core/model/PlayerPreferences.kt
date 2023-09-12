@@ -22,8 +22,8 @@ data class PlayerPreferences(
     val useSeekControls: Boolean = true,
     val useZoomControls: Boolean = true,
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.FAST_FORWARD_AND_REWIND,
-    val fastPlaybackControlsSpeed: Float = 2.0f,
-    val useFastPlaybackControls: Boolean = false,
+    val useLongPressControls: Boolean = false,
+    val longPressControlsSpeed: Float = 2.0f,
 
     // Audio Preferences
     val preferredAudioLanguage: String = "",

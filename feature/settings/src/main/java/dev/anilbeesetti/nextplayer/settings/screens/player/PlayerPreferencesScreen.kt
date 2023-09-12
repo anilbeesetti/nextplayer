@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -98,6 +97,12 @@ fun PlayerPreferencesScreen(
                 onChecked = viewModel::toggleDoubleTapGesture,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
             )
+            longPressGesture(
+                isChecked = preferences.useLongPressControls,
+                onChecked = viewModel::toggleUseLongPressControls,
+                playbackSpeed = preferences.longPressControlsSpeed,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) }
+            )
             seekIncrementPreference(
                 currentValue = preferences.seekIncrement,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) }
@@ -133,12 +138,6 @@ fun PlayerPreferencesScreen(
                 isChecked = (preferences.fastSeek != FastSeek.DISABLE),
                 onChecked = viewModel::toggleFastSeek,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
-            )
-            playbackSpeedOnLongPress(
-                isChecked = preferences.useFastPlaybackControls,
-                onChecked = viewModel::toggleFastPlaybackOnLongPress,
-                playbackSpeed = preferences.fastPlaybackControlsSpeed,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedAtLongPressDialog) }
             )
             screenOrientationSetting(
                 currentOrientationPreference = preferences.playerScreenOrientation,
@@ -252,21 +251,21 @@ fun PlayerPreferencesScreen(
                     )
                 }
 
-                PlayerPreferenceDialog.PlaybackSpeedAtLongPressDialog -> {
-                    var playbackSpeedAtLongPress by remember {
-                        mutableStateOf(preferences.fastPlaybackControlsSpeed)
+                PlayerPreferenceDialog.LongPressControlsSpeedDialog -> {
+                    var longPressControlsSpeed by remember {
+                        mutableFloatStateOf(preferences.longPressControlsSpeed)
                     }
 
                     NextDialogWithDoneAndCancelButtons(
-                        title = stringResource(R.string.long_press_for_fast_playback),
+                        title = stringResource(R.string.long_press_gesture),
                         onDoneClick = {
-                            viewModel.updatePlaybackSpeedOnLongPress(playbackSpeedAtLongPress)
+                            viewModel.updatePlaybackSpeedOnLongPress(longPressControlsSpeed)
                             viewModel.hideDialog()
                         },
                         onDismissClick = viewModel::hideDialog,
                         content = {
                             Text(
-                                text = "$playbackSpeedAtLongPress",
+                                text = "$longPressControlsSpeed",
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 20.dp),
@@ -274,12 +273,9 @@ fun PlayerPreferencesScreen(
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Slider(
-                                value = playbackSpeedAtLongPress,
-                                onValueChange = {
-                                    playbackSpeedAtLongPress = String.format("%.1f", it).toFloat()
-                                },
-                                valueRange = 0.2f..4.0f,
-                                steps = 37
+                                value = longPressControlsSpeed,
+                                onValueChange = { longPressControlsSpeed = it.round(1) },
+                                valueRange = 0.2f..4.0f
                             )
                         }
                     )
@@ -402,6 +398,22 @@ fun LazyListScope.doubleTapGestureSetting(
     )
 }
 
+fun LazyListScope.longPressGesture(
+    isChecked: Boolean,
+    onChecked: () -> Unit,
+    playbackSpeed: Float,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitchWithDivider(
+        title = stringResource(id = R.string.long_press_gesture),
+        description = stringResource(id = R.string.long_press_gesture_desc, playbackSpeed),
+        isChecked = isChecked,
+        onChecked = onChecked,
+        icon = NextIcons.Tap,
+        onClick = onClick
+    )
+}
+
 fun LazyListScope.seekIncrementPreference(
     currentValue: Int,
     onClick: () -> Unit
@@ -503,22 +515,6 @@ fun LazyListScope.fastSeekSetting(
         isChecked = isChecked,
         onChecked = onChecked,
         icon = NextIcons.Fast,
-        onClick = onClick
-    )
-}
-
-fun LazyListScope.playbackSpeedOnLongPress(
-    isChecked: Boolean,
-    onChecked: () -> Unit,
-    playbackSpeed: Float,
-    onClick: () -> Unit
-) = item {
-    PreferenceSwitchWithDivider(
-        title = stringResource(id = R.string.long_press_for_fast_playback),
-        description = stringResource(id = R.string.long_press_for_fast_playback_desc, playbackSpeed),
-        isChecked = isChecked,
-        onChecked = onChecked,
-        icon = NextIcons.Speed,
         onClick = onClick
     )
 }
