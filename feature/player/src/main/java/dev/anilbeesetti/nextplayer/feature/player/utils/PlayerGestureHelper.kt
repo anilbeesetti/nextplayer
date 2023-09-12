@@ -23,11 +23,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @UnstableApi
 @SuppressLint("ClickableViewAccessibility")
@@ -54,7 +50,6 @@ class PlayerGestureHelper(
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
-    private var playbackSpeedJob: Job? = null
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
@@ -64,6 +59,21 @@ class PlayerGestureHelper(
                     if (!isControllerFullyVisible) showController() else hideController()
                 }
                 return true
+            }
+
+            override fun onLongPress(e: MotionEvent) {
+                if (currentGestureAction == null) {
+                    currentGestureAction = GestureAction.FAST_PLAYBACK
+                }
+                if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
+
+                if (prefs.fastPlaybackOnLongPress) {
+                    activity.binding.apply {
+                        fastSpeedText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.playbackSpeedAtLongPress)
+                        fastSpeedLayout.visibility = View.VISIBLE
+                        playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
+                    }
+                }
             }
 
             override fun onDoubleTap(event: MotionEvent): Boolean {
@@ -233,30 +243,6 @@ class PlayerGestureHelper(
         }
     )
 
-    private val longPressHoldGestureDetector = GestureDetector(
-        playerView.context,
-        object : GestureDetector.SimpleOnGestureListener() {
-            override fun onLongPress(e: MotionEvent) {
-                longPressHoldForFastForward()
-            }
-        }
-    )
-
-    private fun longPressHoldForFastForward() {
-        playbackSpeedJob = CoroutineScope(Dispatchers.Main).launch {
-            delay(1000)
-            activity.binding.infoLayout.apply {
-                activity.binding.fastSpeedText.text = resources.getString(
-                    dev.anilbeesetti.nextplayer.core.ui.R.string.update_playback_speed,
-                    prefs.playbackSpeedAtLongPress
-                )
-                activity.binding.fastSpeedLayout.visibility = View.VISIBLE
-                viewModel.isPlaybackSpeedChanged = true
-                playerView.player?.setPlaybackSpeed(prefs.playbackSpeedAtLongPress)
-            }
-        }
-    }
-
     private fun releaseAction(event: MotionEvent) {
         if (event.action == MotionEvent.ACTION_UP) {
             // hide the volume indicator
@@ -272,18 +258,10 @@ class PlayerGestureHelper(
                     isPlayingOnSeekStart = false
                 }
             }
-            disableFastPlaybackOnLongPress()
-            seeking = false
-            currentGestureAction = null
-        }
-    }
-
-    private fun disableFastPlaybackOnLongPress() {
-        if (prefs.fastPlaybackOnLongPress) {
-            playbackSpeedJob?.cancel()
-            viewModel.isPlaybackSpeedChanged = false
             playerView.player?.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
             activity.binding.fastSpeedLayout.visibility = View.GONE
+            seeking = false
+            currentGestureAction = null
         }
     }
 
@@ -313,25 +291,15 @@ class PlayerGestureHelper(
     }
 
     init {
-        var pointerCount = 0
         playerView.setOnTouchListener { _, motionEvent ->
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
                     volumeAndBrightnessGestureDetector.onTouchEvent(motionEvent)
                     seekGestureDetector.onTouchEvent(motionEvent)
-                    if (prefs.fastPlaybackOnLongPress) {
-                        longPressHoldGestureDetector.onTouchEvent(motionEvent)
-                        if (pointerCount == 2) {
-                            longPressHoldForFastForward()
-                            pointerCount = 0
-                        }
-                    }
                 }
 
                 2 -> {
-                    pointerCount = 2
-                    disableFastPlaybackOnLongPress()
                     zoomGestureDetector.onTouchEvent(motionEvent)
                 }
             }
@@ -353,5 +321,5 @@ fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
 inline val Int.toMillis get() = this * 1000
 
 enum class GestureAction {
-    SWIPE, SEEK, ZOOM
+    SWIPE, SEEK, ZOOM, FAST_PLAYBACK
 }
