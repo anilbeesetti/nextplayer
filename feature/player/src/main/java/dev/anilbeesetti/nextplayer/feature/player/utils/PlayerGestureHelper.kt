@@ -62,17 +62,16 @@ class PlayerGestureHelper(
             }
 
             override fun onLongPress(e: MotionEvent) {
+                if (!prefs.useLongPressControls) return
                 if (currentGestureAction == null) {
                     currentGestureAction = GestureAction.FAST_PLAYBACK
                 }
                 if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
 
-                if (prefs.useFastPlaybackControls) {
-                    activity.binding.apply {
-                        fastSpeedText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.fastPlaybackControlsSpeed)
-                        fastSpeedLayout.visibility = View.VISIBLE
-                        playerView.player?.setPlaybackSpeed(prefs.fastPlaybackControlsSpeed)
-                    }
+                activity.binding.apply {
+                    fastSpeedText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed)
+                    fastSpeedLayout.visibility = View.VISIBLE
+                    playerView.player?.setPlaybackSpeed(prefs.longPressControlsSpeed)
                 }
             }
 
