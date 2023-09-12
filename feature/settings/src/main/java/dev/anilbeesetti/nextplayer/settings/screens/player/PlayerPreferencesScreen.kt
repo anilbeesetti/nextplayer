@@ -259,7 +259,7 @@ fun PlayerPreferencesScreen(
                     NextDialogWithDoneAndCancelButtons(
                         title = stringResource(R.string.long_press_gesture),
                         onDoneClick = {
-                            viewModel.updatePlaybackSpeedOnLongPress(longPressControlsSpeed)
+                            viewModel.updateLongPressControlsSpeed(longPressControlsSpeed)
                             viewModel.hideDialog()
                         },
                         onDismissClick = viewModel::hideDialog,

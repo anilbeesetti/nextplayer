@@ -161,7 +161,7 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updatePlaybackSpeedOnLongPress(value: Float) {
+    fun updateLongPressControlsSpeed(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(longPressControlsSpeed = value) }
         }
