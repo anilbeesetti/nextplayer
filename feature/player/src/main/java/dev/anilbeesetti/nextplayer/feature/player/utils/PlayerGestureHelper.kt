@@ -45,11 +45,11 @@ class PlayerGestureHelper(
     private var exoContentFrameLayout: AspectRatioFrameLayout = playerView.findViewById(R.id.exo_content_frame)
 
     private var currentGestureAction: GestureAction? = null
-    private var seeking = false
     private var seekStart = 0L
     private var position = 0L
     private var seekChange = 0L
     private var isPlayingOnSeekStart: Boolean = false
+    private var currentPlaybackSpeed: Float? = null
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
@@ -65,6 +65,7 @@ class PlayerGestureHelper(
                 if (!prefs.useLongPressControls) return
                 if (currentGestureAction == null) {
                     currentGestureAction = GestureAction.FAST_PLAYBACK
+                    currentPlaybackSpeed = playerView.player?.playbackParameters?.speed
                 }
                 if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
 
@@ -257,9 +258,11 @@ class PlayerGestureHelper(
                     isPlayingOnSeekStart = false
                 }
             }
-            playerView.player?.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
+            currentPlaybackSpeed?.let {
+                playerView.player?.setPlaybackSpeed(it)
+                currentPlaybackSpeed = null
+            }
             activity.binding.fastSpeedLayout.visibility = View.GONE
-            seeking = false
             currentGestureAction = null
         }
     }
