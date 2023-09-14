@@ -23,6 +23,7 @@ fun ClickablePreferenceItem(
         title = title,
         description = description,
         icon = icon,
+        enabled = enabled,
         modifier = modifier.combinedClickable(
             onClick = onClick,
             enabled = enabled,
@@ -33,11 +34,12 @@ fun ClickablePreferenceItem(
 
 @Preview
 @Composable
-fun ClickablePreferenceItemPreview() {
+private fun ClickablePreferenceItemPreview() {
     ClickablePreferenceItem(
         title = "Title",
         description = "Description of the preference item goes here.",
         icon = NextIcons.DoubleTap,
-        onClick = {}
+        onClick = {},
+        enabled = false
     )
 }

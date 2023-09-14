@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
@@ -54,6 +58,7 @@ fun SubtitlePreferencesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
     val charsetResource = stringArrayResource(id = R.array.charsets_list)
+    val context = LocalContext.current
 
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -88,21 +93,30 @@ fun SubtitlePreferencesScreen(
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) }
             )
             item { PreferenceSubtitle(text = stringResource(id = R.string.appearance_name)) }
+            useSystemCaptionStyle(
+                isChecked = preferences.useSystemCaptionStyle,
+                onChecked = viewModel::toggleUseSystemCaptionStyle,
+                onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) }
+            )
             subtitleFontPreference(
                 currentFont = preferences.subtitleFont,
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) }
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) },
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleTextBoldPreference(
                 isChecked = preferences.subtitleTextBold,
-                onClick = viewModel::toggleSubtitleTextBold
+                onClick = viewModel::toggleSubtitleTextBold,
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleTextSizePreference(
                 currentSize = preferences.subtitleTextSize,
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) }
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) },
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleBackgroundPreference(
                 isChecked = preferences.subtitleBackground,
-                onClick = viewModel::toggleSubtitleBackground
+                onClick = viewModel::toggleSubtitleBackground,
+                enabled = preferences.useSystemCaptionStyle.not()
             )
             subtitleEmbeddedStylesPreference(
                 isChecked = preferences.applyEmbeddedStyles,
@@ -226,6 +240,21 @@ fun LazyListScope.subtitleTextEncodingPreference(
     ClickablePreferenceItem(
         title = stringResource(R.string.subtitle_text_encoding),
         description = currentEncoding,
+        icon = NextIcons.Subtitle,
+        onClick = onClick
+    )
+}
+
+fun LazyListScope.useSystemCaptionStyle(
+    isChecked: Boolean,
+    onChecked: () -> Unit,
+    onClick: () -> Unit
+) = item {
+    PreferenceSwitchWithDivider(
+        title = stringResource(R.string.system_caption_style),
+        description = stringResource(R.string.system_caption_style_desc),
+        isChecked = isChecked,
+        onChecked = onChecked,
         icon = NextIcons.Caption,
         onClick = onClick
     )
@@ -233,51 +262,59 @@ fun LazyListScope.subtitleTextEncodingPreference(
 
 fun LazyListScope.subtitleFontPreference(
     currentFont: Font,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_font),
         description = currentFont.name(),
         icon = NextIcons.Font,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 
 fun LazyListScope.subtitleTextBoldPreference(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_text_bold),
         description = stringResource(id = R.string.subtitle_text_bold_desc),
         icon = NextIcons.Bold,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 
 fun LazyListScope.subtitleTextSizePreference(
     currentSize: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_text_size),
         description = currentSize.toString(),
         icon = NextIcons.FontSize,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 
 fun LazyListScope.subtitleBackgroundPreference(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ) = item {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_background),
         description = stringResource(id = R.string.subtitle_background_desc),
         icon = NextIcons.Background,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled
     )
 }
 
