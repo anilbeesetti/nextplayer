@@ -119,7 +119,7 @@ class PlayerActivity : AppCompatActivity() {
     private var isFrameRendered = false
     private var isPlayingOnScrubStart: Boolean = false
     private var previousScrubPosition = 0L
-    private var scrubStartPosition: Long = 0L
+    private var scrubStartPosition: Long = -1L
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
@@ -247,6 +247,7 @@ class PlayerActivity : AppCompatActivity() {
 
             override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
                 hidePlayerInfo(0L)
+                scrubStartPosition = -1L
                 if (isPlayingOnScrubStart) {
                     player.play()
                 }
