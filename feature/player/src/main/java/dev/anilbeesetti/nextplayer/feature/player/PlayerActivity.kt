@@ -28,8 +28,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
-import androidx.core.view.doOnLayout
-import androidx.core.view.updatePaddingRelative
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -50,6 +48,7 @@ import androidx.media3.ui.TimeBar
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.clearCache
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -118,13 +117,15 @@ class PlayerActivity : AppCompatActivity() {
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
     private var isFrameRendered = false
-    private var previousScrubPosition = 0L
     private var isPlayingOnScrubStart: Boolean = false
+    private var previousScrubPosition = 0L
+    private var scrubStartPosition: Long = -1L
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
     private var hideBrightnessIndicatorJob: Job? = null
+    private var hideInfoLayoutJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -220,10 +221,6 @@ class PlayerActivity : AppCompatActivity() {
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
 
-        playerCenterControls.doOnLayout {
-            binding.infoLayout.updatePaddingRelative(bottom = it.measuredHeight)
-        }
-
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
                 if (player.isPlaying) {
@@ -231,15 +228,26 @@ class PlayerActivity : AppCompatActivity() {
                     player.pause()
                 }
                 isFrameRendered = true
+                scrubStartPosition = player.currentPosition
                 previousScrubPosition = player.currentPosition
                 scrub(position)
+                showPlayerInfo(
+                    info = Utils.formatDurationMillis(position),
+                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                )
             }
 
             override fun onScrubMove(timeBar: TimeBar, position: Long) {
                 scrub(position)
+                showPlayerInfo(
+                    info = Utils.formatDurationMillis(position),
+                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                )
             }
 
             override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                hidePlayerInfo(0L)
+                scrubStartPosition = -1L
                 if (isPlayingOnScrubStart) {
                     player.play()
                 }
@@ -718,6 +726,16 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    fun showPlayerInfo(info: String, subInfo: String? = null) {
+        hideInfoLayoutJob?.cancel()
+        with(binding) {
+            infoLayout.visibility = View.VISIBLE
+            infoText.text = info
+            infoSubtext.visibility = View.GONE.takeIf { subInfo == null } ?: View.VISIBLE
+            infoSubtext.text = subInfo
+        }
+    }
+
     fun hideVolumeGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
         hideVolumeIndicatorJob = lifecycleScope.launch {
@@ -734,6 +752,14 @@ class PlayerActivity : AppCompatActivity() {
         }
         if (playerPreferences.rememberPlayerBrightness) {
             viewModel.setPlayerBrightness(window.attributes.screenBrightness)
+        }
+    }
+
+    fun hidePlayerInfo(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
+        if (binding.infoLayout.visibility != View.VISIBLE) return
+        hideBrightnessIndicatorJob = lifecycleScope.launch {
+            delay(delayTimeMillis)
+            binding.infoLayout.visibility = View.GONE
         }
     }
 
@@ -825,7 +851,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val HIDE_DELAY_MILLIS = 1000L
+        const val HIDE_DELAY_MILLIS = 2000L
     }
 }
 
