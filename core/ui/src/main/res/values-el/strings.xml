@@ -154,4 +154,6 @@
     <string name="pause_on_headset_disconnect">Αφαίρεση ακουστικών</string>
     <string name="system_volume_panel">Ένταση συστήματος</string>
     <string name="system_volume_panel_desc">Χρήση πίνακα έντασης συστήματος όταν χρησιμοποιούνται ακουστικά</string>
+    <string name="system_caption_style">Στυλ συστήματος</string>
+    <string name="system_caption_style_desc">Άνοιγμα των προτιμήσεων υπότιτλων συστήματος</string>
 </resources>
