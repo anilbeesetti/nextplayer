@@ -130,24 +130,25 @@ class PlayerGestureHelper(
                 val distanceDiff = abs(Utils.pxToDp(distanceX) / 4).coerceIn(0.5f, 10f)
                 val change = (distanceDiff * SEEK_STEP_MS).toLong()
 
-                if (distanceX < 0L) {
-                    playerView.player?.run {
+                playerView.player?.run {
+                    if (distanceX < 0L) {
                         seekChange = (seekChange + change)
                             .takeIf { it + seekStart < duration } ?: (duration - seekStart)
                         position = (seekStart + seekChange).coerceAtMost(duration)
                         seekForward(positionMs = position, shouldFastSeek = shouldFastSeek)
-                    }
-                } else {
-                    playerView.player?.run {
+                    } else {
                         seekChange = (seekChange - change)
                             .takeIf { it + seekStart > 0 } ?: (0 - seekStart)
                         position = seekStart + seekChange
                         seekBack(positionMs = position, shouldFastSeek = shouldFastSeek)
                     }
+                    activity.showPlayerInfo(
+                        info = Utils.formatDurationMillis(this.currentPosition),
+                        subInfo = "[${Utils.formatDurationMillisSign(seekChange)}]"
+                    )
+                    return true
                 }
-
-                activity.showPlayerInfo("[${Utils.formatDurationMillisSign(seekChange)}]")
-                return true
+                return false
             }
         }
     )
@@ -226,7 +227,7 @@ class PlayerGestureHelper(
             // hide the brightness indicator
             activity.hideBrightnessGestureLayout()
             // hide info layout
-            activity.hidePlayerInfo()
+            activity.hidePlayerInfo(0L)
 
             playerView.controllerAutoShow = true
             if (isPlayingOnSeekStart) playerView.player?.play()

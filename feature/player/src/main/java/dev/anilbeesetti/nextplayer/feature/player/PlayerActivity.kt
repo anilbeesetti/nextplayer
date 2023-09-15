@@ -28,8 +28,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
-import androidx.core.view.doOnLayout
-import androidx.core.view.updatePaddingRelative
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -60,7 +58,6 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -91,13 +88,14 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.nio.charset.Charset
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -121,6 +119,7 @@ class PlayerActivity : AppCompatActivity() {
     private var isFrameRendered = false
     private var previousScrubPosition = 0L
     private var isPlayingOnScrubStart: Boolean = false
+    private var scrubStartPosition: Long = 0L
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
@@ -222,10 +221,6 @@ class PlayerActivity : AppCompatActivity() {
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
 
-        playerCenterControls.doOnLayout {
-            binding.infoLayout.updatePaddingRelative(bottom = it.measuredHeight)
-        }
-
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
                 if (player.isPlaying) {
@@ -233,15 +228,25 @@ class PlayerActivity : AppCompatActivity() {
                     player.pause()
                 }
                 isFrameRendered = true
+                scrubStartPosition = player.currentPosition
                 previousScrubPosition = player.currentPosition
                 scrub(position)
+                showPlayerInfo(
+                    info = Utils.formatDurationMillis(position),
+                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                )
             }
 
             override fun onScrubMove(timeBar: TimeBar, position: Long) {
                 scrub(position)
+                showPlayerInfo(
+                    info = Utils.formatDurationMillis(position),
+                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                )
             }
 
             override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                hidePlayerInfo(0L)
                 if (isPlayingOnScrubStart) {
                     player.play()
                 }
@@ -720,11 +725,13 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    fun showPlayerInfo(info: String) {
+    fun showPlayerInfo(info: String, subInfo: String? = null) {
         hideInfoLayoutJob?.cancel()
         with(binding) {
             infoLayout.visibility = View.VISIBLE
             infoText.text = info
+            infoSubtext.visibility = View.GONE.takeIf { subInfo == null } ?: View.VISIBLE
+            infoSubtext.text = subInfo
         }
     }
 
