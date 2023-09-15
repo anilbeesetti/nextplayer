@@ -6,7 +6,6 @@ import android.os.Build
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
-import android.view.View
 import android.view.WindowInsets
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -44,7 +43,6 @@ class PlayerGestureHelper(
     private var exoContentFrameLayout: AspectRatioFrameLayout = playerView.findViewById(R.id.exo_content_frame)
 
     private var currentGestureAction: GestureAction? = null
-    private var seeking = false
     private var seekStart = 0L
     private var position = 0L
     private var seekChange = 0L
@@ -148,10 +146,7 @@ class PlayerGestureHelper(
                     }
                 }
 
-                with(activity.binding) {
-                    infoLayout.visibility = View.VISIBLE
-                    "[${Utils.formatDurationMillisSign(seekChange)}]".also { infoText.text = it }
-                }
+                activity.showPlayerInfo("[${Utils.formatDurationMillisSign(seekChange)}]")
                 return true
             }
         }
@@ -217,10 +212,7 @@ class PlayerGestureHelper(
                         exoContentFrameLayout.scaleY = scaleFactor
                     }
                     val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
-                    with(activity.binding) {
-                        infoLayout.visibility = View.VISIBLE
-                        "${(currentVideoScale * 100).roundToInt()}%".also { infoText.text = it }
-                    }
+                    activity.showPlayerInfo("${(currentVideoScale * 100).roundToInt()}%")
                 }
                 return true
             }
@@ -233,16 +225,12 @@ class PlayerGestureHelper(
             activity.hideVolumeGestureLayout()
             // hide the brightness indicator
             activity.hideBrightnessGestureLayout()
+            // hide info layout
+            activity.hidePlayerInfo()
 
-            activity.binding.infoLayout.apply {
-                if (visibility == View.VISIBLE) {
-                    visibility = View.GONE
-                    if (isPlayingOnSeekStart) playerView.player?.play()
-                    playerView.controllerAutoShow = true
-                    isPlayingOnSeekStart = false
-                }
-            }
-            seeking = false
+            playerView.controllerAutoShow = true
+            if (isPlayingOnSeekStart) playerView.player?.play()
+            isPlayingOnSeekStart = false
             currentGestureAction = null
         }
     }

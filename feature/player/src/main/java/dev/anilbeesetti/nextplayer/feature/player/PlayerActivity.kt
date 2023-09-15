@@ -50,6 +50,7 @@ import androidx.media3.ui.TimeBar
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.clearCache
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -125,6 +126,7 @@ class PlayerActivity : AppCompatActivity() {
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
     private var hideBrightnessIndicatorJob: Job? = null
+    private var hideInfoLayoutJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -718,6 +720,14 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    fun showPlayerInfo(info: String) {
+        hideInfoLayoutJob?.cancel()
+        with(binding) {
+            infoLayout.visibility = View.VISIBLE
+            infoText.text = info
+        }
+    }
+
     fun hideVolumeGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
         hideVolumeIndicatorJob = lifecycleScope.launch {
@@ -734,6 +744,14 @@ class PlayerActivity : AppCompatActivity() {
         }
         if (playerPreferences.rememberPlayerBrightness) {
             viewModel.setPlayerBrightness(window.attributes.screenBrightness)
+        }
+    }
+
+    fun hidePlayerInfo(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
+        if (binding.infoLayout.visibility != View.VISIBLE) return
+        hideBrightnessIndicatorJob = lifecycleScope.launch {
+            delay(delayTimeMillis)
+            binding.infoLayout.visibility = View.GONE
         }
     }
 
@@ -825,7 +843,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val HIDE_DELAY_MILLIS = 1000L
+        const val HIDE_DELAY_MILLIS = 2000L
     }
 }
 
