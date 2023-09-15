@@ -154,4 +154,6 @@
     <string name="pause_on_headset_disconnect">Pausa al desconectar</string>
     <string name="system_volume_panel_desc">Mostrar el panel del volumen del sistema mientras se ajusta el volumen con los auriculares puestos</string>
     <string name="system_volume_panel">Panel del volumen del sistema</string>
+    <string name="system_caption_style">Subtitulos del sistema</string>
+    <string name="system_caption_style_desc">Haz clic para abrir las preferencias del subtitulado del sistema</string>
 </resources>
