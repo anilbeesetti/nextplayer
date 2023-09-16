@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -57,22 +58,22 @@ fun VideoItem(
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f)
             ) {
+                Icon(
+                    imageVector = NextIcons.Video,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(50.dp)
+                )
                 if (video.uriString.isNotEmpty() && preferences.showThumbnailField) {
                     GlideImage(
                         imageModel = { video.uriString },
                         imageOptions = ImageOptions(
                             contentScale = ContentScale.Crop,
                             alignment = Alignment.Center
-                        )
-                    )
-                } else {
-                    Icon(
-                        imageVector = NextIcons.Video,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.surfaceColorAtElevation(50.dp),
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(50.dp)
+                        ),
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
                 if (preferences.showDurationField) {
