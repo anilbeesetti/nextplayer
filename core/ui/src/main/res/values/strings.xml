@@ -163,4 +163,7 @@
     <string name="path">Path</string>
     <string name="resolution">Resolution</string>
     <string name="thumbnail">Thumbnail</string>
+    <string name="compact">Compact</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
 </resources>

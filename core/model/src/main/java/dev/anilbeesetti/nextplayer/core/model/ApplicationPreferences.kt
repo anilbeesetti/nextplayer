@@ -12,6 +12,9 @@ data class ApplicationPreferences(
     val useDynamicColors: Boolean = true,
     val excludeFolders: List<String> = emptyList(),
 
+    // View preferences
+    val thumbnailSize: Size = Size.LARGE,
+
     // Fields
     val showDurationField: Boolean = true,
     val showExtensionField: Boolean = false,
@@ -20,3 +23,7 @@ data class ApplicationPreferences(
     val showSizeField: Boolean = false,
     val showThumbnailField: Boolean = true
 )
+
+enum class Size {
+    COMPACT, MEDIUM, LARGE
+}
