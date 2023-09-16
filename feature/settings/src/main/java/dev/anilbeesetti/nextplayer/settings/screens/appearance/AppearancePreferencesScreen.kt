@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.settings.screens.appearance
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -58,28 +60,26 @@ fun AppearancePreferencesScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
+        Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            item {
-                PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
-            }
-            darkThemeSetting(
+            PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
+            DarkThemeSetting(
                 currentPreference = preferences.themeConfig,
                 onChecked = viewModel::toggleDarkTheme,
                 onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) }
             )
-            highContrastDarkThemeSetting(
+            HighContrastDarkThemeSetting(
                 isChecked = preferences.useHighContrastDarkTheme,
                 onClick = viewModel::toggleUseHighContrastDarkTheme
             )
-            dynamicThemingSetting(
+            DynamicThemingSetting(
                 isChecked = preferences.useDynamicColors,
                 onClick = viewModel::toggleUseDynamicColors
             )
-            thumbnailSizeSetting(
+            ThumbnailSizeSetting(
                 currentValue = preferences.thumbnailSize,
                 onClick = { viewModel.showDialog(AppearancePreferenceDialog.ThumbnailSize) }
             )
@@ -127,11 +127,12 @@ fun AppearancePreferencesScreen(
     }
 }
 
-fun LazyListScope.darkThemeSetting(
+@Composable
+fun DarkThemeSetting(
     currentPreference: ThemeConfig,
     onChecked: () -> Unit,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.dark_theme),
         description = currentPreference.name(),
@@ -142,10 +143,11 @@ fun LazyListScope.darkThemeSetting(
     )
 }
 
-fun LazyListScope.highContrastDarkThemeSetting(
+@Composable
+fun HighContrastDarkThemeSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(R.string.high_contrast_dark_theme),
         description = stringResource(R.string.high_contrast_dark_theme_desc),
@@ -155,10 +157,11 @@ fun LazyListScope.highContrastDarkThemeSetting(
     )
 }
 
-fun LazyListScope.dynamicThemingSetting(
+@Composable
+fun DynamicThemingSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     if (supportsDynamicTheming()) {
         PreferenceSwitch(
             title = stringResource(id = R.string.dynamic_theme),
@@ -170,10 +173,11 @@ fun LazyListScope.dynamicThemingSetting(
     }
 }
 
-fun LazyListScope.thumbnailSizeSetting(
+@Composable
+fun ThumbnailSizeSetting(
     currentValue: Size,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = "Thumbnail size",
         description = currentValue.name(),
