@@ -10,5 +10,12 @@ data class ApplicationPreferences(
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
     val useHighContrastDarkTheme: Boolean = false,
     val useDynamicColors: Boolean = true,
-    val excludeFolders: List<String> = emptyList()
+    val excludeFolders: List<String> = emptyList(),
+
+    // Fields
+    val showDurationField: Boolean = true,
+    val showPathField: Boolean = false,
+    val showResolutionField: Boolean = false,
+    val showSizeField: Boolean = false,
+    val showThumbnailField: Boolean = true
 )

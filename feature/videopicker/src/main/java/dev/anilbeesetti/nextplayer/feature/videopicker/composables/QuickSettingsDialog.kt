@@ -3,20 +3,27 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,8 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.SortBy
@@ -39,6 +48,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
@@ -68,6 +78,40 @@ fun QuickSettingsDialog(
                     selectedSortOrder = preferences.sortOrder,
                     onOptionSelected = { preferences = preferences.copy(sortOrder = it) }
                 )
+                Divider(modifier = Modifier.padding(top = 16.dp))
+                DialogSectionTitle(text = stringResource(R.string.fields))
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(align = Alignment.Top),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    FieldChip(
+                        label = "Duration",
+                        selected = preferences.showDurationField,
+                        onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) }
+                    )
+                    FieldChip(
+                        label = "Path",
+                        selected = preferences.showPathField,
+                        onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) }
+                    )
+                    FieldChip(
+                        label = "Resolution",
+                        selected = preferences.showResolutionField,
+                        onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) }
+                    )
+                    FieldChip(
+                        label = "Size",
+                        selected = preferences.showSizeField,
+                        onClick = { preferences = preferences.copy(showSizeField = !preferences.showSizeField) }
+                    )
+                    FieldChip(
+                        label = "Thumbnail",
+                        selected = preferences.showThumbnailField,
+                        onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) }
+                    )
+                }
                 Divider(modifier = Modifier.padding(top = 16.dp))
                 DialogPreferenceSwitch(
                     text = stringResource(id = R.string.group_videos),
@@ -139,6 +183,32 @@ fun SortOrderSegmentedButton(
                 }
             )
         }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FieldChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    selectedIcon: ImageVector = NextIcons.Check
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text = label) },
+        leadingIcon = {
+            if (selected) {
+                Icon(
+                    imageVector = selectedIcon,
+                    contentDescription = "",
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            }
+        },
+        modifier = modifier
     )
 }
 
@@ -233,4 +303,13 @@ fun DialogPreferenceSwitch(
 enum class ChipSelected {
     ONE,
     TWO
+}
+
+
+@Preview
+@Composable
+fun QuickSettingsPreview() {
+    Surface {
+        QuickSettingsDialog(applicationPreferences = ApplicationPreferences(), onDismiss = { }, updatePreferences = {})
+    }
 }
