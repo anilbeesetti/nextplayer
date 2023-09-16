@@ -46,7 +46,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
@@ -82,7 +82,7 @@ fun QuickSettingsDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(align = Alignment.Top),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FieldChip(
                         label = stringResource(id = R.string.duration),
@@ -196,20 +196,20 @@ fun FieldChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    selectedIcon: ImageVector = NextIcons.Check
+    selectedIcon: ImageVector = NextIcons.CheckBox,
+    unselectedIcon: ImageVector = NextIcons.CheckBoxOutline
 ) {
     FilterChip(
         selected = selected,
         onClick = onClick,
         label = { Text(text = label) },
         leadingIcon = {
-            if (selected) {
-                Icon(
-                    imageVector = selectedIcon,
-                    contentDescription = "",
-                    modifier = Modifier.size(FilterChipDefaults.IconSize)
-                )
-            }
+            Icon(
+                imageVector = if (selected) selectedIcon else unselectedIcon,
+                contentDescription = "",
+                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                tint = MaterialTheme.colorScheme.secondary
+            )
         },
         modifier = modifier
     )
