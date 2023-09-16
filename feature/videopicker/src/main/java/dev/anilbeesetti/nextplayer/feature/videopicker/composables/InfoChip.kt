@@ -23,17 +23,13 @@ fun InfoChip(
     contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
     shape: Shape = MaterialTheme.shapes.extraSmall.copy(CornerSize(2.dp))
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+        color = contentColor,
         modifier = modifier
             .clip(shape)
             .background(backgroundColor)
-            .padding(4.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = contentColor
-        )
-    }
+            .padding(vertical = 1.dp, horizontal = 3.dp)
+    )
 }
