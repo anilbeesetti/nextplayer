@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -64,7 +63,7 @@ fun VideoItem(
                     tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(50.dp)
+                        .fillMaxSize(0.5f)
                 )
                 if (video.uriString.isNotEmpty() && preferences.showThumbnailField) {
                     GlideImage(
