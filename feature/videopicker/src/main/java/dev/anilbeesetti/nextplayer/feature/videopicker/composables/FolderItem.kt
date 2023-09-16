@@ -73,9 +73,9 @@ fun FolderItem(
             ) {
                 InfoChip(
                     text = "${folder.mediaCount} ${
-                        stringResource(
-                            id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos
-                        )
+                    stringResource(
+                        id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos
+                    )
                     }"
                 )
                 InfoChip(
