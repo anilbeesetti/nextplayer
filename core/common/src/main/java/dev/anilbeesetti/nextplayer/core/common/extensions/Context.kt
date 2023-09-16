@@ -30,7 +30,6 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 val VIDEO_COLLECTION_URI: Uri
@@ -338,8 +337,7 @@ suspend fun Context.deleteFiles(uris: List<Uri>, intentSenderLauncher: ActivityR
     }
 }
 
-
-fun Context.isTvBox(): Boolean {
+fun Context.isDeviceTvBox(): Boolean {
     val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
         return true
@@ -356,7 +354,6 @@ fun Context.isTvBox(): Boolean {
     }
 
     if (Build.VERSION.SDK_INT < 30) {
-
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
             return true
         }
@@ -373,8 +370,8 @@ fun Context.isTvBox(): Boolean {
 }
 
 fun Context.hasStorageAccessFrameworkChooser(): Boolean {
-    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT);
-    intent.addCategory(Intent.CATEGORY_OPENABLE);
-    intent.setType("video/*");
+    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+    intent.addCategory(Intent.CATEGORY_OPENABLE)
+    intent.setType("video/*")
     return intent.resolveActivity(packageManager) != null
 }
