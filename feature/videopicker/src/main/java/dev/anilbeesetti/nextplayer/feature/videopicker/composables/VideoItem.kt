@@ -52,7 +52,7 @@ fun VideoItem(
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f)
             ) {
-                if (video.uriString.isNotEmpty()) {
+                if (video.uriString.isNotEmpty() && preferences.showThumbnailField) {
                     GlideImage(
                         imageModel = { video.uriString },
                         imageOptions = ImageOptions(
