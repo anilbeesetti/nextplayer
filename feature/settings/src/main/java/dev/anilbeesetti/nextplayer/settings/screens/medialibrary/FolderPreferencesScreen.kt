@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -32,7 +33,7 @@ fun FolderPreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: MediaLibraryPreferencesViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -54,24 +55,17 @@ fun FolderPreferencesScreen(
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
             when (uiState) {
-                FolderPreferencesUiState.Loading -> Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator()
-                }
+                FolderPreferencesUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
-                is FolderPreferencesUiState.Success -> Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .verticalScroll(state = rememberScrollState())
+                is FolderPreferencesUiState.Success -> LazyColumn(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    for (folder in (uiState as FolderPreferencesUiState.Success).directories) {
+                    items((uiState as FolderPreferencesUiState.Success).directories) { folder ->
                         SelectablePreference(
                             title = folder.name,
                             description = folder.path,
