@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,6 +29,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -55,6 +58,15 @@ fun VideoItem(
                             contentScale = ContentScale.Crop,
                             alignment = Alignment.Center
                         )
+                    )
+                } else {
+                    Icon(
+                        imageVector = NextIcons.Video,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.surfaceColorAtElevation(50.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(50.dp)
                     )
                 }
                 if (preferences.showDurationField) {

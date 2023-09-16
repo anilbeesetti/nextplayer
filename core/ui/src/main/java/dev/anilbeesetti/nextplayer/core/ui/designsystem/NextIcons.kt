@@ -32,6 +32,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Pinch
 import androidx.compose.material.icons.rounded.PlayCircle
@@ -105,4 +106,5 @@ object NextIcons {
     val Timer = Icons.Rounded.Timer
     val Title = Icons.Rounded.Title
     val Update = Icons.Rounded.Update
+    val Video = Icons.Rounded.Movie
 }
