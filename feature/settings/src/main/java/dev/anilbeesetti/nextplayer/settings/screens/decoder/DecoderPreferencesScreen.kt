@@ -1,9 +1,11 @@
 package dev.anilbeesetti.nextplayer.settings.screens.decoder
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,12 +56,14 @@ fun DecoderPreferencesScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
         ) {
-            item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
-            decoderPrioritySetting(
+            PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            DecoderPrioritySetting(
                 currentValue = preferences.decoderPriority,
                 onClick = { viewModel.showDialog(DecoderPreferenceDialog.DecoderPriorityDialog) }
             )
@@ -89,10 +93,11 @@ fun DecoderPreferencesScreen(
     }
 }
 
-fun LazyListScope.decoderPrioritySetting(
+@Composable
+fun DecoderPrioritySetting(
     currentValue: DecoderPriority,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(R.string.decoder_priority),
         description = currentValue.name(),
