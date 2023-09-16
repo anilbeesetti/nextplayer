@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,7 +37,6 @@ fun FolderPreferencesScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
-            // TODO: Check why the appbar flickers when changing the theme with small appbar and not with large appbar
             NextTopAppBar(
                 title = stringResource(id = R.string.manage_folders),
                 scrollBehavior = scrollBehaviour,
@@ -65,16 +63,17 @@ fun FolderPreferencesScreen(
                     CircularProgressIndicator()
                 }
 
-                is FolderPreferencesUiState.Success -> LazyColumn(
-                    contentPadding = innerPadding,
-                    modifier = Modifier.fillMaxSize()
+                is FolderPreferencesUiState.Success -> Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
                 ) {
-                    items((uiState as FolderPreferencesUiState.Success).directories) {
+                    for (folder in (uiState as FolderPreferencesUiState.Success).directories) {
                         SelectablePreference(
-                            title = it.name,
-                            description = it.path,
-                            selected = it.path in preferences.excludeFolders,
-                            onClick = { viewModel.updateExcludeList(it.path) }
+                            title = folder.name,
+                            description = folder.path,
+                            selected = folder.path in preferences.excludeFolders,
+                            onClick = { viewModel.updateExcludeList(folder.path) }
                         )
                     }
                 }
