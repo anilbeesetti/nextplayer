@@ -159,4 +159,7 @@
     <string name="system_caption_style">System caption style</string>
     <string name="system_caption_style_desc">Click to open system captioning preferences</string>
     <string name="fields">Fields</string>
+    <string name="path">Path</string>
+    <string name="resolution">Resolution</string>
+    <string name="thumbnail">Thumbnail</string>
 </resources>

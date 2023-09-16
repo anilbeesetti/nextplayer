@@ -87,27 +87,27 @@ fun QuickSettingsDialog(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     FieldChip(
-                        label = "Duration",
+                        label = stringResource(id = R.string.duration),
                         selected = preferences.showDurationField,
                         onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) }
                     )
                     FieldChip(
-                        label = "Path",
+                        label = stringResource(id = R.string.path),
                         selected = preferences.showPathField,
                         onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) }
                     )
                     FieldChip(
-                        label = "Resolution",
+                        label = stringResource(id = R.string.resolution),
                         selected = preferences.showResolutionField,
                         onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) }
                     )
                     FieldChip(
-                        label = "Size",
+                        label = stringResource(id = R.string.size),
                         selected = preferences.showSizeField,
                         onClick = { preferences = preferences.copy(showSizeField = !preferences.showSizeField) }
                     )
                     FieldChip(
-                        label = "Thumbnail",
+                        label = stringResource(id = R.string.thumbnail),
                         selected = preferences.showThumbnailField,
                         onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) }
                     )
