@@ -156,4 +156,12 @@
     <string name="system_volume_panel">Painel de volume</string>
     <string name="system_caption_style">Estilo de legenda do sistema</string>
     <string name="system_caption_style_desc">Clique para abrir as preferências de legenda do sistema</string>
+    <string name="fields">Campos</string>
+    <string name="medium">Médio</string>
+    <string name="thumbnail">Miniatura</string>
+    <string name="compact">Compacto</string>
+    <string name="extension">Extensão</string>
+    <string name="large">Grande</string>
+    <string name="path">Caminho</string>
+    <string name="resolution">Resolução</string>
 </resources>
