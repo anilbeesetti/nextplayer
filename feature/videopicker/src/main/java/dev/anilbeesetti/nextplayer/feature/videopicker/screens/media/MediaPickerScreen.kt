@@ -110,9 +110,19 @@ internal fun MediaPickerScreen(
             contentAlignment = Alignment.Center
         ) {
             if (preferences.groupVideosByFolder) {
-                FoldersListFromState(foldersState = foldersState, onFolderClick = onFolderClick, onDeleteFolderClick = onDeleteFolderClick)
+                FoldersListFromState(
+                    foldersState = foldersState,
+                    preferences = preferences,
+                    onFolderClick = onFolderClick,
+                    onDeleteFolderClick = onDeleteFolderClick
+                )
             } else {
-                VideosListFromState(videosState = videosState, onVideoClick = onPlayVideo, onDeleteVideoClick = onDeleteVideoClick)
+                VideosListFromState(
+                    videosState = videosState,
+                    onVideoClick = onPlayVideo,
+                    preferences = preferences,
+                    onDeleteVideoClick = onDeleteVideoClick
+                )
             }
         }
     }

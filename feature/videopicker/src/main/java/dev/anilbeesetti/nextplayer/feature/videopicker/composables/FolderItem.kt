@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -29,6 +30,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 @Composable
 fun FolderItem(
     folder: Folder,
+    preferences: ApplicationPreferences,
     modifier: Modifier = Modifier
 ) {
     ListItem(
@@ -53,13 +55,15 @@ fun FolderItem(
             )
         },
         supportingContent = {
-            Text(
-                text = folder.path,
-                maxLines = 2,
-                style = MaterialTheme.typography.bodySmall,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(vertical = 2.dp)
-            )
+            if (preferences.showPathField) {
+                Text(
+                    text = folder.path,
+                    maxLines = 2,
+                    style = MaterialTheme.typography.bodySmall,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
+            }
             FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -87,7 +91,7 @@ fun FolderItem(
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(folder = Folder.sample)
+        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences())
     }
 }
 

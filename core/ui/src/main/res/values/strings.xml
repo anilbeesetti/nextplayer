@@ -158,4 +158,9 @@
     <string name="system_volume_panel_desc">Show system volume panel while adjusting volume with headset on</string>
     <string name="system_caption_style">System caption style</string>
     <string name="system_caption_style_desc">Click to open system captioning preferences</string>
+    <string name="fields">Fields</string>
+    <string name="extension">Extension</string>
+    <string name="path">Path</string>
+    <string name="resolution">Resolution</string>
+    <string name="thumbnail">Thumbnail</string>
 </resources>

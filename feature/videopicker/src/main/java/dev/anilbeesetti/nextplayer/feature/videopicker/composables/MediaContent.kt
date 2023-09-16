@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -91,6 +92,7 @@ fun NoVideosFound() {
 @Composable
 fun VideosListFromState(
     videosState: VideosState,
+    preferences: ApplicationPreferences,
     onVideoClick: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit
 ) {
@@ -110,6 +112,7 @@ fun VideosListFromState(
                 items(videosState.data, key = { it.path }) {
                     VideoItem(
                         video = it,
+                        preferences = preferences,
                         modifier = Modifier.combinedClickable(
                             onClick = { onVideoClick(Uri.parse(it.uriString)) },
                             onLongClick = {
@@ -177,6 +180,7 @@ fun VideosListFromState(
 @Composable
 fun FoldersListFromState(
     foldersState: FoldersState,
+    preferences: ApplicationPreferences,
     onFolderClick: (String) -> Unit,
     onDeleteFolderClick: (String) -> Unit
 ) {
@@ -195,6 +199,7 @@ fun FoldersListFromState(
                 items(foldersState.data, key = { it.path }) {
                     FolderItem(
                         folder = it,
+                        preferences = preferences,
                         modifier = Modifier.combinedClickable(
                             onClick = { onFolderClick(it.path) },
                             onLongClick = {
