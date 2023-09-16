@@ -92,6 +92,11 @@ fun QuickSettingsDialog(
                         onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) }
                     )
                     FieldChip(
+                        label = stringResource(id = R.string.extension),
+                        selected = preferences.showExtensionField,
+                        onClick = { preferences = preferences.copy(showExtensionField = !preferences.showExtensionField) }
+                    )
+                    FieldChip(
                         label = stringResource(id = R.string.path),
                         selected = preferences.showPathField,
                         onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) }
