@@ -28,14 +28,11 @@ fun InfoChip(
         modifier = modifier
             .clip(shape)
             .background(backgroundColor)
-            .padding(
-                horizontal = 4.dp,
-                vertical = 1.dp
-            )
+            .padding(4.dp)
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Normal),
+            style = MaterialTheme.typography.labelSmall,
             color = contentColor
         )
     }

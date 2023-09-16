@@ -16,8 +16,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.model.Size
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
@@ -77,6 +79,10 @@ fun AppearancePreferencesScreen(
                 isChecked = preferences.useDynamicColors,
                 onClick = viewModel::toggleUseDynamicColors
             )
+            thumbnailSizeSetting(
+                currentValue = preferences.thumbnailSize,
+                onClick = { viewModel.showDialog(AppearancePreferenceDialog.ThumbnailSize) }
+            )
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -92,6 +98,24 @@ fun AppearancePreferencesScreen(
                                 selected = (it == preferences.themeConfig),
                                 onClick = {
                                     viewModel.updateThemeConfig(it)
+                                    viewModel.hideDialog()
+                                }
+                            )
+                        }
+                    }
+                }
+
+                AppearancePreferenceDialog.ThumbnailSize -> {
+                    OptionsDialog(
+                        text = "Thumbnail Size",
+                        onDismissClick = viewModel::hideDialog
+                    ) {
+                        items(Size.entries.toTypedArray()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == preferences.thumbnailSize),
+                                onClick = {
+                                    viewModel.updateThumbnailSize(it)
                                     viewModel.hideDialog()
                                 }
                             )
@@ -144,4 +168,16 @@ fun LazyListScope.dynamicThemingSetting(
             icon = NextIcons.Appearance
         )
     }
+}
+
+fun LazyListScope.thumbnailSizeSetting(
+    currentValue: Size,
+    onClick: () -> Unit
+) = item {
+    ClickablePreferenceItem(
+        title = "Thumbnail size",
+        description = currentValue.name(),
+        icon = NextIcons.PhotoSize,
+        onClick = onClick
+    )
 }

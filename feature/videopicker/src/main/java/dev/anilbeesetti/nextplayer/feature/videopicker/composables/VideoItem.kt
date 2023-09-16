@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Size
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
@@ -44,7 +45,13 @@ fun VideoItem(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .widthIn(max = 450.dp)
+                    .widthIn(
+                        max = when (preferences.thumbnailSize) {
+                            Size.COMPACT -> 300.dp
+                            Size.MEDIUM -> 350.dp
+                            Size.LARGE -> 400.dp
+                        }
+                    )
                     .fillMaxWidth(0.45f)
                     .aspectRatio(16f / 10f)
             ) {
@@ -65,7 +72,7 @@ fun VideoItem(
                             .align(Alignment.BottomEnd),
                         backgroundColor = Color.Black.copy(alpha = 0.6f),
                         contentColor = Color.White,
-                        shape = MaterialTheme.shapes.small.copy(CornerSize(3.dp))
+                        shape = MaterialTheme.shapes.extraSmall
                     )
                 }
             }
