@@ -154,4 +154,9 @@
     <string name="pause_on_headset_disconnect">डिस्कनेक्ट होने पर रोकें</string>
     <string name="system_volume_panel">सिस्टम वॉल्यूम पैनल</string>
     <string name="system_volume_panel_desc">हेडसेट उपयोग करते समय वॉल्यूम एडजस्ट करते वक्त सिस्टम वॉल्यूम पैनल दिखाएं</string>
+    <string name="fields">फ़ील्ड्स</string>
+    <string name="system_caption_style">सिस्टम कैप्शन स्टाइल</string>
+    <string name="system_caption_style_desc">सिस्टम कैप्शनिंग प्राथमिकताएँ खोलने के लिए क्लिक करें</string>
+    <string name="extension">एक्सटेंशन</string>
+    <string name="path">रास्ता</string>
 </resources>
