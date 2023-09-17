@@ -157,11 +157,12 @@
     <string name="system_caption_style">Στυλ συστήματος</string>
     <string name="system_caption_style_desc">Άνοιγμα των προτιμήσεων υπότιτλων συστήματος</string>
     <string name="fields">Πεδία</string>
-    <string name="medium">Μεσαίο</string>
+    <string name="medium">Μεσαία</string>
     <string name="thumbnail">Εικονίδιο</string>
-    <string name="compact">Μικρό</string>
+    <string name="compact">Μικρά</string>
     <string name="extension">Επέκταση</string>
-    <string name="large">Μεγάλο</string>
+    <string name="large">Μεγάλα</string>
     <string name="path">Διαδρομή</string>
     <string name="resolution">Ανάλυση</string>
+    <string name="thumbnail_size">Εικονίδια</string>
 </resources>
