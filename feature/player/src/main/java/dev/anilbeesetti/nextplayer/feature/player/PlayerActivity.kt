@@ -55,6 +55,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -81,6 +82,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
+import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
@@ -662,16 +664,97 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> {
-                volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
-                showVolumeGestureLayout()
+            KeyEvent.KEYCODE_VOLUME_UP,
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                    volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
+                    showVolumeGestureLayout()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                    volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
+                    showVolumeGestureLayout()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_MEDIA_PLAY,
+            KeyEvent.KEYCODE_MEDIA_PAUSE,
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+            KeyEvent.KEYCODE_BUTTON_SELECT -> {
+                when {
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> player.pause()
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> player.play()
+                    player.isPlaying -> player.pause()
+                    else -> player.play()
+                }
                 return true
             }
 
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
-                showVolumeGestureLayout()
-                return true
+            KeyEvent.KEYCODE_BUTTON_START,
+            KeyEvent.KEYCODE_BUTTON_A,
+            KeyEvent.KEYCODE_SPACE -> {
+                if (!binding.playerView.isControllerFullyVisible) {
+                    binding.playerView.togglePlayPause()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_BUTTON_L2,
+            KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
+                    val pos = player.currentPosition
+                    if (scrubStartPosition == -1L) {
+                        scrubStartPosition = pos
+                    }
+                    val position = (pos - 10_000).coerceAtLeast(0L)
+                    player.seekBack(position, shouldFastSeek)
+                    showPlayerInfo(
+                        info = Utils.formatDurationMillis(position),
+                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                    )
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_DPAD_RIGHT,
+            KeyEvent.KEYCODE_BUTTON_R2,
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
+                    val pos = player.currentPosition
+                    if (scrubStartPosition == -1L) {
+                        scrubStartPosition = pos
+                    }
+
+                    val position = (pos + 10_000).coerceAtMost(player.duration)
+                    player.seekForward(position, shouldFastSeek)
+                    showPlayerInfo(
+                        info = Utils.formatDurationMillis(position),
+                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                    )
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent.KEYCODE_DPAD_CENTER,
+            KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                if (!binding.playerView.isControllerFullyVisible) {
+                    binding.playerView.showController()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_BACK -> {
+                if (binding.playerView.isControllerFullyVisible && player.isPlaying && isDeviceTvBox()) {
+                    binding.playerView.hideController()
+                    return true
+                }
             }
         }
         return super.onKeyDown(keyCode, event)
@@ -680,8 +763,20 @@ class PlayerActivity : AppCompatActivity() {
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP,
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_DPAD_UP,
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
                 hideVolumeGestureLayout()
+                return true
+            }
+
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_BUTTON_L2,
+            KeyEvent.KEYCODE_MEDIA_REWIND,
+            KeyEvent.KEYCODE_DPAD_RIGHT,
+            KeyEvent.KEYCODE_BUTTON_R2,
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                hidePlayerInfo()
                 return true
             }
         }
@@ -852,7 +947,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val HIDE_DELAY_MILLIS = 2000L
+        const val HIDE_DELAY_MILLIS = 1000L
     }
 }
 
