@@ -5,7 +5,7 @@
     <string name="cancel">ਰੱਦ ਕਰੋ</string>
     <string name="descending">ਘਟਦੇ ਕ੍ਮ ਵਿੱਚ</string>
     <string name="disable">ਡਿਸੇਬਲ ਕਰੋ</string>
-    <string name="done">ਠੀਕ ਹੈ</string>
+    <string name="done">ਮੁਕੰਮਲ</string>
     <string name="double_tap">ਡਬਲ ਟੈਪ ਸੰਕੇਤ</string>
     <string name="double_tap_description">ਡਬਲ ਟੈਪ ਸੰਕੇਤ ਐਕਸ਼ਨ ਚੁਣੋ</string>
     <string name="fast_seek">ਫਾਸਟ ਸੀਕਿੰਗ</string>
@@ -164,4 +164,5 @@
     <string name="large">ਵੱਡਾ</string>
     <string name="path">ਮਾਰਗ</string>
     <string name="resolution">ਰੈਜ਼ੋਲਿਊਸ਼ਨ</string>
+    <string name="thumbnail_size">ਥੰਮਨੇਲ ਆਕਾਰ</string>
 </resources>
