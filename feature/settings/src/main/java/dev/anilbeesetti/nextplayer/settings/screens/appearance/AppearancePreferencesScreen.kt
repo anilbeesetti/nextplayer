@@ -108,7 +108,7 @@ fun AppearancePreferencesScreen(
 
                 AppearancePreferenceDialog.ThumbnailSize -> {
                     OptionsDialog(
-                        text = "Thumbnail Size",
+                        text = stringResource(id = R.string.thumbnail_size),
                         onDismissClick = viewModel::hideDialog
                     ) {
                         items(Size.entries.toTypedArray()) {
@@ -180,7 +180,7 @@ fun ThumbnailSizeSetting(
     onClick: () -> Unit
 ) {
     ClickablePreferenceItem(
-        title = "Thumbnail size",
+        title = stringResource(R.string.thumbnail_size),
         description = currentValue.name(),
         icon = NextIcons.PhotoSize,
         onClick = onClick
