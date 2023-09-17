@@ -1,9 +1,11 @@
 package dev.anilbeesetti.nextplayer.settings.screens.audio
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,20 +58,22 @@ fun AudioPreferencesScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
         ) {
-            item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
-            preferredAudioLanguageSetting(
+            PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            PreferredAudioLanguageSetting(
                 currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredAudioLanguage),
                 onClick = { viewModel.showDialog(AudioPreferenceDialog.AudioLanguageDialog) }
             )
-            pauseOnHeadsetDisconnectSetting(
+            PauseOnHeadsetDisconnectSetting(
                 isChecked = preferences.pauseOnHeadsetDisconnect,
                 onClick = viewModel::togglePauseOnHeadsetDisconnect
             )
-            showSystemVolumePanelSetting(
+            ShowSystemVolumePanelSetting(
                 isChecked = preferences.showSystemVolumePanel,
                 onClick = viewModel::toggleShowSystemVolumePanel
             )
@@ -99,10 +103,11 @@ fun AudioPreferencesScreen(
     }
 }
 
-fun LazyListScope.preferredAudioLanguageSetting(
+@Composable
+fun PreferredAudioLanguageSetting(
     currentLanguage: String,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.preferred_audio_lang),
         description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
@@ -113,10 +118,11 @@ fun LazyListScope.preferredAudioLanguageSetting(
     )
 }
 
-fun LazyListScope.pauseOnHeadsetDisconnectSetting(
+@Composable
+fun PauseOnHeadsetDisconnectSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.pause_on_headset_disconnect),
         description = stringResource(id = R.string.pause_on_headset_disconnect_desc),
@@ -126,10 +132,11 @@ fun LazyListScope.pauseOnHeadsetDisconnectSetting(
     )
 }
 
-fun LazyListScope.showSystemVolumePanelSetting(
+@Composable
+fun ShowSystemVolumePanelSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.system_volume_panel),
         description = stringResource(id = R.string.system_volume_panel_desc),

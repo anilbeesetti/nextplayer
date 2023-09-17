@@ -2,12 +2,13 @@ package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,46 +80,48 @@ fun SubtitlePreferencesScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
         ) {
-            item { PreferenceSubtitle(text = stringResource(id = R.string.playback)) }
-            preferredSubtitleLanguageSetting(
+            PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            PreferredSubtitleLanguageSetting(
                 currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredSubtitleLanguage),
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) }
             )
-            subtitleTextEncodingPreference(
+            SubtitleTextEncodingPreference(
                 currentEncoding = charsetResource.first { it.contains(preferences.subtitleTextEncoding) },
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) }
             )
-            item { PreferenceSubtitle(text = stringResource(id = R.string.appearance_name)) }
-            useSystemCaptionStyle(
+            PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
+            UseSystemCaptionStyle(
                 isChecked = preferences.useSystemCaptionStyle,
                 onChecked = viewModel::toggleUseSystemCaptionStyle,
                 onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) }
             )
-            subtitleFontPreference(
+            SubtitleFontPreference(
                 currentFont = preferences.subtitleFont,
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) },
                 enabled = preferences.useSystemCaptionStyle.not()
             )
-            subtitleTextBoldPreference(
+            SubtitleTextBoldPreference(
                 isChecked = preferences.subtitleTextBold,
                 onClick = viewModel::toggleSubtitleTextBold,
                 enabled = preferences.useSystemCaptionStyle.not()
             )
-            subtitleTextSizePreference(
+            SubtitleTextSizePreference(
                 currentSize = preferences.subtitleTextSize,
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) },
                 enabled = preferences.useSystemCaptionStyle.not()
             )
-            subtitleBackgroundPreference(
+            SubtitleBackgroundPreference(
                 isChecked = preferences.subtitleBackground,
                 onClick = viewModel::toggleSubtitleBackground,
                 enabled = preferences.useSystemCaptionStyle.not()
             )
-            subtitleEmbeddedStylesPreference(
+            SubtitleEmbeddedStylesPreference(
                 isChecked = preferences.applyEmbeddedStyles,
                 onClick = viewModel::toggleApplyEmbeddedStyles
             )
@@ -219,10 +222,11 @@ fun SubtitlePreferencesScreen(
     }
 }
 
-fun LazyListScope.preferredSubtitleLanguageSetting(
+@Composable
+fun PreferredSubtitleLanguageSetting(
     currentLanguage: String,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.preferred_subtitle_lang),
         description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
@@ -233,10 +237,11 @@ fun LazyListScope.preferredSubtitleLanguageSetting(
     )
 }
 
-fun LazyListScope.subtitleTextEncodingPreference(
+@Composable
+fun SubtitleTextEncodingPreference(
     currentEncoding: String,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(R.string.subtitle_text_encoding),
         description = currentEncoding,
@@ -245,11 +250,12 @@ fun LazyListScope.subtitleTextEncodingPreference(
     )
 }
 
-fun LazyListScope.useSystemCaptionStyle(
+@Composable
+fun UseSystemCaptionStyle(
     isChecked: Boolean,
     onChecked: () -> Unit,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitchWithDivider(
         title = stringResource(R.string.system_caption_style),
         description = stringResource(R.string.system_caption_style_desc),
@@ -260,11 +266,12 @@ fun LazyListScope.useSystemCaptionStyle(
     )
 }
 
-fun LazyListScope.subtitleFontPreference(
+@Composable
+fun SubtitleFontPreference(
     currentFont: Font,
     onClick: () -> Unit,
     enabled: Boolean
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_font),
         description = currentFont.name(),
@@ -274,11 +281,12 @@ fun LazyListScope.subtitleFontPreference(
     )
 }
 
-fun LazyListScope.subtitleTextBoldPreference(
+@Composable
+fun SubtitleTextBoldPreference(
     isChecked: Boolean,
     onClick: () -> Unit,
     enabled: Boolean
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_text_bold),
         description = stringResource(id = R.string.subtitle_text_bold_desc),
@@ -289,11 +297,12 @@ fun LazyListScope.subtitleTextBoldPreference(
     )
 }
 
-fun LazyListScope.subtitleTextSizePreference(
+@Composable
+fun SubtitleTextSizePreference(
     currentSize: Int,
     onClick: () -> Unit,
     enabled: Boolean
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_text_size),
         description = currentSize.toString(),
@@ -303,11 +312,12 @@ fun LazyListScope.subtitleTextSizePreference(
     )
 }
 
-fun LazyListScope.subtitleBackgroundPreference(
+@Composable
+fun SubtitleBackgroundPreference(
     isChecked: Boolean,
     onClick: () -> Unit,
     enabled: Boolean
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_background),
         description = stringResource(id = R.string.subtitle_background_desc),
@@ -318,10 +328,11 @@ fun LazyListScope.subtitleBackgroundPreference(
     )
 }
 
-fun LazyListScope.subtitleEmbeddedStylesPreference(
+@Composable
+fun SubtitleEmbeddedStylesPreference(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(R.string.embedded_styles),
         description = stringResource(R.string.embedded_styles_desc),
