@@ -154,4 +154,15 @@
     <string name="stretch">늘리기</string>
     <string name="crop">잘라내기</string>
     <string name="seek_increment">탐색 시간</string>
+    <string name="fields">필드</string>
+    <string name="medium">기본</string>
+    <string name="system_caption_style">시스템 자막 스타일</string>
+    <string name="thumbnail">섬네일</string>
+    <string name="compact">컴팩트</string>
+    <string name="thumbnail_size">섬네일 크기</string>
+    <string name="system_caption_style_desc">시스템 자막 설정을 엽니다.</string>
+    <string name="extension">파일 형식</string>
+    <string name="large">크게</string>
+    <string name="path">경로</string>
+    <string name="resolution">해상도</string>
 </resources>
