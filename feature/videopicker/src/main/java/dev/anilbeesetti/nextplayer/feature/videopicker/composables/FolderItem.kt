@@ -71,8 +71,10 @@ fun FolderItem(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                InfoChip(text = "${folder.mediaCount} " +
-                        stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos))
+                InfoChip(
+                    text = "${folder.mediaCount} " +
+                        stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos)
+                )
                 if (preferences.showSizeField) {
                     InfoChip(text = folder.formattedMediaSize)
                 }
