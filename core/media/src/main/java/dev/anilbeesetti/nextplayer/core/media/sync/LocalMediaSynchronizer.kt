@@ -84,7 +84,15 @@ class LocalMediaSynchronizer @Inject constructor(
         val mediumEntities = media.map {
             val file = File(it.data)
             val mediumEntity = mediumDao.get(it.data)
-            MediumEntity(
+            mediumEntity?.copy(
+                uriString = it.uri.toString(),
+                modified = it.dateModified,
+                size = it.size,
+                width = it.width,
+                height = it.height,
+                duration = it.duration,
+                mediaStoreId = it.id
+            ) ?: MediumEntity(
                 path = it.data,
                 uriString = it.uri.toString(),
                 name = file.name,
@@ -94,12 +102,7 @@ class LocalMediaSynchronizer @Inject constructor(
                 width = it.width,
                 height = it.height,
                 duration = it.duration,
-                mediaStoreId = it.id,
-                playbackPosition = mediumEntity?.playbackPosition ?: 0,
-                audioTrackIndex = mediumEntity?.audioTrackIndex,
-                subtitleTrackIndex = mediumEntity?.subtitleTrackIndex,
-                playbackSpeed = mediumEntity?.playbackSpeed,
-                externalSubs = mediumEntity?.externalSubs ?: ""
+                mediaStoreId = it.id
             )
         }
 
