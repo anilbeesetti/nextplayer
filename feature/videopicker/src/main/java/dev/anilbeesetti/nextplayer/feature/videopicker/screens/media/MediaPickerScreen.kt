@@ -48,6 +48,7 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.core.ui.views.PermissionView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersListFromState
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NetworkUrlDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
@@ -55,7 +56,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggl
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
-import dev.anilbeesetti.nextplayer.feature.videopicker.views.PermissionView
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 

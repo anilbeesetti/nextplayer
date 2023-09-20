@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.views
+package dev.anilbeesetti.nextplayer.core.ui.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
