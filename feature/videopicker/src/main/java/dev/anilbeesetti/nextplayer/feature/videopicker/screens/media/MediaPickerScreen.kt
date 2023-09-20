@@ -3,11 +3,19 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -27,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -40,6 +49,7 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NetworkUrlDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
@@ -112,7 +122,11 @@ internal fun MediaPickerScreen(
 
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var selectedBottomNavigation by rememberSaveable { mutableStateOf(items.first().bottomNavigation) }
-
+    var showUrlDialog by rememberSaveable { mutableStateOf(false) }
+    val selectVideoFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { it?.let(onPlayVideo) }
+    )
 
     Scaffold(
         topBar = {
@@ -152,6 +166,29 @@ internal fun MediaPickerScreen(
                     )
                 }
             }
+        },
+        floatingActionButton = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+            ) {
+                FloatingActionButton(
+                    onClick = { selectVideoFileLauncher.launch("video/*") }
+                ) {
+                    Icon(
+                        imageVector = NextIcons.FileOpen,
+                        contentDescription = stringResource(id = R.string.play_file)
+                    )
+                }
+                FloatingActionButton(
+                    onClick = { showUrlDialog = true }
+                ) {
+                    Icon(
+                        imageVector = NextIcons.Link,
+                        contentDescription = stringResource(id = R.string.play_url)
+                    )
+                }
+            }
         }
     ) { paddingValues ->
 
@@ -188,6 +225,13 @@ internal fun MediaPickerScreen(
             applicationPreferences = preferences,
             onDismiss = { showMenu = false },
             updatePreferences = updatePreferences
+        )
+    }
+
+    if (showUrlDialog) {
+        NetworkUrlDialog(
+            onDismiss = { showUrlDialog = false },
+            onDone = { onPlayVideo(Uri.parse(it)) }
         )
     }
 }
