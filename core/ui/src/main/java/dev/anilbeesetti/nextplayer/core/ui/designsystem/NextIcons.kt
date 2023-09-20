@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.core.ui.designsystem
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
@@ -78,6 +80,7 @@ object NextIcons {
     val Fast = Icons.Rounded.FastForward
     val FileOpen = Icons.Rounded.FileOpen
     val Folder = Icons.Rounded.Folder
+    val FolderOutline = Icons.Outlined.Folder
     val FolderOff = Icons.Rounded.FolderOff
     val Font = Icons.Rounded.FontDownload
     val FontSize = Icons.Rounded.FormatSize
@@ -109,4 +112,5 @@ object NextIcons {
     val Title = Icons.Rounded.Title
     val Update = Icons.Rounded.Update
     val Video = Icons.Rounded.Movie
+    val VideoOutline = Icons.Outlined.Movie
 }

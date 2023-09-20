@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onParent
+import androidx.compose.ui.test.performClick
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -34,9 +35,8 @@ class MediaPickerScreenTest {
                     videosState = VideosState.Loading,
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences(),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 
@@ -58,11 +58,16 @@ class MediaPickerScreenTest {
                     ),
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
+
+        composeTestRule
+            .onNodeWithText(
+                composeTestRule.activity.getString(R.string.videos),
+                substring = true
+            ).performClick()
 
         composeTestRule
             .onNodeWithText(
@@ -97,9 +102,8 @@ class MediaPickerScreenTest {
                         data = foldersTestData
                     ),
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 
@@ -136,11 +140,16 @@ class MediaPickerScreenTest {
                     ),
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
+
+        composeTestRule
+            .onNodeWithText(
+                composeTestRule.activity.getString(R.string.videos),
+                substring = true
+            ).performClick()
 
         composeTestRule
             .onNodeWithText(
@@ -165,9 +174,8 @@ class MediaPickerScreenTest {
                         data = emptyList()
                     ),
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 

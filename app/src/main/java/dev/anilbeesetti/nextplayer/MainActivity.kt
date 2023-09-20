@@ -1,6 +1,9 @@
 package dev.anilbeesetti.nextplayer
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -25,18 +28,24 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.ui.api.AndroidPermissionState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerFolderScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerNavigationRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerFolderScreen
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import dev.anilbeesetti.nextplayer.ui.MAIN_ROUTE
-import dev.anilbeesetti.nextplayer.ui.MainScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
@@ -100,21 +109,23 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val mainNavController = rememberNavController()
-                    val mediaNavController = rememberNavController()
+                    val navController = rememberNavController()
 
                     NavHost(
-                        navController = mainNavController,
-                        startDestination = MAIN_ROUTE
+                        navController = navController,
+                        startDestination = mediaPickerNavigationRoute
                     ) {
-                        composable(MAIN_ROUTE) {
-                            MainScreen(
-                                permissionState = storagePermissionState,
-                                mainNavController = mainNavController,
-                                mediaNavController = mediaNavController
-                            )
-                        }
-                        settingsNavGraph(navController = mainNavController)
+                        mediaPickerScreen(
+                            permissionState = storagePermissionState.toAndroidPermissionState(),
+                            onPlayVideo = this@MainActivity::startPlayerActivity,
+                            onFolderClick = navController::navigateToMediaPickerFolderScreen,
+                            onSettingsClick = navController::navigateToSettings
+                        )
+                        mediaPickerFolderScreen(
+                            onNavigateUp = navController::navigateUp,
+                            onVideoClick = this@MainActivity::startPlayerActivity
+                        )
+                        settingsNavGraph(navController = navController)
                     }
                 }
             }
@@ -156,3 +167,16 @@ private fun shouldUseDynamicTheming(
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> uiState.preferences.useDynamicColors
 }
+
+fun Context.startPlayerActivity(uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW, uri, this, PlayerActivity::class.java)
+    startActivity(intent)
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+fun PermissionState.toAndroidPermissionState() = AndroidPermissionState(
+    permission = permission,
+    isGranted = status.isGranted,
+    shouldShowRationale = status.shouldShowRationale,
+    grantPermission = this::launchPermissionRequest
+)
