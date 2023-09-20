@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.api.AndroidPermissionState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -44,11 +45,13 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggl
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import dev.anilbeesetti.nextplayer.feature.videopicker.views.PermissionView
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
 @Composable
 fun MediaPickerRoute(
+    permissionState: AndroidPermissionState,
     onSettingsClick: () -> Unit,
     onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
@@ -67,13 +70,13 @@ fun MediaPickerRoute(
         videosState = videosState,
         foldersState = foldersState,
         preferences = preferences,
+        permissionState = permissionState,
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
         updatePreferences = viewModel::updateMenu,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
-        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) }
-    )
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) }
+    ) { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,6 +85,7 @@ internal fun MediaPickerScreen(
     videosState: VideosState,
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
+    permissionState: AndroidPermissionState = AndroidPermissionState(),
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -157,21 +161,24 @@ internal fun MediaPickerScreen(
                 .padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {
+            if (permissionState.isGranted) {
+                when (selectedBottomNavigation) {
+                    BottomNavigation.FOLDERS -> FoldersListFromState(
+                        foldersState = foldersState,
+                        preferences = preferences,
+                        onFolderClick = onFolderClick,
+                        onDeleteFolderClick = onDeleteFolderClick
+                    )
 
-            when (selectedBottomNavigation) {
-                BottomNavigation.FOLDERS -> FoldersListFromState(
-                    foldersState = foldersState,
-                    preferences = preferences,
-                    onFolderClick = onFolderClick,
-                    onDeleteFolderClick = onDeleteFolderClick
-                )
-
-                BottomNavigation.VIDEOS -> VideosListFromState(
-                    videosState = videosState,
-                    onVideoClick = onPlayVideo,
-                    preferences = preferences,
-                    onDeleteVideoClick = onDeleteVideoClick
-                )
+                    BottomNavigation.VIDEOS -> VideosListFromState(
+                        videosState = videosState,
+                        onVideoClick = onPlayVideo,
+                        preferences = preferences,
+                        onDeleteVideoClick = onDeleteVideoClick
+                    )
+                }
+            } else {
+                PermissionView(permissionState = permissionState)
             }
         }
     }

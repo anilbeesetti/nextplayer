@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.ui
+package dev.anilbeesetti.nextplayer.core.ui.views
 
 import android.Manifest
 import android.content.Intent

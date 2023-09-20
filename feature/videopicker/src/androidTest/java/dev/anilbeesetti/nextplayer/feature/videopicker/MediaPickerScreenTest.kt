@@ -34,9 +34,8 @@ class MediaPickerScreenTest {
                     videosState = VideosState.Loading,
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences(),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 
@@ -58,9 +57,8 @@ class MediaPickerScreenTest {
                     ),
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 
@@ -97,9 +95,8 @@ class MediaPickerScreenTest {
                         data = foldersTestData
                     ),
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 
@@ -136,9 +133,8 @@ class MediaPickerScreenTest {
                     ),
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 
@@ -165,9 +161,8 @@ class MediaPickerScreenTest {
                         data = emptyList()
                     ),
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
+                    onDeleteVideoClick = {}
+                ) {}
             }
         }
 
