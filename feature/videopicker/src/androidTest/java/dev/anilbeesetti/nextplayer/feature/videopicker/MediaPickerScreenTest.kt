@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onParent
+import androidx.compose.ui.test.performClick
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -61,6 +62,12 @@ class MediaPickerScreenTest {
                 ) {}
             }
         }
+
+        composeTestRule
+            .onNodeWithText(
+                composeTestRule.activity.getString(R.string.videos),
+                substring = true
+            ).performClick()
 
         composeTestRule
             .onNodeWithText(
@@ -139,7 +146,12 @@ class MediaPickerScreenTest {
         }
 
         composeTestRule
+            .onNodeWithText(
+                composeTestRule.activity.getString(R.string.videos),
+                substring = true
+            ).performClick()
 
+        composeTestRule
             .onNodeWithText(
                 composeTestRule.activity.getString(R.string.no_videos_found),
                 substring = true
