@@ -165,4 +165,5 @@
     <string name="path">Διαδρομή</string>
     <string name="resolution">Ανάλυση</string>
     <string name="thumbnail_size">Εικονίδια</string>
+    <string name="folders">Φάκελοι</string>
 </resources>
