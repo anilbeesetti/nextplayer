@@ -106,13 +106,13 @@ internal fun MediaPickerScreen(
         BottomNavigationItem(
             title = stringResource(id = R.string.folders),
             selectedIcon = NextIcons.Folder,
-            unSelectedIcon = NextIcons.Folder,
+            unSelectedIcon = NextIcons.FolderOutline,
             bottomNavigation = BottomNavigation.FOLDERS
         ),
         BottomNavigationItem(
             title = stringResource(id = R.string.videos),
             selectedIcon = NextIcons.Video,
-            unSelectedIcon = NextIcons.Video,
+            unSelectedIcon = NextIcons.VideoOutline,
             bottomNavigation = BottomNavigation.VIDEOS
         )
     )
