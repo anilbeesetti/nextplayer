@@ -236,7 +236,6 @@ internal fun MediaPickerScreen(
     }
 }
 
-
 data class BottomNavigationItem(
     val title: String,
     val selectedIcon: ImageVector,

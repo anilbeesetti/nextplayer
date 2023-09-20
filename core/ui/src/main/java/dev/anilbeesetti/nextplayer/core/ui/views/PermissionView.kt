@@ -2,10 +2,8 @@ package dev.anilbeesetti.nextplayer.core.ui.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import dev.anilbeesetti.nextplayer.core.ui.api.AndroidPermissionState
-import dev.anilbeesetti.nextplayer.core.ui.views.PermissionRationaleDialog
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.views.PermissionDetailView
+import dev.anilbeesetti.nextplayer.core.ui.api.AndroidPermissionState
 
 @Composable
 fun PermissionView(

@@ -46,8 +46,8 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScr
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerFolderScreen
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

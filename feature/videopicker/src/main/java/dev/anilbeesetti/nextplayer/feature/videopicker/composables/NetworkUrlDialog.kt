@@ -18,7 +18,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 
-
 @Composable
 fun NetworkUrlDialog(
     onDismiss: () -> Unit,
