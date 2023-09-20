@@ -165,4 +165,5 @@
     <string name="path">Ruta</string>
     <string name="resolution">Resolución</string>
     <string name="thumbnail_size">Tamaño de la miniatura</string>
+    <string name="folders">Carpetas</string>
 </resources>
