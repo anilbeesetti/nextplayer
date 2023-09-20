@@ -22,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -43,18 +45,17 @@ fun VideoItem(
 ) {
     ListItem(
         leadingContent = {
+            val localConfig = LocalConfiguration.current
+            val thumbWidth = when (preferences.thumbnailSize) {
+                Size.COMPACT -> 130.dp
+                Size.MEDIUM -> 165.dp
+                Size.LARGE -> 200.dp
+            }
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .widthIn(
-                        max = when (preferences.thumbnailSize) {
-                            Size.COMPACT -> 300.dp
-                            Size.MEDIUM -> 350.dp
-                            Size.LARGE -> 400.dp
-                        }
-                    )
-                    .fillMaxWidth(0.45f)
+                    .widthIn(max = min(thumbWidth, localConfig.screenWidthDp.dp * 0.45f))
                     .aspectRatio(16f / 10f)
             ) {
                 Icon(
