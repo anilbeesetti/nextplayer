@@ -25,7 +25,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -34,9 +33,13 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerFolderScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerNavigationRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerFolderScreen
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import dev.anilbeesetti.nextplayer.ui.MAIN_ROUTE
-import dev.anilbeesetti.nextplayer.ui.MainScreen
+import dev.anilbeesetti.nextplayer.navigation.startPlayerActivity
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
@@ -100,21 +103,22 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val mainNavController = rememberNavController()
-                    val mediaNavController = rememberNavController()
+                    val navController = rememberNavController()
 
                     NavHost(
-                        navController = mainNavController,
-                        startDestination = MAIN_ROUTE
+                        navController = navController,
+                        startDestination = mediaPickerNavigationRoute
                     ) {
-                        composable(MAIN_ROUTE) {
-                            MainScreen(
-                                permissionState = storagePermissionState,
-                                mainNavController = mainNavController,
-                                mediaNavController = mediaNavController
-                            )
-                        }
-                        settingsNavGraph(navController = mainNavController)
+                        mediaPickerScreen(
+                            onPlayVideo = this@MainActivity::startPlayerActivity,
+                            onFolderClick = navController::navigateToMediaPickerFolderScreen,
+                            onSettingsClick = navController::navigateToSettings
+                        )
+                        mediaPickerFolderScreen(
+                            onNavigateUp = navController::navigateUp,
+                            onVideoClick = this@MainActivity::startPlayerActivity
+                        )
+                        settingsNavGraph(navController = navController)
                     }
                 }
             }
