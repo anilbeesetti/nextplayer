@@ -26,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -103,22 +102,20 @@ internal fun MediaPickerScreen(
     onDeleteVideoClick: (String) -> Unit,
     onDeleteFolderClick: (String) -> Unit
 ) {
-    val items = remember {
-        listOf(
-            BottomNavigationItem(
-                title = "Folders",
-                selectedIcon = NextIcons.Folder,
-                unSelectedIcon = NextIcons.Folder,
-                bottomNavigation = BottomNavigation.FOLDERS
-            ),
-            BottomNavigationItem(
-                title = "Videos",
-                selectedIcon = NextIcons.Video,
-                unSelectedIcon = NextIcons.Video,
-                bottomNavigation = BottomNavigation.VIDEOS
-            )
+    val items = listOf(
+        BottomNavigationItem(
+            title = stringResource(id = R.string.folders),
+            selectedIcon = NextIcons.Folder,
+            unSelectedIcon = NextIcons.Folder,
+            bottomNavigation = BottomNavigation.FOLDERS
+        ),
+        BottomNavigationItem(
+            title = stringResource(id = R.string.videos),
+            selectedIcon = NextIcons.Video,
+            unSelectedIcon = NextIcons.Video,
+            bottomNavigation = BottomNavigation.VIDEOS
         )
-    }
+    )
 
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var selectedBottomNavigation by rememberSaveable { mutableStateOf(items.first().bottomNavigation) }

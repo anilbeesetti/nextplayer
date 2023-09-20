@@ -139,6 +139,7 @@ class MediaPickerScreenTest {
         }
 
         composeTestRule
+
             .onNodeWithText(
                 composeTestRule.activity.getString(R.string.no_videos_found),
                 substring = true
