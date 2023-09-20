@@ -27,7 +27,7 @@
     <string name="cancel">रद्द करें</string>
     <string name="descending">घटते क्रम में</string>
     <string name="disable">डिसेबल करें</string>
-    <string name="done">ठीक है</string>
+    <string name="done">मुकम्मल</string>
     <string name="double_tap">डबल टेप जेस्चर</string>
     <string name="double_tap_description">डबल टैप जेस्चर एक्शन चयन करें</string>
     <string name="error_playing_video">एरर: वीडियो प्ले नही हो सकती</string>
@@ -154,4 +154,15 @@
     <string name="pause_on_headset_disconnect">डिस्कनेक्ट होने पर रोकें</string>
     <string name="system_volume_panel">सिस्टम वॉल्यूम पैनल</string>
     <string name="system_volume_panel_desc">हेडसेट उपयोग करते समय वॉल्यूम एडजस्ट करते वक्त सिस्टम वॉल्यूम पैनल दिखाएं</string>
+    <string name="fields">फ़ील्ड्स</string>
+    <string name="system_caption_style">सिस्टम कैप्शन स्टाइल</string>
+    <string name="system_caption_style_desc">सिस्टम कैप्शनिंग प्राथमिकताएँ खोलने के लिए क्लिक करें</string>
+    <string name="extension">एक्सटेंशन</string>
+    <string name="path">रास्ता</string>
+    <string name="medium">मध्यम</string>
+    <string name="thumbnail">थंमनेल</string>
+    <string name="compact">कॉम्पैक्ट</string>
+    <string name="thumbnail_size">थंमनेल आकार</string>
+    <string name="large">बड़ा</string>
+    <string name="resolution">रिज़ॉल्यूशन</string>
 </resources>

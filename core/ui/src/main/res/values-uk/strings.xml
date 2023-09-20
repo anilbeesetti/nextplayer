@@ -154,4 +154,15 @@
     <string name="pause_on_headset_disconnect">Призупинити від\'єднання</string>
     <string name="system_volume_panel_desc">Показувати панель гучності системи під час регулювання гучності за допомогою гарнітури</string>
     <string name="system_volume_panel">Панель гучності системи</string>
+    <string name="fields">Поля</string>
+    <string name="medium">Середній</string>
+    <string name="system_caption_style">Стиль системного підпису</string>
+    <string name="thumbnail">Мініатюра</string>
+    <string name="compact">Компактний</string>
+    <string name="thumbnail_size">Розмір мініатюри</string>
+    <string name="system_caption_style_desc">Натисніть, щоб відкрити налаштування системних субтитрів</string>
+    <string name="extension">Розширення</string>
+    <string name="large">Великий</string>
+    <string name="path">Шлях</string>
+    <string name="resolution">Роздільна здатність</string>
 </resources>

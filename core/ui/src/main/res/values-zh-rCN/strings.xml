@@ -154,4 +154,15 @@
     <string name="pause_on_headset_disconnect">断开连接时暂停</string>
     <string name="system_volume_panel_desc">在佩戴耳机调整音量时显示系统音量面板</string>
     <string name="system_volume_panel">系统音量面板</string>
+    <string name="fields">字段</string>
+    <string name="medium">中等</string>
+    <string name="system_caption_style">系统字幕样式</string>
+    <string name="thumbnail">缩略图</string>
+    <string name="compact">紧凑</string>
+    <string name="system_caption_style_desc">点击以打开系统字幕偏好设置</string>
+    <string name="extension">扩展</string>
+    <string name="large">宽大</string>
+    <string name="path">路径</string>
+    <string name="resolution">分辨率</string>
+    <string name="thumbnail_size">缩略图大小</string>
 </resources>
