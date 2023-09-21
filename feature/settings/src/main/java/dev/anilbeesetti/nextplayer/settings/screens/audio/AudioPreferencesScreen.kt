@@ -128,9 +128,9 @@ fun RequireAudioFocusSetting(
     onClick: () -> Unit
 ) {
     PreferenceSwitch(
-        title = "Require audio focus",
-        description = "Pause other players while this player is playing videos, and vice versa.",
-        icon = NextIcons.HeadsetOff,
+        title = stringResource(R.string.require_audio_focus),
+        description = stringResource(R.string.require_audio_focus_desc),
+        icon = NextIcons.Focus,
         isChecked = isChecked,
         onClick = onClick
     )
