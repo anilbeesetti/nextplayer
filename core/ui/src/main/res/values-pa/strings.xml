@@ -165,4 +165,9 @@
     <string name="path">ਮਾਰਗ</string>
     <string name="resolution">ਰੈਜ਼ੋਲਿਊਸ਼ਨ</string>
     <string name="thumbnail_size">ਥੰਮਨੇਲ ਆਕਾਰ</string>
+    <string name="long_press_gesture_desc">%.1fx ਸਪੀਡ \'ਤੇ ਚਲਾਉਣ ਲਈ ਲੰਬਾ ਸਮਾਂ ਦਬਾਓ</string>
+    <string name="long_press_gesture">ਲੰਬੇ ਸਮੇਂ ਤੱਕ ਦਬਾਉਣ ਦਾ ਸੰਕੇਤ</string>
+    <string name="require_audio_focus">ਆਡੀਓ ਫੋਕਸ ਦੀ ਲੋੜ ਹੈ</string>
+    <string name="fast_playback_speed">%.1fx ਸਪੀਡ</string>
+    <string name="require_audio_focus_desc">ਜਦੋਂ ਇਹ ਪਲੇਅਰ ਵੀਡੀਓ ਚਲਾ ਰਿਹਾ ਹੋਵੇ ਤਾਂ ਦੂਜੇ ਪਲੇਅਰਾਂ ਨੂੰ ਰੋਕੋ ਅਤੇ ਇਸਦੇ ਉਲਟ।</string>
 </resources>
