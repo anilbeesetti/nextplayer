@@ -835,7 +835,7 @@ class PlayerActivity : AppCompatActivity() {
     fun showTopInfo(info: String) {
         with(binding) {
             topInfoLayout.visibility = View.VISIBLE
-            topInfoText.text= info
+            topInfoText.text = info
         }
     }
 
