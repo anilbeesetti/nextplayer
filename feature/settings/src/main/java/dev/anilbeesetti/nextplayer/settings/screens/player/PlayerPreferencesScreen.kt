@@ -97,6 +97,12 @@ fun PlayerPreferencesScreen(
                 onChecked = viewModel::toggleDoubleTapGesture,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
             )
+            LongPressGesture(
+                isChecked = preferences.useLongPressControls,
+                onChecked = viewModel::toggleUseLongPressControls,
+                playbackSpeed = preferences.longPressControlsSpeed,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) }
+            )
             SeekIncrementPreference(
                 currentValue = preferences.seekIncrement,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) }
@@ -242,6 +248,35 @@ fun PlayerPreferencesScreen(
                     )
                 }
 
+                PlayerPreferenceDialog.LongPressControlsSpeedDialog -> {
+                    var longPressControlsSpeed by remember {
+                        mutableFloatStateOf(preferences.longPressControlsSpeed)
+                    }
+
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.long_press_gesture),
+                        onDoneClick = {
+                            viewModel.updateLongPressControlsSpeed(longPressControlsSpeed)
+                            viewModel.hideDialog()
+                        },
+                        onDismissClick = viewModel::hideDialog,
+                        content = {
+                            Text(
+                                text = "$longPressControlsSpeed",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Slider(
+                                value = longPressControlsSpeed,
+                                onValueChange = { longPressControlsSpeed = it.round(1) },
+                                valueRange = 0.2f..4.0f
+                            )
+                        }
+                    )
+                }
                 PlayerPreferenceDialog.ControllerTimeoutDialog -> {
                     var controllerAutoHideSec by remember {
                         mutableIntStateOf(preferences.controllerAutoHideTimeout)
@@ -360,6 +395,23 @@ fun DoubleTapGestureSetting(
         isChecked = isChecked,
         onChecked = onChecked,
         icon = NextIcons.DoubleTap,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun LongPressGesture(
+    isChecked: Boolean,
+    onChecked: () -> Unit,
+    playbackSpeed: Float,
+    onClick: () -> Unit
+) {
+    PreferenceSwitchWithDivider(
+        title = stringResource(id = R.string.long_press_gesture),
+        description = stringResource(id = R.string.long_press_gesture_desc, playbackSpeed),
+        isChecked = isChecked,
+        onChecked = onChecked,
+        icon = NextIcons.Tap,
         onClick = onClick
     )
 }

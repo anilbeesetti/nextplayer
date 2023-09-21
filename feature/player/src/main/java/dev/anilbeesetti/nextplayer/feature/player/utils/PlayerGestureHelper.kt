@@ -13,6 +13,7 @@ import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.feature.player.R
@@ -46,7 +47,9 @@ class PlayerGestureHelper(
     private var seekStart = 0L
     private var position = 0L
     private var seekChange = 0L
+    private var pointerCount = 1
     private var isPlayingOnSeekStart: Boolean = false
+    private var currentPlaybackSpeed: Float? = null
 
     private val tapGestureDetector = GestureDetector(
         playerView.context,
@@ -56,6 +59,21 @@ class PlayerGestureHelper(
                     if (!isControllerFullyVisible) showController() else hideController()
                 }
                 return true
+            }
+
+            override fun onLongPress(e: MotionEvent) {
+                if (!prefs.useLongPressControls) return
+                if (playerView.player?.isPlaying == false) return
+                if (currentGestureAction == null) {
+                    currentGestureAction = GestureAction.FAST_PLAYBACK
+                    currentPlaybackSpeed = playerView.player?.playbackParameters?.speed
+                }
+                if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
+                if (pointerCount >= 3) return
+
+                playerView.hideController()
+                activity.showTopInfo(activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed))
+                playerView.player?.setPlaybackSpeed(prefs.longPressControlsSpeed)
             }
 
             override fun onDoubleTap(event: MotionEvent): Boolean {
@@ -220,20 +238,25 @@ class PlayerGestureHelper(
         }
     )
 
-    private fun releaseAction(event: MotionEvent) {
-        if (event.action == MotionEvent.ACTION_UP) {
-            // hide the volume indicator
-            activity.hideVolumeGestureLayout()
-            // hide the brightness indicator
-            activity.hideBrightnessGestureLayout()
-            // hide info layout
-            activity.hidePlayerInfo(0L)
+    private fun releaseGestures() {
+        // hide the volume indicator
+        activity.hideVolumeGestureLayout()
+        // hide the brightness indicator
+        activity.hideBrightnessGestureLayout()
+        // hide info layout
+        activity.hidePlayerInfo(0L)
+        // hides fast playback top info layout
+        activity.hideTopInfo()
 
-            playerView.controllerAutoShow = true
-            if (isPlayingOnSeekStart) playerView.player?.play()
-            isPlayingOnSeekStart = false
-            currentGestureAction = null
+        currentPlaybackSpeed?.let {
+            playerView.player?.setPlaybackSpeed(it)
+            currentPlaybackSpeed = null
         }
+
+        playerView.controllerAutoShow = true
+        if (isPlayingOnSeekStart) playerView.player?.play()
+        isPlayingOnSeekStart = false
+        currentGestureAction = null
     }
 
     /**
@@ -263,6 +286,7 @@ class PlayerGestureHelper(
 
     init {
         playerView.setOnTouchListener { _, motionEvent ->
+            pointerCount = motionEvent.pointerCount
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
@@ -274,7 +298,10 @@ class PlayerGestureHelper(
                     zoomGestureDetector.onTouchEvent(motionEvent)
                 }
             }
-            releaseAction(motionEvent)
+
+            if (motionEvent.action == MotionEvent.ACTION_UP || motionEvent.pointerCount >= 3) {
+                releaseGestures()
+            }
             true
         }
     }
@@ -292,5 +319,5 @@ fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
 inline val Int.toMillis get() = this * 1000
 
 enum class GestureAction {
-    SWIPE, SEEK, ZOOM
+    SWIPE, SEEK, ZOOM, FAST_PLAYBACK
 }

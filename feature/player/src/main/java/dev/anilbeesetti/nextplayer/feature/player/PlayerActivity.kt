@@ -832,6 +832,13 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    fun showTopInfo(info: String) {
+        with(binding) {
+            topInfoLayout.visibility = View.VISIBLE
+            topInfoText.text = info
+        }
+    }
+
     fun hideVolumeGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
         hideVolumeIndicatorJob = lifecycleScope.launch {
@@ -853,10 +860,14 @@ class PlayerActivity : AppCompatActivity() {
 
     fun hidePlayerInfo(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.infoLayout.visibility != View.VISIBLE) return
-        hideBrightnessIndicatorJob = lifecycleScope.launch {
+        hideInfoLayoutJob = lifecycleScope.launch {
             delay(delayTimeMillis)
             binding.infoLayout.visibility = View.GONE
         }
+    }
+
+    fun hideTopInfo() {
+        binding.topInfoLayout.visibility = View.GONE
     }
 
     private fun savePlayerState(uri: Uri) {

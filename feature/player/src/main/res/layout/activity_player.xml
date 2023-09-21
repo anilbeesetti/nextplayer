@@ -6,6 +6,36 @@
     android:layout_height="match_parent"
     tools:context=".PlayerActivity">
 
+    <LinearLayout
+        android:id="@+id/top_info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/overlay_background"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/fast_speed_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_fast"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/top_info_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fast_playback_speed"
+            tools:text="hello"
+            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"

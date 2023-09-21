@@ -65,6 +65,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun toggleUseLongPressControls() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useLongPressControls = !it.useLongPressControls)
+            }
+        }
+    }
+
     fun toggleDoubleTapGesture() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -153,6 +161,12 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun updateLongPressControlsSpeed(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(longPressControlsSpeed = value) }
+        }
+    }
+
     fun updateControlAutoHideTimeout(value: Int) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -180,6 +194,7 @@ sealed interface PlayerPreferenceDialog {
     object FastSeekDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog
+    object LongPressControlsSpeedDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
     object SeekIncrementDialog : PlayerPreferenceDialog
 }
