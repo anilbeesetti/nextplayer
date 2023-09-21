@@ -165,4 +165,9 @@
     <string name="path">Ruta</string>
     <string name="resolution">Resolución</string>
     <string name="thumbnail_size">Tamaño de la miniatura</string>
+    <string name="long_press_gesture_desc">Pulsación larga para reproducir a velocidad %.1fx</string>
+    <string name="long_press_gesture">Pulsación larga</string>
+    <string name="require_audio_focus">Requiere enfoque del audio</string>
+    <string name="fast_playback_speed">%.1fx velocidad</string>
+    <string name="require_audio_focus_desc">Pon en pausa a otros reproductores mientras éste reproduce los vídeos, y viceversa.</string>
 </resources>
