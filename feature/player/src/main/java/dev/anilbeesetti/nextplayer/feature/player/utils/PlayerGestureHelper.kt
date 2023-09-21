@@ -22,6 +22,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
+import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -239,20 +240,22 @@ class PlayerGestureHelper(
     )
 
     private fun releaseAction(event: MotionEvent) {
-        if (event.action == MotionEvent.ACTION_UP) {
+        Timber.d("pointerCount: ${event.pointerCount}")
+        if (event.action == MotionEvent.ACTION_UP || event.pointerCount == 3) {
             // hide the volume indicator
             activity.hideVolumeGestureLayout()
             // hide the brightness indicator
             activity.hideBrightnessGestureLayout()
             // hide info layout
             activity.hidePlayerInfo(0L)
-          
+
             currentPlaybackSpeed?.let {
                 playerView.player?.setPlaybackSpeed(it)
                 currentPlaybackSpeed = null
             }
+            Timber.d("pointerCount: Hello")
             activity.binding.fastSpeedLayout.visibility = View.GONE
-          
+
             playerView.controllerAutoShow = true
             if (isPlayingOnSeekStart) playerView.player?.play()
             isPlayingOnSeekStart = false
