@@ -165,4 +165,7 @@
     <string name="large">크게</string>
     <string name="path">경로</string>
     <string name="resolution">해상도</string>
+    <string name="long_press_gesture_desc">길게 눌렀을 때 %.1f배 속도로 재생</string>
+    <string name="long_press_gesture">길게 누르기 제스처</string>
+    <string name="fast_playback_speed">속도 %.1fx</string>
 </resources>
