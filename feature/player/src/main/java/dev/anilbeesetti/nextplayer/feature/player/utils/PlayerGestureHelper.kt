@@ -71,6 +71,7 @@ class PlayerGestureHelper(
                 if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
                 if (pointerCount >= 3) return
 
+                playerView.hideController()
                 activity.showTopInfo(activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed))
                 playerView.player?.setPlaybackSpeed(prefs.longPressControlsSpeed)
             }
