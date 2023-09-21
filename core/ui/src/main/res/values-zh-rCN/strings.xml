@@ -165,5 +165,4 @@
     <string name="path">路径</string>
     <string name="resolution">分辨率</string>
     <string name="thumbnail_size">缩略图大小</string>
-    <string name="folders">文件夹</string>
 </resources>
