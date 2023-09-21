@@ -49,6 +49,7 @@ class PlayerGestureHelper(
     private var seekStart = 0L
     private var position = 0L
     private var seekChange = 0L
+    private var pointerCount = 1
     private var isPlayingOnSeekStart: Boolean = false
     private var currentPlaybackSpeed: Float? = null
 
@@ -69,6 +70,7 @@ class PlayerGestureHelper(
                     currentPlaybackSpeed = playerView.player?.playbackParameters?.speed
                 }
                 if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
+                if (pointerCount >= 3) return
 
                 activity.showTopInfo(activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed))
                 playerView.player?.setPlaybackSpeed(prefs.longPressControlsSpeed)
@@ -284,6 +286,7 @@ class PlayerGestureHelper(
 
     init {
         playerView.setOnTouchListener { _, motionEvent ->
+            pointerCount = motionEvent.pointerCount
             when (motionEvent.pointerCount) {
                 1 -> {
                     tapGestureDetector.onTouchEvent(motionEvent)
