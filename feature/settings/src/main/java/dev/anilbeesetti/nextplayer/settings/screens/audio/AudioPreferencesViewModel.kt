@@ -58,6 +58,14 @@ class AudioPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleRequireAudioFocus() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(requireAudioFocus = !it.requireAudioFocus)
+            }
+        }
+    }
 }
 
 data class AudioPreferencesUIState(

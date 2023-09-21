@@ -313,7 +313,7 @@ class PlayerActivity : AppCompatActivity() {
         player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
-            .setAudioAttributes(getAudioAttributes(), true)
+            .setAudioAttributes(getAudioAttributes(), playerPreferences.requireAudioFocus)
             .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
             .build()
 

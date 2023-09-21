@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.CenterFocusStrong
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ClosedCaption
@@ -78,6 +79,7 @@ object NextIcons {
     val DoubleTap = Icons.Rounded.DoubleArrow
     val Fast = Icons.Rounded.FastForward
     val FileOpen = Icons.Rounded.FileOpen
+    val Focus = Icons.Rounded.CenterFocusStrong
     val Folder = Icons.Rounded.Folder
     val FolderOff = Icons.Rounded.FolderOff
     val Font = Icons.Rounded.FontDownload
