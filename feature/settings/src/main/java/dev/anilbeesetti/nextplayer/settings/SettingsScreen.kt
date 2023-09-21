@@ -1,7 +1,10 @@
 package dev.anilbeesetti.nextplayer.settings
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,66 +44,54 @@ fun SettingsScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
         ) {
-            item {
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.appearance_name),
-                    description = stringResource(id = R.string.appearance_description),
-                    icon = NextIcons.Appearance,
-                    onClick = { onItemClick(Setting.APPEARANCE) }
-                )
-            }
-            item {
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.media_library),
-                    description = stringResource(id = R.string.media_library_description),
-                    icon = NextIcons.Movie,
-                    onClick = { onItemClick(Setting.MEDIA_LIBRARY) }
-                )
-            }
-            item {
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.player_name),
-                    description = stringResource(id = R.string.player_description),
-                    icon = NextIcons.Player,
-                    onClick = { onItemClick(Setting.PLAYER) }
-                )
-            }
-            item {
-                ClickablePreferenceItem(
-                    title = stringResource(R.string.decoder),
-                    description = stringResource(R.string.decoder_desc),
-                    icon = NextIcons.Decoder,
-                    onClick = { onItemClick(Setting.DECODER) }
-                )
-            }
-            item {
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.audio),
-                    description = stringResource(R.string.audio_desc),
-                    icon = NextIcons.Audio,
-                    onClick = { onItemClick(Setting.AUDIO) }
-                )
-            }
-            item {
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.subtitle),
-                    description = stringResource(R.string.subtitle_desc),
-                    icon = NextIcons.Subtitle,
-                    onClick = { onItemClick(Setting.SUBTITLE) }
-                )
-            }
-            item {
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.about_name),
-                    description = stringResource(id = R.string.about_description),
-                    icon = NextIcons.Info,
-                    onClick = { onItemClick(Setting.ABOUT) }
-                )
-            }
+            ClickablePreferenceItem(
+                title = stringResource(id = R.string.appearance_name),
+                description = stringResource(id = R.string.appearance_description),
+                icon = NextIcons.Appearance,
+                onClick = { onItemClick(Setting.APPEARANCE) }
+            )
+            ClickablePreferenceItem(
+                title = stringResource(id = R.string.media_library),
+                description = stringResource(id = R.string.media_library_description),
+                icon = NextIcons.Movie,
+                onClick = { onItemClick(Setting.MEDIA_LIBRARY) }
+            )
+            ClickablePreferenceItem(
+                title = stringResource(id = R.string.player_name),
+                description = stringResource(id = R.string.player_description),
+                icon = NextIcons.Player,
+                onClick = { onItemClick(Setting.PLAYER) }
+            )
+            ClickablePreferenceItem(
+                title = stringResource(R.string.decoder),
+                description = stringResource(R.string.decoder_desc),
+                icon = NextIcons.Decoder,
+                onClick = { onItemClick(Setting.DECODER) }
+            )
+            ClickablePreferenceItem(
+                title = stringResource(id = R.string.audio),
+                description = stringResource(R.string.audio_desc),
+                icon = NextIcons.Audio,
+                onClick = { onItemClick(Setting.AUDIO) }
+            )
+            ClickablePreferenceItem(
+                title = stringResource(id = R.string.subtitle),
+                description = stringResource(R.string.subtitle_desc),
+                icon = NextIcons.Subtitle,
+                onClick = { onItemClick(Setting.SUBTITLE) }
+            )
+            ClickablePreferenceItem(
+                title = stringResource(id = R.string.about_name),
+                description = stringResource(id = R.string.about_description),
+                icon = NextIcons.Info,
+                onClick = { onItemClick(Setting.ABOUT) }
+            )
         }
     }
 }

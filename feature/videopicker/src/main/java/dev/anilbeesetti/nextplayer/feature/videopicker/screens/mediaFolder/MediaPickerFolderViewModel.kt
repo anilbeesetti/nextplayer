@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
@@ -20,7 +22,8 @@ import kotlinx.coroutines.launch
 class MediaPickerFolderViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     savedStateHandle: SavedStateHandle,
-    private val mediaRepository: MediaRepository
+    private val mediaRepository: MediaRepository,
+    private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
@@ -33,6 +36,13 @@ class MediaPickerFolderViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = VideosState.Loading
+        )
+
+    val preferences = preferencesRepository.applicationPreferences
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ApplicationPreferences()
         )
 
     fun deleteVideos(uris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {

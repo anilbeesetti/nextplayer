@@ -154,4 +154,14 @@
     <string name="pause_on_headset_disconnect">Pause ved frakobling</string>
     <string name="system_volume_panel_desc">Vis panel for systemets lydstyrke under justering av lydstyrke med hodesett tilkoblet</string>
     <string name="system_volume_panel">System-lydstyrkepanel</string>
+    <string name="fields">Felter</string>
+    <string name="medium">Middels</string>
+    <string name="system_caption_style">Systemundertekststil</string>
+    <string name="thumbnail">Miniatyrbilde</string>
+    <string name="compact">Kompakt</string>
+    <string name="system_caption_style_desc">Klikk for å åpne innstillinger for systemundertekster</string>
+    <string name="extension">Utvidelse</string>
+    <string name="large">Stor</string>
+    <string name="path">Sti</string>
+    <string name="resolution">Oppløsning</string>
 </resources>

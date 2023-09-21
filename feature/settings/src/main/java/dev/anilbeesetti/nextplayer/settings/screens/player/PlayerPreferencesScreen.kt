@@ -1,11 +1,12 @@
 package dev.anilbeesetti.nextplayer.settings.screens.player
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,74 +73,70 @@ fun PlayerPreferencesScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
+        Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
         ) {
-            item {
-                PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
-            }
-            seekGestureSetting(
+            PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
+            SeekGestureSetting(
                 isChecked = preferences.useSeekControls,
                 onClick = viewModel::toggleUseSeekControls
             )
-            swipeGestureSetting(
+            SwipeGestureSetting(
                 isChecked = preferences.useSwipeControls,
                 onClick = viewModel::toggleUseSwipeControls
             )
-            zoomGestureSetting(
+            ZoomGestureSetting(
                 isChecked = preferences.useZoomControls,
                 onClick = viewModel::toggleUseZoomControls
             )
-            doubleTapGestureSetting(
+            DoubleTapGestureSetting(
                 isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
                 onChecked = viewModel::toggleDoubleTapGesture,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
             )
-            longPressGesture(
+            LongPressGesture(
                 isChecked = preferences.useLongPressControls,
                 onChecked = viewModel::toggleUseLongPressControls,
                 playbackSpeed = preferences.longPressControlsSpeed,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) }
             )
-            seekIncrementPreference(
+            SeekIncrementPreference(
                 currentValue = preferences.seekIncrement,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) }
             )
-            controllerTimeoutPreference(
+            ControllerTimeoutPreference(
                 currentValue = preferences.controllerAutoHideTimeout,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) }
             )
-            item {
-                PreferenceSubtitle(text = stringResource(id = R.string.playback))
-            }
-            resumeSetting(
+            PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            ResumeSetting(
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) }
             )
-            defaultPlaybackSpeedSetting(
+            DefaultPlaybackSpeedSetting(
                 currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) }
             )
-            autoplaySetting(
+            AutoplaySetting(
                 isChecked = preferences.autoplay,
                 onClick = viewModel::toggleAutoplay
             )
-
-            rememberBrightnessSetting(
+            RememberBrightnessSetting(
                 isChecked = preferences.rememberPlayerBrightness,
                 onClick = viewModel::toggleRememberBrightnessLevel
             )
-            rememberSelectionsSetting(
+            RememberSelectionsSetting(
                 isChecked = preferences.rememberSelections,
                 onClick = viewModel::toggleRememberSelections
             )
-            fastSeekSetting(
+            FastSeekSetting(
                 isChecked = (preferences.fastSeek != FastSeek.DISABLE),
                 onChecked = viewModel::toggleFastSeek,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
             )
-            screenOrientationSetting(
+            ScreenOrientationSetting(
                 currentOrientationPreference = preferences.playerScreenOrientation,
                 onClick = {
                     viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
@@ -344,10 +341,11 @@ fun PlayerPreferencesScreen(
     }
 }
 
-fun LazyListScope.seekGestureSetting(
+@Composable
+fun SeekGestureSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.seek_gesture),
         description = stringResource(id = R.string.seek_gesture_description),
@@ -357,10 +355,11 @@ fun LazyListScope.seekGestureSetting(
     )
 }
 
-fun LazyListScope.swipeGestureSetting(
+@Composable
+fun SwipeGestureSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.swipe_gesture),
         description = stringResource(id = R.string.swipe_gesture_description),
@@ -370,10 +369,11 @@ fun LazyListScope.swipeGestureSetting(
     )
 }
 
-fun LazyListScope.zoomGestureSetting(
+@Composable
+fun ZoomGestureSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.zoom_gesture),
         description = stringResource(id = R.string.zoom_gesture_description),
@@ -383,11 +383,12 @@ fun LazyListScope.zoomGestureSetting(
     )
 }
 
-fun LazyListScope.doubleTapGestureSetting(
+@Composable
+fun DoubleTapGestureSetting(
     isChecked: Boolean,
     onChecked: () -> Unit,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.double_tap),
         description = stringResource(id = R.string.double_tap_description),
@@ -398,12 +399,12 @@ fun LazyListScope.doubleTapGestureSetting(
     )
 }
 
-fun LazyListScope.longPressGesture(
+fun LongPressGesture(
     isChecked: Boolean,
     onChecked: () -> Unit,
     playbackSpeed: Float,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.long_press_gesture),
         description = stringResource(id = R.string.long_press_gesture_desc, playbackSpeed),
@@ -414,10 +415,10 @@ fun LazyListScope.longPressGesture(
     )
 }
 
-fun LazyListScope.seekIncrementPreference(
+fun SeekIncrementPreference(
     currentValue: Int,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(R.string.seek_increment),
         description = stringResource(R.string.seconds, currentValue),
@@ -426,10 +427,11 @@ fun LazyListScope.seekIncrementPreference(
     )
 }
 
-fun LazyListScope.controllerTimeoutPreference(
+@Composable
+fun ControllerTimeoutPreference(
     currentValue: Int,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(R.string.controller_timeout),
         description = stringResource(R.string.seconds, currentValue),
@@ -438,9 +440,10 @@ fun LazyListScope.controllerTimeoutPreference(
     )
 }
 
-fun LazyListScope.resumeSetting(
+@Composable
+fun ResumeSetting(
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.resume),
         description = stringResource(id = R.string.resume_description),
@@ -449,10 +452,11 @@ fun LazyListScope.resumeSetting(
     )
 }
 
-fun LazyListScope.defaultPlaybackSpeedSetting(
+@Composable
+fun DefaultPlaybackSpeedSetting(
     currentDefaultPlaybackSpeed: Float,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.default_playback_speed),
         description = currentDefaultPlaybackSpeed.toString(),
@@ -461,10 +465,11 @@ fun LazyListScope.defaultPlaybackSpeedSetting(
     )
 }
 
-fun LazyListScope.autoplaySetting(
+@Composable
+fun AutoplaySetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.autoplay_settings),
         description = stringResource(
@@ -476,10 +481,11 @@ fun LazyListScope.autoplaySetting(
     )
 }
 
-fun LazyListScope.rememberBrightnessSetting(
+@Composable
+fun RememberBrightnessSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.remember_brightness_level),
         description = stringResource(
@@ -491,10 +497,11 @@ fun LazyListScope.rememberBrightnessSetting(
     )
 }
 
-fun LazyListScope.rememberSelectionsSetting(
+@Composable
+fun RememberSelectionsSetting(
     isChecked: Boolean,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitch(
         title = stringResource(id = R.string.remember_selections),
         description = stringResource(id = R.string.remember_selections_description),
@@ -504,11 +511,12 @@ fun LazyListScope.rememberSelectionsSetting(
     )
 }
 
-fun LazyListScope.fastSeekSetting(
+@Composable
+fun FastSeekSetting(
     isChecked: Boolean,
     onChecked: () -> Unit,
     onClick: () -> Unit
-) = item {
+) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.fast_seek),
         description = stringResource(id = R.string.fast_seek_description),
@@ -519,10 +527,11 @@ fun LazyListScope.fastSeekSetting(
     )
 }
 
-fun LazyListScope.screenOrientationSetting(
+@Composable
+fun ScreenOrientationSetting(
     currentOrientationPreference: ScreenOrientation,
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.player_screen_orientation),
         description = currentOrientationPreference.name(),

@@ -1,9 +1,11 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,18 +53,17 @@ fun MediaLibraryPreferencesScreen(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
+        Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(state = rememberScrollState())
         ) {
-            item {
-                PreferenceSubtitle(text = stringResource(id = R.string.scan))
-            }
-            hideFoldersSettings(
+            PreferenceSubtitle(text = stringResource(id = R.string.scan))
+            HideFoldersSettings(
                 onClick = onFolderSettingClick
             )
-            forceRescanStorageSetting(
+            ForceRescanStorageSetting(
                 onClick = {
                     scope.launch { context.scanStorage() }
                     context.showToast(
@@ -75,9 +76,10 @@ fun MediaLibraryPreferencesScreen(
     }
 }
 
-fun LazyListScope.hideFoldersSettings(
+@Composable
+fun HideFoldersSettings(
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.manage_folders),
         description = stringResource(id = R.string.manage_folders_desc),
@@ -86,9 +88,10 @@ fun LazyListScope.hideFoldersSettings(
     )
 }
 
-fun LazyListScope.forceRescanStorageSetting(
+@Composable
+fun ForceRescanStorageSetting(
     onClick: () -> Unit
-) = item {
+) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.force_rescan_storage),
         description = stringResource(id = R.string.force_rescan_storage_desc),

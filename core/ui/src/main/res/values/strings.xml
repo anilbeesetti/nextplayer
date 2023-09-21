@@ -159,4 +159,15 @@
     <string name="pause_on_headset_disconnect_desc">Pause playback when headset disconnected from the device</string>
     <string name="system_volume_panel">System volume panel</string>
     <string name="system_volume_panel_desc">Show system volume panel while adjusting volume with headset on</string>
+    <string name="system_caption_style">System caption style</string>
+    <string name="system_caption_style_desc">Click to open system captioning preferences</string>
+    <string name="fields">Fields</string>
+    <string name="extension">Extension</string>
+    <string name="path">Path</string>
+    <string name="resolution">Resolution</string>
+    <string name="thumbnail">Thumbnail</string>
+    <string name="compact">Compact</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
+    <string name="thumbnail_size">Thumbnail size</string>
 </resources>

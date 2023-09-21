@@ -89,6 +89,12 @@ class SubtitlePreferencesViewModel @Inject constructor(
             preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextEncoding = value) }
         }
     }
+
+    fun toggleUseSystemCaptionStyle() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle) }
+        }
+    }
 }
 
 data class SubtitlePreferencesUIState(

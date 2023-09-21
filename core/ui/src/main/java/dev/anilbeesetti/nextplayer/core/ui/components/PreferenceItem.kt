@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -27,6 +29,7 @@ fun PreferenceItem(
     modifier: Modifier = Modifier,
     description: String? = null,
     icon: ImageVector? = null,
+    enabled: Boolean,
     content: @Composable () -> Unit = {}
 ) {
     ListItem(
@@ -38,7 +41,7 @@ fun PreferenceItem(
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
                         .size(24.dp),
-                    tint = MaterialTheme.colorScheme.secondary
+                    tint = MaterialTheme.colorScheme.secondary.applyAlpha(enabled)
                 )
             }
         },
@@ -46,7 +49,8 @@ fun PreferenceItem(
             Text(
                 text = title,
                 maxLines = 1,
-                style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp)
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                color = LocalContentColor.current.applyAlpha(enabled)
             )
         },
         supportingContent = {
@@ -56,6 +60,7 @@ fun PreferenceItem(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = LocalContentColor.current.applyAlpha(enabled),
                     modifier = Modifier.padding(top = 2.dp)
                 )
             }
@@ -120,7 +125,8 @@ fun PreferenceItemPreview() {
     PreferenceItem(
         title = "Title",
         description = "Description of the preference item goes here.",
-        icon = NextIcons.DoubleTap
+        icon = NextIcons.DoubleTap,
+        enabled = true
     )
 }
 
@@ -131,4 +137,8 @@ fun SelectablePreferencePreview() {
         title = "Title",
         description = "Description of the preference item goes here."
     )
+}
+
+internal fun Color.applyAlpha(enabled: Boolean): Color {
+    return if (enabled) this else this.copy(alpha = 0.6f)
 }

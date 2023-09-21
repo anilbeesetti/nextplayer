@@ -116,7 +116,7 @@
     <string name="device_decoders_only">Sólo descodificadores de los dispositivos</string>
     <string name="play_file">Abrir archivo de vídeo a reproducir</string>
     <string name="play_url">Introducir url del vídeo que desee reproducir</string>
-    <string name="monospace">Monospace</string>
+    <string name="monospace">Monoespaciado</string>
     <string name="sans_serif">Sans Serif</string>
     <string name="subtitle_font">Fuente de subtítulos</string>
     <string name="subtitle_text_bold">Texto del subtítulo en negrita</string>
@@ -154,4 +154,15 @@
     <string name="pause_on_headset_disconnect">Pausa al desconectar</string>
     <string name="system_volume_panel_desc">Mostrar el panel del volumen del sistema mientras se ajusta el volumen con los auriculares puestos</string>
     <string name="system_volume_panel">Panel del volumen del sistema</string>
+    <string name="system_caption_style">Subtitulos del sistema</string>
+    <string name="system_caption_style_desc">Haz clic para abrir las preferencias del subtitulado del sistema</string>
+    <string name="fields">Campos</string>
+    <string name="medium">Medio</string>
+    <string name="thumbnail">Miniaturas</string>
+    <string name="compact">Compacto</string>
+    <string name="extension">Extensión</string>
+    <string name="large">Grande</string>
+    <string name="path">Ruta</string>
+    <string name="resolution">Resolución</string>
+    <string name="thumbnail_size">Tamaño de la miniatura</string>
 </resources>

@@ -5,7 +5,7 @@
     <string name="cancel">ਰੱਦ ਕਰੋ</string>
     <string name="descending">ਘਟਦੇ ਕ੍ਮ ਵਿੱਚ</string>
     <string name="disable">ਡਿਸੇਬਲ ਕਰੋ</string>
-    <string name="done">ਠੀਕ ਹੈ</string>
+    <string name="done">ਮੁਕੰਮਲ</string>
     <string name="double_tap">ਡਬਲ ਟੈਪ ਸੰਕੇਤ</string>
     <string name="double_tap_description">ਡਬਲ ਟੈਪ ਸੰਕੇਤ ਐਕਸ਼ਨ ਚੁਣੋ</string>
     <string name="fast_seek">ਫਾਸਟ ਸੀਕਿੰਗ</string>
@@ -154,4 +154,15 @@
     <string name="pause_on_headset_disconnect">ਡਿਸਕਨੈਕਟ ਕਰਨ \'ਤੇ ਰੋਕੋ</string>
     <string name="system_volume_panel">ਸਿਸਟਮ ਵਾਲਿਊਮ ਪੈਨਲ</string>
     <string name="system_volume_panel_desc">ਹੈੱਡਸੈੱਟ ਵਰਤਦੇ ਸਮੇਂ ਵਾਲਿਊਮ ਐਡਜਸਟ ਕਰਨ ਵੇਲ੍ਹੇ ਸਿਸਟਮ ਵਾਲਿਊਮ ਪੈਨਲ ਵਿਖਾਓ</string>
+    <string name="fields">ਖੇਤਰ</string>
+    <string name="medium">ਦਰਮਿਆਨਾ</string>
+    <string name="system_caption_style">ਸਿਸਟਮ ਕੈਪਸ਼ਨਾਂ ਦੀ ਸ਼ੈਲੀ</string>
+    <string name="thumbnail">ਥੰਮਨੇਲ</string>
+    <string name="compact">ਕੰਪੈਕਟ</string>
+    <string name="system_caption_style_desc">ਸਿਸਟਮ ਕੈਪਸ਼ਨਿੰਗ ਤਰਜੀਹਾਂ ਨੂੰ ਖੋਲ੍ਹਣ ਲਈ ਕਲਿੱਕ ਕਰੋ</string>
+    <string name="extension">ਐਕਸਟੈਂਸ਼ਨ</string>
+    <string name="large">ਵੱਡਾ</string>
+    <string name="path">ਮਾਰਗ</string>
+    <string name="resolution">ਰੈਜ਼ੋਲਿਊਸ਼ਨ</string>
+    <string name="thumbnail_size">ਥੰਮਨੇਲ ਆਕਾਰ</string>
 </resources>

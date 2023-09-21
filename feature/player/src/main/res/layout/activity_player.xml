@@ -46,25 +46,40 @@
 
     <LinearLayout
         android:id="@+id/info_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:clickable="false"
-        android:gravity="center"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
         android:visibility="gone"
+        android:layout_marginBottom="84dp"
         tools:visibility="visible">
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/info_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.DisplaySmall"
-            android:textStyle="bold"
             android:shadowColor="@color/player_background"
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="2"
+            android:textAppearance="@style/TextAppearance.Material3.DisplaySmall"
             android:textColor="@android:color/white"
+            android:textStyle="bold"
+            tools:text="22:30" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/info_subtext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shadowColor="@color/player_background"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
             tools:text="22:30" />
 
     </LinearLayout>

@@ -40,6 +40,7 @@ fun PreferenceSwitchWithDivider(
                 enabled = enabled,
                 onClick = onClick
             ),
+        enabled = enabled,
         content = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -99,6 +100,7 @@ fun PreferenceCheckbox(
                 onClick = onClick,
                 onLongClick = onLongClick
             ),
+        enabled = enabled,
         content = {
             Checkbox(
                 checked = isChecked,

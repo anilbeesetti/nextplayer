@@ -149,9 +149,20 @@
     <string name="zoom_gesture_description">Pinçar para ampliar o vídeo</string>
     <string name="high_contrast_dark_theme">Tema mais escuro</string>
     <string name="high_contrast_dark_theme_desc">Use preto como tema escuro</string>
-    <string name="pause_on_headset_disconnect_desc">Pause a reprodução quando o fone de ouvido for desconectado do dispositivo</string>
+    <string name="pause_on_headset_disconnect_desc">Pause a reprodução quando o fone de ouvido for desconectado do dispostivo</string>
     <string name="audio_desc">Opções de reprodução de áudio</string>
     <string name="pause_on_headset_disconnect">Pausar ao desconectar</string>
     <string name="system_volume_panel_desc">Mostre o painel de volume do sistema ao ajustar o volume com o fone de ouvido</string>
     <string name="system_volume_panel">Painel de volume</string>
+    <string name="system_caption_style">Estilo de legenda do sistema</string>
+    <string name="system_caption_style_desc">Clique para abrir as preferências de legenda do sistema</string>
+    <string name="fields">Campos</string>
+    <string name="medium">Médio</string>
+    <string name="thumbnail">Miniatura</string>
+    <string name="compact">Compacto</string>
+    <string name="extension">Extensão</string>
+    <string name="large">Grande</string>
+    <string name="path">Caminho</string>
+    <string name="resolution">Resolução</string>
+    <string name="thumbnail_size">Tamanho da miniatura</string>
 </resources>

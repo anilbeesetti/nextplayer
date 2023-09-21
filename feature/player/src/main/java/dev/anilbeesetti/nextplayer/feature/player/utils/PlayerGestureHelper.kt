@@ -6,7 +6,6 @@ import android.os.Build
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
-import android.view.View
 import android.view.WindowInsets
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -148,27 +147,25 @@ class PlayerGestureHelper(
                 val distanceDiff = abs(Utils.pxToDp(distanceX) / 4).coerceIn(0.5f, 10f)
                 val change = (distanceDiff * SEEK_STEP_MS).toLong()
 
-                if (distanceX < 0L) {
-                    playerView.player?.run {
+                playerView.player?.run {
+                    if (distanceX < 0L) {
                         seekChange = (seekChange + change)
                             .takeIf { it + seekStart < duration } ?: (duration - seekStart)
                         position = (seekStart + seekChange).coerceAtMost(duration)
                         seekForward(positionMs = position, shouldFastSeek = shouldFastSeek)
-                    }
-                } else {
-                    playerView.player?.run {
+                    } else {
                         seekChange = (seekChange - change)
                             .takeIf { it + seekStart > 0 } ?: (0 - seekStart)
                         position = seekStart + seekChange
                         seekBack(positionMs = position, shouldFastSeek = shouldFastSeek)
                     }
+                    activity.showPlayerInfo(
+                        info = Utils.formatDurationMillis(this.currentPosition),
+                        subInfo = "[${Utils.formatDurationMillisSign(seekChange)}]"
+                    )
+                    return true
                 }
-
-                with(activity.binding) {
-                    infoLayout.visibility = View.VISIBLE
-                    "[${Utils.formatDurationMillisSign(seekChange)}]".also { infoText.text = it }
-                }
-                return true
+                return false
             }
         }
     )
@@ -233,10 +230,7 @@ class PlayerGestureHelper(
                         exoContentFrameLayout.scaleY = scaleFactor
                     }
                     val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
-                    with(activity.binding) {
-                        infoLayout.visibility = View.VISIBLE
-                        "${(currentVideoScale * 100).roundToInt()}%".also { infoText.text = it }
-                    }
+                    activity.showPlayerInfo("${(currentVideoScale * 100).roundToInt()}%")
                 }
                 return true
             }
@@ -249,20 +243,18 @@ class PlayerGestureHelper(
             activity.hideVolumeGestureLayout()
             // hide the brightness indicator
             activity.hideBrightnessGestureLayout()
-
-            activity.binding.infoLayout.apply {
-                if (visibility == View.VISIBLE) {
-                    visibility = View.GONE
-                    if (isPlayingOnSeekStart) playerView.player?.play()
-                    playerView.controllerAutoShow = true
-                    isPlayingOnSeekStart = false
-                }
-            }
+            // hide info layout
+            activity.hidePlayerInfo(0L)
+          
             currentPlaybackSpeed?.let {
                 playerView.player?.setPlaybackSpeed(it)
                 currentPlaybackSpeed = null
             }
             activity.binding.fastSpeedLayout.visibility = View.GONE
+          
+            playerView.controllerAutoShow = true
+            if (isPlayingOnSeekStart) playerView.player?.play()
+            isPlayingOnSeekStart = false
             currentGestureAction = null
         }
     }

@@ -13,22 +13,21 @@ import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
+import android.view.accessibility.CaptioningManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
-import androidx.annotation.Dimension
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
-import androidx.core.view.doOnLayout
-import androidx.core.view.updatePaddingRelative
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -46,14 +45,17 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.clearCache
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -80,6 +82,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
+import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
@@ -117,13 +120,15 @@ class PlayerActivity : AppCompatActivity() {
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
     private var isFrameRendered = false
-    private var previousScrubPosition = 0L
     private var isPlayingOnScrubStart: Boolean = false
+    private var previousScrubPosition = 0L
+    private var scrubStartPosition: Long = -1L
     private var currentOrientation: Int? = null
     private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
     private var hideBrightnessIndicatorJob: Job? = null
+    private var hideInfoLayoutJob: Job? = null
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(player.duration)
@@ -170,7 +175,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var screenRotationButton: ImageButton
     private lateinit var seekBar: TimeBar
     private lateinit var subtitleTrackButton: ImageButton
-    private lateinit var unlockControlsButton: ImageButton
+    private lateinit var unlockControlsButton: MaterialButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
 
@@ -219,10 +224,6 @@ class PlayerActivity : AppCompatActivity() {
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
 
-        playerCenterControls.doOnLayout {
-            binding.infoLayout.updatePaddingRelative(bottom = it.measuredHeight)
-        }
-
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
                 if (player.isPlaying) {
@@ -230,15 +231,26 @@ class PlayerActivity : AppCompatActivity() {
                     player.pause()
                 }
                 isFrameRendered = true
+                scrubStartPosition = player.currentPosition
                 previousScrubPosition = player.currentPosition
                 scrub(position)
+                showPlayerInfo(
+                    info = Utils.formatDurationMillis(position),
+                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                )
             }
 
             override fun onScrubMove(timeBar: TimeBar, position: Long) {
                 scrub(position)
+                showPlayerInfo(
+                    info = Utils.formatDurationMillis(position),
+                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                )
             }
 
             override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                hidePlayerInfo(0L)
+                scrubStartPosition = -1L
                 if (isPlayingOnScrubStart) {
                     player.play()
                 }
@@ -333,8 +345,10 @@ class PlayerActivity : AppCompatActivity() {
                 }
             )
 
-            subtitleView?.let {
-                val style = CaptionStyleCompat(
+            subtitleView?.apply {
+                val captioningManager = getSystemService(Context.CAPTIONING_SERVICE) as CaptioningManager
+                val systemCaptionStyle = CaptionStyleCompat.createFromCaptionStyle(captioningManager.userStyle)
+                val userStyle = CaptionStyleCompat(
                     Color.WHITE,
                     Color.BLACK.takeIf { playerPreferences.subtitleBackground } ?: Color.TRANSPARENT,
                     Color.TRANSPARENT,
@@ -345,9 +359,9 @@ class PlayerActivity : AppCompatActivity() {
                         Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold } ?: Typeface.NORMAL
                     )
                 )
-                it.setStyle(style)
-                it.setApplyEmbeddedStyles(playerPreferences.applyEmbeddedStyles)
-                it.setFixedTextSize(Dimension.SP, playerPreferences.subtitleTextSize.toFloat())
+                setStyle(systemCaptionStyle.takeIf { playerPreferences.useSystemCaptionStyle } ?: userStyle)
+                setApplyEmbeddedStyles(playerPreferences.applyEmbeddedStyles)
+                setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
             }
         }
 
@@ -421,7 +435,7 @@ class PlayerActivity : AppCompatActivity() {
             playerLockControls.visibility = View.INVISIBLE
             playerUnlockControls.visibility = View.VISIBLE
             isControlsLocked = false
-            toggleSystemBars(showBars = true)
+            binding.playerView.showController()
         }
         videoZoomButton.setOnClickListener {
             val videoZoom = playerPreferences.playerVideoZoom.next()
@@ -650,16 +664,97 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> {
-                volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
-                showVolumeGestureLayout()
+            KeyEvent.KEYCODE_VOLUME_UP,
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                    volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
+                    showVolumeGestureLayout()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                    volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
+                    showVolumeGestureLayout()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_MEDIA_PLAY,
+            KeyEvent.KEYCODE_MEDIA_PAUSE,
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+            KeyEvent.KEYCODE_BUTTON_SELECT -> {
+                when {
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> player.pause()
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> player.play()
+                    player.isPlaying -> player.pause()
+                    else -> player.play()
+                }
                 return true
             }
 
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
-                showVolumeGestureLayout()
-                return true
+            KeyEvent.KEYCODE_BUTTON_START,
+            KeyEvent.KEYCODE_BUTTON_A,
+            KeyEvent.KEYCODE_SPACE -> {
+                if (!binding.playerView.isControllerFullyVisible) {
+                    binding.playerView.togglePlayPause()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_BUTTON_L2,
+            KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
+                    val pos = player.currentPosition
+                    if (scrubStartPosition == -1L) {
+                        scrubStartPosition = pos
+                    }
+                    val position = (pos - 10_000).coerceAtLeast(0L)
+                    player.seekBack(position, shouldFastSeek)
+                    showPlayerInfo(
+                        info = Utils.formatDurationMillis(position),
+                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                    )
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_DPAD_RIGHT,
+            KeyEvent.KEYCODE_BUTTON_R2,
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
+                    val pos = player.currentPosition
+                    if (scrubStartPosition == -1L) {
+                        scrubStartPosition = pos
+                    }
+
+                    val position = (pos + 10_000).coerceAtMost(player.duration)
+                    player.seekForward(position, shouldFastSeek)
+                    showPlayerInfo(
+                        info = Utils.formatDurationMillis(position),
+                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]"
+                    )
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent.KEYCODE_DPAD_CENTER,
+            KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                if (!binding.playerView.isControllerFullyVisible) {
+                    binding.playerView.showController()
+                    return true
+                }
+            }
+
+            KeyEvent.KEYCODE_BACK -> {
+                if (binding.playerView.isControllerFullyVisible && player.isPlaying && isDeviceTvBox()) {
+                    binding.playerView.hideController()
+                    return true
+                }
             }
         }
         return super.onKeyDown(keyCode, event)
@@ -668,8 +763,20 @@ class PlayerActivity : AppCompatActivity() {
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP,
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_DPAD_UP,
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
                 hideVolumeGestureLayout()
+                return true
+            }
+
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_BUTTON_L2,
+            KeyEvent.KEYCODE_MEDIA_REWIND,
+            KeyEvent.KEYCODE_DPAD_RIGHT,
+            KeyEvent.KEYCODE_BUTTON_R2,
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                hidePlayerInfo()
                 return true
             }
         }
@@ -715,6 +822,16 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    fun showPlayerInfo(info: String, subInfo: String? = null) {
+        hideInfoLayoutJob?.cancel()
+        with(binding) {
+            infoLayout.visibility = View.VISIBLE
+            infoText.text = info
+            infoSubtext.visibility = View.GONE.takeIf { subInfo == null } ?: View.VISIBLE
+            infoSubtext.text = subInfo
+        }
+    }
+
     fun hideVolumeGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
         if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
         hideVolumeIndicatorJob = lifecycleScope.launch {
@@ -731,6 +848,14 @@ class PlayerActivity : AppCompatActivity() {
         }
         if (playerPreferences.rememberPlayerBrightness) {
             viewModel.setPlayerBrightness(window.attributes.screenBrightness)
+        }
+    }
+
+    fun hidePlayerInfo(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
+        if (binding.infoLayout.visibility != View.VISIBLE) return
+        hideBrightnessIndicatorJob = lifecycleScope.launch {
+            delay(delayTimeMillis)
+            binding.infoLayout.visibility = View.GONE
         }
     }
 

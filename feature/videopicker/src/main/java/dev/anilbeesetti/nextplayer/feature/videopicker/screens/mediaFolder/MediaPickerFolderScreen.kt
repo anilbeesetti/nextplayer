@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -34,6 +35,7 @@ fun MediaPickerFolderRoute(
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
     val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
     val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
@@ -43,6 +45,7 @@ fun MediaPickerFolderRoute(
     MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
+        preferences = preferences,
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) }
@@ -54,6 +57,7 @@ fun MediaPickerFolderRoute(
 internal fun MediaPickerFolderScreen(
     folderPath: String,
     videosState: VideosState,
+    preferences: ApplicationPreferences,
     onNavigateUp: () -> Unit,
     onVideoClick: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit
@@ -75,7 +79,12 @@ internal fun MediaPickerFolderScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            VideosListFromState(videosState = videosState, onVideoClick = onVideoClick, onDeleteVideoClick = onDeleteVideoClick)
+            VideosListFromState(
+                videosState = videosState,
+                preferences = preferences,
+                onVideoClick = onVideoClick,
+                onDeleteVideoClick = onDeleteVideoClick
+            )
         }
     }
 }
