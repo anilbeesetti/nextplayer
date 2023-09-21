@@ -168,4 +168,6 @@
     <string name="long_press_gesture_desc">Παρατεταμένο πάτημα για %.1fx ταχύτητα</string>
     <string name="long_press_gesture">Παρατεταμένο πάτημα</string>
     <string name="fast_playback_speed">%.1fx ταχύτητα</string>
+    <string name="require_audio_focus">Εστίαση ήχου</string>
+    <string name="require_audio_focus_desc">Παύση άλλων αναπαραγωγών όταν η εφαρμογή παίζει βίντεο και το αντίστροφο.</string>
 </resources>
