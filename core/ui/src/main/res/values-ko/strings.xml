@@ -168,4 +168,6 @@
     <string name="long_press_gesture_desc">길게 눌렀을 때 %.1f배 속도로 재생</string>
     <string name="long_press_gesture">길게 누르기 제스처</string>
     <string name="fast_playback_speed">속도 %.1fx</string>
+    <string name="require_audio_focus">오디오 포커스 요청</string>
+    <string name="require_audio_focus_desc">이 앱이 동영상을 재생 중일 때 다른 미디어 플레이어를 일시정지합니다.</string>
 </resources>
