@@ -69,6 +69,10 @@ fun AudioPreferencesScreen(
                 currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredAudioLanguage),
                 onClick = { viewModel.showDialog(AudioPreferenceDialog.AudioLanguageDialog) }
             )
+            RequireAudioFocusSetting(
+                isChecked = preferences.requireAudioFocus,
+                onClick = viewModel::toggleRequireAudioFocus
+            )
             PauseOnHeadsetDisconnectSetting(
                 isChecked = preferences.pauseOnHeadsetDisconnect,
                 onClick = viewModel::togglePauseOnHeadsetDisconnect
@@ -114,6 +118,20 @@ fun PreferredAudioLanguageSetting(
             id = R.string.preferred_audio_lang_description
         ),
         icon = NextIcons.Language,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun RequireAudioFocusSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    PreferenceSwitch(
+        title = "Require audio focus",
+        description = "Pause other players while this player is playing videos, and vice versa.",
+        icon = NextIcons.HeadsetOff,
+        isChecked = isChecked,
         onClick = onClick
     )
 }
