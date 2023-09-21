@@ -71,8 +71,8 @@ class PlayerGestureHelper(
                 if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
 
                 activity.binding.apply {
-                    fastSpeedText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed)
-                    fastSpeedLayout.visibility = View.VISIBLE
+                    topInfoText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed)
+                    topInfoLayout.visibility = View.VISIBLE
                     playerView.player?.setPlaybackSpeed(prefs.longPressControlsSpeed)
                 }
             }
@@ -239,28 +239,25 @@ class PlayerGestureHelper(
         }
     )
 
-    private fun releaseAction(event: MotionEvent) {
-        Timber.d("pointerCount: ${event.pointerCount}")
-        if (event.action == MotionEvent.ACTION_UP || event.pointerCount == 3) {
-            // hide the volume indicator
-            activity.hideVolumeGestureLayout()
-            // hide the brightness indicator
-            activity.hideBrightnessGestureLayout()
-            // hide info layout
-            activity.hidePlayerInfo(0L)
+    private fun releaseGestures() {
+        // hide the volume indicator
+        activity.hideVolumeGestureLayout()
+        // hide the brightness indicator
+        activity.hideBrightnessGestureLayout()
+        // hide info layout
+        activity.hidePlayerInfo(0L)
 
-            currentPlaybackSpeed?.let {
-                playerView.player?.setPlaybackSpeed(it)
-                currentPlaybackSpeed = null
-            }
-            Timber.d("pointerCount: Hello")
-            activity.binding.fastSpeedLayout.visibility = View.GONE
-
-            playerView.controllerAutoShow = true
-            if (isPlayingOnSeekStart) playerView.player?.play()
-            isPlayingOnSeekStart = false
-            currentGestureAction = null
+        currentPlaybackSpeed?.let {
+            playerView.player?.setPlaybackSpeed(it)
+            currentPlaybackSpeed = null
         }
+        Timber.d("pointerCount: Hello")
+        activity.binding.topInfoLayout.visibility = View.GONE
+
+        playerView.controllerAutoShow = true
+        if (isPlayingOnSeekStart) playerView.player?.play()
+        isPlayingOnSeekStart = false
+        currentGestureAction = null
     }
 
     /**
@@ -301,7 +298,10 @@ class PlayerGestureHelper(
                     zoomGestureDetector.onTouchEvent(motionEvent)
                 }
             }
-            releaseAction(motionEvent)
+
+            if (motionEvent.action == MotionEvent.ACTION_UP || motionEvent.pointerCount >= 3) {
+                releaseGestures()
+            }
             true
         }
     }

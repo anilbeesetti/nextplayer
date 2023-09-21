@@ -7,7 +7,7 @@
     tools:context=".PlayerActivity">
 
     <LinearLayout
-        android:id="@+id/fast_speed_layout"
+        android:id="@+id/top_info_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -16,7 +16,7 @@
         android:elevation="4dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:padding="4dp"
+        android:padding="5dp"
         android:visibility="gone">
 
         <ImageView
@@ -27,10 +27,11 @@
             tools:ignore="ContentDescription" />
 
         <TextView
-            android:id="@+id/fast_speed_text"
+            android:id="@+id/top_info_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/fast_playback_speed"
+            tools:text="hello"
             android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
             android:textColor="@android:color/white" />
     </LinearLayout>
