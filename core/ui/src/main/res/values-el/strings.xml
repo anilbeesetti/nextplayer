@@ -165,4 +165,7 @@
     <string name="path">Διαδρομή</string>
     <string name="resolution">Ανάλυση</string>
     <string name="thumbnail_size">Εικονίδια</string>
+    <string name="long_press_gesture_desc">Παρατεταμένο πάτημα για %.1fx ταχύτητα</string>
+    <string name="long_press_gesture">Παρατεταμένο πάτημα</string>
+    <string name="fast_playback_speed">%.1fx ταχύτητα</string>
 </resources>
