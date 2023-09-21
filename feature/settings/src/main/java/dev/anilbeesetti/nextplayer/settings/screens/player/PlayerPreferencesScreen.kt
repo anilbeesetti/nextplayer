@@ -399,6 +399,7 @@ fun DoubleTapGestureSetting(
     )
 }
 
+@Composable
 fun LongPressGesture(
     isChecked: Boolean,
     onChecked: () -> Unit,
@@ -415,6 +416,7 @@ fun LongPressGesture(
     )
 }
 
+@Composable
 fun SeekIncrementPreference(
     currentValue: Int,
     onClick: () -> Unit
