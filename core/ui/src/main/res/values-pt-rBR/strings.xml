@@ -165,4 +165,8 @@
     <string name="path">Caminho</string>
     <string name="resolution">Resolução</string>
     <string name="thumbnail_size">Tamanho da miniatura</string>
+    <string name="long_press_gesture_desc">Pressione e segure para reproduzir na velocidade %.1fx</string>
+    <string name="long_press_gesture">Gesto de toque longo</string>
+    <string name="fast_playback_speed">%.1fx velocidade</string>
+    <string name="require_audio_focus_desc">Pause outros players enquanto este player reproduz vídeos e vice-versa.</string>
 </resources>
