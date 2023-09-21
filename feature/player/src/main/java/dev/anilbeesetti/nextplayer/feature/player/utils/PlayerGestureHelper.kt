@@ -70,11 +70,8 @@ class PlayerGestureHelper(
                 }
                 if (currentGestureAction != GestureAction.FAST_PLAYBACK) return
 
-                activity.binding.apply {
-                    topInfoText.text = activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed)
-                    topInfoLayout.visibility = View.VISIBLE
-                    playerView.player?.setPlaybackSpeed(prefs.longPressControlsSpeed)
-                }
+                activity.showTopInfo(activity.getString(coreUiR.string.fast_playback_speed, prefs.longPressControlsSpeed))
+                playerView.player?.setPlaybackSpeed(prefs.longPressControlsSpeed)
             }
 
             override fun onDoubleTap(event: MotionEvent): Boolean {
@@ -246,13 +243,13 @@ class PlayerGestureHelper(
         activity.hideBrightnessGestureLayout()
         // hide info layout
         activity.hidePlayerInfo(0L)
+        // hides fast playback top info layout
+        activity.hideTopInfo()
 
         currentPlaybackSpeed?.let {
             playerView.player?.setPlaybackSpeed(it)
             currentPlaybackSpeed = null
         }
-        Timber.d("pointerCount: Hello")
-        activity.binding.topInfoLayout.visibility = View.GONE
 
         playerView.controllerAutoShow = true
         if (isPlayingOnSeekStart) playerView.player?.play()
