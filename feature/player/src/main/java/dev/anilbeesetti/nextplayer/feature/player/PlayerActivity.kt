@@ -436,6 +436,7 @@ class PlayerActivity : AppCompatActivity() {
             playerUnlockControls.visibility = View.VISIBLE
             isControlsLocked = false
             binding.playerView.showController()
+            toggleSystemBars(showBars = true)
         }
         videoZoomButton.setOnClickListener {
             val videoZoom = playerPreferences.playerVideoZoom.next()
