@@ -9,7 +9,7 @@
         android:id="@+id/player_unlock_controls"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/player_background">
+        tools:background="@color/player_background">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -200,13 +200,12 @@
 
                 <ImageButton
                     android:id="@+id/btn_play_prev"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:layout_marginEnd="24dp"
                     android:background="@drawable/transparent_circle_background"
-                    android:backgroundTint="@android:color/white"
                     android:contentDescription="@string/player_controls_previous"
-                    android:padding="16dp"
+                    android:padding="10dp"
                     android:scaleType="fitXY"
                     android:src="@drawable/ic_skip_prev"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -218,7 +217,6 @@
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/transparent_circle_background"
-                    android:backgroundTint="@android:color/white"
                     android:contentDescription="@string/player_controls_play_pause"
                     android:padding="10dp"
                     android:scaleType="fitXY"
@@ -231,13 +229,12 @@
 
                 <ImageButton
                     android:id="@+id/btn_play_next"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:layout_marginStart="24dp"
                     android:background="@drawable/transparent_circle_background"
-                    android:backgroundTint="@android:color/white"
                     android:contentDescription="@string/player_controls_next"
-                    android:padding="16dp"
+                    android:padding="10dp"
                     android:scaleType="fitXY"
                     android:src="@drawable/ic_skip_next"
                     app:layout_constraintBottom_toBottomOf="parent"
