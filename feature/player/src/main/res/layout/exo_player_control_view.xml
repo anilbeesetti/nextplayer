@@ -46,24 +46,10 @@
                 android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                 android:textColor="@android:color/white"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btn_playback_speed"
+                app:layout_constraintEnd_toStartOf="@id/btn_audio_track"
                 app:layout_constraintStart_toEndOf="@+id/back_button"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="The Avengers Endgame" />
-
-            <ImageButton
-                android:id="@+id/btn_playback_speed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="5dp"
-                android:background="@drawable/transparent_circle_background"
-                android:contentDescription="@string/select_playback_speed"
-                android:padding="12dp"
-                android:src="@drawable/ic_speed"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/btn_audio_track"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tint="@android:color/white" />
 
             <ImageButton
                 android:id="@+id/btn_audio_track"
@@ -115,6 +101,20 @@
                 android:src="@drawable/ic_screen_rotation"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_playback_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/select_playback_speed"
+                android:padding="12dp"
+                android:src="@drawable/ic_speed"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/btn_screen_rotation"
                 app:layout_constraintTop_toTopOf="parent"
                 app:tint="@android:color/white" />
 
