@@ -103,6 +103,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
+                android:layout_marginTop="@dimen/dimen_controls_horizontal"
                 android:contextClickable="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -124,14 +125,14 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/player_bottom_controls"
+                android:id="@+id/player_seekbar_controls"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
                 android:layout_marginBottom="2dp"
                 android:contextClickable="true"
-                app:layout_constraintBottom_toTopOf="@+id/player_center_controls"
+                app:layout_constraintBottom_toTopOf="@+id/player_bottom_controls"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
 
@@ -175,7 +176,7 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/player_center_controls"
+                android:id="@+id/player_bottom_controls"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
