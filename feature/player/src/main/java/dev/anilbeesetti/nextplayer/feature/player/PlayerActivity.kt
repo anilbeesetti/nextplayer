@@ -19,9 +19,7 @@ import android.view.View
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
 import android.view.accessibility.CaptioningManager
-import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
