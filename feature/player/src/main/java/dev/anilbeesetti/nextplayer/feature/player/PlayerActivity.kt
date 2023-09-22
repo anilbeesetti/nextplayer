@@ -27,6 +27,7 @@ import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
@@ -170,7 +171,6 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playbackSpeedButton: ImageButton
     private lateinit var playerLockControls: FrameLayout
     private lateinit var playerUnlockControls: FrameLayout
-    private lateinit var playerCenterControls: LinearLayout
     private lateinit var prevButton: ImageButton
     private lateinit var screenRotationButton: ImageButton
     private lateinit var seekBar: TimeBar
@@ -215,7 +215,6 @@ class PlayerActivity : AppCompatActivity() {
         playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
         playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
         playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
-        playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
         prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
         screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
