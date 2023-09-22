@@ -169,8 +169,8 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var lockControlsButton: ImageButton
     private lateinit var nextButton: ImageButton
     private lateinit var playbackSpeedButton: ImageButton
-    private lateinit var playerLockControls: FrameLayout
-    private lateinit var playerUnlockControls: FrameLayout
+    private lateinit var playerLockControls: ConstraintLayout
+    private lateinit var playerUnlockControls: ConstraintLayout
     private lateinit var prevButton: ImageButton
     private lateinit var screenRotationButton: ImageButton
     private lateinit var seekBar: TimeBar

@@ -5,262 +5,257 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/player_unlock_controls"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:background="@color/player_background">
+        android:fitsSystemWindows="true"
+        android:orientation="vertical"
+        tools:background="@android:color/background_dark">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/player_top_controls"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
+            android:contextClickable="true"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/player_top_controls"
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-                android:contextClickable="true"
-                android:orientation="horizontal"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/player_controls_exit"
+                android:padding="12dp"
+                android:src="@drawable/ic_arrow_left"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageButton
-                    android:id="@+id/back_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/player_controls_exit"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_arrow_left"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/video_name"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@android:color/white"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/btn_playback_speed"
-                    app:layout_constraintStart_toEndOf="@+id/back_button"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="The Avengers Endgame" />
-
-                <ImageButton
-                    android:id="@+id/btn_playback_speed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="5dp"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/select_playback_speed"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_speed"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/btn_audio_track"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@android:color/white" />
-
-                <ImageButton
-                    android:id="@+id/btn_audio_track"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="5dp"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/select_audio_track"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_audio_track"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/btn_subtitle_track"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@android:color/white" />
-
-                <ImageButton
-                    android:id="@+id/btn_subtitle_track"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/select_subtitle_track"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_subtitle_track"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@android:color/white" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/extra_controls"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/video_name"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-                android:layout_marginTop="@dimen/dimen_controls_horizontal"
-                android:contextClickable="true"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/player_top_controls">
+                android:layout_marginHorizontal="16dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textColor="@android:color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btn_playback_speed"
+                app:layout_constraintStart_toEndOf="@+id/back_button"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="The Avengers Endgame" />
 
-                <ImageButton
-                    android:id="@+id/btn_screen_rotation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/screen_rotation"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_screen_rotation"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@android:color/white" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/player_seekbar_controls"
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/btn_playback_speed"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-                android:layout_marginBottom="2dp"
-                android:contextClickable="true"
-                app:layout_constraintBottom_toTopOf="@+id/player_bottom_controls"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
+                android:layout_marginEnd="5dp"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/select_playback_speed"
+                android:padding="12dp"
+                android:src="@drawable/ic_speed"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btn_audio_track"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/white" />
 
-                <TextView
-                    android:id="@+id/exo_position"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="8dp"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="00:00" />
-
-
-                <androidx.media3.ui.DefaultTimeBar
-                    android:id="@+id/exo_progress"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="8dp"
-                    android:contentDescription="@string/player_controls_progress"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/exo_duration"
-                    app:layout_constraintStart_toEndOf="@+id/exo_position"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:played_color="?android:attr/colorPrimary" />
-
-                <TextView
-                    android:id="@+id/exo_duration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="8dp"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="24:21" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/player_bottom_controls"
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/btn_audio_track"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
-                android:contextClickable="true"
+                android:layout_marginEnd="5dp"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/select_audio_track"
+                android:padding="12dp"
+                android:src="@drawable/ic_audio_track"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btn_subtitle_track"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_subtitle_track"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/select_subtitle_track"
+                android:padding="12dp"
+                android:src="@drawable/ic_subtitle_track"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <ImageButton
-                    android:id="@+id/btn_lock_controls"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/controls_lock"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_lock"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@android:color/white" />
-
-                <ImageButton
-                    android:id="@+id/btn_play_prev"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_marginEnd="24dp"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/player_controls_previous"
-                    android:padding="10dp"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/ic_skip_prev"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/exo_play_pause"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageButton
-                    android:id="@+id/exo_play_pause"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/player_controls_play_pause"
-                    android:padding="10dp"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/ic_play"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-
-                <ImageButton
-                    android:id="@+id/btn_play_next"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_marginStart="24dp"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/player_controls_next"
-                    android:padding="10dp"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/ic_skip_next"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/exo_play_pause"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageButton
-                    android:id="@+id/btn_video_zoom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/dimen_controls_horizontal"
-                    android:background="@drawable/transparent_circle_background"
-                    android:contentDescription="@string/video_zoom"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_fit_screen"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@android:color/white" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/white" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </FrameLayout>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/extra_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
+            android:layout_marginTop="@dimen/dimen_controls_horizontal"
+            android:contextClickable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/player_top_controls">
 
-    <FrameLayout
+            <ImageButton
+                android:id="@+id/btn_screen_rotation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/screen_rotation"
+                android:padding="12dp"
+                android:src="@drawable/ic_screen_rotation"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/white" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/player_seekbar_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
+            android:layout_marginBottom="2dp"
+            android:contextClickable="true"
+            app:layout_constraintBottom_toTopOf="@+id/player_bottom_controls"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/exo_position"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="00:00" />
+
+
+            <androidx.media3.ui.DefaultTimeBar
+                android:id="@+id/exo_progress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:contentDescription="@string/player_controls_progress"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/exo_duration"
+                app:layout_constraintStart_toEndOf="@+id/exo_position"
+                app:layout_constraintTop_toTopOf="parent"
+                app:played_color="?android:attr/colorPrimary" />
+
+            <TextView
+                android:id="@+id/exo_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="24:21" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/player_bottom_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
+            android:contextClickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <ImageButton
+                android:id="@+id/btn_lock_controls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/controls_lock"
+                android:padding="12dp"
+                android:src="@drawable/ic_lock"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_play_prev"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginEnd="24dp"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/player_controls_previous"
+                android:padding="10dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_skip_prev"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/exo_play_pause"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/exo_play_pause"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/player_controls_play_pause"
+                android:padding="10dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_play"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <ImageButton
+                android:id="@+id/btn_play_next"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="24dp"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/player_controls_next"
+                android:padding="10dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_skip_next"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/exo_play_pause"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/btn_video_zoom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dimen_controls_horizontal"
+                android:background="@drawable/transparent_circle_background"
+                android:contentDescription="@string/video_zoom"
+                android:padding="12dp"
+                android:src="@drawable/ic_fit_screen"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/white" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/player_lock_controls"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -279,8 +274,11 @@
             android:text="Unlock"
             app:icon="@drawable/ic_lock_open"
             app:iconGravity="textStart"
-            app:iconPadding="10dp" />
+            app:iconPadding="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
