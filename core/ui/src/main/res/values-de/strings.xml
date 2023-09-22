@@ -165,4 +165,5 @@
     <string name="decoder">Decoder</string>
     <string name="seek_increment">Schrittweite suchen</string>
     <string name="decoder_priority">Decoder Priorität</string>
+    <string name="fast_playback_speed">%.1fx Geschwindigkeit</string>
 </resources>
