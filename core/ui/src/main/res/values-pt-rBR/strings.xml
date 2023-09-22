@@ -169,4 +169,5 @@
     <string name="long_press_gesture">Gesto de toque longo</string>
     <string name="fast_playback_speed">%.1fx velocidade</string>
     <string name="require_audio_focus_desc">Pause outros players enquanto este player reproduz vídeos e vice-versa.</string>
+    <string name="require_audio_focus">Requerir foco de áudio</string>
 </resources>
