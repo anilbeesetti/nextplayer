@@ -2,7 +2,7 @@
 <resources>
 
     <style name="NextPlayer" parent="Theme.Material3.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@color/player_background</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:colorBackground">@android:color/black</item>
 
