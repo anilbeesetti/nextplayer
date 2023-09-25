@@ -104,6 +104,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_marginHorizontal="@dimen/dimen_controls_horizontal"
+                android:contextClickable="true"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
@@ -157,10 +158,9 @@
                     android:id="@+id/extra_controls"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:contextClickable="true"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
 
                     <ImageButton
                         android:id="@+id/btn_lock_controls"
