@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="player_background">#88000000</color>
+    <color name="player_background">#4D000000</color>
     <color name="transparent_white_300">#4DFFFFFF</color>
     <color name="seed">#2B4241</color>
     <color name="md_theme_light_primary">#006A68</color>
