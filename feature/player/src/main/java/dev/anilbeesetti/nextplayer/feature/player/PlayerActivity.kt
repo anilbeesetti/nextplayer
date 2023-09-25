@@ -140,7 +140,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playlistManager: PlaylistManager
     private lateinit var trackSelector: DefaultTrackSelector
-    private lateinit var mediaSession: MediaSession
+    private var mediaSession: MediaSession? = null
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
@@ -523,7 +523,7 @@ class PlayerActivity : AppCompatActivity() {
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)
         player.release()
-        mediaSession.release()
+        mediaSession?.release()
     }
 
     private fun playbackStateListener() = object : Player.Listener {
