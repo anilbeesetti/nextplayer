@@ -169,7 +169,7 @@
                         android:background="@drawable/transparent_circle_background"
                         android:contentDescription="@string/controls_lock"
                         android:padding="12dp"
-                        android:src="@drawable/ic_lock"
+                        android:src="@drawable/ic_lock_open"
                         app:tint="@android:color/white" />
 
                     <ImageButton
@@ -262,7 +262,7 @@
             android:layout_marginBottom="40dp"
             android:paddingHorizontal="20dp"
             android:text="Unlock"
-            app:icon="@drawable/ic_lock_open"
+            app:icon="@drawable/ic_lock"
             app:iconGravity="textStart"
             app:iconPadding="10dp" />
 
