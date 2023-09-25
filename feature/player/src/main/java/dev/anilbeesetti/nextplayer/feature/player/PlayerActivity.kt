@@ -583,11 +583,9 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
-                    if (playlistManager.hasNext()) {
+                    if (playlistManager.hasNext() && playerPreferences.autoplay) {
                         playlistManager.getCurrent()?.let { savePlayerState(it) }
-                        if (playerPreferences.autoplay) {
-                            playVideo(playlistManager.getNext()!!)
-                        }
+                        playVideo(playlistManager.getNext()!!)
                     } else {
                         finish()
                     }
