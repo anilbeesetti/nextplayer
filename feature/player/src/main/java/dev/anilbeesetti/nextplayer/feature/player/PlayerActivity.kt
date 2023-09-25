@@ -524,6 +524,7 @@ class PlayerActivity : AppCompatActivity() {
         player.removeListener(playbackStateListener)
         player.release()
         mediaSession?.release()
+        mediaSession = null
     }
 
     private fun playbackStateListener() = object : Player.Listener {
