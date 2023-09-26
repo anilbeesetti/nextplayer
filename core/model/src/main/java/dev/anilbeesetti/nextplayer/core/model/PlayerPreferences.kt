@@ -21,7 +21,7 @@ data class PlayerPreferences(
     val useSwipeControls: Boolean = true,
     val useSeekControls: Boolean = true,
     val useZoomControls: Boolean = true,
-    val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.FAST_FORWARD_AND_REWIND,
+    val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.BOTH,
     val useLongPressControls: Boolean = false,
     val longPressControlsSpeed: Float = 2.0f,
 
