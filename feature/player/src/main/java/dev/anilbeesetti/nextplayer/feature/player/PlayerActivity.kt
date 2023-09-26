@@ -330,8 +330,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun setOrientation() {
-        requestedOrientation = currentOrientation
-            ?: playerPreferences.playerScreenOrientation.toActivityOrientation()
+        requestedOrientation = currentOrientation ?: playerPreferences.playerScreenOrientation.toActivityOrientation()
     }
 
     private fun initializePlayerView() {
