@@ -165,4 +165,9 @@
     <string name="large">Великий</string>
     <string name="path">Шлях</string>
     <string name="resolution">Роздільна здатність</string>
+    <string name="long_press_gesture_desc">Тривале натискання для відтворення зі швидкістю %.1fx</string>
+    <string name="long_press_gesture">Жест тривалого натискання</string>
+    <string name="require_audio_focus">Вимагати аудіо фокус</string>
+    <string name="fast_playback_speed">%.1fx швидкість</string>
+    <string name="require_audio_focus_desc">Призупиніть відтворення відео іншими програвачами, поки цей програвач відтворює відео, і навпаки.</string>
 </resources>
