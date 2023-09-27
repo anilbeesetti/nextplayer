@@ -52,7 +52,7 @@ fun VideoItem(
                 Size.LARGE -> 200.dp
             }
             Box(
-                modifier = modifier
+                modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
                     .widthIn(max = min(thumbWidth, localConfig.screenWidthDp.dp * 0.45f))
