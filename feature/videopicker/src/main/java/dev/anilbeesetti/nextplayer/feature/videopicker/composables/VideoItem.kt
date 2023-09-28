@@ -120,9 +120,6 @@ fun VideoItem(
                 if (preferences.showResolutionField && video.height > 0) {
                     InfoChip(text = "${video.height}p")
                 }
-                video.videoStream?.let {
-                    InfoChip(text = it.codecName)
-                }
             }
         },
         modifier = modifier

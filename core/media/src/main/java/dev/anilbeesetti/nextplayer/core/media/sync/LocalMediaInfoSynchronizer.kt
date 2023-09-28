@@ -46,6 +46,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
                 val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
                 val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
 
+                mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format))
                 videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
                 audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
                 subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }

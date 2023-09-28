@@ -19,6 +19,9 @@ data class MediumEntity(
     @ColumnInfo(name = "duration") val duration: Long,
     @ColumnInfo(name = "media_store_id") val mediaStoreId: Long,
 
+    // Medium info
+    @ColumnInfo(name = "format", defaultValue = "NULL") val format: String? = null,
+
     // Medium playback state
     @ColumnInfo(name = "playback_position") val playbackPosition: Long = 0,
     @ColumnInfo(name = "audio_track_index") val audioTrackIndex: Int? = null,
