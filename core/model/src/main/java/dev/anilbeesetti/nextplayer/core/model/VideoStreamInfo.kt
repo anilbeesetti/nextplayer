@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.model
 
+import java.io.Serializable
+
 data class VideoStreamInfo(
     val index: Int,
     val title: String?,
@@ -10,4 +12,4 @@ data class VideoStreamInfo(
     val frameRate: Double,
     val frameWidth: Int,
     val frameHeight: Int
-)
+) : Serializable

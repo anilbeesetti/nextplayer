@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.model
 
+import java.io.Serializable
+
 data class AudioStreamInfo(
     val index: Int,
     val title: String?,
@@ -11,4 +13,4 @@ data class AudioStreamInfo(
     val sampleRate: Int,
     val channels: Int,
     val channelLayout: String?
-)
+) : Serializable
