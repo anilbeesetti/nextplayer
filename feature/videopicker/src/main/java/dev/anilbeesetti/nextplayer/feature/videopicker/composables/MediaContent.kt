@@ -26,6 +26,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -94,7 +95,8 @@ fun VideosListFromState(
     videosState: VideosState,
     preferences: ApplicationPreferences,
     onVideoClick: (Uri) -> Unit,
-    onDeleteVideoClick: (String) -> Unit
+    onDeleteVideoClick: (String) -> Unit,
+    onLoad: (Uri) -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -109,15 +111,20 @@ fun VideosListFromState(
             NoVideosFound()
         } else {
             MediaLazyList {
-                items(videosState.data, key = { it.path }) {
+                items(videosState.data, key = { it.path }) { video ->
+                    LaunchedEffect(Unit) {
+                        if (video.videoStream == null) {
+                            onLoad(Uri.parse(video.uriString))
+                        }
+                    }
                     VideoItem(
-                        video = it,
+                        video = video,
                         preferences = preferences,
                         modifier = Modifier.combinedClickable(
-                            onClick = { onVideoClick(Uri.parse(it.uriString)) },
+                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
                             onLongClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showMediaActionsFor = it
+                                showMediaActionsFor = video
                             }
                         )
                     )

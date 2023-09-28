@@ -16,15 +16,16 @@ import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
+import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
@@ -34,11 +35,11 @@ class LocalMediaRepository @Inject constructor(
 ) : MediaRepository {
 
     override fun getVideosFlow(): Flow<List<Video>> {
-        return mediumDao.getAll().map { it.map(MediumEntity::toVideo) }
+        return mediumDao.getAllWithInfo().map { it.map(MediumWithInfo::toVideo) }
     }
 
     override fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>> {
-        return mediumDao.getAllFromDirectory(folderPath).map { it.map(MediumEntity::toVideo) }
+        return mediumDao.getAllWithInfoFromDirectory(folderPath).map { it.map(MediumWithInfo::toVideo) }
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {
