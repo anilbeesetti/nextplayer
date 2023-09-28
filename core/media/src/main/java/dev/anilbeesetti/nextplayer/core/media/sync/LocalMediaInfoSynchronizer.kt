@@ -16,11 +16,11 @@ import io.github.anilbeesetti.nextlib.mediainfo.AudioStream
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import io.github.anilbeesetti.nextlib.mediainfo.SubtitleStream
 import io.github.anilbeesetti.nextlib.mediainfo.VideoStream
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class LocalMediaInfoSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
@@ -64,7 +64,6 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     }
 }
 
-
 fun VideoStream.toVideoStreamInfoEntity(mediumPath: String) = VideoStreamInfoEntity(
     index = index,
     title = title,
@@ -77,7 +76,6 @@ fun VideoStream.toVideoStreamInfoEntity(mediumPath: String) = VideoStreamInfoEnt
     frameHeight = frameHeight,
     mediumPath = mediumPath
 )
-
 
 fun AudioStream.toAudioStreamInfoEntity(mediumPath: String) = AudioStreamInfoEntity(
     index = index,
@@ -92,7 +90,6 @@ fun AudioStream.toAudioStreamInfoEntity(mediumPath: String) = AudioStreamInfoEnt
     channelLayout = channelLayout,
     mediumPath = mediumPath
 )
-
 
 fun SubtitleStream.toSubtitleStreamInfoEntity(mediumPath: String) = SubtitleStreamInfoEntity(
     index = index,

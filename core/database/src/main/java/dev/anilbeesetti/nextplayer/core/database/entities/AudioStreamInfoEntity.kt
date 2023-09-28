@@ -26,6 +26,6 @@ data class AudioStreamInfoEntity(
     @ColumnInfo(name = "sample_format") val sampleFormat: String?,
     @ColumnInfo(name = "sample_rate") val sampleRate: Int,
     @ColumnInfo(name = "channels") val channels: Int,
-    @ColumnInfo(name = "channel_layout")  val channelLayout: String?,
+    @ColumnInfo(name = "channel_layout") val channelLayout: String?,
     @ColumnInfo(name = "medium_path") val mediumPath: String
 )
