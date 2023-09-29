@@ -154,4 +154,6 @@
     <string name="decoder">Декодер</string>
     <string name="seek_increment">Время пропуска</string>
     <string name="decoder_priority">Приоритет декодера</string>
+    <string name="long_press_gesture">Жест долгого нажатия</string>
+    <string name="fast_playback_speed">%.1fx скорость</string>
 </resources>
