@@ -123,6 +123,10 @@ fun PlayerPreferencesScreen(
                 isChecked = preferences.autoplay,
                 onClick = viewModel::toggleAutoplay
             )
+            PipSetting(
+                isChecked = preferences.autoPip,
+                onClick = viewModel::toggleAutoPip
+            )
             RememberBrightnessSetting(
                 isChecked = preferences.rememberPlayerBrightness,
                 onClick = viewModel::toggleRememberBrightnessLevel
@@ -476,6 +480,22 @@ fun AutoplaySetting(
         title = stringResource(id = R.string.autoplay_settings),
         description = stringResource(
             id = R.string.autoplay_settings_description
+        ),
+        icon = NextIcons.Player,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun PipSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.pip_settings),
+        description = stringResource(
+            id = R.string.pip_settings_description
         ),
         icon = NextIcons.Player,
         isChecked = isChecked,

@@ -303,7 +303,9 @@ class PlayerActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        this.enterPictureInPictureMode(updatePictureInPictureParams())
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+            this.enterPictureInPictureMode(updatePictureInPictureParams())
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -311,7 +313,7 @@ class PlayerActivity : AppCompatActivity() {
         if(isInPictureInPictureMode) {
             playerUnlockControls.visibility = View.INVISIBLE
         } else {
-            if(isControlsLocked) {
+            if(!isControlsLocked) {
                 playerUnlockControls.visibility = View.VISIBLE
             }
         }
@@ -327,7 +329,7 @@ class PlayerActivity : AppCompatActivity() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             params = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
-                .setAutoEnterEnabled(true)
+                .setAutoEnterEnabled(playerPreferences.autoPip)
                 .setSeamlessResizeEnabled(true)
                 .build()
         }
