@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -13,6 +14,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
@@ -25,6 +27,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
@@ -173,6 +176,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerCenterControls: LinearLayout
     private lateinit var prevButton: ImageButton
     private lateinit var screenRotationButton: ImageButton
+    private lateinit var pipButton: ImageButton
     private lateinit var seekBar: TimeBar
     private lateinit var subtitleTrackButton: ImageButton
     private lateinit var unlockControlsButton: MaterialButton
@@ -218,11 +222,18 @@ class PlayerActivity : AppCompatActivity() {
         playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
         prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
         screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
+        pipButton = binding.playerView.findViewById(R.id.btn_pip)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
         subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
+
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
+            pipButton.visibility = View.GONE
+        } else {
+            updatePictureInPictureParams()
+        }
 
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
@@ -287,6 +298,42 @@ class PlayerActivity : AppCompatActivity() {
         currentOrientation = requestedOrientation
         releasePlayer()
         super.onStop()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        this.enterPictureInPictureMode(updatePictureInPictureParams())
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        if(isInPictureInPictureMode) {
+            playerUnlockControls.visibility = View.INVISIBLE
+        } else {
+            if(isControlsLocked) {
+                playerUnlockControls.visibility = View.VISIBLE
+            }
+        }
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updatePictureInPictureParams(): PictureInPictureParams {
+        var params: PictureInPictureParams = PictureInPictureParams.Builder()
+            .setAspectRatio(Rational(16, 9))
+            .build()
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            params = PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(16, 9))
+                .setAutoEnterEnabled(true)
+                .setSeamlessResizeEnabled(true)
+                .build()
+        }
+
+        setPictureInPictureParams(params)
+        return params
     }
 
     private fun createPlayer() {
@@ -460,6 +507,11 @@ class PlayerActivity : AppCompatActivity() {
                 requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
             }
             true
+        }
+        pipButton.setOnClickListener {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                this.enterPictureInPictureMode(updatePictureInPictureParams())
+            }
         }
         backButton.setOnClickListener { finish() }
     }
