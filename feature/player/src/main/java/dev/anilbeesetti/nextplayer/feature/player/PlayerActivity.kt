@@ -441,10 +441,10 @@ class PlayerActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 binding.infoLayout.visibility = View.VISIBLE
                 if (!playerPreferences.loopVideo) {
-                    binding.infoText.text = getString(dev.anilbeesetti.nextplayer.core.ui.R.string.loop_on)
+                    binding.infoText.text = getString(coreUiR.string.loop_on)
                     loopOn()
                 } else {
-                    binding.infoText.text = getString(dev.anilbeesetti.nextplayer.core.ui.R.string.loop_off)
+                    binding.infoText.text = getString(coreUiR.string.loop_off)
                     loopOff()
                 }
                 delay(HIDE_DELAY_MILLIS)
@@ -805,12 +805,12 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun loopOn() {
-        loopVideoButton.setImageResource(dev.anilbeesetti.nextplayer.core.ui.R.drawable.ic_repeat_on)
+        loopVideoButton.setImageResource(coreUiR.drawable.ic_repeat_on)
         player.repeatMode = Player.REPEAT_MODE_ALL
     }
 
     private fun loopOff() {
-        loopVideoButton.setImageResource(dev.anilbeesetti.nextplayer.core.ui.R.drawable.ic_repeat_off)
+        loopVideoButton.setImageResource(coreUiR.drawable.ic_repeat_off)
         player.repeatMode = Player.REPEAT_MODE_OFF
     }
 
