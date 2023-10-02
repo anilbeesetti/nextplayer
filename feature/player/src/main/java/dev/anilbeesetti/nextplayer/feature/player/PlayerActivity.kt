@@ -317,15 +317,15 @@ class PlayerActivity : AppCompatActivity() {
             .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
             .build()
 
-        if (player.canAdvertiseSession()) {
-            try {
+        try {
+            if (player.canAdvertiseSession()) {
                 mediaSession = MediaSession.Builder(this, player).build()
-            } catch (e: IllegalStateException) {
-                e.printStackTrace()
             }
+            loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         player.addListener(playbackStateListener)
-        loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
         volumeManager.loudnessEnhancer = loudnessEnhancer
     }
 
