@@ -66,6 +66,14 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
+    fun toggleLoopVideo() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(loopVideo = !it.loopVideo)
+            }
+        }
+    }
+
     fun saveState(
         path: String?,
         position: Long,

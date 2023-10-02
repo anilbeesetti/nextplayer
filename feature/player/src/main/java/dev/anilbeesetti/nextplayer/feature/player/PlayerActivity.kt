@@ -166,6 +166,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var backButton: ImageButton
     private lateinit var exoContentFrameLayout: AspectRatioFrameLayout
     private lateinit var lockControlsButton: ImageButton
+    private lateinit var loopVideoButton: ImageButton
     private lateinit var nextButton: ImageButton
     private lateinit var playbackSpeedButton: ImageButton
     private lateinit var playerLockControls: FrameLayout
@@ -211,6 +212,7 @@ class PlayerActivity : AppCompatActivity() {
         backButton = binding.playerView.findViewById(R.id.back_button)
         exoContentFrameLayout = binding.playerView.findViewById(R.id.exo_content_frame)
         lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
+        loopVideoButton = binding.playerView.findViewById(R.id.btn_loop_video)
         nextButton = binding.playerView.findViewById(R.id.btn_play_next)
         playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
         playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
@@ -278,6 +280,11 @@ class PlayerActivity : AppCompatActivity() {
         setOrientation()
         initializePlayerView()
         playVideo()
+        if (playerPreferences.loopVideo) {
+            loopOn()
+        } else {
+            loopOff()
+        }
         super.onStart()
     }
 
@@ -429,6 +436,21 @@ class PlayerActivity : AppCompatActivity() {
             playerLockControls.visibility = View.VISIBLE
             isControlsLocked = true
             toggleSystemBars(showBars = false)
+        }
+        loopVideoButton.setOnClickListener {
+            lifecycleScope.launch {
+                binding.infoLayout.visibility = View.VISIBLE
+                if (!playerPreferences.loopVideo) {
+                    binding.infoText.text = getString(dev.anilbeesetti.nextplayer.core.ui.R.string.loop_on)
+                    loopOn()
+                } else {
+                    binding.infoText.text = getString(dev.anilbeesetti.nextplayer.core.ui.R.string.loop_off)
+                    loopOff()
+                }
+                delay(HIDE_DELAY_MILLIS)
+                binding.infoLayout.visibility = View.GONE
+            }
+            viewModel.toggleLoopVideo()
         }
         unlockControlsButton.setOnClickListener {
             playerLockControls.visibility = View.INVISIBLE
@@ -780,6 +802,16 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         return super.onKeyUp(keyCode, event)
+    }
+
+    private fun loopOn() {
+        loopVideoButton.setImageResource(dev.anilbeesetti.nextplayer.core.ui.R.drawable.ic_repeat_on)
+        player.repeatMode = Player.REPEAT_MODE_ALL
+    }
+
+    private fun loopOff() {
+        loopVideoButton.setImageResource(dev.anilbeesetti.nextplayer.core.ui.R.drawable.ic_repeat_off)
+        player.repeatMode = Player.REPEAT_MODE_OFF
     }
 
     private fun getAudioAttributes(): AudioAttributes {
