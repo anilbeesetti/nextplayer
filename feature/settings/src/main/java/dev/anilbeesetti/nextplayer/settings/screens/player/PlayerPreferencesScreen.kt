@@ -497,7 +497,7 @@ fun PipSetting(
         description = stringResource(
             id = R.string.pip_settings_description
         ),
-        icon = NextIcons.Player,
+        icon = NextIcons.Pip,
         isChecked = isChecked,
         onClick = onClick
     )
