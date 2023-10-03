@@ -166,4 +166,8 @@
     <string name="seek_increment">Schrittweite suchen</string>
     <string name="decoder_priority">Decoder Priorität</string>
     <string name="fast_playback_speed">%.1fx Geschwindigkeit</string>
+    <string name="long_press_gesture_desc">Lange drücken, um mit %.1fx-Geschwindigkeit abzuspielen</string>
+    <string name="long_press_gesture">Langes Drücken Geste</string>
+    <string name="require_audio_focus">Audiofokus erforderlich</string>
+    <string name="require_audio_focus_desc">Halten Sie andere Player an, während dieser Player Videos abspielt, und umgekehrt.</string>
 </resources>
