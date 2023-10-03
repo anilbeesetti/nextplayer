@@ -310,10 +310,10 @@ class PlayerActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
-        if(isInPictureInPictureMode) {
+        if (isInPictureInPictureMode) {
             playerUnlockControls.visibility = View.INVISIBLE
         } else {
-            if(!isControlsLocked) {
+            if (!isControlsLocked) {
                 playerUnlockControls.visibility = View.VISIBLE
             }
         }
@@ -326,7 +326,7 @@ class PlayerActivity : AppCompatActivity() {
             .setAspectRatio(Rational(16, 9))
             .build()
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             params = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
                 .setAutoEnterEnabled(playerPreferences.autoPip)
@@ -511,7 +511,7 @@ class PlayerActivity : AppCompatActivity() {
             true
         }
         pipButton.setOnClickListener {
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 this.enterPictureInPictureMode(updatePictureInPictureParams())
             }
         }
