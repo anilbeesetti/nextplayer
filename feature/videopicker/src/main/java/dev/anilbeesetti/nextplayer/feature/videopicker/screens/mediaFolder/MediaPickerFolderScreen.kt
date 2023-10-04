@@ -86,7 +86,7 @@ internal fun MediaPickerFolderScreen(
                 preferences = preferences,
                 onVideoClick = onVideoClick,
                 onDeleteVideoClick = onDeleteVideoClick,
-                onLoad = onAddToSync
+                onVideoLoaded = onAddToSync
             )
         }
     }

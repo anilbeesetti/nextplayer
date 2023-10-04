@@ -96,7 +96,7 @@ fun VideosListFromState(
     preferences: ApplicationPreferences,
     onVideoClick: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
-    onLoad: (Uri) -> Unit = {}
+    onVideoLoaded: (Uri) -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -114,7 +114,7 @@ fun VideosListFromState(
                 items(videosState.data, key = { it.path }) { video ->
                     LaunchedEffect(Unit) {
                         if (video.videoStream == null) {
-                            onLoad(Uri.parse(video.uriString))
+                            onVideoLoaded(Uri.parse(video.uriString))
                         }
                     }
                     VideoItem(
