@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PictureInPictureParams
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -33,18 +34,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
-import androidx.media3.exoplayer.DefaultRenderersFactory
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
@@ -52,6 +52,8 @@ import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
@@ -60,7 +62,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
-import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
@@ -94,7 +95,6 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -139,12 +139,15 @@ class PlayerActivity : AppCompatActivity() {
     /**
      * Player
      */
+
+    private lateinit var controllerFuture: ListenableFuture<MediaController>
+    private val controller: MediaController? get() = if (controllerFuture.isDone) controllerFuture.get() else null
+
     private lateinit var player: Player
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playlistManager: PlaylistManager
     private lateinit var trackSelector: DefaultTrackSelector
     private var surfaceView: SurfaceView? = null
-    private var mediaSession: MediaSession? = null
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
@@ -153,7 +156,6 @@ class PlayerActivity : AppCompatActivity() {
     /**
      * Listeners
      */
-    private val playbackStateListener: Player.Listener = playbackStateListener()
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null) {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -235,6 +237,22 @@ class PlayerActivity : AppCompatActivity() {
             updatePictureInPictureParams()
         }
 
+        volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+        brightnessManager = BrightnessManager(activity = this)
+        playerGestureHelper = PlayerGestureHelper(
+            viewModel = viewModel,
+            activity = this,
+            volumeManager = volumeManager,
+            brightnessManager = brightnessManager
+        )
+
+        playlistManager = PlaylistManager()
+        playerApi = PlayerApi(this)
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
                 if (player.isPlaying) {
@@ -267,30 +285,52 @@ class PlayerActivity : AppCompatActivity() {
                 }
             }
         })
-
-        volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
-        brightnessManager = BrightnessManager(activity = this)
-        playerGestureHelper = PlayerGestureHelper(
-            viewModel = viewModel,
-            activity = this,
-            volumeManager = volumeManager,
-            brightnessManager = brightnessManager
-        )
-
-        playlistManager = PlaylistManager()
-        playerApi = PlayerApi(this)
     }
 
     override fun onStart() {
         if (playerPreferences.rememberPlayerBrightness) {
             brightnessManager.setBrightness(playerPreferences.playerBrightness)
         }
-        createPlayer()
-        setOrientation()
-        initPlaylist()
-        initializePlayerView()
-        playVideo(playlistManager.getCurrent() ?: intent.data!!)
+        initializeController()
+
         super.onStart()
+    }
+
+    private fun initializeController() {
+        controllerFuture = MediaController.Builder(this, SessionToken(this, ComponentName(this, PlayerService::class.java))).buildAsync()
+        controllerFuture.addListener({
+            setController()
+            setOrientation()
+
+            initPlaylist()
+            initializePlayerView()
+
+            playVideo(playlistManager.getCurrent() ?: intent.data!!)
+        }, MoreExecutors.directExecutor())
+    }
+
+    private fun setController() {
+        Timber.d("Creating player")
+
+        val controller = this.controller ?: return
+
+        binding.playerView.player = controller
+        player = controller
+
+        // Initialize the loudness enhancer if necessary.
+        loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) {
+            try {
+                LoudnessEnhancer(controller.audioSessionId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        } else {
+            null
+        }
+
+        controller.addListener(playbackStateListener())
+        volumeManager.loudnessEnhancer = loudnessEnhancer
     }
 
     override fun onStop() {
@@ -325,7 +365,7 @@ class PlayerActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePictureInPictureParams(): PictureInPictureParams {
-        var params: PictureInPictureParams = PictureInPictureParams.Builder()
+        val params: PictureInPictureParams = PictureInPictureParams.Builder()
             .setAspectRatio(Rational(16, 9))
             .build()
 
@@ -333,54 +373,16 @@ class PlayerActivity : AppCompatActivity() {
         return params
     }
 
-    private fun createPlayer() {
-        Timber.d("Creating player")
-
-        val renderersFactory = NextRenderersFactory(applicationContext)
-            .setEnableDecoderFallback(true)
-            .setExtensionRendererMode(
-                when (playerPreferences.decoderPriority) {
-                    DecoderPriority.DEVICE_ONLY -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderPriority.PREFER_DEVICE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderPriority.PREFER_APP -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-                }
-            )
-
-        trackSelector = DefaultTrackSelector(applicationContext).apply {
-            this.setParameters(
-                this.buildUponParameters()
-                    .setPreferredAudioLanguage(playerPreferences.preferredAudioLanguage)
-                    .setPreferredTextLanguage(playerPreferences.preferredSubtitleLanguage)
-            )
-        }
-
-        player = ExoPlayer.Builder(applicationContext)
-            .setRenderersFactory(renderersFactory)
-            .setTrackSelector(trackSelector)
-            .setAudioAttributes(getAudioAttributes(), playerPreferences.requireAudioFocus)
-            .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
-            .build()
-
-        try {
-            if (player.canAdvertiseSession()) {
-                mediaSession = MediaSession.Builder(this, player).build()
-            }
-            loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(player.audioSessionId) else null
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        player.addListener(playbackStateListener)
-        volumeManager.loudnessEnhancer = loudnessEnhancer
-    }
-
     private fun setOrientation() {
         requestedOrientation = currentOrientation ?: playerPreferences.playerScreenOrientation.toActivityOrientation()
     }
 
     private fun initializePlayerView() {
+        val controller = this.controller ?: return
+        Timber.d("Init Player View")
+
         binding.playerView.apply {
             setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
-            player = this@PlayerActivity.player
             controllerShowTimeoutMs = playerPreferences.controllerAutoHideTimeout.toMillis
             setControllerVisibilityListener(
                 PlayerView.ControllerVisibilityListener { visibility ->
@@ -413,8 +415,8 @@ class PlayerActivity : AppCompatActivity() {
 
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_AUDIO,
-                tracks = player.currentTracks,
-                onTrackSelected = { player.switchTrack(C.TRACK_TYPE_AUDIO, it) }
+                tracks = controller.currentTracks,
+                onTrackSelected = { controller.switchTrack(C.TRACK_TYPE_AUDIO, it) }
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
 
@@ -423,8 +425,8 @@ class PlayerActivity : AppCompatActivity() {
 
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_TEXT,
-                tracks = player.currentTracks,
-                onTrackSelected = { player.switchTrack(C.TRACK_TYPE_TEXT, it) },
+                tracks = controller.currentTracks,
+                onTrackSelected = { controller.switchTrack(C.TRACK_TYPE_TEXT, it) },
                 onOpenLocalTrackClicked = {
                     subtitleFileLauncher.launch(
                         arrayOf(
@@ -442,10 +444,10 @@ class PlayerActivity : AppCompatActivity() {
 
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedControlsDialogFragment(
-                currentSpeed = player.playbackParameters.speed,
+                currentSpeed = controller.playbackParameters.speed,
                 onChange = {
                     viewModel.isPlaybackSpeedChanged = true
-                    player.setPlaybackSpeed(it)
+                    controller.setPlaybackSpeed(it)
                 }
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
@@ -504,63 +506,74 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun initPlaylist() = lifecycleScope.launch(Dispatchers.IO) {
-        val mediaUri = getMediaContentUri(intent.data!!)
+        Timber.d("Init Playlist")
 
-        if (mediaUri != null) {
-            val playlist = viewModel.getPlaylistFromUri(mediaUri)
-            playlistManager.setPlaylist(playlist)
+        val mediaUri = getMediaContentUri(intent.data!!) ?: return@launch
+
+        val playlist = viewModel.getPlaylistFromUri(mediaUri)
+        playlistManager.setPlaylist(playlist)
+    }
+
+    private fun playVideo(uri: Uri) {
+        val controller = this.controller ?: return
+        Timber.d("Play Video")
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            // Update playlist manager and view model
+            playlistManager.updateCurrent(uri)
+            viewModel.updateState(uri.toString())
+
+            // Get subtitles
+            val subtitles = getAllSubtitles(uri)
+
+            // Create media stream with subtitles
+            val mediaStream = createMediaStream(uri)
+                .buildUpon()
+                .setSubtitleConfigurations(subtitles)
+                .build()
+
+            withContext(Dispatchers.Main) {
+                // Set up surface view and title
+                surfaceView = SurfaceView(this@PlayerActivity).apply {
+                    layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+                }
+                controller.setVideoSurfaceView(surfaceView)
+                exoContentFrameLayout.addView(surfaceView, 0)
+
+                videoTitleTextView.text = getVideoTitle(uri)
+
+                // Set media and start player
+                controller.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
+                controller.playWhenReady = playWhenReady
+                controller.prepare()
+            }
         }
     }
 
-    private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
-        playlistManager.updateCurrent(uri)
-        val isCurrentUriIsFromIntent = intent.data == uri
-
-        viewModel.updateState(uri.toString())
-        if (isCurrentUriIsFromIntent && playerApi.hasPosition && viewModel.currentPlaybackPosition == null) {
-            viewModel.currentPlaybackPosition = playerApi.position?.toLong()
-        }
-
-        // Get all subtitles for current uri
-        val apiSubs = if (isCurrentUriIsFromIntent) playerApi.getSubs() else emptyList()
+    private fun getAllSubtitles(uri: Uri): List<MediaItem.SubtitleConfiguration> {
+        val apiSubs = if (intent.data == uri) playerApi.getSubs() else emptyList()
         val localSubs = uri.getLocalSubtitles(currentContext, viewModel.externalSubtitles.toList())
         val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
+        return createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
+    }
 
-        // current uri as MediaItem with subs
-        val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
-        val mediaStream = createMediaStream(uri).buildUpon()
-            .setSubtitleConfigurations(subtitleStreams)
-            .build()
-
-        withContext(Dispatchers.Main) {
-            surfaceView = SurfaceView(this@PlayerActivity).apply {
-                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-            }
-            player.setVideoSurfaceView(surfaceView)
-            exoContentFrameLayout.addView(surfaceView, 0)
-
-            if (isCurrentUriIsFromIntent && playerApi.hasTitle) {
-                videoTitleTextView.text = playerApi.title
-            } else {
-                videoTitleTextView.text = getFilenameFromUri(uri)
-            }
-
-            // Set media and start player
-            player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
-            player.playWhenReady = playWhenReady
-            player.prepare()
+    private fun getVideoTitle(uri: Uri): String? {
+        return if (intent.data == uri && playerApi.hasTitle) {
+            playerApi.title
+        } else {
+            getFilenameFromUri(uri)
         }
     }
 
     private fun releasePlayer() {
         Timber.d("Releasing player")
+        val controller = this.controller ?: return
+        MediaController.releaseFuture(controllerFuture)
         subtitleCacheDir.deleteFiles()
-        playWhenReady = player.playWhenReady
+        playWhenReady = controller.playWhenReady
         playlistManager.getCurrent()?.let { savePlayerState(it) }
-        player.removeListener(playbackStateListener)
-        player.release()
-        mediaSession?.release()
-        mediaSession = null
+        player.removeListener(playbackStateListener())
+        controller.release()
     }
 
     private fun playbackStateListener() = object : Player.Listener {
@@ -578,6 +591,7 @@ class PlayerActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+            volumeManager.loudnessEnhancer = loudnessEnhancer
         }
 
         @SuppressLint("SourceLockedOrientationActivity")
@@ -679,11 +693,13 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun finish() {
+        val controller = this.controller ?: return
+
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
-                duration = player.duration,
-                position = player.currentPosition
+                duration = controller.duration,
+                position = controller.currentPosition
             )
             setResult(Activity.RESULT_OK, result)
         }
@@ -821,20 +837,14 @@ class PlayerActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
-    private fun getAudioAttributes(): AudioAttributes {
-        return AudioAttributes.Builder()
-            .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-            .build()
-    }
-
     private fun scrub(position: Long) {
+        val controller = this.controller ?: return
         if (isFrameRendered) {
             isFrameRendered = false
             if (position > previousScrubPosition) {
-                player.seekForward(position, shouldFastSeek)
+                controller.seekForward(position, shouldFastSeek)
             } else {
-                player.seekBack(position, shouldFastSeek)
+                controller.seekBack(position, shouldFastSeek)
             }
             previousScrubPosition = position
         }
@@ -890,9 +900,9 @@ class PlayerActivity : AppCompatActivity() {
         hideBrightnessIndicatorJob = lifecycleScope.launch {
             delay(delayTimeMillis)
             binding.brightnessGestureLayout.visibility = View.GONE
-        }
-        if (playerPreferences.rememberPlayerBrightness) {
-            viewModel.setPlayerBrightness(window.attributes.screenBrightness)
+            if (playerPreferences.rememberPlayerBrightness) {
+                viewModel.setPlayerBrightness(window.attributes.screenBrightness)
+            }
         }
     }
 
@@ -909,14 +919,15 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun savePlayerState(uri: Uri) {
+        val controller = this.controller ?: return
         if (isFirstFrameRendered) {
             viewModel.saveState(
                 uri = uri,
-                position = player.currentPosition,
-                duration = player.duration,
-                audioTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
-                subtitleTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
-                playbackSpeed = player.playbackParameters.speed
+                position = controller.currentPosition,
+                duration = controller.duration,
+                audioTrackIndex = controller.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
+                subtitleTrackIndex = controller.getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
+                playbackSpeed = controller.playbackParameters.speed
             )
         }
         isFirstFrameRendered = false
@@ -925,34 +936,39 @@ class PlayerActivity : AppCompatActivity() {
     private fun createMediaStream(uri: Uri) = MediaItem.Builder()
         .setMediaId(uri.toString())
         .setUri(uri)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setArtworkUri(uri)
+                .setTitle(getFilenameFromUri(uri))
+                .build()
+        )
         .build()
 
     private fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
-        return subtitles.map {
-            val charset = if (with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
+        return subtitles.map { subtitle ->
+            val charset = if (playerPreferences.subtitleTextEncoding.isNotEmpty() && Charset.isSupported(playerPreferences.subtitleTextEncoding)) {
                 Charset.forName(playerPreferences.subtitleTextEncoding)
             } else {
                 null
             }
-            MediaItem.SubtitleConfiguration.Builder(
-                convertToUTF8(
-                    uri = it.uri,
-                    charset = charset
-                )
-            ).apply {
-                setId(it.uri.toString())
-                setMimeType(it.uri.getSubtitleMime())
-                setLabel(it.name)
-                if (it.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-            }.build()
+            MediaItem.SubtitleConfiguration.Builder(convertToUTF8(subtitle.uri, charset))
+                .setId(subtitle.uri.toString())
+                .setMimeType(subtitle.uri.getSubtitleMime())
+                .setLabel(subtitle.name)
+                .apply { if (subtitle.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT) }
+                .build()
         }
     }
 
     private fun resetExoContentFrameWidthAndHeight() {
-        exoContentFrameLayout.layoutParams.width = LayoutParams.MATCH_PARENT
-        exoContentFrameLayout.layoutParams.height = LayoutParams.MATCH_PARENT
-        exoContentFrameLayout.scaleX = 1.0f
-        exoContentFrameLayout.scaleY = 1.0f
+        exoContentFrameLayout.apply {
+            scaleX = 1.0f
+            scaleY = 1.0f
+            layoutParams.apply {
+                width = LayoutParams.MATCH_PARENT
+                height = LayoutParams.MATCH_PARENT
+            }
+        }
         exoContentFrameLayout.requestLayout()
     }
 
@@ -964,21 +980,20 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
             }
-
             VideoZoom.STRETCH -> {
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
             }
-
             VideoZoom.CROP -> {
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
             }
-
             VideoZoom.HUNDRED_PERCENT -> {
                 currentVideoSize?.let {
-                    exoContentFrameLayout.layoutParams.width = it.width
-                    exoContentFrameLayout.layoutParams.height = it.height
+                    exoContentFrameLayout.layoutParams.apply {
+                        width = it.width
+                        height = it.height
+                    }
                     exoContentFrameLayout.requestLayout()
                 }
                 binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT

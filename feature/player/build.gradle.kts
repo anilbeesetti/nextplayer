@@ -28,6 +28,9 @@ dependencies {
     implementation(libs.google.android.material)
     implementation(libs.androidx.constraintlayout)
 
+    implementation(libs.coil)
+    implementation(libs.coil.ext)
+
     // Media3
     implementation(libs.bundles.media3)
     implementation(libs.github.anilbeesetti.nextlib.media3ext)
