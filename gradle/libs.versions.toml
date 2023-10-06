@@ -18,6 +18,7 @@ androidxMedia3 = "1.1.1"
 androidxNavigation = "2.7.4"
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.5"
+glide = "4.16.0"
 hilt = "2.48"
 junit4 = "4.13.2"
 kotlin = "1.9.10"
@@ -71,6 +72,7 @@ androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espres
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 github-anilbeesetti-nextlib = { group = "com.github.anilbeesetti", name = "nextlib", version.ref = "nextlib" }
 github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
