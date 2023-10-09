@@ -3,7 +3,9 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -47,15 +49,14 @@ fun PreferenceSwitchWithDivider(
             ) {
                 Divider(
                     modifier = Modifier
-                        .height(32.dp)
-                        .padding(horizontal = 8.dp)
+                        .padding(end = 12.dp)
+                        .height(38.dp)
                         .width(1.dp),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 )
                 NextSwitch(
                     checked = isChecked,
                     onCheckedChange = { onChecked() },
-                    modifier = Modifier.padding(start = 12.dp),
                     enabled = enabled
                 )
             }
@@ -68,7 +69,7 @@ fun PreferenceSwitchWithDivider(
 fun PreferenceSwitchWithDividerPreview() {
     PreferenceSwitchWithDivider(
         title = "Title",
-        description = "Description of the preference item goes here.",
+        description = "Description of the preference items goes here.",
         icon = NextIcons.DoubleTap,
         onClick = {},
         onChecked = {}
