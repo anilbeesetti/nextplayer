@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,6 +75,8 @@ fun MediaLazyList(
     )
 }
 
+
+
 @Composable
 fun CenterCircularProgressBar() {
     CircularProgressIndicator(
@@ -94,7 +99,8 @@ fun VideosListFromState(
     videosState: VideosState,
     preferences: ApplicationPreferences,
     onVideoClick: (Uri) -> Unit,
-    onDeleteVideoClick: (String) -> Unit
+    onDeleteVideoClick: (String) -> Unit,
+    showVideoInGrid: Boolean
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -108,19 +114,49 @@ fun VideosListFromState(
         is VideosState.Success -> if (videosState.data.isEmpty()) {
             NoVideosFound()
         } else {
-            MediaLazyList {
-                items(videosState.data, key = { it.path }) {
-                    VideoItem(
-                        video = it,
-                        preferences = preferences,
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onVideoClick(Uri.parse(it.uriString)) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showMediaActionsFor = it
-                            }
+            if(showVideoInGrid) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(
+                        items = videosState.data, key = {
+                            it.path
+                        }
+                    ) {
+                        VideoGridItem(
+                            video = it,
+                            preferences = preferences,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .combinedClickable(
+                                    onClick = { onVideoClick(Uri.parse(it.uriString)) },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showMediaActionsFor = it
+                                    }
+                                )
                         )
-                    )
+                    }
+                }
+            }
+            else {
+                MediaLazyList {
+                    items(items = videosState.data, key = {
+                        it.path
+                    }) {
+                        VideoItem(
+                            video = it,
+                            preferences = preferences,
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onVideoClick(Uri.parse(it.uriString)) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showMediaActionsFor = it
+                                }
+                            )
+                        )
+                    }
                 }
             }
         }

@@ -125,6 +125,15 @@ fun QuickSettingsDialog(
                         )
                     }
                 )
+                DialogPreferenceSwitch(
+                    text = stringResource(id = R.string.videos_in_grid),
+                    isChecked = preferences.showVideosInGrid,
+                    onClick = {
+                        preferences = preferences.copy(
+                            showVideosInGrid = !preferences.showVideosInGrid
+                        )
+                    }
+                )
             }
         },
         confirmButton = {

@@ -83,7 +83,8 @@ internal fun MediaPickerFolderScreen(
                 videosState = videosState,
                 preferences = preferences,
                 onVideoClick = onVideoClick,
-                onDeleteVideoClick = onDeleteVideoClick
+                onDeleteVideoClick = onDeleteVideoClick,
+                showVideoInGrid = preferences.showVideosInGrid
             )
         }
     }
