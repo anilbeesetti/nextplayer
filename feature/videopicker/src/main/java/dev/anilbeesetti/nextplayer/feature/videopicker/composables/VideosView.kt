@@ -120,7 +120,7 @@ fun VideosView(
                 }
             )
             BottomSheetItem(
-                text = "properties",
+                text = stringResource(R.string.properties),
                 icon = NextIcons.Info,
                 onClick = {
                     showInfoAction = it
