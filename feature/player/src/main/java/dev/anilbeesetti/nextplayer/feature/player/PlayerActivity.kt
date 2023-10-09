@@ -303,7 +303,7 @@ class PlayerActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R && playerPreferences.autoPip) {
             this.enterPictureInPictureMode(updatePictureInPictureParams())
         }
     }
