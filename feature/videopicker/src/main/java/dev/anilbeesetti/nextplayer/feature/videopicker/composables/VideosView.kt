@@ -186,7 +186,7 @@ fun ShowVideoInfoDialog(
                     MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
                     audioStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
                     MediaInfoText(title = stringResource(id = R.string.codec), subText = audioStream.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = audioStream.sampleRate.toString())
+                    MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = "${audioStream.sampleRate} Hz")
                     MediaInfoText(title = stringResource(id = R.string.sample_format), subText = audioStream.sampleFormat.toString())
                     Utils.formatBitrate(audioStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
                     MediaInfoText(title = stringResource(id = R.string.channels), subText = audioStream.channelLayout ?: audioStream.channels.toString())
