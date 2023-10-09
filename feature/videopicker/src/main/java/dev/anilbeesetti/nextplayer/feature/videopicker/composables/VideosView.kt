@@ -172,6 +172,7 @@ fun ShowVideoInfoDialog(
                 MediaInfoText(title = stringResource(id = R.string.file), subText = video.nameWithExtension)
                 MediaInfoText(title = stringResource(id = R.string.location), subText = video.parentPath)
                 MediaInfoText(title = stringResource(id = R.string.size), subText = video.formattedFileSize)
+                MediaInfoText(title = stringResource(id = R.string.duration), subText = video.formattedDuration)
                 video.format?.let { MediaInfoText(title = stringResource(id = R.string.format), subText = it) }
                 video.videoStream?.let { videoStream ->
                     MediaInfoTitle(text = stringResource(id = R.string.video_track))
