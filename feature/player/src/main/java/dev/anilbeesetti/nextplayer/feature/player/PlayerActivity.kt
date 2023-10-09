@@ -421,8 +421,8 @@ class PlayerActivity : AppCompatActivity() {
                 viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getNext()!!)
             } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                    playVideo(playlist[0])
-                    playlistManager.updateCurrent(playlist[0])
+                playVideo(playlist[0])
+                playlistManager.updateCurrent(playlist[0])
             }
         }
         prevButton.setOnClickListener {
@@ -431,8 +431,8 @@ class PlayerActivity : AppCompatActivity() {
                 viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getPrev()!!)
             } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                    playVideo(playlist[playlist.size - 1])
-                    playlistManager.updateCurrent(playlist[playlist.size - 1])
+                playVideo(playlist[playlist.size - 1])
+                playlistManager.updateCurrent(playlist[playlist.size - 1])
             }
         }
         lockControlsButton.setOnClickListener {
@@ -588,8 +588,8 @@ class PlayerActivity : AppCompatActivity() {
                     if (playlistManager.hasNext()) {
                         playVideo(playlistManager.getNext()!!)
                     } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                            playVideo(playlist[0])
-                            playlistManager.updateCurrent(playlist[0])
+                        playVideo(playlist[0])
+                        playlistManager.updateCurrent(playlist[0])
                     } else {
                         finish()
                     }
@@ -609,8 +609,8 @@ class PlayerActivity : AppCompatActivity() {
                         playlistManager.getCurrent()?.let { savePlayerState(it) }
                         playVideo(playlistManager.getNext()!!)
                     } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                            playVideo(playlist[0])
-                            playlistManager.updateCurrent(playlist[0])
+                        playVideo(playlist[0])
+                        playlistManager.updateCurrent(playlist[0])
                     } else {
                         finish()
                     }
