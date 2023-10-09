@@ -172,4 +172,17 @@
     <string name="thumbnail_size">Thumbnail size</string>
     <string name="require_audio_focus">Require audio focus</string>
     <string name="require_audio_focus_desc">Pause other players while this player is playing videos, and vice versa.</string>
+    <string name="file">File</string>
+    <string name="format">Format</string>
+    <string name="video_track">Video Track</string>
+    <string name="audio_track">Audio Track</string>
+    <string name="subtitle_track">Subtitle Track</string>
+    <string name="codec">Codec</string>
+    <string name="sample_rate">Sample rate</string>
+    <string name="sample_format">Sample format</string>
+    <string name="bitrate">Bitrate</string>
+    <string name="channels">Channels</string>
+    <string name="language">Language</string>
+    <string name="frame_rate">Frame rate</string>
+    <string name="okay">Okay</string>
 </resources>

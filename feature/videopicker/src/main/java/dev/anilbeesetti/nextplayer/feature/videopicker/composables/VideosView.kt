@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -167,68 +168,55 @@ fun ShowVideoInfoDialog(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
-                MediaInfoTitle(
-                    text = "File",
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
-                MediaInfoText(title = "File", subText = video.nameWithExtension)
-                MediaInfoText(title = "Location", subText = video.parentPath)
-                MediaInfoText(title = "Size", subText = video.formattedFileSize)
-                MediaInfoText(title = "Format", subText = video.format.toString())
+                MediaInfoTitle(text = stringResource(R.string.file))
+                MediaInfoText(title = stringResource(id = R.string.file), subText = video.nameWithExtension)
+                MediaInfoText(title = stringResource(id = R.string.location), subText = video.parentPath)
+                MediaInfoText(title = stringResource(id = R.string.size), subText = video.formattedFileSize)
+                MediaInfoText(title = stringResource(id = R.string.format), subText = video.format.toString())
                 video.videoStream?.let {
-                    MediaInfoTitle(
-                        text = "Video Track",
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                    )
-                    MediaInfoText(title = "Title", subText = it.title.toString())
-                    MediaInfoText(title = "Codec", subText = it.codecName)
-                    MediaInfoText(title = "Resolution", subText = "${it.frameWidth} x ${it.frameHeight}")
-                    MediaInfoText(title = "Frame rate", subText = it.frameRate.toInt().toString())
-                    MediaInfoText(title = "Bitrate", subText = it.bitRate.toString())
+                    MediaInfoTitle(text = stringResource(id = R.string.video_track))
+                    MediaInfoText(title = stringResource(id = R.string.title), subText = it.title.toString())
+                    MediaInfoText(title = stringResource(id = R.string.codec), subText = it.codecName)
+                    MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${it.frameWidth} x ${it.frameHeight}")
+                    MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = it.frameRate.toInt().toString())
+                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it.bitRate.toString())
                 }
                 video.audioStreams.forEachIndexed { index, it ->
-                    MediaInfoTitle(
-                        text = "Audio Track #${index + 1}",
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                    )
-                    MediaInfoText(title = "Title", subText = it.title.toString())
-                    MediaInfoText(title = "Codec", subText = it.codecName)
-                    MediaInfoText(title = "Sample rate", subText = it.sampleRate.toString())
-                    MediaInfoText(title = "Sample format", subText = it.sampleFormat.toString())
-                    MediaInfoText(title = "Bitrate", subText = it.bitRate.toString())
-                    MediaInfoText(title = "Channels", subText = it.channelLayout ?: it.channels.toString())
+                    MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
+                    MediaInfoText(title = stringResource(id = R.string.title), subText = it.title.toString())
+                    MediaInfoText(title = stringResource(id = R.string.codec), subText = it.codecName)
+                    MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = it.sampleRate.toString())
+                    MediaInfoText(title = stringResource(id = R.string.sample_format), subText = it.sampleFormat.toString())
+                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it.bitRate.toString())
+                    MediaInfoText(title = stringResource(id = R.string.channels), subText = it.channelLayout ?: it.channels.toString())
                 }
                 video.subtitleStreams.forEachIndexed { index, it ->
-                    MediaInfoTitle(
-                        text = "Subtitle Track #${index + 1}",
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                    )
-                    MediaInfoText(title = "Title", subText = it.title.toString())
-                    MediaInfoText(title = "Codec", subText = it.codecName)
-                    MediaInfoText(title = "Language", subText = it.language.toString())
+                    MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
+                    MediaInfoText(title = stringResource(id = R.string.title), subText = it.title.toString())
+                    MediaInfoText(title = stringResource(id = R.string.codec), subText = it.codecName)
+                    MediaInfoText(title = stringResource(id = R.string.language), subText = it.language.toString())
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Okay")
+                Text(text = stringResource(id = R.string.okay))
             }
         },
         dismissButton = { }
     )
 }
 
-
 @Composable
 fun MediaInfoTitle(
     text: String,
-    modifier: Modifier = Modifier
+    paddingValues: PaddingValues = PaddingValues(top = 16.dp, bottom = 2.dp),
 ) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier
+        modifier = Modifier.padding(paddingValues)
     )
 }
 
