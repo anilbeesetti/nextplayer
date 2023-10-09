@@ -38,10 +38,7 @@ abstract class MediaDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME = "media_db"
 
-        val migration4To5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL(
-                    """
+        const val VIDEO_STREAM_INFO_TABLE_SQL = """
                     CREATE TABLE IF NOT EXISTS video_stream_info (
                         stream_index INTEGER NOT NULL,
                         title TEXT,
@@ -56,10 +53,9 @@ abstract class MediaDatabase : RoomDatabase() {
                         PRIMARY KEY (medium_path, stream_index),
                         FOREIGN KEY (medium_path) REFERENCES media (path) ON DELETE CASCADE
                     );
-                    """.trimIndent()
-                )
-                database.execSQL(
                     """
+
+        const val AUDIO_STREAM_INFO_TABLE_SQL = """
                     CREATE TABLE IF NOT EXISTS audio_stream_info (
                         stream_index INTEGER NOT NULL,
                         title TEXT,
@@ -75,10 +71,9 @@ abstract class MediaDatabase : RoomDatabase() {
                         PRIMARY KEY (medium_path, stream_index),
                         FOREIGN KEY (medium_path) REFERENCES media (path) ON DELETE CASCADE
                     );
-                    """.trimIndent()
-                )
-                database.execSQL(
                     """
+
+        const val SUBTITLE_STREAM_INFO_TABLE_SQL = """
                     CREATE TABLE IF NOT EXISTS subtitle_stream_info (
                         stream_index INTEGER NOT NULL,
                         title TEXT,
@@ -89,8 +84,13 @@ abstract class MediaDatabase : RoomDatabase() {
                         PRIMARY KEY (medium_path, stream_index),
                         FOREIGN KEY (medium_path) REFERENCES media (path) ON DELETE CASCADE
                     );
-                    """.trimIndent()
-                )
+                    """
+
+        val migration4To5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(VIDEO_STREAM_INFO_TABLE_SQL.trimIndent())
+                database.execSQL(AUDIO_STREAM_INFO_TABLE_SQL.trimIndent())
+                database.execSQL(SUBTITLE_STREAM_INFO_TABLE_SQL.trimIndent())
             }
         }
     }
