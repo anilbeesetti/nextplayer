@@ -32,10 +32,10 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
@@ -112,14 +112,14 @@ internal fun MediaPickerScreen(
             contentAlignment = Alignment.Center
         ) {
             if (preferences.groupVideosByFolder) {
-                FoldersListFromState(
+                FoldersView(
                     foldersState = foldersState,
                     preferences = preferences,
                     onFolderClick = onFolderClick,
                     onDeleteFolderClick = onDeleteFolderClick
                 )
             } else {
-                VideosListFromState(
+                VideosView(
                     videosState = videosState,
                     onVideoClick = onPlayVideo,
                     preferences = preferences,
