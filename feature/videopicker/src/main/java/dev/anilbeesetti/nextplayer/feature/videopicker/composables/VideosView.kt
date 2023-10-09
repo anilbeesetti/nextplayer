@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -177,7 +178,7 @@ fun ShowVideoInfoDialog(
                     MediaInfoText(title = stringResource(id = R.string.codec), subText = videoStream.codecName)
                     MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}")
                     MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = videoStream.frameRate.toInt().toString())
-                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = videoStream.bitRate.toString())
+                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = Utils.formatBitrate(videoStream.bitRate))
                     videoStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
                 video.audioStreams.forEachIndexed { index, audioStream ->
@@ -186,7 +187,7 @@ fun ShowVideoInfoDialog(
                     MediaInfoText(title = stringResource(id = R.string.codec), subText = audioStream.codecName)
                     MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = audioStream.sampleRate.toString())
                     MediaInfoText(title = stringResource(id = R.string.sample_format), subText = audioStream.sampleFormat.toString())
-                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = audioStream.bitRate.toString())
+                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = Utils.formatBitrate(audioStream.bitRate))
                     MediaInfoText(title = stringResource(id = R.string.channels), subText = audioStream.channelLayout ?: audioStream.channels.toString())
                     audioStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }

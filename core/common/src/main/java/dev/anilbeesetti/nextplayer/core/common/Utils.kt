@@ -56,4 +56,21 @@ object Utils {
             else -> "%.2f GB".format(size / gb.toDouble())
         }
     }
+
+    fun formatBitrate(bitrate: Long): String {
+        if (bitrate <= 0) {
+            return "0 bps"
+        }
+
+        val kiloBitrate = bitrate.toDouble() / 1000.0
+        val megaBitrate = kiloBitrate / 1000.0
+        val gigaBitrate = megaBitrate / 1000.0
+
+        return when {
+            gigaBitrate >= 1.0 -> String.format("%.2f Gbits/sec", gigaBitrate)
+            megaBitrate >= 1.0 -> String.format("%.2f Mbits/sec", megaBitrate)
+            kiloBitrate >= 1.0 -> String.format("%.2f kbits/sec", kiloBitrate)
+            else -> String.format("%d bits/sec", bitrate)
+        }
+    }
 }
