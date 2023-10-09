@@ -59,6 +59,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
+import dev.anilbeesetti.nextplayer.core.model.VideoLoop
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
@@ -113,6 +114,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private var playWhenReady = true
     private var isPlaybackFinished = false
+    private var playlist: List<Uri> = emptyList()
 
     var isFileLoaded = false
     var isControlsLocked = false
@@ -280,11 +282,7 @@ class PlayerActivity : AppCompatActivity() {
         setOrientation()
         initializePlayerView()
         playVideo()
-        if (playerPreferences.loopVideo) {
-            loopOn()
-        } else {
-            loopOff()
-        }
+        setVideoLoop(playerPreferences.videoLoop, false)
         super.onStart()
     }
 
@@ -422,6 +420,9 @@ class PlayerActivity : AppCompatActivity() {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
                 viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getNext()!!)
+            } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
+                    playVideo(playlist[0])
+                    playlistManager.updateCurrent(playlist[0])
             }
         }
         prevButton.setOnClickListener {
@@ -429,6 +430,9 @@ class PlayerActivity : AppCompatActivity() {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
                 viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getPrev()!!)
+            } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
+                    playVideo(playlist[playlist.size - 1])
+                    playlistManager.updateCurrent(playlist[playlist.size - 1])
             }
         }
         lockControlsButton.setOnClickListener {
@@ -438,19 +442,8 @@ class PlayerActivity : AppCompatActivity() {
             toggleSystemBars(showBars = false)
         }
         loopVideoButton.setOnClickListener {
-            lifecycleScope.launch {
-                binding.infoLayout.visibility = View.VISIBLE
-                if (!playerPreferences.loopVideo) {
-                    binding.infoText.text = getString(coreUiR.string.loop_on)
-                    loopOn()
-                } else {
-                    binding.infoText.text = getString(coreUiR.string.loop_off)
-                    loopOff()
-                }
-                delay(HIDE_DELAY_MILLIS)
-                binding.infoLayout.visibility = View.GONE
-            }
-            viewModel.toggleLoopVideo()
+            val videoLoop = playerPreferences.videoLoop.next()
+            setVideoLoop(videoLoop = videoLoop, showInfo = true)
         }
         unlockControlsButton.setOnClickListener {
             playerLockControls.visibility = View.INVISIBLE
@@ -494,7 +487,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 if (mediaUri != null) {
                     launch(Dispatchers.IO) {
-                        val playlist = viewModel.getPlaylistFromUri(mediaUri)
+                        playlist = viewModel.getPlaylistFromUri(mediaUri)
                         playlistManager.setPlaylist(playlist)
                     }
                 }
@@ -592,7 +585,14 @@ class PlayerActivity : AppCompatActivity() {
                     dialog.dismiss()
                 }
                 .setOnDismissListener {
-                    if (playlistManager.hasNext()) playVideo(playlistManager.getNext()!!) else finish()
+                    if (playlistManager.hasNext()) {
+                        playVideo(playlistManager.getNext()!!)
+                    } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
+                            playVideo(playlist[0])
+                            playlistManager.updateCurrent(playlist[0])
+                    } else {
+                        finish()
+                    }
                 }
                 .create()
 
@@ -608,6 +608,9 @@ class PlayerActivity : AppCompatActivity() {
                     if (playlistManager.hasNext() && playerPreferences.autoplay) {
                         playlistManager.getCurrent()?.let { savePlayerState(it) }
                         playVideo(playlistManager.getNext()!!)
+                    } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
+                            playVideo(playlist[0])
+                            playlistManager.updateCurrent(playlist[0])
                     } else {
                         finish()
                     }
@@ -804,16 +807,6 @@ class PlayerActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
-    private fun loopOn() {
-        loopVideoButton.setImageResource(coreUiR.drawable.ic_repeat_on)
-        player.repeatMode = Player.REPEAT_MODE_ALL
-    }
-
-    private fun loopOff() {
-        loopVideoButton.setImageResource(coreUiR.drawable.ic_repeat_off)
-        player.repeatMode = Player.REPEAT_MODE_OFF
-    }
-
     private fun getAudioAttributes(): AudioAttributes {
         return AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -949,6 +942,34 @@ class PlayerActivity : AppCompatActivity() {
         exoContentFrameLayout.requestLayout()
     }
 
+    private fun setVideoLoop(videoLoop: VideoLoop, showInfo: Boolean) {
+        viewModel.setVideoLoop(videoLoop)
+        when (videoLoop) {
+            VideoLoop.LOOP_OFF -> {
+                player.repeatMode = Player.REPEAT_MODE_OFF
+                loopVideoButton.setImageResource(coreUiR.drawable.ic_repeat_off)
+            }
+
+            VideoLoop.LOOP_ONE -> {
+                player.repeatMode = Player.REPEAT_MODE_ONE
+                loopVideoButton.setImageResource(coreUiR.drawable.ic_repeat_one)
+            }
+
+            VideoLoop.LOOP_ALL -> {
+                player.repeatMode = Player.REPEAT_MODE_OFF
+                loopVideoButton.setImageResource(coreUiR.drawable.ic_repeat_on)
+            }
+        }
+        if (showInfo) {
+            lifecycleScope.launch {
+                binding.infoLayout.visibility = View.VISIBLE
+                binding.infoText.text = getString(videoLoop.nameRes())
+                delay(HIDE_DELAY_MILLIS)
+                binding.infoLayout.visibility = View.GONE
+            }
+        }
+    }
+
     private fun applyVideoZoom(videoZoom: VideoZoom, showInfo: Boolean) {
         viewModel.setVideoZoom(videoZoom)
         resetExoContentFrameWidthAndHeight()
@@ -991,6 +1012,16 @@ class PlayerActivity : AppCompatActivity() {
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
     }
+}
+
+private fun VideoLoop.nameRes(): Int {
+    val stringRes = when (this) {
+        VideoLoop.LOOP_OFF -> coreUiR.string.loop_off
+        VideoLoop.LOOP_ONE -> coreUiR.string.loop_current
+        VideoLoop.LOOP_ALL -> coreUiR.string.loop_all
+    }
+
+    return stringRes
 }
 
 private fun Activity.getRotationDrawable(): Int {

@@ -16,7 +16,7 @@ data class PlayerPreferences(
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
-    val loopVideo: Boolean = false,
+    val videoLoop: VideoLoop = VideoLoop.LOOP_OFF,
 
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,
