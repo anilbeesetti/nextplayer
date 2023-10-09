@@ -66,7 +66,8 @@ fun MediaPickerRoute(
         onSettingsClick = onSettingsClick,
         updatePreferences = viewModel::updateMenu,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
-        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) }
+        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) },
+        onAddToSync = viewModel::addToMediaInfoSynchronizer
     )
 }
 
@@ -81,7 +82,8 @@ internal fun MediaPickerScreen(
     onSettingsClick: () -> Unit = {},
     updatePreferences: (ApplicationPreferences) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
-    onDeleteFolderClick: (String) -> Unit
+    onDeleteFolderClick: (String) -> Unit,
+    onAddToSync: (Uri) -> Unit = {}
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
@@ -121,7 +123,8 @@ internal fun MediaPickerScreen(
                     videosState = videosState,
                     onVideoClick = onPlayVideo,
                     preferences = preferences,
-                    onDeleteVideoClick = onDeleteVideoClick
+                    onDeleteVideoClick = onDeleteVideoClick,
+                    onVideoLoaded = onAddToSync
                 )
             }
         }
@@ -153,8 +156,9 @@ fun MediaPickerScreenPreview(
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                     onPlayVideo = {},
                     onFolderClick = {},
-                    onDeleteVideoClick = {}
-                ) {}
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
+                )
             }
         }
     }
@@ -185,8 +189,9 @@ fun MediaPickerNoVideosFoundPreview() {
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
-                onDeleteVideoClick = {}
-            ) {}
+                onDeleteVideoClick = {},
+                onDeleteFolderClick = {}
+            )
         }
     }
 }
@@ -202,8 +207,9 @@ fun MediaPickerLoadingPreview() {
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
-                onDeleteVideoClick = {}
-            ) {}
+                onDeleteVideoClick = {},
+                onDeleteFolderClick = {}
+            )
         }
     }
 }

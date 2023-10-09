@@ -16,6 +16,7 @@ import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
+import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
@@ -34,11 +35,11 @@ class LocalMediaRepository @Inject constructor(
 ) : MediaRepository {
 
     override fun getVideosFlow(): Flow<List<Video>> {
-        return mediumDao.getAll().map { it.map(MediumEntity::toVideo) }
+        return mediumDao.getAllWithInfo().map { it.map(MediumWithInfo::toVideo) }
     }
 
     override fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>> {
-        return mediumDao.getAllFromDirectory(folderPath).map { it.map(MediumEntity::toVideo) }
+        return mediumDao.getAllWithInfoFromDirectory(folderPath).map { it.map(MediumWithInfo::toVideo) }
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {

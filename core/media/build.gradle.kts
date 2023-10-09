@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":core:database"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.github.anilbeesetti.nextlib.mediainfo)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
