@@ -172,29 +172,31 @@ fun ShowVideoInfoDialog(
                 MediaInfoText(title = stringResource(id = R.string.file), subText = video.nameWithExtension)
                 MediaInfoText(title = stringResource(id = R.string.location), subText = video.parentPath)
                 MediaInfoText(title = stringResource(id = R.string.size), subText = video.formattedFileSize)
-                MediaInfoText(title = stringResource(id = R.string.format), subText = video.format.toString())
-                video.videoStream?.let {
+                video.format?.let { MediaInfoText(title = stringResource(id = R.string.format), subText = it) }
+                video.videoStream?.let { videoStream ->
                     MediaInfoTitle(text = stringResource(id = R.string.video_track))
-                    MediaInfoText(title = stringResource(id = R.string.title), subText = it.title.toString())
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = it.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${it.frameWidth} x ${it.frameHeight}")
-                    MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = it.frameRate.toInt().toString())
-                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it.bitRate.toString())
+                    videoStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
+                    MediaInfoText(title = stringResource(id = R.string.codec), subText = videoStream.codecName)
+                    MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}")
+                    MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = videoStream.frameRate.toInt().toString())
+                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = videoStream.bitRate.toString())
+                    videoStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
-                video.audioStreams.forEachIndexed { index, it ->
+                video.audioStreams.forEachIndexed { index, audioStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
-                    MediaInfoText(title = stringResource(id = R.string.title), subText = it.title.toString())
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = it.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = it.sampleRate.toString())
-                    MediaInfoText(title = stringResource(id = R.string.sample_format), subText = it.sampleFormat.toString())
-                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it.bitRate.toString())
-                    MediaInfoText(title = stringResource(id = R.string.channels), subText = it.channelLayout ?: it.channels.toString())
+                    audioStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
+                    MediaInfoText(title = stringResource(id = R.string.codec), subText = audioStream.codecName)
+                    MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = audioStream.sampleRate.toString())
+                    MediaInfoText(title = stringResource(id = R.string.sample_format), subText = audioStream.sampleFormat.toString())
+                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = audioStream.bitRate.toString())
+                    MediaInfoText(title = stringResource(id = R.string.channels), subText = audioStream.channelLayout ?: audioStream.channels.toString())
+                    audioStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
-                video.subtitleStreams.forEachIndexed { index, it ->
+                video.subtitleStreams.forEachIndexed { index, subtitleStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
-                    MediaInfoText(title = stringResource(id = R.string.title), subText = it.title.toString())
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = it.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.language), subText = it.language.toString())
+                    subtitleStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
+                    MediaInfoText(title = stringResource(id = R.string.codec), subText = subtitleStream.codecName)
+                    subtitleStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
             }
         },
@@ -202,8 +204,7 @@ fun ShowVideoInfoDialog(
             TextButton(onClick = onDismiss) {
                 Text(text = stringResource(id = R.string.okay))
             }
-        },
-        dismissButton = { }
+        }
     )
 }
 
