@@ -144,7 +144,6 @@ fun VideosView(
         )
     }
 
-
     showInfoAction?.let {
         ShowVideoInfoDialog(
             video = it,
@@ -152,7 +151,6 @@ fun VideosView(
         )
     }
 }
-
 
 @Composable
 fun ShowVideoInfoDialog(
@@ -211,7 +209,7 @@ fun ShowVideoInfoDialog(
 @Composable
 fun MediaInfoTitle(
     text: String,
-    paddingValues: PaddingValues = PaddingValues(top = 16.dp, bottom = 2.dp),
+    paddingValues: PaddingValues = PaddingValues(top = 16.dp, bottom = 2.dp)
 ) {
     Text(
         text = text,
