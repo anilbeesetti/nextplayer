@@ -25,4 +25,3 @@ fun MediumWithInfo.toVideo() = Video(
     audioStreams = audioStreamsInfo.map(AudioStreamInfoEntity::toAudioStreamInfo),
     subtitleStreams = subtitleStreamsInfo.map(SubtitleStreamInfoEntity::toSubtitleStreamInfo)
 )
-
