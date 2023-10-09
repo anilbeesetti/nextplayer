@@ -124,7 +124,11 @@ class LocalMediaSynchronizer @Inject constructor(
             unwantedMedia.onEach {
                 for (sub in UriListConverter.fromStringToList(it.externalSubs)) {
                     if (sub !in currentMediaExternalSubs) {
-                        context.contentResolver.releasePersistableUriPermission(sub, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        try {
+                            context.contentResolver.releasePersistableUriPermission(sub, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }

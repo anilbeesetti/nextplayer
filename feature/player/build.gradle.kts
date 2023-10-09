@@ -30,7 +30,8 @@ dependencies {
 
     // Media3
     implementation(libs.bundles.media3)
-    implementation(libs.github.anilbeesetti.nextlib)
+    implementation(libs.github.anilbeesetti.nextlib.media3ext)
+    implementation(libs.github.anilbeesetti.nextlib.mediainfo)
 
     implementation(libs.timber)
 

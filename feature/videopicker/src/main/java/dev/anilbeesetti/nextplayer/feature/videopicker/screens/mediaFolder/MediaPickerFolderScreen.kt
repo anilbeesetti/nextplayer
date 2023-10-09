@@ -48,7 +48,8 @@ fun MediaPickerFolderRoute(
         preferences = preferences,
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) }
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
+        onAddToSync = viewModel::addToMediaInfoSynchronizer
     )
 }
 
@@ -60,7 +61,8 @@ internal fun MediaPickerFolderScreen(
     preferences: ApplicationPreferences,
     onNavigateUp: () -> Unit,
     onVideoClick: (Uri) -> Unit,
-    onDeleteVideoClick: (String) -> Unit
+    onDeleteVideoClick: (String) -> Unit,
+    onAddToSync: (Uri) -> Unit
 ) {
     Column {
         NextTopAppBar(
@@ -83,7 +85,8 @@ internal fun MediaPickerFolderScreen(
                 videosState = videosState,
                 preferences = preferences,
                 onVideoClick = onVideoClick,
-                onDeleteVideoClick = onDeleteVideoClick
+                onDeleteVideoClick = onDeleteVideoClick,
+                onVideoLoaded = onAddToSync
             )
         }
     }
