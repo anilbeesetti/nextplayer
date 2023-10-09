@@ -178,7 +178,7 @@ fun ShowVideoInfoDialog(
                     MediaInfoText(title = stringResource(id = R.string.codec), subText = videoStream.codecName)
                     MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}")
                     MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = videoStream.frameRate.toInt().toString())
-                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = Utils.formatBitrate(videoStream.bitRate))
+                    Utils.formatBitrate(videoStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
                     videoStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
                 video.audioStreams.forEachIndexed { index, audioStream ->
@@ -187,7 +187,7 @@ fun ShowVideoInfoDialog(
                     MediaInfoText(title = stringResource(id = R.string.codec), subText = audioStream.codecName)
                     MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = audioStream.sampleRate.toString())
                     MediaInfoText(title = stringResource(id = R.string.sample_format), subText = audioStream.sampleFormat.toString())
-                    MediaInfoText(title = stringResource(id = R.string.bitrate), subText = Utils.formatBitrate(audioStream.bitRate))
+                    Utils.formatBitrate(audioStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
                     MediaInfoText(title = stringResource(id = R.string.channels), subText = audioStream.channelLayout ?: audioStream.channels.toString())
                     audioStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
