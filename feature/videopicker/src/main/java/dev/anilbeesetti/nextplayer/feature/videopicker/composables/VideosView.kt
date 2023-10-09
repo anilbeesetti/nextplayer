@@ -40,6 +40,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -179,7 +180,6 @@ fun ShowVideoInfoDialog(
                     MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}")
                     MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = videoStream.frameRate.toInt().toString())
                     Utils.formatBitrate(videoStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
-                    videoStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
                 video.audioStreams.forEachIndexed { index, audioStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
@@ -189,13 +189,13 @@ fun ShowVideoInfoDialog(
                     MediaInfoText(title = stringResource(id = R.string.sample_format), subText = audioStream.sampleFormat.toString())
                     Utils.formatBitrate(audioStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
                     MediaInfoText(title = stringResource(id = R.string.channels), subText = audioStream.channelLayout ?: audioStream.channels.toString())
-                    audioStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
+                    Utils.formatLanguage(audioStream.language)?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
                 video.subtitleStreams.forEachIndexed { index, subtitleStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
                     subtitleStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
                     MediaInfoText(title = stringResource(id = R.string.codec), subText = subtitleStream.codecName)
-                    subtitleStream.language?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
+                    Utils.formatLanguage(subtitleStream.language)?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
                 }
             }
         },

@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.common
 
 import android.content.res.Resources
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -72,5 +73,9 @@ object Utils {
             kiloBitrate >= 1.0 -> String.format("%.1f kbits/sec", kiloBitrate)
             else -> String.format("%d bits/sec", bitrate)
         }
+    }
+
+    fun formatLanguage(language: String?): String? {
+        return language?.let { lang -> Locale.forLanguageTag(lang).displayLanguage.takeIf { it.isNotEmpty() } }
     }
 }
