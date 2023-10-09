@@ -39,7 +39,7 @@ fun PreferenceItem(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier
-                        .padding(horizontal = 12.dp)
+                        .padding(horizontal = 6.dp)
                         .size(24.dp),
                     tint = MaterialTheme.colorScheme.secondary.applyAlpha(enabled)
                 )
