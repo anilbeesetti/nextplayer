@@ -54,7 +54,7 @@ abstract class MediaDatabase : RoomDatabase() {
                         height INTEGER NOT NULL,
                         medium_path TEXT NOT NULL,
                         PRIMARY KEY (medium_path, stream_index),
-                        FOREIGN KEY (medium_path) REFERENCES medium_entity (path) ON DELETE CASCADE
+                        FOREIGN KEY (medium_path) REFERENCES media (path) ON DELETE CASCADE
                     );
                     """.trimIndent()
                 )
@@ -73,7 +73,7 @@ abstract class MediaDatabase : RoomDatabase() {
                         channel_layout TEXT,
                         medium_path TEXT NOT NULL,
                         PRIMARY KEY (medium_path, stream_index),
-                        FOREIGN KEY (medium_path) REFERENCES medium_entity (path) ON DELETE CASCADE
+                        FOREIGN KEY (medium_path) REFERENCES media (path) ON DELETE CASCADE
                     );
                     """.trimIndent()
                 )
@@ -87,7 +87,7 @@ abstract class MediaDatabase : RoomDatabase() {
                         disposition INTEGER NOT NULL,
                         medium_path TEXT NOT NULL,
                         PRIMARY KEY (medium_path, stream_index),
-                        FOREIGN KEY (medium_path) REFERENCES medium_entity (path) ON DELETE CASCADE
+                        FOREIGN KEY (medium_path) REFERENCES media (path) ON DELETE CASCADE
                     );
                     """.trimIndent()
                 )
