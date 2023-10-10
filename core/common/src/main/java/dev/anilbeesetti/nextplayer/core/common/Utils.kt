@@ -68,10 +68,10 @@ object Utils {
         val gigaBitrate = megaBitrate / 1000.0
 
         return when {
-            gigaBitrate >= 1.0 -> String.format("%.1f Gbits/sec", gigaBitrate)
-            megaBitrate >= 1.0 -> String.format("%.1f Mbits/sec", megaBitrate)
-            kiloBitrate >= 1.0 -> String.format("%.1f kbits/sec", kiloBitrate)
-            else -> String.format("%d bits/sec", bitrate)
+            gigaBitrate >= 1.0 -> String.format("%.1f Gbps", gigaBitrate)
+            megaBitrate >= 1.0 -> String.format("%.1f Mbps", megaBitrate)
+            kiloBitrate >= 1.0 -> String.format("%.1f kbps", kiloBitrate)
+            else -> String.format("%d bps", bitrate)
         }
     }
 
