@@ -57,7 +57,7 @@ fun FolderItem(
         supportingContent = {
             if (preferences.showPathField) {
                 Text(
-                    text = folder.path,
+                    text = folder.path.substringBeforeLast("/"),
                     maxLines = 2,
                     style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
