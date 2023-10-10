@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
@@ -81,7 +81,7 @@ internal fun MediaPickerFolderScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            VideosListFromState(
+            VideosView(
                 videosState = videosState,
                 preferences = preferences,
                 onVideoClick = onVideoClick,
