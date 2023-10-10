@@ -48,7 +48,7 @@ fun VideoItem(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
+                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f))
                     .aspectRatio(16f / 10f)
             ) {
                 Icon(
