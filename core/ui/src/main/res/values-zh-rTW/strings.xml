@@ -86,7 +86,7 @@
     <string name="system_volume_panel_desc">當配戴耳機調整音量時，顯示系統音量面板</string>
     <string name="open_settings">開啟設定</string>
     <string name="system_caption_style">系統字幕樣式</string>
-    <string name="preferred_audio_lang_description">預設使用的音軌語言</string>
+    <string name="preferred_audio_lang_description">預設使用的音訊軌語言</string>
     <string name="default_name">預設</string>
     <string name="select_audio_track">選擇音軌</string>
     <string name="location">地點</string>
@@ -170,4 +170,18 @@
     <string name="system_default">系統預設</string>
     <string name="decoder_priority">解碼器優先等級</string>
     <string name="done">完成</string>
+    <string name="codec">編解碼器</string>
+    <string name="properties">屬性</string>
+    <string name="channels">聲道數</string>
+    <string name="video_track">視訊軌</string>
+    <string name="subtitle_track">字幕軌</string>
+    <string name="sample_format">取樣格式</string>
+    <string name="bitrate">位元率</string>
+    <string name="frame_rate">影格率</string>
+    <string name="language">語言</string>
+    <string name="okay">是</string>
+    <string name="audio_track">音訊軌</string>
+    <string name="sample_rate">取樣率</string>
+    <string name="file">檔案</string>
+    <string name="format">格式</string>
 </resources>
