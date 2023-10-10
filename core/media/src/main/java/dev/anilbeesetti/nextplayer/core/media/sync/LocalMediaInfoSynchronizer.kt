@@ -17,15 +17,15 @@ import io.github.anilbeesetti.nextlib.mediainfo.AudioStream
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import io.github.anilbeesetti.nextlib.mediainfo.SubtitleStream
 import io.github.anilbeesetti.nextlib.mediainfo.VideoStream
+import java.io.File
+import java.io.FileOutputStream
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import javax.inject.Inject
 
 class LocalMediaInfoSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
@@ -110,7 +110,6 @@ fun SubtitleStream.toSubtitleStreamInfoEntity(mediumPath: String) = SubtitleStre
     disposition = disposition,
     mediumPath = mediumPath
 )
-
 
 suspend fun Bitmap.saveTo(storageDir: File, quality: Int = 100): String? = withContext(Dispatchers.IO) {
     val thumbnailFileName = "thumbnail-${System.currentTimeMillis()}"
