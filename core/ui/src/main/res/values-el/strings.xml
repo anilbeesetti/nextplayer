@@ -170,4 +170,18 @@
     <string name="fast_playback_speed">%.1fx ταχύτητα</string>
     <string name="require_audio_focus">Εστίαση ήχου</string>
     <string name="require_audio_focus_desc">Παύση άλλων αναπαραγωγών όταν η εφαρμογή παίζει βίντεο και το αντίστροφο.</string>
+    <string name="codec">Κωδικοποιητής</string>
+    <string name="properties">Ιδιότητες</string>
+    <string name="channels">Κανάλια</string>
+    <string name="video_track">Βίντεο</string>
+    <string name="subtitle_track">Υπότιτλοι</string>
+    <string name="sample_format">Μορφή δειγματοληψίας</string>
+    <string name="bitrate">Ρυθμός bit</string>
+    <string name="frame_rate">Ρυθμός καρέ</string>
+    <string name="language">Γλώσσα</string>
+    <string name="okay">Εντάξει</string>
+    <string name="audio_track">Ήχος</string>
+    <string name="sample_rate">Ρυθμός δειγματοληψίας</string>
+    <string name="file">Αρχείο</string>
+    <string name="format">Μορφή</string>
 </resources>
