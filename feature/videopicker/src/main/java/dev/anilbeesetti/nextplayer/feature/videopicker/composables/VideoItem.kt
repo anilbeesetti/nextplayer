@@ -100,7 +100,7 @@ fun VideoItem(
         supportingContent = {
             if (preferences.showPathField) {
                 Text(
-                    text = video.path,
+                    text = video.path.substringBeforeLast("/"),
                     maxLines = 2,
                     style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
