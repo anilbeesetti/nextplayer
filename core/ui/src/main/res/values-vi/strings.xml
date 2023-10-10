@@ -106,7 +106,7 @@
     <string name="play_pause_ff_rewind">Phát/Tạm dừng và Tua nhanh tới/Tua lùi</string>
     <string name="enter_a_network_url">Nhập một URL mạng:</string>
     <string name="thumbnail">Ảnh xem trước</string>
-    <string name="compact">Gọn nhẹ</string>
+    <string name="compact">Nhỏ gọn</string>
     <string name="manage_folders_desc">Chọn thư mục cần loại trừ trong thư viện phương tiện</string>
     <string name="remember_brightness_level">Ghi nhớ mức độ sáng</string>
     <string name="landscape">Ngang</string>
@@ -170,4 +170,18 @@
     <string name="system_default">Mặc định hệ thống</string>
     <string name="decoder_priority">Bộ giải mã ưu tiên</string>
     <string name="done">Hoàn thành</string>
+    <string name="codec">Bộ giải mã</string>
+    <string name="properties">Thuộc tính</string>
+    <string name="channels">Kênh</string>
+    <string name="video_track">Đoạn video</string>
+    <string name="subtitle_track">Bản phụ đề</string>
+    <string name="sample_format">Định dạng mẫu</string>
+    <string name="bitrate">Tốc độ bit</string>
+    <string name="frame_rate">Tỷ lệ khung hình</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="okay">Đồng ý</string>
+    <string name="audio_track">Luồng âm thanh</string>
+    <string name="sample_rate">Tốc độ mẫu</string>
+    <string name="file">Tập tin</string>
+    <string name="format">Định dạng</string>
 </resources>
