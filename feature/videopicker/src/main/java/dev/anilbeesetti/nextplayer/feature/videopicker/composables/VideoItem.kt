@@ -66,9 +66,9 @@ fun VideoItem(
                         .align(Alignment.Center)
                         .fillMaxSize(0.5f)
                 )
-                if (video.uriString.isNotEmpty() && preferences.showThumbnailField) {
+                if (!video.thumbnailPath.isNullOrEmpty() && preferences.showThumbnailField) {
                     GlideImage(
-                        imageModel = { video.uriString },
+                        imageModel = { video.thumbnailPath },
                         imageOptions = ImageOptions(
                             contentScale = ContentScale.Crop,
                             alignment = Alignment.Center
