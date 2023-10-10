@@ -19,6 +19,7 @@ fun MediumWithInfo.toVideo() = Video(
     size = mediumEntity.size,
     dateModified = mediumEntity.modified,
     format = mediumEntity.format,
+    thumbnailPath = mediumEntity.thumbnailPath,
     formattedDuration = Utils.formatDurationMillis(mediumEntity.duration),
     formattedFileSize = Utils.formatFileSize(mediumEntity.size),
     videoStream = videoStreamInfo?.toVideoStreamInfo(),
