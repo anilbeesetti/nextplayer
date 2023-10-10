@@ -132,7 +132,6 @@ fun VideoItemPreview() {
     }
 }
 
-
 @Composable
 private fun thumbWidthDp(size: Size): Dp {
     val localConfig = LocalConfiguration.current
