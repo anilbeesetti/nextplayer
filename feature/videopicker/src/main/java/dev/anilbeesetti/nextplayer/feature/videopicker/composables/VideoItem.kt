@@ -24,13 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.Size
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -50,7 +48,7 @@ fun VideoItem(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .width(thumbWidthDp(size = preferences.thumbnailSize))
+                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
                     .aspectRatio(16f / 10f)
             ) {
                 Icon(
@@ -129,16 +127,5 @@ fun VideoItemPreview() {
         Surface {
             VideoItem(video = Video.sample, preferences = ApplicationPreferences())
         }
-    }
-}
-
-@Composable
-private fun thumbWidthDp(size: Size): Dp {
-    val localConfig = LocalConfiguration.current
-    val maxScreenWidthDp = localConfig.screenWidthDp.dp * 0.4f
-    return when (size) {
-        Size.COMPACT -> min(130.dp, maxScreenWidthDp)
-        Size.MEDIUM -> min(165.dp, maxScreenWidthDp)
-        Size.LARGE -> min(200.dp, maxScreenWidthDp)
     }
 }

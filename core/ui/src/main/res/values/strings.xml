@@ -166,10 +166,6 @@
     <string name="path">Path</string>
     <string name="resolution">Resolution</string>
     <string name="thumbnail">Thumbnail</string>
-    <string name="compact">Compact</string>
-    <string name="medium">Medium</string>
-    <string name="large">Large</string>
-    <string name="thumbnail_size">Thumbnail size</string>
     <string name="require_audio_focus">Require audio focus</string>
     <string name="require_audio_focus_desc">Pause other players while this player is playing videos, and vice versa.</string>
     <string name="file">File</string>
