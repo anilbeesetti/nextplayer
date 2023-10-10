@@ -13,8 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -36,14 +38,14 @@ fun FolderItem(
     ListItem(
         leadingContent = {
             Icon(
-                imageVector = NextIcons.Folder,
+                imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
-                    .negativeVerticalPadding(8.dp)
-                    .sizeIn(maxWidth = 250.dp)
+                    .padding(horizontal = 5.dp)
+                    .sizeIn(maxWidth = 200.dp)
                     .fillMaxWidth(0.45f)
-                    .aspectRatio(1f)
+                    .aspectRatio(20/17f)
             )
         },
         headlineContent = {
