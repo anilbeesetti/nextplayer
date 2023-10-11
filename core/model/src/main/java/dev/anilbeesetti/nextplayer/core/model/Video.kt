@@ -17,6 +17,7 @@ data class Video(
     val formattedDuration: String = "",
     val formattedFileSize: String = "",
     val format: String? = null,
+    val thumbnailPath: String? = null,
     val videoStream: VideoStreamInfo? = null,
     val audioStreams: List<AudioStreamInfo> = emptyList(),
     val subtitleStreams: List<SubtitleStreamInfo> = emptyList()

@@ -23,6 +23,7 @@ data class MediumEntity(
 
     // Medium info
     @ColumnInfo(name = "format", defaultValue = "NULL") val format: String? = null,
+    @ColumnInfo(name = "thumbnailPath", defaultValue = "NULL") val thumbnailPath: String? = null,
 
     // Medium playback state
     @ColumnInfo(name = "playback_position") val playbackPosition: Long = 0,
