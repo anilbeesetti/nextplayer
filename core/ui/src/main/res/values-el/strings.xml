@@ -3,7 +3,7 @@
     <string name="about_name">Σχετικά</string>
     <string name="descending">Φθίνουσα</string>
     <string name="cancel">Άκυρο</string>
-    <string name="disable">Ανενεργή</string>
+    <string name="disable">Ανενεργό</string>
     <string name="done">Ολοκλήρωση</string>
     <string name="double_tap">Διπλό πάτημα</string>
     <string name="double_tap_description">Επιλέξτε ενέργεια με διπλό πάτημα</string>
@@ -29,8 +29,8 @@
     <string name="remember_selections">Επιλογές</string>
     <string name="resume">Ανάκτηση</string>
     <string name="resume_description">Ανάκτηση αναπαραγωγής από το σημείο που σταματήσατε</string>
-    <string name="select_audio_track">Επιλογή κομματιού ήχου</string>
-    <string name="select_subtitle_track">Επιλογή κομματιού υποτίτλων</string>
+    <string name="select_audio_track">Επιλογή ήχου</string>
+    <string name="select_subtitle_track">Επιλογή υποτίτλων</string>
     <string name="settings">Ρυθμίσεις</string>
     <string name="size">Μέγεθος</string>
     <string name="sort">Ταξινόμηση κατά</string>
