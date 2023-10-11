@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.min
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.Size
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -45,17 +44,11 @@ fun VideoItem(
 ) {
     ListItem(
         leadingContent = {
-            val localConfig = LocalConfiguration.current
-            val thumbWidth = when (preferences.thumbnailSize) {
-                Size.COMPACT -> 130.dp
-                Size.MEDIUM -> 165.dp
-                Size.LARGE -> 200.dp
-            }
             Box(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .widthIn(max = min(thumbWidth, localConfig.screenWidthDp.dp * 0.45f))
+                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f))
                     .aspectRatio(16f / 10f)
             ) {
                 Icon(

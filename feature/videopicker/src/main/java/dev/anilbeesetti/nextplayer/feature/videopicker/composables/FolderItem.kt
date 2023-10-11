@@ -6,23 +6,23 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.offset
+import androidx.compose.ui.unit.min
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
@@ -36,14 +36,12 @@ fun FolderItem(
     ListItem(
         leadingContent = {
             Icon(
-                imageVector = NextIcons.Folder,
+                imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
-                    .negativeVerticalPadding(8.dp)
-                    .sizeIn(maxWidth = 250.dp)
-                    .fillMaxWidth(0.45f)
-                    .aspectRatio(1f)
+                    .width(min(100.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
+                    .aspectRatio(20 / 15f)
             )
         },
         headlineContent = {
@@ -90,13 +88,4 @@ fun FolderItemPreview() {
     NextPlayerTheme {
         FolderItem(folder = Folder.sample, preferences = ApplicationPreferences())
     }
-}
-
-fun Modifier.negativeVerticalPadding(vertical: Dp) = layout { measurable, constraints ->
-    val placeable = measurable.measure(constraints.offset(vertical = (-vertical * 2).roundToPx()))
-
-    layout(
-        width = placeable.width,
-        height = placeable.height - (vertical * 2).roundToPx()
-    ) { placeable.place(0, 0 - vertical.roundToPx()) }
 }
