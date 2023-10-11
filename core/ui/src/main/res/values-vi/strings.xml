@@ -18,7 +18,6 @@
     <string name="interface_name">Giao diện</string>
     <string name="remember_selections">Ghi nhớ lựa chọn</string>
     <string name="remember_selections_description">Ghi nhớ các lựa chọn cho từng tệp như luồng âm thanh, bản phụ đề, v.v</string>
-    <string name="medium">Trung bình</string>
     <string name="landscape_reverse">Ngang đảo ngược</string>
     <string name="long_press_gesture_desc">Nhấn lâu để phát ở tốc độ %.1fx</string>
     <string name="network_stream">Luồng phát qua mạng</string>
@@ -106,11 +105,9 @@
     <string name="play_pause_ff_rewind">Phát/Tạm dừng và Tua nhanh tới/Tua lùi</string>
     <string name="enter_a_network_url">Nhập một URL mạng:</string>
     <string name="thumbnail">Ảnh xem trước</string>
-    <string name="compact">Nhỏ gọn</string>
     <string name="manage_folders_desc">Chọn thư mục cần loại trừ trong thư viện phương tiện</string>
     <string name="remember_brightness_level">Ghi nhớ mức độ sáng</string>
     <string name="landscape">Ngang</string>
-    <string name="thumbnail_size">Cỡ ảnh xem trước</string>
     <string name="system_caption_style_desc">Nhấp để mở tùy chọn phụ đề hệ thống</string>
     <string name="screen_rotation">Xoay màn hình</string>
     <string name="prefer_device_decoders">Ưu tiên bộ giải mã thiết bị</string>
@@ -118,7 +115,6 @@
     <string name="cancel">Hủy bỏ</string>
     <string name="extension">Đuôi tệp</string>
     <string name="permission_settings">Ứng dụng Next Player cần có quyền \"%1$s\" để truy cập và phát phương tiện. Không có nó, việc truy cập và phát lại phương tiện sẽ không hoạt động. Để sử dụng ứng dụng trọn vẹn, hãy cấp quyền từ cài đặt vì nó đã bị từ chối vĩnh viễn.</string>
-    <string name="large">Lớn</string>
     <string name="monospace">Monospace</string>
     <string name="path">Đường dẫn</string>
     <string name="appearance_description">Điều chỉnh ứng dụng theo ý thích của bạn</string>

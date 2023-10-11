@@ -157,14 +157,10 @@
     <string name="system_caption_style">Estilo de legenda do sistema</string>
     <string name="system_caption_style_desc">Clique para abrir as preferências de legenda do sistema</string>
     <string name="fields">Campos</string>
-    <string name="medium">Médio</string>
     <string name="thumbnail">Miniatura</string>
-    <string name="compact">Compacto</string>
     <string name="extension">Extensão</string>
-    <string name="large">Grande</string>
     <string name="path">Caminho</string>
     <string name="resolution">Resolução</string>
-    <string name="thumbnail_size">Tamanho da miniatura</string>
     <string name="long_press_gesture_desc">Pressione e segure para reproduzir na velocidade %.1fx</string>
     <string name="long_press_gesture">Gesto de toque longo</string>
     <string name="fast_playback_speed">%.1fx velocidade</string>

@@ -155,16 +155,12 @@
     <string name="system_volume_panel">ਸਿਸਟਮ ਵਾਲਿਊਮ ਪੈਨਲ</string>
     <string name="system_volume_panel_desc">ਹੈੱਡਸੈੱਟ ਵਰਤਦੇ ਸਮੇਂ ਵਾਲਿਊਮ ਐਡਜਸਟ ਕਰਨ ਵੇਲ੍ਹੇ ਸਿਸਟਮ ਵਾਲਿਊਮ ਪੈਨਲ ਵਿਖਾਓ</string>
     <string name="fields">ਖੇਤਰ</string>
-    <string name="medium">ਦਰਮਿਆਨਾ</string>
     <string name="system_caption_style">ਸਿਸਟਮ ਕੈਪਸ਼ਨਾਂ ਦੀ ਸ਼ੈਲੀ</string>
     <string name="thumbnail">ਥੰਮਨੇਲ</string>
-    <string name="compact">ਕੰਪੈਕਟ</string>
     <string name="system_caption_style_desc">ਸਿਸਟਮ ਕੈਪਸ਼ਨਿੰਗ ਤਰਜੀਹਾਂ ਨੂੰ ਖੋਲ੍ਹਣ ਲਈ ਕਲਿੱਕ ਕਰੋ</string>
     <string name="extension">ਐਕਸਟੈਂਸ਼ਨ</string>
-    <string name="large">ਵੱਡਾ</string>
     <string name="path">ਮਾਰਗ</string>
     <string name="resolution">ਰੈਜ਼ੋਲਿਊਸ਼ਨ</string>
-    <string name="thumbnail_size">ਥੰਮਨੇਲ ਆਕਾਰ</string>
     <string name="long_press_gesture_desc">%.1fx ਸਪੀਡ \'ਤੇ ਚਲਾਉਣ ਲਈ ਲੰਬਾ ਸਮਾਂ ਦਬਾਓ</string>
     <string name="long_press_gesture">ਲੰਬੇ ਸਮੇਂ ਤੱਕ ਦਬਾਉਣ ਦਾ ਸੰਕੇਤ</string>
     <string name="require_audio_focus">ਆਡੀਓ ਫੋਕਸ ਦੀ ਲੋੜ ਹੈ</string>

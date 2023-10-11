@@ -157,14 +157,10 @@
     <string name="system_caption_style">Subtitulos del sistema</string>
     <string name="system_caption_style_desc">Haz clic para abrir las preferencias del subtitulado del sistema</string>
     <string name="fields">Campos</string>
-    <string name="medium">Medio</string>
     <string name="thumbnail">Miniaturas</string>
-    <string name="compact">Compacto</string>
     <string name="extension">Extensión</string>
-    <string name="large">Grande</string>
     <string name="path">Ruta</string>
     <string name="resolution">Resolución</string>
-    <string name="thumbnail_size">Tamaño de la miniatura</string>
     <string name="long_press_gesture_desc">Pulsación larga para reproducir a velocidad %.1fx</string>
     <string name="long_press_gesture">Pulsación larga</string>
     <string name="require_audio_focus">Requiere enfoque del audio</string>

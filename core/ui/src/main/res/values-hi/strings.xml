@@ -159,11 +159,7 @@
     <string name="system_caption_style_desc">सिस्टम कैप्शनिंग प्राथमिकताएँ खोलने के लिए क्लिक करें</string>
     <string name="extension">एक्सटेंशन</string>
     <string name="path">रास्ता</string>
-    <string name="medium">मध्यम</string>
     <string name="thumbnail">थंमनेल</string>
-    <string name="compact">कॉम्पैक्ट</string>
-    <string name="thumbnail_size">थंमनेल आकार</string>
-    <string name="large">बड़ा</string>
     <string name="resolution">रिज़ॉल्यूशन</string>
     <string name="long_press_gesture_desc">%.1fx गति पर चलाने के लिए देर तक दबाएँ</string>
     <string name="long_press_gesture">देर तक दबाने का इशारा</string>
