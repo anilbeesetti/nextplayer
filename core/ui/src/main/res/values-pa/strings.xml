@@ -166,4 +166,18 @@
     <string name="require_audio_focus">ਆਡੀਓ ਫੋਕਸ ਦੀ ਲੋੜ ਹੈ</string>
     <string name="fast_playback_speed">%.1fx ਸਪੀਡ</string>
     <string name="require_audio_focus_desc">ਜਦੋਂ ਇਹ ਪਲੇਅਰ ਵੀਡੀਓ ਚਲਾ ਰਿਹਾ ਹੋਵੇ ਤਾਂ ਦੂਜੇ ਪਲੇਅਰਾਂ ਨੂੰ ਰੋਕੋ ਅਤੇ ਇਸਦੇ ਉਲਟ।</string>
+    <string name="codec">ਕੋਡੇਕ</string>
+    <string name="properties">ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ</string>
+    <string name="channels">ਚੈਨਲ</string>
+    <string name="video_track">ਵੀਡੀਓ ਟਰੈਕ</string>
+    <string name="subtitle_track">ਸਬਟਾਈਟਲ ਟਰੈਕ</string>
+    <string name="sample_format">ਸੈਂਪਲ ਫਾਰਮੈਟ</string>
+    <string name="bitrate">ਬਿੱਟਰੇਟ</string>
+    <string name="frame_rate">ਫ੍ਰੇਮ ਰੇਟ</string>
+    <string name="language">ਭਾਸ਼ਾ</string>
+    <string name="okay">ਠੀਕ ਹੈ</string>
+    <string name="audio_track">ਆਡੀਓ ਟਰੈਕ</string>
+    <string name="sample_rate">ਸੈਂਪਲ ਰੇਟ</string>
+    <string name="file">ਫ਼ਾਈਲ</string>
+    <string name="format">ਫਾਰਮੈਟ</string>
 </resources>
