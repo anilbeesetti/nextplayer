@@ -303,7 +303,7 @@ class PlayerActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R && playerPreferences.autoPip) {
+        if (playerPreferences.autoPip) {
             this.enterPictureInPictureMode(updatePictureInPictureParams())
         }
     }
@@ -325,14 +325,6 @@ class PlayerActivity : AppCompatActivity() {
         var params: PictureInPictureParams = PictureInPictureParams.Builder()
             .setAspectRatio(Rational(16, 9))
             .build()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            params = PictureInPictureParams.Builder()
-                .setAspectRatio(Rational(16, 9))
-                .setAutoEnterEnabled(playerPreferences.autoPip)
-                .setSeamlessResizeEnabled(true)
-                .build()
-        }
 
         setPictureInPictureParams(params)
         return params
