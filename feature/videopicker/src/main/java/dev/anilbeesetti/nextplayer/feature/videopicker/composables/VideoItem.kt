@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,8 +27,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.glide.GlideImage
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -59,13 +60,12 @@ fun VideoItem(
                         .align(Alignment.Center)
                         .fillMaxSize(0.5f)
                 )
-                if (!video.thumbnailPath.isNullOrEmpty() && preferences.showThumbnailField) {
-                    GlideImage(
-                        imageModel = { video.thumbnailPath },
-                        imageOptions = ImageOptions(
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.Center
-                        ),
+                if (preferences.showThumbnailField) {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = video.thumbnailPath, contentScale = ContentScale.None),
+                        contentDescription = null,
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
