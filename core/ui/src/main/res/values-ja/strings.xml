@@ -166,4 +166,18 @@
     <string name="seek_increment">シーク増分</string>
     <string name="subtitle_desc">字幕の表示、再生オプション</string>
     <string name="decoder_priority">デコーダーの優先順位</string>
+    <string name="codec">コーデック</string>
+    <string name="properties">プロパティ</string>
+    <string name="channels">チャンネル</string>
+    <string name="video_track">ビデオトラック</string>
+    <string name="subtitle_track">字幕トラック</string>
+    <string name="sample_format">サンプルフォーマット</string>
+    <string name="bitrate">ビットレート</string>
+    <string name="frame_rate">フレームレート</string>
+    <string name="language">言語</string>
+    <string name="okay">OK</string>
+    <string name="audio_track">オーディオトラック</string>
+    <string name="sample_rate">サンプルレート</string>
+    <string name="file">ファイル</string>
+    <string name="format">形式</string>
 </resources>
