@@ -40,10 +40,11 @@ class LocalMediaInfoSynchronizer @Inject constructor(
 
     private suspend fun sync(): Unit = withContext(dispatcher) {
         media.collect { mediumUri ->
-            Log.d(TAG, "sync: $mediumUri")
             val path = context.getPath(mediumUri) ?: return@collect
             val medium = mediumDao.getWithInfo(path) ?: return@collect
             if (medium.videoStreamInfo != null) return@collect
+
+            Log.d(TAG, "sync: $mediumUri")
 
             val mediaInfo = MediaInfoBuilder(context).from(mediumUri).build() ?: run {
                 Log.d(TAG, "sync: MediaInfoBuilder returned null")

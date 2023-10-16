@@ -66,9 +66,7 @@ fun VideosView(
             MediaLazyList {
                 items(videosState.data, key = { it.path }) { video ->
                     LaunchedEffect(Unit) {
-                        if (video.videoStream == null) {
-                            onVideoLoaded(Uri.parse(video.uriString))
-                        }
+                        onVideoLoaded(Uri.parse(video.uriString))
                     }
                     VideoItem(
                         video = video,
