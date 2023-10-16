@@ -14,14 +14,15 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:domain"))
+    implementation(project(":core:media"))
     implementation(project(":core:model"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.bundles.compose)
-    implementation(libs.github.skydoves.landscapist.glide)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
+    implementation(libs.coil.kt.compose)
 
     implementation(libs.androidx.hilt.navigation.compose)
 

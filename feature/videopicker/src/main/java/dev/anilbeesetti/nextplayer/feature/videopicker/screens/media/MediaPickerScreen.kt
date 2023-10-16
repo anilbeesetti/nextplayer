@@ -32,10 +32,10 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
@@ -66,7 +66,8 @@ fun MediaPickerRoute(
         onSettingsClick = onSettingsClick,
         updatePreferences = viewModel::updateMenu,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
-        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) }
+        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) },
+        onAddToSync = viewModel::addToMediaInfoSynchronizer
     )
 }
 
@@ -81,7 +82,8 @@ internal fun MediaPickerScreen(
     onSettingsClick: () -> Unit = {},
     updatePreferences: (ApplicationPreferences) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
-    onDeleteFolderClick: (String) -> Unit
+    onDeleteFolderClick: (String) -> Unit,
+    onAddToSync: (Uri) -> Unit = {}
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
@@ -110,20 +112,19 @@ internal fun MediaPickerScreen(
             contentAlignment = Alignment.Center
         ) {
             if (preferences.groupVideosByFolder) {
-                FoldersListFromState(
+                FoldersView(
                     foldersState = foldersState,
                     preferences = preferences,
                     onFolderClick = onFolderClick,
-                    onDeleteFolderClick = onDeleteFolderClick,
-                    showFoldersInGrid = preferences.showMediaInGrid
+                    onDeleteFolderClick = onDeleteFolderClick
                 )
             } else {
-                VideosListFromState(
+                VideosView(
                     videosState = videosState,
                     onVideoClick = onPlayVideo,
                     preferences = preferences,
                     onDeleteVideoClick = onDeleteVideoClick,
-                    showVideoInGrid = preferences.showMediaInGrid
+                    onVideoLoaded = onAddToSync
                 )
             }
         }
@@ -155,8 +156,9 @@ fun MediaPickerScreenPreview(
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                     onPlayVideo = {},
                     onFolderClick = {},
-                    onDeleteVideoClick = {}
-                ) {}
+                    onDeleteVideoClick = {},
+                    onDeleteFolderClick = {}
+                )
             }
         }
     }
@@ -187,8 +189,9 @@ fun MediaPickerNoVideosFoundPreview() {
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
-                onDeleteVideoClick = {}
-            ) {}
+                onDeleteVideoClick = {},
+                onDeleteFolderClick = {}
+            )
         }
     }
 }
@@ -204,8 +207,9 @@ fun MediaPickerLoadingPreview() {
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
-                onDeleteVideoClick = {}
-            ) {}
+                onDeleteVideoClick = {},
+                onDeleteFolderClick = {}
+            )
         }
     }
 }

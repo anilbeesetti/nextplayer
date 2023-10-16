@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,7 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -27,10 +28,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.glide.GlideImage
+import coil.compose.rememberAsyncImagePainter
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.Size
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -46,17 +45,11 @@ fun VideoItem(
 ) {
     ListItem(
         leadingContent = {
-            val localConfig = LocalConfiguration.current
-            val thumbWidth = when (preferences.thumbnailSize) {
-                Size.COMPACT -> 130.dp
-                Size.MEDIUM -> 165.dp
-                Size.LARGE -> 200.dp
-            }
             Box(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
-                    .widthIn(max = min(thumbWidth, localConfig.screenWidthDp.dp * 0.45f))
+                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f))
                     .aspectRatio(16f / 10f)
             ) {
                 Icon(
@@ -67,13 +60,12 @@ fun VideoItem(
                         .align(Alignment.Center)
                         .fillMaxSize(0.5f)
                 )
-                if (video.uriString.isNotEmpty() && preferences.showThumbnailField) {
-                    GlideImage(
-                        imageModel = { video.uriString },
-                        imageOptions = ImageOptions(
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.Center
-                        ),
+                if (preferences.showThumbnailField) {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = video.thumbnailPath, contentScale = ContentScale.None),
+                        contentDescription = null,
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -101,7 +93,7 @@ fun VideoItem(
         supportingContent = {
             if (preferences.showPathField) {
                 Text(
-                    text = video.path,
+                    text = video.path.substringBeforeLast("/"),
                     maxLines = 2,
                     style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,

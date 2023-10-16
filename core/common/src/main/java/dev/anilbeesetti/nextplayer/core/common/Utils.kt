@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.common
 
 import android.content.res.Resources
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -55,5 +56,26 @@ object Utils {
             size < gb -> "%.2f MB".format(size / mb.toDouble())
             else -> "%.2f GB".format(size / gb.toDouble())
         }
+    }
+
+    fun formatBitrate(bitrate: Long): String? {
+        if (bitrate <= 0) {
+            return null
+        }
+
+        val kiloBitrate = bitrate.toDouble() / 1000.0
+        val megaBitrate = kiloBitrate / 1000.0
+        val gigaBitrate = megaBitrate / 1000.0
+
+        return when {
+            gigaBitrate >= 1.0 -> String.format("%.1f Gbps", gigaBitrate)
+            megaBitrate >= 1.0 -> String.format("%.1f Mbps", megaBitrate)
+            kiloBitrate >= 1.0 -> String.format("%.1f kbps", kiloBitrate)
+            else -> String.format("%d bps", bitrate)
+        }
+    }
+
+    fun formatLanguage(language: String?): String? {
+        return language?.let { lang -> Locale.forLanguageTag(lang).displayLanguage.takeIf { it.isNotEmpty() } }
     }
 }

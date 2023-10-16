@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
+import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.SavedStateHandle
@@ -9,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
@@ -23,7 +25,8 @@ class MediaPickerFolderViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     savedStateHandle: SavedStateHandle,
     private val mediaRepository: MediaRepository,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val mediaInfoSynchronizer: MediaInfoSynchronizer
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
@@ -48,6 +51,12 @@ class MediaPickerFolderViewModel @Inject constructor(
     fun deleteVideos(uris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
         viewModelScope.launch {
             mediaRepository.deleteVideos(uris, intentSenderLauncher)
+        }
+    }
+
+    fun addToMediaInfoSynchronizer(uri: Uri) {
+        viewModelScope.launch {
+            mediaInfoSynchronizer.addMedia(uri)
         }
     }
 }
