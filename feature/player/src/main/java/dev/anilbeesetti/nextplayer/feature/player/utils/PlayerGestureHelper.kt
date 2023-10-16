@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Resources
 import android.os.Build
+import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -263,25 +265,10 @@ class PlayerGestureHelper(
      * Check if [firstEvent] is in the gesture exclusion area
      */
     private fun inExclusionArea(firstEvent: MotionEvent): Boolean {
-        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
-        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+        val gestureExclusionBorder = playerView.context.dpToPx(GESTURE_EXCLUSION_AREA)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val insets = playerView.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemGestures())
-
-            if ((firstEvent.x < insets.left) || (firstEvent.x > (screenWidth - insets.right)) ||
-                (firstEvent.y < insets.top) || (firstEvent.y > (screenHeight - insets.bottom))
-            ) {
-                return true
-            }
-        } else if (firstEvent.y < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
-            firstEvent.y > screenHeight - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_VERTICAL) ||
-            firstEvent.x < playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL) ||
-            firstEvent.x > screenWidth - playerView.resources.pxToDp(GESTURE_EXCLUSION_AREA_HORIZONTAL)
-        ) {
-            return true
-        }
-        return false
+        return firstEvent.y < gestureExclusionBorder || firstEvent.y > playerView.height - gestureExclusionBorder ||
+                firstEvent.x < gestureExclusionBorder || firstEvent.x > playerView.width - gestureExclusionBorder
     }
 
     init {
@@ -308,13 +295,14 @@ class PlayerGestureHelper(
 
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
-        const val GESTURE_EXCLUSION_AREA_VERTICAL = 48
-        const val GESTURE_EXCLUSION_AREA_HORIZONTAL = 24
+        const val GESTURE_EXCLUSION_AREA = 20f
         const val SEEK_STEP_MS = 1000L
     }
 }
 
-fun Resources.pxToDp(px: Int) = (px * displayMetrics.density).toInt()
+fun Context.pxToDp(px: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resources.displayMetrics)
+
+fun Context.dpToPx(dp: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
 
 inline val Int.toMillis get() = this * 1000
 
