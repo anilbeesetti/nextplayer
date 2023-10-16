@@ -114,7 +114,6 @@
     <string name="fields">フィールド</string>
     <string name="zoom_gesture_description">ピンチしてビデオをズーム</string>
     <string name="subtitle_text_size">字幕の文字サイズ</string>
-    <string name="medium">中</string>
     <string name="long_press_gesture_desc">長押しすると%.1fxの速度で再生されます</string>
     <string name="network_stream">ネットワークストリーム</string>
     <string name="play_file">再生する動画ファイルを開いてください</string>
@@ -147,12 +146,9 @@
     <string name="hundred_percent">100％</string>
     <string name="system_volume_panel">システム音量パネル</string>
     <string name="thumbnail">サムネイル</string>
-    <string name="compact">コンパクト</string>
-    <string name="thumbnail_size">サムネイルのサイズ</string>
     <string name="system_caption_style_desc">クリックしてシステムキャプション設定を開きます</string>
     <string name="prefer_device_decoders">デバイスデコーダーを優先</string>
     <string name="extension">拡大</string>
-    <string name="large">大</string>
     <string name="monospace">等幅フォント</string>
     <string name="path">パス</string>
     <string name="play_url">再生するには動画のURLを入力してください</string>
@@ -170,4 +166,18 @@
     <string name="seek_increment">シーク増分</string>
     <string name="subtitle_desc">字幕の表示、再生オプション</string>
     <string name="decoder_priority">デコーダーの優先順位</string>
+    <string name="codec">コーデック</string>
+    <string name="properties">プロパティ</string>
+    <string name="channels">チャンネル</string>
+    <string name="video_track">ビデオトラック</string>
+    <string name="subtitle_track">字幕トラック</string>
+    <string name="sample_format">サンプルフォーマット</string>
+    <string name="bitrate">ビットレート</string>
+    <string name="frame_rate">フレームレート</string>
+    <string name="language">言語</string>
+    <string name="okay">OK</string>
+    <string name="audio_track">オーディオトラック</string>
+    <string name="sample_rate">サンプルレート</string>
+    <string name="file">ファイル</string>
+    <string name="format">形式</string>
 </resources>
