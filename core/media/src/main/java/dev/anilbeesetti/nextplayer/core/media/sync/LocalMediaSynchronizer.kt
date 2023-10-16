@@ -118,7 +118,7 @@ class LocalMediaSynchronizer @Inject constructor(
         mediumDao.delete(unwantedMediaPaths)
 
         // Delete unwanted thumbnails
-        val unwantedThumbnailFiles = unwantedMedia.mapNotNull { it.thumbnailPath }.map { File(it) }
+        val unwantedThumbnailFiles = unwantedMedia.mapNotNull { medium -> medium.thumbnailPath?.let { File(it) } }
         unwantedThumbnailFiles.forEach { file ->
             try {
                 file.delete()
