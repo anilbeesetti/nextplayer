@@ -117,6 +117,16 @@ class LocalMediaSynchronizer @Inject constructor(
 
         mediumDao.delete(unwantedMediaPaths)
 
+        // Delete unwanted thumbnails
+        val unwantedThumbnailFiles = unwantedMedia.mapNotNull { medium -> medium.thumbnailPath?.let { File(it) } }
+        unwantedThumbnailFiles.forEach { file ->
+            try {
+                file.delete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         // Release external subtitle uri permission if not used by any other media
         launch {
             val currentMediaExternalSubs = mediumEntities.flatMap { UriListConverter.fromStringToList(it.externalSubs) }.toSet()
