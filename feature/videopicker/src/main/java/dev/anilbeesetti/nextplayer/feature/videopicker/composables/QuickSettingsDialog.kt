@@ -126,11 +126,11 @@ fun QuickSettingsDialog(
                     }
                 )
                 DialogPreferenceSwitch(
-                    text = stringResource(id = R.string.videos_in_grid),
-                    isChecked = preferences.showVideosInGrid,
+                    text = stringResource(id = R.string.media_in_grid),
+                    isChecked = preferences.showMediaInGrid,
                     onClick = {
                         preferences = preferences.copy(
-                            showVideosInGrid = !preferences.showVideosInGrid
+                            showMediaInGrid = !preferences.showMediaInGrid
                         )
                     }
                 )

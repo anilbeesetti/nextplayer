@@ -114,7 +114,8 @@ internal fun MediaPickerScreen(
                     foldersState = foldersState,
                     preferences = preferences,
                     onFolderClick = onFolderClick,
-                    onDeleteFolderClick = onDeleteFolderClick
+                    onDeleteFolderClick = onDeleteFolderClick,
+                    showFoldersInGrid = preferences.showMediaInGrid
                 )
             } else {
                 VideosListFromState(
@@ -122,7 +123,7 @@ internal fun MediaPickerScreen(
                     onVideoClick = onPlayVideo,
                     preferences = preferences,
                     onDeleteVideoClick = onDeleteVideoClick,
-                    showVideoInGrid = preferences.showVideosInGrid
+                    showVideoInGrid = preferences.showMediaInGrid
                 )
             }
         }

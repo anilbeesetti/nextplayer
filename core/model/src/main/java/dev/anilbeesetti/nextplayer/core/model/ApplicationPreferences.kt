@@ -22,7 +22,7 @@ data class ApplicationPreferences(
     val showResolutionField: Boolean = false,
     val showSizeField: Boolean = false,
     val showThumbnailField: Boolean = true,
-    val showVideosInGrid: Boolean = false
+    val showMediaInGrid: Boolean = false
 )
 
 enum class Size {

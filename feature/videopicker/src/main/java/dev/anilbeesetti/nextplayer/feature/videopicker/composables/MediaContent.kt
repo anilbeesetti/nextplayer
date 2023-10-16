@@ -218,7 +218,8 @@ fun FoldersListFromState(
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
     onFolderClick: (String) -> Unit,
-    onDeleteFolderClick: (String) -> Unit
+    onDeleteFolderClick: (String) -> Unit,
+    showFoldersInGrid: Boolean
 ) {
     val haptic = LocalHapticFeedback.current
     var showFolderActionsFor: Folder? by rememberSaveable { mutableStateOf(null) }
@@ -231,19 +232,48 @@ fun FoldersListFromState(
         is FoldersState.Success -> if (foldersState.data.isEmpty()) {
             NoVideosFound()
         } else {
-            MediaLazyList {
-                items(foldersState.data, key = { it.path }) {
-                    FolderItem(
-                        folder = it,
-                        preferences = preferences,
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onFolderClick(it.path) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showFolderActionsFor = it
-                            }
+
+            if(showFoldersInGrid) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(
+                        items = foldersState.data, key = {
+                            it.path
+                        }
+                    ) {
+                        FolderGridItem(
+                            folder = it,
+                            preferences = preferences,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .combinedClickable(
+                                    onClick = { onFolderClick(it.path) },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showFolderActionsFor = it
+                                    }
+                                )
                         )
-                    )
+                    }
+                }
+            }
+            else{
+                MediaLazyList {
+                    items(foldersState.data, key = { it.path }) {
+                        FolderItem(
+                            folder = it,
+                            preferences = preferences,
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onFolderClick(it.path) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showFolderActionsFor = it
+                                }
+                            )
+                        )
+                    }
                 }
             }
         }
