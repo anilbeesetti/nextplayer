@@ -72,7 +72,7 @@ fun VideosView(
                     columns = GridCells.Adaptive(minSize = 150.dp),
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = 16.dp)
                 ) {
                     items(items = videosState.data, key = { it.path }) { video ->
                         LaunchedEffect(Unit) {
