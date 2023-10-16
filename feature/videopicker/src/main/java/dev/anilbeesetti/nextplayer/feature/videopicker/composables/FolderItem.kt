@@ -15,7 +15,9 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.min
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
@@ -93,17 +96,11 @@ fun FolderGridItem(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        val localConfig = LocalConfiguration.current
-
-        val thumbWidth = when (preferences.thumbnailSize) {
-            Size.COMPACT -> 130.dp
-            Size.MEDIUM -> 165.dp
-            Size.LARGE -> 200.dp
-        }
         Box(
             modifier = Modifier
-                .clip(MaterialTheme.shapes.small)
-                .aspectRatio(16f / 10f) ) {
+                .clip(MaterialTheme.shapes.medium)
+                .aspectRatio(20f / 15f)
+        ) {
             Icon(
                 imageVector = NextIcons.Folder,
                 contentDescription = null,
@@ -136,9 +133,13 @@ fun FolderGridItem(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            InfoChip(text = "${folder.mediaCount} " +
-                    stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 }
-                        ?: R.string.videos))
+            InfoChip(
+                text = "${folder.mediaCount} " +
+                    stringResource(
+                        id = R.string.video.takeIf { folder.mediaCount == 1 }
+                            ?: R.string.videos
+                    )
+            )
 
             if (preferences.showSizeField) {
                 InfoChip(text = folder.formattedMediaSize)
@@ -162,5 +163,3 @@ fun FolderGridItemPreview() {
         FolderGridItem(folder = Folder.sample, preferences = ApplicationPreferences())
     }
 }
-
-

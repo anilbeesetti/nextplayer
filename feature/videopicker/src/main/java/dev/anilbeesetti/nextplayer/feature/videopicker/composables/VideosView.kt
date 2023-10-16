@@ -8,7 +8,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -63,24 +67,54 @@ fun VideosView(
         is VideosState.Success -> if (videosState.data.isEmpty()) {
             NoVideosFound()
         } else {
-            MediaLazyList {
-                items(videosState.data, key = { it.path }) { video ->
-                    LaunchedEffect(Unit) {
-                        if (video.videoStream == null) {
-                            onVideoLoaded(Uri.parse(video.uriString))
-                        }
-                    }
-                    VideoItem(
-                        video = video,
-                        preferences = preferences,
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showMediaActionsFor = video
+            if (preferences.showMediaInGrid) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 8.dp)
+                ) {
+                    items(items = videosState.data, key = { it.path }) { video ->
+                        LaunchedEffect(Unit) {
+                            if (video.videoStream == null) {
+                                onVideoLoaded(Uri.parse(video.uriString))
                             }
+                        }
+                        VideoGridItem(
+                            video = video,
+                            preferences = preferences,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .combinedClickable(
+                                    onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showMediaActionsFor = video
+                                    }
+                                )
                         )
-                    )
+                    }
+                }
+            } else {
+                MediaLazyList {
+                    items(videosState.data, key = { it.path }) { video ->
+                        LaunchedEffect(Unit) {
+                            if (video.videoStream == null) {
+                                onVideoLoaded(Uri.parse(video.uriString))
+                            }
+                        }
+                        VideoItem(
+                            video = video,
+                            preferences = preferences,
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showMediaActionsFor = video
+                                }
+                            )
+                        )
+                    }
                 }
             }
         }
