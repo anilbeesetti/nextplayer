@@ -1,18 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.res.Resources
-import android.os.Build
-import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
-import android.view.WindowInsets
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.common.extensions.dpToPx
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -268,7 +264,7 @@ class PlayerGestureHelper(
         val gestureExclusionBorder = playerView.context.dpToPx(GESTURE_EXCLUSION_AREA)
 
         return firstEvent.y < gestureExclusionBorder || firstEvent.y > playerView.height - gestureExclusionBorder ||
-                firstEvent.x < gestureExclusionBorder || firstEvent.x > playerView.width - gestureExclusionBorder
+            firstEvent.x < gestureExclusionBorder || firstEvent.x > playerView.width - gestureExclusionBorder
     }
 
     init {
@@ -299,10 +295,6 @@ class PlayerGestureHelper(
         const val SEEK_STEP_MS = 1000L
     }
 }
-
-fun Context.pxToDp(px: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resources.displayMetrics)
-
-fun Context.dpToPx(dp: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
 
 inline val Int.toMillis get() = this * 1000
 
