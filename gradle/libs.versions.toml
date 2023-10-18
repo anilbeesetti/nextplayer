@@ -28,7 +28,7 @@ ksp = "1.9.10-1.0.13"
 ktlint = "11.6.1"
 landscapist = "2.2.10"
 nextlib = "0.5.0"
-room = "2.5.2"
+room = "2.6.0"
 timber = "5.0.1"
 
 
