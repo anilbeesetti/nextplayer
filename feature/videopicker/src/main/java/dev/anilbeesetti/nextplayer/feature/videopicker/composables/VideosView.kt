@@ -96,26 +96,24 @@ fun VideosView(
                     }
                 }
             } else {
-                MediaLazyList {
-                    items(videosState.data, key = { it.path }) { video ->
-                        LaunchedEffect(Unit) {
-                            if (video.videoStream == null) {
-                                onVideoLoaded(Uri.parse(video.uriString))
-                            }
-                        }
-                        VideoItem(
-                            video = video,
-                            preferences = preferences,
-                            modifier = Modifier.combinedClickable(
-                                onClick = { onVideoClick(Uri.parse(video.uriString)) },
-                                onLongClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    showMediaActionsFor = video
-                                }
-                            )
-                        )
+            MediaLazyList {
+                items(videosState.data, key = { it.path }) { video ->
+                    LaunchedEffect(Unit) {
+                        onVideoLoaded(Uri.parse(video.uriString))
                     }
+                    VideoItem(
+                        video = video,
+                        preferences = preferences,
+                        modifier = Modifier.combinedClickable(
+                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showMediaActionsFor = video
+                            }
+                        )
+                    )
                 }
+            }
             }
         }
     }

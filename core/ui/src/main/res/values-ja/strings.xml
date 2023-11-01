@@ -7,11 +7,11 @@
     <string name="double_tap">ダブルタップジェスチャー</string>
     <string name="double_tap_description">ダブルタップジェスチャーで実行するアクションを選択してください</string>
     <string name="appearance_name">外観</string>
-    <string name="error_playing_video">エラー：ビデオを再生出来ませんでした</string>
+    <string name="error_playing_video">エラー: ビデオを再生出来ません</string>
     <string name="fast_seek">高速シーク</string>
     <string name="ascending">昇順</string>
     <string name="navigate_up">上へ移動</string>
-    <string name="player_controls_play_pause">プレイヤーの再生を一時停止</string>
+    <string name="player_controls_play_pause">プレーヤーの再生を一時停止</string>
     <string name="player_controls_exit">上へ移動</string>
     <string name="descending">降順</string>
     <string name="no_videos_found">動画が見つかりません</string>
@@ -25,9 +25,9 @@
     <string name="disable">無効</string>
     <string name="permission_info">Next Playerがメディアにアクセスして再生するには、\"%1$s\"の権限が必要です。 これがないと、メディアへのアクセスと再生が機能しません。 アプリを完全に使用するには、権限を許可してください。</string>
     <string name="fast_seek_description">正確なキーフレームではなく、最も近いキーフレームを検索します。</string>
-    <string name="player_controls_next">次のプレイヤー</string>
+    <string name="player_controls_next">次のプレーヤー</string>
     <string name="permission_not_granted">許可されていません</string>
-    <string name="duration">期間</string>
+    <string name="duration">時間</string>
     <string name="done">完了</string>
     <string name="size">サイズ</string>
     <string name="force_rescan_storage">ストレージの再スキャン</string>
@@ -43,7 +43,7 @@
     <string name="shortest">最短</string>
     <string name="portrait">縦向き</string>
     <string name="media_library_description">メディアライブラリーのスキャンと管理</string>
-    <string name="player_controls_progress">プレイヤーの進行状況バー</string>
+    <string name="player_controls_progress">プレーヤーの進行状況バー</string>
     <string name="autoplay_settings_description">現在のフォルダー内の次のビデオを自動的に再生します</string>
     <string name="no">いいえ</string>
     <string name="date">日付</string>
@@ -65,7 +65,7 @@
     <string name="smallest">最小</string>
     <string name="off">オフ</string>
     <string name="automatic">自動（センサー）</string>
-    <string name="player_controls_previous">前のプレイヤー</string>
+    <string name="player_controls_previous">前のプレーヤー</string>
     <string name="longest">最長</string>
     <string name="preferred_audio_lang">優先する言語</string>
     <string name="preferred_audio_lang_description">デフォルトで使用するオーディオトラックの言語</string>
@@ -74,7 +74,7 @@
     <string name="a_z">A-Z</string>
     <string name="unknown_error">不明なエラーが発生しました</string>
     <string name="controls_lock">コントロールをロック</string>
-    <string name="player_description">プレイヤーの外観、再生コントロール</string>
+    <string name="player_description">プレーヤーの外観、再生コントロール</string>
     <string name="seek_gesture_description">水平方向にスワイプして前方または後方に移動します</string>
     <string name="quick_settings">クイック設定</string>
     <string name="select_subtitle_track">字幕トラックを選択</string>
