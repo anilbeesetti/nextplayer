@@ -105,7 +105,7 @@
     <string name="play_pause_ff_rewind">播放/暫停與快進/快退</string>
     <string name="enter_a_network_url">輸入一個網路 URL：</string>
     <string name="thumbnail">縮圖</string>
-    <string name="manage_folders_desc">選擇的資料夾將被排除在媒體櫃之外</string>
+    <string name="manage_folders_desc">選擇的資料夾將被排除在媒體庫之外</string>
     <string name="remember_brightness_level">記住亮度等級</string>
     <string name="landscape">橫向</string>
     <string name="system_caption_style_desc">點擊以開啟系統字幕偏好設定</string>
