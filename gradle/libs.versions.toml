@@ -26,7 +26,6 @@ kotlinxCoroutines = "1.6.4"
 kotlinxSerializationJson = "1.6.0"
 ksp = "1.9.10-1.0.13"
 ktlint = "11.6.1"
-landscapist = "2.2.10"
 nextlib = "0.5.0"
 room = "2.6.0"
 timber = "5.0.1"
@@ -73,7 +72,6 @@ androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.r
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 github-anilbeesetti-nextlib-media3ext = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-mediainfo", version.ref = "nextlib" }
-github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist" }
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
