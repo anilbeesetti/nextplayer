@@ -482,6 +482,7 @@ class PlayerActivity : AppCompatActivity() {
             uri?.let { playlistManager.updateCurrent(uri) }
 
             val currentUri = playlistManager.getCurrent()!!
+            viewModel.saveCurrentPlayback(currentUri)
 
             viewModel.updateState(getPath(currentUri))
             if (intent.data == currentUri && playerApi.hasPosition) {

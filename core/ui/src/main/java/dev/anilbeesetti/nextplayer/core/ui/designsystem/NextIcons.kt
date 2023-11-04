@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PhotoSizeSelectSmall
 import androidx.compose.material.icons.rounded.Pinch
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -94,6 +95,7 @@ object NextIcons {
     val Movie = Icons.Rounded.LocalMovies
     val PhotoSize = Icons.Rounded.PhotoSizeSelectSmall
     val Pinch = Icons.Rounded.Pinch
+    val Play = Icons.Rounded.PlayArrow
     val Player = Icons.Rounded.PlayCircle
     val Priority = Icons.Rounded.PriorityHigh
     val Replay = Icons.Rounded.Replay10

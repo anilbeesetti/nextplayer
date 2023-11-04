@@ -34,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -46,6 +48,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.feature.player.PlayerViewModel
 import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.startPlayerActivity
@@ -59,9 +62,11 @@ const val MAIN_ROUTE = "main_screen_route"
 fun MainScreen(
     permissionState: PermissionState,
     mainNavController: NavHostController,
-    mediaNavController: NavHostController
+    mediaNavController: NavHostController,
+    playerViewModel: PlayerViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val preferences by playerViewModel.playerPrefs.collectAsStateWithLifecycle()
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -74,6 +79,16 @@ fun MainScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             ) {
+                if (preferences.lastPlayback.isNotEmpty()) {
+                    FloatingActionButton(
+                        onClick = { context.startPlayerActivity(Uri.parse(preferences.lastPlayback)) }
+                    ) {
+                        Icon(
+                            imageVector = NextIcons.Play,
+                            contentDescription = stringResource(id = R.string.resume_last_playback)
+                        )
+                    }
+                }
                 FloatingActionButton(
                     onClick = { selectVideoFileLauncher.launch("video/*") }
                 ) {

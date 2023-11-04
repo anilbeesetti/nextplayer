@@ -97,6 +97,14 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    fun saveCurrentPlayback(uri: Uri) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(lastPlayback = uri.toString())
+            }
+        }
+    }
+
     fun setPlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }

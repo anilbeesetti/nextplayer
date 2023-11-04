@@ -16,6 +16,7 @@ data class PlayerPreferences(
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
+    val lastPlayback: String = "",
 
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,
