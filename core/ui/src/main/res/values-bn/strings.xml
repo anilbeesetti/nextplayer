@@ -1,2 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="ascending">ঊর্ধ্বগামী</string>
+    <string name="about_description">সংস্করণ, ক্রেডিট</string>
+    <string name="double_tap">দুই ট্যাপ অঙ্গভঙ্গি</string>
+    <string name="double_tap_description">ডবল ট্যাপ অঙ্গভঙ্গি কাজ বেছে নিন</string>
+    <string name="descending">অধোগামী</string>
+    <string name="appearance_name">আবির্ভাব</string>
+    <string name="error_playing_video">ত্রুটি: ভিডিও চালু করা সম্ভব নয়</string>
+    <string name="cancel">বাতিল</string>
+    <string name="appearance_description">নিজের মতো অ্যাপকে পরিবর্তন করুন</string>
+    <string name="disable">বন্ধ</string>
+    <string name="fast_seek">দ্রুত আগানো</string>
+    <string name="about_name">সম্পর্কিত তথ্য</string>
+    <string name="done">সম্পূর্ন</string>
+</resources>
