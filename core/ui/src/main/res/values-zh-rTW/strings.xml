@@ -98,7 +98,7 @@
     <string name="error_playing_video">錯誤：無法播放影片</string>
     <string name="controls_lock">鎖定控制元件</string>
     <string name="system_volume_panel">系統音量面板</string>
-    <string name="player_description">播放器 外觀、播放控制元件</string>
+    <string name="player_description">播放器外觀、播放控制元件</string>
     <string name="seek_gesture_description">橫向滑動以向前或向後跳轉</string>
     <string name="quick_settings">快速設定</string>
     <string name="select_subtitle_track">選擇字幕軌</string>
