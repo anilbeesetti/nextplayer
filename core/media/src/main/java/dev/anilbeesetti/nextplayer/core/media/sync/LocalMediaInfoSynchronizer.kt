@@ -56,7 +56,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
             val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
             val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
-            val thumbnailPath = thumbnail?.saveTo(storageDir = context.cacheDir, quality = 50)
+            val thumbnailPath = thumbnail?.saveTo(storageDir = context.filesDir, quality = 30)
 
             mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format, thumbnailPath = thumbnailPath))
             videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
