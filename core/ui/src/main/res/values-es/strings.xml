@@ -177,4 +177,7 @@
     <string name="sample_rate">Tasa o frecuencia de muestreo</string>
     <string name="file">Archivo</string>
     <string name="format">Formato</string>
+    <string name="video_track">Pista de vídeo</string>
+    <string name="subtitle_track">Pista de los subtítulos</string>
+    <string name="audio_track">Pista del audio</string>
 </resources>

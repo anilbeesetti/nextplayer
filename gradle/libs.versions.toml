@@ -1,24 +1,24 @@
 [versions]
 aboutlibraries = "10.8.3"
 accompanist = "0.32.0"
-androidGradlePlugin = "8.1.2"
+androidGradlePlugin = "8.1.3"
 androidMaterial = "1.10.0"
 androidxActivity = "1.8.0"
 androidxAppCompat = "1.6.1"
 androidxComposeCompiler = "1.5.4"
-androidxComposeBom = "2023.10.00"
+androidxComposeBom = "2023.10.01"
 androidxConstraintLayout = "2.1.4"
 androidxCore = "1.12.0"
 androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.0.0"
 androidxEspresso = "3.5.1"
-androidxHiltNavigationCompose = "1.0.0"
+androidxHiltNavigationCompose = "1.1.0"
 androidxLifecycle = "2.6.2"
 androidxMedia3 = "1.1.1"
-androidxNavigation = "2.7.4"
+androidxNavigation = "2.7.5"
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.5"
-coil = "2.4.0"
+coil = "2.5.0"
 hilt = "2.48.1"
 junit4 = "4.13.2"
 kotlin = "1.9.20"
@@ -26,9 +26,8 @@ kotlinxCoroutines = "1.6.4"
 kotlinxSerializationJson = "1.6.0"
 ksp = "1.9.20-1.0.14"
 ktlint = "11.6.1"
-landscapist = "2.2.10"
 nextlib = "0.5.0"
-room = "2.5.2"
+room = "2.6.0"
 timber = "5.0.1"
 
 
@@ -73,7 +72,6 @@ androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.r
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 github-anilbeesetti-nextlib-media3ext = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-mediainfo", version.ref = "nextlib" }
-github-skydoves-landscapist-glide = { group = "com.github.skydoves", name = "landscapist-glide", version.ref = "landscapist" }
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }

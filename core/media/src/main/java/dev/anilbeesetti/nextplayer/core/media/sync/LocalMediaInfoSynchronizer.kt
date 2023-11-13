@@ -38,36 +38,35 @@ class LocalMediaInfoSynchronizer @Inject constructor(
 
     override suspend fun addMedia(uri: Uri) = media.emit(uri)
 
-    private fun sync() {
-        applicationScope.launch(dispatcher) {
-            media.collect { mediumUri ->
-                Log.d(TAG, "sync: $mediumUri")
-                val path = context.getPath(mediumUri) ?: return@collect
-                val medium = mediumDao.getWithInfo(path) ?: return@collect
-                if (medium.videoStreamInfo != null) return@collect
+    private suspend fun sync(): Unit = withContext(dispatcher) {
+        media.collect { mediumUri ->
+            val path = context.getPath(mediumUri) ?: return@collect
+            val medium = mediumDao.getWithInfo(path) ?: return@collect
+            if (medium.videoStreamInfo != null) return@collect
 
-                val mediaInfo = MediaInfoBuilder(context).from(mediumUri).build() ?: run {
-                    Log.d(TAG, "sync: MediaInfoBuilder returned null")
-                    return@collect
-                }
-                val thumbnail = mediaInfo.getFrame()
-                mediaInfo.release()
+            Log.d(TAG, "sync: $mediumUri")
 
-                val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
-                val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
-                val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
-                val thumbnailPath = thumbnail?.saveTo(storageDir = context.filesDir, quality = 50)
-
-                mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format, thumbnailPath = thumbnailPath))
-                videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
-                audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
-                subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }
+            val mediaInfo = MediaInfoBuilder(context).from(mediumUri).build() ?: run {
+                Log.d(TAG, "sync: MediaInfoBuilder returned null")
+                return@collect
             }
+            val thumbnail = mediaInfo.getFrame()
+            mediaInfo.release()
+
+            val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
+            val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
+            val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
+            val thumbnailPath = thumbnail?.saveTo(storageDir = context.filesDir, quality = 50)
+
+            mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format, thumbnailPath = thumbnailPath))
+            videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
+            audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
+            subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }
         }
     }
 
     init {
-        sync()
+        applicationScope.launch { sync() }
     }
 
     companion object {
