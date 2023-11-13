@@ -88,10 +88,10 @@ abstract class MediaDatabase : RoomDatabase() {
                     """
 
         val migration4To5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL(VIDEO_STREAM_INFO_TABLE_SQL.trimIndent())
-                database.execSQL(AUDIO_STREAM_INFO_TABLE_SQL.trimIndent())
-                database.execSQL(SUBTITLE_STREAM_INFO_TABLE_SQL.trimIndent())
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(VIDEO_STREAM_INFO_TABLE_SQL.trimIndent())
+                db.execSQL(AUDIO_STREAM_INFO_TABLE_SQL.trimIndent())
+                db.execSQL(SUBTITLE_STREAM_INFO_TABLE_SQL.trimIndent())
             }
         }
     }
