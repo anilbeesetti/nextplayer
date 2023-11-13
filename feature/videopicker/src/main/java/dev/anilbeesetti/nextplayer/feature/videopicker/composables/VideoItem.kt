@@ -24,10 +24,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -42,6 +45,7 @@ fun VideoItem(
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     ListItem(
         leadingContent = {
             Box(
@@ -60,8 +64,11 @@ fun VideoItem(
                         .fillMaxSize(0.5f)
                 )
                 if (preferences.showThumbnailField) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = video.thumbnailPath, contentScale = ContentScale.None),
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(video.thumbnailPath)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = null,
                         alignment = Alignment.Center,
                         contentScale = ContentScale.Crop,
