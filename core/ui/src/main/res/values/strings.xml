@@ -182,4 +182,5 @@
     <string name="frame_rate">Frame rate</string>
     <string name="okay">Okay</string>
     <string name="properties">Properties</string>
+    <string name="multi_select">Multi-select</string>
 </resources>

@@ -29,8 +29,8 @@ fun NavController.navigateToMediaPickerFolderScreen(
 
 fun NavGraphBuilder.mediaPickerFolderScreen(
     onNavigateUp: () -> Unit,
-    onVideoClick: (uri: Uri) -> Unit
-) {
+    onVideoClick: (uri: Uri) -> Unit,
+    ) {
     composable(
         route = "$mediaPickerFolderNavigationRoute/{$folderIdArg}",
         arguments = listOf(
@@ -41,7 +41,7 @@ fun NavGraphBuilder.mediaPickerFolderScreen(
     ) {
         MediaPickerFolderRoute(
             onVideoClick = onVideoClick,
-            onNavigateUp = onNavigateUp
+            onNavigateUp = onNavigateUp,
         )
     }
 }

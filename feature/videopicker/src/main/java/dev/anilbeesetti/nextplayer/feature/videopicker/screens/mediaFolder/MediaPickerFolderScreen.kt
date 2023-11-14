@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -49,7 +54,7 @@ fun MediaPickerFolderRoute(
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
-        onAddToSync = viewModel::addToMediaInfoSynchronizer
+    onAddToSync = viewModel::addToMediaInfoSynchronizer
     )
 }
 
@@ -64,7 +69,12 @@ internal fun MediaPickerFolderScreen(
     onDeleteVideoClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit
 ) {
+    var selectedItems by rememberSaveable { mutableIntStateOf(0) }
+    var isDeleteIconVisible by rememberSaveable { mutableStateOf(false) }
+    var disableMultiSelect by rememberSaveable { mutableStateOf(false) }
+    var totalVideosCount by rememberSaveable { mutableIntStateOf(0) }
     Column {
+    if(!isDeleteIconVisible)
         NextTopAppBar(
             title = File(folderPath).prettyName,
             navigationIcon = {
@@ -72,6 +82,31 @@ internal fun MediaPickerFolderScreen(
                     Icon(
                         imageVector = NextIcons.ArrowBack,
                         contentDescription = stringResource(id = R.string.navigate_up)
+                    )
+                }
+            }
+        )
+        else
+        NextTopAppBar(
+            title = "$selectedItems/${totalVideosCount} Selected",
+            navigationIcon = {
+                IconButton(onClick = {
+                    disableMultiSelect = true
+                    isDeleteIconVisible = false
+                }) {
+                    Icon(
+                        imageVector = NextIcons.ArrowBack,
+                        contentDescription = stringResource(id = R.string.navigate_up)
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = {
+
+                }) {
+                    Icon(
+                        imageVector = NextIcons.Delete,
+                        contentDescription = stringResource(id = R.string.delete)
                     )
                 }
             }
@@ -86,7 +121,18 @@ internal fun MediaPickerFolderScreen(
                 preferences = preferences,
                 onVideoClick = onVideoClick,
                 onDeleteVideoClick = onDeleteVideoClick,
-                onVideoLoaded = onAddToSync
+                showDeleteIcon = {
+                    isDeleteIconVisible = it
+                    disableMultiSelect = false
+                },
+                selectedItemsCount = {
+                                     selectedItems = it
+                },
+                disableMultiSelect = disableMultiSelect,
+                totalVideos = {
+                    totalVideosCount = it
+                },
+            onVideoLoaded = onAddToSync
             )
         }
     }

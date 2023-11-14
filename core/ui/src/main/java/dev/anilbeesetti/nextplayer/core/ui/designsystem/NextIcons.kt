@@ -43,6 +43,7 @@ import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.ScreenRotationAlt
+import androidx.compose.material.icons.rounded.SelectAll
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Speed
@@ -92,6 +93,7 @@ object NextIcons {
     val Link = Icons.Rounded.Link
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
+    val MultiSelect = Icons.Rounded.SelectAll
     val PhotoSize = Icons.Rounded.PhotoSizeSelectSmall
     val Pinch = Icons.Rounded.Pinch
     val Player = Icons.Rounded.PlayCircle

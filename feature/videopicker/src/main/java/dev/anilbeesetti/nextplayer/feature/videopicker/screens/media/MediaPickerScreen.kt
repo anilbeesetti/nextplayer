@@ -13,6 +13,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -27,6 +28,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
@@ -86,8 +88,13 @@ internal fun MediaPickerScreen(
     onAddToSync: (Uri) -> Unit = {}
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
+    var isDeleteIconVisible by rememberSaveable { mutableStateOf(false) }
+    var selectedItems by rememberSaveable { mutableIntStateOf(0) }
+    var totalVideosCount by rememberSaveable { mutableIntStateOf(0) }
+    var disableMultiSelect by rememberSaveable { mutableStateOf(false) }
 
     Column {
+        if(!isDeleteIconVisible)
         NextCenterAlignedTopAppBar(
             title = stringResource(id = R.string.app_name),
             navigationIcon = {
@@ -107,6 +114,29 @@ internal fun MediaPickerScreen(
                 }
             }
         )
+        else
+            NextTopAppBar(
+                title = "$selectedItems/${totalVideosCount} Selected",
+                navigationIcon = {
+                    IconButton(onClick = {
+                        disableMultiSelect = true
+                        isDeleteIconVisible = false
+                    }) {
+                        Icon(
+                            imageVector = NextIcons.ArrowBack,
+                            contentDescription = stringResource(id = R.string.navigate_up)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {  }) {
+                        Icon(
+                            imageVector = NextIcons.Delete,
+                            contentDescription = stringResource(id = R.string.delete)
+                        )
+                    }
+                }
+            )
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -124,7 +154,18 @@ internal fun MediaPickerScreen(
                     onVideoClick = onPlayVideo,
                     preferences = preferences,
                     onDeleteVideoClick = onDeleteVideoClick,
-                    onVideoLoaded = onAddToSync
+                    onVideoLoaded = onAddToSync,
+                    showDeleteIcon = {
+                        isDeleteIconVisible = it
+                    },
+                    selectedItemsCount = {
+                        selectedItems = it
+                        disableMultiSelect = false
+                    },
+                    disableMultiSelect = disableMultiSelect,
+                    totalVideos = {
+                        totalVideosCount = it
+                    }
                 )
             }
         }
