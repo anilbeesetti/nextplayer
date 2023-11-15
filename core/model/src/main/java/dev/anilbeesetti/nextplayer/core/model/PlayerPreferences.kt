@@ -17,6 +17,7 @@ data class PlayerPreferences(
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
     val lastPlayback: String = "",
+    val lastNetworkPlaybackPosition: Long = 0L,
 
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,

@@ -281,6 +281,11 @@ class PlayerActivity : AppCompatActivity() {
         super.onStart()
     }
 
+    override fun onPause() {
+        playlistManager.getCurrent()?.let { savePlayerState(it) }
+        super.onPause()
+    }
+
     override fun onStop() {
         binding.volumeGestureLayout.visibility = View.GONE
         binding.brightnessGestureLayout.visibility = View.GONE
@@ -487,6 +492,9 @@ class PlayerActivity : AppCompatActivity() {
             viewModel.updateState(getPath(currentUri))
             if (intent.data == currentUri && playerApi.hasPosition) {
                 viewModel.currentPlaybackPosition = playerApi.position?.toLong()
+            }
+            if (getPath(currentUri) == null && (currentUri.toString() == playerPreferences.lastPlayback)) {
+                viewModel.currentPlaybackPosition = playerPreferences.lastNetworkPlaybackPosition
             }
 
             // Get all subtitles for current uri

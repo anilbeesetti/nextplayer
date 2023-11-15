@@ -79,7 +79,10 @@ class PlayerViewModel @Inject constructor(
         currentSubtitleTrackIndex = subtitleTrackIndex
         currentPlaybackSpeed = playbackSpeed
 
-        if (path == null) return
+        if (path == null) {
+            saveCurrentNetworkPlaybackPosition(position)
+            return
+        }
 
         val newPosition = position.takeIf {
             position < duration - END_POSITION_OFFSET
@@ -101,6 +104,14 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(lastPlayback = uri.toString())
+            }
+        }
+    }
+
+    private fun saveCurrentNetworkPlaybackPosition(position: Long) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(lastNetworkPlaybackPosition = position)
             }
         }
     }
