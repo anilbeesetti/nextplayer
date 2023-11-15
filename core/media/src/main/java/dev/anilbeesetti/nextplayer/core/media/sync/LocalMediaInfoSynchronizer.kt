@@ -42,7 +42,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
         media.collect { mediumUri ->
             val path = context.getPath(mediumUri) ?: return@collect
             val medium = mediumDao.getWithInfo(path) ?: return@collect
-            if (medium.videoStreamInfo != null) return@collect
+            if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) return@collect
 
             Log.d(TAG, "sync: $mediumUri")
 
@@ -56,7 +56,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
             val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
             val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
-            val thumbnailPath = thumbnail?.saveTo(storageDir = context.filesDir, quality = 30)
+            val thumbnailPath = thumbnail?.saveTo(storageDir = context.cacheDir, quality = 30)
 
             mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format, thumbnailPath = thumbnailPath))
             videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
