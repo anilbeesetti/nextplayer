@@ -3,8 +3,7 @@ package dev.anilbeesetti.nextplayer.settings.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import dev.anilbeesetti.nextplayer.core.ui.designsystem.NavigationAnimations
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.animatedComposable
 import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesScreen
 
 const val playerPreferencesNavigationRoute = "player_preferences_route"
@@ -14,12 +13,7 @@ fun NavController.navigateToPlayerPreferences(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.playerPreferencesScreen(onNavigateUp: () -> Unit) {
-    composable(
-        route = playerPreferencesNavigationRoute,
-        enterTransition = { NavigationAnimations.slideEnter },
-        popExitTransition = { NavigationAnimations.slideExit },
-        popEnterTransition = null
-    ) {
+    animatedComposable(route = playerPreferencesNavigationRoute) {
         PlayerPreferencesScreen(
             onNavigateUp = onNavigateUp
         )
