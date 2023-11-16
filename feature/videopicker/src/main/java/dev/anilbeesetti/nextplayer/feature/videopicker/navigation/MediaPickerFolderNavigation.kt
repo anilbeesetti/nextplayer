@@ -16,7 +16,7 @@ internal const val folderIdArg = "folderId"
 
 internal class FolderArgs(val folderId: String) {
     constructor(savedStateHandle: SavedStateHandle) :
-            this(Uri.decode(checkNotNull(savedStateHandle[folderIdArg])))
+        this(Uri.decode(checkNotNull(savedStateHandle[folderIdArg])))
 }
 
 fun NavController.navigateToMediaPickerFolderScreen(
