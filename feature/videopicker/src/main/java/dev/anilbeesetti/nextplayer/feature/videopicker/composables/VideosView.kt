@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,9 +21,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -35,6 +32,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -42,6 +40,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -50,25 +49,21 @@ fun VideosView(
     videosState: VideosState,
     preferences: ApplicationPreferences,
     onVideoClick: (Uri) -> Unit,
-    onDeleteVideoClick: (String) -> Unit,
-    showDeleteIcon: (Boolean) -> Unit,
-    selectedItemsCount: (Int) -> Unit,
-    disableMultiSelect:Boolean,
+    onDeleteVideoClick: (List<String>) -> Unit,
+    toggleMultiSelect: () -> Unit,
+    disableMultiSelect: Boolean,
     totalVideos: (Int) -> Unit,
-    onVideoLoaded: (Uri) -> Unit = {}
+    onVideoLoaded: (Uri) -> Unit = {},
+    viewModel: MediaPickerViewModel = hiltViewModel()
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
     var deleteAction: Video? by rememberSaveable { mutableStateOf(null) }
     var showInfoAction: Video? by rememberSaveable { mutableStateOf(null) }
-    var enableMultiSelect by rememberSaveable { mutableStateOf(false) }
-    var itemsSelected by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-    if(disableMultiSelect){
-        enableMultiSelect = false
-        itemsSelected = 0
-        selectedItemsCount(0)
+    var multiSelect by rememberSaveable { mutableStateOf(false) }
+
+    if (disableMultiSelect) {
+        multiSelect = false
     }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -81,39 +76,34 @@ fun VideosView(
         } else {
             totalVideos(videosState.data.size)
             MediaLazyList {
-                items(videosState.data, key = { it.path }) { video ->
+                if (disableMultiSelect) {
+                    viewModel.videoTracks = videosState.data.map { it.copy() }
+                }
+
+                items(viewModel.videoTracks, key = { it.path }) { video ->
                     LaunchedEffect(Unit) {
                         onVideoLoaded(Uri.parse(video.uriString))
                     }
-                    var videoItem by remember { mutableStateOf(video) }
-                    if(disableMultiSelect){
-                        videoItem.isSelected = false
-                    }
 
                     VideoItem(
-                        video = videoItem,
+                        video = video,
                         preferences = preferences,
-                        multiSelectEnabled = enableMultiSelect,
-                        isSelected = {isSelected ->
-                            videoItem = videoItem.copy(isSelected = isSelected)
+                        multiSelectEnabled = multiSelect,
+                        isSelected = { isSelected ->
                             video.isSelected = isSelected
-                            itemsSelected += if (isSelected) 1 else -1
-                            selectedItemsCount(itemsSelected)
+                            toggleSelection(video, viewModel)
                         },
                         modifier = Modifier.combinedClickable(
                             onClick = {
-                                if (enableMultiSelect) {
-                                    val newSelected = !videoItem.isSelected
-                                        videoItem = videoItem.copy(isSelected = newSelected)
-                                        video.isSelected = newSelected
-                                        itemsSelected += if (newSelected) 1 else -1
-                                        selectedItemsCount(itemsSelected)
+                                if (multiSelect) {
+                                    video.isSelected = !video.isSelected
+                                    toggleSelection(video, viewModel)
                                 } else {
                                     onVideoClick(Uri.parse(video.uriString))
                                 }
                             },
                             onLongClick = {
-                                if (!enableMultiSelect) {
+                                if (!multiSelect) {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     showMediaActionsFor = video
                                 }
@@ -173,8 +163,8 @@ fun VideosView(
                 text = stringResource(R.string.multi_select),
                 icon = NextIcons.MultiSelect,
                 onClick = {
-                    enableMultiSelect = true
-                    showDeleteIcon(true)
+                    multiSelect = true
+                    toggleMultiSelect()
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
@@ -188,7 +178,7 @@ fun VideosView(
             subText = stringResource(id = R.string.delete_file),
             onCancel = { deleteAction = null },
             onConfirm = {
-                onDeleteVideoClick(it.uriString)
+                onDeleteVideoClick(listOf(it.uriString))
                 deleteAction = null
             },
             fileNames = listOf(it.nameWithExtension)
@@ -200,6 +190,14 @@ fun VideosView(
             video = it,
             onDismiss = { showInfoAction = null }
         )
+    }
+}
+
+private fun toggleSelection(video: Video, viewModel: MediaPickerViewModel) {
+    if (video.isSelected) {
+        viewModel.addToSelectedTracks(video)
+    } else {
+        viewModel.removeFromSelectedTracks(video)
     }
 }
 

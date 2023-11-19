@@ -34,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.DeleteConfirmationDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
@@ -67,9 +68,11 @@ fun MediaPickerRoute(
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
         updatePreferences = viewModel::updateMenu,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
+        onDeleteVideoClick = { viewModel.deleteVideos(it, deleteIntentSenderLauncher) },
         onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) },
-        onAddToSync = viewModel::addToMediaInfoSynchronizer
+        onAddToSync = viewModel::addToMediaInfoSynchronizer,
+        selectedTracks = viewModel.selectedTracks,
+        clearSelectedTracks = { viewModel.clearSelectedTracks() }
     )
 }
 
@@ -83,44 +86,44 @@ internal fun MediaPickerScreen(
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     updatePreferences: (ApplicationPreferences) -> Unit = {},
-    onDeleteVideoClick: (String) -> Unit,
+    onDeleteVideoClick: (List<String>) -> Unit,
     onDeleteFolderClick: (String) -> Unit,
+    selectedTracks: List<Video>,
+    clearSelectedTracks: () -> Unit,
     onAddToSync: (Uri) -> Unit = {}
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
-    var isDeleteIconVisible by rememberSaveable { mutableStateOf(false) }
-    var selectedItems by rememberSaveable { mutableIntStateOf(0) }
     var totalVideosCount by rememberSaveable { mutableIntStateOf(0) }
-    var disableMultiSelect by rememberSaveable { mutableStateOf(false) }
-
+    var deleteAction by rememberSaveable { mutableStateOf(false) }
+    var disableMultiSelect by rememberSaveable { mutableStateOf(true) }
     Column {
-        if(!isDeleteIconVisible)
-        NextCenterAlignedTopAppBar(
-            title = stringResource(id = R.string.app_name),
-            navigationIcon = {
-                IconButton(onClick = onSettingsClick) {
-                    Icon(
-                        imageVector = NextIcons.Settings,
-                        contentDescription = stringResource(id = R.string.settings)
-                    )
+        if (disableMultiSelect) {
+            NextCenterAlignedTopAppBar(
+                title = stringResource(id = R.string.app_name),
+                navigationIcon = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            imageVector = NextIcons.Settings,
+                            contentDescription = stringResource(id = R.string.settings)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = NextIcons.DashBoard,
+                            contentDescription = stringResource(id = R.string.menu)
+                        )
+                    }
                 }
-            },
-            actions = {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        imageVector = NextIcons.DashBoard,
-                        contentDescription = stringResource(id = R.string.menu)
-                    )
-                }
-            }
-        )
-        else
+            )
+        } else {
             NextTopAppBar(
-                title = "$selectedItems/${totalVideosCount} Selected",
+                title = "${selectedTracks.size}/$totalVideosCount Selected",
                 navigationIcon = {
                     IconButton(onClick = {
                         disableMultiSelect = true
-                        isDeleteIconVisible = false
+                        clearSelectedTracks()
                     }) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
@@ -129,7 +132,9 @@ internal fun MediaPickerScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {  }) {
+                    IconButton(onClick = {
+                        deleteAction = true
+                    }) {
                         Icon(
                             imageVector = NextIcons.Delete,
                             contentDescription = stringResource(id = R.string.delete)
@@ -137,6 +142,7 @@ internal fun MediaPickerScreen(
                     }
                 }
             )
+        }
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -155,11 +161,7 @@ internal fun MediaPickerScreen(
                     preferences = preferences,
                     onDeleteVideoClick = onDeleteVideoClick,
                     onVideoLoaded = onAddToSync,
-                    showDeleteIcon = {
-                        isDeleteIconVisible = it
-                    },
-                    selectedItemsCount = {
-                        selectedItems = it
+                    toggleMultiSelect = {
                         disableMultiSelect = false
                     },
                     disableMultiSelect = disableMultiSelect,
@@ -176,6 +178,19 @@ internal fun MediaPickerScreen(
             applicationPreferences = preferences,
             onDismiss = { showMenu = false },
             updatePreferences = updatePreferences
+        )
+    }
+    if (deleteAction) {
+        DeleteConfirmationDialog(
+            subText = stringResource(id = R.string.delete_file),
+            onCancel = { deleteAction = false },
+            onConfirm = {
+                onDeleteVideoClick(selectedTracks.map { it.uriString })
+                deleteAction = false
+                clearSelectedTracks()
+                disableMultiSelect = true
+            },
+            fileNames = selectedTracks.map { it.nameWithExtension }
         )
     }
 }
@@ -198,7 +213,9 @@ fun MediaPickerScreenPreview(
                     onPlayVideo = {},
                     onFolderClick = {},
                     onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
+                    onDeleteFolderClick = {},
+                    selectedTracks = emptyList(),
+                    clearSelectedTracks = {}
                 )
             }
         }
@@ -231,7 +248,9 @@ fun MediaPickerNoVideosFoundPreview() {
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {}
+                onDeleteFolderClick = {},
+                selectedTracks = emptyList(),
+                clearSelectedTracks = {}
             )
         }
     }
@@ -249,7 +268,9 @@ fun MediaPickerLoadingPreview() {
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {}
+                onDeleteFolderClick = {},
+                selectedTracks = emptyList(),
+                clearSelectedTracks = {}
             )
         }
     }
