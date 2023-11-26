@@ -145,4 +145,22 @@
     <string name="hundred_percent">۱۰۰٪</string>
     <string name="autoplay_settings">پخش خودکار</string>
     <string name="autoplay_settings_description">به صورت خودکار فیلم بعدی در این پوشه پخش شود</string>
+    <string name="high_contrast_dark_theme_desc">استفاده از پس زمینه مشکی خالص برای حالت تاریک</string>
+    <string name="long_press_gesture_desc">ضربه طولانی برای پخش با سرعت %.1f برابر</string>
+    <string name="pause_on_headset_disconnect_desc">توقف پخش هنگام قطع اتصال هدست از دستگاه</string>
+    <string name="audio_desc">گزینه های پخش صدا</string>
+    <string name="properties">تنظیمات</string>
+    <string name="fast_playback_speed">سرعت %.1f برابر</string>
+    <string name="high_contrast_dark_theme">هم سنجی بالا برای حالت تاریک</string>
+    <string name="pause_on_headset_disconnect">توقف هنگام قطع اتصال</string>
+    <string name="zoom_gesture">ژست حرکتی بزرگنمایی</string>
+    <string name="system_caption_style">سبک زیرنویس سامانه</string>
+    <string name="thumbnail">بندانگشتی</string>
+    <string name="system_caption_style_desc">برای بازکردن ترجیحات زیرنویس سامانه کلیک کنید</string>
+    <string name="extension">افزونه</string>
+    <string name="path">مسیر</string>
+    <string name="language">زبان</string>
+    <string name="okay">حله</string>
+    <string name="require_audio_focus_desc">توقف پخش کننده های دیگر هنگامى که این پخش کننده، ویدیوها را پخش میکند، و برعکس</string>
+    <string name="resolution">ابعاد</string>
 </resources>
