@@ -50,7 +50,6 @@ import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.common.extensions.clearCache
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
@@ -632,7 +631,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun finish() {
-        clearCache()
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
