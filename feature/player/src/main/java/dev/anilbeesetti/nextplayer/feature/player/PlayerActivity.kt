@@ -50,12 +50,13 @@ import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.common.extensions.clearSubtitleCache
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
+import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
+import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -518,7 +519,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun releasePlayer() {
         Timber.d("Releasing player")
-        this.clearSubtitleCache()
+        subtitleCacheDir.deleteFiles()
         playWhenReady = player.playWhenReady
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)

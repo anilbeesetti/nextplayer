@@ -372,12 +372,9 @@ val Context.subtitleCacheDir: File
         return dir
     }
 
-fun Context.clearSubtitleCache() {
-    try {
-        subtitleCacheDir.listFiles()?.forEach {
-            it.delete()
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
+val Context.thumbnailCacheDir: File
+    get() {
+        val dir = File(cacheDir, "thumbnails")
+        if (!dir.exists()) dir.mkdir()
+        return dir
     }
-}
