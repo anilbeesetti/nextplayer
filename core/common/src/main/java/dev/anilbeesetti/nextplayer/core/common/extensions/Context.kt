@@ -240,6 +240,7 @@ suspend fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) = w
 
 fun Context.convertToUTF8(uri: Uri, charset: Charset?): Uri {
     try {
+        // TODO: handle network uri
         if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
         contentResolver.openInputStream(uri)?.use { inputStream ->
             val bufferedInputStream = BufferedInputStream(inputStream)
@@ -284,7 +285,7 @@ fun detectCharset(inputStream: BufferedInputStream): Charset {
 fun Context.convertToUTF8(inputUri: Uri, inputStreamReader: InputStreamReader): Uri {
     if (!StandardCharsets.UTF_8.displayName().equals(inputStreamReader.encoding)) {
         val fileName = getFilenameFromUri(inputUri)
-        val file = File(cacheDir, fileName)
+        val file = File(subtitleCacheDir, fileName)
         val bufferedReader = BufferedReader(inputStreamReader)
         val bufferedWriter = BufferedWriter(FileWriter(file))
 
@@ -356,10 +357,27 @@ fun Context.isDeviceTvBox(): Boolean {
 fun Context.hasStorageAccessFrameworkChooser(): Boolean {
     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
     intent.addCategory(Intent.CATEGORY_OPENABLE)
-    intent.setType("video/*")
+    intent.type = "video/*"
     return intent.resolveActivity(packageManager) != null
 }
 
 fun Context.pxToDp(px: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resources.displayMetrics)
 
 fun Context.dpToPx(dp: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
+
+val Context.subtitleCacheDir: File
+    get() {
+        val dir = File(cacheDir, "subtitles")
+        if (!dir.exists()) dir.mkdir()
+        return dir
+    }
+
+fun Context.clearSubtitleCache() {
+    try {
+        subtitleCacheDir.listFiles()?.forEach {
+            it.delete()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
