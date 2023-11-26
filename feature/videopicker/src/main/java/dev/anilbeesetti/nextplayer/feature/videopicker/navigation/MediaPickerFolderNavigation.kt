@@ -21,7 +21,7 @@ internal class FolderArgs(val folderId: String) {
 
 fun NavController.navigateToMediaPickerFolderScreen(
     folderId: String,
-    navOptions: NavOptions? = null
+    navOptions: NavOptions? = navOptions { launchSingleTop = true }
 ) {
     val encodedFolderId = Uri.encode(folderId)
     this.navigate("$mediaPickerFolderNavigationRoute/$encodedFolderId", navOptions)
