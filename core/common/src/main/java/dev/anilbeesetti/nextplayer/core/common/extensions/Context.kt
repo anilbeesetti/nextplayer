@@ -27,11 +27,11 @@ import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.InputStreamReader
-import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.mozilla.universalchardet.UniversalDetector
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -270,22 +270,15 @@ fun detectCharset(inputStream: BufferedInputStream): Charset {
     }
     inputStream.reset()
 
-    // TODO: Improve charset detection
-    val charsets = listOf("UTF-8", "ISO-8859-1", "ISO-8859-7").map { Charset.forName(it) }
+    val charsetDetector = UniversalDetector()
+    charsetDetector.handleData(rawInput)
+    charsetDetector.dataEnd()
 
-    for (charset in charsets) {
-        try {
-            val decodedBytes = charset.decode(ByteBuffer.wrap(rawInput))
-            if (!decodedBytes.contains("�")) {
-                return charset
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return StandardCharsets.UTF_8
-        }
-    }
+    val encoding = charsetDetector.detectedCharset
 
-    return StandardCharsets.UTF_8
+    Log.d("TAG", "detectCharset: $encoding")
+
+    return encoding?.let { Charset.forName(encoding) } ?: StandardCharsets.UTF_8
 }
 
 fun Context.convertToUTF8(inputUri: Uri, inputStreamReader: InputStreamReader): Uri {
