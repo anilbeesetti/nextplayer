@@ -112,7 +112,7 @@ fun SubtitleStream.toSubtitleStreamInfoEntity(mediumPath: String) = SubtitleStre
 )
 
 suspend fun Bitmap.saveTo(storageDir: File, quality: Int = 100): String? = withContext(Dispatchers.IO) {
-    if(!storageDir.exists()) storageDir.mkdir()
+    if (!storageDir.exists()) storageDir.mkdir()
     val thumbnailFileName = "thumbnail-${System.currentTimeMillis()}"
     val thumbFile = File(storageDir, thumbnailFileName)
     try {
