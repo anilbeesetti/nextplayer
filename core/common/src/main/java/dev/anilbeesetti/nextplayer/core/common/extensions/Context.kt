@@ -310,16 +310,6 @@ fun Context.convertToUTF8(inputUri: Uri, inputStreamReader: InputStreamReader): 
     return inputUri
 }
 
-fun Context.clearCache() {
-    try {
-        cacheDir.listFiles()?.onEach {
-            if (it.isFile) it.delete()
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-}
-
 /**
  * For this to work set android:requestLegacyExternalStorage=true in AndroidManifest.xml
  */

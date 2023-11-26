@@ -42,6 +42,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
         media.collect { mediumUri ->
             val path = context.getPath(mediumUri) ?: return@collect
             val medium = mediumDao.getWithInfo(path) ?: return@collect
+            Log.d(TAG, "sync: $mediumUri - ${medium.mediumEntity.thumbnailPath}")
             if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) return@collect
 
             Log.d(TAG, "sync: $mediumUri")
@@ -56,7 +57,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
             val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
             val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
-            val thumbnailPath = thumbnail?.saveTo(storageDir = context.cacheDir, quality = 30)
+            val thumbnailPath = thumbnail?.saveTo(storageDir = File(context.cacheDir, "thumbnails"), quality = 30)
 
             mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format, thumbnailPath = thumbnailPath))
             videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
@@ -111,6 +112,7 @@ fun SubtitleStream.toSubtitleStreamInfoEntity(mediumPath: String) = SubtitleStre
 )
 
 suspend fun Bitmap.saveTo(storageDir: File, quality: Int = 100): String? = withContext(Dispatchers.IO) {
+    if(!storageDir.exists()) storageDir.mkdir()
     val thumbnailFileName = "thumbnail-${System.currentTimeMillis()}"
     val thumbFile = File(storageDir, thumbnailFileName)
     try {
