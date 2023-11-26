@@ -11,7 +11,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation("com.github.albfernandez:juniversalchardet:2.4.0")
+    implementation(libs.github.albfernandez.juniversalchardet)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
