@@ -32,6 +32,7 @@ class PlaylistManager {
     fun getCurrent(): Uri? = currentItem
 
     fun setPlaylist(items: List<Uri>) {
+        if (items == queue) return
         queue.clear()
         queue.addAll(items)
     }

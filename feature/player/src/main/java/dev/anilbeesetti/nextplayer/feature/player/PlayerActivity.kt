@@ -156,7 +156,7 @@ class PlayerActivity : AppCompatActivity() {
             isSubtitleLauncherHasUri = true
             viewModel.externalSubtitles.add(uri)
         }
-        playVideo()
+        playVideo(playlistManager.getCurrent() ?: intent.data!!)
     }
 
     /**
@@ -276,8 +276,9 @@ class PlayerActivity : AppCompatActivity() {
         }
         createPlayer()
         setOrientation()
+        initPlaylist()
         initializePlayerView()
-        playVideo()
+        playVideo(playlistManager.getCurrent() ?: intent.data!!)
         super.onStart()
     }
 
@@ -464,55 +465,47 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private fun playVideo(uri: Uri? = null) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            if (shouldFetchPlaylist) {
-                val mediaUri = getMediaContentUri(intent.data!!)
-                playlistManager.updateCurrent(uri = mediaUri ?: intent.data!!)
+    private fun initPlaylist() = lifecycleScope.launch(Dispatchers.IO) {
+        val mediaUri = getMediaContentUri(intent.data!!)
 
-                if (mediaUri != null) {
-                    launch(Dispatchers.IO) {
-                        val playlist = viewModel.getPlaylistFromUri(mediaUri)
-                        playlistManager.setPlaylist(playlist)
-                    }
-                }
-                shouldFetchPlaylist = false
+        if (mediaUri != null) {
+            val playlist = viewModel.getPlaylistFromUri(mediaUri)
+            playlistManager.setPlaylist(playlist)
+        }
+    }
+
+
+    private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
+        playlistManager.updateCurrent(uri)
+        val isCurrentUriIsFromIntent = intent.data == uri
+
+        viewModel.updateState(getPath(uri))
+        if (isCurrentUriIsFromIntent && playerApi.hasPosition) {
+            viewModel.currentPlaybackPosition = playerApi.position?.toLong()
+        }
+
+        // Get all subtitles for current uri
+        val apiSubs = if (isCurrentUriIsFromIntent) playerApi.getSubs() else emptyList()
+        val localSubs = uri.getLocalSubtitles(currentContext, viewModel.externalSubtitles.toList())
+        val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
+
+        // current uri as MediaItem with subs
+        val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
+        val mediaStream = createMediaStream(uri).buildUpon()
+            .setSubtitleConfigurations(subtitleStreams)
+            .build()
+
+        withContext(Dispatchers.Main) {
+            if (isCurrentUriIsFromIntent && playerApi.hasTitle) {
+                videoTitleTextView.text = playerApi.title
+            } else {
+                videoTitleTextView.text = getFilenameFromUri(uri)
             }
 
-            uri?.let { playlistManager.updateCurrent(uri) }
-
-            val currentUri = playlistManager.getCurrent()!!
-
-            viewModel.updateState(getPath(currentUri))
-            if (intent.data == currentUri && playerApi.hasPosition) {
-                viewModel.currentPlaybackPosition = playerApi.position?.toLong()
-            }
-
-            // Get all subtitles for current uri
-            val apiSubs = if (intent.data == currentUri) playerApi.getSubs() else emptyList()
-            val localSubs = currentUri.getLocalSubtitles(currentContext, viewModel.externalSubtitles.toList())
-            val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
-
-            // current uri as MediaItem with subs
-            val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
-            val mediaStream = createMediaStream(currentUri).buildUpon()
-                .setSubtitleConfigurations(subtitleStreams)
-                .build()
-
-            withContext(Dispatchers.Main) {
-                // Set api title if current uri is intent uri and intent extras contains api title
-                if (intent.data == currentUri && playerApi.hasTitle) {
-                    videoTitleTextView.text = playerApi.title
-                } else {
-                    videoTitleTextView.text = getFilenameFromUri(currentUri)
-                }
-
-                Timber.d("position: ${viewModel.currentPlaybackPosition}")
-                // Set media and start player
-                player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
-                player.playWhenReady = playWhenReady
-                player.prepare()
-            }
+            // Set media and start player
+            player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
+            player.playWhenReady = playWhenReady
+            player.prepare()
         }
     }
 
@@ -566,10 +559,11 @@ class PlayerActivity : AppCompatActivity() {
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
                 .setTitle(getString(coreUiR.string.error_playing_video))
                 .setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                .setPositiveButton("OK") { dialog, _ ->
+                .setNegativeButton("CANCEL") { dialog, _ ->
                     dialog.dismiss()
                 }
-                .setOnDismissListener {
+                .setPositiveButton("OK") { dialog, _ ->
+                    dialog.dismiss()
                     if (playlistManager.hasNext()) playVideo(playlistManager.getNext()!!) else finish()
                 }
                 .create()
@@ -652,7 +646,7 @@ class PlayerActivity : AppCompatActivity() {
             setIntent(intent)
             prettyPrintIntent()
             shouldFetchPlaylist = true
-            playVideo()
+            playVideo(intent.data!!)
         }
     }
 
