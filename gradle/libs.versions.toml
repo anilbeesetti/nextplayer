@@ -27,7 +27,7 @@ kotlinxSerializationJson = "1.6.1"
 ksp = "1.9.21-1.0.15"
 ktlint = "11.6.1"
 nextlib = "0.6.0"
-room = "2.6.0"
+room = "2.6.1"
 timber = "5.0.1"
 
 
