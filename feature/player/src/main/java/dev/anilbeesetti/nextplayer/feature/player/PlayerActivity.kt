@@ -474,7 +474,6 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
         playlistManager.updateCurrent(uri)
         val isCurrentUriIsFromIntent = intent.data == uri
