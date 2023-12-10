@@ -29,6 +29,7 @@ ktlint = "11.6.1"
 nextlib = "0.6.0"
 room = "2.6.1"
 timber = "5.0.1"
+universalChardet = "2.4.0"
 
 
 [libraries]
@@ -70,6 +71,7 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+github-albfernandez-juniversalchardet = { group="com.github.albfernandez", name = "juniversalchardet", version.ref="universalChardet" }
 github-anilbeesetti-nextlib-media3ext = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-mediainfo", version.ref = "nextlib" }
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }
