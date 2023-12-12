@@ -7,14 +7,14 @@ import androidx.navigation.navOptions
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.animatedComposable
 import dev.anilbeesetti.nextplayer.settings.screens.about.AboutPreferencesScreen
 
-const val aboutPreferencesNavigationRoute = "about_preferences_route"
+const val ABOUT_PREFERENCES_NAVIGATION_ROUTE = "about_preferences_route"
 
 fun NavController.navigateToAboutPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(aboutPreferencesNavigationRoute, navOptions)
+    this.navigate(ABOUT_PREFERENCES_NAVIGATION_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.aboutPreferencesScreen(onNavigateUp: () -> Unit) {
-    animatedComposable(route = aboutPreferencesNavigationRoute) {
+    animatedComposable(route = ABOUT_PREFERENCES_NAVIGATION_ROUTE) {
         AboutPreferencesScreen(
             onNavigateUp = onNavigateUp
         )

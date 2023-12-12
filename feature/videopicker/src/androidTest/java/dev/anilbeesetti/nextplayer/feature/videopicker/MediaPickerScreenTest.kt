@@ -92,7 +92,8 @@ class MediaPickerScreenTest {
         composeTestRule.setContent {
             BoxWithConstraints {
                 MediaPickerScreen(
-                    videosState = VideosState.Loading, // Don't care what the videos state is
+                    // Don't care what the videos state is
+                    videosState = VideosState.Loading,
                     foldersState = FoldersState.Success(
                         data = foldersTestData
                     ),

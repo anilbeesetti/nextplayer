@@ -7,8 +7,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MEDIA_PICKER_NAVIGATION_ROUTE
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerFolderScreen
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerNavigationRoute
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerFolderScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
@@ -21,7 +21,7 @@ fun NavGraphBuilder.mediaNavGraph(
     mediaNavController: NavHostController
 ) {
     navigation(
-        startDestination = mediaPickerNavigationRoute,
+        startDestination = MEDIA_PICKER_NAVIGATION_ROUTE,
         route = MEDIA_ROUTE
     ) {
         mediaPickerScreen(

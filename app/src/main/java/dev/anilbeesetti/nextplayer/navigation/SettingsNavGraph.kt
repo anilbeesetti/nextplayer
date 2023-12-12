@@ -4,6 +4,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.settings.Setting
+import dev.anilbeesetti.nextplayer.settings.navigation.SETTINGS_PREFERENCES_NAVIGATION_ROUTE
 import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.audioPreferencesScreen
@@ -19,7 +20,6 @@ import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaLibraryPre
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSubtitlePreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.settingsNavigationRoute
 import dev.anilbeesetti.nextplayer.settings.navigation.settingsScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.subtitlePreferencesScreen
 
@@ -29,7 +29,7 @@ fun NavGraphBuilder.settingsNavGraph(
     navController: NavHostController
 ) {
     navigation(
-        startDestination = settingsNavigationRoute,
+        startDestination = SETTINGS_PREFERENCES_NAVIGATION_ROUTE,
         route = SETTINGS_ROUTE
     ) {
         settingsScreen(

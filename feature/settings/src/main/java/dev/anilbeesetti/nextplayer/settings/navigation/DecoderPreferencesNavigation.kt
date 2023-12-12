@@ -7,14 +7,14 @@ import androidx.navigation.navOptions
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.animatedComposable
 import dev.anilbeesetti.nextplayer.settings.screens.decoder.DecoderPreferencesScreen
 
-const val decoderPreferencesNavigationRoute = "decoder_preferences_route"
+const val DECODER_PREFERENCES_NAVIGATION_ROUTE = "decoder_preferences_route"
 
 fun NavController.navigateToDecoderPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(decoderPreferencesNavigationRoute, navOptions)
+    this.navigate(DECODER_PREFERENCES_NAVIGATION_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.decoderPreferencesScreen(onNavigateUp: () -> Unit) {
-    animatedComposable(route = decoderPreferencesNavigationRoute) {
+    animatedComposable(route = DECODER_PREFERENCES_NAVIGATION_ROUTE) {
         DecoderPreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }

@@ -7,14 +7,14 @@ import androidx.navigation.navOptions
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.animatedComposable
 import dev.anilbeesetti.nextplayer.settings.screens.subtitle.SubtitlePreferencesScreen
 
-const val subtitlePreferencesNavigationRoute = "subtitle_preferences_route"
+const val SUBTITLE_PREFERENCES_NAVIGATION_ROUTE = "subtitle_preferences_route"
 
 fun NavController.navigateToSubtitlePreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(subtitlePreferencesNavigationRoute, navOptions)
+    this.navigate(SUBTITLE_PREFERENCES_NAVIGATION_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.subtitlePreferencesScreen(onNavigateUp: () -> Unit) {
-    animatedComposable(route = subtitlePreferencesNavigationRoute) {
+    animatedComposable(route = SUBTITLE_PREFERENCES_NAVIGATION_ROUTE) {
         SubtitlePreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }
