@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="about_name">A proposito de</string>
+    <string name="size">Dimension</string>
+    <string name="interface_name">Interfacie</string>
+    <string name="oldest">Plus ancian</string>
+    <string name="play_pause">Reproducer/Pausar</string>
+    <string name="no_videos_found">Necun videos trovate</string>
+    <string name="no">Non</string>
+    <string name="newest">Plus recente</string>
+    <string name="none">Necun</string>
+    <string name="autoplay_settings">Reproduction automatic</string>
+    <string name="resume">Resumer</string>
+    <string name="player_name">Reproductor</string>
+    <string name="yes">Si</string>
+    <string name="menu"></string>
+    <string name="open_settings">Aperir le parametros</string>
+    <string name="location">Location</string>
+    <string name="a_z">A-Z</string>
+    <string name="dark_theme">Thema obscur</string>
+    <string name="enable">Activar</string>
+    <string name="auto">Automatic</string>
+    <string name="sort">Ordinar</string>
+    <string name="playback">Reproduction</string>
+    <string name="settings">Parametros</string>
+    <string name="z_a">Z-A</string>
+    <string name="duration">Duration</string>
+    <string name="audio">Audio</string>
+    <string name="system_default">Predefinite del systema</string>
 </resources>
