@@ -175,7 +175,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerUnlockControls: FrameLayout
     private lateinit var playerCenterControls: LinearLayout
     private lateinit var prevButton: ImageButton
-    private lateinit var screenRotationButton: ImageButton
+    private lateinit var screenRotateButton: ImageButton
     private lateinit var seekBar: TimeBar
     private lateinit var subtitleTrackButton: ImageButton
     private lateinit var unlockControlsButton: MaterialButton
@@ -200,8 +200,7 @@ class PlayerActivity : AppCompatActivity() {
 
         // The window is always allowed to extend into the DisplayCutout areas on the short edges of the screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -220,7 +219,7 @@ class PlayerActivity : AppCompatActivity() {
         playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
         playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
         prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
-        screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
+        screenRotateButton = binding.playerView.findViewById(R.id.screen_rotate)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
         subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
@@ -452,17 +451,11 @@ class PlayerActivity : AppCompatActivity() {
             ).show(supportFragmentManager, "VideoZoomOptionsDialog")
             true
         }
-        screenRotationButton.setOnClickListener {
+        screenRotateButton.setOnClickListener {
             requestedOrientation = when (resources.configuration.orientation) {
                 Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
-        }
-        screenRotationButton.setOnLongClickListener {
-            playerPreferences.playerScreenOrientation.also {
-                requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
-            }
-            true
         }
         backButton.setOnClickListener { finish() }
     }
@@ -666,7 +659,6 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun setRequestedOrientation(requestedOrientation: Int) {
         super.setRequestedOrientation(requestedOrientation)
-        screenRotationButton.setImageDrawable(this, getRotationDrawable())
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -966,21 +958,5 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
-    }
-}
-
-private fun Activity.getRotationDrawable(): Int {
-    return when (requestedOrientation) {
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
-        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
-        ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
-        ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT -> coreUiR.drawable.ic_portrait
-
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
-        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
-        ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
-        ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE -> coreUiR.drawable.ic_landscape
-
-        else -> coreUiR.drawable.ic_screen_rotation
     }
 }
