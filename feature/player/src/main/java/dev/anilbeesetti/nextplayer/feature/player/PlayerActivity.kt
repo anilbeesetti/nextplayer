@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.KeyEvent
+import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
@@ -141,6 +142,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playlistManager: PlaylistManager
     private lateinit var trackSelector: DefaultTrackSelector
+    private var surfaceView: SurfaceView? = null
     private var mediaSession: MediaSession? = null
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
@@ -466,6 +468,11 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playVideo(uri: Uri? = null) {
+        surfaceView = SurfaceView(this).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        }
+        player.setVideoSurfaceView(surfaceView)
+        exoContentFrameLayout.addView(surfaceView, 0)
         lifecycleScope.launch(Dispatchers.IO) {
             if (shouldFetchPlaylist) {
                 val mediaUri = getMediaContentUri(intent.data!!)
