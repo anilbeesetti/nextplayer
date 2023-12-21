@@ -181,6 +181,17 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var unlockControlsButton: MaterialButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
+    private lateinit var pictureInPictureModeBtn: ImageButton
+
+    private val isPipSupported by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            packageManager.hasSystemFeature(
+                PackageManager.FEATURE_PICTURE_IN_PICTURE
+            )
+        } else {
+            false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -225,6 +236,7 @@ class PlayerActivity : AppCompatActivity() {
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
+        pictureInPictureModeBtn = binding.playerView.findViewById(R.id.btn_video_picutre_in_picture)
 
         seekBar.addListener(object : TimeBar.OnScrubListener {
             override fun onScrubStart(timeBar: TimeBar, position: Long) {
@@ -270,6 +282,43 @@ class PlayerActivity : AppCompatActivity() {
 
         playlistManager = PlaylistManager()
         playerApi = PlayerApi(this)
+
+        pictureInPictureModeBtn.setOnClickListener {
+            if (!isPipSupported) {
+                Snackbar.make(
+                    it,
+                    "your device doesn't suuport picture in picture mode",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+            updatedPipParams()?.let { params ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    enterPictureInPictureMode(params)
+                } else {
+                    Snackbar.make(
+                        it,
+                        "your device doesn't suuport picture in picture mode",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun updatedPipParams(): PictureInPictureParams? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(16, 9))
+                .build()
+        } else {
+            Snackbar.make(
+                binding.root,
+                "your device doesn't suuport picture in picture mode",
+                Snackbar.LENGTH_SHORT
+            ).show()
+            return null
+        }
     }
 
     override fun onStart() {
