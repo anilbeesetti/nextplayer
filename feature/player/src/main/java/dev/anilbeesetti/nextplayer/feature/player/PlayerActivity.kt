@@ -323,7 +323,7 @@ class PlayerActivity : AppCompatActivity() {
             if (player.canAdvertiseSession()) {
                 mediaSession = MediaSession.Builder(this, player).build()
             }
-            loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+            loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(player.audioSessionId) else null
         } catch (e: Exception) {
             e.printStackTrace()
         }
