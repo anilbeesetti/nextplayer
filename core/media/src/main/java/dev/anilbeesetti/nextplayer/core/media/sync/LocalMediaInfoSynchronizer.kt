@@ -9,6 +9,7 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.common.extensions.thumbnailCacheDir
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.SubtitleStreamInfoEntity
@@ -42,6 +43,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
         media.collect { mediumUri ->
             val path = context.getPath(mediumUri) ?: return@collect
             val medium = mediumDao.getWithInfo(path) ?: return@collect
+            Log.d(TAG, "sync: $mediumUri - ${medium.mediumEntity.thumbnailPath}")
             if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) return@collect
 
             Log.d(TAG, "sync: $mediumUri")
@@ -56,7 +58,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
             val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
             val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
-            val thumbnailPath = thumbnail?.saveTo(storageDir = context.cacheDir, quality = 30)
+            val thumbnailPath = thumbnail?.saveTo(storageDir = context.thumbnailCacheDir, quality = 30)
 
             mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format, thumbnailPath = thumbnailPath))
             videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }

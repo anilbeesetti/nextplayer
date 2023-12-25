@@ -161,7 +161,7 @@
     <string name="extension">扩展</string>
     <string name="path">路径</string>
     <string name="resolution">分辨率</string>
-    <string name="long_press_gesture_desc">长按以以 %.1fx 速度播放</string>
+    <string name="long_press_gesture_desc">长按以 %.1fx 速度播放</string>
     <string name="long_press_gesture">长按手势</string>
     <string name="require_audio_focus">需要音频焦点</string>
     <string name="fast_playback_speed">%.1fx 速度</string>

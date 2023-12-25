@@ -27,11 +27,11 @@ import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.InputStreamReader
-import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.mozilla.universalchardet.UniversalDetector
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -240,6 +240,7 @@ suspend fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) = w
 
 fun Context.convertToUTF8(uri: Uri, charset: Charset?): Uri {
     try {
+        // TODO: handle network uri
         if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
         contentResolver.openInputStream(uri)?.use { inputStream ->
             val bufferedInputStream = BufferedInputStream(inputStream)
@@ -270,28 +271,21 @@ fun detectCharset(inputStream: BufferedInputStream): Charset {
     }
     inputStream.reset()
 
-    // TODO: Improve charset detection
-    val charsets = listOf("UTF-8", "ISO-8859-1", "ISO-8859-7").map { Charset.forName(it) }
+    val charsetDetector = UniversalDetector()
+    charsetDetector.handleData(rawInput)
+    charsetDetector.dataEnd()
 
-    for (charset in charsets) {
-        try {
-            val decodedBytes = charset.decode(ByteBuffer.wrap(rawInput))
-            if (!decodedBytes.contains("�")) {
-                return charset
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return StandardCharsets.UTF_8
-        }
-    }
+    val encoding = charsetDetector.detectedCharset
 
-    return StandardCharsets.UTF_8
+    Log.d("TAG", "detectCharset: $encoding")
+
+    return encoding?.let { Charset.forName(encoding) } ?: StandardCharsets.UTF_8
 }
 
 fun Context.convertToUTF8(inputUri: Uri, inputStreamReader: InputStreamReader): Uri {
     if (!StandardCharsets.UTF_8.displayName().equals(inputStreamReader.encoding)) {
         val fileName = getFilenameFromUri(inputUri)
-        val file = File(cacheDir, fileName)
+        val file = File(subtitleCacheDir, fileName)
         val bufferedReader = BufferedReader(inputStreamReader)
         val bufferedWriter = BufferedWriter(FileWriter(file))
 
@@ -308,16 +302,6 @@ fun Context.convertToUTF8(inputUri: Uri, inputStreamReader: InputStreamReader): 
         return Uri.fromFile(file)
     }
     return inputUri
-}
-
-fun Context.clearCache() {
-    try {
-        cacheDir.listFiles()?.onEach {
-            if (it.isFile) it.delete()
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
 }
 
 /**
@@ -373,10 +357,24 @@ fun Context.isDeviceTvBox(): Boolean {
 fun Context.hasStorageAccessFrameworkChooser(): Boolean {
     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
     intent.addCategory(Intent.CATEGORY_OPENABLE)
-    intent.setType("video/*")
+    intent.type = "video/*"
     return intent.resolveActivity(packageManager) != null
 }
 
 fun Context.pxToDp(px: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resources.displayMetrics)
 
 fun Context.dpToPx(dp: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
+
+val Context.subtitleCacheDir: File
+    get() {
+        val dir = File(cacheDir, "subtitles")
+        if (!dir.exists()) dir.mkdir()
+        return dir
+    }
+
+val Context.thumbnailCacheDir: File
+    get() {
+        val dir = File(cacheDir, "thumbnails")
+        if (!dir.exists()) dir.mkdir()
+        return dir
+    }
