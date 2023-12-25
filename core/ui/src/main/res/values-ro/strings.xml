@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="ascending">Ascendent</string>
+    <string name="about_description">Versiune, credite</string>
+    <string name="descending">Descendentă</string>
+    <string name="appearance_name">Aspect</string>
+    <string name="cancel">Anulați</string>
+    <string name="appearance_description">Ajustează aplicația pe placul tău</string>
+    <string name="disable">Dezactivați</string>
+    <string name="about_name">Despre</string>
+    <string name="done">Terminat</string>
+</resources>
