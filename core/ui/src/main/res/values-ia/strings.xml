@@ -79,4 +79,21 @@
     <string name="manage_folders">Gerer dossieres</string>
     <string name="default_playback_speed">Velocitate de reproduction per predifinition</string>
     <string name="done">Preste</string>
+    <string name="delete_file">Le sequente file essera delite permanentemente</string>
+    <string name="title">Titulo</string>
+    <string name="landscape_reverse">Inverter le modo horizontal</string>
+    <string name="delete_folder">Tote le files de video in le sequente dossier essera delite permanentemente.</string>
+    <string name="portrait">Vertical</string>
+    <string name="controls_unlock">Disblocar controlos</string>
+    <string name="subtitle_background">Fundo de subtitulos</string>
+    <string name="seconds">%1$s secundas</string>
+    <string name="channels">Canales</string>
+    <string name="appearance_name">Apparentia</string>
+    <string name="subtitle_background_desc">Activar le fundo de texto del subtitulos</string>
+    <string name="preferred_audio_lang">Lingua de audio preferite</string>
+    <string name="preferred_subtitle_lang">Lingua de subtitulos preferite</string>
+    <string name="hundred_percent">100%</string>
+    <string name="controls_lock">Blocar controlos</string>
+    <string name="landscape">Horizontal</string>
+    <string name="cancel">Cancellar</string>
 </resources>
