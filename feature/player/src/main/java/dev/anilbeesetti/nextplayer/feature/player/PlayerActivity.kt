@@ -46,7 +46,6 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -178,7 +177,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var screenRotateButton: ImageButton
     private lateinit var seekBar: TimeBar
     private lateinit var subtitleTrackButton: ImageButton
-    private lateinit var unlockControlsButton: MaterialButton
+    private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
 
@@ -655,10 +654,6 @@ class PlayerActivity : AppCompatActivity() {
             shouldFetchPlaylist = true
             playVideo()
         }
-    }
-
-    override fun setRequestedOrientation(requestedOrientation: Int) {
-        super.setRequestedOrientation(requestedOrientation)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
