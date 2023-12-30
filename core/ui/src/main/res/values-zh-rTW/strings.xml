@@ -180,4 +180,6 @@
     <string name="sample_rate">取樣率</string>
     <string name="file">檔案</string>
     <string name="format">格式</string>
+    <string name="volume_boost_desc">提升音量高達 200%</string>
+    <string name="volume_boost">音量增幅器</string>
 </resources>
