@@ -30,6 +30,7 @@ data class PlayerPreferences(
     val pauseOnHeadsetDisconnect: Boolean = true,
     val requireAudioFocus: Boolean = true,
     val showSystemVolumePanel: Boolean = true,
+    val shouldUseVolumeBoost: Boolean = false,
 
     // Subtitle Preferences
     val useSystemCaptionStyle: Boolean = false,

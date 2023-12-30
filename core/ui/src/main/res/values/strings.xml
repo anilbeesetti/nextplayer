@@ -182,4 +182,6 @@
     <string name="frame_rate">Frame rate</string>
     <string name="okay">Okay</string>
     <string name="properties">Properties</string>
+    <string name="volume_boost">Volume boost</string>
+    <string name="volume_boost_desc">Boost audio volume up to 200%</string>
 </resources>
