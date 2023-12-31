@@ -180,4 +180,6 @@
     <string name="sample_rate">샘플링 레이트</string>
     <string name="file">파일</string>
     <string name="format">형식</string>
+    <string name="volume_boost_desc">200%까지 오디오 볼륨 증폭</string>
+    <string name="volume_boost">볼륨 증폭</string>
 </resources>
