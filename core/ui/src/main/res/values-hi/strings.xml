@@ -72,7 +72,7 @@
     <string name="playback">प्लेबैक</string>
     <string name="interface_name">इंटरफेस</string>
     <string name="a_z">A-Z</string>
-    <string name="shortest">सबसे छोटा</string>
+    <string name="shortest">सबसे कम लंबा</string>
     <string name="longest">सबसे लंबा</string>
     <string name="smallest">सबसे छोटा</string>
     <string name="largest">सबसे बड़ा</string>
@@ -180,4 +180,6 @@
     <string name="sample_rate">सैंपल दर</string>
     <string name="file">फाईल</string>
     <string name="format">फॉर्मेट</string>
+    <string name="volume_boost_desc">ऑडियो वॉल्यूम को 200% तक बढ़ाएं</string>
+    <string name="volume_boost">वॉल्यूम बूस्ट</string>
 </resources>
