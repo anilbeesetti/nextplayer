@@ -180,4 +180,6 @@
     <string name="sample_rate">ਸੈਂਪਲ ਰੇਟ</string>
     <string name="file">ਫ਼ਾਈਲ</string>
     <string name="format">ਫਾਰਮੈਟ</string>
+    <string name="volume_boost_desc">ਆਡੀਓ ਵਾਲੀਅਮ ਨੂੰ 200% ਤੱਕ ਵਧਾਓ</string>
+    <string name="volume_boost">ਵਾਲੀਅਮ ਬੂਸਟ</string>
 </resources>
