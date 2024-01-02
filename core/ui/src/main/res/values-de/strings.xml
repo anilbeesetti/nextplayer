@@ -180,4 +180,6 @@
     <string name="sample_rate">Sample Rate</string>
     <string name="file">Datei</string>
     <string name="format">Format</string>
+    <string name="volume_boost_desc">Erhöhen der Audiolautstärke um bis zu 200%</string>
+    <string name="volume_boost">Lautstärkeerhöhung</string>
 </resources>
