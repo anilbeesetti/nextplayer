@@ -180,4 +180,6 @@
     <string name="decoder">Decodificador</string>
     <string name="seek_increment">Retroceder/avançar</string>
     <string name="decoder_priority">Prioridade do decodificador</string>
+    <string name="volume_boost">Aumento de volume</string>
+    <string name="volume_boost_desc">Aumentar o volume de áudio até 200%</string>
 </resources>
