@@ -63,6 +63,7 @@ fun MediaPickerRoute(
         videosState = videosState,
         foldersState = foldersState,
         preferences = preferences,
+        viewModel = viewModel,
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
@@ -81,6 +82,7 @@ internal fun MediaPickerScreen(
     videosState: VideosState,
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
+    viewModel: MediaPickerViewModel? = null,
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -163,7 +165,7 @@ internal fun MediaPickerScreen(
                     disableMultiSelect = disableMultiSelect,
                     totalVideos = {
                         totalVideosCount = it
-                    }
+                    }, viewModel = viewModel
                 )
             }
         }

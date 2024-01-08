@@ -32,7 +32,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -54,7 +53,7 @@ fun VideosView(
     disableMultiSelect: Boolean,
     totalVideos: (Int) -> Unit,
     onVideoLoaded: (Uri) -> Unit = {},
-    viewModel: MediaPickerViewModel = hiltViewModel()
+    viewModel: MediaPickerViewModel?
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -77,27 +76,30 @@ fun VideosView(
             totalVideos(videosState.data.size)
             MediaLazyList {
                 if (disableMultiSelect) {
-                    viewModel.videoTracks = videosState.data.map { it.copy() }
+                    viewModel?.videoTracks = videosState.data.map { it.copy() }
                 }
 
-                items(viewModel.videoTracks, key = { it.path }) { video ->
+                items(viewModel?.videoTracks ?: videosState.data, key = { it.path }) { video ->
                     LaunchedEffect(Unit) {
                         onVideoLoaded(Uri.parse(video.uriString))
                     }
-
                     VideoItem(
                         video = video,
                         preferences = preferences,
                         multiSelectEnabled = multiSelect,
                         isSelected = { isSelected ->
                             video.isSelected = isSelected
-                            toggleSelection(video, viewModel)
+                            viewModel?.let {
+                                toggleSelection(video, it)
+                            }
                         },
                         modifier = Modifier.combinedClickable(
                             onClick = {
                                 if (multiSelect) {
                                     video.isSelected = !video.isSelected
-                                    toggleSelection(video, viewModel)
+                                    viewModel?.let {
+                                        toggleSelection(video, it)
+                                    }
                                 } else {
                                     onVideoClick(Uri.parse(video.uriString))
                                 }

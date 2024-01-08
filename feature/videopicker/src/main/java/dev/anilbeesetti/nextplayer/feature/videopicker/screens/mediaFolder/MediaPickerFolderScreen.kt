@@ -54,6 +54,7 @@ fun MediaPickerFolderRoute(
         folderPath = viewModel.folderPath,
         videosState = videosState,
         preferences = preferences,
+        viewModel = mediaPickerViewModel,
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(it, deleteIntentSenderLauncher) },
@@ -69,6 +70,7 @@ internal fun MediaPickerFolderScreen(
     folderPath: String,
     videosState: VideosState,
     preferences: ApplicationPreferences,
+    viewModel: MediaPickerViewModel,
     onNavigateUp: () -> Unit,
     onVideoClick: (Uri) -> Unit,
     onDeleteVideoClick: (List<String>) -> Unit,
@@ -132,7 +134,8 @@ internal fun MediaPickerFolderScreen(
                 totalVideos = {
                     totalVideosCount = it
                 },
-                onVideoLoaded = onAddToSync
+                onVideoLoaded = onAddToSync,
+                viewModel = viewModel
             )
         }
     }
