@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.Size
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,14 +69,6 @@ class AppearancePreferencesViewModel @Inject constructor(
             }
         }
     }
-
-    fun updateThumbnailSize(size: Size) {
-        viewModelScope.launch {
-            preferencesRepository.updateApplicationPreferences {
-                it.copy(thumbnailSize = size)
-            }
-        }
-    }
 }
 
 data class AppearancePreferencesUiState(
@@ -90,7 +81,6 @@ sealed interface AppearancePreferencesEvent {
 
 sealed interface AppearancePreferenceDialog {
     object Theme : AppearancePreferenceDialog
-    object ThumbnailSize : AppearancePreferenceDialog
 }
 
 fun AppearancePreferencesViewModel.showDialog(dialog: AppearancePreferenceDialog) {

@@ -21,12 +21,13 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         AudioStreamInfoEntity::class,
         SubtitleStreamInfoEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 3, to = 4),
-        AutoMigration(from = 5, to = 6)
+        AutoMigration(from = 5, to = 6),
+        AutoMigration(from = 6, to = 7)
     ]
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -87,10 +88,10 @@ abstract class MediaDatabase : RoomDatabase() {
                     """
 
         val migration4To5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL(VIDEO_STREAM_INFO_TABLE_SQL.trimIndent())
-                database.execSQL(AUDIO_STREAM_INFO_TABLE_SQL.trimIndent())
-                database.execSQL(SUBTITLE_STREAM_INFO_TABLE_SQL.trimIndent())
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(VIDEO_STREAM_INFO_TABLE_SQL.trimIndent())
+                db.execSQL(AUDIO_STREAM_INFO_TABLE_SQL.trimIndent())
+                db.execSQL(SUBTITLE_STREAM_INFO_TABLE_SQL.trimIndent())
             }
         }
     }

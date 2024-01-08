@@ -16,9 +16,9 @@ fun NextDialog(
     onDismissRequest: () -> Unit,
     title: @Composable () -> Unit,
     content: @Composable () -> Unit,
-    confirmButton: @Composable () -> Unit,
-    dismissButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable (() -> Unit)? = null,
     dialogProperties: DialogProperties = NextDialogDefaults.dialogProperties
 ) {
     val configuration = LocalConfiguration.current

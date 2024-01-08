@@ -27,5 +27,15 @@ fun File.isSubtitle(): Boolean {
     return extension in subtitleExtensions
 }
 
+fun File.deleteFiles() {
+    try {
+        listFiles()?.onEach {
+            it.delete()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
 val File.prettyName: String
     get() = this.name.takeIf { this.path != Environment.getExternalStorageDirectory()?.path } ?: "Internal Storage"
