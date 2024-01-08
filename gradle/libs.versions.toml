@@ -1,11 +1,11 @@
 [versions]
 aboutlibraries = "10.8.3"
 accompanist = "0.32.0"
-androidGradlePlugin = "8.1.4"
-androidMaterial = "1.10.0"
-androidxActivity = "1.8.1"
+androidGradlePlugin = "8.2.0"
+androidMaterial = "1.11.0"
+androidxActivity = "1.8.2"
 androidxAppCompat = "1.6.1"
-androidxComposeCompiler = "1.5.4"
+androidxComposeCompiler = "1.5.6"
 androidxComposeBom = "2023.10.01"
 androidxConstraintLayout = "2.1.4"
 androidxCore = "1.12.0"
@@ -15,20 +15,21 @@ androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.1.0"
 androidxLifecycle = "2.6.2"
 androidxMedia3 = "1.2.0"
-androidxNavigation = "2.7.5"
+androidxNavigation = "2.7.6"
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.5"
 coil = "2.5.0"
-hilt = "2.48.1"
+hilt = "2.50"
 junit4 = "4.13.2"
-kotlin = "1.9.20"
+kotlin = "1.9.21"
 kotlinxCoroutines = "1.7.3"
-kotlinxSerializationJson = "1.6.1"
-ksp = "1.9.20-1.0.14"
+kotlinxSerializationJson = "1.6.2"
+ksp = "1.9.21-1.0.16"
 ktlint = "11.6.1"
 nextlib = "0.6.0"
-room = "2.6.0"
+room = "2.6.1"
 timber = "5.0.1"
+universalChardet = "2.4.0"
 
 
 [libraries]
@@ -70,6 +71,7 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+github-albfernandez-juniversalchardet = { group="com.github.albfernandez", name = "juniversalchardet", version.ref="universalChardet" }
 github-anilbeesetti-nextlib-media3ext = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-mediainfo", version.ref = "nextlib" }
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }

@@ -183,4 +183,7 @@
     <string name="okay">Okay</string>
     <string name="properties">Properties</string>
     <string name="multi_select">Multi-select</string>
+    <string name="selected_tracks_count">%1$d/%2$d Selected</string>
+    <string name="volume_boost">Volume boost</string>
+    <string name="volume_boost_desc">Boost audio volume up to 200%</string>
 </resources>

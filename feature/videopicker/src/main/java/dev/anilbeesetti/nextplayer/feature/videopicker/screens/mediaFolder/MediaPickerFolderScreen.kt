@@ -81,33 +81,29 @@ internal fun MediaPickerFolderScreen(
     var deleteAction by rememberSaveable { mutableStateOf(false) }
 
     Column {
-        if (disableMultiSelect) {
-            NextTopAppBar(
-                title = File(folderPath).prettyName,
-                navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
-                        Icon(
-                            imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
-                        )
-                    }
-                }
-            )
-        } else {
-            NextTopAppBar(
-                title = "${selectedTracks.size}/$totalVideosCount Selected",
-                navigationIcon = {
-                    IconButton(onClick = {
+        NextTopAppBar(
+            title = if (disableMultiSelect) {
+                File(folderPath).prettyName
+            } else {
+                stringResource(id = R.string.selected_tracks_count, selectedTracks.size, totalVideosCount)
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    if (!disableMultiSelect) {
                         disableMultiSelect = true
                         clearSelectedTracks()
-                    }) {
-                        Icon(
-                            imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
-                        )
+                    } else {
+                        onNavigateUp()
                     }
-                },
-                actions = {
+                }) {
+                    Icon(
+                        imageVector = NextIcons.ArrowBack,
+                        contentDescription = stringResource(id = R.string.navigate_up)
+                    )
+                }
+            },
+            actions = {
+                if (!disableMultiSelect && selectedTracks.isNotEmpty()) {
                     IconButton(onClick = {
                         deleteAction = true
                     }) {
@@ -117,8 +113,8 @@ internal fun MediaPickerFolderScreen(
                         )
                     }
                 }
-            )
-        }
+            }
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize(),

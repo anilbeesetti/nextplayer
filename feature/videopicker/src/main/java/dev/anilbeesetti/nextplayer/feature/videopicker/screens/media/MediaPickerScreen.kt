@@ -28,7 +28,6 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
@@ -97,41 +96,31 @@ internal fun MediaPickerScreen(
     var deleteAction by rememberSaveable { mutableStateOf(false) }
     var disableMultiSelect by rememberSaveable { mutableStateOf(true) }
     Column {
-        if (disableMultiSelect) {
-            NextCenterAlignedTopAppBar(
-                title = stringResource(id = R.string.app_name),
-                navigationIcon = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(id = R.string.settings)
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(
-                            imageVector = NextIcons.DashBoard,
-                            contentDescription = stringResource(id = R.string.menu)
-                        )
-                    }
-                }
-            )
-        } else {
-            NextTopAppBar(
-                title = "${selectedTracks.size}/$totalVideosCount Selected",
-                navigationIcon = {
-                    IconButton(onClick = {
+        NextCenterAlignedTopAppBar(
+            title = if (disableMultiSelect) {
+                stringResource(id = R.string.app_name)
+            } else {
+                stringResource(id = R.string.selected_tracks_count, selectedTracks.size, totalVideosCount)
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    if (disableMultiSelect) {
+                        onSettingsClick()
+                    } else {
                         disableMultiSelect = true
                         clearSelectedTracks()
-                    }) {
-                        Icon(
-                            imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
-                        )
                     }
-                },
-                actions = {
+                }) {
+                    Icon(
+                        imageVector = if (disableMultiSelect) NextIcons.Settings else NextIcons.ArrowBack,
+                        contentDescription = stringResource(
+                            id = if (disableMultiSelect) R.string.settings else R.string.navigate_up
+                        )
+                    )
+                }
+            },
+            actions = {
+                if (!disableMultiSelect && selectedTracks.isNotEmpty()) {
                     IconButton(onClick = {
                         deleteAction = true
                     }) {
@@ -140,9 +129,16 @@ internal fun MediaPickerScreen(
                             contentDescription = stringResource(id = R.string.delete)
                         )
                     }
+                } else if (disableMultiSelect) {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = NextIcons.DashBoard,
+                            contentDescription = stringResource(id = R.string.menu)
+                        )
+                    }
                 }
-            )
-        }
+            }
+        )
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
