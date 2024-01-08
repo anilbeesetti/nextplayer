@@ -69,6 +69,10 @@ fun AudioPreferencesScreen(
                 currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredAudioLanguage),
                 onClick = { viewModel.showDialog(AudioPreferenceDialog.AudioLanguageDialog) }
             )
+            VolumeBoost(
+                isChecked = preferences.shouldUseVolumeBoost,
+                onClick = viewModel::toggleShouldUseVolumeBoost
+            )
             RequireAudioFocusSetting(
                 isChecked = preferences.requireAudioFocus,
                 onClick = viewModel::toggleRequireAudioFocus
@@ -118,6 +122,20 @@ fun PreferredAudioLanguageSetting(
             id = R.string.preferred_audio_lang_description
         ),
         icon = NextIcons.Language,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun VolumeBoost(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    PreferenceSwitch(
+        title = stringResource(R.string.volume_boost),
+        description = stringResource(R.string.volume_boost_desc),
+        icon = NextIcons.VolumeUp,
+        isChecked = isChecked,
         onClick = onClick
     )
 }

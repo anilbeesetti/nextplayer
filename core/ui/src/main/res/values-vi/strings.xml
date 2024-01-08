@@ -40,7 +40,7 @@
     <string name="no">Không</string>
     <string name="date">Ngày tháng</string>
     <string name="force_rescan_storage_desc">Thận trọng: Bắt đầu quét lại trên toàn bộ nhớ có thể làm tăng mức sử dụng tài nguyên trên thiết bị của bạn</string>
-    <string name="videos">băng hình</string>
+    <string name="videos">cuốn băng</string>
     <string name="newest">Mới nhất</string>
     <string name="swipe_gesture_description">Vuốt dọc để điều chỉnh độ sáng và âm lượng</string>
     <string name="pause_on_headset_disconnect_desc">Tạm dừng phát lại khi tai nghe bị ngắt kết nối với thiết bị</string>
@@ -77,7 +77,7 @@
     <string name="longest">Dài nhất</string>
     <string name="embedded_styles">Kiểu nhúng</string>
     <string name="device_decoders_only">Chỉ bộ giải mã thiết bị</string>
-    <string name="appearance_name">Vẻ bề ngoài</string>
+    <string name="appearance_name">Vẻ ngoài</string>
     <string name="embedded_styles_desc">Áp dụng các kiểu nhúng có trong tệp phụ đề, chẳng hạn như ASS và hơn thế nữa</string>
     <string name="subtitle_background_desc">Kích hoạt nền cho văn bản phụ đề</string>
     <string name="preferred_audio_lang">Ngôn ngữ âm thanh ưa thích</string>
@@ -88,7 +88,7 @@
     <string name="preferred_audio_lang_description">Ngôn ngữ của luồng âm thanh bạn muốn sử dụng theo mặc định</string>
     <string name="default_name">Mặc định</string>
     <string name="select_audio_track">Chọn luồng âm thanh</string>
-    <string name="location">Địa điểm</string>
+    <string name="location">Vị trí</string>
     <string name="subtitle_font">Phông chữ phụ đề</string>
     <string name="preferred_subtitle_lang">Ngôn ngữ phụ đề ưa thích</string>
     <string name="a_z">A tới Z</string>
@@ -130,7 +130,7 @@
     <string name="auto">Tự động</string>
     <string name="sort">Sắp xếp</string>
     <string name="subtitle_text_encoding">Mã hóa văn bản phụ đề</string>
-    <string name="video">băng hình</string>
+    <string name="video">cuốn băng</string>
     <string name="playback">Phát lại</string>
     <string name="fast_seek">Tua nhanh</string>
     <string name="select_playback_speed">Chọn tốc độ phát lại</string>
@@ -169,7 +169,7 @@
     <string name="codec">Bộ giải mã</string>
     <string name="properties">Thuộc tính</string>
     <string name="channels">Kênh</string>
-    <string name="video_track">Đoạn video</string>
+    <string name="video_track">Cuốn băng</string>
     <string name="subtitle_track">Bản phụ đề</string>
     <string name="sample_format">Định dạng mẫu</string>
     <string name="bitrate">Tốc độ bit</string>

@@ -143,6 +143,19 @@
                         tools:text="24:21" />
                 </LinearLayout>
 
+                <ImageButton
+                    android:id="@+id/screen_rotate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/transparent_circle_background"
+                    android:contentDescription="@string/controls_lock"
+                    android:padding="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_screen_rotation"
+                    app:layout_constraintBottom_toTopOf="@id/exo_progress"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"  />
+
 
                 <androidx.media3.ui.DefaultTimeBar
                     android:id="@+id/exo_progress"
@@ -181,17 +194,6 @@
                         android:contentDescription="@string/video_zoom"
                         android:padding="12dp"
                         android:src="@drawable/ic_fit_screen"
-                        app:tint="@android:color/white" />
-
-                    <ImageButton
-                        android:id="@+id/btn_screen_rotation"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/dimen_controls_horizontal"
-                        android:background="@drawable/transparent_circle_background"
-                        android:contentDescription="@string/screen_rotation"
-                        android:padding="12dp"
-                        android:src="@drawable/ic_screen_rotation"
                         app:tint="@android:color/white" />
 
                 </LinearLayout>
@@ -253,18 +255,16 @@
         android:visibility="invisible"
         tools:visibility="visible">
 
-        <com.google.android.material.button.MaterialButton
+        <ImageButton
             android:id="@+id/btn_unlock_controls"
-            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center"
-            android:layout_marginBottom="40dp"
-            android:paddingHorizontal="20dp"
-            android:text="Unlock"
-            app:icon="@drawable/ic_lock"
-            app:iconGravity="textStart"
-            app:iconPadding="10dp" />
+            android:layout_margin="@dimen/dimen_controls_horizontal"
+            android:background="@drawable/rounded_corner"
+            android:contentDescription="@string/controls_unlock"
+            android:padding="12dp"
+            android:src="@drawable/ic_lock"
+            app:tint="@android:color/white" />
 
     </FrameLayout>
 

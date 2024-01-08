@@ -66,6 +66,14 @@ class AudioPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleShouldUseVolumeBoost() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(shouldUseVolumeBoost = !it.shouldUseVolumeBoost)
+            }
+        }
+    }
 }
 
 data class AudioPreferencesUIState(

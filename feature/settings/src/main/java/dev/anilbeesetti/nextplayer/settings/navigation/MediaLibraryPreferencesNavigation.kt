@@ -3,19 +3,19 @@ package dev.anilbeesetti.nextplayer.settings.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import dev.anilbeesetti.nextplayer.core.ui.designsystem.NavigationAnimations
+import androidx.navigation.navOptions
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.animatedComposable
 import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.FolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPreferencesScreen
 
 const val mediaLibraryPreferencesNavigationRoute = "media_library_preferences_route"
 const val folderPreferencesNavigationRoute = "folder_preferences_route"
 
-fun NavController.navigateToMediaLibraryPreferencesScreen(navOptions: NavOptions? = null) {
+fun NavController.navigateToMediaLibraryPreferencesScreen(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
     this.navigate(mediaLibraryPreferencesNavigationRoute, navOptions)
 }
 
-fun NavController.navigateToFolderPreferencesScreen(navOptions: NavOptions? = null) {
+fun NavController.navigateToFolderPreferencesScreen(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
     this.navigate(folderPreferencesNavigationRoute, navOptions)
 }
 
@@ -23,12 +23,7 @@ fun NavGraphBuilder.mediaLibraryPreferencesScreen(
     onNavigateUp: () -> Unit,
     onFolderSettingClick: () -> Unit
 ) {
-    composable(
-        route = mediaLibraryPreferencesNavigationRoute,
-        enterTransition = { NavigationAnimations.slideEnter },
-        popExitTransition = { NavigationAnimations.slideExit },
-        popEnterTransition = null
-    ) {
+    animatedComposable(route = mediaLibraryPreferencesNavigationRoute) {
         MediaLibraryPreferencesScreen(
             onNavigateUp = onNavigateUp,
             onFolderSettingClick = onFolderSettingClick
@@ -37,12 +32,7 @@ fun NavGraphBuilder.mediaLibraryPreferencesScreen(
 }
 
 fun NavGraphBuilder.folderPreferencesScreen(onNavigateUp: () -> Unit) {
-    composable(
-        route = folderPreferencesNavigationRoute,
-        enterTransition = { NavigationAnimations.slideEnter },
-        popExitTransition = { NavigationAnimations.slideExit },
-        popEnterTransition = null
-    ) {
+    animatedComposable(route = folderPreferencesNavigationRoute) {
         FolderPreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }
