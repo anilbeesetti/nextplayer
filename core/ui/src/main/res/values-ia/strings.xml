@@ -136,4 +136,20 @@
     <string name="decoder">Decodificator</string>
     <string name="subtitle_desc">Apparentia del subtitulos, optiones de reproduction</string>
     <string name="decoder_priority">Prioritate del decodificator</string>
+    <string name="volume_boost">Stimular volumine</string>
+    <string name="volume_boost_desc">Stimular volumine de audio usque 200%</string>
+    <string name="group_videos">Assemblar le videos per dossier</string>
+    <string name="navigate_up">Navigar in alto</string>
+    <string name="player_controls_exit">Navigar in alto</string>
+    <string name="swipe_gesture_description">Glissa verticalmente pro adjustar le luminositate e volumine</string>
+    <string name="dynamic_theme_description">Applicar colores ab le fundo de schermo de systema al thema de application</string>
+    <string name="ff_rewind">Avantiar rapidemente/Rebobinar</string>
+    <string name="play_pause_ff_rewind">Reproducer/Pausar e Avantiar rapidemente/Rebobinar</string>
+    <string name="force_rescan_storage">Fortiar le rescandimento de immagazinage</string>
+    <string name="force_rescan_storage_desc">Attention: Initiar un rescandimento complete de immagazinage poterea augmentar le uso de ressources in tu apparato</string>
+    <string name="scanning_storage">Scannante le immagazinage…</string>
+    <string name="manage_folders_desc">Selige dossieres a excluder in le bibliotheca de medios</string>
+    <string name="video_software_decoders_desc">Usar decodificatores de video per software del application (experimental)</string>
+    <string name="prefer_device_decoders">Preferer le decodificatores del apparato</string>
+    <string name="prefer_app_decoders">Preferer le decodificatores del application</string>
 </resources>
