@@ -33,4 +33,14 @@
     <string name="delete">ഇല്ലാതാക്കുക</string>
     <string name="newest">ഏറ്റവും പുതിയത്</string>
     <string name="date">തീയതി</string>
+    <string name="settings">ക്രമീകരണങ്ങൾ</string>
+    <string name="size">വലിപ്പം</string>
+    <string name="sort">അടുക്കുക</string>
+    <string name="shortest">ഏറ്റവും ചെറുത്</string>
+    <string name="longest">ഏറ്റവും നീളം കൂടിയത്</string>
+    <string name="smallest">ഏറ്റവും ചെറുത്</string>
+    <string name="largest">ഏറ്റവും വലുത്</string>
+    <string name="enable">പ്രവർത്തനക്ഷമമാക്കുക</string>
+    <string name="portrait">ഛായാചിത്രം</string>
+    <string name="best_fit">ഏറ്റവും അനുയോജ്യം</string>
 </resources>
