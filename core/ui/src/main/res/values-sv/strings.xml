@@ -101,7 +101,7 @@
     <string name="audio">Ljud</string>
     <string name="preferred_audio_lang">Föredraget språk på ljudspår</string>
     <string name="subtitle">Undertexter</string>
-    <string name="pause_on_headset_disconnect_desc">Pausa spelaren när hörlurar kopplas bort från enheten</string>
+    <string name="pause_on_headset_disconnect_desc">Pausa när hörlurar kopplas bort från enheten</string>
     <string name="subtitle_background">Undertextsbakgrund</string>
     <string name="landscape_auto">Liggande (sensor)</string>
     <string name="newest">Nyast</string>
@@ -142,4 +142,19 @@
     <string name="delete_file">Följande file kommer permanent tas bort</string>
     <string name="seconds">%1$s sekunder</string>
     <string name="delete_folder">Alla videofiler i den följande mappen kommer permanent tas bort.</string>
+    <string name="hundred_percent">100%</string>
+    <string name="high_contrast_dark_theme_desc">Använd helt svart bakgrund i mörkt tema</string>
+    <string name="player_screen_orientation">Orientering på videospelaren</string>
+    <string name="seek_increment">Sök inkrement</string>
+    <string name="subtitle_text_encoding">Kodning av undertexter</string>
+    <string name="long_press_gesture">Lång trycksgest</string>
+    <string name="long_press_gesture_desc">Tryck länge för att spela upp i %.1fx hastighet</string>
+    <string name="best_fit">Bästa passform</string>
+    <string name="stretch">Sträck ut</string>
+    <string name="crop">Beskär</string>
+    <string name="zoom_gesture">Zoom gest</string>
+    <string name="zoom_gesture_description">Pinch to zoom i video</string>
+    <string name="high_contrast_dark_theme">Mörkt tema med hög kontrast</string>
+    <string name="audio_desc">Inställningar för ljuduppspelning</string>
+    <string name="pause_on_headset_disconnect">Pausa vid frånkoppling</string>
 </resources>
