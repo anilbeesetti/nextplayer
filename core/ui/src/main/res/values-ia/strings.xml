@@ -152,4 +152,12 @@
     <string name="video_software_decoders_desc">Usar decodificatores de video per software del application (experimental)</string>
     <string name="prefer_device_decoders">Preferer le decodificatores del apparato</string>
     <string name="prefer_app_decoders">Preferer le decodificatores del application</string>
+    <string name="seek_gesture_description">Glissa horizontalmente pro cercar avante o retro</string>
+    <string name="video_zoom">Zoom de video</string>
+    <string name="seek_increment">Incremento del recerca</string>
+    <string name="best_fit">Melior adjustamento</string>
+    <string name="stretch">Tender</string>
+    <string name="crop">Taliar</string>
+    <string name="high_contrast_dark_theme">Thema obscur de alte contrasto</string>
+    <string name="resolution">Resolution</string>
 </resources>
