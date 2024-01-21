@@ -43,4 +43,17 @@
     <string name="enable">പ്രവർത്തനക്ഷമമാക്കുക</string>
     <string name="portrait">ഛായാചിത്രം</string>
     <string name="best_fit">ഏറ്റവും അനുയോജ്യം</string>
+    <string name="subtitle">ഉപശീർഷകം</string>
+    <string name="preferred_subtitle_lang">മുൻഗണന ഉപശീർഷക ഭാഷ</string>
+    <string name="default_name">സ്ഥിരസ്ഥിതി</string>
+    <string name="monospace">ഏക ഇടം</string>
+    <string name="subtitle_font">ഉപശീർഷക നീർദ്ധാര</string>
+    <string name="subtitle_text_size">ഉപശീർഷക വാചക വലിപ്പം</string>
+    <string name="seconds">%1$s നിമിഷങ്ങൾ</string>
+    <string name="fast_playback_speed">%.1fx വേഗത</string>
+    <string name="hundred_percent">൧൦൦%</string>
+    <string name="zoom_gesture">സൂം ആംഗ്യം</string>
+    <string name="okay">ശരി</string>
+    <string name="properties">സവിശേഷതകൾ</string>
+    <string name="format">രൂപഘടന</string>
 </resources>
