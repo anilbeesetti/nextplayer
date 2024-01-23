@@ -160,4 +160,17 @@
     <string name="crop">Taliar</string>
     <string name="high_contrast_dark_theme">Thema obscur de alte contrasto</string>
     <string name="resolution">Resolution</string>
+    <string name="pause_on_headset_disconnect_desc">Pausa le reproduction quando le auricular es disconnectite del apparato</string>
+    <string name="system_caption_style_desc">Clicca pro aperir le preferentias de subtitulos del systema</string>
+    <string name="system_volume_panel">Pannello de volumine del systema</string>
+    <string name="require_audio_focus">Require foco de audio</string>
+    <string name="system_volume_panel_desc">Monstrar le pannello de volumine del systema durante que es adjustate le volumine con le auriculares activate</string>
+    <string name="require_audio_focus_desc">Pausar altere reproductores durante que iste reproduce le videos e vice versa.</string>
+    <string name="sample_format">Formato de specimen</string>
+    <string name="sample_rate">Frequentia de specimen</string>
+    <string name="frame_rate">Frequentia de quadros</string>
+    <string name="long_press_gesture">Gesto de puslation longe</string>
+    <string name="long_press_gesture_desc">Pulsa longe pro reproducer a velocitate %.1fx</string>
+    <string name="zoom_gesture">Gesto de zoom</string>
+    <string name="pause_on_headset_disconnect">Pausa in disconnecter</string>
 </resources>
