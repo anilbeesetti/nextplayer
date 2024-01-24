@@ -173,4 +173,13 @@
     <string name="long_press_gesture_desc">Pulsa longe pro reproducer a velocitate %.1fx</string>
     <string name="zoom_gesture">Gesto de zoom</string>
     <string name="pause_on_headset_disconnect">Pausa in disconnecter</string>
+    <string name="permission_settings">Le application Next Player besonia le permission \"%1$s\" pro acceder e reproducer files de medios. Sin illo, le accesso de medios e reproduction non functionara. Pro usar plenmente le application, concede le permission ab le parametros proque illo ha essite permanentemente refusate.</string>
+    <string name="permission_info">Le application Next Player besonia le permission \"%1$s\" pro acceder e reproducer files de medios. Sin illo, le accesso de medios e reproduction non functionara. Pro usar plenmente le application, concede le permission.</string>
+    <string name="resume_description">Selige si tu vole resumer le videos reproducite ab le puncto ubi illes esseva stoppate</string>
+    <string name="fast_seek_description">Cercar le quadro clave plus proxime in loco del exacte.</string>
+    <string name="embedded_styles">Stylos incorporate</string>
+    <string name="embedded_styles_desc">Applicar le stylos incorporate presente in le files de subtitulos, como ASS, etc</string>
+    <string name="controller_timeout">Tempore expirate del controlator</string>
+    <string name="subtitle_text_bold">Texto del subtitulos in nigrate</string>
+    <string name="subtitle_text_bold_desc">Usar texto nigrate pro le subtitulo</string>
 </resources>
