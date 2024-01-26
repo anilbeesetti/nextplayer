@@ -180,4 +180,6 @@
     <string name="format">الصيغة</string>
     <string name="crop">قص</string>
     <string name="seek_increment">زمن التحريك</string>
+    <string name="volume_boost">معزز الصوت</string>
+    <string name="volume_boost_desc">تعزيز الصوت حتى 200%</string>
 </resources>

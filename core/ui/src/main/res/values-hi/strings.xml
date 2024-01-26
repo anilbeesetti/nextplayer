@@ -66,13 +66,13 @@
     <string name="sort">सॉर्ट करें</string>
     <string name="swipe_gesture">स्वाइप जेस्चर</string>
     <string name="swipe_gesture_description">चमक और आवाज़ एडजस्ट करने के लिए वर्टिकल स्वाइप करें</string>
-    <string name="title">टाइटल</string>
+    <string name="title">शीर्षक</string>
     <string name="title_activity_player">नेक्स्ट प्लेयर एक्टिविटी</string>
     <string name="unknown_error">एक अज्ञात त्रुटि उत्पन्न हुई</string>
     <string name="playback">प्लेबैक</string>
     <string name="interface_name">इंटरफेस</string>
     <string name="a_z">A-Z</string>
-    <string name="shortest">सबसे छोटा</string>
+    <string name="shortest">सबसे कम लंबा</string>
     <string name="longest">सबसे लंबा</string>
     <string name="smallest">सबसे छोटा</string>
     <string name="largest">सबसे बड़ा</string>
@@ -180,4 +180,6 @@
     <string name="sample_rate">सैंपल दर</string>
     <string name="file">फाईल</string>
     <string name="format">फॉर्मेट</string>
+    <string name="volume_boost_desc">ऑडियो वॉल्यूम को 200% तक बढ़ाएं</string>
+    <string name="volume_boost">वॉल्यूम बूस्ट</string>
 </resources>

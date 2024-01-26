@@ -180,4 +180,6 @@
     <string name="sample_rate">Taxa de amostragem</string>
     <string name="file">Arquivo</string>
     <string name="format">Formato</string>
+    <string name="volume_boost_desc">Anplificar o volume do áudio em até 200%</string>
+    <string name="volume_boost">Amplificar volume</string>
 </resources>
