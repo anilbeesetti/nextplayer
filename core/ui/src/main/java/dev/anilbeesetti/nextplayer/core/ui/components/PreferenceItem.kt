@@ -66,7 +66,7 @@ fun PreferenceItem(
             }
         },
         trailingContent = content,
-        modifier = modifier.padding(vertical = 10.dp)
+        modifier = modifier.padding(vertical = 8.dp)
     )
 }
 
