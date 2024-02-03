@@ -158,7 +158,7 @@
     <string name="fast_playback_speed">%.1fx скорость</string>
     <string name="fields">Поля</string>
     <string name="codec">Кодек</string>
-    <string name="long_press_gesture_desc">Нажмите долго для установки скорости на %.1fx</string>
+    <string name="long_press_gesture_desc">Длительное нажатие для установки скорости на %.1fx</string>
     <string name="require_audio_focus">Требовать концентрацию звука</string>
     <string name="properties">Свойства</string>
     <string name="channels">Каналы</string>
@@ -170,7 +170,7 @@
     <string name="sample_format">Формат семплирования</string>
     <string name="extension">Расширение</string>
     <string name="path">Путь</string>
-    <string name="bitrate">битрейт</string>
+    <string name="bitrate">Битрейт</string>
     <string name="frame_rate">Кадровая частота</string>
     <string name="language">Язык</string>
     <string name="okay">Ок</string>
@@ -180,4 +180,6 @@
     <string name="file">Файл</string>
     <string name="resolution">Разрешение</string>
     <string name="format">Формат</string>
+    <string name="volume_boost">Повышение громкости</string>
+    <string name="volume_boost_desc">Повышение громкости звука вплоть до 200%</string>
 </resources>

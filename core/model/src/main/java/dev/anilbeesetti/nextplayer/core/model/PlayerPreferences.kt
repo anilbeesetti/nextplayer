@@ -17,6 +17,7 @@ data class PlayerPreferences(
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
     val videoLoop: VideoLoop = VideoLoop.LOOP_OFF,
+    val autoPip: Boolean = true,
 
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,

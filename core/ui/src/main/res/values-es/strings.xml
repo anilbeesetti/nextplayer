@@ -180,4 +180,6 @@
     <string name="video_track">Pista de vídeo</string>
     <string name="subtitle_track">Pista de los subtítulos</string>
     <string name="audio_track">Pista del audio</string>
+    <string name="volume_boost_desc">Aumenta el volumen de audio hasta un 200%</string>
+    <string name="volume_boost">Refuerzo del volumen</string>
 </resources>

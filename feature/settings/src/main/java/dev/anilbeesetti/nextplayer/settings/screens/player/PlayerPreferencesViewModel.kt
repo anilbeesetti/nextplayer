@@ -105,6 +105,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun toggleAutoPip() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(autoPip = !it.autoPip)
+            }
+        }
+    }
+
     fun toggleRememberBrightnessLevel() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {

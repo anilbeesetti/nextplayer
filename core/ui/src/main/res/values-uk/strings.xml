@@ -166,4 +166,20 @@
     <string name="require_audio_focus">Вимагати аудіо фокус</string>
     <string name="fast_playback_speed">%.1fx швидкість</string>
     <string name="require_audio_focus_desc">Призупиніть відтворення відео іншими програвачами, поки цей програвач відтворює відео, і навпаки.</string>
+    <string name="volume_boost_desc">Підвищення гучності звуку до 200%</string>
+    <string name="file">Файл</string>
+    <string name="format">Формат</string>
+    <string name="volume_boost">Підвищення гучності</string>
+    <string name="video_track">Відеодоріжка</string>
+    <string name="audio_track">Аудіодоріжка</string>
+    <string name="subtitle_track">Доріжка субтитрів</string>
+    <string name="codec">Кодек</string>
+    <string name="sample_rate">Частота дискретизації</string>
+    <string name="sample_format">Формат семплів</string>
+    <string name="bitrate">Бітрейт</string>
+    <string name="language">Мова</string>
+    <string name="channels">Канали</string>
+    <string name="frame_rate">Частота кадрів</string>
+    <string name="okay">Гаразд</string>
+    <string name="properties">Властивості</string>
 </resources>
