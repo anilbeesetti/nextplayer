@@ -45,7 +45,10 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             val medium = mediumDao.getWithInfo(path) ?: return@collect
             Log.d(TAG, "sync: $mediumUri - ${medium.mediumEntity.thumbnailPath}")
             if (medium.mediumEntity.thumbnailPath?.let { File(it) }
-                    ?.exists() == true) return@collect
+                ?.exists() == true
+            ) {
+                return@collect
+            }
 
             Log.d(TAG, "sync: $mediumUri")
 
