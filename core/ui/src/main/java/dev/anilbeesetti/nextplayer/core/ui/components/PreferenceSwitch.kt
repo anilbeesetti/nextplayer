@@ -1,12 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @Composable
@@ -32,7 +30,6 @@ fun PreferenceSwitch(
             NextSwitch(
                 checked = isChecked,
                 onCheckedChange = null,
-                modifier = Modifier.padding(start = 20.dp),
                 enabled = enabled
             )
         }

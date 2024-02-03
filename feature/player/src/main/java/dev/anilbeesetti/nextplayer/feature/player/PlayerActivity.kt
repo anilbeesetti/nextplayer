@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.util.Rational
 import android.util.TypedValue
 import android.view.KeyEvent
+import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
@@ -48,17 +49,17 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.common.extensions.clearCache
 import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
+import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
+import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -143,6 +144,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playlistManager: PlaylistManager
     private lateinit var trackSelector: DefaultTrackSelector
+    private var surfaceView: SurfaceView? = null
     private var mediaSession: MediaSession? = null
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
@@ -159,7 +161,7 @@ class PlayerActivity : AppCompatActivity() {
             isSubtitleLauncherHasUri = true
             viewModel.externalSubtitles.add(uri)
         }
-        playVideo()
+        playVideo(playlistManager.getCurrent() ?: intent.data!!)
     }
 
     /**
@@ -175,11 +177,11 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerUnlockControls: FrameLayout
     private lateinit var playerCenterControls: LinearLayout
     private lateinit var prevButton: ImageButton
-    private lateinit var screenRotationButton: ImageButton
+    private lateinit var screenRotateButton: ImageButton
     private lateinit var pipButton: ImageButton
     private lateinit var seekBar: TimeBar
     private lateinit var subtitleTrackButton: ImageButton
-    private lateinit var unlockControlsButton: MaterialButton
+    private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
 
@@ -201,8 +203,7 @@ class PlayerActivity : AppCompatActivity() {
 
         // The window is always allowed to extend into the DisplayCutout areas on the short edges of the screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -221,7 +222,7 @@ class PlayerActivity : AppCompatActivity() {
         playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
         playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
         prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
-        screenRotationButton = binding.playerView.findViewById(R.id.btn_screen_rotation)
+        screenRotateButton = binding.playerView.findViewById(R.id.screen_rotate)
         pipButton = binding.playerView.findViewById(R.id.btn_pip)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
         subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
@@ -287,8 +288,9 @@ class PlayerActivity : AppCompatActivity() {
         }
         createPlayer()
         setOrientation()
+        initPlaylist()
         initializePlayerView()
-        playVideo()
+        playVideo(playlistManager.getCurrent() ?: intent.data!!)
         super.onStart()
     }
 
@@ -362,7 +364,7 @@ class PlayerActivity : AppCompatActivity() {
             if (player.canAdvertiseSession()) {
                 mediaSession = MediaSession.Builder(this, player).build()
             }
-            loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+            loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(player.audioSessionId) else null
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -490,17 +492,11 @@ class PlayerActivity : AppCompatActivity() {
             ).show(supportFragmentManager, "VideoZoomOptionsDialog")
             true
         }
-        screenRotationButton.setOnClickListener {
+        screenRotateButton.setOnClickListener {
             requestedOrientation = when (resources.configuration.orientation) {
                 Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
-        }
-        screenRotationButton.setOnLongClickListener {
-            playerPreferences.playerScreenOrientation.also {
-                requestedOrientation = it.toActivityOrientation(currentVideoOrientation)
-            }
-            true
         }
         pipButton.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -510,60 +506,58 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private fun playVideo(uri: Uri? = null) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            if (shouldFetchPlaylist) {
-                val mediaUri = getMediaContentUri(intent.data!!)
-                playlistManager.updateCurrent(uri = mediaUri ?: intent.data!!)
+    private fun initPlaylist() = lifecycleScope.launch(Dispatchers.IO) {
+        val mediaUri = getMediaContentUri(intent.data!!)
 
-                if (mediaUri != null) {
-                    launch(Dispatchers.IO) {
-                        val playlist = viewModel.getPlaylistFromUri(mediaUri)
-                        playlistManager.setPlaylist(playlist)
-                    }
-                }
-                shouldFetchPlaylist = false
+        if (mediaUri != null) {
+            val playlist = viewModel.getPlaylistFromUri(mediaUri)
+            playlistManager.setPlaylist(playlist)
+        }
+    }
+
+    private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
+        playlistManager.updateCurrent(uri)
+        val isCurrentUriIsFromIntent = intent.data == uri
+
+        viewModel.updateState(getPath(uri))
+        if (isCurrentUriIsFromIntent && playerApi.hasPosition) {
+            viewModel.currentPlaybackPosition = playerApi.position?.toLong()
+        }
+
+        // Get all subtitles for current uri
+        val apiSubs = if (isCurrentUriIsFromIntent) playerApi.getSubs() else emptyList()
+        val localSubs = uri.getLocalSubtitles(currentContext, viewModel.externalSubtitles.toList())
+        val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
+
+        // current uri as MediaItem with subs
+        val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
+        val mediaStream = createMediaStream(uri).buildUpon()
+            .setSubtitleConfigurations(subtitleStreams)
+            .build()
+
+        withContext(Dispatchers.Main) {
+            surfaceView = SurfaceView(this@PlayerActivity).apply {
+                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            }
+            player.setVideoSurfaceView(surfaceView)
+            exoContentFrameLayout.addView(surfaceView, 0)
+
+            if (isCurrentUriIsFromIntent && playerApi.hasTitle) {
+                videoTitleTextView.text = playerApi.title
+            } else {
+                videoTitleTextView.text = getFilenameFromUri(uri)
             }
 
-            uri?.let { playlistManager.updateCurrent(uri) }
-
-            val currentUri = playlistManager.getCurrent()!!
-
-            viewModel.updateState(getPath(currentUri))
-            if (intent.data == currentUri && playerApi.hasPosition) {
-                viewModel.currentPlaybackPosition = playerApi.position?.toLong()
-            }
-
-            // Get all subtitles for current uri
-            val apiSubs = if (intent.data == currentUri) playerApi.getSubs() else emptyList()
-            val localSubs = currentUri.getLocalSubtitles(currentContext, viewModel.externalSubtitles.toList())
-            val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
-
-            // current uri as MediaItem with subs
-            val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
-            val mediaStream = createMediaStream(currentUri).buildUpon()
-                .setSubtitleConfigurations(subtitleStreams)
-                .build()
-
-            withContext(Dispatchers.Main) {
-                // Set api title if current uri is intent uri and intent extras contains api title
-                if (intent.data == currentUri && playerApi.hasTitle) {
-                    videoTitleTextView.text = playerApi.title
-                } else {
-                    videoTitleTextView.text = getFilenameFromUri(currentUri)
-                }
-
-                Timber.d("position: ${viewModel.currentPlaybackPosition}")
-                // Set media and start player
-                player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
-                player.playWhenReady = playWhenReady
-                player.prepare()
-            }
+            // Set media and start player
+            player.setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
+            player.playWhenReady = playWhenReady
+            player.prepare()
         }
     }
 
     private fun releasePlayer() {
         Timber.d("Releasing player")
+        subtitleCacheDir.deleteFiles()
         playWhenReady = player.playWhenReady
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player.removeListener(playbackStateListener)
@@ -612,10 +606,11 @@ class PlayerActivity : AppCompatActivity() {
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
                 .setTitle(getString(coreUiR.string.error_playing_video))
                 .setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                .setPositiveButton("OK") { dialog, _ ->
+                .setNegativeButton("CANCEL") { dialog, _ ->
                     dialog.dismiss()
                 }
-                .setOnDismissListener {
+                .setPositiveButton("OK") { dialog, _ ->
+                    dialog.dismiss()
                     if (playlistManager.hasNext()) playVideo(playlistManager.getNext()!!) else finish()
                 }
                 .create()
@@ -678,7 +673,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun finish() {
-        clearCache()
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
@@ -698,13 +692,8 @@ class PlayerActivity : AppCompatActivity() {
             setIntent(intent)
             prettyPrintIntent()
             shouldFetchPlaylist = true
-            playVideo()
+            playVideo(intent.data!!)
         }
-    }
-
-    override fun setRequestedOrientation(requestedOrientation: Int) {
-        super.setRequestedOrientation(requestedOrientation)
-        screenRotationButton.setImageDrawable(this, getRotationDrawable())
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -1004,21 +993,5 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
-    }
-}
-
-private fun Activity.getRotationDrawable(): Int {
-    return when (requestedOrientation) {
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
-        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
-        ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
-        ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT -> coreUiR.drawable.ic_portrait
-
-        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
-        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
-        ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
-        ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE -> coreUiR.drawable.ic_landscape
-
-        else -> coreUiR.drawable.ic_screen_rotation
     }
 }

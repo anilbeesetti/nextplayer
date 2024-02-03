@@ -155,14 +155,10 @@
     <string name="crop">잘라내기</string>
     <string name="seek_increment">탐색 시간</string>
     <string name="fields">필드</string>
-    <string name="medium">기본</string>
     <string name="system_caption_style">시스템 자막 스타일</string>
     <string name="thumbnail">섬네일</string>
-    <string name="compact">컴팩트</string>
-    <string name="thumbnail_size">섬네일 크기</string>
     <string name="system_caption_style_desc">시스템 자막 설정을 엽니다.</string>
     <string name="extension">파일 형식</string>
-    <string name="large">크게</string>
     <string name="path">경로</string>
     <string name="resolution">해상도</string>
     <string name="long_press_gesture_desc">길게 눌렀을 때 %.1f배 속도로 재생</string>
@@ -170,4 +166,20 @@
     <string name="fast_playback_speed">속도 %.1fx</string>
     <string name="require_audio_focus">오디오 포커스 요청</string>
     <string name="require_audio_focus_desc">이 앱이 동영상을 재생 중일 때 다른 미디어 플레이어를 일시정지합니다.</string>
+    <string name="codec">코덱</string>
+    <string name="properties">속성</string>
+    <string name="channels">채널</string>
+    <string name="video_track">동영상 트랙</string>
+    <string name="subtitle_track">자막 트랙</string>
+    <string name="sample_format">샘플링 형식</string>
+    <string name="bitrate">비트레이트</string>
+    <string name="frame_rate">프레임 레이트</string>
+    <string name="language">언어</string>
+    <string name="okay">확인</string>
+    <string name="audio_track">오디오 트랙</string>
+    <string name="sample_rate">샘플링 레이트</string>
+    <string name="file">파일</string>
+    <string name="format">형식</string>
+    <string name="volume_boost_desc">200%까지 오디오 볼륨 증폭</string>
+    <string name="volume_boost">볼륨 증폭</string>
 </resources>

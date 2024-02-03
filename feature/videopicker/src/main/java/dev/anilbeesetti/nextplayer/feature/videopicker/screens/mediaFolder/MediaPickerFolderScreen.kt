@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosListFromState
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
@@ -48,7 +48,8 @@ fun MediaPickerFolderRoute(
         preferences = preferences,
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) }
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
+        onAddToSync = viewModel::addToMediaInfoSynchronizer
     )
 }
 
@@ -60,7 +61,8 @@ internal fun MediaPickerFolderScreen(
     preferences: ApplicationPreferences,
     onNavigateUp: () -> Unit,
     onVideoClick: (Uri) -> Unit,
-    onDeleteVideoClick: (String) -> Unit
+    onDeleteVideoClick: (String) -> Unit,
+    onAddToSync: (Uri) -> Unit
 ) {
     Column {
         NextTopAppBar(
@@ -79,11 +81,12 @@ internal fun MediaPickerFolderScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            VideosListFromState(
+            VideosView(
                 videosState = videosState,
                 preferences = preferences,
                 onVideoClick = onVideoClick,
-                onDeleteVideoClick = onDeleteVideoClick
+                onDeleteVideoClick = onDeleteVideoClick,
+                onVideoLoaded = onAddToSync
             )
         }
     }

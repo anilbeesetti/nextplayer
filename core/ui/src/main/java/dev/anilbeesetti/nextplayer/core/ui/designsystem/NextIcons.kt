@@ -57,6 +57,7 @@ import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.VolumeUp
 
 object NextIcons {
     val Appearance = Icons.Rounded.Palette
@@ -115,4 +116,5 @@ object NextIcons {
     val Title = Icons.Rounded.Title
     val Update = Icons.Rounded.Update
     val Video = Icons.Rounded.Movie
+    val VolumeUp = Icons.Rounded.VolumeUp
 }

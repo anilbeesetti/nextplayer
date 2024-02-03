@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
+import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
@@ -9,6 +10,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
@@ -23,7 +25,8 @@ class MediaPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     getSortedFoldersUseCase: GetSortedFoldersUseCase,
     private val mediaRepository: MediaRepository,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val mediaInfoSynchronizer: MediaInfoSynchronizer
 ) : ViewModel() {
 
     val videosState = getSortedVideosUseCase.invoke()
@@ -64,6 +67,12 @@ class MediaPickerViewModel @Inject constructor(
     fun deleteFolders(paths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
         viewModelScope.launch {
             mediaRepository.deleteFolders(paths, intentSenderLauncher)
+        }
+    }
+
+    fun addToMediaInfoSynchronizer(uri: Uri) {
+        viewModelScope.launch {
+            mediaInfoSynchronizer.addMedia(uri)
         }
     }
 }

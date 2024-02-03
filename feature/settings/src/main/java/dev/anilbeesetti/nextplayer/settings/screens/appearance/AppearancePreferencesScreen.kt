@@ -18,10 +18,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.model.Size
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
@@ -80,10 +78,6 @@ fun AppearancePreferencesScreen(
                 isChecked = preferences.useDynamicColors,
                 onClick = viewModel::toggleUseDynamicColors
             )
-            ThumbnailSizeSetting(
-                currentValue = preferences.thumbnailSize,
-                onClick = { viewModel.showDialog(AppearancePreferenceDialog.ThumbnailSize) }
-            )
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -99,24 +93,6 @@ fun AppearancePreferencesScreen(
                                 selected = (it == preferences.themeConfig),
                                 onClick = {
                                     viewModel.updateThemeConfig(it)
-                                    viewModel.hideDialog()
-                                }
-                            )
-                        }
-                    }
-                }
-
-                AppearancePreferenceDialog.ThumbnailSize -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.thumbnail_size),
-                        onDismissClick = viewModel::hideDialog
-                    ) {
-                        items(Size.entries.toTypedArray()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == preferences.thumbnailSize),
-                                onClick = {
-                                    viewModel.updateThumbnailSize(it)
                                     viewModel.hideDialog()
                                 }
                             )
@@ -172,17 +148,4 @@ fun DynamicThemingSetting(
             icon = NextIcons.Appearance
         )
     }
-}
-
-@Composable
-fun ThumbnailSizeSetting(
-    currentValue: Size,
-    onClick: () -> Unit
-) {
-    ClickablePreferenceItem(
-        title = stringResource(R.string.thumbnail_size),
-        description = currentValue.name(),
-        icon = NextIcons.PhotoSize,
-        onClick = onClick
-    )
 }

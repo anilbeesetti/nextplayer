@@ -124,7 +124,6 @@
     <string name="high_contrast_dark_theme_desc">Verwenden Sie einen rein schwarzen Hintergrund für das dunkles Thema</string>
     <string name="fields">Felder</string>
     <string name="zoom_gesture_description">Zum Zoomen des Videos aufziehen</string>
-    <string name="medium">Mittel</string>
     <string name="delete_folder">Alle Videodateien im folgenden Ordner werden dauerhaft gelöscht.</string>
     <string name="controller_timeout">Controller Zeitüberschreitung</string>
     <string name="pause_on_headset_disconnect_desc">Wiedergabe unterbrechen, wenn der Kopfhörer vom Gerät getrennt wird</string>
@@ -146,12 +145,9 @@
     <string name="hundred_percent">100%</string>
     <string name="system_volume_panel">Systemlautstärkefeld</string>
     <string name="thumbnail">Vorschaubild</string>
-    <string name="compact">Kompakt</string>
-    <string name="thumbnail_size">Größe der Vorschaubilder</string>
     <string name="system_caption_style_desc">Klicken Sie hier, um die Untertiteleinstellungen des Systems zu öffnen</string>
     <string name="prefer_device_decoders">Gerätedecoder bevorzugen</string>
     <string name="extension">Erweiterung</string>
-    <string name="large">Groß</string>
     <string name="monospace">Monospace</string>
     <string name="path">Pfad</string>
     <string name="play_url">Video URL zum Abspielen eingeben</string>
@@ -166,4 +162,24 @@
     <string name="seek_increment">Schrittweite suchen</string>
     <string name="decoder_priority">Decoder Priorität</string>
     <string name="fast_playback_speed">%.1fx Geschwindigkeit</string>
+    <string name="long_press_gesture_desc">Lange drücken, um mit %.1fx-Geschwindigkeit abzuspielen</string>
+    <string name="long_press_gesture">Langes Drücken Geste</string>
+    <string name="require_audio_focus">Audiofokus erforderlich</string>
+    <string name="require_audio_focus_desc">Halten Sie andere Player an, während dieser Player Videos abspielt, und umgekehrt.</string>
+    <string name="codec">Codec</string>
+    <string name="properties">Eigenschaften</string>
+    <string name="channels">Kanäle</string>
+    <string name="video_track">Videospur</string>
+    <string name="subtitle_track">Untertitelspur</string>
+    <string name="sample_format">Sample Format</string>
+    <string name="bitrate">Bitrate</string>
+    <string name="frame_rate">Bildrate</string>
+    <string name="language">Sprache</string>
+    <string name="okay">Okay</string>
+    <string name="audio_track">Audiospur</string>
+    <string name="sample_rate">Sample Rate</string>
+    <string name="file">Datei</string>
+    <string name="format">Format</string>
+    <string name="volume_boost_desc">Erhöhen der Audiolautstärke um bis zu 200%</string>
+    <string name="volume_boost">Lautstärkeerhöhung</string>
 </resources>
