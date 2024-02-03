@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -61,7 +61,7 @@ fun QuickSettingsDialog(
             Text(text = stringResource(R.string.quick_settings))
         },
         content = {
-            Divider()
+            HorizontalDivider()
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
@@ -76,7 +76,7 @@ fun QuickSettingsDialog(
                     selectedSortOrder = preferences.sortOrder,
                     onOptionSelected = { preferences = preferences.copy(sortOrder = it) }
                 )
-                Divider(modifier = Modifier.padding(top = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogSectionTitle(text = stringResource(R.string.fields))
                 FlowRow(
                     modifier = Modifier
@@ -87,35 +87,53 @@ fun QuickSettingsDialog(
                     FieldChip(
                         label = stringResource(id = R.string.duration),
                         selected = preferences.showDurationField,
-                        onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) }
+                        onClick = {
+                            preferences =
+                                preferences.copy(showDurationField = !preferences.showDurationField)
+                        }
                     )
                     FieldChip(
                         label = stringResource(id = R.string.extension),
                         selected = preferences.showExtensionField,
-                        onClick = { preferences = preferences.copy(showExtensionField = !preferences.showExtensionField) }
+                        onClick = {
+                            preferences =
+                                preferences.copy(showExtensionField = !preferences.showExtensionField)
+                        }
                     )
                     FieldChip(
                         label = stringResource(id = R.string.path),
                         selected = preferences.showPathField,
-                        onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) }
+                        onClick = {
+                            preferences =
+                                preferences.copy(showPathField = !preferences.showPathField)
+                        }
                     )
                     FieldChip(
                         label = stringResource(id = R.string.resolution),
                         selected = preferences.showResolutionField,
-                        onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) }
+                        onClick = {
+                            preferences =
+                                preferences.copy(showResolutionField = !preferences.showResolutionField)
+                        }
                     )
                     FieldChip(
                         label = stringResource(id = R.string.size),
                         selected = preferences.showSizeField,
-                        onClick = { preferences = preferences.copy(showSizeField = !preferences.showSizeField) }
+                        onClick = {
+                            preferences =
+                                preferences.copy(showSizeField = !preferences.showSizeField)
+                        }
                     )
                     FieldChip(
                         label = stringResource(id = R.string.thumbnail),
                         selected = preferences.showThumbnailField,
-                        onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) }
+                        onClick = {
+                            preferences =
+                                preferences.copy(showThumbnailField = !preferences.showThumbnailField)
+                        }
                     )
                 }
-                Divider(modifier = Modifier.padding(top = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogPreferenceSwitch(
                     text = stringResource(id = R.string.group_videos),
                     isChecked = preferences.groupVideosByFolder,

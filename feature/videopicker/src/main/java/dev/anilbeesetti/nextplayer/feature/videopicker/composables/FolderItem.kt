@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
@@ -53,28 +54,30 @@ fun FolderItem(
             )
         },
         supportingContent = {
-            if (preferences.showPathField) {
-                Text(
-                    text = folder.path.substringBeforeLast("/"),
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(vertical = 2.dp)
-                )
-            }
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                InfoChip(
-                    text = "${folder.mediaCount} " +
-                        stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos)
-                )
-                if (preferences.showSizeField) {
-                    InfoChip(text = folder.formattedMediaSize)
+            Column {
+                if (preferences.showPathField) {
+                    Text(
+                        text = folder.path.substringBeforeLast("/"),
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                }
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    InfoChip(
+                        text = "${folder.mediaCount} " +
+                                stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos)
+                    )
+                    if (preferences.showSizeField) {
+                        InfoChip(text = folder.formattedMediaSize)
+                    }
                 }
             }
         },

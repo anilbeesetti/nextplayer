@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
@@ -95,27 +96,29 @@ fun VideoItem(
             )
         },
         supportingContent = {
-            if (preferences.showPathField) {
-                Text(
-                    text = video.path.substringBeforeLast("/"),
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(vertical = 2.dp)
-                )
-            }
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                if (preferences.showSizeField) {
-                    InfoChip(text = video.formattedFileSize)
+            Column {
+                if (preferences.showPathField) {
+                    Text(
+                        text = video.path.substringBeforeLast("/"),
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
                 }
-                if (preferences.showResolutionField && video.height > 0) {
-                    InfoChip(text = "${video.height}p")
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    if (preferences.showSizeField) {
+                        InfoChip(text = video.formattedFileSize)
+                    }
+                    if (preferences.showResolutionField && video.height > 0) {
+                        InfoChip(text = "${video.height}p")
+                    }
                 }
             }
         },

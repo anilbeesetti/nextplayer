@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -160,40 +160,116 @@ fun ShowVideoInfoDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = video.displayName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         content = {
-            Divider()
+            HorizontalDivider()
             Column(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
                 MediaInfoTitle(text = stringResource(R.string.file))
-                MediaInfoText(title = stringResource(id = R.string.file), subText = video.nameWithExtension)
-                MediaInfoText(title = stringResource(id = R.string.location), subText = video.parentPath)
-                MediaInfoText(title = stringResource(id = R.string.size), subText = video.formattedFileSize)
-                MediaInfoText(title = stringResource(id = R.string.duration), subText = video.formattedDuration)
-                video.format?.let { MediaInfoText(title = stringResource(id = R.string.format), subText = it) }
+                MediaInfoText(
+                    title = stringResource(id = R.string.file),
+                    subText = video.nameWithExtension
+                )
+                MediaInfoText(
+                    title = stringResource(id = R.string.location),
+                    subText = video.parentPath
+                )
+                MediaInfoText(
+                    title = stringResource(id = R.string.size),
+                    subText = video.formattedFileSize
+                )
+                MediaInfoText(
+                    title = stringResource(id = R.string.duration),
+                    subText = video.formattedDuration
+                )
+                video.format?.let {
+                    MediaInfoText(
+                        title = stringResource(id = R.string.format),
+                        subText = it
+                    )
+                }
                 video.videoStream?.let { videoStream ->
                     MediaInfoTitle(text = stringResource(id = R.string.video_track))
-                    videoStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = videoStream.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}")
-                    MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = videoStream.frameRate.toInt().toString())
-                    Utils.formatBitrate(videoStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
+                    videoStream.title?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.title),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.codec),
+                        subText = videoStream.codecName
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.resolution),
+                        subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}"
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.frame_rate),
+                        subText = videoStream.frameRate.toInt().toString()
+                    )
+                    Utils.formatBitrate(videoStream.bitRate)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.bitrate),
+                            subText = it
+                        )
+                    }
                 }
                 video.audioStreams.forEachIndexed { index, audioStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
-                    audioStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = audioStream.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = "${audioStream.sampleRate} Hz")
-                    MediaInfoText(title = stringResource(id = R.string.sample_format), subText = audioStream.sampleFormat.toString())
-                    Utils.formatBitrate(audioStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.channels), subText = audioStream.channelLayout ?: audioStream.channels.toString())
-                    Utils.formatLanguage(audioStream.language)?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
+                    audioStream.title?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.title),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.codec),
+                        subText = audioStream.codecName
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.sample_rate),
+                        subText = "${audioStream.sampleRate} Hz"
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.sample_format),
+                        subText = audioStream.sampleFormat.toString()
+                    )
+                    Utils.formatBitrate(audioStream.bitRate)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.bitrate),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.channels),
+                        subText = audioStream.channelLayout ?: audioStream.channels.toString()
+                    )
+                    Utils.formatLanguage(audioStream.language)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.language),
+                            subText = it
+                        )
+                    }
                 }
                 video.subtitleStreams.forEachIndexed { index, subtitleStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
-                    subtitleStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = subtitleStream.codecName)
-                    Utils.formatLanguage(subtitleStream.language)?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
+                    subtitleStream.title?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.title),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.codec),
+                        subText = subtitleStream.codecName
+                    )
+                    Utils.formatLanguage(subtitleStream.language)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.language),
+                            subText = it
+                        )
+                    }
                 }
             }
         },
