@@ -180,4 +180,6 @@
     <string name="sample_rate">Ρυθμός δειγματοληψίας</string>
     <string name="file">Αρχείο</string>
     <string name="format">Μορφή</string>
+    <string name="volume_boost_desc">Ενίσχυση έντασης έως 200%</string>
+    <string name="volume_boost">Ενίσχυση έντασης</string>
 </resources>
