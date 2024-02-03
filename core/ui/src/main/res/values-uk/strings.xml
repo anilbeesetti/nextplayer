@@ -5,7 +5,7 @@
     <string name="error_playing_video">Помилка: Не вдається відтворити відео</string>
     <string name="appearance_description">Налаштуйте застосунок на свій смак</string>
     <string name="ascending">За зростанням</string>
-    <string name="double_tap">Жест подвійного дотику</string>
+    <string name="double_tap">Подвійний дотик</string>
     <string name="permission_info">Для доступу до медіафайлів та їх відтворення застосунку Next Player потрібен дозвіл \"%1$s\". Без нього доступ до медіа та їх відтворення не працюватиме. Щоб повноцінно користуватися застосунком, надайте дозвіл.</string>
     <string name="permission_not_granted">Дозвіл не надано</string>
     <string name="player_controls_play_pause">Пауза у відтворенні плеєра</string>
@@ -46,7 +46,7 @@
     <string name="remember_brightness_level">Запам\'ятати рівень яскравості</string>
     <string name="remember_brightness_level_description">Запам\'ятовує рівень яскравості між сеансами відтворення</string>
     <string name="remember_selections_description">Запам\'ятовує вибір для кожного файлу, наприклад, звукову доріжку, доріжку субтитрів тощо</string>
-    <string name="seek_gesture">Жест пошуку</string>
+    <string name="seek_gesture">Горизонтальний жест</string>
     <string name="playback">Відтворення</string>
     <string name="remember_selections">Запам\'ятати вибір</string>
     <string name="smallest">Найменший</string>
@@ -58,7 +58,7 @@
     <string name="shortest">Найкоротший</string>
     <string name="select_subtitle_track">Виберіть доріжку субтитрів</string>
     <string name="settings">Налаштування</string>
-    <string name="swipe_gesture">Проведіть пальцем по екрану</string>
+    <string name="swipe_gesture">Вертикальний жест</string>
     <string name="title">Назва</string>
     <string name="z_a">Я-А</string>
     <string name="longest">Найдовший</string>
@@ -67,9 +67,9 @@
     <string name="dynamic_theme">Динамічна кольорова тема</string>
     <string name="controls_lock">Заблокувати</string>
     <string name="select_playback_speed">Виберіть швидкість відтворення</string>
-    <string name="off">Вимк</string>
+    <string name="off">Вимкнена</string>
     <string name="auto">Авто</string>
-    <string name="on">Ввімк</string>
+    <string name="on">Увімкнена</string>
     <string name="preferred_audio_lang">Бажана мова аудіо</string>
     <string name="audio">Аудіо</string>
     <string name="preferred_audio_lang_description">Мова звукової доріжки, яку ви хочете використовувати за замовчуванням</string>
@@ -86,7 +86,7 @@
     <string name="no">Ні</string>
     <string name="manage_folders_desc">Виберіть папки, які потрібно виключити з медіатеки</string>
     <string name="scanning_storage">Сканування сховища…</string>
-    <string name="force_rescan_storage">Примусове повторне сканування сховища</string>
+    <string name="force_rescan_storage">Примусово пересканувати</string>
     <string name="media_library">Медіатека</string>
     <string name="force_rescan_storage_desc">Попередження: Ініціювання повного сканування сховища може призвести до підвищеного використання ресурсів вашого пристрою</string>
     <string name="media_library_description">Сканування та керування медіатекою</string>
@@ -105,7 +105,7 @@
     <string name="newest">Найновіше</string>
     <string name="oldest">Найстаріше</string>
     <string name="date">Дата</string>
-    <string name="default_playback_speed">Швидкість відтворення за замовчуванням</string>
+    <string name="default_playback_speed">Стандартна швидкість відтворення</string>
     <string name="enter_a_network_url">Введіть URL-адресу мережі:</string>
     <string name="network_stream">Мережева трансляція</string>
     <string name="monospace">Monospace</string>
@@ -119,19 +119,19 @@
     <string name="play_url">Введіть URL-адресу відео для відтворення</string>
     <string name="default_name">За замовчуванням</string>
     <string name="sans_serif">Sans Serif</string>
-    <string name="subtitle_text_bold">Текст субтитрів виділено жирним шрифтом</string>
+    <string name="subtitle_text_bold">Жирний текст субтитрів</string>
     <string name="subtitle_background">Фон субтитрів</string>
     <string name="video_software_decoders">Програмні відеодекодери</string>
     <string name="video_software_decoders_desc">Використовувати програмні відеодекодери застосунку (експериментально)</string>
-    <string name="prefer_app_decoders">Надавати перевагу декодерам застосунків</string>
-    <string name="device_decoders_only">Тільки декодери пристроїв</string>
+    <string name="prefer_app_decoders">Надавати перевагу декодерам застосунку</string>
+    <string name="device_decoders_only">Лише системні декодери</string>
     <string name="decoder">Декодер</string>
     <string name="decoder_desc">Пріоритет декодера, вибір декодера для відтворення</string>
     <string name="decoder_priority">Пріоритет декодера</string>
-    <string name="prefer_device_decoders">Надавати перевагу декодерам пристроїв</string>
+    <string name="prefer_device_decoders">Надавати перевагу системним декодерам</string>
     <string name="embedded_styles">Вбудовані стилі</string>
     <string name="controller_timeout">Час очікування контролера</string>
-    <string name="seek_increment">Розширений пошук</string>
+    <string name="seek_increment">Шукати з кроком</string>
     <string name="seconds">%1$s секунд</string>
     <string name="embedded_styles_desc">Застосовувати вбудовані стилі, присутні у файлах субтитрів, такі як ASS тощо</string>
     <string name="subtitle_text_encoding">Кодування тексту субтитрів</string>
@@ -162,7 +162,7 @@
     <string name="path">Шлях</string>
     <string name="resolution">Роздільна здатність</string>
     <string name="long_press_gesture_desc">Тривале натискання для відтворення зі швидкістю %.1fx</string>
-    <string name="long_press_gesture">Жест тривалого натискання</string>
+    <string name="long_press_gesture">Тривале натискання</string>
     <string name="require_audio_focus">Вимагати аудіо фокус</string>
     <string name="fast_playback_speed">%.1fx швидкість</string>
     <string name="require_audio_focus_desc">Призупиніть відтворення відео іншими програвачами, поки цей програвач відтворює відео, і навпаки.</string>
@@ -182,4 +182,6 @@
     <string name="frame_rate">Частота кадрів</string>
     <string name="okay">Гаразд</string>
     <string name="properties">Властивості</string>
+    <string name="pip_settings">Режим Зображення в зображенні</string>
+    <string name="pip_settings_description">Автоматично перемикатися на мініатюрний плеєр при натисканні кнопки Додому</string>
 </resources>
