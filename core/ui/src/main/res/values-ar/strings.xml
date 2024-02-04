@@ -182,4 +182,6 @@
     <string name="seek_increment">زمن التحريك</string>
     <string name="volume_boost">معزز الصوت</string>
     <string name="volume_boost_desc">تعزيز الصوت حتى 200%</string>
+    <string name="pip_settings_description">قم بالتبديل تلقائيًا إلى المشغل المصغر عند النقر على زر الصفحة الرئيسية</string>
+    <string name="pip_settings">الصورة في وضع الصورة</string>
 </resources>
