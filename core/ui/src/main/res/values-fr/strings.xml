@@ -43,4 +43,7 @@
     <string name="permission_request">Demande de permission</string>
     <string name="permission_settings">Next Player app a besoin de la permission \"%1$s\" pour accéder et lire du contenu. Sans cette permission, l\'accès et la lecture des médias ne fonctionneront pas. Pour utiliser l\'application complètement, donner la permission depuis les paramètres d\'Android, car elle a été précédemment refusée de manière permanente.</string>
     <string name="player_controls_exit">Naviguer vers le haut</string>
+    <string name="a_z">A-Z</string>
+    <string name="seconds">%1$s secondes</string>
+    <string name="fields">Champs</string>
 </resources>
