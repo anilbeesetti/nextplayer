@@ -182,4 +182,6 @@
     <string name="controller_timeout">Tempore expirate del controlator</string>
     <string name="subtitle_text_bold">Texto del subtitulos in nigrate</string>
     <string name="subtitle_text_bold_desc">Usar texto nigrate pro le subtitulo</string>
+    <string name="pip_settings">Modo Imagine-in-Imagine</string>
+    <string name="pip_settings_description">Cambiar al reproductor miniatura automaticamente quando se tocca le Button de Initio</string>
 </resources>
