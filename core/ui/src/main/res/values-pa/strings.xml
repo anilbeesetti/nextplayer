@@ -182,4 +182,6 @@
     <string name="format">ਫਾਰਮੈਟ</string>
     <string name="volume_boost_desc">ਆਡੀਓ ਵਾਲੀਅਮ ਨੂੰ 200% ਤੱਕ ਵਧਾਓ</string>
     <string name="volume_boost">ਵਾਲੀਅਮ ਬੂਸਟ</string>
+    <string name="pip_settings_description">ਹੋਮ ਬਟਨ \'ਤੇ ਟੈਪ ਕਰਨ \'ਤੇ ਆਪਣੇ ਆਪ ਛੋਟੇ ਪਲੇਅਰ \'ਤੇ ਸਵਿੱਚ ਕਰੋ</string>
+    <string name="pip_settings">ਤਸਵੀਰ ਵਿੱਚ ਤਸਵੀਰ ਮੋਡ</string>
 </resources>
