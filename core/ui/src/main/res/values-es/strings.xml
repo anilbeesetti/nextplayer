@@ -182,4 +182,6 @@
     <string name="audio_track">Pista del audio</string>
     <string name="volume_boost_desc">Aumenta el volumen de audio hasta un 200%</string>
     <string name="volume_boost">Refuerzo del volumen</string>
+    <string name="pip_settings">Modo Imagen en imagen</string>
+    <string name="pip_settings_description">Cambia automáticamente al reproductor en miniatura al pulsar el botón de inicio</string>
 </resources>
