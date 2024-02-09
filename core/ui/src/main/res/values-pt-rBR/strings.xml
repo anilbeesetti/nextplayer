@@ -182,4 +182,6 @@
     <string name="format">Formato</string>
     <string name="volume_boost_desc">Anplificar o volume do áudio em até 200%</string>
     <string name="volume_boost">Amplificar volume</string>
+    <string name="pip_settings_description">Mude automaticamente para o player em miniatura ao tocar no botão home</string>
+    <string name="pip_settings">Modo picture in picture</string>
 </resources>
