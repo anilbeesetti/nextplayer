@@ -184,4 +184,7 @@
     <string name="subtitle_text_bold_desc">Usar texto nigrate pro le subtitulo</string>
     <string name="pip_settings">Modo Imagine-in-Imagine</string>
     <string name="pip_settings_description">Cambiar al reproductor miniatura automaticamente quando se tocca le Button de Initio</string>
+    <string name="open_subtitle">Aperir subtitulo</string>
+    <string name="no_subtitle_tracks_found">Le tracias de subtitulos pro iste video non es disponibile o non es supportate.</string>
+    <string name="no_audio_tracks_found">Le tracias de audio pro iste video non es disponibile o non es supportate.</string>
 </resources>
