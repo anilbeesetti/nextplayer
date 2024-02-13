@@ -86,13 +86,7 @@ fun VideosView(
                     VideoItem(
                         video = video,
                         preferences = preferences,
-                        multiSelectEnabled = multiSelect,
-                        isSelected = { isSelected ->
-                            video.isSelected = isSelected
-                            viewModel?.let {
-                                toggleSelection(video, it)
-                            }
-                        },
+                        isSelected = video.isSelected,
                         modifier = Modifier.combinedClickable(
                             onClick = {
                                 if (multiSelect) {
