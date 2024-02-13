@@ -14,7 +14,7 @@
     <string name="resume_description">Виберіть, чи продовжувати відтворення відео з того місця, на якому ви зупинилися</string>
     <string name="size">Розмір</string>
     <string name="sort">Сортувати</string>
-    <string name="title_activity_player">Наступна активність плеєра</string>
+    <string name="title_activity_player">Активність Next Player</string>
     <string name="unknown_error">Виникла невідома помилка</string>
     <string name="dynamic_theme_description">Застосувати кольори з системних шпалер до теми застосунку</string>
     <string name="controls_unlock">Розблокувати</string>
@@ -150,12 +150,12 @@
     <string name="zoom_gesture_description">Жест для збільшення відео</string>
     <string name="pause_on_headset_disconnect_desc">Призупинити відтворення, коли гарнітура від\'єднана від пристрою</string>
     <string name="audio_desc">Параметри відтворення аудіо</string>
-    <string name="high_contrast_dark_theme">Висока контрастність темної теми</string>
-    <string name="pause_on_headset_disconnect">Призупинити від\'єднання</string>
+    <string name="high_contrast_dark_theme">Висококонтрастна темна тема</string>
+    <string name="pause_on_headset_disconnect">Пауза при від\'єднанні</string>
     <string name="system_volume_panel_desc">Показувати панель гучності системи під час регулювання гучності за допомогою гарнітури</string>
-    <string name="system_volume_panel">Панель гучності системи</string>
+    <string name="system_volume_panel">Системна панель гучності</string>
     <string name="fields">Поля</string>
-    <string name="system_caption_style">Стиль системного підпису</string>
+    <string name="system_caption_style">Системний стиль субтитрів</string>
     <string name="thumbnail">Мініатюра</string>
     <string name="system_caption_style_desc">Натисніть, щоб відкрити налаштування системних субтитрів</string>
     <string name="extension">Розширення</string>
@@ -184,4 +184,7 @@
     <string name="properties">Властивості</string>
     <string name="pip_settings">Режим Зображення в зображенні</string>
     <string name="pip_settings_description">Автоматично перемикатися на мініатюрний плеєр при натисканні кнопки Додому</string>
+    <string name="no_audio_tracks_found">Аудіодоріжки для цього відео недоступні або не підтримуються.</string>
+    <string name="open_subtitle">Відкрити субтитри</string>
+    <string name="no_subtitle_tracks_found">Доріжки субтитрів для цього відео недоступні або не підтримуються.</string>
 </resources>
