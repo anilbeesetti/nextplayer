@@ -184,4 +184,7 @@
     <string name="volume_boost">Amplificar volume</string>
     <string name="pip_settings_description">Mude automaticamente para o player em miniatura ao tocar no botão home</string>
     <string name="pip_settings">Modo picture in picture</string>
+    <string name="open_subtitle">Abrir legenda</string>
+    <string name="no_subtitle_tracks_found">As faixas de legenda deste vídeo não estão disponíveis ou não são suportadas.</string>
+    <string name="no_audio_tracks_found">As faixas de áudio deste vídeo não estão disponíveis ou não são suportadas.</string>
 </resources>
