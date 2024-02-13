@@ -75,7 +75,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackInde
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
-import dev.anilbeesetti.nextplayer.feature.player.extensions.isRendererAvailable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
@@ -408,8 +407,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         audioTrackButton.setOnClickListener {
-            val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
-            if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_AUDIO)) return@setOnClickListener
+            trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
 
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_AUDIO,
@@ -419,28 +417,25 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         subtitleTrackButton.setOnClickListener {
-            val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
-            if (!mappedTrackInfo.isRendererAvailable(C.TRACK_TYPE_TEXT)) return@setOnClickListener
+            trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
 
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_TEXT,
                 tracks = player.currentTracks,
-                onTrackSelected = { player.switchTrack(C.TRACK_TYPE_TEXT, it) }
+                onTrackSelected = { player.switchTrack(C.TRACK_TYPE_TEXT, it) },
+                onOpenLocalTrackClicked = {
+                    subtitleFileLauncher.launch(
+                        arrayOf(
+                            MimeTypes.APPLICATION_SUBRIP,
+                            MimeTypes.APPLICATION_TTML,
+                            MimeTypes.TEXT_VTT,
+                            MimeTypes.TEXT_SSA,
+                            MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                            MimeTypes.BASE_TYPE_TEXT + "/*"
+                        )
+                    )
+                }
             ).show(supportFragmentManager, "TrackSelectionDialog")
-        }
-
-        subtitleTrackButton.setOnLongClickListener {
-            subtitleFileLauncher.launch(
-                arrayOf(
-                    MimeTypes.APPLICATION_SUBRIP,
-                    MimeTypes.APPLICATION_TTML,
-                    MimeTypes.TEXT_VTT,
-                    MimeTypes.TEXT_SSA,
-                    MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                    MimeTypes.BASE_TYPE_TEXT + "/*"
-                )
-            )
-            true
         }
 
         playbackSpeedButton.setOnClickListener {
