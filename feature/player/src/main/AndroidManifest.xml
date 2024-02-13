@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application android:usesCleartextTraffic="true">
+    <application android:usesCleartextTraffic="true"
+        tools:targetApi="m">
         <activity
             android:name=".PlayerActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|keyboardHidden|navigation"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/NextPlayer">
+            android:supportsPictureInPicture="true"
+            android:theme="@style/NextPlayer"
+            tools:targetApi="o">
 
             <!-- This filter captures protocols without type info -->
             <intent-filter>

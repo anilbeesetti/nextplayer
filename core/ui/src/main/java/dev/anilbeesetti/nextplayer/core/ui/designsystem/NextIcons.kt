@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PhotoSizeSelectSmall
+import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.Pinch
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlayCircle
@@ -95,6 +96,7 @@ object NextIcons {
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
     val PhotoSize = Icons.Rounded.PhotoSizeSelectSmall
+    val Pip = Icons.Rounded.PictureInPictureAlt
     val Pinch = Icons.Rounded.Pinch
     val Play = Icons.Rounded.PlayArrow
     val Player = Icons.Rounded.PlayCircle
