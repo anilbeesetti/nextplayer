@@ -184,4 +184,7 @@
     <string name="volume_boost">Refuerzo del volumen</string>
     <string name="pip_settings">Modo Imagen en imagen</string>
     <string name="pip_settings_description">Cambia automáticamente al reproductor en miniatura al pulsar el botón de inicio</string>
+    <string name="no_audio_tracks_found">Las pistas de audio de este vídeo no están disponibles o no son compatibles.</string>
+    <string name="open_subtitle">Abrir subtítulo</string>
+    <string name="no_subtitle_tracks_found">Las pistas de subtítulos para este vídeo no están disponibles o no son compatibles.</string>
 </resources>
