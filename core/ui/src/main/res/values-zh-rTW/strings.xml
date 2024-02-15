@@ -184,4 +184,7 @@
     <string name="volume_boost">音量增幅器</string>
     <string name="pip_settings">子母畫面模式</string>
     <string name="pip_settings_description">當輕觸主畫面按鈕時自動切換至迷你播放器</string>
+    <string name="open_subtitle">打開字幕</string>
+    <string name="no_subtitle_tracks_found">該影片的字幕軌道不可用或不受支援。</string>
+    <string name="no_audio_tracks_found">該影片的音軌不可用或不受支援。</string>
 </resources>
