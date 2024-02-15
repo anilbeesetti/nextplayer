@@ -34,9 +34,8 @@ fun Uri.getSubtitleMime(): String {
     }
 }
 
-val Uri.isSchemaContent : Boolean
+val Uri.isSchemaContent: Boolean
     get() = ContentResolver.SCHEME_CONTENT.equals(scheme, ignoreCase = true)
-
 
 fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyList()): List<Subtitle> {
     return context.getPath(this)?.let { path ->
