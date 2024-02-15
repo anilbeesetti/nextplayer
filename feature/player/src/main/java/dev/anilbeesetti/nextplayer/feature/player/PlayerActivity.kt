@@ -57,7 +57,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
-import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
@@ -514,7 +513,7 @@ class PlayerActivity : AppCompatActivity() {
         playlistManager.updateCurrent(uri)
         val isCurrentUriIsFromIntent = intent.data == uri
 
-        viewModel.updateState(getPath(uri))
+        viewModel.updateState(uri.toString())
         if (isCurrentUriIsFromIntent && playerApi.hasPosition) {
             viewModel.currentPlaybackPosition = playerApi.position?.toLong()
         }
@@ -902,7 +901,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun savePlayerState(uri: Uri) {
         if (isFirstFrameRendered) {
             viewModel.saveState(
-                path = getPath(uri),
+                uri = uri,
                 position = player.currentPosition,
                 duration = player.duration,
                 audioTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),

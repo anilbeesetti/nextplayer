@@ -28,7 +28,7 @@ class FakeMediaRepository : MediaRepository {
     }
 
     override suspend fun saveVideoState(
-        path: String,
+        uri: String,
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
@@ -37,7 +37,7 @@ class FakeMediaRepository : MediaRepository {
     ) {
     }
 
-    override suspend fun getVideoState(path: String): VideoState? {
+    override suspend fun getVideoState(uri: String): VideoState? {
         return null
     }
 

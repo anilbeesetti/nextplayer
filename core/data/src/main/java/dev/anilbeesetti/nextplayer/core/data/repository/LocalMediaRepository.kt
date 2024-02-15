@@ -46,8 +46,8 @@ class LocalMediaRepository @Inject constructor(
         return directoryDao.getAll().map { it.map(DirectoryEntity::toFolder) }
     }
 
-    override suspend fun getVideoState(path: String): VideoState? {
-        return mediumDao.get(path)?.toVideoState()
+    override suspend fun getVideoState(uri: String): VideoState? {
+        return mediumDao.get(uri)?.toVideoState()
     }
 
     override suspend fun deleteVideos(videoUris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
@@ -65,7 +65,7 @@ class LocalMediaRepository @Inject constructor(
     }
 
     override suspend fun saveVideoState(
-        path: String,
+        uri: String,
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
@@ -73,12 +73,12 @@ class LocalMediaRepository @Inject constructor(
         externalSubs: List<Uri>
     ) {
         Timber.d(
-            "save state for [$path]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]"
+            "save state for [$uri]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]"
         )
 
         applicationScope.launch {
             mediumDao.updateMediumState(
-                path = path,
+                uri = uri,
                 position = position,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,

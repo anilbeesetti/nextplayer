@@ -9,10 +9,9 @@ import androidx.room.PrimaryKey
 )
 data class MediumEntity(
     @PrimaryKey
-    @ColumnInfo(name = "path")
-    val path: String,
-    @ColumnInfo(name = "filename") val name: String,
     @ColumnInfo(name = "uri") val uriString: String,
+    @ColumnInfo(name = "path") val path: String,
+    @ColumnInfo(name = "filename") val name: String,
     @ColumnInfo(name = "parent_path") val parentPath: String,
     @ColumnInfo(name = "last_modified") val modified: Long,
     @ColumnInfo(name = "size") val size: Long,
@@ -23,7 +22,7 @@ data class MediumEntity(
 
     // Medium info
     @ColumnInfo(name = "format", defaultValue = "NULL") val format: String? = null,
-    @ColumnInfo(name = "thumbnailPath", defaultValue = "NULL") val thumbnailPath: String? = null,
+    @ColumnInfo(name = "thumbnail_path", defaultValue = "NULL") val thumbnailPath: String? = null,
 
     // Medium playback state
     @ColumnInfo(name = "playback_position") val playbackPosition: Long = 0,

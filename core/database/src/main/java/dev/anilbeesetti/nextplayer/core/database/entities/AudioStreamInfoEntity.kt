@@ -5,13 +5,13 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 
 @Entity(
-    primaryKeys = ["medium_path", "stream_index"],
+    primaryKeys = ["medium_uri", "stream_index"],
     tableName = "audio_stream_info",
     foreignKeys = [
         ForeignKey(
             entity = MediumEntity::class,
-            parentColumns = arrayOf("path"),
-            childColumns = arrayOf("medium_path"),
+            parentColumns = arrayOf("uri"),
+            childColumns = arrayOf("medium_uri"),
             onDelete = ForeignKey.CASCADE
         )
     ]
@@ -27,5 +27,5 @@ data class AudioStreamInfoEntity(
     @ColumnInfo(name = "sample_rate") val sampleRate: Int,
     @ColumnInfo(name = "channels") val channels: Int,
     @ColumnInfo(name = "channel_layout") val channelLayout: String?,
-    @ColumnInfo(name = "medium_path") val mediumPath: String
+    @ColumnInfo(name = "medium_uri") val mediumUri: String
 )

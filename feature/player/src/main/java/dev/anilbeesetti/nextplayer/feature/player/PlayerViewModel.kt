@@ -13,6 +13,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -49,8 +50,8 @@ class PlayerViewModel @Inject constructor(
         initialValue = ApplicationPreferences()
     )
 
-    suspend fun updateState(path: String?) {
-        currentVideoState = path?.let { mediaRepository.getVideoState(it) }
+    suspend fun updateState(uri: String?) {
+        currentVideoState = uri?.let { mediaRepository.getVideoState(it) }
 
         Timber.d("$currentVideoState")
 
@@ -67,7 +68,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun saveState(
-        path: String?,
+        uri: Uri,
         position: Long,
         duration: Long,
         audioTrackIndex: Int,
@@ -79,7 +80,7 @@ class PlayerViewModel @Inject constructor(
         currentSubtitleTrackIndex = subtitleTrackIndex
         currentPlaybackSpeed = playbackSpeed
 
-        if (path == null) return
+        if (!uri.isSchemaContent) return
 
         val newPosition = position.takeIf {
             position < duration - END_POSITION_OFFSET
@@ -87,7 +88,7 @@ class PlayerViewModel @Inject constructor(
 
         viewModelScope.launch {
             mediaRepository.saveVideoState(
-                path = path,
+                uri = uri.toString(),
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
