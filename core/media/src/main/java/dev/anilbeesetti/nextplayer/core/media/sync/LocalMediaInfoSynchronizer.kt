@@ -8,7 +8,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
-import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.thumbnailCacheDir
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
@@ -41,8 +40,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
 
     private suspend fun sync(): Unit = withContext(dispatcher) {
         media.collect { mediumUri ->
-            val path = context.getPath(mediumUri) ?: return@collect
-            val medium = mediumDao.getWithInfo(path) ?: return@collect
+            val medium = mediumDao.getWithInfo(mediumUri.toString()) ?: return@collect
             Log.d(TAG, "sync: $mediumUri - ${medium.mediumEntity.thumbnailPath}")
             if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
                 return@collect
