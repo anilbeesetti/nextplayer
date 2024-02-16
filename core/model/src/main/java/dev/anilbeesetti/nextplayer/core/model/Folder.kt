@@ -9,7 +9,7 @@ data class Folder(
     val mediaCount: Int,
     val dateModified: Long,
     val formattedMediaSize: String = ""
-): Serializable {
+) : Serializable {
 
     companion object {
         val sample = Folder(
