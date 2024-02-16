@@ -5,13 +5,11 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import dev.anilbeesetti.nextplayer.core.database.MediaDatabase
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DirectoryDaoTest {
 
     private lateinit var directoryDao: DirectoryDao

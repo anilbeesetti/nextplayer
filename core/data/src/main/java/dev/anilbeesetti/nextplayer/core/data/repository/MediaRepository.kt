@@ -30,16 +30,16 @@ interface MediaRepository {
 
     /**
      * Save video state
-     * @param path path of the video
+     * @param uri uri of the video
      * @param position position in milliseconds
      * @param audioTrackIndex index of the audio track
      * @param subtitleTrackIndex index of the subtitle track
      * -1 to disable track
      * null to not change track
      */
-    suspend fun saveVideoState(path: String, position: Long, audioTrackIndex: Int?, subtitleTrackIndex: Int?, playbackSpeed: Float?, externalSubs: List<Uri>)
+    suspend fun saveVideoState(uri: String, position: Long, audioTrackIndex: Int?, subtitleTrackIndex: Int?, playbackSpeed: Float?, externalSubs: List<Uri>)
 
-    suspend fun getVideoState(path: String): VideoState?
+    suspend fun getVideoState(uri: String): VideoState?
 
     suspend fun deleteVideos(videoUris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>)
 

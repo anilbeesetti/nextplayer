@@ -8,7 +8,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
-import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.thumbnailCacheDir
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
@@ -41,12 +40,9 @@ class LocalMediaInfoSynchronizer @Inject constructor(
 
     private suspend fun sync(): Unit = withContext(dispatcher) {
         media.collect { mediumUri ->
-            val path = context.getPath(mediumUri) ?: return@collect
-            val medium = mediumDao.getWithInfo(path) ?: return@collect
+            val medium = mediumDao.getWithInfo(mediumUri.toString()) ?: return@collect
             Log.d(TAG, "sync: $mediumUri - ${medium.mediumEntity.thumbnailPath}")
-            if (medium.mediumEntity.thumbnailPath?.let { File(it) }
-                ?.exists() == true
-            ) {
+            if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
                 return@collect
             }
 
@@ -64,11 +60,11 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             mediaInfo.release()
 
             val videoStreamInfo =
-                mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
+                mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.uriString)
             val audioStreamsInfo =
-                mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
+                mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.uriString) }
             val subtitleStreamsInfo =
-                mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
+                mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.uriString) }
             val thumbnailPath =
                 thumbnail?.saveTo(storageDir = context.thumbnailCacheDir, quality = 30)
 
@@ -93,7 +89,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     }
 }
 
-fun VideoStream.toVideoStreamInfoEntity(mediumPath: String) = VideoStreamInfoEntity(
+fun VideoStream.toVideoStreamInfoEntity(mediumUri: String) = VideoStreamInfoEntity(
     index = index,
     title = title,
     codecName = codecName,
@@ -103,10 +99,10 @@ fun VideoStream.toVideoStreamInfoEntity(mediumPath: String) = VideoStreamInfoEnt
     frameRate = frameRate,
     frameWidth = frameWidth,
     frameHeight = frameHeight,
-    mediumPath = mediumPath
+    mediumUri = mediumUri
 )
 
-fun AudioStream.toAudioStreamInfoEntity(mediumPath: String) = AudioStreamInfoEntity(
+fun AudioStream.toAudioStreamInfoEntity(mediumUri: String) = AudioStreamInfoEntity(
     index = index,
     title = title,
     codecName = codecName,
@@ -117,16 +113,16 @@ fun AudioStream.toAudioStreamInfoEntity(mediumPath: String) = AudioStreamInfoEnt
     sampleRate = sampleRate,
     channels = channels,
     channelLayout = channelLayout,
-    mediumPath = mediumPath
+    mediumUri = mediumUri
 )
 
-fun SubtitleStream.toSubtitleStreamInfoEntity(mediumPath: String) = SubtitleStreamInfoEntity(
+fun SubtitleStream.toSubtitleStreamInfoEntity(mediumUri: String) = SubtitleStreamInfoEntity(
     index = index,
     title = title,
     codecName = codecName,
     language = language,
     disposition = disposition,
-    mediumPath = mediumPath
+    mediumUri = mediumUri
 )
 
 suspend fun Bitmap.saveTo(storageDir: File, quality: Int = 100): String? =

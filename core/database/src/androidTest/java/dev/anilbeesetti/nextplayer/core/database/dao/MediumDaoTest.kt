@@ -5,13 +5,11 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import dev.anilbeesetti.nextplayer.core.database.MediaDatabase
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class MediumDaoTest {
 
     private lateinit var mediumDao: MediumDao
@@ -36,7 +34,7 @@ class MediumDaoTest {
         val mediumEntity = sampleData[0]
         mediumDao.upsert(mediumEntity)
 
-        val result = mediumDao.get(sampleData[0].path)
+        val result = mediumDao.get(sampleData[0].uriString)
 
         assert(result == mediumEntity)
     }
@@ -52,7 +50,7 @@ class MediumDaoTest {
         val updatedMediumEntity = sampleData[0].copy(name = "Something")
         mediumDao.upsert(updatedMediumEntity)
 
-        val result = mediumDao.get(sampleData[0].path)
+        val result = mediumDao.get(sampleData[0].uriString)
 
         assert(result == updatedMediumEntity)
     }
@@ -61,11 +59,11 @@ class MediumDaoTest {
      * Test to check if the [MediumDao.get] method returns the [MediumEntity] from the database.
      */
     @Test
-    fun mediumDao_gets_mediumEntity_from_path() = runTest {
+    fun mediumDao_gets_mediumEntity_from_uri() = runTest {
         val mediumEntity = sampleData[0]
         mediumDao.upsert(mediumEntity)
 
-        val result = mediumDao.get(sampleData[0].path)
+        val result = mediumDao.get(sampleData[0].uriString)
 
         assert(result == mediumEntity)
     }
@@ -74,11 +72,11 @@ class MediumDaoTest {
      * Test to check if the [MediumDao.get] method returns null if the path does not exist in the database.
      */
     @Test
-    fun mediumDao_gets_null_if_path_does_not_exist_in_database() = runTest {
+    fun mediumDao_gets_null_if_uri_does_not_exist_in_database() = runTest {
         val mediumEntity = sampleData[0]
         mediumDao.upsert(mediumEntity)
 
-        val result = mediumDao.get("path1")
+        val result = mediumDao.get("uri1")
 
         assert(result == null)
     }
@@ -107,7 +105,7 @@ class MediumDaoTest {
         val toBeDeletedMediumEntities = mediumEntities.filterIndexed { index, _ -> index % 2 == 0 }
         val remainingMediumEntities = mediumEntities.filterNot { it in toBeDeletedMediumEntities }
 
-        mediumDao.delete(toBeDeletedMediumEntities.map { it.path })
+        mediumDao.delete(toBeDeletedMediumEntities.map { it.uriString })
 
         val result = mediumDao.getAll().first()
 

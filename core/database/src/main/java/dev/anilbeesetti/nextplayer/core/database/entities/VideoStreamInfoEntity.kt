@@ -5,13 +5,13 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 
 @Entity(
-    primaryKeys = ["medium_path", "stream_index"],
+    primaryKeys = ["medium_uri", "stream_index"],
     tableName = "video_stream_info",
     foreignKeys = [
         ForeignKey(
             entity = MediumEntity::class,
-            parentColumns = arrayOf("path"),
-            childColumns = arrayOf("medium_path"),
+            parentColumns = arrayOf("uri"),
+            childColumns = arrayOf("medium_uri"),
             onDelete = ForeignKey.CASCADE
         )
     ]
@@ -26,5 +26,5 @@ data class VideoStreamInfoEntity(
     @ColumnInfo(name = "frame_rate") val frameRate: Double,
     @ColumnInfo(name = "width") val frameWidth: Int,
     @ColumnInfo(name = "height") val frameHeight: Int,
-    @ColumnInfo(name = "medium_path") val mediumPath: String
+    @ColumnInfo(name = "medium_uri") val mediumUri: String
 )
