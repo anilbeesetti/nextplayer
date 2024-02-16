@@ -35,7 +35,9 @@ class MediaPickerScreenTest {
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences(),
                     onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
+                    onDeleteFolderClick = {},
+                    selectedTracks = emptyList(),
+                    clearSelectedTracks = {}
                 )
             }
         }
@@ -59,7 +61,9 @@ class MediaPickerScreenTest {
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                     onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
+                    onDeleteFolderClick = {},
+                    selectedTracks = videoItemsTestData,
+                    clearSelectedTracks = {}
                 )
             }
         }
@@ -98,7 +102,9 @@ class MediaPickerScreenTest {
                     ),
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
                     onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
+                    onDeleteFolderClick = {},
+                    selectedTracks = emptyList(),
+                    clearSelectedTracks = {}
                 )
             }
         }
@@ -137,7 +143,9 @@ class MediaPickerScreenTest {
                     foldersState = FoldersState.Loading,
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                     onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
+                    onDeleteFolderClick = {},
+                    selectedTracks = emptyList(),
+                    clearSelectedTracks = {}
                 )
             }
         }
@@ -166,7 +174,9 @@ class MediaPickerScreenTest {
                     ),
                     preferences = ApplicationPreferences().copy(groupVideosByFolder = true),
                     onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
+                    onDeleteFolderClick = {},
+                    selectedTracks = emptyList(),
+                    clearSelectedTracks = {}
                 )
             }
         }

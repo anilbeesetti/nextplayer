@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +13,7 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
@@ -52,6 +54,11 @@ class MediaPickerViewModel @Inject constructor(
             initialValue = ApplicationPreferences()
         )
 
+    private val _selectedTracks = mutableStateListOf<Video>()
+    val selectedTracks: List<Video> get() = _selectedTracks
+
+    var videoTracks = listOf<Video>()
+
     fun updateMenu(applicationPreferences: ApplicationPreferences) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences { applicationPreferences }
@@ -74,5 +81,17 @@ class MediaPickerViewModel @Inject constructor(
         viewModelScope.launch {
             mediaInfoSynchronizer.addMedia(uri)
         }
+    }
+
+    fun addToSelectedTracks(track: Video) {
+        _selectedTracks.add(track)
+    }
+
+    fun removeFromSelectedTracks(track: Video) {
+        _selectedTracks.remove(track)
+    }
+
+    fun clearSelectedTracks() {
+        _selectedTracks.clear()
     }
 }

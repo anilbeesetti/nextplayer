@@ -39,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -47,13 +48,22 @@ fun VideosView(
     videosState: VideosState,
     preferences: ApplicationPreferences,
     onVideoClick: (Uri) -> Unit,
-    onDeleteVideoClick: (String) -> Unit,
-    onVideoLoaded: (Uri) -> Unit = {}
+    onDeleteVideoClick: (List<String>) -> Unit,
+    toggleMultiSelect: () -> Unit,
+    disableMultiSelect: Boolean,
+    totalVideos: (Int) -> Unit,
+    onVideoLoaded: (Uri) -> Unit = {},
+    viewModel: MediaPickerViewModel?
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
     var deleteAction: Video? by rememberSaveable { mutableStateOf(null) }
     var showInfoAction: Video? by rememberSaveable { mutableStateOf(null) }
+    var multiSelect by rememberSaveable { mutableStateOf(false) }
+
+    if (disableMultiSelect) {
+        multiSelect = false
+    }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -63,19 +73,36 @@ fun VideosView(
         is VideosState.Success -> if (videosState.data.isEmpty()) {
             NoVideosFound()
         } else {
+            totalVideos(videosState.data.size)
             MediaLazyList {
-                items(videosState.data, key = { it.path }) { video ->
+                if (disableMultiSelect) {
+                    viewModel?.videoTracks = videosState.data.map { it.copy() }
+                }
+
+                items(viewModel?.videoTracks ?: videosState.data, key = { it.path }) { video ->
                     LaunchedEffect(Unit) {
                         onVideoLoaded(Uri.parse(video.uriString))
                     }
                     VideoItem(
                         video = video,
                         preferences = preferences,
+                        isSelected = video.isSelected,
                         modifier = Modifier.combinedClickable(
-                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                            onClick = {
+                                if (multiSelect) {
+                                    video.isSelected = !video.isSelected
+                                    viewModel?.let {
+                                        toggleSelection(video, it)
+                                    }
+                                } else {
+                                    onVideoClick(Uri.parse(video.uriString))
+                                }
+                            },
                             onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showMediaActionsFor = video
+                                if (!multiSelect) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showMediaActionsFor = video
+                                }
                             }
                         )
                     )
@@ -128,6 +155,17 @@ fun VideosView(
                     }
                 }
             )
+            BottomSheetItem(
+                text = stringResource(R.string.multi_select),
+                icon = NextIcons.MultiSelect,
+                onClick = {
+                    multiSelect = true
+                    toggleMultiSelect()
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showMediaActionsFor = null
+                    }
+                }
+            )
         }
     }
 
@@ -136,7 +174,7 @@ fun VideosView(
             subText = stringResource(id = R.string.delete_file),
             onCancel = { deleteAction = null },
             onConfirm = {
-                onDeleteVideoClick(it.uriString)
+                onDeleteVideoClick(listOf(it.uriString))
                 deleteAction = null
             },
             fileNames = listOf(it.nameWithExtension)
@@ -148,6 +186,14 @@ fun VideosView(
             video = it,
             onDismiss = { showInfoAction = null }
         )
+    }
+}
+
+private fun toggleSelection(video: Video, viewModel: MediaPickerViewModel) {
+    if (video.isSelected) {
+        viewModel.addToSelectedTracks(video)
+    } else {
+        viewModel.removeFromSelectedTracks(video)
     }
 }
 

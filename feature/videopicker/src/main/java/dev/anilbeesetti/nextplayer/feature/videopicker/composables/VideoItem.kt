@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,10 +43,19 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 fun VideoItem(
     video: Video,
     preferences: ApplicationPreferences,
+    isSelected: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val selectedItemColor = if (!isSystemInDarkTheme()) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+    } else {
+        MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
+    }
     ListItem(
+        colors = ListItemDefaults.colors(
+            containerColor = if (isSelected) selectedItemColor else ListItemDefaults.containerColor
+        ),
         leadingContent = {
             Box(
                 modifier = Modifier
@@ -53,14 +64,6 @@ fun VideoItem(
                     .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f))
                     .aspectRatio(16f / 10f)
             ) {
-                Icon(
-                    imageVector = NextIcons.Video,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .fillMaxSize(0.5f)
-                )
                 if (preferences.showThumbnailField) {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
@@ -70,7 +73,17 @@ fun VideoItem(
                         contentDescription = null,
                         alignment = Alignment.Center,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        alpha = if (isSelected) 0.2f else 1f
+                    )
+                } else {
+                    Icon(
+                        imageVector = NextIcons.Video,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .fillMaxSize(0.5f)
                     )
                 }
                 if (preferences.showDurationField) {
@@ -82,6 +95,14 @@ fun VideoItem(
                         backgroundColor = Color.Black.copy(alpha = 0.6f),
                         contentColor = Color.White,
                         shape = MaterialTheme.shapes.extraSmall
+                    )
+                }
+                if (isSelected) {
+                    Icon(
+                        imageVector = NextIcons.CheckBox,
+                        contentDescription = "Selected",
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
                     )
                 }
             }
@@ -129,7 +150,7 @@ fun VideoItem(
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(video = Video.sample, preferences = ApplicationPreferences())
+            VideoItem(video = Video.sample, isSelected = true, preferences = ApplicationPreferences())
         }
     }
 }
