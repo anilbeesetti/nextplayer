@@ -19,6 +19,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -61,7 +62,7 @@ fun QuickSettingsDialog(
             Text(text = stringResource(R.string.quick_settings))
         },
         content = {
-            Divider()
+            HorizontalDivider()
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
@@ -76,7 +77,7 @@ fun QuickSettingsDialog(
                     selectedSortOrder = preferences.sortOrder,
                     onOptionSelected = { preferences = preferences.copy(sortOrder = it) }
                 )
-                Divider(modifier = Modifier.padding(top = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogSectionTitle(text = stringResource(R.string.fields))
                 FlowRow(
                     modifier = Modifier
@@ -115,7 +116,7 @@ fun QuickSettingsDialog(
                         onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) }
                     )
                 }
-                Divider(modifier = Modifier.padding(top = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogPreferenceSwitch(
                     text = stringResource(id = R.string.group_videos),
                     isChecked = preferences.groupVideosByFolder,
