@@ -125,6 +125,15 @@ fun QuickSettingsDialog(
                         )
                     }
                 )
+                DialogPreferenceSwitch(
+                    text = stringResource(id = R.string.media_in_grid),
+                    isChecked = preferences.showMediaInGrid,
+                    onClick = {
+                        preferences = preferences.copy(
+                            showMediaInGrid = !preferences.showMediaInGrid
+                        )
+                    }
+                )
             }
         },
         confirmButton = {

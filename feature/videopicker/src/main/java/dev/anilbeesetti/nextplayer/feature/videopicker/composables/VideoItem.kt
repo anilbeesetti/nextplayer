@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
@@ -123,6 +124,84 @@ fun VideoItem(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun VideoGridItem(
+    video: Video,
+    preferences: ApplicationPreferences,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.50f))
+                .aspectRatio(16f / 10f)
+        ) {
+            Icon(
+                imageVector = NextIcons.Video,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxSize(0.5f)
+            )
+            if (preferences.showThumbnailField) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = video.thumbnailPath, contentScale = ContentScale.None),
+                    contentDescription = null,
+                    alignment = Alignment.Center,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            if (preferences.showDurationField) {
+                InfoChip(
+                    text = video.formattedDuration,
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .align(Alignment.BottomEnd),
+                    backgroundColor = Color.Black.copy(alpha = 0.6f),
+                    contentColor = Color.White,
+                    shape = MaterialTheme.shapes.extraSmall
+                )
+            }
+        }
+
+        Text(
+            text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
+            maxLines = 1,
+            style = MaterialTheme.typography.titleMedium,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        if (preferences.showPathField) {
+            Text(
+                text = video.path,
+                maxLines = 1,
+                style = MaterialTheme.typography.bodySmall,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+        }
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            if (preferences.showSizeField) {
+                InfoChip(text = video.formattedFileSize)
+            }
+            if (preferences.showResolutionField && video.height > 0) {
+                InfoChip(text = "${video.height}p")
+            }
+        }
+    }
+}
+
 @DayNightPreview
 @DevicePreviews
 @Composable
@@ -130,6 +209,17 @@ fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
             VideoItem(video = Video.sample, preferences = ApplicationPreferences())
+        }
+    }
+}
+
+@DayNightPreview
+@DevicePreviews
+@Composable
+fun GridItemPreview() {
+    NextPlayerTheme {
+        Surface {
+            VideoGridItem(video = Video.sample, preferences = ApplicationPreferences())
         }
     }
 }
