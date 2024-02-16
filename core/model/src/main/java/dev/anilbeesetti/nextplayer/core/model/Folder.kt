@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.model
 
+import java.io.Serializable
+
 data class Folder(
     val name: String,
     val path: String,
@@ -7,7 +9,7 @@ data class Folder(
     val mediaCount: Int,
     val dateModified: Long,
     val formattedMediaSize: String = ""
-) {
+): Serializable {
 
     companion object {
         val sample = Folder(
