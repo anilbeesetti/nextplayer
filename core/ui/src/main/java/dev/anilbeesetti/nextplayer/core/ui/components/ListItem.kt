@@ -22,7 +22,7 @@ fun ListItem(
     trailingContent: @Composable (() -> Unit)? = null,
     colors: ListItemColors = ListItemDefaults.colors(),
     tonalElevation: Dp = ListItemDefaults.Elevation,
-    shadowElevation: Dp = ListItemDefaults.Elevation,
+    shadowElevation: Dp = ListItemDefaults.Elevation
 ) {
     Row(
         modifier = modifier
