@@ -27,8 +27,9 @@ fun OptionsDialog(
             HorizontalDivider()
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 8.dp),
-                modifier = Modifier.selectableGroup()
-            ) { options() }
+                modifier = Modifier.selectableGroup(),
+                content = options
+            )
             HorizontalDivider()
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },

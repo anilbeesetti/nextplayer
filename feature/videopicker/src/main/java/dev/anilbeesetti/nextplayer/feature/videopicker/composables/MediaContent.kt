@@ -118,7 +118,7 @@ fun DeleteDialogPreview() {
 fun OptionsBottomSheet(
     title: String,
     onDismiss: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     content: @Composable ColumnScope.() -> Unit
 ) {
     ModalBottomSheet(
@@ -148,8 +148,8 @@ fun BottomSheetItem(
     modifier: Modifier = Modifier
 ) {
     ListItem(
-        leadingContent = { Icon(imageVector = icon, contentDescription = null) },
+        leadingContent = { Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.secondary) },
         headlineContent = { Text(text = text) },
-        modifier = modifier.clickable(onClick = onClick)
+        modifier = modifier.clickable(onClick = onClick).padding(vertical = 8.dp)
     )
 }

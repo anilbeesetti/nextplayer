@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +37,12 @@ fun ListItem(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            headlineContent.invoke()
-            supportingContent?.invoke()
+            ProvideTextStyle(value = MaterialTheme.typography.bodyLarge) {
+                headlineContent.invoke()
+            }
+            ProvideTextStyle(value = MaterialTheme.typography.bodyMedium) {
+                supportingContent?.invoke()
+            }
         }
         trailingContent?.invoke()
     }
