@@ -37,18 +37,13 @@ fun MediaPickerFolderRoute(
     val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
-    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {}
-    )
-
     MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
         preferences = preferences,
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer
     )
 }

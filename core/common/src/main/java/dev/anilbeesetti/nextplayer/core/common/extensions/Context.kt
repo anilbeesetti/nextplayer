@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.common.extensions
 import android.app.UiModeManager
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -378,3 +379,32 @@ val Context.thumbnailCacheDir: File
         if (!dir.exists()) dir.mkdir()
         return dir
     }
+
+
+suspend fun ContentResolver.updateMedia(
+    uri: Uri,
+    contentValues: ContentValues
+): Boolean = withContext(Dispatchers.IO) {
+    return@withContext try {
+        update(
+            uri,
+            contentValues,
+            null,
+            null
+        ) > 0
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
+
+suspend fun ContentResolver.deleteMedia(
+    uri: Uri
+): Boolean = withContext(Dispatchers.IO) {
+    return@withContext try {
+        delete(uri, null, null) > 0
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}

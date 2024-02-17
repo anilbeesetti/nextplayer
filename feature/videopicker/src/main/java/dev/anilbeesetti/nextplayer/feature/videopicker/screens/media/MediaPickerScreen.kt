@@ -52,11 +52,6 @@ fun MediaPickerRoute(
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
-    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {}
-    )
-
     MediaPickerScreen(
         videosState = videosState,
         foldersState = foldersState,
@@ -65,8 +60,8 @@ fun MediaPickerRoute(
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
         updatePreferences = viewModel::updateMenu,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
-        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) },
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
+        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer
     )
 }
@@ -145,21 +140,19 @@ fun MediaPickerScreenPreview(
     @PreviewParameter(VideoPickerPreviewParameterProvider::class)
     videos: List<Video>
 ) {
-    BoxWithConstraints {
-        NextPlayerTheme {
-            Surface {
-                MediaPickerScreen(
-                    videosState = VideosState.Success(
-                        data = videos
-                    ),
-                    foldersState = FoldersState.Loading,
-                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
-                    onPlayVideo = {},
-                    onFolderClick = {},
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
-            }
+    NextPlayerTheme {
+        Surface {
+            MediaPickerScreen(
+                videosState = VideosState.Success(
+                    data = videos
+                ),
+                foldersState = FoldersState.Loading,
+                preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                onPlayVideo = {},
+                onFolderClick = {},
+                onDeleteVideoClick = {},
+                onDeleteFolderClick = {}
+            )
         }
     }
 }

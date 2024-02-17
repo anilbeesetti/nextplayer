@@ -10,12 +10,14 @@ import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
+import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -24,9 +26,10 @@ import kotlinx.coroutines.launch
 class MediaPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     getSortedFoldersUseCase: GetSortedFoldersUseCase,
+    private val mediaService: MediaService,
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val mediaInfoSynchronizer: MediaInfoSynchronizer
+    private val mediaInfoSynchronizer: MediaInfoSynchronizer,
 ) : ViewModel() {
 
     val videosState = getSortedVideosUseCase.invoke()
@@ -58,15 +61,20 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    fun deleteVideos(uris: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+    fun deleteVideos(uris: List<String>) {
         viewModelScope.launch {
-            mediaRepository.deleteVideos(uris, intentSenderLauncher)
+            mediaService.deleteMedia(uris.map { Uri.parse(it) })
         }
     }
 
-    fun deleteFolders(paths: List<String>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+    fun deleteFolders(paths: List<String>) {
         viewModelScope.launch {
-            mediaRepository.deleteFolders(paths, intentSenderLauncher)
+            val uris = paths.flatMap { path ->
+                mediaRepository.getVideosFlowFromFolderPath(path).first().mapNotNull {
+                    Uri.parse(it.uriString)
+                }
+            }
+            mediaService.deleteMedia(uris)
         }
     }
 
