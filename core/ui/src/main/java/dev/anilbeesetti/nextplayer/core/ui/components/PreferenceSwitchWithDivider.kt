@@ -3,14 +3,14 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -45,11 +45,10 @@ fun PreferenceSwitchWithDivider(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(
+                VerticalDivider(
                     modifier = Modifier
                         .padding(end = 12.dp)
-                        .height(38.dp)
-                        .width(1.dp),
+                        .height(IntrinsicSize.Max),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 )
                 NextSwitch(
@@ -62,7 +61,7 @@ fun PreferenceSwitchWithDivider(
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun PreferenceSwitchWithDividerPreview() {
     PreferenceSwitchWithDivider(

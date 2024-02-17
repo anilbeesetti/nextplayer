@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -119,7 +118,7 @@ fun SelectablePreference(
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun PreferenceItemPreview() {
     PreferenceItem(
@@ -130,7 +129,7 @@ fun PreferenceItemPreview() {
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SelectablePreferencePreview() {
     SelectablePreference(

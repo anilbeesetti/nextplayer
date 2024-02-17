@@ -1,7 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.ui.designsystem
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.CompareArrows
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Audiotrack
@@ -11,7 +13,6 @@ import androidx.compose.material.icons.rounded.CenterFocusStrong
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ClosedCaption
-import androidx.compose.material.icons.rounded.CompareArrows
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
@@ -57,11 +58,10 @@ import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
-import androidx.compose.material.icons.rounded.VolumeUp
 
 object NextIcons {
     val Appearance = Icons.Rounded.Palette
-    val ArrowBack = Icons.Rounded.ArrowBack
+    val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val Audio = Icons.Rounded.Audiotrack
@@ -107,7 +107,7 @@ object NextIcons {
     val Share = Icons.Rounded.Share
     val Style = Icons.Rounded.Style
     val Subtitle = Icons.Rounded.Subtitles
-    val Size = Icons.Rounded.CompareArrows
+    val Size = Icons.AutoMirrored.Rounded.CompareArrows
     val Speed = Icons.Rounded.Speed
     val SwipeHorizontal = Icons.Rounded.Swipe
     val SwipeVertical = Icons.Rounded.SwipeVertical
@@ -116,5 +116,5 @@ object NextIcons {
     val Title = Icons.Rounded.Title
     val Update = Icons.Rounded.Update
     val Video = Icons.Rounded.Movie
-    val VolumeUp = Icons.Rounded.VolumeUp
+    val VolumeUp = Icons.AutoMirrored.Rounded.VolumeUp
 }

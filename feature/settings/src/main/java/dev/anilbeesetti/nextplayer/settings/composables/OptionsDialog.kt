@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,12 +24,13 @@ fun OptionsDialog(
             Text(text = text)
         },
         content = {
-            Divider()
+            HorizontalDivider()
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 8.dp),
-                modifier = Modifier.selectableGroup()
-            ) { options() }
-            Divider()
+                modifier = Modifier.selectableGroup(),
+                content = options
+            )
+            HorizontalDivider()
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },
         confirmButton = { }
