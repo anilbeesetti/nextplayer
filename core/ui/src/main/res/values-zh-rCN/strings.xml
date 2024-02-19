@@ -187,4 +187,6 @@
     <string name="open_subtitle">打开字幕</string>
     <string name="no_subtitle_tracks_found">此视频的字幕轨道不可用或不被支持。</string>
     <string name="no_audio_tracks_found">此视频的音轨不可用或不被支持。</string>
+    <string name="rename_to">重命名为</string>
+    <string name="rename">重命名</string>
 </resources>
