@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -44,7 +45,8 @@ fun MediaPickerFolderRoute(
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
-        onAddToSync = viewModel::addToMediaInfoSynchronizer
+        onAddToSync = viewModel::addToMediaInfoSynchronizer,
+        onRenameVideoClick = viewModel::renameVideo
     )
 }
 
@@ -57,6 +59,7 @@ internal fun MediaPickerFolderScreen(
     onNavigateUp: () -> Unit,
     onVideoClick: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
+    onRenameVideoClick: (Uri, String) -> Unit = {_, _ -> },
     onAddToSync: (Uri) -> Unit
 ) {
     Column {
@@ -81,7 +84,8 @@ internal fun MediaPickerFolderScreen(
                 preferences = preferences,
                 onVideoClick = onVideoClick,
                 onDeleteVideoClick = onDeleteVideoClick,
-                onVideoLoaded = onAddToSync
+                onVideoLoaded = onAddToSync,
+                onRenameVideoClick = onRenameVideoClick
             )
         }
     }

@@ -83,4 +83,10 @@ class MediaPickerViewModel @Inject constructor(
             mediaInfoSynchronizer.addMedia(uri)
         }
     }
+
+    fun renameVideo(uri: Uri, to: String) {
+        viewModelScope.launch {
+            mediaService.renameMedia(uri, to)
+        }
+    }
 }

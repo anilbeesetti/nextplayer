@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -22,10 +24,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -36,6 +41,8 @@ import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
+import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
@@ -47,12 +54,14 @@ fun VideosView(
     videosState: VideosState,
     preferences: ApplicationPreferences,
     onVideoClick: (Uri) -> Unit,
+    onRenameVideoClick: (Uri, String) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
     onVideoLoaded: (Uri) -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
     var deleteAction: Video? by rememberSaveable { mutableStateOf(null) }
+    var renameAction: Video? by rememberSaveable { mutableStateOf(null) }
     var showInfoAction: Video? by rememberSaveable { mutableStateOf(null) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -90,10 +99,10 @@ fun VideosView(
             onDismiss = { showMediaActionsFor = null }
         ) {
             BottomSheetItem(
-                text = stringResource(R.string.delete),
-                icon = NextIcons.Delete,
+                text = stringResource(R.string.rename),
+                icon = NextIcons.Edit,
                 onClick = {
-                    deleteAction = it
+                    renameAction = it
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
@@ -128,6 +137,16 @@ fun VideosView(
                     }
                 }
             )
+            BottomSheetItem(
+                text = stringResource(R.string.delete),
+                icon = NextIcons.Delete,
+                onClick = {
+                    deleteAction = it
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showMediaActionsFor = null
+                    }
+                }
+            )
         }
     }
 
@@ -149,6 +168,54 @@ fun VideosView(
             onDismiss = { showInfoAction = null }
         )
     }
+
+    renameAction?.let { video ->
+        ShowRenameDialog(
+            name = video.displayName,
+            onDismiss = { renameAction = null },
+            onDone = {
+                onRenameVideoClick(
+                    Uri.parse(video.uriString),
+                    "$it.${video.nameWithExtension.substringAfterLast(".")}"
+                )
+                renameAction = null
+            }
+        )
+    }
+}
+
+@Composable
+fun ShowRenameDialog(
+    name: String,
+    onDismiss: () -> Unit,
+    onDone: (String) -> Unit,
+) {
+    var mediaName by rememberSaveable { mutableStateOf(name) }
+    var focusRequester = remember { FocusRequester() }
+    NextDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.rename_to)) },
+        content = {
+            OutlinedTextField(
+                value = mediaName,
+                onValueChange = { mediaName = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester)
+            )
+        },
+        confirmButton = {
+            DoneButton(
+                enabled = mediaName.isNotBlank(),
+                onClick = { onDone(mediaName) }
+            )
+        },
+        dismissButton = { CancelButton(onClick = onDismiss) }
+    )
+
+    LaunchedEffect(key1 = Unit) {
+        focusRequester.requestFocus()
+    }
 }
 
 @Composable
@@ -166,34 +233,110 @@ fun ShowVideoInfoDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
                 MediaInfoTitle(text = stringResource(R.string.file))
-                MediaInfoText(title = stringResource(id = R.string.file), subText = video.nameWithExtension)
-                MediaInfoText(title = stringResource(id = R.string.location), subText = video.parentPath)
-                MediaInfoText(title = stringResource(id = R.string.size), subText = video.formattedFileSize)
-                MediaInfoText(title = stringResource(id = R.string.duration), subText = video.formattedDuration)
-                video.format?.let { MediaInfoText(title = stringResource(id = R.string.format), subText = it) }
+                MediaInfoText(
+                    title = stringResource(id = R.string.file),
+                    subText = video.nameWithExtension
+                )
+                MediaInfoText(
+                    title = stringResource(id = R.string.location),
+                    subText = video.parentPath
+                )
+                MediaInfoText(
+                    title = stringResource(id = R.string.size),
+                    subText = video.formattedFileSize
+                )
+                MediaInfoText(
+                    title = stringResource(id = R.string.duration),
+                    subText = video.formattedDuration
+                )
+                video.format?.let {
+                    MediaInfoText(
+                        title = stringResource(id = R.string.format),
+                        subText = it
+                    )
+                }
                 video.videoStream?.let { videoStream ->
                     MediaInfoTitle(text = stringResource(id = R.string.video_track))
-                    videoStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = videoStream.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.resolution), subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}")
-                    MediaInfoText(title = stringResource(id = R.string.frame_rate), subText = videoStream.frameRate.toInt().toString())
-                    Utils.formatBitrate(videoStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
+                    videoStream.title?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.title),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.codec),
+                        subText = videoStream.codecName
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.resolution),
+                        subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}"
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.frame_rate),
+                        subText = videoStream.frameRate.toInt().toString()
+                    )
+                    Utils.formatBitrate(videoStream.bitRate)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.bitrate),
+                            subText = it
+                        )
+                    }
                 }
                 video.audioStreams.forEachIndexed { index, audioStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
-                    audioStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = audioStream.codecName)
-                    MediaInfoText(title = stringResource(id = R.string.sample_rate), subText = "${audioStream.sampleRate} Hz")
-                    MediaInfoText(title = stringResource(id = R.string.sample_format), subText = audioStream.sampleFormat.toString())
-                    Utils.formatBitrate(audioStream.bitRate)?.let { MediaInfoText(title = stringResource(id = R.string.bitrate), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.channels), subText = audioStream.channelLayout ?: audioStream.channels.toString())
-                    Utils.formatLanguage(audioStream.language)?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
+                    audioStream.title?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.title),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.codec),
+                        subText = audioStream.codecName
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.sample_rate),
+                        subText = "${audioStream.sampleRate} Hz"
+                    )
+                    MediaInfoText(
+                        title = stringResource(id = R.string.sample_format),
+                        subText = audioStream.sampleFormat.toString()
+                    )
+                    Utils.formatBitrate(audioStream.bitRate)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.bitrate),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.channels),
+                        subText = audioStream.channelLayout ?: audioStream.channels.toString()
+                    )
+                    Utils.formatLanguage(audioStream.language)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.language),
+                            subText = it
+                        )
+                    }
                 }
                 video.subtitleStreams.forEachIndexed { index, subtitleStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
-                    subtitleStream.title?.let { MediaInfoText(title = stringResource(id = R.string.title), subText = it) }
-                    MediaInfoText(title = stringResource(id = R.string.codec), subText = subtitleStream.codecName)
-                    Utils.formatLanguage(subtitleStream.language)?.let { MediaInfoText(title = stringResource(id = R.string.language), subText = it) }
+                    subtitleStream.title?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.title),
+                            subText = it
+                        )
+                    }
+                    MediaInfoText(
+                        title = stringResource(id = R.string.codec),
+                        subText = subtitleStream.codecName
+                    )
+                    Utils.formatLanguage(subtitleStream.language)?.let {
+                        MediaInfoText(
+                            title = stringResource(id = R.string.language),
+                            subText = it
+                        )
+                    }
                 }
             }
         },

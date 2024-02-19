@@ -189,4 +189,6 @@
     <string name="open_subtitle">Open subtitle</string>
     <string name="no_subtitle_tracks_found">Subtitle tracks for this video are either unavailable or not supported.</string>
     <string name="no_audio_tracks_found">Audio tracks for this video are either unavailable or not supported.</string>
+    <string name="rename">Rename</string>
+    <string name="rename_to">Rename to</string>
 </resources>
