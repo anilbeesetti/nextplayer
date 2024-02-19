@@ -187,4 +187,6 @@
     <string name="open_subtitle">Aperir subtitulo</string>
     <string name="no_subtitle_tracks_found">Le tracias de subtitulos pro iste video non es disponibile o non es supportate.</string>
     <string name="no_audio_tracks_found">Le tracias de audio pro iste video non es disponibile o non es supportate.</string>
+    <string name="rename">Renominar</string>
+    <string name="rename_to">Renominar a</string>
 </resources>
