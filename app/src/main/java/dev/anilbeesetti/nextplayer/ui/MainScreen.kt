@@ -54,7 +54,11 @@ import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 const val MAIN_ROUTE = "main_screen_route"
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(
+    ExperimentalPermissionsApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class
+)
 @Composable
 fun MainScreen(
     permissionState: PermissionState,
@@ -72,7 +76,11 @@ fun MainScreen(
         floatingActionButton = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                modifier = Modifier.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal
+                    )
+                )
             ) {
                 FloatingActionButton(
                     onClick = { selectVideoFileLauncher.launch("video/*") }
@@ -169,7 +177,12 @@ fun NetworkUrlDialog(
                 placeholder = { Text(text = stringResource(R.string.example_url)) }
             )
         },
-        confirmButton = { DoneButton(onClick = { if (url.isBlank()) onDismiss() else onDone(url) }) },
+        confirmButton = {
+            DoneButton(
+                enabled = url.isNotBlank(),
+                onClick = { onDone(url) }
+            )
+        },
         dismissButton = { CancelButton(onClick = onDismiss) }
     )
 }

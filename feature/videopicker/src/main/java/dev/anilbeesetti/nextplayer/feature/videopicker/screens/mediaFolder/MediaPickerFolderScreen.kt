@@ -1,8 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,19 +35,15 @@ fun MediaPickerFolderRoute(
     val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
-    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {}
-    )
-
     MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
         preferences = preferences,
         onVideoClick = onVideoClick,
         onNavigateUp = onNavigateUp,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
-        onAddToSync = viewModel::addToMediaInfoSynchronizer
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
+        onAddToSync = viewModel::addToMediaInfoSynchronizer,
+        onRenameVideoClick = viewModel::renameVideo
     )
 }
 
@@ -62,6 +56,7 @@ internal fun MediaPickerFolderScreen(
     onNavigateUp: () -> Unit,
     onVideoClick: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
+    onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit
 ) {
     Column {
@@ -86,7 +81,8 @@ internal fun MediaPickerFolderScreen(
                 preferences = preferences,
                 onVideoClick = onVideoClick,
                 onDeleteVideoClick = onDeleteVideoClick,
-                onVideoLoaded = onAddToSync
+                onVideoLoaded = onAddToSync,
+                onRenameVideoClick = onRenameVideoClick
             )
         }
     }

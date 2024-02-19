@@ -1,10 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,11 +49,6 @@ fun MediaPickerRoute(
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
-    val deleteIntentSenderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {}
-    )
-
     MediaPickerScreen(
         videosState = videosState,
         foldersState = foldersState,
@@ -65,9 +57,10 @@ fun MediaPickerRoute(
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
         updatePreferences = viewModel::updateMenu,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it), deleteIntentSenderLauncher) },
-        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it), deleteIntentSenderLauncher) },
-        onAddToSync = viewModel::addToMediaInfoSynchronizer
+        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
+        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it)) },
+        onAddToSync = viewModel::addToMediaInfoSynchronizer,
+        onRenameVideoClick = viewModel::renameVideo
     )
 }
 
@@ -82,6 +75,7 @@ internal fun MediaPickerScreen(
     onSettingsClick: () -> Unit = {},
     updatePreferences: (ApplicationPreferences) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
+    onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {}
 ) {
@@ -124,7 +118,8 @@ internal fun MediaPickerScreen(
                     onVideoClick = onPlayVideo,
                     preferences = preferences,
                     onDeleteVideoClick = onDeleteVideoClick,
-                    onVideoLoaded = onAddToSync
+                    onVideoLoaded = onAddToSync,
+                    onRenameVideoClick = onRenameVideoClick
                 )
             }
         }
@@ -145,21 +140,19 @@ fun MediaPickerScreenPreview(
     @PreviewParameter(VideoPickerPreviewParameterProvider::class)
     videos: List<Video>
 ) {
-    BoxWithConstraints {
-        NextPlayerTheme {
-            Surface {
-                MediaPickerScreen(
-                    videosState = VideosState.Success(
-                        data = videos
-                    ),
-                    foldersState = FoldersState.Loading,
-                    preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
-                    onPlayVideo = {},
-                    onFolderClick = {},
-                    onDeleteVideoClick = {},
-                    onDeleteFolderClick = {}
-                )
-            }
+    NextPlayerTheme {
+        Surface {
+            MediaPickerScreen(
+                videosState = VideosState.Success(
+                    data = videos
+                ),
+                foldersState = FoldersState.Loading,
+                preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                onPlayVideo = {},
+                onFolderClick = {},
+                onDeleteVideoClick = {},
+                onDeleteFolderClick = {}
+            )
         }
     }
 }
