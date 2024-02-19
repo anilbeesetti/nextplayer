@@ -182,4 +182,11 @@
     <string name="format">Μορφή</string>
     <string name="volume_boost_desc">Ενίσχυση έντασης έως 200%</string>
     <string name="volume_boost">Ενίσχυση έντασης</string>
+    <string name="rename">Μετονομασία</string>
+    <string name="pip_settings_description">Αυτόματη εναλλαγή σε αιωρούμενη οθόνη όταν πατάτε το κουμπί αρχικής οθόνης</string>
+    <string name="pip_settings">Αιωρούμενη οθόνη</string>
+    <string name="no_subtitle_tracks_found">Τα κομμάτια υπότιτλων για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
+    <string name="no_audio_tracks_found">Τα κομμάτια ήχου για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
+    <string name="rename_to">Μετονομασία σε</string>
+    <string name="open_subtitle">Άνοιγμα υποτίτλων</string>
 </resources>
