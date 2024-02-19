@@ -380,7 +380,6 @@ val Context.thumbnailCacheDir: File
         return dir
     }
 
-
 suspend fun ContentResolver.updateMedia(
     uri: Uri,
     contentValues: ContentValues

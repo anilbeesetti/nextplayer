@@ -1,8 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +27,7 @@ class MediaPickerViewModel @Inject constructor(
     private val mediaService: MediaService,
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val mediaInfoSynchronizer: MediaInfoSynchronizer,
+    private val mediaInfoSynchronizer: MediaInfoSynchronizer
 ) : ViewModel() {
 
     val videosState = getSortedVideosUseCase.invoke()

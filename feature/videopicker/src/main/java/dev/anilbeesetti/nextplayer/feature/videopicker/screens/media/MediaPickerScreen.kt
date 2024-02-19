@@ -1,11 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,7 +75,7 @@ internal fun MediaPickerScreen(
     onSettingsClick: () -> Unit = {},
     updatePreferences: (ApplicationPreferences) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
-    onRenameVideoClick: (Uri, String) -> Unit = {_, _ -> },
+    onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {}
 ) {
@@ -155,7 +151,7 @@ fun MediaPickerScreenPreview(
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {},
+                onDeleteFolderClick = {}
             )
         }
     }
@@ -187,7 +183,7 @@ fun MediaPickerNoVideosFoundPreview() {
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {},
+                onDeleteFolderClick = {}
             )
         }
     }
@@ -205,7 +201,7 @@ fun MediaPickerLoadingPreview() {
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {},
+                onDeleteFolderClick = {}
             )
         }
     }

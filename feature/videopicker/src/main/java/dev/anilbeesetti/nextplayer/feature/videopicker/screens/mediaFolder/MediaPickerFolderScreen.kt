@@ -1,9 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,7 +56,7 @@ internal fun MediaPickerFolderScreen(
     onNavigateUp: () -> Unit,
     onVideoClick: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
-    onRenameVideoClick: (Uri, String) -> Unit = {_, _ -> },
+    onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit
 ) {
     Column {

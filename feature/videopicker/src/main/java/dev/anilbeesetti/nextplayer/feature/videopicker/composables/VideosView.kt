@@ -188,7 +188,7 @@ fun VideosView(
 fun ShowRenameDialog(
     name: String,
     onDismiss: () -> Unit,
-    onDone: (String) -> Unit,
+    onDone: (String) -> Unit
 ) {
     var mediaName by rememberSaveable { mutableStateOf(name) }
     var focusRequester = remember { FocusRequester() }

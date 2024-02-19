@@ -15,22 +15,23 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteMedia
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.updateMedia
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
-import kotlin.coroutines.resume
 
 @Singleton
 class LocalMediaService @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context
 ) : MediaService {
 
+    private val contentResolver = context.contentResolver
     private var resultOkCallback: () -> Unit = {}
     private var resultCancelledCallback: () -> Unit = {}
     private var mediaRequestLauncher: ActivityResultLauncher<IntentSenderRequest>? = null
@@ -43,7 +44,7 @@ class LocalMediaService @Inject constructor(
     ) {
         resultOkCallback = onResultOk
         resultCancelledCallback = onResultCanceled
-        MediaStore.createWriteRequest(context.contentResolver, uris).also { intent ->
+        MediaStore.createWriteRequest(contentResolver, uris).also { intent ->
             mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
         }
     }
@@ -56,7 +57,7 @@ class LocalMediaService @Inject constructor(
     ) {
         resultOkCallback = onResultOk
         resultCancelledCallback = onResultCanceled
-        MediaStore.createDeleteRequest(context.contentResolver, uris).also { intent ->
+        MediaStore.createDeleteRequest(contentResolver, uris).also { intent ->
             mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
         }
     }
@@ -72,7 +73,7 @@ class LocalMediaService @Inject constructor(
         }
     }
 
-    override suspend fun deleteMedia(uris: List<Uri>) : Boolean = withContext(Dispatchers.IO) {
+    override suspend fun deleteMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
         return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             deleteMediaR(uris)
         } else {
@@ -99,7 +100,7 @@ class LocalMediaService @Inject constructor(
 
     private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean {
         return uris.map { uri ->
-            context.contentResolver.deleteMedia(uri)
+            contentResolver.deleteMedia(uri)
         }.all { it }
     }
 
@@ -110,7 +111,7 @@ class LocalMediaService @Inject constructor(
             uris = listOf(uri),
             onResultOk = {
                 scope.launch {
-                    val result = context.contentResolver.updateMedia(
+                    val result = contentResolver.updateMedia(
                         uri = uri,
                         contentValues = ContentValues().apply {
                             put(MediaStore.MediaColumns.DISPLAY_NAME, to)
@@ -130,7 +131,7 @@ class LocalMediaService @Inject constructor(
             val newFile = File(oldFile.parentFile, to)
             oldFile.renameTo(newFile).also { success ->
                 if (success) {
-                    context.contentResolver.updateMedia(
+                    contentResolver.updateMedia(
                         uri = uri,
                         contentValues = ContentValues().apply {
                             put(MediaStore.Files.FileColumns.DISPLAY_NAME, to)
@@ -143,4 +144,3 @@ class LocalMediaService @Inject constructor(
         }.getOrNull() ?: false
     }
 }
-
