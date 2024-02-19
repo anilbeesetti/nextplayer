@@ -95,7 +95,7 @@ fun VideosView(
 
     showMediaActionsFor?.let {
         OptionsBottomSheet(
-            title = it.displayName,
+            title = it.nameWithExtension,
             onDismiss = { showMediaActionsFor = null }
         ) {
             BottomSheetItem(

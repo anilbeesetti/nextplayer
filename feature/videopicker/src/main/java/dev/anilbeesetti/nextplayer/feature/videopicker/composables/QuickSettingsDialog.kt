@@ -21,6 +21,9 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
@@ -46,7 +48,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
@@ -71,11 +73,30 @@ fun QuickSettingsDialog(
                     onOptionSelected = { preferences = preferences.copy(sortBy = it) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                SortOrderSegmentedButton(
-                    selectedSortBy = preferences.sortBy,
-                    selectedSortOrder = preferences.sortOrder,
-                    onOptionSelected = { preferences = preferences.copy(sortOrder = it) }
-                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SortOrder.entries.forEachIndexed { index, sortOrder ->
+                        SegmentedButton(
+                            selected = preferences.sortOrder == sortOrder,
+                            onClick = { preferences = preferences.copy(sortOrder = sortOrder) },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = SortOrder.entries.size),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContentColor = MaterialTheme.colorScheme.primary,
+                                activeBorderColor = MaterialTheme.colorScheme.primary
+                            ),
+                            icon = {
+                                Icon(
+                                    imageVector = if (sortOrder == SortOrder.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
+                                    contentDescription = stringResource(R.string.ascending),
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                )
+                            }
+                        ) {
+                            Text(text = sortOrder.name(sortBy = preferences.sortBy))
+                        }
+                    }
+                }
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogSectionTitle(text = stringResource(R.string.fields))
                 FlowRow(
@@ -141,55 +162,6 @@ fun QuickSettingsDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SortOrderSegmentedButton(
-    selectedSortBy: SortBy,
-    selectedSortOrder: SortOrder,
-    onOptionSelected: (SortOrder) -> Unit
-) {
-    SegmentedSelectableButton(
-        iconOne = {
-            Icon(
-                imageVector = NextIcons.ArrowUpward,
-                contentDescription = stringResource(R.string.ascending),
-                modifier = Modifier.size(FilterChipDefaults.IconSize)
-            )
-        },
-        labelOne = {
-            Text(
-                text = SortOrder.ASCENDING.name(selectedSortBy),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodySmall
-            )
-        },
-        iconTwo = {
-            Icon(
-                imageVector = NextIcons.ArrowDownward,
-                contentDescription = stringResource(R.string.descending),
-                modifier = Modifier.size(FilterChipDefaults.IconSize)
-            )
-        },
-        labelTwo = {
-            Text(
-                text = SortOrder.DESCENDING.name(selectedSortBy),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodySmall
-            )
-        },
-        selected = if (selectedSortOrder == SortOrder.ASCENDING) ChipSelected.ONE else ChipSelected.TWO,
-        onClick = {
-            onOptionSelected(
-                when (it) {
-                    ChipSelected.ONE -> SortOrder.ASCENDING
-                    ChipSelected.TWO -> SortOrder.DESCENDING
-                }
-            )
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FieldChip(
     label: String,

@@ -7,12 +7,5 @@
         <item name="postSplashScreenTheme">@style/Theme.NextPlayer</item>
     </style>
 
-    <style name="Theme.NextPlayer" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">
-            @android:color/transparent
-        </item>
-        <item name="android:navigationBarColor">
-            @android:color/transparent
-        </item>
-    </style>
+    <style name="Theme.NextPlayer" parent="android:Theme.Material.NoActionBar" />
 </resources>
