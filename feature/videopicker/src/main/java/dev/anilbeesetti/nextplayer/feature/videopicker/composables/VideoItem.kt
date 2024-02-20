@@ -30,7 +30,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
-import dev.anilbeesetti.nextplayer.core.ui.components.ListItem
+import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
@@ -44,7 +44,7 @@ fun VideoItem(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    ListItem(
+    ListItemComponent(
         leadingContent = {
             Box(
                 modifier = Modifier

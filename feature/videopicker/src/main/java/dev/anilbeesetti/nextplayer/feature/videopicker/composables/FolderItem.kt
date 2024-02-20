@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.min
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.ListItem
+import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
@@ -33,7 +33,7 @@ fun FolderItem(
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier
 ) {
-    ListItem(
+    ListItemComponent(
         leadingContent = {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),

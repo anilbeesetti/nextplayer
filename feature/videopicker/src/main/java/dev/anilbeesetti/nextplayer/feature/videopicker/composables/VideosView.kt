@@ -46,6 +46,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -95,7 +97,7 @@ fun VideosView(
 
     showMediaActionsFor?.let {
         OptionsBottomSheet(
-            title = it.displayName,
+            title = it.nameWithExtension,
             onDismiss = { showMediaActionsFor = null }
         ) {
             BottomSheetItem(
@@ -191,7 +193,7 @@ fun ShowRenameDialog(
     onDone: (String) -> Unit
 ) {
     var mediaName by rememberSaveable { mutableStateOf(name) }
-    var focusRequester = remember { FocusRequester() }
+    val focusRequester = remember { FocusRequester() }
     NextDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.rename_to)) },
@@ -214,6 +216,8 @@ fun ShowRenameDialog(
     )
 
     LaunchedEffect(key1 = Unit) {
+        // To fix focus requester not initialized error on screen rotation
+        delay(200.milliseconds)
         focusRequester.requestFocus()
     }
 }
