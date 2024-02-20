@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ListItem(
+fun ListItemComponent(
     headlineContent: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     supportingContent: @Composable (() -> Unit)? = null,

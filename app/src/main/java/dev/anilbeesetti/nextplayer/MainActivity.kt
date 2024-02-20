@@ -21,7 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
@@ -91,9 +91,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val storagePermissionState = rememberPermissionState(permission = storagePermission)
 
-                    LifecycleStartEffect(Unit) {
+                    LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
                         storagePermissionState.launchPermissionRequest()
-                        onStopOrDispose { }
                     }
 
                     LaunchedEffect(key1 = storagePermissionState.status.isGranted) {

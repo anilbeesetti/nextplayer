@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +29,6 @@ import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
-import dev.anilbeesetti.nextplayer.core.ui.components.ListItem
+import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
 
@@ -132,9 +132,9 @@ fun OptionsBottomSheet(
         windowInsets = WindowInsets.none
     ) {
         Column(
-            modifier = Modifier.padding(
-                bottom = WindowInsets.navigationBars.getBottom(LocalDensity.current).dp
-            )
+            modifier = Modifier
+                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+                .padding(bottom = 8.dp)
         ) {
             Text(
                 text = title,
@@ -159,7 +159,7 @@ fun BottomSheetItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ListItem(
+    ListItemComponent(
         leadingContent = { Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.secondary) },
         headlineContent = { Text(text = text) },
         modifier = modifier

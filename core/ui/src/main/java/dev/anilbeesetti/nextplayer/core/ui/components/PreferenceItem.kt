@@ -31,7 +31,7 @@ fun PreferenceItem(
     enabled: Boolean,
     content: @Composable () -> Unit = {}
 ) {
-    ListItem(
+    ListItemComponent(
         leadingContent = {
             icon?.let {
                 Icon(
@@ -79,7 +79,7 @@ fun SelectablePreference(
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {}
 ) {
-    ListItem(
+    ListItemComponent(
         headlineContent = {
             Text(
                 text = title,
