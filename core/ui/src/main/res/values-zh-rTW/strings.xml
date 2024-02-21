@@ -187,4 +187,6 @@
     <string name="open_subtitle">打開字幕</string>
     <string name="no_subtitle_tracks_found">該影片的字幕軌道不可用或不受支援。</string>
     <string name="no_audio_tracks_found">該影片的音軌不可用或不受支援。</string>
+    <string name="rename">重命名</string>
+    <string name="rename_to">重新命名為</string>
 </resources>
