@@ -182,4 +182,9 @@
     <string name="format">ਫਾਰਮੈਟ</string>
     <string name="volume_boost_desc">ਆਡੀਓ ਵਾਲੀਅਮ ਨੂੰ 200% ਤੱਕ ਵਧਾਓ</string>
     <string name="volume_boost">ਵਾਲੀਅਮ ਬੂਸਟ</string>
+    <string name="pip_settings_description">ਹੋਮ ਬਟਨ \'ਤੇ ਟੈਪ ਕਰਨ \'ਤੇ ਆਪਣੇ ਆਪ ਛੋਟੇ ਪਲੇਅਰ \'ਤੇ ਸਵਿੱਚ ਕਰੋ</string>
+    <string name="pip_settings">ਤਸਵੀਰ ਵਿੱਚ ਤਸਵੀਰ ਮੋਡ</string>
+    <string name="no_subtitle_tracks_found">ਇਸ ਵੀਡੀਓ ਲਈ ਸਬਟਾਈਟਲ ਟਰੈਕ ਜਾਂ ਤਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ ਜਾਂ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।</string>
+    <string name="open_subtitle">ਸਬਟਾਈਟਲ ਖੋਲ੍ਹੋ</string>
+    <string name="no_audio_tracks_found">ਇਸ ਵੀਡੀਓ ਲਈ ਆਡੀਓ ਟਰੈਕ ਜਾਂ ਤਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ ਜਾਂ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।</string>
 </resources>

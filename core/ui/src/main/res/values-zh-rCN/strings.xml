@@ -182,4 +182,11 @@
     <string name="format">格式</string>
     <string name="volume_boost_desc">将音量增强至 200%</string>
     <string name="volume_boost">音量增强</string>
+    <string name="pip_settings">画中画模式</string>
+    <string name="pip_settings_description">点击主页按钮时自动切换到小窗播放</string>
+    <string name="open_subtitle">打开字幕</string>
+    <string name="no_subtitle_tracks_found">此视频的字幕轨道不可用或不被支持。</string>
+    <string name="no_audio_tracks_found">此视频的音轨不可用或不被支持。</string>
+    <string name="rename_to">重命名为</string>
+    <string name="rename">重命名</string>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="about_name">Sobre</string>
-    <string name="appearance_description">Personalize o aplicativo</string>
+    <string name="appearance_description">Ajuste o aplicativo ao seu gosto</string>
     <string name="appearance_name">Aparência</string>
     <string name="ascending">Crescente</string>
     <string name="cancel">Cancelar</string>
@@ -126,9 +126,9 @@
     <string name="video_software_decoders">Software de decodificadores de vídeo</string>
     <string name="video_software_decoders_desc">Use software de decodificadores de vídeo (experimental)</string>
     <string name="decoder_priority">Prioridade do decodificador</string>
-    <string name="prefer_device_decoders">Prefira dispositivos de decodificação</string>
-    <string name="prefer_app_decoders">Prefira aplicativos de decodificação</string>
-    <string name="device_decoders_only">Somente dispositivos de decodificação</string>
+    <string name="prefer_device_decoders">Preferir decodificadores do dispositivo</string>
+    <string name="prefer_app_decoders">Preferir decodificadores do aplicativo</string>
+    <string name="device_decoders_only">Apenas decodificadores do dispositivo</string>
     <string name="embedded_styles">Estilos embutidos</string>
     <string name="embedded_styles_desc">Aplicar os estilos embutidos que estão presentes em arquivos de legendas, como ASS e assim por diante</string>
     <string name="controller_timeout">Tempo limite do controlador</string>
@@ -174,12 +174,19 @@
     <string name="sample_format">Formato de amostragem</string>
     <string name="bitrate">Taxa de bits</string>
     <string name="frame_rate">Taxa de quadros</string>
-    <string name="language">Linguagem</string>
+    <string name="language">Idioma</string>
     <string name="okay">Feito</string>
     <string name="audio_track">Faixa de áudio</string>
     <string name="sample_rate">Taxa de amostragem</string>
     <string name="file">Arquivo</string>
     <string name="format">Formato</string>
-    <string name="volume_boost_desc">Anplificar o volume do áudio em até 200%</string>
+    <string name="volume_boost_desc">Amplificar o volume do áudio em até 200%</string>
     <string name="volume_boost">Amplificar volume</string>
+    <string name="pip_settings_description">Mude automaticamente para o player em miniatura ao tocar no botão home</string>
+    <string name="pip_settings">Modo Picture in Picture</string>
+    <string name="open_subtitle">Abrir legenda</string>
+    <string name="no_subtitle_tracks_found">As faixas de legenda deste vídeo não estão disponíveis ou não são suportadas.</string>
+    <string name="no_audio_tracks_found">As faixas de áudio deste vídeo não estão disponíveis ou não são suportadas.</string>
+    <string name="rename">Renomear</string>
+    <string name="rename_to">Renomear para</string>
 </resources>

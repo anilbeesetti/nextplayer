@@ -182,4 +182,5 @@
     <string name="video_track">ترَک ویدیو</string>
     <string name="sample_format">فرمت نمونه</string>
     <string name="volume_boost_desc">تقویت صدا تا 200%</string>
+    <string name="pip_settings">حالت تصویر در تصویر</string>
 </resources>

@@ -182,4 +182,11 @@
     <string name="format">형식</string>
     <string name="volume_boost_desc">200%까지 오디오 볼륨 증폭</string>
     <string name="volume_boost">볼륨 증폭</string>
+    <string name="rename">이름 바꾸기</string>
+    <string name="pip_settings">PIP 모드</string>
+    <string name="pip_settings_description">홈 버튼을 누르면 작은 플레이어로 전환</string>
+    <string name="rename_to">바꿀 이름</string>
+    <string name="open_subtitle">자막 열기</string>
+    <string name="no_subtitle_tracks_found">이 동영상의 자막 트랙을 사용할 수 없습니다.</string>
+    <string name="no_audio_tracks_found">이 동영상의 오디오 트랙을 사용할 수 없습니다.</string>
 </resources>

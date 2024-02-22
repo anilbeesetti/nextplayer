@@ -182,4 +182,9 @@
     <string name="format">फॉर्मेट</string>
     <string name="volume_boost_desc">ऑडियो वॉल्यूम को 200% तक बढ़ाएं</string>
     <string name="volume_boost">वॉल्यूम बूस्ट</string>
+    <string name="pip_settings_description">होम बटन टैप करते समय स्वचालित रूप से लघु प्लेयर पर स्विच करें</string>
+    <string name="pip_settings">पिक्चर इन पिक्चर मोड</string>
+    <string name="open_subtitle">सबटाइटल खोलें</string>
+    <string name="no_audio_tracks_found">इस वीडियो के ऑडियो ट्रैक या तो अनुपलब्ध हैं या समर्थित नहीं हैं।</string>
+    <string name="no_subtitle_tracks_found">इस वीडियो के लिए सबटाइटल ट्रैक या तो अनुपलब्ध हैं या समर्थित नहीं हैं।</string>
 </resources>
