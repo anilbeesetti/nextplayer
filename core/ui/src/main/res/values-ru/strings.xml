@@ -182,4 +182,11 @@
     <string name="format">Формат</string>
     <string name="volume_boost">Повышение громкости</string>
     <string name="volume_boost_desc">Повышение громкости звука вплоть до 200%</string>
+    <string name="pip_settings">Картинка в Картинке</string>
+    <string name="pip_settings_description">Автоматически открывать миниатюрный плеер при нажатии кнопки «Домой»</string>
+    <string name="rename">Переименовать</string>
+    <string name="rename_to">Переименовать в</string>
+    <string name="open_subtitle">Открыть субтитры</string>
+    <string name="no_subtitle_tracks_found">Для этого видео нет доступных субтитров или они не поддерживаются.</string>
+    <string name="no_audio_tracks_found">Для этого видео нет доступных аудиодорожек или они не поддерживаются.</string>
 </resources>
