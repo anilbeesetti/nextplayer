@@ -123,7 +123,7 @@
     <string name="landscape_reverse">Горизонтальный (перевернутый)</string>
     <string name="delete_folder">Все видео в этой папке будут удаленны навсегда.</string>
     <string name="autoplay_settings_description">Автоматически воспроизводить следующее видео в текущей папке</string>
-    <string name="controller_timeout">Перерыв контроллера</string>
+    <string name="controller_timeout">Автоскрытие интерфейса</string>
     <string name="pause_on_headset_disconnect_desc">Пауза при отключении наушников</string>
     <string name="video_software_decoders">Программные видеодекодеры</string>
     <string name="sans_serif">Шрифт без засечек</string>
