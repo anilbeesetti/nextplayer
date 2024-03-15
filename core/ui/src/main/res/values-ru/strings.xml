@@ -11,9 +11,9 @@
     <string name="double_tap">Жест двойного касания</string>
     <string name="double_tap_description">Выберите действие при двойном нажатии</string>
     <string name="navigate_up">Перейти наверх</string>
-    <string name="player_controls_next">Следующее</string>
+    <string name="player_controls_next">Воспроизвести следующее</string>
     <string name="player_controls_exit">Перейти наверх</string>
-    <string name="player_controls_play_pause">Пауза в воспроизведении плеера</string>
+    <string name="player_controls_play_pause">Пауза воспроизведения</string>
     <string name="player_controls_previous">Воспроизвести предыдущее</string>
     <string name="player_controls_progress">Индикатор прогресса плеера</string>
     <string name="about_name">О приложении</string>
