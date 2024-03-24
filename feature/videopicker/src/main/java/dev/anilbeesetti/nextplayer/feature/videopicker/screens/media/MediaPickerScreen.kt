@@ -203,7 +203,7 @@ internal fun MediaPickerScreen(
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.secondary
                         )
-                        Text(text = "Network video", style = MaterialTheme.typography.labelLarge)
+                        Text(text = "Open Network video", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
