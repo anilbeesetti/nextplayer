@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -133,6 +134,27 @@ internal fun MediaPickerScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    val videoToPlay = if (preferences.groupVideosByFolder) {
+                        val state = foldersState as? FoldersState.Success
+                        state?.recentPlayedVideo ?: state?.firstVideo
+                    } else {
+                        val state = videosState as? VideosState.Success
+                        state?.recentPlayedVideo ?: state?.firstVideo
+                    }
+                    if (videoToPlay != null) {
+                        onPlayVideo(Uri.parse(videoToPlay.uriString))
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = NextIcons.Play,
+                    contentDescription = null
+                )
+            }
         }
     ) {
         Column(
