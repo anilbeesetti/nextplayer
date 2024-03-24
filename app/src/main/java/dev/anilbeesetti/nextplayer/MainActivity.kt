@@ -1,8 +1,6 @@
 package dev.anilbeesetti.nextplayer
 
-import android.Manifest
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -25,21 +23,21 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
+import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import dev.anilbeesetti.nextplayer.ui.MAIN_ROUTE
-import dev.anilbeesetti.nextplayer.ui.MainScreen
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -51,12 +49,6 @@ class MainActivity : ComponentActivity() {
     lateinit var mediaService: MediaService
 
     private val viewModel: MainActivityViewModel by viewModels()
-
-    private val storagePermission = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_VIDEO
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Manifest.permission.READ_EXTERNAL_STORAGE
-        else -> Manifest.permission.WRITE_EXTERNAL_STORAGE
-    }
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,19 +94,15 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val mainNavController = rememberNavController()
-                    val mediaNavController = rememberNavController()
 
                     NavHost(
                         navController = mainNavController,
-                        startDestination = MAIN_ROUTE
+                        startDestination = MEDIA_ROUTE
                     ) {
-                        composable(MAIN_ROUTE) {
-                            MainScreen(
-                                permissionState = storagePermissionState,
-                                mainNavController = mainNavController,
-                                mediaNavController = mediaNavController
-                            )
-                        }
+                        mediaNavGraph(
+                            context = this@MainActivity,
+                            navController = mainNavController,
+                        )
                         settingsNavGraph(navController = mainNavController)
                     }
                 }

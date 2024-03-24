@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalPermissionsApi::class)
+
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
@@ -42,6 +44,13 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
+import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -49,6 +58,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
@@ -73,10 +83,13 @@ fun MediaPickerRoute(
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
+    val permissionState = rememberPermissionState(permission = storagePermission)
+
     MediaPickerScreen(
         videosState = videosState,
         foldersState = foldersState,
         preferences = preferences,
+        permissionState = permissionState,
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
@@ -94,6 +107,7 @@ internal fun MediaPickerScreen(
     videosState: VideosState,
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
+    permissionState: PermissionState = GrantedPermissionState,
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -103,6 +117,7 @@ internal fun MediaPickerScreen(
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {}
 ) {
+
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
@@ -134,6 +149,7 @@ internal fun MediaPickerScreen(
         },
         floatingActionButton = {
             if (!preferences.showFloatingPlayButton) return@Scaffold
+            if (!permissionState.status.isGranted) return@Scaffold
             FloatingActionButton(
                 onClick = {
                     val videoToPlay = if (preferences.groupVideosByFolder) {
@@ -179,22 +195,29 @@ internal fun MediaPickerScreen(
                     )
                 }
             }
-            if (preferences.groupVideosByFolder) {
-                FoldersView(
-                    foldersState = foldersState,
-                    preferences = preferences,
-                    onFolderClick = onFolderClick,
-                    onDeleteFolderClick = onDeleteFolderClick
-                )
-            } else {
-                VideosView(
-                    videosState = videosState,
-                    onVideoClick = onPlayVideo,
-                    preferences = preferences,
-                    onDeleteVideoClick = onDeleteVideoClick,
-                    onVideoLoaded = onAddToSync,
-                    onRenameVideoClick = onRenameVideoClick
-                )
+            PermissionMissingView(
+                isGranted = permissionState.status.isGranted,
+                showRationale = permissionState.status.shouldShowRationale,
+                permission = permissionState.permission,
+                launchPermissionRequest = { permissionState.launchPermissionRequest() }
+            ) {
+                if (preferences.groupVideosByFolder) {
+                    FoldersView(
+                        foldersState = foldersState,
+                        preferences = preferences,
+                        onFolderClick = onFolderClick,
+                        onDeleteFolderClick = onDeleteFolderClick
+                    )
+                } else {
+                    VideosView(
+                        videosState = videosState,
+                        onVideoClick = onPlayVideo,
+                        preferences = preferences,
+                        onDeleteVideoClick = onDeleteVideoClick,
+                        onVideoLoaded = onAddToSync,
+                        onRenameVideoClick = onRenameVideoClick
+                    )
+                }
             }
         }
     }
@@ -342,4 +365,14 @@ fun MediaPickerLoadingPreview() {
             )
         }
     }
+}
+
+@ExperimentalPermissionsApi
+val GrantedPermissionState = object : PermissionState {
+    override val permission: String
+        get() = ""
+    override val status: PermissionStatus
+        get() = PermissionStatus.Granted
+
+    override fun launchPermissionRequest() {}
 }
