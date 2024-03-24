@@ -21,7 +21,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         AudioStreamInfoEntity::class,
         SubtitleStreamInfoEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),

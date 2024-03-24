@@ -82,6 +82,7 @@ fun VideosView(
                     VideoItem(
                         video = video,
                         preferences = preferences,
+                        isRecentlyPlayedVideo = video == videosState.recentPlayedVideo,
                         modifier = Modifier.combinedClickable(
                             onClick = { onVideoClick(Uri.parse(video.uriString)) },
                             onLongClick = {

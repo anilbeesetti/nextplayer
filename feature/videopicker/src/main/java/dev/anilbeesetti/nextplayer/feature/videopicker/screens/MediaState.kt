@@ -4,11 +4,16 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 
 sealed interface VideosState {
-    object Loading : VideosState
-    data class Success(val data: List<Video>) : VideosState
+    data object Loading : VideosState
+    data class Success(val data: List<Video>) : VideosState {
+        val recentPlayedVideo = data
+            .filter { it.lastPlayedAt != null }
+            .sortedByDescending { it.lastPlayedAt?.time }
+            .firstOrNull()
+    }
 }
 
 sealed interface FoldersState {
-    object Loading : FoldersState
+    data object Loading : FoldersState
     data class Success(val data: List<Folder>) : FoldersState
 }

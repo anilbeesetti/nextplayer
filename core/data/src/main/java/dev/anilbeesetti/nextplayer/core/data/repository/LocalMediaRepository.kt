@@ -61,7 +61,8 @@ class LocalMediaRepository @Inject constructor(
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed,
-                externalSubs = UriListConverter.fromListToString(externalSubs)
+                externalSubs = UriListConverter.fromListToString(externalSubs),
+                lastPlayedTime = System.currentTimeMillis()
             )
         }
     }
