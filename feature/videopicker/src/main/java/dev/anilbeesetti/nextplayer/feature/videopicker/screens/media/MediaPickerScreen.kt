@@ -117,7 +117,6 @@ internal fun MediaPickerScreen(
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {}
 ) {
-
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
@@ -368,7 +367,7 @@ fun MediaPickerLoadingPreview() {
 }
 
 @ExperimentalPermissionsApi
-val GrantedPermissionState = object : PermissionState {
+private val GrantedPermissionState = object : PermissionState {
     override val permission: String
         get() = ""
     override val status: PermissionStatus

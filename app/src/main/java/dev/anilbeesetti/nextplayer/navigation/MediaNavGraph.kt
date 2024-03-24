@@ -17,7 +17,7 @@ const val MEDIA_ROUTE = "media_nav_route"
 
 fun NavGraphBuilder.mediaNavGraph(
     context: Context,
-    navController: NavHostController,
+    navController: NavHostController
 ) {
     navigation(
         startDestination = mediaPickerNavigationRoute,

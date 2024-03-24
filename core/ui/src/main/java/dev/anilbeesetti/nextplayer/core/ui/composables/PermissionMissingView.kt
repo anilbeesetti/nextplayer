@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.composables
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
 
@@ -14,7 +13,7 @@ fun PermissionMissingView(
     content: @Composable () -> Unit
 ) {
     if (isGranted) {
-       content()
+        content()
     } else if (showRationale) {
         PermissionRationaleDialog(
             text = stringResource(

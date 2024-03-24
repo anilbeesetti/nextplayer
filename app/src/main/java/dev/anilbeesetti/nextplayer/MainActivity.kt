@@ -36,8 +36,8 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.MEDIA_ROUTE
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         mediaNavGraph(
                             context = this@MainActivity,
-                            navController = mainNavController,
+                            navController = mainNavController
                         )
                         settingsNavGraph(navController = mainNavController)
                     }
