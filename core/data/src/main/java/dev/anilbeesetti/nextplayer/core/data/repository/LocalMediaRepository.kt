@@ -9,7 +9,7 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
-import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
+import dev.anilbeesetti.nextplayer.core.database.relations.DirectoryWithMedia
 import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -35,7 +35,7 @@ class LocalMediaRepository @Inject constructor(
     }
 
     override fun getFoldersFlow(): Flow<List<Folder>> {
-        return directoryDao.getAll().map { it.map(DirectoryEntity::toFolder) }
+        return directoryDao.getAllWithMedia().map { it.map(DirectoryWithMedia::toFolder) }
     }
 
     override suspend fun getVideoState(uri: String): VideoState? {
@@ -61,7 +61,8 @@ class LocalMediaRepository @Inject constructor(
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed,
-                externalSubs = UriListConverter.fromListToString(externalSubs)
+                externalSubs = UriListConverter.fromListToString(externalSubs),
+                lastPlayedTime = System.currentTimeMillis()
             )
         }
     }

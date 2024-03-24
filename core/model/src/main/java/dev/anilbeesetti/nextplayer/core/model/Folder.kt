@@ -8,7 +8,8 @@ data class Folder(
     val mediaSize: Long,
     val mediaCount: Int,
     val dateModified: Long,
-    val formattedMediaSize: String = ""
+    val formattedMediaSize: String = "",
+    val mediaList: List<Video> = emptyList()
 ) : Serializable {
 
     companion object {

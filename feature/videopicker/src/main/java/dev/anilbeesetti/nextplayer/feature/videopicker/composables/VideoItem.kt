@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import coil.compose.AsyncImage
@@ -32,19 +34,22 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
-import dev.anilbeesetti.nextplayer.core.ui.preview.DevicePreviews
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VideoItem(
     video: Video,
+    isRecentlyPlayedVideo: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     ListItemComponent(
+        colors = ListItemDefaults.colors(
+            headlineColor = if (isRecentlyPlayedVideo) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().headlineColor,
+            supportingColor = if (isRecentlyPlayedVideo) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().supportingTextColor
+        ),
         leadingContent = {
             Box(
                 modifier = Modifier
@@ -123,13 +128,22 @@ fun VideoItem(
     )
 }
 
-@DayNightPreview
-@DevicePreviews
+@PreviewLightDark
+@Composable
+fun VideoItemRecentlyPlayedPreview() {
+    NextPlayerTheme {
+        Surface {
+            VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = true)
+        }
+    }
+}
+
+@PreviewLightDark
 @Composable
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(video = Video.sample, preferences = ApplicationPreferences())
+            VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = false)
         }
     }
 }

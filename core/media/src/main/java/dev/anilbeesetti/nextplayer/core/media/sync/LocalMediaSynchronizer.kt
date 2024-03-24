@@ -59,12 +59,10 @@ class LocalMediaSynchronizer @Inject constructor(
     private suspend fun updateDirectories(media: List<MediaVideo>) = withContext(
         Dispatchers.Default
     ) {
-        val directories = media.groupBy { File(it.data).parentFile!! }.map { (file, videos) ->
+        val directories = media.groupBy { File(it.data).parentFile!! }.map { (file, _) ->
             DirectoryEntity(
                 path = file.path,
                 name = file.prettyName,
-                mediaCount = videos.size,
-                size = videos.sumOf { it.size },
                 modified = file.lastModified()
             )
         }

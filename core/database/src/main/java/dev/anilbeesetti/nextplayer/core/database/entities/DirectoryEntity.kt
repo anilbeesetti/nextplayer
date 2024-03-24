@@ -12,7 +12,5 @@ data class DirectoryEntity(
     @ColumnInfo(name = "path")
     val path: String,
     @ColumnInfo(name = "filename") val name: String,
-    @ColumnInfo(name = "media_count") val mediaCount: Int,
-    @ColumnInfo(name = "last_modified") val modified: Long,
-    @ColumnInfo(name = "size") val size: Long
+    @ColumnInfo(name = "last_modified") val modified: Long
 )

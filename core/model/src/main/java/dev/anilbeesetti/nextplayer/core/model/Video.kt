@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.model
 
 import java.io.Serializable
+import java.util.Date
 
 data class Video(
     val id: Long,
@@ -18,6 +19,7 @@ data class Video(
     val formattedFileSize: String = "",
     val format: String? = null,
     val thumbnailPath: String? = null,
+    val lastPlayedAt: Date? = null,
     val videoStream: VideoStreamInfo? = null,
     val audioStreams: List<AudioStreamInfo> = emptyList(),
     val subtitleStreams: List<SubtitleStreamInfo> = emptyList()

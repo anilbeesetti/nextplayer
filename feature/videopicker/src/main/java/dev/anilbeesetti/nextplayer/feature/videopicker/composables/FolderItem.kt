@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,23 +18,28 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
-import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FolderItem(
     folder: Folder,
+    isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier
 ) {
     ListItemComponent(
+        colors = ListItemDefaults.colors(
+            headlineColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().headlineColor,
+            supportingColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().supportingTextColor
+        ),
         leadingContent = {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
@@ -82,10 +88,18 @@ fun FolderItem(
     )
 }
 
-@DayNightPreview
+@PreviewLightDark
+@Composable
+fun FolderItemRecentlyPlayedPreview() {
+    NextPlayerTheme {
+        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = true)
+    }
+}
+
+@PreviewLightDark
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences())
+        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = false)
     }
 }

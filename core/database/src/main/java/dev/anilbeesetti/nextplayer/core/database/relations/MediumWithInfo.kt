@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.database.relations
 
+import androidx.room.DatabaseView
 import androidx.room.Embedded
 import androidx.room.Relation
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
@@ -7,6 +8,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.SubtitleStreamInfoEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
 
+@DatabaseView
 data class MediumWithInfo(
     @Embedded val mediumEntity: MediumEntity,
     @Relation(
