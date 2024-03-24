@@ -180,4 +180,13 @@
     <string name="sample_rate">Tốc độ mẫu</string>
     <string name="file">Tập tin</string>
     <string name="format">Định dạng</string>
+    <string name="pip_settings">Chế độ Hình trong Hình</string>
+    <string name="pip_settings_description">Tự động chuyển sang trình phát thu nhỏ khi nhấn vào Nút Home</string>
+    <string name="volume_boost_desc">Tăng cường âm lượng âm thanh lên tới 200%</string>
+    <string name="rename">Đổi tên</string>
+    <string name="rename_to">Đổi tên thành</string>
+    <string name="volume_boost">Tăng cường âm lượng</string>
+    <string name="open_subtitle">Mở phụ đề</string>
+    <string name="no_subtitle_tracks_found">Các bản phụ đề cho video này không có sẵn hoặc không được hỗ trợ.</string>
+    <string name="no_audio_tracks_found">Các bản âm thanh cho video này không có sẵn hoặc không được hỗ trợ.</string>
 </resources>

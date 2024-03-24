@@ -11,9 +11,9 @@
     <string name="double_tap">Жест двойного касания</string>
     <string name="double_tap_description">Выберите действие при двойном нажатии</string>
     <string name="navigate_up">Перейти наверх</string>
-    <string name="player_controls_next">Следующее</string>
+    <string name="player_controls_next">Воспроизвести следующее</string>
     <string name="player_controls_exit">Перейти наверх</string>
-    <string name="player_controls_play_pause">Пауза в воспроизведении плеера</string>
+    <string name="player_controls_play_pause">Пауза воспроизведения</string>
     <string name="player_controls_previous">Воспроизвести предыдущее</string>
     <string name="player_controls_progress">Индикатор прогресса плеера</string>
     <string name="about_name">О приложении</string>
@@ -123,7 +123,7 @@
     <string name="landscape_reverse">Горизонтальный (перевернутый)</string>
     <string name="delete_folder">Все видео в этой папке будут удаленны навсегда.</string>
     <string name="autoplay_settings_description">Автоматически воспроизводить следующее видео в текущей папке</string>
-    <string name="controller_timeout">Перерыв контроллера</string>
+    <string name="controller_timeout">Автоскрытие интерфейса</string>
     <string name="pause_on_headset_disconnect_desc">Пауза при отключении наушников</string>
     <string name="video_software_decoders">Программные видеодекодеры</string>
     <string name="sans_serif">Шрифт без засечек</string>
@@ -182,4 +182,11 @@
     <string name="format">Формат</string>
     <string name="volume_boost">Повышение громкости</string>
     <string name="volume_boost_desc">Повышение громкости звука вплоть до 200%</string>
+    <string name="pip_settings">Картинка в Картинке</string>
+    <string name="pip_settings_description">Автоматически открывать миниатюрный плеер при нажатии кнопки «Домой»</string>
+    <string name="rename">Переименовать</string>
+    <string name="rename_to">Переименовать в</string>
+    <string name="open_subtitle">Открыть субтитры</string>
+    <string name="no_subtitle_tracks_found">Для этого видео нет доступных субтитров или они не поддерживаются.</string>
+    <string name="no_audio_tracks_found">Для этого видео нет доступных аудиодорожек или они не поддерживаются.</string>
 </resources>

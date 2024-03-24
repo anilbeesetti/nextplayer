@@ -187,4 +187,6 @@
     <string name="no_audio_tracks_found">Аудіодоріжки для цього відео недоступні або не підтримуються.</string>
     <string name="open_subtitle">Відкрити субтитри</string>
     <string name="no_subtitle_tracks_found">Доріжки субтитрів для цього відео недоступні або не підтримуються.</string>
+    <string name="rename">Перейменувати</string>
+    <string name="rename_to">Перейменувати на</string>
 </resources>

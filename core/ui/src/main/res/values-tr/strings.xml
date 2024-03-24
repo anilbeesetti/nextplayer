@@ -21,7 +21,7 @@
     <string name="playback">Oynatma</string>
     <string name="interface_name">Arayüz</string>
     <string name="a_z">A-Z</string>
-    <string name="video_zoom">Video Yakınlaştırma</string>
+    <string name="video_zoom">Video yakınlaştırma</string>
     <string name="dynamic_theme_description">Sistem duvar kağıdındaki renkleri uygulama temasına uygulayın</string>
     <string name="select_playback_speed">Oynatma hızını seçin</string>
     <string name="preferred_audio_lang">Tercih edilen ses dili</string>
@@ -121,4 +121,21 @@
     <string name="subtitle_background_desc">Altyazı metni için arkaplanı etkinleştir</string>
     <string name="enter_a_network_url">Bir ağ URL\'si girin:</string>
     <string name="network_stream">Ağ Akışı</string>
+    <string name="pip_settings">Pencere içinde pencere modu</string>
+    <string name="pip_settings_description">Ana Ekran Düğmesine dokunduğunuzda otomatik olarak minyatür oynatıcıya geçin</string>
+    <string name="video_software_decoders_desc">Uygulama yazılımı video kod çözücülerini kullanın (deneysel)</string>
+    <string name="decoder_priority">Kod çözücü önceliği</string>
+    <string name="prefer_device_decoders">Cihaz kod çözücülerini tercih edin</string>
+    <string name="embedded_styles">Gömülü stiller</string>
+    <string name="decoder">Kod çözücü</string>
+    <string name="prefer_app_decoders">Uygulamın kod çözücülerini tercih edin</string>
+    <string name="decoder_desc">Kod çözücü önceliği, kod çözücü oynatma seçenekleri</string>
+    <string name="device_decoders_only">Sadece Cihaz kod çözücüleri</string>
+    <string name="autoplay_settings">Otomatik oynat</string>
+    <string name="autoplay_settings_description">Videodan sonra klasörü otomatik oynat</string>
+    <string name="video_software_decoders">Yazılımsal kod çözücü</string>
+    <string name="embedded_styles_desc">Altyazı dosyalarında bulunan gömülü stilleri uygulayın</string>
+    <string name="seconds">%1$s saniye</string>
+    <string name="delete">Sil</string>
+    <string name="share">Paylaş</string>
 </resources>

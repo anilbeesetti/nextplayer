@@ -187,4 +187,6 @@
     <string name="no_audio_tracks_found">Las pistas de audio de este vídeo no están disponibles o no son compatibles.</string>
     <string name="open_subtitle">Abrir subtítulo</string>
     <string name="no_subtitle_tracks_found">Las pistas de subtítulos para este vídeo no están disponibles o no son compatibles.</string>
+    <string name="rename">Cambie el nombre</string>
+    <string name="rename_to">Cambiar el nombre a</string>
 </resources>

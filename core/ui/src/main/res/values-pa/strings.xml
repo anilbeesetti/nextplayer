@@ -187,4 +187,6 @@
     <string name="no_subtitle_tracks_found">ਇਸ ਵੀਡੀਓ ਲਈ ਸਬਟਾਈਟਲ ਟਰੈਕ ਜਾਂ ਤਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ ਜਾਂ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।</string>
     <string name="open_subtitle">ਸਬਟਾਈਟਲ ਖੋਲ੍ਹੋ</string>
     <string name="no_audio_tracks_found">ਇਸ ਵੀਡੀਓ ਲਈ ਆਡੀਓ ਟਰੈਕ ਜਾਂ ਤਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ ਜਾਂ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।</string>
+    <string name="rename">ਨਾਮ ਬਦਲੋ</string>
+    <string name="rename_to">ਇਹਦੇ ਵਿੱਚ ਨਾਮ ਬਦਲੀ ਕਰੋ</string>
 </resources>
