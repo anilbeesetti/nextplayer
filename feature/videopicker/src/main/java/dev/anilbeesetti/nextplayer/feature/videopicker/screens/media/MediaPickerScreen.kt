@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -164,44 +165,18 @@ internal fun MediaPickerScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .clickable { selectVideoFileLauncher.launch("video/*") }
-                            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-
-                    ) {
-                        Icon(
-                            imageVector = NextIcons.FileOpen,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(text = "Open local video", style = MaterialTheme.typography.labelLarge)
-                    }
+                    ShortcutChipButton(
+                        text = stringResource(id = R.string.open_local_video),
+                        icon = NextIcons.FileOpen,
+                        onClick = { selectVideoFileLauncher.launch("video/*") }
+                    )
                 }
                 item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .clickable { showUrlDialog = true }
-                            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-
-                    ) {
-                        Icon(
-                            imageVector = NextIcons.Link,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(text = "Open Network video", style = MaterialTheme.typography.labelLarge)
-                    }
+                    ShortcutChipButton(
+                        text = stringResource(id = R.string.open_network_stream),
+                        icon = NextIcons.Link,
+                        onClick = { showUrlDialog = true }
+                    )
                 }
             }
             if (preferences.groupVideosByFolder) {
@@ -237,6 +212,33 @@ internal fun MediaPickerScreen(
             onDismiss = { showUrlDialog = false },
             onDone = { onPlayVideo(Uri.parse(it)) }
         )
+    }
+}
+
+@Composable
+fun ShortcutChipButton(
+    text: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .clip(CircleShape)
+            .clickable { onClick() }
+            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.secondary
+        )
+        Text(text = text, style = MaterialTheme.typography.labelLarge)
     }
 }
 

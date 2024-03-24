@@ -195,4 +195,6 @@
     <string name="floating_play_button_desc">Show floating button to play last played media.</string>
     <string name="mark_last_played_media">Mark last played media</string>
     <string name="mark_last_played_media_desc">Mark last played media in home and in each folder</string>
+    <string name="open_local_video">Open local video</string>
+    <string name="open_network_stream">Open network stream</string>
 </resources>
