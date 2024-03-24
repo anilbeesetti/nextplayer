@@ -184,9 +184,17 @@
     <string name="volume_boost">वॉल्यूम बूस्ट</string>
     <string name="pip_settings_description">होम बटन टैप करते समय स्वचालित रूप से लघु प्लेयर पर स्विच करें</string>
     <string name="pip_settings">पिक्चर इन पिक्चर मोड</string>
-    <string name="open_subtitle">सबटाइटल खोलें</string>
+    <string name="open_subtitle">स्थानीय उपशीर्षक खोलें</string>
     <string name="no_audio_tracks_found">इस वीडियो के ऑडियो ट्रैक या तो अनुपलब्ध हैं या समर्थित नहीं हैं।</string>
     <string name="no_subtitle_tracks_found">इस वीडियो के लिए सबटाइटल ट्रैक या तो अनुपलब्ध हैं या समर्थित नहीं हैं।</string>
     <string name="rename">नाम बदलें</string>
     <string name="rename_to">इसमें नाम बदलें</string>
+    <string name="exit">बाहर निकलें</string>
+    <string name="open_network_stream">नेटवर्क स्ट्रीम खोलें</string>
+    <string name="floating_play_button">फ़्लोटिंग प्ले बटन</string>
+    <string name="floating_play_button_desc">अंतिम बार चलाए गए मीडिया को चलाने के लिए फ़्लोटिंग बटन दिखाएं।</string>
+    <string name="mark_last_played_media">आखिरी बार चलाए गए मीडिया को चिह्नित करें</string>
+    <string name="mark_last_played_media_desc">होम और प्रत्येक फ़ोल्डर में अंतिम बार चलाए गए मीडिया को चिह्नित करें</string>
+    <string name="open_local_video">स्थानीय वीडियो खोलें</string>
+    <string name="play_next_video">अगला वीडियो चलायें</string>
 </resources>
