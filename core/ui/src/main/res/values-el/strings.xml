@@ -189,4 +189,6 @@
     <string name="no_audio_tracks_found">Τα κομμάτια ήχου για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
     <string name="rename_to">Μετονομασία σε</string>
     <string name="open_subtitle">Άνοιγμα υποτίτλων</string>
+    <string name="play_next_video">Αναπαραγωγή επόμενου</string>
+    <string name="exit">Έξοδος</string>
 </resources>
