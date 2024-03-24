@@ -92,7 +92,11 @@ fun FolderItem(
 @Composable
 fun FolderItemRecentlyPlayedPreview() {
     NextPlayerTheme {
-        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = true)
+        FolderItem(
+            folder = Folder.sample,
+            preferences = ApplicationPreferences(),
+            isRecentlyPlayedFolder = true
+        )
     }
 }
 
@@ -100,6 +104,10 @@ fun FolderItemRecentlyPlayedPreview() {
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = false)
+        FolderItem(
+            folder = Folder.sample,
+            preferences = ApplicationPreferences(),
+            isRecentlyPlayedFolder = false
+        )
     }
 }

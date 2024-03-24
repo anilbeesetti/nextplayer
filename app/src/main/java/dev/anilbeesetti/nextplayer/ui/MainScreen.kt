@@ -57,7 +57,6 @@ const val MAIN_ROUTE = "main_screen_route"
 @OptIn(
     ExperimentalPermissionsApi::class,
     ExperimentalMaterial3Api::class,
-    ExperimentalLayoutApi::class
 )
 @Composable
 fun MainScreen(
@@ -66,41 +65,8 @@ fun MainScreen(
     mediaNavController: NavHostController
 ) {
     val context = LocalContext.current
-    var showUrlDialog by rememberSaveable { mutableStateOf(false) }
-    val selectVideoFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { it?.let(context::startPlayerActivity) }
-    )
 
-    Scaffold(
-        floatingActionButton = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal
-                    )
-                )
-            ) {
-                FloatingActionButton(
-                    onClick = { selectVideoFileLauncher.launch("video/*") }
-                ) {
-                    Icon(
-                        imageVector = NextIcons.FileOpen,
-                        contentDescription = stringResource(id = R.string.play_file)
-                    )
-                }
-                FloatingActionButton(
-                    onClick = { showUrlDialog = true }
-                ) {
-                    Icon(
-                        imageVector = NextIcons.Link,
-                        contentDescription = stringResource(id = R.string.play_url)
-                    )
-                }
-            }
-        }
-    ) {
+    Scaffold {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -149,40 +115,5 @@ fun MainScreen(
                 }
             }
         }
-        if (showUrlDialog) {
-            NetworkUrlDialog(
-                onDismiss = { showUrlDialog = false },
-                onDone = { context.startPlayerActivity(Uri.parse(it)) }
-            )
-        }
     }
-}
-
-@Composable
-fun NetworkUrlDialog(
-    onDismiss: () -> Unit,
-    onDone: (String) -> Unit
-) {
-    var url by rememberSaveable { mutableStateOf("") }
-    NextDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.network_stream)) },
-        content = {
-            Text(text = stringResource(R.string.enter_a_network_url))
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(R.string.example_url)) }
-            )
-        },
-        confirmButton = {
-            DoneButton(
-                enabled = url.isNotBlank(),
-                onClick = { onDone(url) }
-            )
-        },
-        dismissButton = { CancelButton(onClick = onDismiss) }
-    )
 }

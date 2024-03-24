@@ -133,7 +133,11 @@ fun VideoItem(
 fun VideoItemRecentlyPlayedPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = true)
+            VideoItem(
+                video = Video.sample,
+                preferences = ApplicationPreferences(),
+                isRecentlyPlayedVideo = true
+            )
         }
     }
 }
@@ -143,7 +147,11 @@ fun VideoItemRecentlyPlayedPreview() {
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = false)
+            VideoItem(
+                video = Video.sample,
+                preferences = ApplicationPreferences(),
+                isRecentlyPlayedVideo = false
+            )
         }
     }
 }
