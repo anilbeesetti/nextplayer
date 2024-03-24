@@ -18,13 +18,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
-import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -88,7 +88,15 @@ fun FolderItem(
     )
 }
 
-@DayNightPreview
+@PreviewLightDark
+@Composable
+fun FolderItemRecentlyPlayedPreview() {
+    NextPlayerTheme {
+        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = true)
+    }
+}
+
+@PreviewLightDark
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
