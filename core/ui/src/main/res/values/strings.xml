@@ -191,4 +191,6 @@
     <string name="no_audio_tracks_found">Audio tracks for this video are either unavailable or not supported.</string>
     <string name="rename">Rename</string>
     <string name="rename_to">Rename to</string>
+    <string name="floating_play_button">Floating play button</string>
+    <string name="floating_play_button_desc">Show floating button to play last played media.</string>
 </resources>

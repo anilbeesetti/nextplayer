@@ -136,6 +136,7 @@ internal fun MediaPickerScreen(
             )
         },
         floatingActionButton = {
+            if (!preferences.showFloatingPlayButton) return@Scaffold
             FloatingActionButton(
                 onClick = {
                     val videoToPlay = if (preferences.groupVideosByFolder) {

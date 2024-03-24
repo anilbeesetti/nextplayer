@@ -76,6 +76,7 @@ internal fun MediaPickerFolderScreen(
             )
         },
         floatingActionButton = {
+            if (!preferences.showFloatingPlayButton) return@Scaffold
             FloatingActionButton(
                 onClick = {
                     val state = videosState as? VideosState.Success

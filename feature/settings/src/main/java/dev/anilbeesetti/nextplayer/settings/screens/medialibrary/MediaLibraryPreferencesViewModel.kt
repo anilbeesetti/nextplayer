@@ -47,6 +47,14 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleShowFloatingPlayButton() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showFloatingPlayButton = !it.showFloatingPlayButton)
+            }
+        }
+    }
 }
 
 sealed interface FolderPreferencesUiState {

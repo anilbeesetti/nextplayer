@@ -49,6 +49,7 @@ import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.ScreenRotationAlt
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Style
@@ -108,6 +109,7 @@ object NextIcons {
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
     val Share = Icons.Rounded.Share
+    val SmartButton = Icons.Rounded.SmartButton
     val Style = Icons.Rounded.Style
     val Subtitle = Icons.Rounded.Subtitles
     val Size = Icons.AutoMirrored.Rounded.CompareArrows

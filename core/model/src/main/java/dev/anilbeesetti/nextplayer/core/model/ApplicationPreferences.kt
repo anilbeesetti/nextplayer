@@ -10,6 +10,7 @@ data class ApplicationPreferences(
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
     val useHighContrastDarkTheme: Boolean = false,
     val useDynamicColors: Boolean = true,
+    val showFloatingPlayButton: Boolean = true,
     val excludeFolders: List<String> = emptyList(),
 
     // Fields
