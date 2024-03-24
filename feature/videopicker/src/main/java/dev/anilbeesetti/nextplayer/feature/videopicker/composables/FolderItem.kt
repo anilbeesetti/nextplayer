@@ -37,8 +37,16 @@ fun FolderItem(
 ) {
     ListItemComponent(
         colors = ListItemDefaults.colors(
-            headlineColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().headlineColor,
-            supportingColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().supportingTextColor
+            headlineColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().headlineColor
+            },
+            supportingColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().supportingTextColor
+            }
         ),
         leadingContent = {
             Icon(

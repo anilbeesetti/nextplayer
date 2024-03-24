@@ -55,6 +55,14 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleMarkLastPlayedMedia() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(markLastPlayedMedia = !it.markLastPlayedMedia)
+            }
+        }
+    }
 }
 
 sealed interface FolderPreferencesUiState {

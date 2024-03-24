@@ -74,10 +74,15 @@ fun MediaLibraryPreferencesScreen(
                 .verticalScroll(state = rememberScrollState())
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
+            MarkLastPlayedMediaSetting(
+                isChecked = preferences.markLastPlayedMedia,
+                onClick = viewModel::toggleMarkLastPlayedMedia
+            )
             FloatingPlayButtonSetting(
                 isChecked = preferences.showFloatingPlayButton,
                 onClick = viewModel::toggleShowFloatingPlayButton
             )
+
             PreferenceSubtitle(text = stringResource(id = R.string.scan))
             HideFoldersSettings(
                 onClick = onFolderSettingClick
@@ -115,6 +120,22 @@ fun ForceRescanStorageSetting(
         title = stringResource(id = R.string.force_rescan_storage),
         description = stringResource(id = R.string.force_rescan_storage_desc),
         icon = NextIcons.Update,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun MarkLastPlayedMediaSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.mark_last_played_media),
+        description = stringResource(
+            id = R.string.mark_last_played_media_desc
+        ),
+        icon = NextIcons.Check,
+        isChecked = isChecked,
         onClick = onClick
     )
 }

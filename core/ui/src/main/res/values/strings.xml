@@ -193,4 +193,6 @@
     <string name="rename_to">Rename to</string>
     <string name="floating_play_button">Floating play button</string>
     <string name="floating_play_button_desc">Show floating button to play last played media.</string>
+    <string name="mark_last_played_media">Mark last played media</string>
+    <string name="mark_last_played_media_desc">Mark last played media in home and in each folder</string>
 </resources>

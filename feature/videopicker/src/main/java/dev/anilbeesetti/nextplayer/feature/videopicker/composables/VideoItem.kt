@@ -47,8 +47,16 @@ fun VideoItem(
     val context = LocalContext.current
     ListItemComponent(
         colors = ListItemDefaults.colors(
-            headlineColor = if (isRecentlyPlayedVideo) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().headlineColor,
-            supportingColor = if (isRecentlyPlayedVideo) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().supportingTextColor
+            headlineColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().headlineColor
+            },
+            supportingColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().supportingTextColor
+            }
         ),
         leadingContent = {
             Box(
