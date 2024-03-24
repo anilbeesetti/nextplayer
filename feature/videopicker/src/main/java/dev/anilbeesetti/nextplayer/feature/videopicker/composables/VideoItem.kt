@@ -130,10 +130,20 @@ fun VideoItem(
 
 @PreviewLightDark
 @Composable
-fun VideoItemPreview() {
+fun VideoItemRecentlyPlayedPreview() {
     NextPlayerTheme {
         Surface {
             VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = true)
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+fun VideoItemPreview() {
+    NextPlayerTheme {
+        Surface {
+            VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = false)
         }
     }
 }

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "50c0532bd48e25fbd2b74da3cbd218e0",
+    "identityHash": "00683288787f17e20774fe6dac211ab2",
     "entities": [
       {
         "tableName": "directories",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`path` TEXT NOT NULL, `filename` TEXT NOT NULL, `media_count` INTEGER NOT NULL, `last_modified` INTEGER NOT NULL, `size` INTEGER NOT NULL, PRIMARY KEY(`path`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`path` TEXT NOT NULL, `filename` TEXT NOT NULL, `last_modified` INTEGER NOT NULL, PRIMARY KEY(`path`))",
         "fields": [
           {
             "fieldPath": "path",
@@ -21,20 +21,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "mediaCount",
-            "columnName": "media_count",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
             "fieldPath": "modified",
             "columnName": "last_modified",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "size",
-            "columnName": "size",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -420,7 +408,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '50c0532bd48e25fbd2b74da3cbd218e0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '00683288787f17e20774fe6dac211ab2')"
     ]
   }
 }

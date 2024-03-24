@@ -45,6 +45,7 @@ fun FoldersView(
                 items(foldersState.data, key = { it.path }) {
                     FolderItem(
                         folder = it,
+                        isRecentlyPlayedFolder = foldersState.recentPlayedVideo in it.mediaList,
                         preferences = preferences,
                         modifier = Modifier.combinedClickable(
                             onClick = { onFolderClick(it.path) },

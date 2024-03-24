@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,10 +31,15 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 @Composable
 fun FolderItem(
     folder: Folder,
+    isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier
 ) {
     ListItemComponent(
+        colors = ListItemDefaults.colors(
+            headlineColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().headlineColor,
+            supportingColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().supportingTextColor
+        ),
         leadingContent = {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
@@ -86,6 +92,6 @@ fun FolderItem(
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences())
+        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = false)
     }
 }
