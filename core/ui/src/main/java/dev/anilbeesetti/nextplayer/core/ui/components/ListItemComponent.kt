@@ -25,7 +25,7 @@ fun ListItemComponent(
     supportingContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
-    colors: ListItemColors = ListItemDefaults.colors(),
+    colors: ListItemColors = ListItemDefaults.colors()
 ) {
     Row(
         modifier = modifier

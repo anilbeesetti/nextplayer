@@ -24,7 +24,7 @@ fun MediumEntity.toVideo() = Video(
     thumbnailPath = thumbnailPath,
     lastPlayedAt = lastPlayedTime?.let { Date(it) },
     formattedDuration = Utils.formatDurationMillis(duration),
-    formattedFileSize = Utils.formatFileSize(size),
+    formattedFileSize = Utils.formatFileSize(size)
 )
 
 fun MediumWithInfo.toVideo() = Video(

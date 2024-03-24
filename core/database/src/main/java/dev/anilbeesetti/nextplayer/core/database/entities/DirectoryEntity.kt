@@ -9,7 +9,8 @@ import androidx.room.PrimaryKey
 )
 data class DirectoryEntity(
     @PrimaryKey
-    @ColumnInfo(name = "path") val path: String,
+    @ColumnInfo(name = "path")
+    val path: String,
     @ColumnInfo(name = "filename") val name: String,
-    @ColumnInfo(name = "last_modified") val modified: Long,
+    @ColumnInfo(name = "last_modified") val modified: Long
 )

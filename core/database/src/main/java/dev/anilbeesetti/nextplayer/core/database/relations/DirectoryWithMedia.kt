@@ -11,5 +11,5 @@ data class DirectoryWithMedia(
         parentColumn = "path",
         entityColumn = "parent_path"
     )
-    val media: List<MediumEntity>,
+    val media: List<MediumEntity>
 )
