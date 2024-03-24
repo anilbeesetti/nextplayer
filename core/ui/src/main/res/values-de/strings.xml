@@ -182,4 +182,11 @@
     <string name="format">Format</string>
     <string name="volume_boost_desc">Erhöhen der Audiolautstärke um bis zu 200%</string>
     <string name="volume_boost">Lautstärkeerhöhung</string>
+    <string name="pip_settings">Bild im Bildmodus</string>
+    <string name="pip_settings_description">Automatischer Wechsel zum Miniaturplayer beim Antippen der Home-Taste</string>
+    <string name="rename">Umbenennen</string>
+    <string name="rename_to">Umbenennen in</string>
+    <string name="no_audio_tracks_found">Die Tonspuren für dieses Video sind entweder nicht verfügbar oder werden nicht unterstützt.</string>
+    <string name="open_subtitle">Untertitel öffnen</string>
+    <string name="no_subtitle_tracks_found">Die Untertitelspuren für dieses Video sind entweder nicht verfügbar oder werden nicht unterstützt.</string>
 </resources>
