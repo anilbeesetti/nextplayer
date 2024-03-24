@@ -48,6 +48,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -311,8 +312,10 @@ class PlayerActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         if (isInPictureInPictureMode) {
+            binding.playerView.subtitleView?.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
             playerUnlockControls.visibility = View.INVISIBLE
         } else {
+            binding.playerView.subtitleView?.setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
             if (!isControlsLocked) {
                 playerUnlockControls.visibility = View.VISIBLE
             }
@@ -514,7 +517,7 @@ class PlayerActivity : AppCompatActivity() {
         val isCurrentUriIsFromIntent = intent.data == uri
 
         viewModel.updateState(uri.toString())
-        if (isCurrentUriIsFromIntent && playerApi.hasPosition) {
+        if (isCurrentUriIsFromIntent && playerApi.hasPosition && viewModel.currentPlaybackPosition == null) {
             viewModel.currentPlaybackPosition = playerApi.position?.toLong()
         }
 
@@ -597,17 +600,19 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onPlayerError(error: PlaybackException) {
             Timber.e(error)
-            val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity)
-                .setTitle(getString(coreUiR.string.error_playing_video))
-                .setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                .setNegativeButton("CANCEL") { dialog, _ ->
-                    dialog.dismiss()
+            val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
+                setTitle(getString(coreUiR.string.error_playing_video))
+                setMessage(error.message ?: getString(coreUiR.string.unknown_error))
+                setNegativeButton(getString(coreUiR.string.exit)) { dialog, _ ->
+                    finish()
                 }
-                .setPositiveButton("OK") { dialog, _ ->
-                    dialog.dismiss()
-                    if (playlistManager.hasNext()) playVideo(playlistManager.getNext()!!) else finish()
+                if (playlistManager.hasNext()) {
+                    setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
+                        dialog.dismiss()
+                        playVideo(playlistManager.getNext()!!)
+                    }
                 }
-                .create()
+            }.create()
 
             alertDialog.show()
             super.onPlayerError(error)

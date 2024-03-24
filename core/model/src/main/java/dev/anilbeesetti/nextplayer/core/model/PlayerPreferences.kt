@@ -37,7 +37,7 @@ data class PlayerPreferences(
     val useSystemCaptionStyle: Boolean = false,
     val preferredSubtitleLanguage: String = "",
     val subtitleTextEncoding: String = "",
-    val subtitleTextSize: Int = 23,
+    val subtitleTextSize: Int = 20,
     val subtitleBackground: Boolean = false,
     val subtitleFont: Font = Font.DEFAULT,
     val subtitleTextBold: Boolean = true,
