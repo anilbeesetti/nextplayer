@@ -37,8 +37,16 @@ fun FolderItem(
 ) {
     ListItemComponent(
         colors = ListItemDefaults.colors(
-            headlineColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().headlineColor,
-            supportingColor = if (isRecentlyPlayedFolder) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().supportingTextColor
+            headlineColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().headlineColor
+            },
+            supportingColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().supportingTextColor
+            }
         ),
         leadingContent = {
             Icon(
@@ -92,7 +100,11 @@ fun FolderItem(
 @Composable
 fun FolderItemRecentlyPlayedPreview() {
     NextPlayerTheme {
-        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = true)
+        FolderItem(
+            folder = Folder.sample,
+            preferences = ApplicationPreferences(),
+            isRecentlyPlayedFolder = true
+        )
     }
 }
 
@@ -100,6 +112,10 @@ fun FolderItemRecentlyPlayedPreview() {
 @Composable
 fun FolderItemPreview() {
     NextPlayerTheme {
-        FolderItem(folder = Folder.sample, preferences = ApplicationPreferences(), isRecentlyPlayedFolder = false)
+        FolderItem(
+            folder = Folder.sample,
+            preferences = ApplicationPreferences(),
+            isRecentlyPlayedFolder = false
+        )
     }
 }

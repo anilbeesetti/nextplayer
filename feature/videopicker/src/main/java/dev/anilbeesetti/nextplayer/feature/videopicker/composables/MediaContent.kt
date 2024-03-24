@@ -61,18 +61,29 @@ fun MediaLazyList(
 
 @Composable
 fun CenterCircularProgressBar() {
-    CircularProgressIndicator(
-        modifier = Modifier
-            .testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG)
-    )
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.testTag(CIRCULAR_PROGRESS_INDICATOR_TEST_TAG)
+        )
+    }
 }
 
 @Composable
 fun NoVideosFound() {
-    Text(
-        text = stringResource(id = R.string.no_videos_found),
-        style = MaterialTheme.typography.titleLarge
-    )
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.no_videos_found),
+            style = MaterialTheme.typography.titleLarge
+        )
+    }
 }
 
 @Composable

@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
     implementation(libs.coil.kt.compose)
+    implementation(libs.accompanist.permissions)
 
     implementation(libs.androidx.hilt.navigation.compose)
 

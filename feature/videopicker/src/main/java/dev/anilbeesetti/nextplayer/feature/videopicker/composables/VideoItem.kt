@@ -47,8 +47,16 @@ fun VideoItem(
     val context = LocalContext.current
     ListItemComponent(
         colors = ListItemDefaults.colors(
-            headlineColor = if (isRecentlyPlayedVideo) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().headlineColor,
-            supportingColor = if (isRecentlyPlayedVideo) MaterialTheme.colorScheme.primary else ListItemDefaults.colors().supportingTextColor
+            headlineColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().headlineColor
+            },
+            supportingColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().supportingTextColor
+            }
         ),
         leadingContent = {
             Box(
@@ -133,7 +141,11 @@ fun VideoItem(
 fun VideoItemRecentlyPlayedPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = true)
+            VideoItem(
+                video = Video.sample,
+                preferences = ApplicationPreferences(),
+                isRecentlyPlayedVideo = true
+            )
         }
     }
 }
@@ -143,7 +155,11 @@ fun VideoItemRecentlyPlayedPreview() {
 fun VideoItemPreview() {
     NextPlayerTheme {
         Surface {
-            VideoItem(video = Video.sample, preferences = ApplicationPreferences(), isRecentlyPlayedVideo = false)
+            VideoItem(
+                video = Video.sample,
+                preferences = ApplicationPreferences(),
+                isRecentlyPlayedVideo = false
+            )
         }
     }
 }

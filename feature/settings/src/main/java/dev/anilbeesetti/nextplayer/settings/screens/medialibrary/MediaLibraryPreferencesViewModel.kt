@@ -47,6 +47,22 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleShowFloatingPlayButton() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showFloatingPlayButton = !it.showFloatingPlayButton)
+            }
+        }
+    }
+
+    fun toggleMarkLastPlayedMedia() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(markLastPlayedMedia = !it.markLastPlayedMedia)
+            }
+        }
+    }
 }
 
 sealed interface FolderPreferencesUiState {

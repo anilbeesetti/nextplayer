@@ -17,16 +17,20 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
 import dev.anilbeesetti.nextplayer.core.common.extensions.showToast
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import kotlinx.coroutines.launch
@@ -35,8 +39,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun MediaLibraryPreferencesScreen(
     onNavigateUp: () -> Unit,
-    onFolderSettingClick: () -> Unit = {}
+    onFolderSettingClick: () -> Unit = {},
+    viewModel: MediaLibraryPreferencesViewModel = hiltViewModel()
 ) {
+    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
+
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -66,6 +73,16 @@ fun MediaLibraryPreferencesScreen(
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
         ) {
+            PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
+            MarkLastPlayedMediaSetting(
+                isChecked = preferences.markLastPlayedMedia,
+                onClick = viewModel::toggleMarkLastPlayedMedia
+            )
+            FloatingPlayButtonSetting(
+                isChecked = preferences.showFloatingPlayButton,
+                onClick = viewModel::toggleShowFloatingPlayButton
+            )
+
             PreferenceSubtitle(text = stringResource(id = R.string.scan))
             HideFoldersSettings(
                 onClick = onFolderSettingClick
@@ -103,6 +120,38 @@ fun ForceRescanStorageSetting(
         title = stringResource(id = R.string.force_rescan_storage),
         description = stringResource(id = R.string.force_rescan_storage_desc),
         icon = NextIcons.Update,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun MarkLastPlayedMediaSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.mark_last_played_media),
+        description = stringResource(
+            id = R.string.mark_last_played_media_desc
+        ),
+        icon = NextIcons.Check,
+        isChecked = isChecked,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun FloatingPlayButtonSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit
+) {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.floating_play_button),
+        description = stringResource(
+            id = R.string.floating_play_button_desc
+        ),
+        icon = NextIcons.SmartButton,
+        isChecked = isChecked,
         onClick = onClick
     )
 }

@@ -37,9 +37,9 @@ import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.PhotoSizeSelectSmall
 import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.Pinch
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -48,6 +48,7 @@ import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.ScreenRotationAlt
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Style
@@ -96,9 +97,9 @@ object NextIcons {
     val Link = Icons.Rounded.Link
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
-    val PhotoSize = Icons.Rounded.PhotoSizeSelectSmall
     val Pip = Icons.Rounded.PictureInPictureAlt
     val Pinch = Icons.Rounded.Pinch
+    val Play = Icons.Rounded.PlayArrow
     val Player = Icons.Rounded.PlayCircle
     val Priority = Icons.Rounded.PriorityHigh
     val Replay = Icons.Rounded.Replay10
@@ -107,6 +108,7 @@ object NextIcons {
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
     val Share = Icons.Rounded.Share
+    val SmartButton = Icons.Rounded.SmartButton
     val Style = Icons.Rounded.Style
     val Subtitle = Icons.Rounded.Subtitles
     val Size = Icons.AutoMirrored.Rounded.CompareArrows

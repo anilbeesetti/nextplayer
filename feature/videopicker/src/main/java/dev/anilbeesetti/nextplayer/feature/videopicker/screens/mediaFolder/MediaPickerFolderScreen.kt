@@ -2,11 +2,13 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -39,7 +41,7 @@ fun MediaPickerFolderRoute(
         folderPath = viewModel.folderPath,
         videosState = videosState,
         preferences = preferences,
-        onVideoClick = onVideoClick,
+        onPlayVideo = onVideoClick,
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
@@ -54,32 +56,53 @@ internal fun MediaPickerFolderScreen(
     videosState: VideosState,
     preferences: ApplicationPreferences,
     onNavigateUp: () -> Unit,
-    onVideoClick: (Uri) -> Unit,
+    onPlayVideo: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit
 ) {
-    Column {
-        NextTopAppBar(
-            title = File(folderPath).prettyName,
-            navigationIcon = {
-                IconButton(onClick = onNavigateUp) {
-                    Icon(
-                        imageVector = NextIcons.ArrowBack,
-                        contentDescription = stringResource(id = R.string.navigate_up)
-                    )
+    Scaffold(
+        topBar = {
+            NextTopAppBar(
+                title = File(folderPath).prettyName,
+                navigationIcon = {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(
+                            imageVector = NextIcons.ArrowBack,
+                            contentDescription = stringResource(id = R.string.navigate_up)
+                        )
+                    }
                 }
+            )
+        },
+        floatingActionButton = {
+            if (!preferences.showFloatingPlayButton) return@Scaffold
+            FloatingActionButton(
+                onClick = {
+                    val state = videosState as? VideosState.Success
+                    val videoToPlay = state?.recentPlayedVideo ?: state?.firstVideo
+                    if (videoToPlay != null) {
+                        onPlayVideo(Uri.parse(videoToPlay.uriString))
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = NextIcons.Play,
+                    contentDescription = null
+                )
             }
-        )
+        }
+    ) {
         Box(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(it),
             contentAlignment = Alignment.Center
         ) {
             VideosView(
                 videosState = videosState,
                 preferences = preferences,
-                onVideoClick = onVideoClick,
+                onVideoClick = onPlayVideo,
                 onDeleteVideoClick = onDeleteVideoClick,
                 onVideoLoaded = onAddToSync,
                 onRenameVideoClick = onRenameVideoClick

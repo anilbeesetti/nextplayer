@@ -1,9 +1,17 @@
 package dev.anilbeesetti.nextplayer.core.common
 
+import android.Manifest
 import android.content.res.Resources
+import android.os.Build
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
+
+val storagePermission = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_VIDEO
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Manifest.permission.READ_EXTERNAL_STORAGE
+    else -> Manifest.permission.WRITE_EXTERNAL_STORAGE
+}
 
 /**
  * Utility functions.
