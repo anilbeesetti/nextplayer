@@ -625,6 +625,7 @@ class PlayerActivity : AppCompatActivity() {
                     isPlaybackFinished = true
                     if (playlistManager.hasNext() && playerPreferences.autoplay) {
                         playlistManager.getCurrent()?.let { savePlayerState(it) }
+                        viewModel.resetAllToDefaults()
                         playVideo(playlistManager.getNext()!!)
                     } else {
                         finish()
