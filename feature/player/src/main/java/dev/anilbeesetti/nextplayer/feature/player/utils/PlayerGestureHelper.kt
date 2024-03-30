@@ -299,5 +299,8 @@ class PlayerGestureHelper(
 inline val Int.toMillis get() = this * 1000
 
 enum class GestureAction {
-    SWIPE, SEEK, ZOOM, FAST_PLAYBACK
+    SWIPE,
+    SEEK,
+    ZOOM,
+    FAST_PLAYBACK
 }
