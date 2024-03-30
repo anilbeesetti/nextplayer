@@ -47,15 +47,17 @@ fun AppearancePreferencesScreen(
 
     Scaffold(
         modifier = Modifier
-            .nestedScroll(scrollBehaviour.nestedScrollConnection)
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             // TODO: Check why the appbar flickers when changing the theme with small appbar and not with large appbar
             NextTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up)
@@ -70,6 +72,7 @@ fun AppearancePreferencesScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
             DarkThemeSetting(

@@ -35,14 +35,16 @@ fun AboutPreferencesScreen(
 
     Scaffold(
         modifier = Modifier
-            .nestedScroll(scrollBehaviour.nestedScrollConnection)
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up)
@@ -54,7 +56,9 @@ fun AboutPreferencesScreen(
     ) { innerPadding ->
         LibrariesContainer(
             contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
             colors = LibraryDefaults.libraryColors(
                 backgroundColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.onBackground,
