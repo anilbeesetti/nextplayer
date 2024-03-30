@@ -164,7 +164,7 @@
     <string name="long_press_gesture_desc">Pressione e segure para reproduzir na velocidade %.1fx</string>
     <string name="long_press_gesture">Gesto de toque longo</string>
     <string name="fast_playback_speed">%.1fx velocidade</string>
-    <string name="require_audio_focus_desc">Pause outros players enquanto este player reproduz vídeos e vice-versa.</string>
+    <string name="require_audio_focus_desc">Pause outros players enquanto este player reproduz vídeos e vice-versa</string>
     <string name="require_audio_focus">Requerir foco de áudio</string>
     <string name="codec">Codec</string>
     <string name="properties">Propriedades</string>
@@ -184,9 +184,17 @@
     <string name="volume_boost">Amplificar volume</string>
     <string name="pip_settings_description">Mude automaticamente para o player em miniatura ao tocar no botão home</string>
     <string name="pip_settings">Modo Picture in Picture</string>
-    <string name="open_subtitle">Abrir legenda</string>
+    <string name="open_subtitle">Abrir legenda local</string>
     <string name="no_subtitle_tracks_found">As faixas de legenda deste vídeo não estão disponíveis ou não são suportadas.</string>
     <string name="no_audio_tracks_found">As faixas de áudio deste vídeo não estão disponíveis ou não são suportadas.</string>
     <string name="rename">Renomear</string>
     <string name="rename_to">Renomear para</string>
+    <string name="mark_last_played_media">Marcar a última mídia reproduzida</string>
+    <string name="mark_last_played_media_desc">Marque a última mídia reproduzida na página inicial e em cada pasta</string>
+    <string name="open_local_video">Abrir vídeo local</string>
+    <string name="floating_play_button">Botão de reprodução flutuante</string>
+    <string name="floating_play_button_desc">Mostrar botão flutuante para reproduzir a última mídia reproduzida</string>
+    <string name="open_network_stream">Abrir streamig</string>
+    <string name="exit">Sair</string>
+    <string name="play_next_video">Reproduzir próximo vídeo</string>
 </resources>

@@ -188,5 +188,13 @@
     <string name="no_subtitle_tracks_found">Τα κομμάτια υποτίτλων για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
     <string name="no_audio_tracks_found">Τα κομμάτια ήχου για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
     <string name="rename_to">Μετονομασία σε</string>
-    <string name="open_subtitle">Άνοιγμα υποτίτλων</string>
+    <string name="open_subtitle">Άνοιγμα τοπικών υποτίτλων</string>
+    <string name="play_next_video">Αναπαραγωγή επόμενου</string>
+    <string name="exit">Έξοδος</string>
+    <string name="mark_last_played_media">Επισήμανση τελευταίας αναπαραγωγής</string>
+    <string name="open_local_video">Άνοιγμα τοπικού βίντεο</string>
+    <string name="open_network_stream">Άνοιγμα δικτυακής ροής</string>
+    <string name="floating_play_button">Αιωρούμενο κουμπί</string>
+    <string name="floating_play_button_desc">Εμφάνιση αιωρούμενου κουμπιού για αναπαραγωγή πολυμέσων τελευταίας αναπαραγωγής.</string>
+    <string name="mark_last_played_media_desc">Επισήμανση τελευταίας αναπαραγωγής στο γονικό και κάθε φάκελο</string>
 </resources>
