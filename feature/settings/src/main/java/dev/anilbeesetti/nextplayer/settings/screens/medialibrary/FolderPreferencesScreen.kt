@@ -50,7 +50,7 @@ fun FolderPreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
@@ -65,7 +65,7 @@ fun FolderPreferencesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
         ) {
             when (uiState) {
                 FolderPreferencesUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))

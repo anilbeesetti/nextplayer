@@ -78,7 +78,7 @@ fun SubtitlePreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
@@ -94,7 +94,7 @@ fun SubtitlePreferencesScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             PreferredSubtitleLanguageSetting(
