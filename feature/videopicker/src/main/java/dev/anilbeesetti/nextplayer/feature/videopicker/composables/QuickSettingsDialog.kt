@@ -183,6 +183,12 @@ fun FieldChip(
                 tint = MaterialTheme.colorScheme.secondary
             )
         },
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            selectedBorderWidth = 1.dp,
+            selectedBorderColor = MaterialTheme.colorScheme.primary
+        ),
         modifier = modifier
     )
 }
