@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -183,6 +184,12 @@ fun FieldChip(
                 tint = MaterialTheme.colorScheme.secondary
             )
         },
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            selectedBorderWidth = 1.dp,
+            selectedBorderColor = MaterialTheme.colorScheme.primary
+        ),
         modifier = modifier
     )
 }
