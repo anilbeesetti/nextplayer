@@ -173,4 +173,18 @@
     <string name="okay">Okay</string>
     <string name="open_subtitle">Apri sottotitolo</string>
     <string name="no_subtitle_tracks_found">Tracce sottotitolo per questo video non sono disponibili o non sono supportate.</string>
+    <string name="stretch">Estendi</string>
+    <string name="crop">Ritaglia</string>
+    <string name="prefer_device_decoders">Preferisci decodificatori del dispositivo</string>
+    <string name="prefer_app_decoders">Preferisci decodificatori app</string>
+    <string name="play_next_video">Play prossimo video</string>
+    <string name="mark_last_played_media">Segna ultimo media riprodotto</string>
+    <string name="open_local_video">Apri video locale</string>
+    <string name="exit">Esci</string>
+    <string name="decoder">Decodificatore</string>
+    <string name="permission_settings">L\'app Next Player ha bisogno dell\'autorizzazione \"%1$s\" per accedere e eseguire i media. Senza di questo, l\'accesso ai media e l\'esecuzione non funzionerà. Per usare a pieno l\'app, permetti l\'autorizzazione dalle impostazioni dato che è stato negato permanentemente.</string>
+    <string name="device_decoders_only">Solo decodificatori del dispositivo</string>
+    <string name="floating_play_button">Pulsante play fluttuante</string>
+    <string name="floating_play_button_desc">Mostra pulsante fluttuante per eseguire l\'ultimo media riprodotto.</string>
+    <string name="open_network_stream">Apri flusso di rete</string>
 </resources>
