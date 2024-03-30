@@ -640,6 +640,12 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_BUFFERING -> {
                     Timber.d("Player state: BUFFERING")
+                    if (playlistManager.hasNext()) {
+                        nextButton.imageAlpha = 255
+                    } else {
+                        nextButton.imageAlpha = 75
+                        nextButton.isEnabled = false
+                    }
                 }
 
                 Player.STATE_IDLE -> {
