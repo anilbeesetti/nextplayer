@@ -63,7 +63,7 @@
     <string name="seconds">%1$s secondi</string>
     <string name="share">Condividi</string>
     <string name="delete">Elimina</string>
-    <string name="delete_file">Elimina il seguente file</string>
+    <string name="delete_file">Il file seguente sarà eliminato permanentemente</string>
     <string name="pip_settings">Modalità Picture in Picture</string>
     <string name="dynamic_theme">Tema colore dinamico</string>
     <string name="seek_gesture_description">Scorri orizzontalmente per cercare avanti o indietro</string>
@@ -171,7 +171,7 @@
     <string name="channels">Canali</string>
     <string name="language">Lingua</string>
     <string name="okay">Okay</string>
-    <string name="open_subtitle">Apri sottotitolo</string>
+    <string name="open_subtitle">Apri sottotitolo locale</string>
     <string name="no_subtitle_tracks_found">Tracce sottotitolo per questo video non sono disponibili o non sono supportate.</string>
     <string name="stretch">Estendi</string>
     <string name="crop">Ritaglia</string>
