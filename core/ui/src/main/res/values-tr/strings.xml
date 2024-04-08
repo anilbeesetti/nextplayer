@@ -138,4 +138,9 @@
     <string name="seconds">%1$s saniye</string>
     <string name="delete">Sil</string>
     <string name="share">Paylaş</string>
+    <string name="path">Yol</string>
+    <string name="fast_playback_speed">%.1fx hız</string>
+    <string name="hundred_percent">%100</string>
+    <string name="okay">Tamam</string>
+    <string name="language">Dil</string>
 </resources>
