@@ -191,4 +191,10 @@
     <string name="no_audio_tracks_found">Для этого видео нет доступных аудиодорожек или они не поддерживаются.</string>
     <string name="exit">Выход</string>
     <string name="play_next_video">Воспроизвести следующее видео</string>
+    <string name="mark_last_played_media">Отмечать последнее воспроизводимое видео</string>
+    <string name="open_network_stream">Открыть сетевую трансляцию</string>
+    <string name="floating_play_button">Плавающая кнопка запуска</string>
+    <string name="floating_play_button_desc">Показать плавающую кнопку запуска для продолжения воспроизведения.</string>
+    <string name="open_local_video">Открыть локальное видео</string>
+    <string name="mark_last_played_media_desc">Отметить последнее воспроизводимое видео дома и в каждой папке</string>
 </resources>
