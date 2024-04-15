@@ -196,5 +196,5 @@
     <string name="floating_play_button">Плавающая кнопка воспроизведения</string>
     <string name="floating_play_button_desc">Показать плавающую кнопку для продолжения воспроизведения.</string>
     <string name="open_local_video">Открыть локальное видео</string>
-    <string name="mark_last_played_media_desc">Отметить последнее воспроизводимое видео дома и в каждой папке</string>
+    <string name="mark_last_played_media_desc">Отмечать последнее воспроизводимое видео на домашнем экране и в каждой папке</string>
 </resources>
