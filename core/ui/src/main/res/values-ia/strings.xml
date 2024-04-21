@@ -184,9 +184,17 @@
     <string name="subtitle_text_bold_desc">Usar texto nigrate pro le subtitulo</string>
     <string name="pip_settings">Modo Imagine-in-Imagine</string>
     <string name="pip_settings_description">Cambiar al reproductor miniatura automaticamente quando se tocca le Button de Initio</string>
-    <string name="open_subtitle">Aperir subtitulo</string>
+    <string name="open_subtitle">Aperir subtitulo local</string>
     <string name="no_subtitle_tracks_found">Le tracias de subtitulos pro iste video non es disponibile o non es supportate.</string>
     <string name="no_audio_tracks_found">Le tracias de audio pro iste video non es disponibile o non es supportate.</string>
     <string name="rename">Renominar</string>
     <string name="rename_to">Renominar a</string>
+    <string name="open_local_video">Aperir fluxo de rete</string>
+    <string name="exit">Sortir</string>
+    <string name="play_next_video">Reproducer le sequente video</string>
+    <string name="floating_play_button">Button de reproduction emergente</string>
+    <string name="mark_last_played_media">Marcar le ultime medio reproducite</string>
+    <string name="open_network_stream">Aperir fluxos in le rete</string>
+    <string name="mark_last_played_media_desc">Marcar le ultime medio reproducite in le initio e in cata dossier</string>
+    <string name="floating_play_button_desc">Monstrar button emergente pro reproducer le ultime medio reproducite.</string>
 </resources>

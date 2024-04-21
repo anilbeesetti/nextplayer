@@ -186,7 +186,15 @@
     <string name="pip_settings_description">Автоматически открывать миниатюрный плеер при нажатии кнопки «Домой»</string>
     <string name="rename">Переименовать</string>
     <string name="rename_to">Переименовать в</string>
-    <string name="open_subtitle">Открыть субтитры</string>
+    <string name="open_subtitle">Открыть локальные субтитры</string>
     <string name="no_subtitle_tracks_found">Для этого видео нет доступных субтитров или они не поддерживаются.</string>
     <string name="no_audio_tracks_found">Для этого видео нет доступных аудиодорожек или они не поддерживаются.</string>
+    <string name="exit">Выход</string>
+    <string name="play_next_video">Воспроизвести следующее видео</string>
+    <string name="mark_last_played_media">Отмечать последнее воспроизводимое видео</string>
+    <string name="open_network_stream">Открыть сетевую трансляцию</string>
+    <string name="floating_play_button">Плавающая кнопка воспроизведения</string>
+    <string name="floating_play_button_desc">Показать плавающую кнопку для продолжения воспроизведения.</string>
+    <string name="open_local_video">Открыть локальное видео</string>
+    <string name="mark_last_played_media_desc">Отмечать последнее воспроизведённое видео на домашнем экране и в каждой папке</string>
 </resources>
