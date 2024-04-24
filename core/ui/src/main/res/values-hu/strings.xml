@@ -1,2 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="about_description">Verzió, közreműködők</string>
+    <string name="about_name">Névjegy</string>
+    <string name="appearance_name">Kinézet</string>
+    <string name="cancel">Mégse</string>
+    <string name="descending">Leereszkedő</string>
+    <string name="disable">Letilt</string>
+    <string name="done">Kész</string>
+    <string name="double_tap">Dupla koppintás gesztus</string>
+    <string name="double_tap_description">Dupla koppintás gesztus kiválasztása</string>
+    <string name="error_playing_video">Hiba: Nem lehet lejátszani a videót</string>
+    <string name="appearance_description">Állítsd be az alkalmazást ízlésed szerint</string>
+    <string name="ascending">Felemelkedő</string>
+</resources>
