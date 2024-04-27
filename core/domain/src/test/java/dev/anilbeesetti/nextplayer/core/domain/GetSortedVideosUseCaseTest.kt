@@ -2,8 +2,8 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.SortBy
-import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Sort.By
+import dev.anilbeesetti.nextplayer.core.model.Sort.Order
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -20,9 +20,9 @@ class GetSortedVideosUseCaseTest {
     val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository)
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.ByTitleAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.ASCENDING)
+            it.copy(sortBy = Sort.By.TITLE, sortOrder = Sort.Order.ASCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
@@ -33,9 +33,9 @@ class GetSortedVideosUseCaseTest {
     }
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortByTitleDescending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.ByTitleDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.TITLE, sortOrder = SortOrder.DESCENDING)
+            it.copy(sortBy = Sort.By.TITLE, sortOrder = Sort.Order.DESCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
@@ -46,9 +46,9 @@ class GetSortedVideosUseCaseTest {
     }
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortByDurationAscending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.ByDurationAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.ASCENDING)
+            it.copy(sortBy = Sort.By.LENGTH, sortOrder = Sort.Order.ASCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
@@ -59,9 +59,9 @@ class GetSortedVideosUseCaseTest {
     }
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortByDurationDescending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.ByDurationDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.LENGTH, sortOrder = SortOrder.DESCENDING)
+            it.copy(sortBy = Sort.By.LENGTH, sortOrder = Sort.Order.DESCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
@@ -72,9 +72,9 @@ class GetSortedVideosUseCaseTest {
     }
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortByPathAscending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.ByPathAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.ASCENDING)
+            it.copy(sortBy = Sort.By.PATH, sortOrder = Sort.Order.ASCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
@@ -85,9 +85,9 @@ class GetSortedVideosUseCaseTest {
     }
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortByPathDescending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.ByPathDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.PATH, sortOrder = SortOrder.DESCENDING)
+            it.copy(sortBy = Sort.By.PATH, sortOrder = Sort.Order.DESCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
@@ -98,9 +98,9 @@ class GetSortedVideosUseCaseTest {
     }
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortBySizeAscending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.BySizeAscending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.ASCENDING)
+            it.copy(sortBy = Sort.By.SIZE, sortOrder = Sort.Order.ASCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())
@@ -111,9 +111,9 @@ class GetSortedVideosUseCaseTest {
     }
 
     @Test
-    fun testGetSortedVideosUseCase_whenSortBySizeDescending() = runTest {
+    fun testGetSortedVideosUseCase_whenSort.BySizeDescending() = runTest {
         preferencesRepository.updateApplicationPreferences {
-            it.copy(sortBy = SortBy.SIZE, sortOrder = SortOrder.DESCENDING)
+            it.copy(sortBy = Sort.By.SIZE, sortOrder = Sort.Order.DESCENDING)
         }
 
         mediaRepository.videos.addAll(testVideoItems.shuffled())

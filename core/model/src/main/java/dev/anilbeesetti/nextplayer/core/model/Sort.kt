@@ -3,9 +3,22 @@ package dev.anilbeesetti.nextplayer.core.model
 import kotlin.comparisons.reversed as kotlinReversed
 
 data class Sort(
-    val by: SortBy,
-    val order: SortOrder
+    val by: By,
+    val order: Order
 ) {
+    enum class By {
+        TITLE,
+        LENGTH,
+        PATH,
+        SIZE,
+        DATE
+    }
+
+    enum class Order {
+        ASCENDING,
+        DESCENDING
+    }
+
     private val stringComparator = Comparator<String> { str1, str2 ->
         var str1Marker = 0
         var str2Marker = 0
@@ -58,16 +71,16 @@ data class Sort(
         }
 
         val comparator = when (by) {
-            SortBy.TITLE -> videoTitleComparator
-            SortBy.LENGTH -> compareBy<Video> { it.duration }.then(videoTitleComparator)
-            SortBy.PATH -> videoPathComparator
-            SortBy.SIZE -> compareBy<Video> { it.size }.then(videoTitleComparator)
-            SortBy.DATE -> compareBy<Video> { it.dateModified }.then(videoTitleComparator)
+            By.TITLE -> videoTitleComparator
+            By.LENGTH -> compareBy<Video> { it.duration }.then(videoTitleComparator)
+            By.PATH -> videoPathComparator
+            By.SIZE -> compareBy<Video> { it.size }.then(videoTitleComparator)
+            By.DATE -> compareBy<Video> { it.dateModified }.then(videoTitleComparator)
         }
 
         return when (order) {
-            SortOrder.ASCENDING -> comparator
-            SortOrder.DESCENDING -> comparator.reversedCompat()
+            Order.ASCENDING -> comparator
+            Order.DESCENDING -> comparator.reversedCompat()
         }
     }
 
@@ -81,16 +94,16 @@ data class Sort(
         }
 
         val comparator = when (by) {
-            SortBy.TITLE -> folderNameComparator
-            SortBy.LENGTH -> compareBy<Folder> { it.mediaCount }.then(folderNameComparator)
-            SortBy.PATH -> folderPathComparator
-            SortBy.SIZE -> compareBy<Folder> { it.mediaSize }.then(folderNameComparator)
-            SortBy.DATE -> compareBy<Folder> { it.dateModified }.then(folderNameComparator)
+            By.TITLE -> folderNameComparator
+            By.LENGTH -> compareBy<Folder> { it.mediaCount }.then(folderNameComparator)
+            By.PATH -> folderPathComparator
+            By.SIZE -> compareBy<Folder> { it.mediaSize }.then(folderNameComparator)
+            By.DATE -> compareBy<Folder> { it.dateModified }.then(folderNameComparator)
         }
 
         return when (order) {
-            SortOrder.ASCENDING -> comparator
-            SortOrder.DESCENDING -> comparator.reversedCompat()
+            Order.ASCENDING -> comparator
+            Order.DESCENDING -> comparator.reversedCompat()
         }
     }
 

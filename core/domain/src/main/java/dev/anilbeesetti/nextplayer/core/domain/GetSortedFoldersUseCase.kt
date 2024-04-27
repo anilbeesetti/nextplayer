@@ -28,7 +28,7 @@ class GetSortedFoldersUseCase @Inject constructor(
                 it.path in preferences.excludeFolders
             }
 
-            val sort = Sort(preferences.sortBy, preferences.sortOrder)
+            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
             nonExcludedDirectories.sortedWith(sort.folderComparator())
         }.flowOn(defaultDispatcher)
     }
