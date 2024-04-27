@@ -41,22 +41,18 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     private suspend fun sync(): Unit = withContext(dispatcher) {
         media.collect { mediumUri ->
             val medium = mediumDao.getWithInfo(mediumUri.toString()) ?: return@collect
-            Log.d(TAG, "sync: $mediumUri - ${medium.mediumEntity.thumbnailPath}")
             if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
                 return@collect
             }
 
-            Log.d(TAG, "sync: $mediumUri")
-
-            val mediaInfo = try {
-                MediaInfoBuilder(context).from(mediumUri).build() ?: throw NullPointerException()
-            } catch (e: Exception) {
+            val mediaInfo = runCatching {
+                MediaInfoBuilder().from(context = context, uri = mediumUri).build() ?: throw NullPointerException()
+            }.onFailure { e ->
                 e.printStackTrace()
                 Log.d(TAG, "sync: MediaInfoBuilder exception", e)
-                return@collect
-            }
+            }.getOrNull() ?: return@collect
 
-            val thumbnail = mediaInfo.getFrame()
+            val thumbnail = runCatching { mediaInfo.getFrame() }.getOrNull()
             mediaInfo.release()
 
             val videoStreamInfo =
