@@ -59,9 +59,7 @@ data class Sort(
         return@Comparator str1Length - str2Length
     }
 
-
     fun videoComparator(): Comparator<Video> {
-
         val videoTitleComparator: Comparator<Video> = Comparator { video1, video2 ->
             return@Comparator stringComparator.compare(video1.displayName, video2.displayName)
         }
