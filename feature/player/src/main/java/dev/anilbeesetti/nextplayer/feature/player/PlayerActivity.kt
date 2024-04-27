@@ -690,16 +690,14 @@ class PlayerActivity : AppCompatActivity() {
         super.finish()
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent != null) {
-            playlistManager.clearQueue()
-            viewModel.resetAllToDefaults()
-            setIntent(intent)
-            prettyPrintIntent()
-            shouldFetchPlaylist = true
-            playVideo(intent.data!!)
-        }
+        playlistManager.clearQueue()
+        viewModel.resetAllToDefaults()
+        setIntent(intent)
+        prettyPrintIntent()
+        shouldFetchPlaylist = true
+        playVideo(intent.data!!)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
