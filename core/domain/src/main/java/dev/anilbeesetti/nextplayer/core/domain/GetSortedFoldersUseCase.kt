@@ -5,8 +5,7 @@ import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
-import dev.anilbeesetti.nextplayer.core.model.SortBy
-import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Sort
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -29,27 +28,8 @@ class GetSortedFoldersUseCase @Inject constructor(
                 it.path in preferences.excludeFolders
             }
 
-            when (preferences.sortOrder) {
-                SortOrder.ASCENDING -> {
-                    when (preferences.sortBy) {
-                        SortBy.TITLE -> nonExcludedDirectories.sortedBy { it.name.lowercase() }
-                        SortBy.LENGTH -> nonExcludedDirectories.sortedBy { it.mediaCount }
-                        SortBy.PATH -> nonExcludedDirectories.sortedBy { it.path.lowercase() }
-                        SortBy.SIZE -> nonExcludedDirectories.sortedBy { it.mediaSize }
-                        SortBy.DATE -> nonExcludedDirectories.sortedBy { it.dateModified }
-                    }
-                }
-
-                SortOrder.DESCENDING -> {
-                    when (preferences.sortBy) {
-                        SortBy.TITLE -> nonExcludedDirectories.sortedByDescending { it.name.lowercase() }
-                        SortBy.LENGTH -> nonExcludedDirectories.sortedByDescending { it.mediaCount }
-                        SortBy.PATH -> nonExcludedDirectories.sortedByDescending { it.path.lowercase() }
-                        SortBy.SIZE -> nonExcludedDirectories.sortedByDescending { it.mediaSize }
-                        SortBy.DATE -> nonExcludedDirectories.sortedByDescending { it.dateModified }
-                    }
-                }
-            }
+            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+            nonExcludedDirectories.sortedWith(sort.folderComparator())
         }.flowOn(defaultDispatcher)
     }
 }

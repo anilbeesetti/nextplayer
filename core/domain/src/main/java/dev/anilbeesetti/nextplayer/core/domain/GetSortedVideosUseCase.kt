@@ -4,8 +4,7 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.SortBy
-import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -36,27 +35,8 @@ class GetSortedVideosUseCase @Inject constructor(
                 it.parentPath in preferences.excludeFolders
             }
 
-            when (preferences.sortOrder) {
-                SortOrder.ASCENDING -> {
-                    when (preferences.sortBy) {
-                        SortBy.TITLE -> nonExcludedVideos.sortedBy { it.displayName.lowercase() }
-                        SortBy.LENGTH -> nonExcludedVideos.sortedBy { it.duration }
-                        SortBy.PATH -> nonExcludedVideos.sortedBy { it.path.lowercase() }
-                        SortBy.SIZE -> nonExcludedVideos.sortedBy { it.size }
-                        SortBy.DATE -> nonExcludedVideos.sortedBy { it.dateModified }
-                    }
-                }
-
-                SortOrder.DESCENDING -> {
-                    when (preferences.sortBy) {
-                        SortBy.TITLE -> nonExcludedVideos.sortedByDescending { it.displayName.lowercase() }
-                        SortBy.LENGTH -> nonExcludedVideos.sortedByDescending { it.duration }
-                        SortBy.PATH -> nonExcludedVideos.sortedByDescending { it.path.lowercase() }
-                        SortBy.SIZE -> nonExcludedVideos.sortedByDescending { it.size }
-                        SortBy.DATE -> nonExcludedVideos.sortedByDescending { it.dateModified }
-                    }
-                }
-            }
+            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+            nonExcludedVideos.sortedWith(sort.videoComparator())
         }.flowOn(defaultDispatcher)
     }
 }

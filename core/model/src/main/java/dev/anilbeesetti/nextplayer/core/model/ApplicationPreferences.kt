@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ApplicationPreferences(
-    val sortBy: SortBy = SortBy.TITLE,
-    val sortOrder: SortOrder = SortOrder.ASCENDING,
+    val sortBy: Sort.By = Sort.By.TITLE,
+    val sortOrder: Sort.Order = Sort.Order.ASCENDING,
     val groupVideosByFolder: Boolean = true,
     val themeConfig: ThemeConfig = ThemeConfig.SYSTEM,
     val useHighContrastDarkTheme: Boolean = false,

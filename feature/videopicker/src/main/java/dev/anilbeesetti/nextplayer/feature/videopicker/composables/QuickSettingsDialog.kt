@@ -38,8 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.SortBy
-import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
@@ -76,18 +75,18 @@ fun QuickSettingsDialog(
                 SingleChoiceSegmentedButtonRow(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    SortOrder.entries.forEachIndexed { index, sortOrder ->
+                    Sort.Order.entries.forEachIndexed { index, sortOrder ->
                         SegmentedButton(
                             selected = preferences.sortOrder == sortOrder,
                             onClick = { preferences = preferences.copy(sortOrder = sortOrder) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = SortOrder.entries.size),
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = Sort.Order.entries.size),
                             colors = SegmentedButtonDefaults.colors(
                                 activeContentColor = MaterialTheme.colorScheme.primary,
                                 activeBorderColor = MaterialTheme.colorScheme.primary
                             ),
                             icon = {
                                 Icon(
-                                    imageVector = if (sortOrder == SortOrder.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
+                                    imageVector = if (sortOrder == Sort.Order.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
                                     contentDescription = stringResource(R.string.ascending),
                                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                                 )
@@ -195,8 +194,8 @@ fun FieldChip(
 
 @Composable
 private fun SortOptions(
-    selectedSortBy: SortBy,
-    onOptionSelected: (SortBy) -> Unit,
+    selectedSortBy: Sort.By,
+    onOptionSelected: (Sort.By) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -208,32 +207,32 @@ private fun SortOptions(
         TextIconToggleButton(
             text = stringResource(id = R.string.title),
             icon = NextIcons.Title,
-            isSelected = selectedSortBy == SortBy.TITLE,
-            onClick = { onOptionSelected(SortBy.TITLE) }
+            isSelected = selectedSortBy == Sort.By.TITLE,
+            onClick = { onOptionSelected(Sort.By.TITLE) }
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.duration),
             icon = NextIcons.Length,
-            isSelected = selectedSortBy == SortBy.LENGTH,
-            onClick = { onOptionSelected(SortBy.LENGTH) }
+            isSelected = selectedSortBy == Sort.By.LENGTH,
+            onClick = { onOptionSelected(Sort.By.LENGTH) }
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.date),
             icon = NextIcons.Calendar,
-            isSelected = selectedSortBy == SortBy.DATE,
-            onClick = { onOptionSelected(SortBy.DATE) }
+            isSelected = selectedSortBy == Sort.By.DATE,
+            onClick = { onOptionSelected(Sort.By.DATE) }
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.size),
             icon = NextIcons.Size,
-            isSelected = selectedSortBy == SortBy.SIZE,
-            onClick = { onOptionSelected(SortBy.SIZE) }
+            isSelected = selectedSortBy == Sort.By.SIZE,
+            onClick = { onOptionSelected(Sort.By.SIZE) }
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.location),
             icon = NextIcons.Location,
-            isSelected = selectedSortBy == SortBy.PATH,
-            onClick = { onOptionSelected(SortBy.PATH) }
+            isSelected = selectedSortBy == Sort.By.PATH,
+            onClick = { onOptionSelected(Sort.By.PATH) }
         )
     }
 }
@@ -279,11 +278,6 @@ fun DialogPreferenceSwitch(
             enabled = enabled
         )
     }
-}
-
-enum class ChipSelected {
-    ONE,
-    TWO
 }
 
 @Preview
