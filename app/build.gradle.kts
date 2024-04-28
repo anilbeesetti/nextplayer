@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "dev.anilbeesetti.nextplayer"
-        versionCode = 14
-        versionName = "0.10.2"
+        versionCode = 15
+        versionName = "0.11.0"
     }
 
     buildFeatures {
