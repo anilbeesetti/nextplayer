@@ -31,11 +31,13 @@ import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material.icons.rounded.HeadsetOff
+import androidx.compose.material.icons.rounded.Http
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.NetworkWifi
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.Pinch
@@ -55,6 +57,7 @@ import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
+import androidx.compose.material.icons.rounded.Timelapse
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.TouchApp
@@ -70,6 +73,7 @@ object NextIcons {
     val Background = Icons.Rounded.FlipToBack
     val Bold = Icons.Rounded.FormatBold
     val Brightness = Icons.Rounded.BrightnessHigh
+    val Buffer = Icons.Rounded.Timelapse
     val Calendar = Icons.Rounded.CalendarMonth
     val Caption = Icons.Rounded.ClosedCaption
     val Check = Icons.Rounded.Check
@@ -91,12 +95,15 @@ object NextIcons {
     val FontSize = Icons.Rounded.FormatSize
     val Headset = Icons.Rounded.Headset
     val HeadsetOff = Icons.Rounded.HeadsetOff
+    val HttpUserAgent = Icons.Rounded.Http
+    val HttpHeaders = Icons.Rounded.Http
     val Info = Icons.Rounded.Info
     val Language = Icons.Rounded.Translate
     val Length = Icons.Rounded.Straighten
     val Link = Icons.Rounded.Link
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
+    val Network = Icons.Rounded.NetworkWifi
     val Pip = Icons.Rounded.PictureInPictureAlt
     val Pinch = Icons.Rounded.Pinch
     val Play = Icons.Rounded.PlayArrow

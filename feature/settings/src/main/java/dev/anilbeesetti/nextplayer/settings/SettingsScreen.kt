@@ -97,6 +97,12 @@ fun SettingsScreen(
                 onClick = { onItemClick(Setting.SUBTITLE) }
             )
             ClickablePreferenceItem(
+                title = stringResource(R.string.network),
+                description = stringResource(R.string.network_desc),
+                icon = NextIcons.Network,
+                onClick = { onItemClick(Setting.NETWORK) }
+            )
+            ClickablePreferenceItem(
                 title = stringResource(id = R.string.about_name),
                 description = stringResource(id = R.string.about_description),
                 icon = NextIcons.Info,
@@ -113,5 +119,6 @@ enum class Setting {
     DECODER,
     AUDIO,
     SUBTITLE,
+    NETWORK,
     ABOUT
 }

@@ -41,8 +41,11 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -64,7 +67,6 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -95,13 +97,16 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.nio.charset.Charset
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -325,7 +330,7 @@ class PlayerActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePictureInPictureParams(): PictureInPictureParams {
-        var params: PictureInPictureParams = PictureInPictureParams.Builder()
+        val params: PictureInPictureParams = PictureInPictureParams.Builder()
             .setAspectRatio(Rational(16, 9))
             .build()
 
@@ -354,11 +359,27 @@ class PlayerActivity : AppCompatActivity() {
             )
         }
 
+        val mediaSourceFactory = DefaultHttpDataSource.Factory()
+            .setDefaultRequestProperties(playerPreferences.httpHeaders)
+
+        playerPreferences.httpUserAgent.let { mediaSourceFactory.setUserAgent(it) }
+
+            val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                playerPreferences.minBufferMs,
+                playerPreferences.maxBufferMs,
+                playerPreferences.bufferForPlaybackMs,
+                playerPreferences.bufferForPlaybackAfterRebuffer,
+            )
+            .build()
+
         player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setAudioAttributes(getAudioAttributes(), playerPreferences.requireAudioFocus)
             .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(mediaSourceFactory))
+            .setLoadControl(loadControl)
             .build()
 
         try {
@@ -603,7 +624,7 @@ class PlayerActivity : AppCompatActivity() {
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
                 setTitle(getString(coreUiR.string.error_playing_video))
                 setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                setNegativeButton(getString(coreUiR.string.exit)) { dialog, _ ->
+                setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
                     finish()
                 }
                 if (playlistManager.hasNext()) {
