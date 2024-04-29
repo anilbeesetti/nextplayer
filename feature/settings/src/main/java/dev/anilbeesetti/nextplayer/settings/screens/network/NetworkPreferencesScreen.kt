@@ -131,7 +131,7 @@ fun NetworkPreferencesScreen(
                             viewModel.updateMinBufferMs(it.toInt())
                             viewModel.hideDialog()
                         },
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = viewModel::hideDialog
                     )
                 }
 
@@ -147,7 +147,7 @@ fun NetworkPreferencesScreen(
                             viewModel.updateMaxBufferMs(it.toInt())
                             viewModel.hideDialog()
                         },
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = viewModel::hideDialog
                     )
                 }
 
@@ -163,7 +163,7 @@ fun NetworkPreferencesScreen(
                             viewModel.updateBufferForPlaybackMs(it.toInt())
                             viewModel.hideDialog()
                         },
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = viewModel::hideDialog
                     )
                 }
 
@@ -179,7 +179,7 @@ fun NetworkPreferencesScreen(
                             viewModel.updateBufferForPlaybackAfterRebufferMs(it.toInt())
                             viewModel.hideDialog()
                         },
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = viewModel::hideDialog
                     )
                 }
 
@@ -193,7 +193,7 @@ fun NetworkPreferencesScreen(
                             viewModel.updateHttpUserAgent(it.ifBlank { null })
                             viewModel.hideDialog()
                         },
-                        onDismiss = viewModel::hideDialog,
+                        onDismiss = viewModel::hideDialog
                     )
                 }
 
@@ -211,7 +211,7 @@ fun NetworkPreferencesScreen(
                             }
                             viewModel.hideDialog()
                         },
-                        onDismiss = viewModel::hideDialog,
+                        onDismiss = viewModel::hideDialog
                     )
                 }
             }
@@ -228,7 +228,7 @@ private fun SeekPreferenceDialog(
     defaultState: Float,
     range: ClosedFloatingPointRange<Float>,
     onDoneClick: (value: Float) -> Unit,
-    onDismissClick: () -> Unit,
+    onDismissClick: () -> Unit
 ) {
     var seekIncrement by remember { mutableFloatStateOf(initialState) }
 
@@ -255,12 +255,12 @@ private fun SeekPreferenceDialog(
                 value = seekIncrement,
                 onValueChange = { seekIncrement = it },
                 valueRange = range,
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
             Box(modifier = Modifier.fillMaxWidth()) {
                 TextButton(
                     onClick = { seekIncrement = defaultState },
-                    modifier = Modifier.align(Alignment.TopCenter),
+                    modifier = Modifier.align(Alignment.TopCenter)
                 ) {
                     Text(text = stringResource(id = R.string.reset_to_default))
                 }

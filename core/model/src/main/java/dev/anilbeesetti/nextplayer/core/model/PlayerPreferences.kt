@@ -52,7 +52,7 @@ data class PlayerPreferences(
     val bufferForPlaybackMs: Int = DEFAULT_BUFFER_FOR_PLAYBACK_MS,
     val bufferForPlaybackAfterRebuffer: Int = DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
     val httpUserAgent: String? = null,
-    val httpHeaders: Map<String, String> = emptyMap(),
+    val httpHeaders: Map<String, String> = emptyMap()
 ) {
     companion object {
         const val DEFAULT_MIN_BUFFER_MS = 50_000

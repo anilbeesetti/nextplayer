@@ -9,8 +9,6 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
@@ -43,7 +41,7 @@ class PlayerViewModel @Inject constructor(
     val playerPrefs = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = runBlocking { preferencesRepository.playerPreferences.first() },
+        initialValue = runBlocking { preferencesRepository.playerPreferences.first() }
     )
 
     val appPrefs = preferencesRepository.applicationPreferences.stateIn(
