@@ -16,10 +16,10 @@ import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAudioPreference
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToDecoderPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaLibraryPreferencesScreen
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToNetworkPreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAdvancedPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSubtitlePreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.networkPreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.advancedPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.settingsNavigationRoute
 import dev.anilbeesetti.nextplayer.settings.navigation.settingsScreen
@@ -44,7 +44,7 @@ fun NavGraphBuilder.settingsNavGraph(
                     Setting.DECODER -> navController.navigateToDecoderPreferences()
                     Setting.AUDIO -> navController.navigateToAudioPreferences()
                     Setting.SUBTITLE -> navController.navigateToSubtitlePreferences()
-                    Setting.NETWORK -> navController.navigateToNetworkPreferences()
+                    Setting.ADVANCED -> navController.navigateToAdvancedPreferences()
                     Setting.ABOUT -> navController.navigateToAboutPreferences()
                 }
             }
@@ -71,7 +71,7 @@ fun NavGraphBuilder.settingsNavGraph(
         subtitlePreferencesScreen(
             onNavigateUp = navController::navigateUp
         )
-        networkPreferencesScreen(
+        advancedPreferencesScreen(
             onNavigateUp = navController::navigateUp
         )
         aboutPreferencesScreen(

@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.settings.screens.network
+package dev.anilbeesetti.nextplayer.settings.screens.advanced
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class NetworkPreferencesViewModel @Inject constructor(
+class AdvancedPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
@@ -25,11 +25,11 @@ class NetworkPreferencesViewModel @Inject constructor(
             initialValue = PlayerPreferences()
         )
 
-    private val _uiState = MutableStateFlow(NetworkPreferencesUIState())
+    private val _uiState = MutableStateFlow(AdvancedPreferencesUIState())
     val uiState = _uiState.asStateFlow()
 
-    fun onEvent(event: NetworkPreferencesEvent) {
-        if (event is NetworkPreferencesEvent.ShowDialog) {
+    fun onEvent(event: AdvancedPreferencesEvent) {
+        if (event is AdvancedPreferencesEvent.ShowDialog) {
             _uiState.update {
                 it.copy(showDialog = event.value)
             }
@@ -85,27 +85,27 @@ class NetworkPreferencesViewModel @Inject constructor(
     }
 }
 
-data class NetworkPreferencesUIState(
-    val showDialog: NetworkPreferenceDialog? = null
+data class AdvancedPreferencesUIState(
+    val showDialog: AdvancedPreferenceDialog? = null
 )
 
-sealed interface NetworkPreferenceDialog {
-    object MinBufferDialog : NetworkPreferenceDialog
-    object MaxBufferDialog : NetworkPreferenceDialog
-    object BufferForPlaybackDialog : NetworkPreferenceDialog
-    object BufferForPlaybackAfterRebufferDialog : NetworkPreferenceDialog
-    object HttpUserAgentDialog : NetworkPreferenceDialog
-    object HttpHeadersDialog : NetworkPreferenceDialog
+sealed interface AdvancedPreferenceDialog {
+    object MinBufferDialog : AdvancedPreferenceDialog
+    object MaxBufferDialog : AdvancedPreferenceDialog
+    object BufferForPlaybackDialog : AdvancedPreferenceDialog
+    object BufferForPlaybackAfterRebufferDialog : AdvancedPreferenceDialog
+    object HttpUserAgentDialog : AdvancedPreferenceDialog
+    object HttpHeadersDialog : AdvancedPreferenceDialog
 }
 
-sealed interface NetworkPreferencesEvent {
-    data class ShowDialog(val value: NetworkPreferenceDialog?) : NetworkPreferencesEvent
+sealed interface AdvancedPreferencesEvent {
+    data class ShowDialog(val value: AdvancedPreferenceDialog?) : AdvancedPreferencesEvent
 }
 
-fun NetworkPreferencesViewModel.showDialog(dialog: NetworkPreferenceDialog) {
-    onEvent(NetworkPreferencesEvent.ShowDialog(dialog))
+fun AdvancedPreferencesViewModel.showDialog(dialog: AdvancedPreferenceDialog) {
+    onEvent(AdvancedPreferencesEvent.ShowDialog(dialog))
 }
 
-fun NetworkPreferencesViewModel.hideDialog() {
-    onEvent(NetworkPreferencesEvent.ShowDialog(null))
+fun AdvancedPreferencesViewModel.hideDialog() {
+    onEvent(AdvancedPreferencesEvent.ShowDialog(null))
 }
