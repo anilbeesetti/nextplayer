@@ -64,7 +64,7 @@
     <string name="seek_gesture_description">Deslize horizontalmente para navegar para frente ou para trás</string>
     <string name="about_description">Versão, créditos</string>
     <string name="grant_permission">Conceder permissão</string>
-    <string name="done">Feito</string>
+    <string name="done">OK</string>
     <string name="permission_info">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão.</string>
     <string name="permission_settings">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
     <string name="audio">Áudio</string>
@@ -175,7 +175,7 @@
     <string name="bitrate">Taxa de bits</string>
     <string name="frame_rate">Taxa de quadros</string>
     <string name="language">Idioma</string>
-    <string name="okay">Feito</string>
+    <string name="okay">OK</string>
     <string name="audio_track">Faixa de áudio</string>
     <string name="sample_rate">Taxa de amostragem</string>
     <string name="file">Arquivo</string>
