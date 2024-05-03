@@ -37,7 +37,7 @@
     <string name="descending">تنازلي</string>
     <string name="error_playing_video">خطأ: لا يمكن تشغيل الفيديو</string>
     <string name="fast_seek">التقدم السريع</string>
-    <string name="fast_seek_description">التقدم ‘لى أقرب إطار رئيسي بدلاً عن المطابق.</string>
+    <string name="fast_seek_description">التقدم إلى أقرب إطار رئيسي بدلاً عن المطابق.</string>
     <string name="duration">المدة</string>
     <string name="group_videos">تجميع الفيديوهات حسب المجلد</string>
     <string name="navigate_up">الانتقال لأعلى</string>
@@ -71,7 +71,7 @@
     <string name="dynamic_theme_description">تطبيق الألون من خلفية الجهاز</string>
     <string name="longest">الأطول</string>
     <string name="off">إيقاف التشغيل</string>
-    <string name="on">التشغيل</string>
+    <string name="on">تشغيل</string>
     <string name="audio">الصوت</string>
     <string name="force_rescan_storage_desc">تحذير: قد يؤدي بدء إعادة فحص التخزين إلى زيادة استخدام الموارد على جهازك</string>
     <string name="preferred_subtitle_lang_description">لغة الترجمة التي تريد استخدامها افتراضيًا</string>
@@ -183,5 +183,18 @@
     <string name="volume_boost">معزز الصوت</string>
     <string name="volume_boost_desc">تعزيز الصوت حتى 200%</string>
     <string name="pip_settings_description">قم بالتبديل تلقائيًا إلى المشغل المصغر عند النقر على زر الصفحة الرئيسية</string>
-    <string name="pip_settings">الصورة في وضع الصورة</string>
+    <string name="pip_settings">وضع الصورة داخل صورة</string>
+    <string name="rename">إعادة تسمية</string>
+    <string name="rename_to">إعادة تسمية إلى</string>
+    <string name="open_subtitle">فتح ترجمة محلية</string>
+    <string name="floating_play_button">زر تشغيل عائم</string>
+    <string name="mark_last_played_media">تعليم آخر فيديو شُغِل</string>
+    <string name="mark_last_played_media_desc">تعليم آخر فيديو شُغِل في شاشة البداية وفي كل مجلد</string>
+    <string name="open_local_video">فتح فيديو محلي</string>
+    <string name="open_network_stream">فتح بث شبكة</string>
+    <string name="exit">خروج</string>
+    <string name="play_next_video">تشغيل الفيديو التالي</string>
+    <string name="no_audio_tracks_found">مسار الصوت لهذا الفيديو إما غير متوفرة أو غير مدعومة.</string>
+    <string name="floating_play_button_desc">إظهار زر عائم لتشغيل آخر فيديو شُغِل.</string>
+    <string name="no_subtitle_tracks_found">مسار الترجمة لهذا الفيديو إما غير متوفرة أو غير مدعومة.</string>
 </resources>
