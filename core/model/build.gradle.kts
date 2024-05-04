@@ -1,6 +1,6 @@
 plugins {
     id("nextplayer.jvm.library")
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 dependencies {

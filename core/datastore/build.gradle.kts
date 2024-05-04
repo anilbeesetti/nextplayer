@@ -1,7 +1,7 @@
 plugins {
     id("nextplayer.android.library")
     id("nextplayer.android.hilt")
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 android {
