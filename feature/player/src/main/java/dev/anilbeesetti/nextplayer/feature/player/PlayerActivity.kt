@@ -6,6 +6,7 @@ import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
@@ -184,6 +185,10 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
 
+    private val isPipSupported: Boolean by lazy {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prettyPrintIntent()
@@ -229,10 +234,8 @@ class PlayerActivity : AppCompatActivity() {
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
 
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
+        if (!isPipSupported) {
             pipButton.visibility = View.GONE
-        } else {
-            updatePictureInPictureParams()
         }
 
         seekBar.addListener(object : TimeBar.OnScrubListener {
@@ -301,10 +304,14 @@ class PlayerActivity : AppCompatActivity() {
         super.onStop()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (playerPreferences.autoPip) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            playerPreferences.autoPip &&
+            player.isPlaying &&
+            !isControlsLocked
+        ) {
             this.enterPictureInPictureMode(updatePictureInPictureParams())
         }
     }
@@ -325,7 +332,7 @@ class PlayerActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePictureInPictureParams(): PictureInPictureParams {
-        var params: PictureInPictureParams = PictureInPictureParams.Builder()
+        val params: PictureInPictureParams = PictureInPictureParams.Builder()
             .setAspectRatio(Rational(16, 9))
             .build()
 
