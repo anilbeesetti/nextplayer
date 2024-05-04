@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player.notification.common
+package dev.anilbeesetti.nextplayer.core.notification.common
 
 import android.annotation.SuppressLint
 import android.content.Context

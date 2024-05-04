@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player.notification
+package dev.anilbeesetti.nextplayer.core.notification
 
 import android.content.Context
 import androidx.media3.common.util.UnstableApi

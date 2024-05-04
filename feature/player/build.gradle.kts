@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:domain"))
     implementation(project(":core:model"))
+    implementation(project(":core:notification"))
     implementation(project(":core:ui"))
 
     implementation(libs.androidx.core.ktx)
@@ -27,9 +28,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewModel.ktx)
     implementation(libs.google.android.material)
     implementation(libs.androidx.constraintlayout)
-
-    implementation(libs.coil)
-    implementation(libs.coil.ext)
 
     // Media3
     implementation(libs.bundles.media3)

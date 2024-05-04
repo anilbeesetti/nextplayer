@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player
+package dev.anilbeesetti.nextplayer.core.notification
 
 import android.content.Intent
 import androidx.media3.common.AudioAttributes
@@ -16,7 +16,6 @@ import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
-import dev.anilbeesetti.nextplayer.feature.player.notification.NextNotificationProvider
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -93,6 +92,11 @@ class PlayerService : MediaSessionService() {
             player.mediaItemCount == 0 ||
             player.playbackState == Player.STATE_ENDED
         ) {
+            mediaSession?.run {
+                player.release()
+                release()
+                mediaSession = null
+            }
             stopSelf()
         }
     }

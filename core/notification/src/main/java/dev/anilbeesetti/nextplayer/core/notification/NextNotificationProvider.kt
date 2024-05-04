@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player.notification
+package dev.anilbeesetti.nextplayer.core.notification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -24,15 +24,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers.IO
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers.Main
+import dev.anilbeesetti.nextplayer.core.notification.common.Actions
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.player.notification.common.Actions
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @UnstableApi
 class NextNotificationProvider @Inject constructor(
