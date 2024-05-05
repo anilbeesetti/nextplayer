@@ -568,12 +568,12 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun releasePlayer() {
         Timber.d("Releasing player")
-        val controller = this.controller ?: return
         MediaController.releaseFuture(controllerFuture)
         subtitleCacheDir.deleteFiles()
+        val controller = this.controller ?: return
         playWhenReady = controller.playWhenReady
         playlistManager.getCurrent()?.let { savePlayerState(it) }
-        player.removeListener(playbackStateListener())
+        controller.removeListener(playbackStateListener())
         controller.release()
     }
 
@@ -940,7 +940,7 @@ class PlayerActivity : AppCompatActivity() {
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setArtworkUri(uri)
-                .setTitle(getFilenameFromUri(uri))
+                .setTitle(getVideoTitle(uri))
                 .build()
         )
         .build()
