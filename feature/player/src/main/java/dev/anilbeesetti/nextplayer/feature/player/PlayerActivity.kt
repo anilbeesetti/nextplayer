@@ -615,7 +615,7 @@ class PlayerActivity : AppCompatActivity() {
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
                 setTitle(getString(coreUiR.string.error_playing_video))
                 setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                setNegativeButton(getString(coreUiR.string.exit)) { dialog, _ ->
+                setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
                     finish()
                 }
                 if (playlistManager.hasNext()) {
