@@ -398,21 +398,25 @@ class PlayerActivity : AppCompatActivity() {
 
             subtitleView?.apply {
                 val captioningManager = getSystemService(Context.CAPTIONING_SERVICE) as CaptioningManager
-                val systemCaptionStyle = CaptionStyleCompat.createFromCaptionStyle(captioningManager.userStyle)
-                val userStyle = CaptionStyleCompat(
-                    Color.WHITE,
-                    Color.BLACK.takeIf { playerPreferences.subtitleBackground } ?: Color.TRANSPARENT,
-                    Color.TRANSPARENT,
-                    CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
-                    Color.BLACK,
-                    Typeface.create(
-                        playerPreferences.subtitleFont.toTypeface(),
-                        Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold } ?: Typeface.NORMAL
+                if (playerPreferences.useSystemCaptionStyle) {
+                    val systemCaptionStyle = CaptionStyleCompat.createFromCaptionStyle(captioningManager.userStyle)
+                    setStyle(systemCaptionStyle)
+                } else {
+                    val userStyle = CaptionStyleCompat(
+                        Color.WHITE,
+                        Color.BLACK.takeIf { playerPreferences.subtitleBackground } ?: Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                        CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
+                        Color.BLACK,
+                        Typeface.create(
+                            playerPreferences.subtitleFont.toTypeface(),
+                            Typeface.BOLD.takeIf { playerPreferences.subtitleTextBold } ?: Typeface.NORMAL
+                        )
                     )
-                )
-                setStyle(systemCaptionStyle.takeIf { playerPreferences.useSystemCaptionStyle } ?: userStyle)
+                    setStyle(userStyle)
+                    setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
+                }
                 setApplyEmbeddedStyles(playerPreferences.applyEmbeddedStyles)
-                setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
             }
         }
 
