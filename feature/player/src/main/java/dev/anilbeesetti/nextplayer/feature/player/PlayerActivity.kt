@@ -308,6 +308,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onUserLeaveHint()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            isPipSupported &&
             playerPreferences.autoPip &&
             player.isPlaying &&
             !isControlsLocked
