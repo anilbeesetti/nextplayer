@@ -64,7 +64,7 @@
     <string name="seek_gesture_description">Deslize horizontalmente para navegar para frente ou para trás</string>
     <string name="about_description">Versão, créditos</string>
     <string name="grant_permission">Conceder permissão</string>
-    <string name="done">Feito</string>
+    <string name="done">OK</string>
     <string name="permission_info">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão.</string>
     <string name="permission_settings">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
     <string name="audio">Áudio</string>
@@ -106,8 +106,8 @@
     <string name="date">Data</string>
     <string name="newest">Mais recente</string>
     <string name="default_playback_speed">Velocidade de reprodução padrão</string>
-    <string name="enter_a_network_url">Digite uma URL de conexão:</string>
-    <string name="network_stream">Conexão de transmissão</string>
+    <string name="enter_a_network_url">Digite uma URL de rede:</string>
+    <string name="network_stream">Rede de Transmissão</string>
     <string name="serif">Serif</string>
     <string name="play_file">Abrir arquivo de vídeo para reproduzir</string>
     <string name="play_url">Digitar URL de vídeo para reproduzir</string>
@@ -164,8 +164,8 @@
     <string name="long_press_gesture_desc">Pressione e segure para reproduzir na velocidade %.1fx</string>
     <string name="long_press_gesture">Gesto de toque longo</string>
     <string name="fast_playback_speed">%.1fx velocidade</string>
-    <string name="require_audio_focus_desc">Pause outros players enquanto este player reproduz vídeos e vice-versa</string>
-    <string name="require_audio_focus">Requerir foco de áudio</string>
+    <string name="require_audio_focus_desc">Pause outros players enquanto este player estiver reproduzindo vídeos e vice-versa.</string>
+    <string name="require_audio_focus">Requerer foco de áudio</string>
     <string name="codec">Codec</string>
     <string name="properties">Propriedades</string>
     <string name="channels">Canais</string>
@@ -175,7 +175,7 @@
     <string name="bitrate">Taxa de bits</string>
     <string name="frame_rate">Taxa de quadros</string>
     <string name="language">Idioma</string>
-    <string name="okay">Feito</string>
+    <string name="okay">OK</string>
     <string name="audio_track">Faixa de áudio</string>
     <string name="sample_rate">Taxa de amostragem</string>
     <string name="file">Arquivo</string>
@@ -194,7 +194,7 @@
     <string name="open_local_video">Abrir vídeo local</string>
     <string name="floating_play_button">Botão de reprodução flutuante</string>
     <string name="floating_play_button_desc">Mostrar botão flutuante para reproduzir a última mídia reproduzida</string>
-    <string name="open_network_stream">Abrir streamig</string>
+    <string name="open_network_stream">Abrir streaming</string>
     <string name="exit">Sair</string>
     <string name="play_next_video">Reproduzir próximo vídeo</string>
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_name">Tampilan</string>
+    <string name="cancel">Batal</string>
+    <string name="disable">Matikan</string>
+    <string name="double_tap_description">Memilih tindakan gerak sentuh ketuk ganda</string>
+    <string name="error_playing_video">Kesalahan: Tidak dapat memutar video</string>
+    <string name="appearance_description">Sesuaikan aplikasi sesuai keinginan Anda</string>
+    <string name="done">Konfirmasi</string>
+    <string name="double_tap">Gerakan ketuk ganda</string>
+</resources>

@@ -46,4 +46,5 @@
     <string name="a_z">A-Z</string>
     <string name="seconds">%1$s secondes</string>
     <string name="fields">Champs</string>
+    <string name="player_controls_next">Lecteur suivant</string>
 </resources>

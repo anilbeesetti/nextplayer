@@ -186,7 +186,15 @@
     <string name="pip_settings">PIP 모드</string>
     <string name="pip_settings_description">홈 버튼을 누르면 작은 플레이어로 전환</string>
     <string name="rename_to">바꿀 이름</string>
-    <string name="open_subtitle">자막 열기</string>
+    <string name="open_subtitle">로컬 자막 열기</string>
     <string name="no_subtitle_tracks_found">이 동영상의 자막 트랙을 사용할 수 없습니다.</string>
     <string name="no_audio_tracks_found">이 동영상의 오디오 트랙을 사용할 수 없습니다.</string>
+    <string name="floating_play_button">플로팅 재생 버튼</string>
+    <string name="mark_last_played_media">마지막으로 재생했던 미디어 표시</string>
+    <string name="mark_last_played_media_desc">홈 및 각 폴더에서 마지막으로 재생했던 미디어 표시</string>
+    <string name="open_network_stream">네트워크 스트림 열기</string>
+    <string name="exit">종료</string>
+    <string name="play_next_video">다음 동영상 재생</string>
+    <string name="floating_play_button_desc">마지막으로 시청했던 미디어를 재생하는 플로팅 버튼을 표시합니다.</string>
+    <string name="open_local_video">로컬 동영상 열기</string>
 </resources>

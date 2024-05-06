@@ -24,8 +24,8 @@
     <string name="player_controls_play_pause">播放器 播放 暂停</string>
     <string name="player_description">播放器外观、播放控件</string>
     <string name="quick_settings">快速设置</string>
-    <string name="remember_brightness_level">记住亮度级别</string>
-    <string name="remember_brightness_level_description">记住播放时的的亮度级别</string>
+    <string name="remember_brightness_level">记住亮度</string>
+    <string name="remember_brightness_level_description">记住播放时设置的亮度</string>
     <string name="remember_selections_description">记住每个文件的选择，如音轨、字幕轨等</string>
     <string name="resume_description">选择是否从你停止的地方恢复播放</string>
     <string name="seek_gesture">定位手势</string>
@@ -132,7 +132,7 @@
     <string name="embedded_styles_desc">应用字幕文件中存在的嵌入样式，例如 ASS 等</string>
     <string name="embedded_styles">嵌入样式</string>
     <string name="controller_timeout">控制器超时</string>
-    <string name="seek_increment">快进增量</string>
+    <string name="seek_increment">快进时间量</string>
     <string name="seconds">%1$s 秒</string>
     <string name="subtitle_text_encoding">字幕文本编码</string>
     <string name="share">分享</string>
@@ -163,7 +163,7 @@
     <string name="resolution">分辨率</string>
     <string name="long_press_gesture_desc">长按以 %.1fx 速度播放</string>
     <string name="long_press_gesture">长按手势</string>
-    <string name="require_audio_focus">需要音频焦点</string>
+    <string name="require_audio_focus">获取音频焦点</string>
     <string name="fast_playback_speed">%.1fx 速度</string>
     <string name="require_audio_focus_desc">在此播放器播放视频时暂停其他播放器播放</string>
     <string name="codec">编解码器</string>
@@ -183,7 +183,7 @@
     <string name="volume_boost_desc">将音量增强至 200%</string>
     <string name="volume_boost">音量增强</string>
     <string name="pip_settings">画中画模式</string>
-    <string name="pip_settings_description">点击主页按钮时自动切换到小窗播放</string>
+    <string name="pip_settings_description">点击 主页 按钮时自动切换到小窗播放</string>
     <string name="open_subtitle">打开本地字幕</string>
     <string name="no_subtitle_tracks_found">此视频的字幕轨道不可用或不被支持。</string>
     <string name="no_audio_tracks_found">此视频的音轨不可用或不被支持。</string>
@@ -193,7 +193,7 @@
     <string name="open_local_video">打开本地视频</string>
     <string name="open_network_stream">打开网络视频流</string>
     <string name="floating_play_button">悬浮播放按钮</string>
-    <string name="floating_play_button_desc">显示浮按钮以播放上一次播放的媒体</string>
+    <string name="floating_play_button_desc">显示悬浮按钮以播放上一次播放的媒体</string>
     <string name="mark_last_played_media">记录最近播放的媒体</string>
     <string name="mark_last_played_media_desc">在主页和每个文件夹中记录最近播放的媒体</string>
     <string name="exit">退出</string>
