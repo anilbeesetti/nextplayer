@@ -56,4 +56,11 @@
     <string name="okay">ശരി</string>
     <string name="properties">സവിശേഷതകൾ</string>
     <string name="format">രൂപഘടന</string>
+    <string name="double_tap_description">രണ്ടു തവണ അമർത്തുമ്പോൾ എന്ത് സംഭവിക്കണം എന്ന് തിരഞ്ഞെടുക്കുക</string>
+    <string name="error_playing_video">വീഡിയോ പ്ലേ ചെയ്യാൻ സാധിക്കുന്നില്ല</string>
+    <string name="navigate_up">മുകളിലേക്ക് പോകുക</string>
+    <string name="no_videos_found">വീഡിയോകൾ ഒന്നും കണ്ടുകിട്ടിയില്ല</string>
+    <string name="permission_info">Next Player നു \"%1$s\" അനുമതി വീഡിയോകൾ പ്ലേ ചെയ്യാൻ ആവശ്യമാണ്. അതില്ലാതെ, വീഡിയോ കാണുവാൻ പറ്റുന്നതല്ല. ഈ ആപ്പ് പൂർണമായും ഉപയോഗിക്കുന്നതിനായി ഈ അനുമതി നൽകുക.</string>
+    <string name="player_controls_exit">മുകളിലേക്ക് പോകുക</string>
+    <string name="permission_settings">Next Player നു \"%1$s\" അനുമതി വീഡിയോകൾ പ്ലേ ചെയ്യാൻ ആവശ്യമാണ്. അതില്ലാതെ, വീഡിയോ കാണുവാൻ പറ്റുന്നതല്ല. ഈ ആപ്പ് പൂർണമായും ഉപയോഗിക്കുന്നതിനായി, മുന്നേ ഈ അനുമതി എന്നേക്കുമായി നൽകാഞ്ഞതിനാൽ, സെറ്റിംഗ്സ് വഴി ഈ അനുമതി നൽകുക.</string>
 </resources>
