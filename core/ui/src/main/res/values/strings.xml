@@ -129,6 +129,8 @@
     <string name="subtitle_background_desc">Enable background to subtitle text</string>
     <string name="decoder">Decoder</string>
     <string name="decoder_desc">Decoder priority, playback decoder options</string>
+    <string name="advanced">Advanced</string>
+    <string name="advanced_desc">Buffer sizes, network request options</string>
     <string name="video_software_decoders">Software video decoders</string>
     <string name="video_software_decoders_desc">Use application software video decoders (experimental)</string>
     <string name="decoder_priority">Decoder priority</string>
@@ -140,6 +142,7 @@
     <string name="controller_timeout">Controller timeout</string>
     <string name="seek_increment">Seek increment</string>
     <string name="seconds">%1$s seconds</string>
+    <string name="milliseconds">%1$s milliseconds</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
     <string name="delete_file">The following file will be deleted permanently</string>
@@ -199,4 +202,18 @@
     <string name="open_network_stream">Open network stream</string>
     <string name="exit">Exit</string>
     <string name="play_next_video">Play next video</string>
+    <string name="min_buffer_title">Min buffer</string>
+    <string name="min_buffer_description">The minimum duration of media that the player will attempt to ensure is buffered at all times</string>
+    <string name="max_buffer_title">Max buffer</string>
+    <string name="max_buffer_description">The maximum duration of media that the player will attempt to buffer</string>
+    <string name="buffer_for_playback_title">Buffer for playback</string>
+    <string name="buffer_for_playback_description">The duration of media that must be buffered for playback to start or resume following a user action such as a seek</string>
+    <string name="buffer_for_playback_after_rebuffer_title">Buffer for playback after rebuffer</string>
+    <string name="buffer_for_playback_after_rebuffer_description">The duration of media that must be buffered for playback to resume after a rebuffer. A rebuffer is defined to be caused by buffer depletion rather than a user action.</string>
+    <string name="reset_to_default">Default</string>
+    <string name="http_user_agent_title">HTTP User-Agent</string>
+    <string name="http_user_agent_placeholder">Example: Mozilla/5.0…</string>
+    <string name="http_headers_title">HTTP headers</string>
+    <string name="http_headers_placeholder">Example: key1=value1,key2=value2,…</string>
+    <string name="empty">Empty</string>
 </resources>

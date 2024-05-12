@@ -42,8 +42,12 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -362,11 +366,28 @@ class PlayerActivity : AppCompatActivity() {
             )
         }
 
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setDefaultRequestProperties(playerPreferences.httpHeaders)
+        playerPreferences.httpUserAgent.let { httpDataSourceFactory.setUserAgent(it) }
+
+        val dataSourceFactory = DefaultDataSource.Factory(applicationContext, httpDataSourceFactory)
+
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                playerPreferences.minBufferMs,
+                playerPreferences.maxBufferMs,
+                playerPreferences.bufferForPlaybackMs,
+                playerPreferences.bufferForPlaybackAfterRebuffer
+            )
+            .build()
+
         player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setAudioAttributes(getAudioAttributes(), playerPreferences.requireAudioFocus)
             .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
+            .setLoadControl(loadControl)
             .build()
 
         try {

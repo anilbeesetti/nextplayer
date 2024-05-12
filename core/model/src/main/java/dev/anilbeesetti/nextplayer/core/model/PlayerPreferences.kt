@@ -44,5 +44,20 @@ data class PlayerPreferences(
     val applyEmbeddedStyles: Boolean = true,
 
     // Decoder Preferences
-    val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE
-)
+    val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE,
+
+    // Network Preferences
+    val minBufferMs: Int = DEFAULT_MIN_BUFFER_MS,
+    val maxBufferMs: Int = DEFAULT_MAX_BUFFER_MS,
+    val bufferForPlaybackMs: Int = DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+    val bufferForPlaybackAfterRebuffer: Int = DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
+    val httpUserAgent: String? = null,
+    val httpHeaders: Map<String, String> = emptyMap()
+) {
+    companion object {
+        const val DEFAULT_MIN_BUFFER_MS = 50_000
+        const val DEFAULT_MAX_BUFFER_MS = 50_000
+        const val DEFAULT_BUFFER_FOR_PLAYBACK_MS = 2500
+        const val DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 5000
+    }
+}
