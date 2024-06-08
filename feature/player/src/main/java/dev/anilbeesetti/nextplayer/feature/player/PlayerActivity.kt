@@ -313,7 +313,11 @@ class PlayerActivity : AppCompatActivity() {
             player.isPlaying &&
             !isControlsLocked
         ) {
-            this.enterPictureInPictureMode(updatePictureInPictureParams())
+            try {
+                this.enterPictureInPictureMode(updatePictureInPictureParams())
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -508,7 +512,7 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         pipButton.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                 this.enterPictureInPictureMode(updatePictureInPictureParams())
             }
         }
