@@ -135,7 +135,7 @@ internal fun MediaPickerScreen(
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {},
-    onRefreshClicked: () -> Unit = {},
+    onRefreshClicked: () -> Unit = {}
 ) {
     var showQuickSettings by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
@@ -195,7 +195,7 @@ internal fun MediaPickerScreen(
                                 ) {
                                     Icon(
                                         imageVector = NextIcons.Refresh,
-                                        contentDescription = null,
+                                        contentDescription = null
                                     )
                                     Spacer(modifier = Modifier.size(8.dp))
                                     Text(text = stringResource(id = R.string.refresh))
@@ -214,7 +214,7 @@ internal fun MediaPickerScreen(
                                 ) {
                                     Icon(
                                         imageVector = NextIcons.Settings,
-                                        contentDescription = null,
+                                        contentDescription = null
                                     )
                                     Spacer(modifier = Modifier.size(8.dp))
                                     Text(text = stringResource(id = R.string.settings))
