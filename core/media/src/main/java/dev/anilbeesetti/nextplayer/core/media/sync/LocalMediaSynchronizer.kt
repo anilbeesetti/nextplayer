@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
@@ -43,6 +44,10 @@ class LocalMediaSynchronizer @Inject constructor(
 ) : MediaSynchronizer {
 
     private var mediaSyncingJob: Job? = null
+
+    override suspend fun refresh(): Boolean {
+        return context.scanStorage()
+    }
 
     override fun startSync() {
         if (mediaSyncingJob != null) return
