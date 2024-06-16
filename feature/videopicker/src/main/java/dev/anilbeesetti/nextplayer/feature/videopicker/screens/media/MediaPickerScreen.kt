@@ -24,15 +24,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,7 +47,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -61,7 +67,6 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
-import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -77,6 +82,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
@@ -122,31 +128,80 @@ internal fun MediaPickerScreen(
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {}
 ) {
-    var showMenu by rememberSaveable { mutableStateOf(false) }
+    var showQuickSettings by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { it?.let(onPlayVideo) }
     )
 
+    var showOptionsMenu by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         topBar = {
-            NextCenterAlignedTopAppBar(
-                title = stringResource(id = R.string.app_name),
-                navigationIcon = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(id = R.string.settings)
-                        )
-                    }
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        style = LocalTextStyle.current.copy(fontWeight = FontWeight.Bold)
+                    )
                 },
                 actions = {
-                    IconButton(onClick = { showMenu = true }) {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(
+                            imageVector = NextIcons.Search,
+                            contentDescription = stringResource(id = R.string.menu)
+                        )
+                    }
+                    IconButton(onClick = { showQuickSettings = true }) {
                         Icon(
                             imageVector = NextIcons.DashBoard,
                             contentDescription = stringResource(id = R.string.menu)
+                        )
+                    }
+                    IconButton(onClick = { showOptionsMenu = !showOptionsMenu }) {
+                        Icon(
+                            imageVector = NextIcons.MoreVert,
+                            contentDescription = stringResource(id = R.string.menu)
+                        )
+                    }
+
+                    DropdownMenu(expanded = showOptionsMenu, onDismissRequest = { showOptionsMenu = false }) {
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = NextIcons.Refresh,
+                                        contentDescription = null,
+                                    )
+                                    Spacer(modifier = Modifier.size(8.dp))
+                                    Text(text = "Refresh")
+                                }
+                            },
+                            onClick = { /*TODO*/ }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = NextIcons.Settings,
+                                        contentDescription = null,
+                                    )
+                                    Spacer(modifier = Modifier.size(8.dp))
+                                    Text(text = stringResource(id = R.string.settings))
+                                }
+                            },
+                            onClick = {
+                                showOptionsMenu = false
+                                onSettingsClick()
+                            }
                         )
                     }
                 }
@@ -227,10 +282,10 @@ internal fun MediaPickerScreen(
         }
     }
 
-    if (showMenu) {
+    if (showQuickSettings) {
         QuickSettingsDialog(
             applicationPreferences = preferences,
-            onDismiss = { showMenu = false },
+            onDismiss = { showQuickSettings = false },
             updatePreferences = updatePreferences
         )
     }
