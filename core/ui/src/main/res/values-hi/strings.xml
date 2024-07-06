@@ -197,4 +197,5 @@
     <string name="mark_last_played_media_desc">होम और प्रत्येक फ़ोल्डर में अंतिम बार चलाए गए मीडिया को चिह्नित करें</string>
     <string name="open_local_video">स्थानीय वीडियो खोलें</string>
     <string name="play_next_video">अगला वीडियो चलायें</string>
+    <string name="skip_silence">चुप्पी छोड़ें</string>
 </resources>
