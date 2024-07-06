@@ -34,6 +34,7 @@ class PlayerViewModel @Inject constructor(
     var currentSubtitleTrackIndex: Int? = null
     var isPlaybackSpeedChanged: Boolean = false
     val externalSubtitles = mutableSetOf<Uri>()
+    var skipSilenceEnabled: Boolean = false
 
     private var currentVideoState: VideoState? = null
 
@@ -72,11 +73,13 @@ class PlayerViewModel @Inject constructor(
         audioTrackIndex: Int,
         subtitleTrackIndex: Int,
         playbackSpeed: Float,
+        skipSilence: Boolean,
     ) {
         currentPlaybackPosition = position
         currentAudioTrackIndex = audioTrackIndex
         currentSubtitleTrackIndex = subtitleTrackIndex
         currentPlaybackSpeed = playbackSpeed
+        skipSilenceEnabled = skipSilence
 
         if (!uri.isSchemaContent) return
 

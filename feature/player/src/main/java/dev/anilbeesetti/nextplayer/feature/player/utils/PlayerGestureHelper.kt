@@ -62,6 +62,8 @@ class PlayerGestureHelper(
             override fun onLongPress(e: MotionEvent) {
                 if (!prefs.useLongPressControls) return
                 if (playerView.player?.isPlaying == false) return
+                if (activity.isControlsLocked) return
+
                 if (currentGestureAction == null) {
                     currentGestureAction = GestureAction.FAST_PLAYBACK
                     currentPlaybackSpeed = playerView.player?.playbackParameters?.speed

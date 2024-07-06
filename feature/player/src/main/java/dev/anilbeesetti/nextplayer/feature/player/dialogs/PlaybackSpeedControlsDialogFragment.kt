@@ -10,7 +10,9 @@ import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBindi
 
 class PlaybackSpeedControlsDialogFragment(
     private val currentSpeed: Float,
+    private val skipSilenceEnabled: Boolean,
     private val onChange: (Float) -> Unit,
+    private val onSkipSilenceChanged: (Boolean) -> Unit,
 ) : DialogFragment() {
 
     private lateinit var binding: PlaybackSpeedBinding
@@ -22,6 +24,8 @@ class PlaybackSpeedControlsDialogFragment(
             binding.apply {
                 speedText.text = currentSpeed.toString()
                 speed.value = currentSpeed.round(1)
+                skipSilence.isChecked = skipSilenceEnabled
+
                 speed.addOnChangeListener { _, _, _ ->
                     val newSpeed = speed.value.round(1)
                     onChange(newSpeed)
@@ -47,6 +51,10 @@ class PlaybackSpeedControlsDialogFragment(
                 button30x.setOnClickListener { speed.value = 3.0f }
                 button35x.setOnClickListener { speed.value = 3.5f }
                 button40x.setOnClickListener { speed.value = 4.0f }
+
+                skipSilence.setOnCheckedChangeListener { _, isChecked ->
+                    onSkipSilenceChanged(isChecked)
+                }
             }
 
             val builder = MaterialAlertDialogBuilder(activity)

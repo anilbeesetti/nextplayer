@@ -82,6 +82,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
+import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
@@ -455,9 +456,13 @@ class PlayerActivity : AppCompatActivity() {
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedControlsDialogFragment(
                 currentSpeed = player.playbackParameters.speed,
+                skipSilenceEnabled = player.skipSilenceEnabled,
                 onChange = {
                     viewModel.isPlaybackSpeedChanged = true
                     player.setPlaybackSpeed(it)
+                },
+                onSkipSilenceChanged = {
+                    player.skipSilenceEnabled = it
                 },
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
@@ -687,6 +692,7 @@ class PlayerActivity : AppCompatActivity() {
             player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
             player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
             player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
+            player.skipSilenceEnabled = viewModel.skipSilenceEnabled
         }
     }
 
@@ -938,6 +944,7 @@ class PlayerActivity : AppCompatActivity() {
                 audioTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
                 subtitleTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
                 playbackSpeed = player.playbackParameters.speed,
+                skipSilence = player.skipSilenceEnabled,
             )
         }
         isFirstFrameRendered = false
