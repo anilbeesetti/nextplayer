@@ -54,7 +54,7 @@ import dev.anilbeesetti.nextplayer.settings.extensions.name
 @Composable
 fun PlayerPreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: PlayerPreferencesViewModel = hiltViewModel()
+    viewModel: PlayerPreferencesViewModel = hiltViewModel(),
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -71,90 +71,90 @@ fun PlayerPreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
             SeekGestureSetting(
                 isChecked = preferences.useSeekControls,
-                onClick = viewModel::toggleUseSeekControls
+                onClick = viewModel::toggleUseSeekControls,
             )
             SwipeGestureSetting(
                 isChecked = preferences.useSwipeControls,
-                onClick = viewModel::toggleUseSwipeControls
+                onClick = viewModel::toggleUseSwipeControls,
             )
             ZoomGestureSetting(
                 isChecked = preferences.useZoomControls,
-                onClick = viewModel::toggleUseZoomControls
+                onClick = viewModel::toggleUseZoomControls,
             )
             DoubleTapGestureSetting(
                 isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
                 onChecked = viewModel::toggleDoubleTapGesture,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) }
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) },
             )
             LongPressGesture(
                 isChecked = preferences.useLongPressControls,
                 onChecked = viewModel::toggleUseLongPressControls,
                 playbackSpeed = preferences.longPressControlsSpeed,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) }
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) },
             )
             SeekIncrementPreference(
                 currentValue = preferences.seekIncrement,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) }
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) },
             )
             ControllerTimeoutPreference(
                 currentValue = preferences.controllerAutoHideTimeout,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) }
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) },
             )
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             ResumeSetting(
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) }
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) },
             )
             DefaultPlaybackSpeedSetting(
                 currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) }
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) },
             )
             AutoplaySetting(
                 isChecked = preferences.autoplay,
-                onClick = viewModel::toggleAutoplay
+                onClick = viewModel::toggleAutoplay,
             )
             PipSetting(
                 isChecked = preferences.autoPip,
-                onClick = viewModel::toggleAutoPip
+                onClick = viewModel::toggleAutoPip,
             )
             RememberBrightnessSetting(
                 isChecked = preferences.rememberPlayerBrightness,
-                onClick = viewModel::toggleRememberBrightnessLevel
+                onClick = viewModel::toggleRememberBrightnessLevel,
             )
             RememberSelectionsSetting(
                 isChecked = preferences.rememberSelections,
-                onClick = viewModel::toggleRememberSelections
+                onClick = viewModel::toggleRememberSelections,
             )
             FastSeekSetting(
                 isChecked = (preferences.fastSeek != FastSeek.DISABLE),
                 onChecked = viewModel::toggleFastSeek,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) }
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) },
             )
             ScreenOrientationSetting(
                 currentOrientationPreference = preferences.playerScreenOrientation,
                 onClick = {
                     viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
-                }
+                },
             )
         }
 
@@ -163,7 +163,7 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.ResumeDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.resume),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(Resume.entries.toTypedArray()) {
                             RadioTextButton(
@@ -172,7 +172,7 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updatePlaybackResume(it)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -181,7 +181,7 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.DoubleTapDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.double_tap),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(DoubleTapGesture.entries.toTypedArray()) {
                             RadioTextButton(
@@ -190,7 +190,7 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updateDoubleTapGesture(it)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -199,7 +199,7 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.FastSeekDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.fast_seek),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(FastSeek.entries.toTypedArray()) {
                             RadioTextButton(
@@ -208,7 +208,7 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updateFastSeek(it)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -217,7 +217,7 @@ fun PlayerPreferencesScreen(
                 PlayerPreferenceDialog.PlayerScreenOrientationDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.player_screen_orientation),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(ScreenOrientation.entries.toTypedArray()) {
                             RadioTextButton(
@@ -226,7 +226,7 @@ fun PlayerPreferencesScreen(
                                 onClick = {
                                     viewModel.updatePreferredPlayerOrientation(it)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -251,14 +251,14 @@ fun PlayerPreferencesScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 20.dp),
                                 textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                             Slider(
                                 value = defaultPlaybackSpeed,
                                 onValueChange = { defaultPlaybackSpeed = it.round(1) },
-                                valueRange = 0.2f..4.0f
+                                valueRange = 0.2f..4.0f,
                             )
-                        }
+                        },
                     )
                 }
 
@@ -281,14 +281,14 @@ fun PlayerPreferencesScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 20.dp),
                                 textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                             Slider(
                                 value = longPressControlsSpeed,
                                 onValueChange = { longPressControlsSpeed = it.round(1) },
-                                valueRange = 0.2f..4.0f
+                                valueRange = 0.2f..4.0f,
                             )
-                        }
+                        },
                     )
                 }
                 PlayerPreferenceDialog.ControllerTimeoutDialog -> {
@@ -310,14 +310,14 @@ fun PlayerPreferencesScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 20.dp),
                                 textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                             Slider(
                                 value = controllerAutoHideSec.toFloat(),
                                 onValueChange = { controllerAutoHideSec = it.toInt() },
-                                valueRange = 1.0f..60.0f
+                                valueRange = 1.0f..60.0f,
                             )
-                        }
+                        },
                     )
                 }
 
@@ -340,14 +340,14 @@ fun PlayerPreferencesScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 20.dp),
                                 textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                             Slider(
                                 value = seekIncrement.toFloat(),
                                 onValueChange = { seekIncrement = it.toInt() },
-                                valueRange = 1.0f..60.0f
+                                valueRange = 1.0f..60.0f,
                             )
-                        }
+                        },
                     )
                 }
             }
@@ -358,42 +358,42 @@ fun PlayerPreferencesScreen(
 @Composable
 fun SeekGestureSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.seek_gesture),
         description = stringResource(id = R.string.seek_gesture_description),
         icon = NextIcons.SwipeHorizontal,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun SwipeGestureSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.swipe_gesture),
         description = stringResource(id = R.string.swipe_gesture_description),
         icon = NextIcons.SwipeVertical,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun ZoomGestureSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.zoom_gesture),
         description = stringResource(id = R.string.zoom_gesture_description),
         icon = NextIcons.Pinch,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -401,7 +401,7 @@ fun ZoomGestureSetting(
 fun DoubleTapGestureSetting(
     isChecked: Boolean,
     onChecked: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.double_tap),
@@ -409,7 +409,7 @@ fun DoubleTapGestureSetting(
         isChecked = isChecked,
         onChecked = onChecked,
         icon = NextIcons.DoubleTap,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -418,7 +418,7 @@ fun LongPressGesture(
     isChecked: Boolean,
     onChecked: () -> Unit,
     playbackSpeed: Float,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.long_press_gesture),
@@ -426,120 +426,120 @@ fun LongPressGesture(
         isChecked = isChecked,
         onChecked = onChecked,
         icon = NextIcons.Tap,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun SeekIncrementPreference(
     currentValue: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(R.string.seek_increment),
         description = stringResource(R.string.seconds, currentValue),
         icon = NextIcons.Replay,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun ControllerTimeoutPreference(
     currentValue: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(R.string.controller_timeout),
         description = stringResource(R.string.seconds, currentValue),
         icon = NextIcons.Timer,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun ResumeSetting(
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.resume),
         description = stringResource(id = R.string.resume_description),
         icon = NextIcons.Resume,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun DefaultPlaybackSpeedSetting(
     currentDefaultPlaybackSpeed: Float,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.default_playback_speed),
         description = currentDefaultPlaybackSpeed.toString(),
         icon = NextIcons.Speed,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun AutoplaySetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.autoplay_settings),
         description = stringResource(
-            id = R.string.autoplay_settings_description
+            id = R.string.autoplay_settings_description,
         ),
         icon = NextIcons.Player,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun PipSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.pip_settings),
         description = stringResource(
-            id = R.string.pip_settings_description
+            id = R.string.pip_settings_description,
         ),
         icon = NextIcons.Pip,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun RememberBrightnessSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.remember_brightness_level),
         description = stringResource(
-            id = R.string.remember_brightness_level_description
+            id = R.string.remember_brightness_level_description,
         ),
         icon = NextIcons.Brightness,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun RememberSelectionsSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.remember_selections),
         description = stringResource(id = R.string.remember_selections_description),
         icon = NextIcons.Selection,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -547,7 +547,7 @@ fun RememberSelectionsSetting(
 fun FastSeekSetting(
     isChecked: Boolean,
     onChecked: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.fast_seek),
@@ -555,19 +555,19 @@ fun FastSeekSetting(
         isChecked = isChecked,
         onChecked = onChecked,
         icon = NextIcons.Fast,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun ScreenOrientationSetting(
     currentOrientationPreference: ScreenOrientation,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.player_screen_orientation),
         description = currentOrientationPreference.name(),
         icon = NextIcons.Rotation,
-        onClick = onClick
+        onClick = onClick,
     )
 }

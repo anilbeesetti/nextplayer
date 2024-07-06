@@ -28,7 +28,7 @@ fun FoldersView(
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
     onFolderClick: (String) -> Unit,
-    onDeleteFolderClick: (String) -> Unit
+    onDeleteFolderClick: (String) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
     var showFolderActionsFor: Folder? by rememberSaveable { mutableStateOf(null) }
@@ -52,8 +52,8 @@ fun FoldersView(
                             onLongClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 showFolderActionsFor = it
-                            }
-                        )
+                            },
+                        ),
                     )
                 }
             }
@@ -63,7 +63,7 @@ fun FoldersView(
     showFolderActionsFor?.let {
         OptionsBottomSheet(
             title = it.name,
-            onDismiss = { showFolderActionsFor = null }
+            onDismiss = { showFolderActionsFor = null },
         ) {
             BottomSheetItem(
                 text = stringResource(R.string.delete),
@@ -73,7 +73,7 @@ fun FoldersView(
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showFolderActionsFor = null
                     }
-                }
+                },
             )
         }
     }
@@ -86,7 +86,7 @@ fun FoldersView(
                 onDeleteFolderClick(it.path)
                 deleteAction = null
             },
-            fileNames = listOf(it.name)
+            fileNames = listOf(it.name),
         )
     }
 }

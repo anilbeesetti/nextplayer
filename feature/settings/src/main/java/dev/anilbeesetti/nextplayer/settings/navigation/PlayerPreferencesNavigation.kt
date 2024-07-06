@@ -16,7 +16,7 @@ fun NavController.navigateToPlayerPreferences(navOptions: NavOptions? = navOptio
 fun NavGraphBuilder.playerPreferencesScreen(onNavigateUp: () -> Unit) {
     animatedComposable(route = playerPreferencesNavigationRoute) {
         PlayerPreferencesScreen(
-            onNavigateUp = onNavigateUp
+            onNavigateUp = onNavigateUp,
         )
     }
 }

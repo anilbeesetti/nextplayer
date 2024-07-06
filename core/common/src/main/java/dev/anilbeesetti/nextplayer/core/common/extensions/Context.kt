@@ -69,7 +69,7 @@ fun Context.getPath(uri: Uri): String? {
                     return try {
                         val contentUri = ContentUris.withAppendedId(
                             Uri.parse("content://downloads/public_downloads"),
-                            docId.toLong()
+                            docId.toLong(),
                         )
                         getDataColumn(contentUri, null, null)
                     } catch (e: Exception) {
@@ -91,7 +91,7 @@ fun Context.getPath(uri: Uri): String? {
                 }
                 val selection = "_id=?"
                 val selectionArgs = arrayOf(
-                    split[1]
+                    split[1],
                 )
                 return contentUri?.let { getDataColumn(it, selection, selectionArgs) }
             }
@@ -118,7 +118,7 @@ fun Context.getPath(uri: Uri): String? {
 private fun Context.getDataColumn(
     uri: Uri,
     selection: String? = null,
-    selectionArgs: Array<String>? = null
+    selectionArgs: Array<String>? = null,
 ): String? {
     var cursor: Cursor? = null
     val column = MediaStore.Images.Media.DATA
@@ -157,7 +157,7 @@ fun Context.getFilenameFromUri(uri: Uri): String {
  */
 fun Context.getFilenameFromContentUri(uri: Uri): String? {
     val projection = arrayOf(
-        OpenableColumns.DISPLAY_NAME
+        OpenableColumns.DISPLAY_NAME,
     )
 
     try {
@@ -185,7 +185,7 @@ fun Context.getMediaContentUri(uri: Uri): Uri? {
             projection,
             "${MediaStore.Images.Media.DATA} = ?",
             arrayOf(path),
-            null
+            null,
         )
         if (cursor != null && cursor.moveToFirst()) {
             val index = cursor.getColumnIndexOrThrow(column)
@@ -206,13 +206,13 @@ fun Context.showToast(string: String, duration: Int = Toast.LENGTH_SHORT) {
 
 suspend fun Context.scanPaths(
     paths: List<String>,
-    callback: ((String?, Uri?) -> Unit)? = null
+    callback: ((String?, Uri?) -> Unit)? = null,
 ) = withContext(Dispatchers.IO) {
     MediaScannerConnection.scanFile(
         this@scanPaths,
         paths.toTypedArray(),
         arrayOf("video/*"),
-        callback
+        callback,
     )
 }
 
@@ -382,14 +382,14 @@ val Context.thumbnailCacheDir: File
 
 suspend fun ContentResolver.updateMedia(
     uri: Uri,
-    contentValues: ContentValues
+    contentValues: ContentValues,
 ): Boolean = withContext(Dispatchers.IO) {
     return@withContext try {
         update(
             uri,
             contentValues,
             null,
-            null
+            null,
         ) > 0
     } catch (e: Exception) {
         e.printStackTrace()
@@ -398,7 +398,7 @@ suspend fun ContentResolver.updateMedia(
 }
 
 suspend fun ContentResolver.deleteMedia(
-    uri: Uri
+    uri: Uri,
 ): Boolean = withContext(Dispatchers.IO) {
     return@withContext try {
         delete(uri, null, null) > 0

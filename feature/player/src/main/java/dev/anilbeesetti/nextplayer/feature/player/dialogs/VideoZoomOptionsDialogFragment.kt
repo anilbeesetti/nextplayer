@@ -11,7 +11,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 @UnstableApi
 class VideoZoomOptionsDialogFragment(
     private val currentVideoZoom: VideoZoom,
-    private val onVideoZoomOptionSelected: (videoZoom: VideoZoom) -> Unit
+    private val onVideoZoomOptionSelected: (videoZoom: VideoZoom) -> Unit,
 ) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val videoZoomValues = VideoZoom.entries.toTypedArray()
@@ -21,7 +21,7 @@ class VideoZoomOptionsDialogFragment(
                 .setTitle(getString(R.string.video_zoom))
                 .setSingleChoiceItems(
                     videoZoomValues.map { getString(it.nameRes()) }.toTypedArray(),
-                    videoZoomValues.indexOfFirst { it == currentVideoZoom }
+                    videoZoomValues.indexOfFirst { it == currentVideoZoom },
                 ) { dialog, trackIndex ->
                     onVideoZoomOptionSelected(videoZoomValues[trackIndex])
                     dialog.dismiss()

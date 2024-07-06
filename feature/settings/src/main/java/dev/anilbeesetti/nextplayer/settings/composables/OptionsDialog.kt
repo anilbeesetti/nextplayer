@@ -16,7 +16,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 fun OptionsDialog(
     text: String,
     onDismissClick: () -> Unit,
-    options: LazyListScope.() -> Unit
+    options: LazyListScope.() -> Unit,
 ) {
     NextDialog(
         onDismissRequest = onDismissClick,
@@ -28,11 +28,11 @@ fun OptionsDialog(
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 8.dp),
                 modifier = Modifier.selectableGroup(),
-                content = options
+                content = options,
             )
             HorizontalDivider()
         },
         dismissButton = { CancelButton(onClick = onDismissClick) },
-        confirmButton = { }
+        confirmButton = { },
     )
 }

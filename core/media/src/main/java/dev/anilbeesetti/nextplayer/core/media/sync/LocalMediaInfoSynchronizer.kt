@@ -31,7 +31,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
     @ApplicationScope private val applicationScope: CoroutineScope,
     @ApplicationContext private val context: Context,
-    @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher
+    @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher,
 ) : MediaInfoSynchronizer {
 
     private val media = MutableSharedFlow<Uri>()
@@ -67,8 +67,8 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             mediumDao.upsert(
                 medium.mediumEntity.copy(
                     format = mediaInfo.format,
-                    thumbnailPath = thumbnailPath
-                )
+                    thumbnailPath = thumbnailPath,
+                ),
             )
             videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
             audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
@@ -95,7 +95,7 @@ fun VideoStream.toVideoStreamInfoEntity(mediumUri: String) = VideoStreamInfoEnti
     frameRate = frameRate,
     frameWidth = frameWidth,
     frameHeight = frameHeight,
-    mediumUri = mediumUri
+    mediumUri = mediumUri,
 )
 
 fun AudioStream.toAudioStreamInfoEntity(mediumUri: String) = AudioStreamInfoEntity(
@@ -109,7 +109,7 @@ fun AudioStream.toAudioStreamInfoEntity(mediumUri: String) = AudioStreamInfoEnti
     sampleRate = sampleRate,
     channels = channels,
     channelLayout = channelLayout,
-    mediumUri = mediumUri
+    mediumUri = mediumUri,
 )
 
 fun SubtitleStream.toSubtitleStreamInfoEntity(mediumUri: String) = SubtitleStreamInfoEntity(
@@ -118,7 +118,7 @@ fun SubtitleStream.toSubtitleStreamInfoEntity(mediumUri: String) = SubtitleStrea
     codecName = codecName,
     language = language,
     disposition = disposition,
-    mediumUri = mediumUri
+    mediumUri = mediumUri,
 )
 
 suspend fun Bitmap.saveTo(storageDir: File, quality: Int = 100): String? =

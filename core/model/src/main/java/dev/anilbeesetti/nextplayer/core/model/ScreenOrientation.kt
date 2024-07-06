@@ -6,5 +6,5 @@ enum class ScreenOrientation {
     LANDSCAPE_REVERSE,
     LANDSCAPE_AUTO,
     PORTRAIT,
-    VIDEO_ORIENTATION
+    VIDEO_ORIENTATION,
 }

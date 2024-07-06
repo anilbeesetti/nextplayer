@@ -15,14 +15,14 @@ fun NextSwitch(
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    checkedIcon: ImageVector = NextIcons.Check
+    checkedIcon: ImageVector = NextIcons.Check,
 ) {
     val thumbContent: (@Composable () -> Unit)? = if (checked) {
         {
             Icon(
                 imageVector = checkedIcon,
                 contentDescription = null,
-                modifier = Modifier.size(SwitchDefaults.IconSize)
+                modifier = Modifier.size(SwitchDefaults.IconSize),
             )
         }
     } else {
@@ -34,6 +34,6 @@ fun NextSwitch(
         onCheckedChange = onCheckedChange,
         modifier = modifier,
         enabled = enabled,
-        thumbContent = thumbContent
+        thumbContent = thumbContent,
     )
 }

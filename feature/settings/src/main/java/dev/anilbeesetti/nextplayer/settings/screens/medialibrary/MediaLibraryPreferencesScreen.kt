@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 fun MediaLibraryPreferencesScreen(
     onNavigateUp: () -> Unit,
     onFolderSettingClick: () -> Unit = {},
-    viewModel: MediaLibraryPreferencesViewModel = hiltViewModel()
+    viewModel: MediaLibraryPreferencesViewModel = hiltViewModel(),
 ) {
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
@@ -58,46 +58,46 @@ fun MediaLibraryPreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
             MarkLastPlayedMediaSetting(
                 isChecked = preferences.markLastPlayedMedia,
-                onClick = viewModel::toggleMarkLastPlayedMedia
+                onClick = viewModel::toggleMarkLastPlayedMedia,
             )
             FloatingPlayButtonSetting(
                 isChecked = preferences.showFloatingPlayButton,
-                onClick = viewModel::toggleShowFloatingPlayButton
+                onClick = viewModel::toggleShowFloatingPlayButton,
             )
 
             PreferenceSubtitle(text = stringResource(id = R.string.scan))
             HideFoldersSettings(
-                onClick = onFolderSettingClick
+                onClick = onFolderSettingClick,
             )
             ForceRescanStorageSetting(
                 onClick = {
                     scope.launch { context.scanStorage() }
                     context.showToast(
                         string = context.getString(R.string.scanning_storage),
-                        duration = Toast.LENGTH_LONG
+                        duration = Toast.LENGTH_LONG,
                     )
-                }
+                },
             )
         }
     }
@@ -105,56 +105,56 @@ fun MediaLibraryPreferencesScreen(
 
 @Composable
 fun HideFoldersSettings(
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.manage_folders),
         description = stringResource(id = R.string.manage_folders_desc),
         icon = NextIcons.FolderOff,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun ForceRescanStorageSetting(
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.force_rescan_storage),
         description = stringResource(id = R.string.force_rescan_storage_desc),
         icon = NextIcons.Update,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun MarkLastPlayedMediaSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.mark_last_played_media),
         description = stringResource(
-            id = R.string.mark_last_played_media_desc
+            id = R.string.mark_last_played_media_desc,
         ),
         icon = NextIcons.Check,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun FloatingPlayButtonSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.floating_play_button),
         description = stringResource(
-            id = R.string.floating_play_button_desc
+            id = R.string.floating_play_button_desc,
         ),
         icon = NextIcons.SmartButton,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }

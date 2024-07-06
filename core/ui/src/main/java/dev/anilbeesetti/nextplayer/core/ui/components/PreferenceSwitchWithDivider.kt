@@ -26,7 +26,7 @@ fun PreferenceSwitchWithDivider(
     enabled: Boolean = true,
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
-    onChecked: () -> Unit = {}
+    onChecked: () -> Unit = {},
 ) {
     PreferenceItem(
         title = title,
@@ -35,26 +35,26 @@ fun PreferenceSwitchWithDivider(
         modifier = Modifier
             .clickable(
                 enabled = enabled,
-                onClick = onClick
+                onClick = onClick,
             ),
         enabled = enabled,
         content = {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 VerticalDivider(
                     modifier = Modifier
                         .padding(end = 12.dp)
                         .height(40.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 )
                 NextSwitch(
                     checked = isChecked,
                     onCheckedChange = { onChecked() },
-                    enabled = enabled
+                    enabled = enabled,
                 )
             }
-        }
+        },
     )
 }
 
@@ -66,7 +66,7 @@ fun PreferenceSwitchWithDividerPreview() {
         description = "Description of the preference items goes here.",
         icon = NextIcons.DoubleTap,
         onClick = {},
-        onChecked = {}
+        onChecked = {},
     )
 }
 
@@ -79,7 +79,7 @@ fun PreferenceCheckbox(
     enabled: Boolean = true,
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
-    onLongClick: (() -> Unit) = {}
+    onLongClick: (() -> Unit) = {},
 ) {
     PreferenceItem(
         title = title,
@@ -89,18 +89,18 @@ fun PreferenceCheckbox(
             .toggleable(
                 value = isChecked,
                 enabled = enabled,
-                onValueChange = { onClick() }
+                onValueChange = { onClick() },
             )
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick
+                onLongClick = onLongClick,
             ),
         enabled = enabled,
         content = {
             Checkbox(
                 checked = isChecked,
-                onCheckedChange = null
+                onCheckedChange = null,
             )
-        }
+        },
     )
 }

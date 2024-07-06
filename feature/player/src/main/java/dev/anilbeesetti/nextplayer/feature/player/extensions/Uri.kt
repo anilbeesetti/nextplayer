@@ -45,7 +45,7 @@ fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyLi
                 Subtitle(
                     name = file.name,
                     uri = file.toUri(),
-                    isSelected = false
+                    isSelected = false,
                 )
             } else {
                 null
@@ -57,7 +57,7 @@ fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyLi
 fun Uri.toSubtitle(context: Context) = Subtitle(
     name = context.getFilenameFromUri(this),
     uri = this,
-    isSelected = false
+    isSelected = false,
 )
 
 @Suppress("DEPRECATION")

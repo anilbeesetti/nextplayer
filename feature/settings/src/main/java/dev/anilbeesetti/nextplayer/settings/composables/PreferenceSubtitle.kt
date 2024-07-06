@@ -15,7 +15,7 @@ fun PreferenceSubtitle(
     modifier: Modifier = Modifier,
     text: String,
     contentPadding: PaddingValues = PaddingValues(start = 18.dp, top = 24.dp, bottom = 12.dp),
-    color: Color = MaterialTheme.colorScheme.primary
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
     Text(
         text = text,
@@ -23,6 +23,6 @@ fun PreferenceSubtitle(
             .fillMaxWidth()
             .padding(contentPadding),
         color = color,
-        style = MaterialTheme.typography.labelLarge
+        style = MaterialTheme.typography.labelLarge,
     )
 }

@@ -58,7 +58,7 @@ fun VideosView(
     onVideoClick: (Uri) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
-    onVideoLoaded: (Uri) -> Unit = {}
+    onVideoLoaded: (Uri) -> Unit = {},
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -88,8 +88,8 @@ fun VideosView(
                             onLongClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 showMediaActionsFor = video
-                            }
-                        )
+                            },
+                        ),
                     )
                 }
             }
@@ -99,7 +99,7 @@ fun VideosView(
     showMediaActionsFor?.let {
         OptionsBottomSheet(
             title = it.nameWithExtension,
-            onDismiss = { showMediaActionsFor = null }
+            onDismiss = { showMediaActionsFor = null },
         ) {
             BottomSheetItem(
                 text = stringResource(R.string.rename),
@@ -109,7 +109,7 @@ fun VideosView(
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
-                }
+                },
             )
             BottomSheetItem(
                 text = stringResource(R.string.share),
@@ -122,13 +122,13 @@ fun VideosView(
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_STREAM, mediaStoreUri)
                         },
-                        null
+                        null,
                     )
                     context.startActivity(intent)
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
-                }
+                },
             )
             BottomSheetItem(
                 text = stringResource(R.string.properties),
@@ -138,7 +138,7 @@ fun VideosView(
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
-                }
+                },
             )
             BottomSheetItem(
                 text = stringResource(R.string.delete),
@@ -148,7 +148,7 @@ fun VideosView(
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
-                }
+                },
             )
         }
     }
@@ -161,14 +161,14 @@ fun VideosView(
                 onDeleteVideoClick(it.uriString)
                 deleteAction = null
             },
-            fileNames = listOf(it.nameWithExtension)
+            fileNames = listOf(it.nameWithExtension),
         )
     }
 
     showInfoAction?.let {
         ShowVideoInfoDialog(
             video = it,
-            onDismiss = { showInfoAction = null }
+            onDismiss = { showInfoAction = null },
         )
     }
 
@@ -179,10 +179,10 @@ fun VideosView(
             onDone = {
                 onRenameVideoClick(
                     Uri.parse(video.uriString),
-                    "$it.${video.nameWithExtension.substringAfterLast(".")}"
+                    "$it.${video.nameWithExtension.substringAfterLast(".")}",
                 )
                 renameAction = null
-            }
+            },
         )
     }
 }
@@ -191,7 +191,7 @@ fun VideosView(
 fun ShowRenameDialog(
     name: String,
     onDismiss: () -> Unit,
-    onDone: (String) -> Unit
+    onDone: (String) -> Unit,
 ) {
     var mediaName by rememberSaveable { mutableStateOf(name) }
     val focusRequester = remember { FocusRequester() }
@@ -204,16 +204,16 @@ fun ShowRenameDialog(
                 onValueChange = { mediaName = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(focusRequester)
+                    .focusRequester(focusRequester),
             )
         },
         confirmButton = {
             DoneButton(
                 enabled = mediaName.isNotBlank(),
-                onClick = { onDone(mediaName) }
+                onClick = { onDone(mediaName) },
             )
         },
-        dismissButton = { CancelButton(onClick = onDismiss) }
+        dismissButton = { CancelButton(onClick = onDismiss) },
     )
 
     LaunchedEffect(key1 = Unit) {
@@ -226,7 +226,7 @@ fun ShowRenameDialog(
 @Composable
 fun ShowVideoInfoDialog(
     video: Video,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     NextDialog(
         onDismissRequest = onDismiss,
@@ -235,29 +235,29 @@ fun ShowVideoInfoDialog(
             HorizontalDivider()
             Column(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.verticalScroll(rememberScrollState())
+                modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
                 MediaInfoTitle(text = stringResource(R.string.file))
                 MediaInfoText(
                     title = stringResource(id = R.string.file),
-                    subText = video.nameWithExtension
+                    subText = video.nameWithExtension,
                 )
                 MediaInfoText(
                     title = stringResource(id = R.string.location),
-                    subText = video.parentPath
+                    subText = video.parentPath,
                 )
                 MediaInfoText(
                     title = stringResource(id = R.string.size),
-                    subText = video.formattedFileSize
+                    subText = video.formattedFileSize,
                 )
                 MediaInfoText(
                     title = stringResource(id = R.string.duration),
-                    subText = video.formattedDuration
+                    subText = video.formattedDuration,
                 )
                 video.format?.let {
                     MediaInfoText(
                         title = stringResource(id = R.string.format),
-                        subText = it
+                        subText = it,
                     )
                 }
                 video.videoStream?.let { videoStream ->
@@ -265,25 +265,25 @@ fun ShowVideoInfoDialog(
                     videoStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
-                            subText = it
+                            subText = it,
                         )
                     }
                     MediaInfoText(
                         title = stringResource(id = R.string.codec),
-                        subText = videoStream.codecName
+                        subText = videoStream.codecName,
                     )
                     MediaInfoText(
                         title = stringResource(id = R.string.resolution),
-                        subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}"
+                        subText = "${videoStream.frameWidth} x ${videoStream.frameHeight}",
                     )
                     MediaInfoText(
                         title = stringResource(id = R.string.frame_rate),
-                        subText = videoStream.frameRate.toInt().toString()
+                        subText = videoStream.frameRate.toInt().toString(),
                     )
                     Utils.formatBitrate(videoStream.bitRate)?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.bitrate),
-                            subText = it
+                            subText = it,
                         )
                     }
                 }
@@ -292,35 +292,35 @@ fun ShowVideoInfoDialog(
                     audioStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
-                            subText = it
+                            subText = it,
                         )
                     }
                     MediaInfoText(
                         title = stringResource(id = R.string.codec),
-                        subText = audioStream.codecName
+                        subText = audioStream.codecName,
                     )
                     MediaInfoText(
                         title = stringResource(id = R.string.sample_rate),
-                        subText = "${audioStream.sampleRate} Hz"
+                        subText = "${audioStream.sampleRate} Hz",
                     )
                     MediaInfoText(
                         title = stringResource(id = R.string.sample_format),
-                        subText = audioStream.sampleFormat.toString()
+                        subText = audioStream.sampleFormat.toString(),
                     )
                     Utils.formatBitrate(audioStream.bitRate)?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.bitrate),
-                            subText = it
+                            subText = it,
                         )
                     }
                     MediaInfoText(
                         title = stringResource(id = R.string.channels),
-                        subText = audioStream.channelLayout ?: audioStream.channels.toString()
+                        subText = audioStream.channelLayout ?: audioStream.channels.toString(),
                     )
                     Utils.formatLanguage(audioStream.language)?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.language),
-                            subText = it
+                            subText = it,
                         )
                     }
                 }
@@ -329,17 +329,17 @@ fun ShowVideoInfoDialog(
                     subtitleStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
-                            subText = it
+                            subText = it,
                         )
                     }
                     MediaInfoText(
                         title = stringResource(id = R.string.codec),
-                        subText = subtitleStream.codecName
+                        subText = subtitleStream.codecName,
                     )
                     Utils.formatLanguage(subtitleStream.language)?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.language),
-                            subText = it
+                            subText = it,
                         )
                     }
                 }
@@ -349,20 +349,20 @@ fun ShowVideoInfoDialog(
             TextButton(onClick = onDismiss) {
                 Text(text = stringResource(id = R.string.okay))
             }
-        }
+        },
     )
 }
 
 @Composable
 fun MediaInfoTitle(
     text: String,
-    paddingValues: PaddingValues = PaddingValues(top = 16.dp, bottom = 2.dp)
+    paddingValues: PaddingValues = PaddingValues(top = 16.dp, bottom = 2.dp),
 ) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(paddingValues)
+        modifier = Modifier.padding(paddingValues),
     )
 }
 
@@ -370,7 +370,7 @@ fun MediaInfoTitle(
 fun MediaInfoText(
     title: String,
     subText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier) {
         Text(text = "$title: ", style = MaterialTheme.typography.titleSmall)

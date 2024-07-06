@@ -26,11 +26,11 @@ import dev.anilbeesetti.nextplayer.settings.navigation.subtitlePreferencesScreen
 const val SETTINGS_ROUTE = "settings_nav_route"
 
 fun NavGraphBuilder.settingsNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     navigation(
         startDestination = settingsNavigationRoute,
-        route = SETTINGS_ROUTE
+        route = SETTINGS_ROUTE,
     ) {
         settingsScreen(
             onNavigateUp = navController::navigateUp,
@@ -44,32 +44,32 @@ fun NavGraphBuilder.settingsNavGraph(
                     Setting.SUBTITLE -> navController.navigateToSubtitlePreferences()
                     Setting.ABOUT -> navController.navigateToAboutPreferences()
                 }
-            }
+            },
         )
         appearancePreferencesScreen(
-            onNavigateUp = navController::navigateUp
+            onNavigateUp = navController::navigateUp,
         )
         mediaLibraryPreferencesScreen(
             onNavigateUp = navController::navigateUp,
-            onFolderSettingClick = navController::navigateToFolderPreferencesScreen
+            onFolderSettingClick = navController::navigateToFolderPreferencesScreen,
         )
         folderPreferencesScreen(
-            onNavigateUp = navController::navigateUp
+            onNavigateUp = navController::navigateUp,
         )
         playerPreferencesScreen(
-            onNavigateUp = navController::navigateUp
+            onNavigateUp = navController::navigateUp,
         )
         decoderPreferencesScreen(
-            onNavigateUp = navController::navigateUp
+            onNavigateUp = navController::navigateUp,
         )
         audioPreferencesScreen(
-            onNavigateUp = navController::navigateUp
+            onNavigateUp = navController::navigateUp,
         )
         subtitlePreferencesScreen(
-            onNavigateUp = navController::navigateUp
+            onNavigateUp = navController::navigateUp,
         )
         aboutPreferencesScreen(
-            onNavigateUp = navController::navigateUp
+            onNavigateUp = navController::navigateUp,
         )
     }
 }

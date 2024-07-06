@@ -33,7 +33,7 @@ class PlayerApi(val activity: PlayerActivity) {
             Subtitle(
                 name = subtitleName,
                 uri = subtitleUri,
-                isSelected = subtitleUri == defaultSub
+                isSelected = subtitleUri == defaultSub,
             )
         }
     }

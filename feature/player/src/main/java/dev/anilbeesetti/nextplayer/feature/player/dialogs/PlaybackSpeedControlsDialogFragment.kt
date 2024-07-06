@@ -10,7 +10,7 @@ import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBindi
 
 class PlaybackSpeedControlsDialogFragment(
     private val currentSpeed: Float,
-    private val onChange: (Float) -> Unit
+    private val onChange: (Float) -> Unit,
 ) : DialogFragment() {
 
     private lateinit var binding: PlaybackSpeedBinding

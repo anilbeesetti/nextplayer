@@ -18,7 +18,7 @@ object ApplicationPreferencesSerializer : Serializer<ApplicationPreferences> {
         try {
             return jsonFormat.decodeFromString(
                 deserializer = ApplicationPreferences.serializer(),
-                string = input.readBytes().decodeToString()
+                string = input.readBytes().decodeToString(),
             )
         } catch (exception: SerializationException) {
             throw CorruptionException("Cannot read datastore", exception)
@@ -30,8 +30,8 @@ object ApplicationPreferencesSerializer : Serializer<ApplicationPreferences> {
         output.write(
             jsonFormat.encodeToString(
                 serializer = ApplicationPreferences.serializer(),
-                value = t
-            ).encodeToByteArray()
+                value = t,
+            ).encodeToByteArray(),
         )
     }
 }

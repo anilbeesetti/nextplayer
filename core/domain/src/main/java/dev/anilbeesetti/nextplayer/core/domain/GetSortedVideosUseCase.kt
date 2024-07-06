@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.flowOn
 class GetSortedVideosUseCase @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
@@ -28,7 +28,7 @@ class GetSortedVideosUseCase @Inject constructor(
 
         return combine(
             videosFlow,
-            preferencesRepository.applicationPreferences
+            preferencesRepository.applicationPreferences,
         ) { videoItems, preferences ->
 
             val nonExcludedVideos = videoItems.filterNot {

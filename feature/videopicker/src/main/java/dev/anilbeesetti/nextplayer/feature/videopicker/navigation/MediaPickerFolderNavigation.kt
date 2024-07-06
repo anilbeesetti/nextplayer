@@ -21,7 +21,7 @@ internal class FolderArgs(val folderId: String) {
 
 fun NavController.navigateToMediaPickerFolderScreen(
     folderId: String,
-    navOptions: NavOptions? = navOptions { launchSingleTop = true }
+    navOptions: NavOptions? = navOptions { launchSingleTop = true },
 ) {
     val encodedFolderId = Uri.encode(folderId)
     this.navigate("$mediaPickerFolderNavigationRoute/$encodedFolderId", navOptions)
@@ -29,17 +29,17 @@ fun NavController.navigateToMediaPickerFolderScreen(
 
 fun NavGraphBuilder.mediaPickerFolderScreen(
     onNavigateUp: () -> Unit,
-    onVideoClick: (uri: Uri) -> Unit
+    onVideoClick: (uri: Uri) -> Unit,
 ) {
     animatedComposable(
         route = "$mediaPickerFolderNavigationRoute/{$folderIdArg}",
         arguments = listOf(
-            navArgument(folderIdArg) { type = NavType.StringType }
-        )
+            navArgument(folderIdArg) { type = NavType.StringType },
+        ),
     ) {
         MediaPickerFolderRoute(
             onVideoClick = onVideoClick,
-            onNavigateUp = onNavigateUp
+            onNavigateUp = onNavigateUp,
         )
     }
 }

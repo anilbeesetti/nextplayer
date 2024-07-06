@@ -28,7 +28,7 @@ class PlayerGestureHelper(
     private val viewModel: PlayerViewModel,
     private val activity: PlayerActivity,
     private val volumeManager: VolumeManager,
-    private val brightnessManager: BrightnessManager
+    private val brightnessManager: BrightnessManager,
 ) {
     private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
@@ -112,7 +112,7 @@ class PlayerGestureHelper(
                 } ?: return false
                 return true
             }
-        }
+        },
     )
 
     private val seekGestureDetector = GestureDetector(
@@ -122,7 +122,7 @@ class PlayerGestureHelper(
                 firstEvent: MotionEvent?,
                 currentEvent: MotionEvent,
                 distanceX: Float,
-                distanceY: Float
+                distanceY: Float,
             ): Boolean {
                 if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
@@ -160,13 +160,13 @@ class PlayerGestureHelper(
                     }
                     activity.showPlayerInfo(
                         info = Utils.formatDurationMillis(this.currentPosition),
-                        subInfo = "[${Utils.formatDurationMillisSign(seekChange)}]"
+                        subInfo = "[${Utils.formatDurationMillisSign(seekChange)}]",
                     )
                     return true
                 }
                 return false
             }
-        }
+        },
     )
 
     private val volumeAndBrightnessGestureDetector = GestureDetector(
@@ -176,7 +176,7 @@ class PlayerGestureHelper(
                 firstEvent: MotionEvent?,
                 currentEvent: MotionEvent,
                 distanceX: Float,
-                distanceY: Float
+                distanceY: Float,
             ): Boolean {
                 if (firstEvent == null) return false
                 if (inExclusionArea(firstEvent)) return false
@@ -204,7 +204,7 @@ class PlayerGestureHelper(
                 }
                 return true
             }
-        }
+        },
     )
 
     private val zoomGestureDetector = ScaleGestureDetector(
@@ -233,7 +233,7 @@ class PlayerGestureHelper(
                 }
                 return true
             }
-        }
+        },
     )
 
     private fun releaseGestures() {
@@ -302,5 +302,5 @@ enum class GestureAction {
     SWIPE,
     SEEK,
     ZOOM,
-    FAST_PLAYBACK
+    FAST_PLAYBACK,
 }

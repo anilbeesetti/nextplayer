@@ -10,7 +10,7 @@ fun PermissionMissingView(
     showRationale: Boolean,
     permission: String,
     launchPermissionRequest: () -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     if (isGranted) {
         content()
@@ -18,16 +18,16 @@ fun PermissionMissingView(
         PermissionRationaleDialog(
             text = stringResource(
                 id = R.string.permission_info,
-                permission
+                permission,
             ),
-            onConfirmButtonClick = launchPermissionRequest
+            onConfirmButtonClick = launchPermissionRequest,
         )
     } else {
         PermissionDetailView(
             text = stringResource(
                 id = R.string.permission_settings,
-                permission
-            )
+                permission,
+            ),
         )
     }
 }

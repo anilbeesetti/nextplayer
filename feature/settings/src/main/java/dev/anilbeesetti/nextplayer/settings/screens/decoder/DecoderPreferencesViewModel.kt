@@ -16,14 +16,14 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class DecoderPreferencesViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     val preferencesFlow = preferencesRepository.playerPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = PlayerPreferences()
+            initialValue = PlayerPreferences(),
         )
 
     private val _uiState = MutableStateFlow(DecoderPreferencesUIState())
@@ -47,7 +47,7 @@ class DecoderPreferencesViewModel @Inject constructor(
 }
 
 data class DecoderPreferencesUIState(
-    val showDialog: DecoderPreferenceDialog? = null
+    val showDialog: DecoderPreferenceDialog? = null,
 )
 
 sealed interface DecoderPreferenceDialog {

@@ -52,7 +52,7 @@ interface MediumDao {
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?,
         externalSubs: String,
-        lastPlayedTime: Long?
+        lastPlayedTime: Long?,
     )
 
     @Upsert

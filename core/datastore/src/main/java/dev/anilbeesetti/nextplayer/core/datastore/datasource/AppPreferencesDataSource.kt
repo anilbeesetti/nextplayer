@@ -6,13 +6,13 @@ import javax.inject.Inject
 import timber.log.Timber
 
 class AppPreferencesDataSource @Inject constructor(
-    private val appPreferences: DataStore<ApplicationPreferences>
+    private val appPreferences: DataStore<ApplicationPreferences>,
 ) : PreferencesDataSource<ApplicationPreferences> {
 
     override val preferences = appPreferences.data
 
     override suspend fun update(
-        transform: suspend (ApplicationPreferences) -> ApplicationPreferences
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
     ) {
         try {
             appPreferences.updateData(transform)

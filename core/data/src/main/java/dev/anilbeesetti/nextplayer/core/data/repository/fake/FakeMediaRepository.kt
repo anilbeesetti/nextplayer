@@ -31,7 +31,7 @@ class FakeMediaRepository : MediaRepository {
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?,
-        externalSubs: List<Uri>
+        externalSubs: List<Uri>,
     ) {
     }
 

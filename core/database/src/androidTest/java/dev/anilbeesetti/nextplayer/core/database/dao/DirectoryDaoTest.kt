@@ -21,7 +21,7 @@ class DirectoryDaoTest {
 
         db = Room.inMemoryDatabaseBuilder(
             context,
-            MediaDatabase::class.java
+            MediaDatabase::class.java,
         ).build()
         directoryDao = db.directoryDao()
     }
@@ -90,25 +90,25 @@ class DirectoryDaoTest {
 val directory1 = DirectoryEntity(
     path = "/storage/emulated/0/media",
     name = "media",
-    modified = System.currentTimeMillis()
+    modified = System.currentTimeMillis(),
 )
 
 val directory2 = DirectoryEntity(
     path = "/storage/emulated/0/pictures",
     name = "pictures",
-    modified = System.currentTimeMillis()
+    modified = System.currentTimeMillis(),
 )
 
 val directory3 = DirectoryEntity(
     path = "/storage/emulated/0/music",
     name = "music",
-    modified = System.currentTimeMillis()
+    modified = System.currentTimeMillis(),
 )
 
 val directory4 = DirectoryEntity(
     path = "/storage/emulated/0/videos",
     name = "videos",
-    modified = System.currentTimeMillis()
+    modified = System.currentTimeMillis(),
 )
 
 private val sampleData = listOf(directory1, directory2, directory3, directory4)

@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 class GetSortedPlaylistUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     @ApplicationContext private val context: Context,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
+    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
     suspend operator fun invoke(uri: Uri): List<Uri> = withContext(defaultDispatcher) {
         val path = context.getPath(uri) ?: return@withContext emptyList()
