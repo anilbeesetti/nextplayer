@@ -29,7 +29,7 @@
     <string name="player_controls_progress">Barra de progresso do player</string>
     <string name="player_name">Player</string>
     <string name="quick_settings">Configurações rápidas</string>
-    <string name="remember_brightness_level">Nível de brilho</string>
+    <string name="remember_brightness_level">Lembrar nível de brilho</string>
     <string name="remember_brightness_level_description">Lembrar do nível de brilho entre as sessões de reprodução</string>
     <string name="remember_selections">Lembrar seleções</string>
     <string name="remember_selections_description">Lembrar das seleções para cada arquivo, como faixa de áudio, faixa de legenda, etc</string>
