@@ -33,6 +33,8 @@ nextlib = "0.7.1"
 room = "2.6.1"
 timber = "5.0.1"
 universalChardet = "2.4.0"
+steadyview = "1.3.2"
+steadyviews = "1.3.2"
 
 
 [libraries]
@@ -83,6 +85,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+steadyview = { group = "com.github.Sublimis", name = "SteadyView", version.ref = "steadyview" }
+steadyviews = { group = "com.github.Sublimis", name = "SteadyViews", version.ref = "steadyviews" }
 
 [plugins]
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
