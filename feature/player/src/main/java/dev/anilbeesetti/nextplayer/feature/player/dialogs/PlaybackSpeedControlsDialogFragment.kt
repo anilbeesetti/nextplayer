@@ -27,9 +27,6 @@ class PlaybackSpeedControlsDialogFragment(
                     onChange(newSpeed)
                     speedText.text = newSpeed.toString()
                 }
-                resetSpeed.setOnClickListener {
-                    speed.value = 1.0f
-                }
                 incSpeed.setOnClickListener {
                     if (speed.value < 4.0f) {
                         speed.value = (speed.value + 0.1f).round(1)
@@ -40,6 +37,16 @@ class PlaybackSpeedControlsDialogFragment(
                         speed.value = (speed.value - 0.1f).round(1)
                     }
                 }
+                resetSpeed.setOnClickListener { speed.value = 1.0f }
+                button02x.setOnClickListener { speed.value = 0.2f }
+                button05x.setOnClickListener { speed.value = 0.5f }
+                button10x.setOnClickListener { speed.value = 1.0f }
+                button15x.setOnClickListener { speed.value = 1.5f }
+                button20x.setOnClickListener { speed.value = 2.0f }
+                button25x.setOnClickListener { speed.value = 2.5f }
+                button30x.setOnClickListener { speed.value = 3.0f }
+                button35x.setOnClickListener { speed.value = 3.5f }
+                button40x.setOnClickListener { speed.value = 4.0f }
             }
 
             val builder = MaterialAlertDialogBuilder(activity)

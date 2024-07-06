@@ -63,14 +63,14 @@ data class Sort(
         val videoTitleComparator: Comparator<Video> = Comparator { video1, video2 ->
             return@Comparator stringComparator.compare(
                 video1.displayName.lowercase(),
-                video2.displayName.lowercase()
+                video2.displayName.lowercase(),
             )
         }
 
         val videoPathComparator: Comparator<Video> = Comparator { video1, video2 ->
             return@Comparator stringComparator.compare(
                 video1.path.lowercase(),
-                video2.path.lowercase()
+                video2.path.lowercase(),
             )
         }
 
@@ -92,14 +92,14 @@ data class Sort(
         val folderNameComparator: Comparator<Folder> = Comparator { folder1, folder2 ->
             return@Comparator stringComparator.compare(
                 folder1.name.lowercase(),
-                folder2.name.lowercase()
+                folder2.name.lowercase(),
             )
         }
 
         val folderPathComparator: Comparator<Folder> = Comparator { folder1, folder2 ->
             return@Comparator stringComparator.compare(
                 folder1.path.lowercase(),
-                folder2.path.lowercase()
+                folder2.path.lowercase(),
             )
         }
 
