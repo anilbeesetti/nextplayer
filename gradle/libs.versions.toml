@@ -9,7 +9,6 @@ androidGradlePlugin = "8.4.0"
 androidMaterial = "1.11.0"
 androidxActivity = "1.9.0"
 androidxAppCompat = "1.6.1"
-androidxComposeCompiler = "1.5.11"
 androidxComposeBom = "2024.04.01"
 androidxConstraintLayout = "2.1.4"
 androidxCore = "1.13.0"
@@ -25,10 +24,10 @@ androidxTestExt = "1.1.5"
 coil = "2.6.0"
 hilt = "2.51.1"
 junit4 = "4.13.2"
-kotlin = "1.9.23"
+kotlin = "2.0.0"
 kotlinxCoroutines = "1.8.0"
 kotlinxSerializationJson = "1.6.3"
-ksp = "1.9.23-1.0.20"
+ksp = "2.0.0-1.0.22"
 ktlint = "12.1.0"
 nextlib = "0.7.1"
 room = "2.6.1"
@@ -37,8 +36,6 @@ universalChardet = "2.4.0"
 
 
 [libraries]
-aboutlibraries-core = { group = "com.mikepenz", name = "aboutlibraries-core", version.ref = "aboutlibraries" }
-aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
 aboutlibraries-compose = { group = "com.mikepenz", name = "aboutlibraries-compose", version.ref = "aboutlibraries" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
@@ -87,14 +84,11 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
-# Dependencies of the included build-logic
-android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
-
 [plugins]
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
 androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
