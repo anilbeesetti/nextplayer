@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import timber.log.Timber
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -35,6 +34,7 @@ class PlayerViewModel @Inject constructor(
     var currentSubtitleTrackIndex: Int? = null
     var isPlaybackSpeedChanged: Boolean = false
     val externalSubtitles = mutableSetOf<Uri>()
+    var skipSilenceEnabled: Boolean = false
 
     private var currentVideoState: VideoState? = null
 
@@ -50,12 +50,11 @@ class PlayerViewModel @Inject constructor(
         initialValue = runBlocking { preferencesRepository.applicationPreferences.first() },
     )
 
-    suspend fun updateState(uri: String?) {
+    suspend fun initMediaState(uri: String?) {
+        if (currentPlaybackPosition != null) return
         currentVideoState = uri?.let { mediaRepository.getVideoState(it) }
-
-        Timber.d("$currentVideoState")
-
         val prefs = playerPrefs.value
+
         currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES } ?: currentPlaybackPosition
         currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections } ?: currentAudioTrackIndex
         currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections } ?: currentSubtitleTrackIndex
@@ -74,11 +73,13 @@ class PlayerViewModel @Inject constructor(
         audioTrackIndex: Int,
         subtitleTrackIndex: Int,
         playbackSpeed: Float,
+        skipSilence: Boolean,
     ) {
         currentPlaybackPosition = position
         currentAudioTrackIndex = audioTrackIndex
         currentSubtitleTrackIndex = subtitleTrackIndex
         currentPlaybackSpeed = playbackSpeed
+        skipSilenceEnabled = skipSilence
 
         if (!uri.isSchemaContent) return
 

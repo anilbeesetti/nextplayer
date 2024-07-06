@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -13,9 +13,9 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/dec_speed"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             app:icon="@drawable/ic_remove" />
 
         <TextView
@@ -23,16 +23,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_weight="1"
             android:gravity="center"
-            android:layout_weight="1"/>
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/inc_speed"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-            app:icon="@drawable/ic_add"/>
+            app:icon="@drawable/ic_add" />
 
 
     </LinearLayout>
@@ -40,30 +40,137 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="20dp">
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal">
 
         <com.google.android.material.slider.Slider
             android:id="@+id/speed"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_weight="1"
             android:stepSize="0.1"
+            android:theme="@style/Widget.Material3.Slider"
             android:value="1.0"
             android:valueFrom="0.2"
             android:valueTo="4.0"
-            android:layout_gravity="center"
-            android:theme="@style/Widget.Material3.Slider"
             app:labelBehavior="gone" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/reset_speed"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
-            style="@style/Widget.Material3.Button.IconButton"
             app:icon="@drawable/ic_reset" />
     </LinearLayout>
 
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_0.2x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="0.2x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_0.5x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="0.5x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_1.0x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="1.0x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_1.5x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="1.5x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_2.0x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="2.0x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_2.5x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="2.5x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_3.0x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="3.0x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_3.5x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="3.5x" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_4.0x"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:text="4.0x" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp">
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/skip_silence"
+            style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="@string/skip_silence" />
+    </LinearLayout>
 </LinearLayout>

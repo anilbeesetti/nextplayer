@@ -199,4 +199,5 @@
     <string name="open_network_stream">Open network stream</string>
     <string name="exit">Exit</string>
     <string name="play_next_video">Play next video</string>
+    <string name="skip_silence">Skip silence</string>
 </resources>
