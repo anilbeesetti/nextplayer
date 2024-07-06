@@ -13,8 +13,8 @@ import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
-import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
@@ -29,7 +29,7 @@ class MediaPickerFolderViewModel @Inject constructor(
     private val mediaService: MediaService,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
-    private val mediaSynchronizer: MediaSynchronizer,
+    private val mediaSynchronizer: MediaSynchronizer
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)

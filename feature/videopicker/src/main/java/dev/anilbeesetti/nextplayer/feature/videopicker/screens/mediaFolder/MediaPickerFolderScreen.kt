@@ -73,7 +73,7 @@ internal fun MediaPickerFolderScreen(
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit,
-    onRefreshClicked: () -> Unit = {},
+    onRefreshClicked: () -> Unit = {}
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -139,7 +139,6 @@ internal fun MediaPickerFolderScreen(
                 onVideoLoaded = onAddToSync,
                 onRenameVideoClick = onRenameVideoClick
             )
-
 
             PullToRefreshContainer(
                 state = pullToRefreshState,

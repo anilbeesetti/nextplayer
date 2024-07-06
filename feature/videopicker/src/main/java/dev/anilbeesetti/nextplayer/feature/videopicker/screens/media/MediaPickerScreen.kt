@@ -130,7 +130,7 @@ internal fun MediaPickerScreen(
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {},
-    onRefreshClicked: () -> Unit = {},
+    onRefreshClicked: () -> Unit = {}
 ) {
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
@@ -202,9 +202,10 @@ internal fun MediaPickerScreen(
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .padding(paddingValues)
-            .nestedScroll(pullToRefreshState.nestedScrollConnection)
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()

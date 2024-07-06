@@ -69,7 +69,6 @@ fun VideosView(
     val context = LocalContext.current
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-
     when (videosState) {
         VideosState.Loading -> CenterCircularProgressBar()
         is VideosState.Success -> {

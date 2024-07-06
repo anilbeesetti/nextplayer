@@ -36,7 +36,6 @@ fun FoldersView(
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-
     when (foldersState) {
         FoldersState.Loading -> CenterCircularProgressBar()
         is FoldersState.Success -> {
