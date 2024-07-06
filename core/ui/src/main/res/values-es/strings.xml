@@ -197,4 +197,5 @@
     <string name="mark_last_played_media_desc">Marcar el último medio reproducido al inicio y en cada carpeta</string>
     <string name="exit">Salir</string>
     <string name="play_next_video">Reproducir el siguiente vídeo</string>
+    <string name="skip_silence">Omitir silencio</string>
 </resources>
