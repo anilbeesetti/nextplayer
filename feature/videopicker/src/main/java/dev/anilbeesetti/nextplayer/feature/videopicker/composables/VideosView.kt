@@ -69,28 +69,31 @@ fun VideosView(
     val context = LocalContext.current
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+
     when (videosState) {
         VideosState.Loading -> CenterCircularProgressBar()
-        is VideosState.Success -> if (videosState.data.isEmpty()) {
-            NoVideosFound()
-        } else {
+        is VideosState.Success -> {
             MediaLazyList {
-                items(videosState.data, key = { it.path }) { video ->
-                    LaunchedEffect(Unit) {
-                        onVideoLoaded(Uri.parse(video.uriString))
-                    }
-                    VideoItem(
-                        video = video,
-                        preferences = preferences,
-                        isRecentlyPlayedVideo = video == videosState.recentPlayedVideo,
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showMediaActionsFor = video
-                            }
+                if (videosState.data.isEmpty()) {
+                    item { NoVideosFound() }
+                } else {
+                    items(videosState.data, key = { it.path }) { video ->
+                        LaunchedEffect(Unit) {
+                            onVideoLoaded(Uri.parse(video.uriString))
+                        }
+                        VideoItem(
+                            video = video,
+                            preferences = preferences,
+                            isRecentlyPlayedVideo = video == videosState.recentPlayedVideo,
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showMediaActionsFor = video
+                                }
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
