@@ -19,4 +19,8 @@ object DispatchersModule {
     @Provides
     @Dispatcher(NextDispatchers.Default)
     fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+
+    @Provides
+    @Dispatcher(NextDispatchers.Main)
+    fun providesMainDispatcher(): CoroutineDispatcher = Dispatchers.Main
 }
