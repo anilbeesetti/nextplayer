@@ -52,7 +52,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.extensions.name
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
     onDismiss: () -> Unit,
-    updatePreferences: (ApplicationPreferences) -> Unit
+    updatePreferences: (ApplicationPreferences) -> Unit,
 ) {
     var preferences by remember { mutableStateOf(applicationPreferences) }
 
@@ -64,16 +64,16 @@ fun QuickSettingsDialog(
         content = {
             HorizontalDivider()
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState())
+                modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
                 DialogSectionTitle(text = stringResource(R.string.sort))
                 SortOptions(
                     selectedSortBy = preferences.sortBy,
-                    onOptionSelected = { preferences = preferences.copy(sortBy = it) }
+                    onOptionSelected = { preferences = preferences.copy(sortBy = it) },
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Sort.Order.entries.forEachIndexed { index, sortOrder ->
                         SegmentedButton(
@@ -82,15 +82,15 @@ fun QuickSettingsDialog(
                             shape = SegmentedButtonDefaults.itemShape(index = index, count = Sort.Order.entries.size),
                             colors = SegmentedButtonDefaults.colors(
                                 activeContentColor = MaterialTheme.colorScheme.primary,
-                                activeBorderColor = MaterialTheme.colorScheme.primary
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
                             ),
                             icon = {
                                 Icon(
                                     imageVector = if (sortOrder == Sort.Order.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
                                     contentDescription = stringResource(R.string.ascending),
-                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize),
                                 )
-                            }
+                            },
                         ) {
                             Text(text = sortOrder.name(sortBy = preferences.sortBy))
                         }
@@ -102,37 +102,37 @@ fun QuickSettingsDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(align = Alignment.Top),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     FieldChip(
                         label = stringResource(id = R.string.duration),
                         selected = preferences.showDurationField,
-                        onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) }
+                        onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.extension),
                         selected = preferences.showExtensionField,
-                        onClick = { preferences = preferences.copy(showExtensionField = !preferences.showExtensionField) }
+                        onClick = { preferences = preferences.copy(showExtensionField = !preferences.showExtensionField) },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.path),
                         selected = preferences.showPathField,
-                        onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) }
+                        onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.resolution),
                         selected = preferences.showResolutionField,
-                        onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) }
+                        onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.size),
                         selected = preferences.showSizeField,
-                        onClick = { preferences = preferences.copy(showSizeField = !preferences.showSizeField) }
+                        onClick = { preferences = preferences.copy(showSizeField = !preferences.showSizeField) },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.thumbnail),
                         selected = preferences.showThumbnailField,
-                        onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) }
+                        onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) },
                     )
                 }
                 HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
@@ -141,9 +141,9 @@ fun QuickSettingsDialog(
                     isChecked = preferences.groupVideosByFolder,
                     onClick = {
                         preferences = preferences.copy(
-                            groupVideosByFolder = !preferences.groupVideosByFolder
+                            groupVideosByFolder = !preferences.groupVideosByFolder,
                         )
-                    }
+                    },
                 )
             }
         },
@@ -152,12 +152,12 @@ fun QuickSettingsDialog(
                 onClick = {
                     updatePreferences(preferences)
                     onDismiss()
-                }
+                },
             )
         },
         dismissButton = {
             CancelButton(onClick = onDismiss)
-        }
+        },
     )
 }
 
@@ -168,7 +168,7 @@ fun FieldChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     selectedIcon: ImageVector = NextIcons.CheckBox,
-    unselectedIcon: ImageVector = NextIcons.CheckBoxOutline
+    unselectedIcon: ImageVector = NextIcons.CheckBoxOutline,
 ) {
     FilterChip(
         selected = selected,
@@ -179,16 +179,16 @@ fun FieldChip(
                 imageVector = if (selected) selectedIcon else unselectedIcon,
                 contentDescription = "",
                 modifier = Modifier.size(FilterChipDefaults.IconSize),
-                tint = MaterialTheme.colorScheme.secondary
+                tint = MaterialTheme.colorScheme.secondary,
             )
         },
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = selected,
             selectedBorderWidth = 1.dp,
-            selectedBorderColor = MaterialTheme.colorScheme.primary
+            selectedBorderColor = MaterialTheme.colorScheme.primary,
         ),
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -196,43 +196,43 @@ fun FieldChip(
 private fun SortOptions(
     selectedSortBy: Sort.By,
     onOptionSelected: (Sort.By) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
+            .horizontalScroll(rememberScrollState()),
     ) {
         TextIconToggleButton(
             text = stringResource(id = R.string.title),
             icon = NextIcons.Title,
             isSelected = selectedSortBy == Sort.By.TITLE,
-            onClick = { onOptionSelected(Sort.By.TITLE) }
+            onClick = { onOptionSelected(Sort.By.TITLE) },
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.duration),
             icon = NextIcons.Length,
             isSelected = selectedSortBy == Sort.By.LENGTH,
-            onClick = { onOptionSelected(Sort.By.LENGTH) }
+            onClick = { onOptionSelected(Sort.By.LENGTH) },
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.date),
             icon = NextIcons.Calendar,
             isSelected = selectedSortBy == Sort.By.DATE,
-            onClick = { onOptionSelected(Sort.By.DATE) }
+            onClick = { onOptionSelected(Sort.By.DATE) },
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.size),
             icon = NextIcons.Size,
             isSelected = selectedSortBy == Sort.By.SIZE,
-            onClick = { onOptionSelected(Sort.By.SIZE) }
+            onClick = { onOptionSelected(Sort.By.SIZE) },
         )
         TextIconToggleButton(
             text = stringResource(id = R.string.location),
             icon = NextIcons.Location,
             isSelected = selectedSortBy == Sort.By.PATH,
-            onClick = { onOptionSelected(Sort.By.PATH) }
+            onClick = { onOptionSelected(Sort.By.PATH) },
         )
     }
 }
@@ -242,7 +242,7 @@ private fun DialogSectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
     )
 }
 
@@ -252,7 +252,7 @@ fun DialogPreferenceSwitch(
     isChecked: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = modifier
@@ -260,22 +260,22 @@ fun DialogPreferenceSwitch(
             .toggleable(
                 value = isChecked,
                 enabled = enabled,
-                onValueChange = { onClick() }
+                onValueChange = { onClick() },
             )
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
             text = text,
             maxLines = 1,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
         NextSwitch(
             checked = isChecked,
             onCheckedChange = null,
             modifier = Modifier.padding(start = 20.dp),
-            enabled = enabled
+            enabled = enabled,
         )
     }
 }

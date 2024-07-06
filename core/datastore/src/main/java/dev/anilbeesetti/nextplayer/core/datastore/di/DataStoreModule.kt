@@ -32,12 +32,12 @@ object DataStoreModule {
     fun provideAppPreferencesDataStore(
         @ApplicationContext context: Context,
         @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
-        @ApplicationScope scope: CoroutineScope
+        @ApplicationScope scope: CoroutineScope,
     ): DataStore<ApplicationPreferences> {
         return DataStoreFactory.create(
             serializer = ApplicationPreferencesSerializer,
             scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
-            produceFile = { context.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) }
+            produceFile = { context.dataStoreFile(APP_PREFERENCES_DATASTORE_FILE) },
         )
     }
 
@@ -46,12 +46,12 @@ object DataStoreModule {
     fun providePlayerPreferencesDataStore(
         @ApplicationContext applicationContext: Context,
         @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
-        @ApplicationScope scope: CoroutineScope
+        @ApplicationScope scope: CoroutineScope,
     ): DataStore<PlayerPreferences> {
         return DataStoreFactory.create(
             serializer = PlayerPreferencesSerializer,
             scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
-            produceFile = { applicationContext.dataStoreFile(PLAYER_PREFERENCES_DATASTORE_FILE) }
+            produceFile = { applicationContext.dataStoreFile(PLAYER_PREFERENCES_DATASTORE_FILE) },
         )
     }
 }

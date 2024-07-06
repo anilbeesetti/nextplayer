@@ -28,27 +28,27 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
 fun PermissionDetailView(
-    text: String
+    text: String,
 ) {
     val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = stringResource(id = R.string.permission_not_granted),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 5.dp)
+            modifier = Modifier.padding(horizontal = 5.dp),
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 5.dp)
+            modifier = Modifier.padding(horizontal = 5.dp),
         )
         Spacer(modifier = Modifier.height(10.dp))
         Button(
@@ -57,7 +57,7 @@ fun PermissionDetailView(
                     data = Uri.parse("package:" + context.packageName)
                     context.startActivity(this)
                 }
-            }
+            },
         ) {
             Text(text = stringResource(R.string.open_settings))
         }
@@ -72,8 +72,8 @@ fun PermissionDetailViewPreview() {
             PermissionDetailView(
                 text = stringResource(
                     id = R.string.permission_settings,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                )
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                ),
             )
         }
     }

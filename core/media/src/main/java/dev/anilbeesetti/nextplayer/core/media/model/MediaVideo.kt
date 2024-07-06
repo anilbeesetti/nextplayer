@@ -10,5 +10,5 @@ data class MediaVideo(
     val height: Int,
     val data: String,
     val duration: Long,
-    val dateModified: Long
+    val dateModified: Long,
 )

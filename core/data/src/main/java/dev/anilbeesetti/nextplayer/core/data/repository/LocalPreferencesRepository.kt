@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 class LocalPreferencesRepository @Inject constructor(
     private val appPreferencesDataSource: AppPreferencesDataSource,
-    private val playerPreferencesDataSource: PlayerPreferencesDataSource
+    private val playerPreferencesDataSource: PlayerPreferencesDataSource,
 ) : PreferencesRepository {
     override val applicationPreferences: Flow<ApplicationPreferences>
         get() = appPreferencesDataSource.preferences
@@ -18,13 +18,13 @@ class LocalPreferencesRepository @Inject constructor(
         get() = playerPreferencesDataSource.preferences
 
     override suspend fun updateApplicationPreferences(
-        transform: suspend (ApplicationPreferences) -> ApplicationPreferences
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
     ) {
         appPreferencesDataSource.update(transform)
     }
 
     override suspend fun updatePlayerPreferences(
-        transform: suspend (PlayerPreferences) -> PlayerPreferences
+        transform: suspend (PlayerPreferences) -> PlayerPreferences,
     ) {
         playerPreferencesDataSource.update(transform)
     }

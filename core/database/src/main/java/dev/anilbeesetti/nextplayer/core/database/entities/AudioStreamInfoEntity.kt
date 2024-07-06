@@ -12,9 +12,9 @@ import androidx.room.ForeignKey
             entity = MediumEntity::class,
             parentColumns = arrayOf("uri"),
             childColumns = arrayOf("medium_uri"),
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
 )
 data class AudioStreamInfoEntity(
     @ColumnInfo(name = "stream_index") val index: Int,
@@ -27,5 +27,5 @@ data class AudioStreamInfoEntity(
     @ColumnInfo(name = "sample_rate") val sampleRate: Int,
     @ColumnInfo(name = "channels") val channels: Int,
     @ColumnInfo(name = "channel_layout") val channelLayout: String?,
-    @ColumnInfo(name = "medium_uri") val mediumUri: String
+    @ColumnInfo(name = "medium_uri") val mediumUri: String,
 )

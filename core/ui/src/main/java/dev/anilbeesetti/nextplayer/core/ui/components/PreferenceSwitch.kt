@@ -14,7 +14,7 @@ fun PreferenceSwitch(
     icon: ImageVector? = null,
     enabled: Boolean = true,
     isChecked: Boolean = true,
-    onClick: (() -> Unit) = {}
+    onClick: (() -> Unit) = {},
 ) {
     PreferenceItem(
         title = title,
@@ -23,16 +23,16 @@ fun PreferenceSwitch(
         modifier = Modifier.toggleable(
             value = isChecked,
             enabled = enabled,
-            onValueChange = { onClick() }
+            onValueChange = { onClick() },
         ),
         enabled = enabled,
         content = {
             NextSwitch(
                 checked = isChecked,
                 onCheckedChange = null,
-                enabled = enabled
+                enabled = enabled,
             )
-        }
+        },
     )
 }
 
@@ -43,6 +43,6 @@ fun PreferenceSwitchPreview() {
         title = "Title",
         description = "Description of the preference item goes here.",
         icon = NextIcons.DoubleTap,
-        onClick = {}
+        onClick = {},
     )
 }

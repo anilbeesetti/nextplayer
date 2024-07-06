@@ -22,7 +22,7 @@ data class Video(
     val lastPlayedAt: Date? = null,
     val videoStream: VideoStreamInfo? = null,
     val audioStreams: List<AudioStreamInfo> = emptyList(),
-    val subtitleStreams: List<SubtitleStreamInfo> = emptyList()
+    val subtitleStreams: List<SubtitleStreamInfo> = emptyList(),
 ) : Serializable {
 
     companion object {
@@ -38,7 +38,7 @@ data class Video(
             height = 1080,
             size = 1000,
             formattedDuration = "29.36",
-            formattedFileSize = "320KB"
+            formattedFileSize = "320KB",
         )
     }
 }

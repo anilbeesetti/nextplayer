@@ -134,7 +134,7 @@ val testVideoItems = listOf(
         nameWithExtension = "A.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/A.mp4",
-        size = 1000
+        size = 1000,
     ),
     Video(
         id = 2,
@@ -145,7 +145,7 @@ val testVideoItems = listOf(
         nameWithExtension = "B.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/B.mp4",
-        size = 2000
+        size = 2000,
     ),
     Video(
         id = 3,
@@ -156,7 +156,7 @@ val testVideoItems = listOf(
         nameWithExtension = "C.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/C.mp4",
-        size = 3000
+        size = 3000,
     ),
     Video(
         id = 4,
@@ -167,7 +167,7 @@ val testVideoItems = listOf(
         nameWithExtension = "D.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/D.mp4",
-        size = 4000
+        size = 4000,
     ),
     Video(
         id = 5,
@@ -178,7 +178,7 @@ val testVideoItems = listOf(
         nameWithExtension = "E.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/E.mp4",
-        size = 5000
+        size = 5000,
     ),
     Video(
         id = 6,
@@ -189,7 +189,7 @@ val testVideoItems = listOf(
         nameWithExtension = "F.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/F.mp4",
-        size = 6000
+        size = 6000,
     ),
     Video(
         id = 7,
@@ -200,7 +200,7 @@ val testVideoItems = listOf(
         nameWithExtension = "G.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/G.mp4",
-        size = 7000
+        size = 7000,
     ),
     Video(
         id = 8,
@@ -211,7 +211,7 @@ val testVideoItems = listOf(
         nameWithExtension = "H.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/H.mp4",
-        size = 8000
+        size = 8000,
     ),
     Video(
         id = 9,
@@ -222,7 +222,7 @@ val testVideoItems = listOf(
         nameWithExtension = "I.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/I.mp4",
-        size = 9000
+        size = 9000,
     ),
     Video(
         id = 10,
@@ -233,6 +233,6 @@ val testVideoItems = listOf(
         nameWithExtension = "J.mp4",
         width = 1080,
         path = "/storage/emulated/0/DCIM/Camera/J.mp4",
-        size = 10000
-    )
+        size = 10000,
+    ),
 )

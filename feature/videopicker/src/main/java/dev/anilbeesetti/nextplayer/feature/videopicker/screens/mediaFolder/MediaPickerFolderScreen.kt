@@ -35,7 +35,7 @@ import java.io.File
 fun MediaPickerFolderRoute(
     viewModel: MediaPickerFolderViewModel = hiltViewModel(),
     onVideoClick: (uri: Uri) -> Unit,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
@@ -50,7 +50,7 @@ fun MediaPickerFolderRoute(
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
-        onRenameVideoClick = viewModel::renameVideo
+        onRenameVideoClick = viewModel::renameVideo,
     )
 }
 
@@ -64,7 +64,7 @@ internal fun MediaPickerFolderScreen(
     onPlayVideo: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
-    onAddToSync: (Uri) -> Unit
+    onAddToSync: (Uri) -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
@@ -75,10 +75,10 @@ internal fun MediaPickerFolderScreen(
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -90,20 +90,20 @@ internal fun MediaPickerFolderScreen(
                     if (videoToPlay != null) {
                         onPlayVideo(Uri.parse(videoToPlay.uriString))
                     }
-                }
+                },
             ) {
                 Icon(
                     imageVector = NextIcons.Play,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
-        }
+        },
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             VideosView(
                 videosState = videosState,
@@ -111,7 +111,7 @@ internal fun MediaPickerFolderScreen(
                 onVideoClick = onPlayVideo,
                 onDeleteVideoClick = onDeleteVideoClick,
                 onVideoLoaded = onAddToSync,
-                onRenameVideoClick = onRenameVideoClick
+                onRenameVideoClick = onRenameVideoClick,
             )
         }
     }

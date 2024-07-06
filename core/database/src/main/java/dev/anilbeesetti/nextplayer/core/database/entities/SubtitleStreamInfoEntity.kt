@@ -12,9 +12,9 @@ import androidx.room.ForeignKey
             entity = MediumEntity::class,
             parentColumns = arrayOf("uri"),
             childColumns = arrayOf("medium_uri"),
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
 )
 data class SubtitleStreamInfoEntity(
     @ColumnInfo(name = "stream_index") val index: Int,
@@ -22,5 +22,5 @@ data class SubtitleStreamInfoEntity(
     @ColumnInfo(name = "codec_name") val codecName: String,
     @ColumnInfo(name = "language") val language: String?,
     @ColumnInfo(name = "disposition") val disposition: Int,
-    @ColumnInfo(name = "medium_uri") val mediumUri: String
+    @ColumnInfo(name = "medium_uri") val mediumUri: String,
 )

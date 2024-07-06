@@ -19,7 +19,7 @@ fun RadioTextButton(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -27,14 +27,14 @@ fun RadioTextButton(
             .selectable(
                 selected = selected,
                 onClick = onClick,
-                role = Role.RadioButton
+                role = Role.RadioButton,
             )
             .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
             selected = selected,
-            onClick = null
+            onClick = null,
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = text)

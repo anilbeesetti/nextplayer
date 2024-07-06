@@ -15,11 +15,11 @@ interface DataModule {
 
     @Binds
     fun bindsMediaRepository(
-        videoRepository: LocalMediaRepository
+        videoRepository: LocalMediaRepository,
     ): MediaRepository
 
     @Binds
     fun bindsPreferencesRepository(
-        preferencesRepository: LocalPreferencesRepository
+        preferencesRepository: LocalPreferencesRepository,
     ): PreferencesRepository
 }

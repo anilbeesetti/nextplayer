@@ -19,18 +19,18 @@ interface MediaModule {
     @Binds
     @Singleton
     fun bindsMediaSynchronizer(
-        mediaSynchronizer: LocalMediaSynchronizer
+        mediaSynchronizer: LocalMediaSynchronizer,
     ): MediaSynchronizer
 
     @Binds
     @Singleton
     fun bindsMediaInfoSynchronizer(
-        mediaInfoSynchronizer: LocalMediaInfoSynchronizer
+        mediaInfoSynchronizer: LocalMediaInfoSynchronizer,
     ): MediaInfoSynchronizer
 
     @Binds
     @Singleton
     fun bindMediaService(
-        mediaService: LocalMediaService
+        mediaService: LocalMediaService,
     ): MediaService
 }

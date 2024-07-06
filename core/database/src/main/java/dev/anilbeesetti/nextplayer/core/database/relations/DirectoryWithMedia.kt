@@ -9,7 +9,7 @@ data class DirectoryWithMedia(
     @Embedded val directory: DirectoryEntity,
     @Relation(
         parentColumn = "path",
-        entityColumn = "parent_path"
+        entityColumn = "parent_path",
     )
-    val media: List<MediumEntity>
+    val media: List<MediumEntity>,
 )

@@ -15,7 +15,7 @@ class TrackSelectionDialogFragment(
     private val type: @C.TrackType Int,
     private val tracks: Tracks,
     private val onTrackSelected: (trackIndex: Int) -> Unit,
-    private val onOpenLocalTrackClicked: () -> Unit = {}
+    private val onOpenLocalTrackClicked: () -> Unit = {},
 ) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         when (type) {
@@ -36,7 +36,7 @@ class TrackSelectionDialogFragment(
                         if (trackNames.isNotEmpty()) {
                             setSingleChoiceItems(
                                 arrayOf(*trackNames, getString(R.string.disable)),
-                                selectedTrackIndex
+                                selectedTrackIndex,
                             ) { dialog, trackIndex ->
                                 onTrackSelected(trackIndex.takeIf { it < trackNames.size } ?: -1)
                                 dialog.dismiss()
@@ -65,7 +65,7 @@ class TrackSelectionDialogFragment(
                         if (trackNames.isNotEmpty()) {
                             setSingleChoiceItems(
                                 arrayOf(*trackNames, getString(R.string.disable)),
-                                selectedTrackIndex
+                                selectedTrackIndex,
                             ) { dialog, trackIndex ->
                                 onTrackSelected(trackIndex.takeIf { it < trackNames.size } ?: -1)
                                 dialog.dismiss()
@@ -83,7 +83,7 @@ class TrackSelectionDialogFragment(
 
             else -> {
                 throw IllegalArgumentException(
-                    "Track type not supported. Track type must be either TRACK_TYPE_AUDIO or TRACK_TYPE_TEXT"
+                    "Track type not supported. Track type must be either TRACK_TYPE_AUDIO or TRACK_TYPE_TEXT",
                 )
             }
         }
