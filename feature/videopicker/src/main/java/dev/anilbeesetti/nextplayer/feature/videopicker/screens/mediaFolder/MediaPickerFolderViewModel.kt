@@ -29,7 +29,7 @@ class MediaPickerFolderViewModel @Inject constructor(
     private val mediaService: MediaService,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
-    private val mediaSynchronizer: MediaSynchronizer
+    private val mediaSynchronizer: MediaSynchronizer,
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
@@ -44,14 +44,14 @@ class MediaPickerFolderViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VideosState.Loading
+            initialValue = VideosState.Loading,
         )
 
     val preferences = preferencesRepository.applicationPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ApplicationPreferences()
+            initialValue = ApplicationPreferences(),
         )
 
     fun deleteVideos(uris: List<String>) {
@@ -82,5 +82,5 @@ class MediaPickerFolderViewModel @Inject constructor(
 }
 
 data class MediaPickerFolderUiState(
-    val refreshing: Boolean = false
+    val refreshing: Boolean = false,
 )

@@ -39,7 +39,7 @@ import dev.anilbeesetti.nextplayer.settings.extensions.name
 @Composable
 fun AppearancePreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: AppearancePreferencesViewModel = hiltViewModel()
+    viewModel: AppearancePreferencesViewModel = hiltViewModel(),
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,37 +56,37 @@ fun AppearancePreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
             DarkThemeSetting(
                 currentPreference = preferences.themeConfig,
                 onChecked = viewModel::toggleDarkTheme,
-                onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) }
+                onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) },
             )
             HighContrastDarkThemeSetting(
                 isChecked = preferences.useHighContrastDarkTheme,
-                onClick = viewModel::toggleUseHighContrastDarkTheme
+                onClick = viewModel::toggleUseHighContrastDarkTheme,
             )
             DynamicThemingSetting(
                 isChecked = preferences.useDynamicColors,
-                onClick = viewModel::toggleUseDynamicColors
+                onClick = viewModel::toggleUseDynamicColors,
             )
         }
 
@@ -95,7 +95,7 @@ fun AppearancePreferencesScreen(
                 AppearancePreferenceDialog.Theme -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.dark_theme),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(ThemeConfig.entries.toTypedArray()) {
                             RadioTextButton(
@@ -104,7 +104,7 @@ fun AppearancePreferencesScreen(
                                 onClick = {
                                     viewModel.updateThemeConfig(it)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -118,7 +118,7 @@ fun AppearancePreferencesScreen(
 fun DarkThemeSetting(
     currentPreference: ThemeConfig,
     onChecked: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitchWithDivider(
         title = stringResource(id = R.string.dark_theme),
@@ -126,28 +126,28 @@ fun DarkThemeSetting(
         isChecked = currentPreference == ThemeConfig.ON,
         onChecked = onChecked,
         icon = NextIcons.DarkMode,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun HighContrastDarkThemeSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(R.string.high_contrast_dark_theme),
         description = stringResource(R.string.high_contrast_dark_theme_desc),
         isChecked = isChecked,
         onClick = onClick,
-        icon = NextIcons.Contrast
+        icon = NextIcons.Contrast,
     )
 }
 
 @Composable
 fun DynamicThemingSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     if (supportsDynamicTheming()) {
         PreferenceSwitch(
@@ -155,7 +155,7 @@ fun DynamicThemingSetting(
             description = stringResource(id = R.string.dynamic_theme_description),
             isChecked = isChecked,
             onClick = onClick,
-            icon = NextIcons.Appearance
+            icon = NextIcons.Appearance,
         )
     }
 }

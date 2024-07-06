@@ -28,7 +28,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutPreferencesScreen(
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
 ) {
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val uriHandler = LocalUriHandler.current
@@ -43,16 +43,16 @@ fun AboutPreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         LibrariesContainer(
             contentPadding = innerPadding,
@@ -63,11 +63,11 @@ fun AboutPreferencesScreen(
                 backgroundColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 badgeBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                badgeContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                badgeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
             padding = LibraryDefaults.libraryPadding(
                 namePadding = PaddingValues(bottom = 4.dp),
-                badgeContentPadding = PaddingValues(4.dp)
+                badgeContentPadding = PaddingValues(4.dp),
             ),
             onLibraryClick = { library ->
                 library.website?.let {
@@ -75,7 +75,7 @@ fun AboutPreferencesScreen(
                         uriHandler.openUri(it)
                     }
                 }
-            }
+            },
         )
     }
 }

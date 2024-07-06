@@ -32,7 +32,7 @@ class MediaPickerViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
-    private val mediaSynchronizer: MediaSynchronizer
+    private val mediaSynchronizer: MediaSynchronizer,
 ) : ViewModel() {
 
     private val uiStateInternal = MutableStateFlow(MediaPickerUiState())
@@ -43,7 +43,7 @@ class MediaPickerViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VideosState.Loading
+            initialValue = VideosState.Loading,
         )
 
     val foldersState = getSortedFoldersUseCase.invoke()
@@ -51,14 +51,14 @@ class MediaPickerViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = FoldersState.Loading
+            initialValue = FoldersState.Loading,
         )
 
     val preferences = preferencesRepository.applicationPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ApplicationPreferences()
+            initialValue = ApplicationPreferences(),
         )
 
     fun updateMenu(applicationPreferences: ApplicationPreferences) {
@@ -106,5 +106,5 @@ class MediaPickerViewModel @Inject constructor(
 }
 
 data class MediaPickerUiState(
-    val refreshing: Boolean = false
+    val refreshing: Boolean = false,
 )

@@ -33,7 +33,7 @@ fun FolderItem(
     folder: Folder,
     isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     ListItemComponent(
         colors = ListItemDefaults.colors(
@@ -46,7 +46,7 @@ fun FolderItem(
                 MaterialTheme.colorScheme.primary
             } else {
                 ListItemDefaults.colors().supportingTextColor
-            }
+            },
         ),
         leadingContent = {
             Icon(
@@ -55,7 +55,7 @@ fun FolderItem(
                 tint = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
                     .width(min(100.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                    .aspectRatio(20 / 15f)
+                    .aspectRatio(20 / 15f),
             )
         },
         headlineContent = {
@@ -63,7 +63,7 @@ fun FolderItem(
                 text = folder.name,
                 maxLines = 2,
                 style = MaterialTheme.typography.titleMedium,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         },
         supportingContent = {
@@ -73,7 +73,7 @@ fun FolderItem(
                     maxLines = 2,
                     style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(vertical = 2.dp)
+                    modifier = Modifier.padding(vertical = 2.dp),
                 )
             }
             FlowRow(
@@ -81,18 +81,18 @@ fun FolderItem(
                     .fillMaxWidth()
                     .padding(vertical = 5.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
                 InfoChip(
                     text = "${folder.mediaCount} " +
-                        stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos)
+                        stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos),
                 )
                 if (preferences.showSizeField) {
                     InfoChip(text = folder.formattedMediaSize)
                 }
             }
         },
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -103,7 +103,7 @@ fun FolderItemRecentlyPlayedPreview() {
         FolderItem(
             folder = Folder.sample,
             preferences = ApplicationPreferences(),
-            isRecentlyPlayedFolder = true
+            isRecentlyPlayedFolder = true,
         )
     }
 }
@@ -115,7 +115,7 @@ fun FolderItemPreview() {
         FolderItem(
             folder = Folder.sample,
             preferences = ApplicationPreferences(),
-            isRecentlyPlayedFolder = false
+            isRecentlyPlayedFolder = false,
         )
     }
 }

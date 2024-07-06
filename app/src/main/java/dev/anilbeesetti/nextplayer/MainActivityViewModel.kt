@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     val uiState = preferencesRepository.applicationPreferences.map { preferences ->
@@ -20,7 +20,7 @@ class MainActivityViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = MainActivityUiState.Loading
+        initialValue = MainActivityUiState.Loading,
     )
 }
 

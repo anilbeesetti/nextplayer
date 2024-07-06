@@ -39,7 +39,7 @@ import java.io.File
 fun MediaPickerFolderRoute(
     viewModel: MediaPickerFolderViewModel = hiltViewModel(),
     onVideoClick: (uri: Uri) -> Unit,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
@@ -57,7 +57,7 @@ fun MediaPickerFolderRoute(
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
-        onRefreshClicked = viewModel::onRefreshClicked
+        onRefreshClicked = viewModel::onRefreshClicked,
     )
 }
 
@@ -73,7 +73,7 @@ internal fun MediaPickerFolderScreen(
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit,
-    onRefreshClicked: () -> Unit = {}
+    onRefreshClicked: () -> Unit = {},
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -100,10 +100,10 @@ internal fun MediaPickerFolderScreen(
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -115,21 +115,21 @@ internal fun MediaPickerFolderScreen(
                     if (videoToPlay != null) {
                         onPlayVideo(Uri.parse(videoToPlay.uriString))
                     }
-                }
+                },
             ) {
                 Icon(
                     imageVector = NextIcons.Play,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
-        }
+        },
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
                 .nestedScroll(pullToRefreshState.nestedScrollConnection),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             VideosView(
                 videosState = videosState,
@@ -137,12 +137,12 @@ internal fun MediaPickerFolderScreen(
                 onVideoClick = onPlayVideo,
                 onDeleteVideoClick = onDeleteVideoClick,
                 onVideoLoaded = onAddToSync,
-                onRenameVideoClick = onRenameVideoClick
+                onRenameVideoClick = onRenameVideoClick,
             )
 
             PullToRefreshContainer(
                 state = pullToRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
             )
         }
     }

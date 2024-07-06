@@ -13,5 +13,5 @@ fun AudioStreamInfoEntity.toAudioStreamInfo() = AudioStreamInfo(
     sampleFormat = sampleFormat,
     sampleRate = sampleRate,
     channels = channels,
-    channelLayout = channelLayout
+    channelLayout = channelLayout,
 )

@@ -16,13 +16,13 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SubtitlePreferencesViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = PlayerPreferences()
+        initialValue = PlayerPreferences(),
     )
 
     private val _uiState = MutableStateFlow(SubtitlePreferencesUIState())
@@ -98,7 +98,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
 }
 
 data class SubtitlePreferencesUIState(
-    val showDialog: SubtitlePreferenceDialog? = null
+    val showDialog: SubtitlePreferenceDialog? = null,
 )
 
 sealed interface SubtitlePreferenceDialog {

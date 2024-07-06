@@ -34,7 +34,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 @Composable
 fun FolderPreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: MediaLibraryPreferencesViewModel = hiltViewModel()
+    viewModel: MediaLibraryPreferencesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
@@ -50,35 +50,35 @@ fun FolderPreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             when (uiState) {
                 FolderPreferencesUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
                 is FolderPreferencesUiState.Success -> LazyColumn(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     items((uiState as FolderPreferencesUiState.Success).directories) { folder ->
                         SelectablePreference(
                             title = folder.name,
                             description = folder.path,
                             selected = folder.path in preferences.excludeFolders,
-                            onClick = { viewModel.updateExcludeList(folder.path) }
+                            onClick = { viewModel.updateExcludeList(folder.path) },
                         )
                     }
                 }

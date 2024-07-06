@@ -28,7 +28,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 @Composable
 fun SettingsScreen(
     onNavigateUp: () -> Unit,
-    onItemClick: (Setting) -> Unit
+    onItemClick: (Setting) -> Unit,
 ) {
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -42,65 +42,65 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             ClickablePreferenceItem(
                 title = stringResource(id = R.string.appearance_name),
                 description = stringResource(id = R.string.appearance_description),
                 icon = NextIcons.Appearance,
-                onClick = { onItemClick(Setting.APPEARANCE) }
+                onClick = { onItemClick(Setting.APPEARANCE) },
             )
             ClickablePreferenceItem(
                 title = stringResource(id = R.string.media_library),
                 description = stringResource(id = R.string.media_library_description),
                 icon = NextIcons.Movie,
-                onClick = { onItemClick(Setting.MEDIA_LIBRARY) }
+                onClick = { onItemClick(Setting.MEDIA_LIBRARY) },
             )
             ClickablePreferenceItem(
                 title = stringResource(id = R.string.player_name),
                 description = stringResource(id = R.string.player_description),
                 icon = NextIcons.Player,
-                onClick = { onItemClick(Setting.PLAYER) }
+                onClick = { onItemClick(Setting.PLAYER) },
             )
             ClickablePreferenceItem(
                 title = stringResource(R.string.decoder),
                 description = stringResource(R.string.decoder_desc),
                 icon = NextIcons.Decoder,
-                onClick = { onItemClick(Setting.DECODER) }
+                onClick = { onItemClick(Setting.DECODER) },
             )
             ClickablePreferenceItem(
                 title = stringResource(id = R.string.audio),
                 description = stringResource(R.string.audio_desc),
                 icon = NextIcons.Audio,
-                onClick = { onItemClick(Setting.AUDIO) }
+                onClick = { onItemClick(Setting.AUDIO) },
             )
             ClickablePreferenceItem(
                 title = stringResource(id = R.string.subtitle),
                 description = stringResource(R.string.subtitle_desc),
                 icon = NextIcons.Subtitle,
-                onClick = { onItemClick(Setting.SUBTITLE) }
+                onClick = { onItemClick(Setting.SUBTITLE) },
             )
             ClickablePreferenceItem(
                 title = stringResource(id = R.string.about_name),
                 description = stringResource(id = R.string.about_description),
                 icon = NextIcons.Info,
-                onClick = { onItemClick(Setting.ABOUT) }
+                onClick = { onItemClick(Setting.ABOUT) },
             )
         }
     }
@@ -113,5 +113,5 @@ enum class Setting {
     DECODER,
     AUDIO,
     SUBTITLE,
-    ABOUT
+    ABOUT,
 }

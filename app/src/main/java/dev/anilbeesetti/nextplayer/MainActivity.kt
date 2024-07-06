@@ -68,18 +68,18 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
         )
 
         setContent {
             NextPlayerTheme(
                 darkTheme = shouldUseDarkTheme(uiState = uiState),
                 highContrastDarkTheme = shouldUseHighContrastDarkTheme(uiState = uiState),
-                dynamicColor = shouldUseDynamicTheming(uiState = uiState)
+                dynamicColor = shouldUseDynamicTheming(uiState = uiState),
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface
+                    color = MaterialTheme.colorScheme.surface,
                 ) {
                     val storagePermissionState = rememberPermissionState(permission = storagePermission)
 
@@ -97,11 +97,11 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = mainNavController,
-                        startDestination = MEDIA_ROUTE
+                        startDestination = MEDIA_ROUTE,
                     ) {
                         mediaNavGraph(
                             context = this@MainActivity,
-                            navController = mainNavController
+                            navController = mainNavController,
                         )
                         settingsNavGraph(navController = mainNavController)
                     }
@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 private fun shouldUseDarkTheme(
-    uiState: MainActivityUiState
+    uiState: MainActivityUiState,
 ): Boolean = when (uiState) {
     MainActivityUiState.Loading -> isSystemInDarkTheme()
     is MainActivityUiState.Success -> when (uiState.preferences.themeConfig) {
@@ -129,7 +129,7 @@ private fun shouldUseDarkTheme(
 
 @Composable
 fun shouldUseHighContrastDarkTheme(
-    uiState: MainActivityUiState
+    uiState: MainActivityUiState,
 ): Boolean = when (uiState) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> uiState.preferences.useHighContrastDarkTheme
@@ -140,7 +140,7 @@ fun shouldUseHighContrastDarkTheme(
  */
 @Composable
 private fun shouldUseDynamicTheming(
-    uiState: MainActivityUiState
+    uiState: MainActivityUiState,
 ): Boolean = when (uiState) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> uiState.preferences.useDynamicColors

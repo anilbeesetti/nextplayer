@@ -25,7 +25,7 @@ fun ListItemComponent(
     supportingContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
-    colors: ListItemColors = ListItemDefaults.colors()
+    colors: ListItemColors = ListItemDefaults.colors(),
 ) {
     Row(
         modifier = modifier
@@ -34,21 +34,21 @@ fun ListItemComponent(
             .background(color = colors.containerColor)
             .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         leadingContent?.invoke()
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             CompositionLocalProvider(
                 LocalContentColor provides colors.headlineColor,
-                LocalTextStyle provides MaterialTheme.typography.bodyLarge
+                LocalTextStyle provides MaterialTheme.typography.bodyLarge,
             ) {
                 headlineContent.invoke()
             }
             CompositionLocalProvider(
                 LocalContentColor provides colors.supportingTextColor,
-                LocalTextStyle provides MaterialTheme.typography.bodyMedium
+                LocalTextStyle provides MaterialTheme.typography.bodyMedium,
             ) {
                 supportingContent?.invoke()
             }

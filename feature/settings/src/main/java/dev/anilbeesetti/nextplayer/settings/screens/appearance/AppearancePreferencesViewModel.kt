@@ -16,13 +16,13 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class AppearancePreferencesViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
     val preferencesFlow = preferencesRepository.applicationPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = ApplicationPreferences()
+            initialValue = ApplicationPreferences(),
         )
 
     private val _uiState = MutableStateFlow(AppearancePreferencesUiState())
@@ -40,7 +40,7 @@ class AppearancePreferencesViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(
-                    themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON
+                    themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON,
                 )
             }
         }
@@ -72,7 +72,7 @@ class AppearancePreferencesViewModel @Inject constructor(
 }
 
 data class AppearancePreferencesUiState(
-    val showDialog: AppearancePreferenceDialog? = null
+    val showDialog: AppearancePreferenceDialog? = null,
 )
 
 sealed interface AppearancePreferencesEvent {

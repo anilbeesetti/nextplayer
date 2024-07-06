@@ -28,7 +28,7 @@ import kotlinx.coroutines.withContext
 
 @Singleton
 class LocalMediaService @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) : MediaService {
 
     private val contentResolver = context.contentResolver
@@ -40,7 +40,7 @@ class LocalMediaService @Inject constructor(
     private fun launchWriteRequest(
         uris: List<Uri>,
         onResultCanceled: () -> Unit = {},
-        onResultOk: () -> Unit = {}
+        onResultOk: () -> Unit = {},
     ) {
         resultOkCallback = onResultOk
         resultCancelledCallback = onResultCanceled
@@ -53,7 +53,7 @@ class LocalMediaService @Inject constructor(
     private fun launchDeleteRequest(
         uris: List<Uri>,
         onResultCanceled: () -> Unit = {},
-        onResultOk: () -> Unit = {}
+        onResultOk: () -> Unit = {},
     ) {
         resultOkCallback = onResultOk
         resultCancelledCallback = onResultCanceled
@@ -64,7 +64,7 @@ class LocalMediaService @Inject constructor(
 
     override fun initialize(activity: ComponentActivity) {
         mediaRequestLauncher = activity.registerForActivityResult(
-            ActivityResultContracts.StartIntentSenderForResult()
+            ActivityResultContracts.StartIntentSenderForResult(),
         ) { result ->
             when (result.resultCode) {
                 Activity.RESULT_OK -> resultOkCallback()
@@ -94,7 +94,7 @@ class LocalMediaService @Inject constructor(
         launchDeleteRequest(
             uris = uris,
             onResultOk = { continuation.resume(true) },
-            onResultCanceled = { continuation.resume(false) }
+            onResultCanceled = { continuation.resume(false) },
         )
     }
 
@@ -115,12 +115,12 @@ class LocalMediaService @Inject constructor(
                         uri = uri,
                         contentValues = ContentValues().apply {
                             put(MediaStore.MediaColumns.DISPLAY_NAME, to)
-                        }
+                        },
                     )
                     continuation.resume(result)
                 }
             },
-            onResultCanceled = { continuation.resume(false) }
+            onResultCanceled = { continuation.resume(false) },
         )
         continuation.invokeOnCancellation { scope.cancel() }
     }
@@ -137,7 +137,7 @@ class LocalMediaService @Inject constructor(
                             put(MediaStore.Files.FileColumns.DISPLAY_NAME, to)
                             put(MediaStore.Files.FileColumns.TITLE, to)
                             put(MediaStore.Files.FileColumns.DATA, newFile.path)
-                        }
+                        },
                     )
                 }
             }

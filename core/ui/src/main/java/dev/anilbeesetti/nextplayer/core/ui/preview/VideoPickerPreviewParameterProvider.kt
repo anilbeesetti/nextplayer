@@ -16,7 +16,7 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "The Shawshank Redemption (1994) 720p BluRay x264",
                     width = 1280,
                     height = 720,
-                    size = 1000
+                    size = 1000,
                 ),
 
                 Video(
@@ -28,7 +28,7 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "The Godfather (1972) 1080p BluRay x264",
                     width = 1920,
                     height = 1080,
-                    size = 2000
+                    size = 2000,
                 ),
 
                 Video(
@@ -40,7 +40,7 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "The Dark Knight (2008) 2160p BluRay x264",
                     width = 3840,
                     height = 2160,
-                    size = 3000
+                    size = 3000,
                 ),
 
                 Video(
@@ -52,7 +52,7 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "The Godfather: Part II (1974) 720p BluRay x264",
                     width = 1280,
                     height = 720,
-                    size = 4000
+                    size = 4000,
                 ),
 
                 Video(
@@ -64,7 +64,7 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "The Lord of the Rings: The Fellowship of the Ring (2001) 1080p BluRay x264",
                     width = 1920,
                     height = 1080,
-                    size = 5000
+                    size = 5000,
                 ),
 
                 Video(
@@ -76,7 +76,7 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "The Lord of the Rings: The Two Towers (2002) 1080p BluRay x264",
                     width = 1920,
                     height = 1080,
-                    size = 6000
+                    size = 6000,
                 ),
 
                 Video(
@@ -88,7 +88,7 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "The Lord of the Rings: The Return of the King (2003) 1080p BluRay x264",
                     width = 1920,
                     height = 1080,
-                    size = 7000
+                    size = 7000,
                 ),
                 Video(
                     id = 8,
@@ -99,8 +99,8 @@ class VideoPickerPreviewParameterProvider : PreviewParameterProvider<List<Video>
                     displayName = "Star Wars: Episode IV - A New Hope (1977) 2160p BluRay x264",
                     width = 3840,
                     height = 2160,
-                    size = 8000
-                )
-            )
+                    size = 8000,
+                ),
+            ),
         )
 }

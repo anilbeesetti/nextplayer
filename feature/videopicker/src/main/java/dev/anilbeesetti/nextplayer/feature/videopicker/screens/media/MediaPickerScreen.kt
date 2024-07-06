@@ -87,7 +87,7 @@ fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
     onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
-    viewModel: MediaPickerViewModel = hiltViewModel()
+    viewModel: MediaPickerViewModel = hiltViewModel(),
 ) {
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
@@ -110,7 +110,7 @@ fun MediaPickerRoute(
         onDeleteFolderClick = { viewModel.deleteFolders(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
-        onRefreshClicked = viewModel::onRefreshClicked
+        onRefreshClicked = viewModel::onRefreshClicked,
     )
 }
 
@@ -130,13 +130,13 @@ internal fun MediaPickerScreen(
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {},
-    onRefreshClicked: () -> Unit = {}
+    onRefreshClicked: () -> Unit = {},
 ) {
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { it?.let(onPlayVideo) }
+        onResult = { it?.let(onPlayVideo) },
     )
 
     val pullToRefreshState = rememberPullToRefreshState()
@@ -164,7 +164,7 @@ internal fun MediaPickerScreen(
                     IconButton(onClick = onSettingsClick) {
                         Icon(
                             imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(id = R.string.settings)
+                            contentDescription = stringResource(id = R.string.settings),
                         )
                     }
                 },
@@ -172,10 +172,10 @@ internal fun MediaPickerScreen(
                     IconButton(onClick = { showQuickSettingsDialog = true }) {
                         Icon(
                             imageVector = NextIcons.DashBoard,
-                            contentDescription = stringResource(id = R.string.menu)
+                            contentDescription = stringResource(id = R.string.menu),
                         )
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -193,39 +193,39 @@ internal fun MediaPickerScreen(
                     if (videoToPlay != null) {
                         onPlayVideo(Uri.parse(videoToPlay.uriString))
                     }
-                }
+                },
             ) {
                 Icon(
                     imageVector = NextIcons.Play,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
-        }
+        },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .padding(paddingValues)
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                .nestedScroll(pullToRefreshState.nestedScrollConnection),
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     item {
                         ShortcutChipButton(
                             text = stringResource(id = R.string.open_local_video),
                             icon = NextIcons.FileOpen,
-                            onClick = { selectVideoFileLauncher.launch("video/*") }
+                            onClick = { selectVideoFileLauncher.launch("video/*") },
                         )
                     }
                     item {
                         ShortcutChipButton(
                             text = stringResource(id = R.string.open_network_stream),
                             icon = NextIcons.Link,
-                            onClick = { showUrlDialog = true }
+                            onClick = { showUrlDialog = true },
                         )
                     }
                 }
@@ -233,14 +233,14 @@ internal fun MediaPickerScreen(
                     isGranted = permissionState.status.isGranted,
                     showRationale = permissionState.status.shouldShowRationale,
                     permission = permissionState.permission,
-                    launchPermissionRequest = { permissionState.launchPermissionRequest() }
+                    launchPermissionRequest = { permissionState.launchPermissionRequest() },
                 ) {
                     if (preferences.groupVideosByFolder) {
                         FoldersView(
                             foldersState = foldersState,
                             preferences = preferences,
                             onFolderClick = onFolderClick,
-                            onDeleteFolderClick = onDeleteFolderClick
+                            onDeleteFolderClick = onDeleteFolderClick,
                         )
                     } else {
                         VideosView(
@@ -249,7 +249,7 @@ internal fun MediaPickerScreen(
                             preferences = preferences,
                             onDeleteVideoClick = onDeleteVideoClick,
                             onVideoLoaded = onAddToSync,
-                            onRenameVideoClick = onRenameVideoClick
+                            onRenameVideoClick = onRenameVideoClick,
                         )
                     }
                 }
@@ -257,7 +257,7 @@ internal fun MediaPickerScreen(
 
             PullToRefreshContainer(
                 state = pullToRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
             )
         }
     }
@@ -266,14 +266,14 @@ internal fun MediaPickerScreen(
         QuickSettingsDialog(
             applicationPreferences = preferences,
             onDismiss = { showQuickSettingsDialog = false },
-            updatePreferences = updatePreferences
+            updatePreferences = updatePreferences,
         )
     }
 
     if (showUrlDialog) {
         NetworkUrlDialog(
             onDismiss = { showUrlDialog = false },
-            onDone = { onPlayVideo(Uri.parse(it)) }
+            onDone = { onPlayVideo(Uri.parse(it)) },
         )
     }
 }
@@ -283,7 +283,7 @@ fun ShortcutChipButton(
     text: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -292,14 +292,14 @@ fun ShortcutChipButton(
             .clip(CircleShape)
             .clickable { onClick() }
             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
 
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.secondary
+            tint = MaterialTheme.colorScheme.secondary,
         )
         Text(text = text, style = MaterialTheme.typography.labelLarge)
     }
@@ -308,7 +308,7 @@ fun ShortcutChipButton(
 @Composable
 fun NetworkUrlDialog(
     onDismiss: () -> Unit,
-    onDone: (String) -> Unit
+    onDone: (String) -> Unit,
 ) {
     var url by rememberSaveable { mutableStateOf("") }
     NextDialog(
@@ -321,16 +321,16 @@ fun NetworkUrlDialog(
                 value = url,
                 onValueChange = { url = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(R.string.example_url)) }
+                placeholder = { Text(text = stringResource(R.string.example_url)) },
             )
         },
         confirmButton = {
             DoneButton(
                 enabled = url.isNotBlank(),
-                onClick = { onDone(url) }
+                onClick = { onDone(url) },
             )
         },
-        dismissButton = { CancelButton(onClick = onDismiss) }
+        dismissButton = { CancelButton(onClick = onDismiss) },
     )
 }
 
@@ -338,20 +338,20 @@ fun NetworkUrlDialog(
 @Composable
 fun MediaPickerScreenPreview(
     @PreviewParameter(VideoPickerPreviewParameterProvider::class)
-    videos: List<Video>
+    videos: List<Video>,
 ) {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
                 videosState = VideosState.Success(
-                    data = videos
+                    data = videos,
                 ),
                 foldersState = FoldersState.Loading,
                 preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {}
+                onDeleteFolderClick = {},
             )
         }
     }
@@ -364,7 +364,7 @@ fun ButtonPreview() {
         TextIconToggleButton(
             text = "Title",
             icon = NextIcons.Title,
-            onClick = {}
+            onClick = {},
         )
     }
 }
@@ -377,13 +377,13 @@ fun MediaPickerNoVideosFoundPreview() {
             MediaPickerScreen(
                 videosState = VideosState.Loading,
                 foldersState = FoldersState.Success(
-                    data = emptyList()
+                    data = emptyList(),
                 ),
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {}
+                onDeleteFolderClick = {},
             )
         }
     }
@@ -401,7 +401,7 @@ fun MediaPickerLoadingPreview() {
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
-                onDeleteFolderClick = {}
+                onDeleteFolderClick = {},
             )
         }
     }

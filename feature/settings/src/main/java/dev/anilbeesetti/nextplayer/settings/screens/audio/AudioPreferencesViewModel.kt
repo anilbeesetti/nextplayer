@@ -15,13 +15,13 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class AudioPreferencesViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = PlayerPreferences()
+        initialValue = PlayerPreferences(),
     )
 
     private val _uiState = MutableStateFlow(AudioPreferencesUIState())
@@ -77,7 +77,7 @@ class AudioPreferencesViewModel @Inject constructor(
 }
 
 data class AudioPreferencesUIState(
-    val showDialog: AudioPreferenceDialog? = null
+    val showDialog: AudioPreferenceDialog? = null,
 )
 
 sealed interface AudioPreferenceDialog {

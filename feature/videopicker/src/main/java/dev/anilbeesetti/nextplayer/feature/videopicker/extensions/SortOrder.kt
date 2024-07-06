@@ -9,7 +9,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 fun Sort.Order.name(sortBy: Sort.By): String {
     val stringRes = when (sortBy) {
         Sort.By.TITLE,
-        Sort.By.PATH -> when (this) {
+        Sort.By.PATH,
+        -> when (this) {
             Sort.Order.ASCENDING -> R.string.a_z
             Sort.Order.DESCENDING -> R.string.z_a
         }

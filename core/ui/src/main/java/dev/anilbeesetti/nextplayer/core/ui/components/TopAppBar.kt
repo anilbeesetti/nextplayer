@@ -27,20 +27,20 @@ fun NextCenterAlignedTopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(),
-    scrollBehavior: TopAppBarScrollBehavior? = null
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     CenterAlignedTopAppBar(
         title = {
             Text(
                 text = title,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         },
         navigationIcon = navigationIcon,
         actions = actions,
         colors = colors,
         modifier = modifier,
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
     )
 }
 
@@ -52,21 +52,21 @@ fun NextTopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
-    scrollBehavior: TopAppBarScrollBehavior? = null
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
         title = {
             Text(
                 text = title,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         },
         navigationIcon = navigationIcon,
         actions = actions,
         colors = colors,
         modifier = modifier,
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
     )
 }
 
@@ -80,7 +80,7 @@ private fun NextPlayerMainTopAppBarPreview() {
             IconButton(onClick = {}) {
                 Icon(
                     imageVector = Icons.Rounded.Settings,
-                    contentDescription = "Settings"
+                    contentDescription = "Settings",
                 )
             }
         },
@@ -88,9 +88,9 @@ private fun NextPlayerMainTopAppBarPreview() {
             IconButton(onClick = {}) {
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,
-                    contentDescription = "More"
+                    contentDescription = "More",
                 )
             }
-        }
+        },
     )
 }

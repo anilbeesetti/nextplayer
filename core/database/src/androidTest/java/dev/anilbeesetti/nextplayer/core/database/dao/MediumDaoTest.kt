@@ -21,7 +21,7 @@ class MediumDaoTest {
 
         db = Room.inMemoryDatabaseBuilder(
             context,
-            MediaDatabase::class.java
+            MediaDatabase::class.java,
         ).build()
         mediumDao = db.mediumDao()
     }
@@ -127,7 +127,7 @@ val medium1 = MediumEntity(
     audioTrackIndex = 1,
     subtitleTrackIndex = null,
     playbackSpeed = 1f,
-    mediaStoreId = 1234
+    mediaStoreId = 1234,
 )
 
 val medium2 = MediumEntity(
@@ -144,7 +144,7 @@ val medium2 = MediumEntity(
     audioTrackIndex = null,
     subtitleTrackIndex = null,
     playbackSpeed = 1f,
-    mediaStoreId = 5678
+    mediaStoreId = 5678,
 )
 
 val medium3 = MediumEntity(
@@ -161,7 +161,7 @@ val medium3 = MediumEntity(
     audioTrackIndex = 0,
     subtitleTrackIndex = null,
     playbackSpeed = 1f,
-    mediaStoreId = 7890
+    mediaStoreId = 7890,
 )
 
 val medium4 = MediumEntity(
@@ -178,7 +178,7 @@ val medium4 = MediumEntity(
     audioTrackIndex = null,
     subtitleTrackIndex = null,
     playbackSpeed = 1f,
-    mediaStoreId = 2468
+    mediaStoreId = 2468,
 )
 
 private val sampleData = listOf(medium1, medium2, medium3, medium4)

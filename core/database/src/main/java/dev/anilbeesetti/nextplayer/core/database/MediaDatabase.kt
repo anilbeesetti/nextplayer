@@ -19,7 +19,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         MediumEntity::class,
         VideoStreamInfoEntity::class,
         AudioStreamInfoEntity::class,
-        SubtitleStreamInfoEntity::class
+        SubtitleStreamInfoEntity::class,
     ],
     version = 9,
     exportSchema = true,
@@ -27,8 +27,8 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 5, to = 6),
-        AutoMigration(from = 6, to = 7)
-    ]
+        AutoMigration(from = 6, to = 7),
+    ],
 )
 abstract class MediaDatabase : RoomDatabase() {
 

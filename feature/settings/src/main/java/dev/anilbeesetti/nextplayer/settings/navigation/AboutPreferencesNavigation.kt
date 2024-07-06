@@ -16,7 +16,7 @@ fun NavController.navigateToAboutPreferences(navOptions: NavOptions? = navOption
 fun NavGraphBuilder.aboutPreferencesScreen(onNavigateUp: () -> Unit) {
     animatedComposable(route = aboutPreferencesNavigationRoute) {
         AboutPreferencesScreen(
-            onNavigateUp = onNavigateUp
+            onNavigateUp = onNavigateUp,
         )
     }
 }

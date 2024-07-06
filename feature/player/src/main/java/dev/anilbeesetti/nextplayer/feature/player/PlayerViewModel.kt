@@ -26,7 +26,7 @@ private const val END_POSITION_OFFSET = 5L
 class PlayerViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase
+    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
 ) : ViewModel() {
 
     var currentPlaybackPosition: Long? = null
@@ -41,13 +41,13 @@ class PlayerViewModel @Inject constructor(
     val playerPrefs = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = runBlocking { preferencesRepository.playerPreferences.first() }
+        initialValue = runBlocking { preferencesRepository.playerPreferences.first() },
     )
 
     val appPrefs = preferencesRepository.applicationPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = runBlocking { preferencesRepository.applicationPreferences.first() }
+        initialValue = runBlocking { preferencesRepository.applicationPreferences.first() },
     )
 
     suspend fun updateState(uri: String?) {
@@ -73,7 +73,7 @@ class PlayerViewModel @Inject constructor(
         duration: Long,
         audioTrackIndex: Int,
         subtitleTrackIndex: Int,
-        playbackSpeed: Float
+        playbackSpeed: Float,
     ) {
         currentPlaybackPosition = position
         currentAudioTrackIndex = audioTrackIndex
@@ -93,7 +93,7 @@ class PlayerViewModel @Inject constructor(
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed,
-                externalSubs = externalSubtitles.toList()
+                externalSubs = externalSubtitles.toList(),
             )
         }
     }

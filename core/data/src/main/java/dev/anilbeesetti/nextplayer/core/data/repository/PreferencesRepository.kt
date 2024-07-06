@@ -17,7 +17,7 @@ interface PreferencesRepository {
     val playerPreferences: Flow<PlayerPreferences>
 
     suspend fun updateApplicationPreferences(
-        transform: suspend (ApplicationPreferences) -> ApplicationPreferences
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
     )
 
     suspend fun updatePlayerPreferences(transform: suspend (PlayerPreferences) -> PlayerPreferences)

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class MediaLibraryPreferencesViewModel @Inject constructor(
     mediaRepository: MediaRepository,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     val uiState = mediaRepository.getFoldersFlow()
@@ -24,14 +24,14 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = FolderPreferencesUiState.Loading
+            initialValue = FolderPreferencesUiState.Loading,
         )
 
     val preferences = preferencesRepository.applicationPreferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ApplicationPreferences()
+            initialValue = ApplicationPreferences(),
         )
 
     fun updateExcludeList(path: String) {
@@ -42,7 +42,7 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
                         it.excludeFolders - path
                     } else {
                         it.excludeFolders + path
-                    }
+                    },
                 )
             }
         }

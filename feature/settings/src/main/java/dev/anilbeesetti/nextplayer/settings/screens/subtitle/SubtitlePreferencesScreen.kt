@@ -58,7 +58,7 @@ import java.nio.charset.Charset
 @Composable
 fun SubtitlePreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: SubtitlePreferencesViewModel = hiltViewModel()
+    viewModel: SubtitlePreferencesViewModel = hiltViewModel(),
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,62 +78,62 @@ fun SubtitlePreferencesScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             PreferredSubtitleLanguageSetting(
                 currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredSubtitleLanguage),
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) }
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) },
             )
             SubtitleTextEncodingPreference(
                 currentEncoding = charsetResource.first { it.contains(preferences.subtitleTextEncoding) },
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) }
+                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) },
             )
             PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
             UseSystemCaptionStyle(
                 isChecked = preferences.useSystemCaptionStyle,
                 onChecked = viewModel::toggleUseSystemCaptionStyle,
-                onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) }
+                onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) },
             )
             SubtitleFontPreference(
                 currentFont = preferences.subtitleFont,
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) },
-                enabled = preferences.useSystemCaptionStyle.not()
+                enabled = preferences.useSystemCaptionStyle.not(),
             )
             SubtitleTextBoldPreference(
                 isChecked = preferences.subtitleTextBold,
                 onClick = viewModel::toggleSubtitleTextBold,
-                enabled = preferences.useSystemCaptionStyle.not()
+                enabled = preferences.useSystemCaptionStyle.not(),
             )
             SubtitleTextSizePreference(
                 currentSize = preferences.subtitleTextSize,
                 onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) },
-                enabled = preferences.useSystemCaptionStyle.not()
+                enabled = preferences.useSystemCaptionStyle.not(),
             )
             SubtitleBackgroundPreference(
                 isChecked = preferences.subtitleBackground,
                 onClick = viewModel::toggleSubtitleBackground,
-                enabled = preferences.useSystemCaptionStyle.not()
+                enabled = preferences.useSystemCaptionStyle.not(),
             )
             SubtitleEmbeddedStylesPreference(
                 isChecked = preferences.applyEmbeddedStyles,
-                onClick = viewModel::toggleApplyEmbeddedStyles
+                onClick = viewModel::toggleApplyEmbeddedStyles,
             )
         }
 
@@ -142,7 +142,7 @@ fun SubtitlePreferencesScreen(
                 SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_subtitle_lang),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(languages) {
                             RadioTextButton(
@@ -151,7 +151,7 @@ fun SubtitlePreferencesScreen(
                                 onClick = {
                                     viewModel.updateSubtitleLanguage(it.second)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -160,7 +160,7 @@ fun SubtitlePreferencesScreen(
                 SubtitlePreferenceDialog.SubtitleFontDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.subtitle_font),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(Font.entries.toTypedArray()) {
                             RadioTextButton(
@@ -169,7 +169,7 @@ fun SubtitlePreferencesScreen(
                                 onClick = {
                                     viewModel.updateSubtitleFont(it)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -189,12 +189,12 @@ fun SubtitlePreferencesScreen(
                                     .padding(vertical = 20.dp),
                                 textAlign = TextAlign.Center,
                                 fontSize = size.sp,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                             Slider(
                                 value = size.toFloat(),
                                 onValueChange = { size = it.toInt() },
-                                valueRange = 15f..60f
+                                valueRange = 15f..60f,
                             )
                         },
                         confirmButton = {
@@ -203,14 +203,14 @@ fun SubtitlePreferencesScreen(
                                 viewModel.hideDialog()
                             })
                         },
-                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) }
+                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) },
                     )
                 }
 
                 SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.subtitle_text_encoding),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(charsetResource) {
                             val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
@@ -221,7 +221,7 @@ fun SubtitlePreferencesScreen(
                                     onClick = {
                                         viewModel.updateSubtitleEncoding(currentCharset)
                                         viewModel.hideDialog()
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -235,28 +235,28 @@ fun SubtitlePreferencesScreen(
 @Composable
 fun PreferredSubtitleLanguageSetting(
     currentLanguage: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.preferred_subtitle_lang),
         description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
-            id = R.string.preferred_subtitle_lang_description
+            id = R.string.preferred_subtitle_lang_description,
         ),
         icon = NextIcons.Language,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun SubtitleTextEncodingPreference(
     currentEncoding: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(R.string.subtitle_text_encoding),
         description = currentEncoding,
         icon = NextIcons.Subtitle,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -264,7 +264,7 @@ fun SubtitleTextEncodingPreference(
 fun UseSystemCaptionStyle(
     isChecked: Boolean,
     onChecked: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitchWithDivider(
         title = stringResource(R.string.system_caption_style),
@@ -272,7 +272,7 @@ fun UseSystemCaptionStyle(
         isChecked = isChecked,
         onChecked = onChecked,
         icon = NextIcons.Caption,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -280,14 +280,14 @@ fun UseSystemCaptionStyle(
 fun SubtitleFontPreference(
     currentFont: Font,
     onClick: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_font),
         description = currentFont.name(),
         icon = NextIcons.Font,
         onClick = onClick,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
@@ -295,7 +295,7 @@ fun SubtitleFontPreference(
 fun SubtitleTextBoldPreference(
     isChecked: Boolean,
     onClick: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_text_bold),
@@ -303,7 +303,7 @@ fun SubtitleTextBoldPreference(
         icon = NextIcons.Bold,
         isChecked = isChecked,
         onClick = onClick,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
@@ -311,14 +311,14 @@ fun SubtitleTextBoldPreference(
 fun SubtitleTextSizePreference(
     currentSize: Int,
     onClick: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.subtitle_text_size),
         description = currentSize.toString(),
         icon = NextIcons.FontSize,
         onClick = onClick,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
@@ -326,7 +326,7 @@ fun SubtitleTextSizePreference(
 fun SubtitleBackgroundPreference(
     isChecked: Boolean,
     onClick: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.subtitle_background),
@@ -334,20 +334,20 @@ fun SubtitleBackgroundPreference(
         icon = NextIcons.Background,
         isChecked = isChecked,
         onClick = onClick,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
 @Composable
 fun SubtitleEmbeddedStylesPreference(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(R.string.embedded_styles),
         description = stringResource(R.string.embedded_styles_desc),
         icon = NextIcons.Style,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }

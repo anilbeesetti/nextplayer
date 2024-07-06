@@ -4,19 +4,19 @@ import kotlin.comparisons.reversed as kotlinReversed
 
 data class Sort(
     val by: By,
-    val order: Order
+    val order: Order,
 ) {
     enum class By {
         TITLE,
         LENGTH,
         PATH,
         SIZE,
-        DATE
+        DATE,
     }
 
     enum class Order {
         ASCENDING,
-        DESCENDING
+        DESCENDING,
     }
 
     private val stringComparator = Comparator<String> { str1, str2 ->

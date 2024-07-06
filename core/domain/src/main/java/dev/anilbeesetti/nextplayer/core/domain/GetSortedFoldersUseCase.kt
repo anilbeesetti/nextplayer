@@ -15,13 +15,13 @@ import kotlinx.coroutines.flow.flowOn
 class GetSortedFoldersUseCase @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher
+    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(): Flow<List<Folder>> {
         return combine(
             mediaRepository.getFoldersFlow(),
-            preferencesRepository.applicationPreferences
+            preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
 
             val nonExcludedDirectories = folders.filterNot {

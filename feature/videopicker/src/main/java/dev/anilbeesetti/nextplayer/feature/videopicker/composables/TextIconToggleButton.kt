@@ -30,7 +30,7 @@ fun TextIconToggleButton(
     isSelected: Boolean = false,
     interactionSource: MutableInteractionSource = MutableInteractionSource(),
     indication: Indication? = null,
-    onClick: (Boolean) -> Unit = {}
+    onClick: (Boolean) -> Unit = {},
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -40,21 +40,21 @@ fun TextIconToggleButton(
             .clickable(
                 interactionSource = interactionSource,
                 indication = indication,
-                onClick = { onClick(!isSelected) }
+                onClick = { onClick(!isSelected) },
             )
-            .padding(10.dp)
+            .padding(10.dp),
 
     ) {
         FilledIconToggleButton(
             checked = isSelected,
             onCheckedChange = onClick,
-            interactionSource = interactionSource
+            interactionSource = interactionSource,
         ) {
             Icon(imageVector = icon, contentDescription = text)
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }
@@ -66,7 +66,7 @@ fun TextIconToggleButtonPreview() {
         Surface {
             TextIconToggleButton(
                 text = "Text",
-                icon = Icons.Rounded.Search
+                icon = Icons.Rounded.Search,
             )
         }
     }
