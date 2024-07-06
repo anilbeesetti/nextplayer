@@ -197,4 +197,5 @@
     <string name="floating_play_button">Αιωρούμενο κουμπί</string>
     <string name="floating_play_button_desc">Εμφάνιση κουμπιού αναπαραγωγής πρόσφατου βίντεο.</string>
     <string name="mark_last_played_media_desc">Επισήμανση τελευταίας αναπαραγωγής σε κάθε φάκελο</string>
+    <string name="skip_silence">Παράκαμψη σίγασης</string>
 </resources>
