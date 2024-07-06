@@ -197,4 +197,5 @@
     <string name="system_volume_panel_desc">Wyświetla panel głośności systemu podczas regulacji głośności z włączonym zestawem słuchawkowym</string>
     <string name="no_subtitle_tracks_found">Napisy dla tego wideo są niedostępne lub nie są obsługiwane.</string>
     <string name="no_audio_tracks_found">Ścieżki dźwiękowe dla tego wideo są niedostępne lub nie są obsługiwane.</string>
+    <string name="skip_silence">Pomijaj ciszę</string>
 </resources>
