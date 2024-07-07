@@ -32,7 +32,7 @@ ktlint = "12.1.0"
 nextlib = "0.7.1"
 room = "2.6.1"
 timber = "5.0.1"
-universalChardet = "2.4.0"
+universalChardet = "2.5.0"
 
 
 [libraries]
