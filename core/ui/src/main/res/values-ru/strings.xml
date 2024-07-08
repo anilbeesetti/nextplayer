@@ -197,4 +197,5 @@
     <string name="floating_play_button_desc">Показать плавающую кнопку для продолжения воспроизведения.</string>
     <string name="open_local_video">Открыть локальное видео</string>
     <string name="mark_last_played_media_desc">Отмечать последнее просмотренное видео на домашнем экране и в папке</string>
+    <string name="skip_silence">Пропуск тишины</string>
 </resources>
