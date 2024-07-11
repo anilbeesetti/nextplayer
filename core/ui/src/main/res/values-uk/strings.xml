@@ -197,4 +197,5 @@
     <string name="exit">Вихід</string>
     <string name="open_network_stream">Відкрити мережеву трансляцію</string>
     <string name="play_next_video">Відтворити наступне відео</string>
+    <string name="skip_silence">Пропустити тишу</string>
 </resources>
