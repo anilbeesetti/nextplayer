@@ -12,6 +12,13 @@ fun File.getSubtitles(): List<File> {
     return subs
 }
 
+fun File.getAllSubtitlesInFolder(forFile: File): List<File> {
+    if (!this.isDirectory) return emptyList()
+    return listFiles { file ->
+        file.nameWithoutExtension.startsWith(forFile.nameWithoutExtension) && file.isSubtitle()
+    }?.toList() ?: emptyList()
+}
+
 fun String.getThumbnail(): File? {
     val filePathWithoutExtension = this.substringBeforeLast(".")
     val imageExtensions = listOf("png", "jpg", "jpeg")

@@ -199,4 +199,14 @@
     <string name="open_network_stream">Open network stream</string>
     <string name="exit">Exit</string>
     <string name="play_next_video">Play next video</string>
+    <string name="download">Download</string>
+    <string name="get_subtitles_online">Get subtitles online</string>
+    <string name="error">Error</string>
+    <string name="unknown_error_try_again">An unknown error has occurred. Please try again</string>
+    <string name="ok">OK</string>
+    <string name="loading">Loading...</string>
+    <string name="searching_subtitles">Searching for subtitles...</string>
+    <string name="subtitle_downloaded">Subtitle downloaded successfully</string>
+    <string name="error_downloading_subtitle">Error downloading subtitle. Try again</string>
+    <string name="downloading_subtitle">Downloading subtitles...</string>
 </resources>

@@ -1,3 +1,4 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     repositories {
         google()
@@ -44,3 +45,4 @@ include(":core:ui")
 include(":feature:player")
 include(":feature:settings")
 include(":feature:videopicker")
+include(":core:remotesubs")

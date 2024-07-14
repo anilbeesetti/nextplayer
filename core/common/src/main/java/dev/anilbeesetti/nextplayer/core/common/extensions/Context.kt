@@ -21,6 +21,7 @@ import android.util.TypedValue
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.core.content.ContextCompat
 import androidx.core.text.isDigitsOnly
 import java.io.BufferedInputStream
 import java.io.BufferedReader
@@ -31,8 +32,10 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.mozilla.universalchardet.UniversalDetector
+import kotlin.coroutines.resume
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -405,5 +408,27 @@ suspend fun ContentResolver.deleteMedia(
     } catch (e: Exception) {
         e.printStackTrace()
         false
+    }
+}
+
+fun Context.hasPermission(permission: String) =
+    ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+
+fun Context.hasWriteStoragePermissionBelowQ() =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || hasPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+suspend fun Context.scanFilePath(filePath: String, mimeType: String): Uri? {
+    return suspendCancellableCoroutine { continuation ->
+        MediaScannerConnection.scanFile(
+            this@scanFilePath,
+            arrayOf(filePath),
+            arrayOf(mimeType),
+        ) { _, scannedUri ->
+            if (scannedUri == null) {
+                continuation.cancel(Exception("File $filePath could not be scanned"))
+            } else {
+                continuation.resume(scannedUri)
+            }
+        }
     }
 }

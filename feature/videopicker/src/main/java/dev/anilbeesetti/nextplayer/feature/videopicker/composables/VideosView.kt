@@ -59,6 +59,7 @@ fun VideosView(
     onRenameVideoClick: (Uri, String) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
     onVideoLoaded: (Uri) -> Unit = {},
+    onGetSubtitlesOnline: (Video) -> Unit = {},
 ) {
     val haptic = LocalHapticFeedback.current
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
@@ -125,6 +126,16 @@ fun VideosView(
                         null,
                     )
                     context.startActivity(intent)
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showMediaActionsFor = null
+                    }
+                },
+            )
+            BottomSheetItem(
+                text = stringResource(id = R.string.get_subtitles_online),
+                icon = NextIcons.Subtitle,
+                onClick = {
+                    onGetSubtitlesOnline(it)
                     scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                         if (!bottomSheetState.isVisible) showMediaActionsFor = null
                     }
