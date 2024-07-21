@@ -38,20 +38,20 @@ fun GetSubtitlesOnlineDialogComponent(
         onDismissRequest = onDismissRequest,
         title = {
             Text(
-                text = "Get subtitles online",
+                text = stringResource(id = R.string.get_subtitles_online),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         },
         content = {
             Column {
-                Text(text = "Search subtitle from opensubtitles.com")
-                Text(text = "Language: English")
+                Text(text = stringResource(id = R.string.search_subtitles_from_open_subtitles))
+                Text(text = "${stringResource(id = R.string.language)}: $language")
                 Spacer(modifier = Modifier.size(16.dp))
                 OutlinedTextField(
                     value = searchText,
                     onValueChange = { searchText = it },
-                    label = { Text(text = "Search") },
+                    label = { Text(text = stringResource(id = R.string.search)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     trailingIcon = {

@@ -212,4 +212,7 @@
     <string name="downloading_subtitle">Downloading subtitles...</string>
     <string name="downloads_remaining">%1$s downloads remaining</string>
     <string name="download_quota_reached">"Download quota ended. Quota resets in %1$s"</string>
+    <string name="search_subtitles_from_open_subtitles">Search subtitle from opensubtitles.com</string>
+    <string name="search">Search</string>
+    <string name="subtitles">Subtitles</string>
 </resources>

@@ -39,7 +39,13 @@ fun SubtitleResultDialogComponent(
     NextDialog(
         modifier = modifier,
         onDismissRequest = onDismissRequest,
-        title = { Text(text = "Subtitles", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        title = {
+            Text(
+                text = stringResource(id = R.string.subtitles),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
         content = {
             LazyColumn(
                 modifier = Modifier.selectableGroup(),

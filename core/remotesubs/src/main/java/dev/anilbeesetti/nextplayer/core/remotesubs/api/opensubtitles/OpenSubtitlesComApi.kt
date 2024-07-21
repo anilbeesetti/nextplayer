@@ -47,7 +47,6 @@ class OpenSubtitlesComApi @Inject constructor(
         searchText: String?,
         languages: List<String>,
     ): Result<OpenSubtitlesSearchResponse> {
-        if (apiKey.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
         return try {
             val response = client.get(BASE_URL) {
                 url {
@@ -77,7 +76,6 @@ class OpenSubtitlesComApi @Inject constructor(
     }
 
     suspend fun download(fileId: Int): Result<OpenSubDownloadLinks> {
-        if (apiKey.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
         return try {
             val response = client.post(BASE_URL) {
                 url {
