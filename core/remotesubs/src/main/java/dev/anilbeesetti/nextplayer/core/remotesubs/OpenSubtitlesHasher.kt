@@ -3,10 +3,10 @@ package dev.anilbeesetti.nextplayer.core.remotesubs
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.DataInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
@@ -46,42 +46,42 @@ class OpenSubtitlesHasher @Inject constructor(
         }
     }
 
-    @Throws(IOException::class)
     fun computeHash(uri: Uri, length: Long): String {
-        val stream = context.contentResolver.openInputStream(uri)
-        val chunkSizeForFile = min(HASH_CHUNK_SIZE.toLong(), length)
-            .toInt()
+        context.contentResolver.openInputStream(uri).use { inputStream ->
+            inputStream ?: throw IllegalStateException("Unable to open input stream")
 
-        // buffer that will contain the head and the tail chunk, chunks will overlap if length is smaller than two chunks
-        val chunkBytes = ByteArray(min(2 * HASH_CHUNK_SIZE.toLong(), length).toInt())
-        val inputStream = DataInputStream(stream)
+            val chunkSize = min(HASH_CHUNK_SIZE.toLong(), length).toInt()
+            val chunkBytes = ByteArray(min(2 * HASH_CHUNK_SIZE.toLong(), length).toInt())
 
-        // first chunk
-        inputStream.readFully(chunkBytes, 0, chunkSizeForFile)
-        var position = chunkSizeForFile.toLong()
-        val tailChunkPosition = length - chunkSizeForFile
+            // Read first chunk
+            inputStream.readExactly(chunkBytes, 0, chunkSize)
 
-        // seek to position of the tail chunk, or not at all if length is smaller than two chunks
-        while (position < tailChunkPosition && inputStream.skip(tailChunkPosition - position)
-                .let {
-                    position += it
-                    position
-                } >= 0
-            );
+            // Skip to tail chunk if necessary
+            val tailChunkPosition = length - chunkSize
+            if (tailChunkPosition > chunkSize) {
+                inputStream.skip(tailChunkPosition - chunkSize)
+            }
 
-        // second chunk, or the rest of the data if length is smaller than two chunks
-        inputStream.readFully(chunkBytes, chunkSizeForFile, chunkBytes.size - chunkSizeForFile)
-        val head = computeChunkHash(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile))
-        val tail = computeChunkHash(
-            ByteBuffer.wrap(
-                chunkBytes,
-                chunkBytes.size - chunkSizeForFile,
-                chunkSizeForFile,
-            ),
-        )
-        inputStream.close()
-        stream?.close()
-        return String.format("%016x", length + head + tail)
+            // Read second chunk or remaining data
+            inputStream.readExactly(chunkBytes, chunkSize, chunkBytes.size - chunkSize)
+
+            val head = computeChunkHash(ByteBuffer.wrap(chunkBytes, 0, chunkSize))
+            val tail = computeChunkHash(ByteBuffer.wrap(chunkBytes, chunkBytes.size - chunkSize, chunkSize))
+
+            return "%016x".format(length + head + tail)
+        }
+    }
+
+    private fun InputStream.readExactly(buffer: ByteArray, offset: Int, length: Int) {
+        var bytesRead = 0
+        while (bytesRead < length) {
+            val bytesReadThisIteration = read(buffer, offset + bytesRead, length - bytesRead)
+            if (bytesReadThisIteration < 0) break // End of stream reached
+            bytesRead += bytesReadThisIteration
+        }
+        if (bytesRead < length) {
+            throw IllegalStateException("Unexpected end of stream: Read $bytesRead bytes, expected $length")
+        }
     }
 
     private fun computeChunkHash(buffer: ByteBuffer): Long {
