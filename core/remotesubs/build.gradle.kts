@@ -1,6 +1,3 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
@@ -15,14 +12,6 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
-
-        val localProperties = Properties().apply {
-            load(FileInputStream(rootProject.file("local.properties")))
-        }
-
-        val apiKey = localProperties.getProperty("OPEN_SUBTITLES_API_KEY") ?: ""
-
-        buildConfigField("String", "OPEN_SUBTITLES_API_KEY", "\"$apiKey\"")
     }
 
     compileOptions {

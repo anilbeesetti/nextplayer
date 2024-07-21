@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles
 
 import dev.anilbeesetti.nextplayer.core.common.services.SystemService
-import dev.anilbeesetti.nextplayer.core.remotesubs.BuildConfig
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubDownloadLinks
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubDownloadLinksError
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubtitlesSearchResponse
@@ -39,7 +38,7 @@ class OpenSubtitlesComApi @Inject constructor(
         private const val API_KEY_HEADER = "Api-Key"
     }
 
-    private val apiKey = BuildConfig.OPEN_SUBTITLES_API_KEY.ifBlank { "c5Ja67pxZiCNgBbQ5g8ENmsF6BBeihvC" }
+    private val apiKey = "c5Ja67pxZiCNgBbQ5g8ENmsF6BBeihvC"
     private val userAgent = "NextPlayer v${systemService.versionName()}"
 
     suspend fun search(
