@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "00683288787f17e20774fe6dac211ab2",
+    "identityHash": "2171e54cfeaf26836e2c54d3ef13f6b3",
     "entities": [
       {
         "tableName": "directories",
@@ -38,7 +38,7 @@
       },
       {
         "tableName": "media",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uri` TEXT NOT NULL, `path` TEXT NOT NULL, `filename` TEXT NOT NULL, `parent_path` TEXT NOT NULL, `last_modified` INTEGER NOT NULL, `size` INTEGER NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `media_store_id` INTEGER NOT NULL, `format` TEXT DEFAULT NULL, `thumbnail_path` TEXT DEFAULT NULL, `playback_position` INTEGER NOT NULL, `audio_track_index` INTEGER, `subtitle_track_index` INTEGER, `playback_speed` REAL, `external_subs` TEXT NOT NULL DEFAULT '', `last_played_time` INTEGER, PRIMARY KEY(`uri`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uri` TEXT NOT NULL, `path` TEXT NOT NULL, `filename` TEXT NOT NULL, `parent_path` TEXT NOT NULL, `last_modified` INTEGER NOT NULL, `size` INTEGER NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `media_store_id` INTEGER NOT NULL, `format` TEXT DEFAULT NULL, `thumbnail_path` TEXT DEFAULT NULL, `playback_position` INTEGER NOT NULL, `audio_track_index` INTEGER, `subtitle_track_index` INTEGER, `playback_speed` REAL, `last_played_time` INTEGER, `external_subs` TEXT NOT NULL DEFAULT '', `video_scale` REAL NOT NULL DEFAULT 1.0, PRIMARY KEY(`uri`))",
         "fields": [
           {
             "fieldPath": "uriString",
@@ -139,6 +139,12 @@
             "notNull": false
           },
           {
+            "fieldPath": "lastPlayedTime",
+            "columnName": "last_played_time",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
             "fieldPath": "externalSubs",
             "columnName": "external_subs",
             "affinity": "TEXT",
@@ -146,10 +152,11 @@
             "defaultValue": "''"
           },
           {
-            "fieldPath": "lastPlayedTime",
-            "columnName": "last_played_time",
-            "affinity": "INTEGER",
-            "notNull": false
+            "fieldPath": "videoScale",
+            "columnName": "video_scale",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "1.0"
           }
         ],
         "primaryKey": {
@@ -408,7 +415,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '00683288787f17e20774fe6dac211ab2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2171e54cfeaf26836e2c54d3ef13f6b3')"
     ]
   }
 }
