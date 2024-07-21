@@ -7,9 +7,12 @@ import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.hasWriteStoragePermissionBelowQ
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanFilePath
+import dev.anilbeesetti.nextplayer.core.common.services.SystemService
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.remotesubs.OpenSubtitlesHasher
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.OpenSubtitlesComApi
+import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubDownloadLinksError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -20,6 +23,7 @@ import javax.inject.Inject
 class OpenSubtitlesComSubtitlesService @Inject constructor(
     private val openSubtitlesComApi: OpenSubtitlesComApi,
     private val openSubtitlesHasher: OpenSubtitlesHasher,
+    private val systemService: SystemService,
     @ApplicationContext private val context: Context,
 ) : SubtitlesService {
 
@@ -41,7 +45,11 @@ class OpenSubtitlesComSubtitlesService @Inject constructor(
         }
     }
 
-    override suspend fun download(subtitle: Subtitle, name: String, fullName: String): Result<Uri> = withContext(Dispatchers.IO) {
+    override suspend fun download(
+        subtitle: Subtitle,
+        name: String,
+        fullName: String,
+    ): Result<SubtitleDownloadResponse> = withContext(Dispatchers.IO) {
         val folder = if (context.hasWriteStoragePermissionBelowQ()) {
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
         } else {
@@ -62,11 +70,20 @@ class OpenSubtitlesComSubtitlesService @Inject constructor(
                 )
                 inputStream.close()
                 destinationUri.path?.let { context.scanFilePath(it, "application/x-subrip") }
-                return@withContext Result.success(destinationUri)
+                return@withContext Result.success(
+                    SubtitleDownloadResponse(
+                        uri = destinationUri,
+                        message = systemService.getString(R.string.downloads_remaining, "${response.remaining}/${response.requests + response.remaining}"),
+                    ),
+                )
             } catch (e: Exception) {
                 return@withContext Result.failure(e)
             }
         }.onFailure {
+            if (it is OpenSubDownloadLinksError && it.remaining <= 0) {
+                val errorMessage = systemService.getString(R.string.download_quota_reached, it.resetTime)
+                return@withContext Result.failure(Throwable(errorMessage))
+            }
             return@withContext Result.failure(it)
         }
         return@withContext Result.failure(UnknownError())

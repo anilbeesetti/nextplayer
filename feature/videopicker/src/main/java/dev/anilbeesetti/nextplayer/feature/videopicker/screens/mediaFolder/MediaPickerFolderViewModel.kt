@@ -138,19 +138,23 @@ class MediaPickerFolderViewModel @Inject constructor(
     }
 
     private fun downloadSubtitle(subtitle: Subtitle, video: Video) {
-        systemService.showToast(R.string.downloading_subtitle, showLong = true)
+        systemService.showToast(R.string.downloading_subtitle)
         viewModelScope.launch {
             subtitlesService.download(
                 subtitle = subtitle,
                 name = video.displayName,
             ).onSuccess {
-                systemService.showToast(
-                    id = R.string.subtitle_downloaded,
-                )
+                if (it.message != null) {
+                    systemService.showToast(it.message!!)
+                } else {
+                    systemService.showToast(R.string.subtitle_downloaded)
+                }
             }.onFailure {
-                systemService.showToast(
-                    id = R.string.error_downloading_subtitle,
-                )
+                if (it.message != null) {
+                    systemService.showToast(it.message!!)
+                } else {
+                    systemService.showToast(R.string.error_downloading_subtitle)
+                }
             }
         }
     }

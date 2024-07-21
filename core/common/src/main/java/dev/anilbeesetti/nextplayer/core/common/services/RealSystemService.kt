@@ -20,7 +20,15 @@ class RealSystemService @Inject constructor(
         return applicationContext.getString(id)
     }
 
+    override fun getString(id: Int, vararg formatArgs: Any): String {
+        return applicationContext.getString(id, *formatArgs)
+    }
+
     override fun showToast(message: String, showLong: Boolean) {
         Toast.makeText(activity, message, if (showLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
+    }
+
+    override fun versionName(): String {
+        return applicationContext.packageManager.getPackageInfo(applicationContext.packageName, 0).versionName
     }
 }

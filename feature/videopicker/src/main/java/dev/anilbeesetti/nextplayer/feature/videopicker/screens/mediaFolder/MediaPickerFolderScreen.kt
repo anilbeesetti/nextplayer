@@ -214,7 +214,7 @@ fun GetSubtitlesOnlineDialogComponent(
     modifier: Modifier = Modifier,
     video: Video,
     onDismissRequest: () -> Unit,
-    onConfirm: (searchText: String, language: String) -> Unit,
+    onConfirm: (searchText: String?, language: String) -> Unit,
 ) {
     var searchText by remember { mutableStateOf(video.displayName) }
     var language by remember { mutableStateOf("en") }

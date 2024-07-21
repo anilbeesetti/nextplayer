@@ -209,4 +209,6 @@
     <string name="subtitle_downloaded">Subtitle downloaded successfully</string>
     <string name="error_downloading_subtitle">Error downloading subtitle. Try again</string>
     <string name="downloading_subtitle">Downloading subtitles...</string>
+    <string name="downloads_remaining">%1$s downloads remaining</string>
+    <string name="download_quota_reached">"Download quota ended. Quota resets in %1$s"</string>
 </resources>

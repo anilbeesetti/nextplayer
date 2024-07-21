@@ -1,7 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles
 
+import dev.anilbeesetti.nextplayer.core.common.services.SystemService
 import dev.anilbeesetti.nextplayer.core.remotesubs.BuildConfig
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubDownloadLinks
+import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubDownloadLinksError
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubtitlesSearchResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -29,11 +31,16 @@ private data class DownloadRequest(
 @Singleton
 class OpenSubtitlesComApi @Inject constructor(
     private val client: HttpClient,
+    systemService: SystemService,
 ) {
+
     companion object {
         private const val BASE_URL = "https://api.opensubtitles.com/api/v1"
+        private const val API_KEY_HEADER = "Api-Key"
         private const val API_KEY = BuildConfig.OPEN_SUBTITLES_API_KEY
     }
+
+    private val userAgent = "NextPlayer v${systemService.versionName()}"
 
     suspend fun search(
         fileHash: String,
@@ -51,8 +58,8 @@ class OpenSubtitlesComApi @Inject constructor(
                         parameter("query", searchText)
                     }
                 }
-                userAgent("nextplayer v0.11.1")
-                header("Api-Key", API_KEY)
+                userAgent(userAgent)
+                header(API_KEY_HEADER, API_KEY)
             }
             return when (response.status) {
                 HttpStatusCode.OK -> {
@@ -76,16 +83,25 @@ class OpenSubtitlesComApi @Inject constructor(
                 }
                 setBody(DownloadRequest(fileId))
                 contentType(ContentType.Application.Json)
-                userAgent("nextplayer v0.11.1")
-                header("Api-Key", API_KEY)
+                userAgent(userAgent)
+                header(API_KEY_HEADER, API_KEY)
             }
             return when (response.status) {
                 HttpStatusCode.OK -> {
                     runCatching { response.body<OpenSubDownloadLinks>() }
                 }
 
+                in HttpStatusCode.BadRequest..HttpStatusCode.InternalServerError -> {
+                    try {
+                        val error = response.body<OpenSubDownloadLinksError>()
+                        Result.failure(error)
+                    } catch (e: Exception) {
+                        Result.failure(e)
+                    }
+                }
+
                 else -> {
-                    Result.failure(RuntimeException("Failed to search subtitles"))
+                    Result.failure(RuntimeException("Failed to download subtitle"))
                 }
             }
         } catch (e: Exception) {

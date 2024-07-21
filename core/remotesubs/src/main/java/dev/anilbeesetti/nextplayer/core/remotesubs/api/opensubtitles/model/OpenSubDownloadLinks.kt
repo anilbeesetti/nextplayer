@@ -19,5 +19,19 @@ data class OpenSubDownloadLinks(
     @SerialName("reset_time")
     val resetTime: String,
     @SerialName("reset_time_utc")
-    val resetTimeUtc: String
+    val resetTimeUtc: String,
 )
+
+@Serializable
+data class OpenSubDownloadLinksError(
+    @SerialName("message")
+    override val message: String,
+    @SerialName("remaining")
+    val remaining: Int,
+    @SerialName("requests")
+    val requests: Int,
+    @SerialName("reset_time")
+    val resetTime: String,
+    @SerialName("reset_time_utc")
+    val resetTimeUtc: String,
+) : Throwable(message = message)

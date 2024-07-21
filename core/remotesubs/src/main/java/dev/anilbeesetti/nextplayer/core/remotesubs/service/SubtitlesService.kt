@@ -6,7 +6,7 @@ import java.util.Locale
 
 interface SubtitlesService {
     suspend fun search(video: Video, searchText: String?, languages: List<String>): Result<List<Subtitle>>
-    suspend fun download(subtitle: Subtitle, name: String, fullName: String = "$name.${subtitle.language}.srt"): Result<Uri>
+    suspend fun download(subtitle: Subtitle, name: String, fullName: String = "$name.${subtitle.language}.srt"): Result<SubtitleDownloadResponse>
 }
 
 data class Subtitle(
@@ -17,3 +17,8 @@ data class Subtitle(
 ) {
     val languageName: String = Locale.forLanguageTag(language).displayName
 }
+
+data class SubtitleDownloadResponse(
+    val uri: Uri,
+    val message: String? = null
+)
