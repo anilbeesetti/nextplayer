@@ -13,12 +13,12 @@ import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.File
 
 @HiltViewModel
 class MediaPickerFolderViewModel @Inject constructor(

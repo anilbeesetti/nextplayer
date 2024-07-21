@@ -2,8 +2,8 @@ package dev.anilbeesetti.nextplayer.core.remotesubs.service
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.model.Video
-import kotlinx.serialization.Serializable
 import java.util.Locale
+import kotlinx.serialization.Serializable
 
 interface SubtitlesService {
     suspend fun search(video: Video, searchText: String?, languages: List<String>): Result<List<Subtitle>>

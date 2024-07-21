@@ -11,8 +11,6 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.Video
-import dev.anilbeesetti.nextplayer.core.remotesubs.service.Subtitle
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject

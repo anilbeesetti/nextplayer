@@ -100,12 +100,12 @@ fun MediaPickerRoute(
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
-    val uiState by mediaCommonViewModel.uiState.collectAsStateWithLifecycle()
+    val commonUiState by mediaCommonViewModel.uiState.collectAsStateWithLifecycle()
 
     val permissionState = rememberPermissionState(permission = storagePermission)
 
     MediaPickerScreen(
-        uiState = uiState,
+        commonUiState = commonUiState,
         videosState = videosState,
         foldersState = foldersState,
         preferences = preferences,
@@ -126,11 +126,11 @@ fun MediaPickerRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerScreen(
+    commonUiState: MediaCommonUiState,
     videosState: VideosState,
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
     permissionState: PermissionState = GrantedPermissionState,
-    uiState: MediaCommonUiState,
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -157,8 +157,8 @@ internal fun MediaPickerScreen(
         }
     }
 
-    LaunchedEffect(uiState.isRefreshing) {
-        if (uiState.isRefreshing) {
+    LaunchedEffect(commonUiState.isRefreshing) {
+        if (commonUiState.isRefreshing) {
             pullToRefreshState.startRefresh()
         } else {
             pullToRefreshState.endRefresh()
@@ -288,7 +288,7 @@ internal fun MediaPickerScreen(
         )
     }
 
-    uiState.dialog?.let { dialog ->
+    commonUiState.dialog?.let { dialog ->
         when (dialog) {
             is MediaCommonDialog.Loading -> {
                 LoadingDialogComponent(message = dialog.message)
@@ -336,7 +336,7 @@ fun ShortcutChipButton(
             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp),
 
-        ) {
+    ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
@@ -388,7 +388,7 @@ fun MediaPickerScreenPreview(
                 videosState = VideosState.Success(
                     data = videos,
                 ),
-                uiState = MediaCommonUiState(),
+                commonUiState = MediaCommonUiState(),
                 foldersState = FoldersState.Loading,
                 preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                 onPlayVideo = {},
@@ -422,7 +422,7 @@ fun MediaPickerNoVideosFoundPreview() {
                 foldersState = FoldersState.Success(
                     data = emptyList(),
                 ),
-                uiState = MediaCommonUiState(),
+                commonUiState = MediaCommonUiState(),
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
@@ -441,7 +441,7 @@ fun MediaPickerLoadingPreview() {
             MediaPickerScreen(
                 videosState = VideosState.Loading,
                 foldersState = FoldersState.Loading,
-                uiState = MediaCommonUiState(),
+                commonUiState = MediaCommonUiState(),
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},

@@ -54,13 +54,13 @@ fun MediaPickerFolderRoute(
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
     val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
-    val uiState by mediaCommonViewModel.uiState.collectAsStateWithLifecycle()
+    val commonUiState by mediaCommonViewModel.uiState.collectAsStateWithLifecycle()
 
     MediaPickerFolderScreen(
+        commonUiState = commonUiState,
         folderName = viewModel.folderName,
         videosState = videosState,
         preferences = preferences,
-        uiState = uiState,
         onPlayVideo = onVideoClick,
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
@@ -74,10 +74,10 @@ fun MediaPickerFolderRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerFolderScreen(
+    commonUiState: MediaCommonUiState,
     folderName: String,
     videosState: VideosState,
     preferences: ApplicationPreferences,
-    uiState: MediaCommonUiState,
     onNavigateUp: () -> Unit,
     onPlayVideo: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
@@ -94,8 +94,8 @@ internal fun MediaPickerFolderScreen(
         }
     }
 
-    LaunchedEffect(uiState.isRefreshing) {
-        if (uiState.isRefreshing) {
+    LaunchedEffect(commonUiState.isRefreshing) {
+        if (commonUiState.isRefreshing) {
             pullToRefreshState.startRefresh()
         } else {
             pullToRefreshState.endRefresh()
@@ -159,7 +159,7 @@ internal fun MediaPickerFolderScreen(
         }
     }
 
-    uiState.dialog?.let { dialog ->
+    commonUiState.dialog?.let { dialog ->
         when (dialog) {
             is MediaCommonDialog.Loading -> {
                 LoadingDialogComponent(message = dialog.message)
@@ -201,7 +201,7 @@ private fun MediaPickerFolderScreenPreview() {
                 data = List(10) { Video.sample.copy(path = it.toString()) },
             ),
             preferences = ApplicationPreferences(),
-            uiState = MediaCommonUiState(),
+            commonUiState = MediaCommonUiState(),
             onNavigateUp = {},
             onPlayVideo = {},
             onDeleteVideoClick = {},
