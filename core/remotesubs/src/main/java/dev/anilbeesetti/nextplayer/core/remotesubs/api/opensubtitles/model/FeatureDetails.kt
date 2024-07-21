@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -31,5 +30,5 @@ data class FeatureDetails(
     @SerialName("tmdb_id")
     val tmdbId: Int,
     @SerialName("year")
-    val year: Int
+    val year: Int,
 )

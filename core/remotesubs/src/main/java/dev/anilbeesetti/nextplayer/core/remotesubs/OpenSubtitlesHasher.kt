@@ -63,8 +63,11 @@ class OpenSubtitlesHasher @Inject constructor(
 
         // seek to position of the tail chunk, or not at all if length is smaller than two chunks
         while (position < tailChunkPosition && inputStream.skip(tailChunkPosition - position)
-                .let { position += it; position } >= 0
-        );
+                .let {
+                    position += it
+                    position
+                } >= 0
+            );
 
         // second chunk, or the rest of the data if length is smaller than two chunks
         inputStream.readFully(chunkBytes, chunkSizeForFile, chunkBytes.size - chunkSizeForFile)

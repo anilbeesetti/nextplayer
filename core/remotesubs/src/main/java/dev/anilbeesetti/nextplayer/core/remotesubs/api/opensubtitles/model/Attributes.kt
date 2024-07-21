@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -41,5 +40,5 @@ data class Attributes(
     @SerialName("url")
     val url: String,
     @SerialName("votes")
-    val votes: Int
+    val votes: Int,
 )

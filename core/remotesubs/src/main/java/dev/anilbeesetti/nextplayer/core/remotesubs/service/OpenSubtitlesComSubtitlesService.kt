@@ -10,15 +10,15 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.scanFilePath
 import dev.anilbeesetti.nextplayer.core.common.services.SystemService
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.remotesubs.OpenSubtitlesHasher
-import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.OpenSubtitlesComApi
 import dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model.OpenSubDownloadLinksError
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dev.anilbeesetti.nextplayer.core.ui.R
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class OpenSubtitlesComSubtitlesService @Inject constructor(
     private val openSubtitlesComApi: OpenSubtitlesComApi,

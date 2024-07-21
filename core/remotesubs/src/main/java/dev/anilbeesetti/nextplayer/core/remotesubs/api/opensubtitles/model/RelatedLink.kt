@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,5 +10,5 @@ data class RelatedLink(
     @SerialName("label")
     val label: String,
     @SerialName("url")
-    val url: String
+    val url: String,
 )

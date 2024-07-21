@@ -25,6 +25,10 @@ data class Video(
     val subtitleStreams: List<SubtitleStreamInfo> = emptyList(),
 ) : Serializable {
 
+    val subtitleTags: List<String> = subtitleStreams.mapNotNull {
+        it.codecName
+    }
+
     companion object {
         val sample = Video(
             id = 8,

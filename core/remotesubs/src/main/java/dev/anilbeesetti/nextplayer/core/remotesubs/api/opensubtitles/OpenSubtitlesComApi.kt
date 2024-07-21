@@ -17,10 +17,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.userAgent
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Serializable
 private data class DownloadRequest(
@@ -47,6 +47,7 @@ class OpenSubtitlesComApi @Inject constructor(
         searchText: String?,
         languages: List<String>,
     ): Result<OpenSubtitlesSearchResponse> {
+        if (API_KEY.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
         return try {
             val response = client.get(BASE_URL) {
                 url {
@@ -76,6 +77,7 @@ class OpenSubtitlesComApi @Inject constructor(
     }
 
     suspend fun download(fileId: Int): Result<OpenSubDownloadLinks> {
+        if (API_KEY.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
         return try {
             val response = client.post(BASE_URL) {
                 url {

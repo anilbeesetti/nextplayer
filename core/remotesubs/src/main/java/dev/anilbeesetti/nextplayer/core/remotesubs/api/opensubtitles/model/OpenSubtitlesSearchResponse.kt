@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -15,5 +14,5 @@ data class OpenSubtitlesSearchResponse(
     @SerialName("total_count")
     val totalCount: Int,
     @SerialName("total_pages")
-    val totalPages: Int
+    val totalPages: Int,
 )

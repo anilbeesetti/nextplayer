@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.remotesubs.api.opensubtitles.model
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,5 +10,5 @@ data class File(
     @SerialName("file_id")
     val fileId: Int,
     @SerialName("file_name")
-    val fileName: String
+    val fileName: String,
 )

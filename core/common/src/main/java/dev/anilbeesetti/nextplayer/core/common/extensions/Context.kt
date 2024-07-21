@@ -31,11 +31,11 @@ import java.io.FileWriter
 import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.mozilla.universalchardet.UniversalDetector
-import kotlin.coroutines.resume
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

@@ -18,6 +18,8 @@ import dev.anilbeesetti.nextplayer.core.remotesubs.service.SubtitlesService
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,8 +27,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import javax.inject.Inject
 
 @HiltViewModel
 class MediaPickerFolderViewModel @Inject constructor(

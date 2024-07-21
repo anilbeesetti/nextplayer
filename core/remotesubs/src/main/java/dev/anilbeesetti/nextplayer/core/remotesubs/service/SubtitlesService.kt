@@ -20,5 +20,5 @@ data class Subtitle(
 
 data class SubtitleDownloadResponse(
     val uri: Uri,
-    val message: String? = null
+    val message: String? = null,
 )
