@@ -44,7 +44,8 @@ interface MediumDao {
     @Query("DELETE FROM media WHERE uri in (:uris)")
     suspend fun delete(uris: List<String>)
 
-    @Query("UPDATE OR REPLACE media SET " +
+    @Query(
+        "UPDATE OR REPLACE media SET " +
             "playback_position = :position, " +
             "audio_track_index = :audioTrackIndex, " +
             "subtitle_track_index = :subtitleTrackIndex, " +
@@ -52,7 +53,7 @@ interface MediumDao {
             "external_subs = :externalSubs, " +
             "last_played_time = :lastPlayedTime, " +
             "video_scale = :videoScale " +
-            "WHERE uri = :uri"
+            "WHERE uri = :uri",
     )
     suspend fun updateMediumState(
         uri: String,

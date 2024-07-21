@@ -53,7 +53,7 @@ class PlayerViewModel @Inject constructor(
 
     suspend fun initMediaState(uri: String?) {
         if (currentPlaybackPosition != null) return
-        currentVideoState = uri?.let { mediaRepository.getVideoState(it) }.also { println(it) }
+        currentVideoState = uri?.let { mediaRepository.getVideoState(it) }
         val prefs = playerPrefs.value
 
         currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES } ?: currentPlaybackPosition
@@ -99,7 +99,7 @@ class PlayerViewModel @Inject constructor(
                 subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed,
                 externalSubs = externalSubtitles.toList(),
-                videoScale = videoScale
+                videoScale = videoScale,
             )
         }
     }
