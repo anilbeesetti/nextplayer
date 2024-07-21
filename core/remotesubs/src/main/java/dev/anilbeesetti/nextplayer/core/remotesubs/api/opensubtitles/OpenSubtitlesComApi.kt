@@ -37,9 +37,9 @@ class OpenSubtitlesComApi @Inject constructor(
     companion object {
         private const val BASE_URL = "https://api.opensubtitles.com/api/v1"
         private const val API_KEY_HEADER = "Api-Key"
-        private const val API_KEY = BuildConfig.OPEN_SUBTITLES_API_KEY
     }
 
+    private val apiKey = BuildConfig.OPEN_SUBTITLES_API_KEY.ifBlank { "c5Ja67pxZiCNgBbQ5g8ENmsF6BBeihvC" }
     private val userAgent = "NextPlayer v${systemService.versionName()}"
 
     suspend fun search(
@@ -47,7 +47,7 @@ class OpenSubtitlesComApi @Inject constructor(
         searchText: String?,
         languages: List<String>,
     ): Result<OpenSubtitlesSearchResponse> {
-        if (API_KEY.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
+        if (apiKey.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
         return try {
             val response = client.get(BASE_URL) {
                 url {
@@ -60,7 +60,7 @@ class OpenSubtitlesComApi @Inject constructor(
                     }
                 }
                 userAgent(userAgent)
-                header(API_KEY_HEADER, API_KEY)
+                header(API_KEY_HEADER, apiKey)
             }
             return when (response.status) {
                 HttpStatusCode.OK -> {
@@ -77,7 +77,7 @@ class OpenSubtitlesComApi @Inject constructor(
     }
 
     suspend fun download(fileId: Int): Result<OpenSubDownloadLinks> {
-        if (API_KEY.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
+        if (apiKey.isBlank()) return Result.failure(RuntimeException("OpenSubtitles API key is not set"))
         return try {
             val response = client.post(BASE_URL) {
                 url {
@@ -86,7 +86,7 @@ class OpenSubtitlesComApi @Inject constructor(
                 setBody(DownloadRequest(fileId))
                 contentType(ContentType.Application.Json)
                 userAgent(userAgent)
-                header(API_KEY_HEADER, API_KEY)
+                header(API_KEY_HEADER, apiKey)
             }
             return when (response.status) {
                 HttpStatusCode.OK -> {

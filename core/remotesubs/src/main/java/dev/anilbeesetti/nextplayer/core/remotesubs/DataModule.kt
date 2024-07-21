@@ -38,11 +38,13 @@ object DataModule {
             json(Json { ignoreUnknownKeys = true })
         }
 
-        install(Logging) {
-            level = LogLevel.ALL
-            logger = object : Logger {
-                override fun log(message: String) {
-                    println(message)
+        if (BuildConfig.DEBUG) {
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        println(message)
+                    }
                 }
             }
         }
