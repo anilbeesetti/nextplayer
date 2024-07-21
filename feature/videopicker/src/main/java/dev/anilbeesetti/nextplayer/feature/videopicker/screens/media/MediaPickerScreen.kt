@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -33,8 +34,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -114,6 +119,7 @@ fun MediaPickerRoute(
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
         onGetSubtitlesOnline = mediaCommonViewModel::getSubtitlesOnline,
+        onRefreshClicked = mediaCommonViewModel::onRefreshClicked,
     )
 }
 
@@ -134,13 +140,30 @@ internal fun MediaPickerScreen(
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {},
     onGetSubtitlesOnline: (Video) -> Unit = {},
+    onRefreshClicked: () -> Unit = {},
 ) {
-    var showMenu by rememberSaveable { mutableStateOf(false) }
+    var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { it?.let(onPlayVideo) },
     )
+
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    LaunchedEffect(pullToRefreshState.isRefreshing) {
+        if (pullToRefreshState.isRefreshing) {
+            onRefreshClicked()
+        }
+    }
+
+    LaunchedEffect(uiState.isRefreshing) {
+        if (uiState.isRefreshing) {
+            pullToRefreshState.startRefresh()
+        } else {
+            pullToRefreshState.endRefresh()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
@@ -156,7 +179,7 @@ internal fun MediaPickerScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showMenu = true }) {
+                    IconButton(onClick = { showQuickSettingsDialog = true }) {
                         Icon(
                             imageVector = NextIcons.DashBoard,
                             contentDescription = stringResource(id = R.string.menu),
@@ -188,63 +211,72 @@ internal fun MediaPickerScreen(
                 )
             }
         },
-    ) {
-        Column(
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(it),
+                .padding(paddingValues)
+                .nestedScroll(pullToRefreshState.nestedScrollConnection),
         ) {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Column(
+                modifier = Modifier.fillMaxSize(),
             ) {
-                item {
-                    ShortcutChipButton(
-                        text = stringResource(id = R.string.open_local_video),
-                        icon = NextIcons.FileOpen,
-                        onClick = { selectVideoFileLauncher.launch("video/*") },
-                    )
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    item {
+                        ShortcutChipButton(
+                            text = stringResource(id = R.string.open_local_video),
+                            icon = NextIcons.FileOpen,
+                            onClick = { selectVideoFileLauncher.launch("video/*") },
+                        )
+                    }
+                    item {
+                        ShortcutChipButton(
+                            text = stringResource(id = R.string.open_network_stream),
+                            icon = NextIcons.Link,
+                            onClick = { showUrlDialog = true },
+                        )
+                    }
                 }
-                item {
-                    ShortcutChipButton(
-                        text = stringResource(id = R.string.open_network_stream),
-                        icon = NextIcons.Link,
-                        onClick = { showUrlDialog = true },
-                    )
+                PermissionMissingView(
+                    isGranted = permissionState.status.isGranted,
+                    showRationale = permissionState.status.shouldShowRationale,
+                    permission = permissionState.permission,
+                    launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                ) {
+                    if (preferences.groupVideosByFolder) {
+                        FoldersView(
+                            foldersState = foldersState,
+                            preferences = preferences,
+                            onFolderClick = onFolderClick,
+                            onDeleteFolderClick = onDeleteFolderClick,
+                        )
+                    } else {
+                        VideosView(
+                            videosState = videosState,
+                            onVideoClick = onPlayVideo,
+                            preferences = preferences,
+                            onDeleteVideoClick = onDeleteVideoClick,
+                            onVideoLoaded = onAddToSync,
+                            onRenameVideoClick = onRenameVideoClick,
+                            onGetSubtitlesOnline = onGetSubtitlesOnline,
+                        )
+                    }
                 }
             }
-            PermissionMissingView(
-                isGranted = permissionState.status.isGranted,
-                showRationale = permissionState.status.shouldShowRationale,
-                permission = permissionState.permission,
-                launchPermissionRequest = { permissionState.launchPermissionRequest() },
-            ) {
-                if (preferences.groupVideosByFolder) {
-                    FoldersView(
-                        foldersState = foldersState,
-                        preferences = preferences,
-                        onFolderClick = onFolderClick,
-                        onDeleteFolderClick = onDeleteFolderClick,
-                    )
-                } else {
-                    VideosView(
-                        videosState = videosState,
-                        onVideoClick = onPlayVideo,
-                        preferences = preferences,
-                        onDeleteVideoClick = onDeleteVideoClick,
-                        onVideoLoaded = onAddToSync,
-                        onRenameVideoClick = onRenameVideoClick,
-                        onGetSubtitlesOnline = onGetSubtitlesOnline,
-                    )
-                }
-            }
+
+            PullToRefreshContainer(
+                state = pullToRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
         }
     }
 
-    if (showMenu) {
+    if (showQuickSettingsDialog) {
         QuickSettingsDialog(
             applicationPreferences = preferences,
-            onDismiss = { showMenu = false },
+            onDismiss = { showQuickSettingsDialog = false },
             updatePreferences = updatePreferences,
         )
     }

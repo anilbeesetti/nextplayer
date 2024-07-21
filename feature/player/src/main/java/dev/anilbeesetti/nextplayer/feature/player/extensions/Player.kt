@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
@@ -99,3 +100,17 @@ fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
         .filter { it.type == type && it.isSupported }
         .indexOfFirst { it.isSelected }
 }
+
+@get:UnstableApi
+@set:UnstableApi
+var Player.skipSilenceEnabled: Boolean
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.skipSilenceEnabled
+        else -> false
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.skipSilenceEnabled = value
+        }
+    }

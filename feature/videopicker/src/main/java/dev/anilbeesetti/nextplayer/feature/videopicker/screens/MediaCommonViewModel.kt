@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.services.SystemService
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.remotesubs.service.Subtitle
 import dev.anilbeesetti.nextplayer.core.remotesubs.service.SubtitlesService
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class MediaCommonViewModel @Inject constructor(
     private val systemService: SystemService,
     private val subtitlesService: SubtitlesService,
-): ViewModel() {
+    private val mediaSynchronizer: MediaSynchronizer,
+) : ViewModel() {
 
     private val uiStateInternal = MutableStateFlow(MediaCommonUiState())
     val uiState = uiStateInternal.asStateFlow()
@@ -45,6 +47,14 @@ class MediaCommonViewModel @Inject constructor(
                     },
                 ),
             )
+        }
+    }
+
+    fun onRefreshClicked() {
+        viewModelScope.launch {
+            uiStateInternal.update { it.copy(isRefreshing = true) }
+            mediaSynchronizer.refresh()
+            uiStateInternal.update { it.copy(isRefreshing = false) }
         }
     }
 
@@ -110,6 +120,7 @@ class MediaCommonViewModel @Inject constructor(
 }
 
 data class MediaCommonUiState(
+    val isRefreshing: Boolean = false,
     val dialog: MediaCommonDialog? = null,
 )
 

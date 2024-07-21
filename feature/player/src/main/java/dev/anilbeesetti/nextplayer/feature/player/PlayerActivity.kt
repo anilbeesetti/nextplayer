@@ -82,6 +82,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
+import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
@@ -313,7 +314,11 @@ class PlayerActivity : AppCompatActivity() {
             player.isPlaying &&
             !isControlsLocked
         ) {
-            this.enterPictureInPictureMode(updatePictureInPictureParams())
+            try {
+                this.enterPictureInPictureMode(updatePictureInPictureParams())
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -455,9 +460,13 @@ class PlayerActivity : AppCompatActivity() {
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedControlsDialogFragment(
                 currentSpeed = player.playbackParameters.speed,
+                skipSilenceEnabled = player.skipSilenceEnabled,
                 onChange = {
                     viewModel.isPlaybackSpeedChanged = true
                     player.setPlaybackSpeed(it)
+                },
+                onSkipSilenceChanged = {
+                    player.skipSilenceEnabled = it
                 },
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
@@ -508,7 +517,7 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         pipButton.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                 this.enterPictureInPictureMode(updatePictureInPictureParams())
             }
         }
@@ -528,7 +537,7 @@ class PlayerActivity : AppCompatActivity() {
         playlistManager.updateCurrent(uri)
         val isCurrentUriIsFromIntent = intent.data == uri
 
-        viewModel.updateState(uri.toString())
+        viewModel.initMediaState(uri.toString())
         if (isCurrentUriIsFromIntent && playerApi.hasPosition && viewModel.currentPlaybackPosition == null) {
             viewModel.currentPlaybackPosition = playerApi.position?.toLong()
         }
@@ -687,6 +696,7 @@ class PlayerActivity : AppCompatActivity() {
             player.switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
             player.switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
             player.setPlaybackSpeed(viewModel.currentPlaybackSpeed)
+            player.skipSilenceEnabled = viewModel.skipSilenceEnabled
         }
     }
 
@@ -938,6 +948,7 @@ class PlayerActivity : AppCompatActivity() {
                 audioTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
                 subtitleTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
                 playbackSpeed = player.playbackParameters.speed,
+                skipSilence = player.skipSilenceEnabled,
             )
         }
         isFirstFrameRendered = false

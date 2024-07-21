@@ -14,10 +14,14 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,6 +67,7 @@ fun MediaPickerFolderRoute(
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
         onGetSubtitlesOnline = mediaCommonViewModel::getSubtitlesOnline,
+        onRefreshClicked = mediaCommonViewModel::onRefreshClicked,
     )
 }
 
@@ -79,7 +84,24 @@ internal fun MediaPickerFolderScreen(
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit,
     onGetSubtitlesOnline: (Video) -> Unit,
+    onRefreshClicked: () -> Unit = {},
 ) {
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    LaunchedEffect(pullToRefreshState.isRefreshing) {
+        if (pullToRefreshState.isRefreshing) {
+            onRefreshClicked()
+        }
+    }
+
+    LaunchedEffect(uiState.isRefreshing) {
+        if (uiState.isRefreshing) {
+            pullToRefreshState.startRefresh()
+        } else {
+            pullToRefreshState.endRefresh()
+        }
+    }
+
     Scaffold(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         topBar = {
@@ -116,7 +138,8 @@ internal fun MediaPickerFolderScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it),
+                .padding(it)
+                .nestedScroll(pullToRefreshState.nestedScrollConnection),
             contentAlignment = Alignment.Center,
         ) {
             VideosView(
@@ -127,6 +150,11 @@ internal fun MediaPickerFolderScreen(
                 onVideoLoaded = onAddToSync,
                 onRenameVideoClick = onRenameVideoClick,
                 onGetSubtitlesOnline = onGetSubtitlesOnline,
+            )
+
+            PullToRefreshContainer(
+                state = pullToRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
             )
         }
     }

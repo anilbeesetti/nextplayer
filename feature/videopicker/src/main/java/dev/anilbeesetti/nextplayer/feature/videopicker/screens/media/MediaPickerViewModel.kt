@@ -90,19 +90,3 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 }
-
-sealed interface MediaPickerScreenDialog {
-    data class LoadingDialog(val messageRes: Int?) : MediaPickerScreenDialog
-    data class ErrorDialog(val message: String?, val onDismiss: () -> Unit) : MediaPickerScreenDialog
-    data class GetSubtitlesOnlineDialog(
-        val video: Video,
-        val onDismiss: () -> Unit,
-        val onConfirm: (searchText: String?, language: String) -> Unit,
-    ) : MediaPickerScreenDialog
-
-    data class SubtitleResultsDialog(
-        val results: List<Subtitle>,
-        val onDismiss: () -> Unit,
-        val onSubtitleSelected: (Subtitle) -> Unit,
-    ) : MediaPickerScreenDialog
-}
