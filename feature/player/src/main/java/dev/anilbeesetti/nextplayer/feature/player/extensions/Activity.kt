@@ -37,21 +37,26 @@ val Activity.currentBrightness: Float
 
 @Suppress("DEPRECATION")
 fun Activity.prettyPrintIntent() {
-    Timber.apply {
-        d("* action: ${intent.action}")
-        d("* data: ${intent.data}")
-        d("* type: ${intent.type}")
-        d("* package: ${intent.`package`}")
-        d("* component: ${intent.component}")
-        d("* flags: ${intent.flags}")
-        intent.extras?.let { bundle ->
-            d("=== Extras ===")
-            bundle.keySet().forEachIndexed { i, key ->
-                buildString {
-                    append("${i + 1}) $key: ")
-                    bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
-                }.also { d(it) }
+    try {
+        Timber.apply {
+            d("* action: ${intent.action}")
+            d("* data: ${intent.data}")
+            d("* type: ${intent.type}")
+            d("* package: ${intent.`package`}")
+            d("* component: ${intent.component}")
+            d("* flags: ${intent.flags}")
+            intent.extras?.let { bundle ->
+                d("=== Extras ===")
+                bundle.keySet().forEachIndexed { i, key ->
+                    buildString {
+                        append("${i + 1}) $key: ")
+                        bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
+                    }.also { d(it) }
+                }
             }
         }
+    } catch (e: Exception) {
+        Timber.e(e)
+        e.printStackTrace()
     }
 }

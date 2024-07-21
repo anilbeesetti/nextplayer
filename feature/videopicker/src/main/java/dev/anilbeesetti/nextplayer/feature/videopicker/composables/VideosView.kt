@@ -71,26 +71,28 @@ fun VideosView(
 
     when (videosState) {
         VideosState.Loading -> CenterCircularProgressBar()
-        is VideosState.Success -> if (videosState.data.isEmpty()) {
-            NoVideosFound()
-        } else {
+        is VideosState.Success -> {
             MediaLazyList {
-                items(videosState.data, key = { it.path }) { video ->
-                    LaunchedEffect(Unit) {
-                        onVideoLoaded(Uri.parse(video.uriString))
+                if (videosState.data.isEmpty()) {
+                    item { NoVideosFound() }
+                } else {
+                    items(videosState.data, key = { it.path }) { video ->
+                        LaunchedEffect(Unit) {
+                            onVideoLoaded(Uri.parse(video.uriString))
+                        }
+                        VideoItem(
+                            video = video,
+                            preferences = preferences,
+                            isRecentlyPlayedVideo = video == videosState.recentPlayedVideo,
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showMediaActionsFor = video
+                                },
+                            ),
+                        )
                     }
-                    VideoItem(
-                        video = video,
-                        preferences = preferences,
-                        isRecentlyPlayedVideo = video == videosState.recentPlayedVideo,
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showMediaActionsFor = video
-                            },
-                        ),
-                    )
                 }
             }
         }

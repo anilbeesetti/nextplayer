@@ -38,23 +38,25 @@ fun FoldersView(
 
     when (foldersState) {
         FoldersState.Loading -> CenterCircularProgressBar()
-        is FoldersState.Success -> if (foldersState.data.isEmpty()) {
-            NoVideosFound()
-        } else {
+        is FoldersState.Success -> {
             MediaLazyList {
-                items(foldersState.data, key = { it.path }) {
-                    FolderItem(
-                        folder = it,
-                        isRecentlyPlayedFolder = foldersState.recentPlayedVideo in it.mediaList,
-                        preferences = preferences,
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onFolderClick(it.path) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showFolderActionsFor = it
-                            },
-                        ),
-                    )
+                if (foldersState.data.isEmpty()) {
+                    item { NoVideosFound() }
+                } else {
+                    items(foldersState.data, key = { it.path }) {
+                        FolderItem(
+                            folder = it,
+                            isRecentlyPlayedFolder = foldersState.recentPlayedVideo in it.mediaList,
+                            preferences = preferences,
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onFolderClick(it.path) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showFolderActionsFor = it
+                                },
+                            ),
+                        )
+                    }
                 }
             }
         }

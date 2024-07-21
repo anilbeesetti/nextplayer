@@ -9,13 +9,17 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -25,11 +29,15 @@ class MediaPickerFolderViewModel @Inject constructor(
     private val mediaService: MediaService,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
+    private val mediaSynchronizer: MediaSynchronizer,
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
 
     val folderPath = folderArgs.folderId
+
+    private val uiStateInternal = MutableStateFlow(MediaPickerFolderUiState())
+    val uiState = uiStateInternal.asStateFlow()
 
     val videos = getSortedVideosUseCase.invoke(folderPath)
         .map { VideosState.Success(it) }
@@ -63,4 +71,16 @@ class MediaPickerFolderViewModel @Inject constructor(
             mediaService.renameMedia(uri, to)
         }
     }
+
+    fun onRefreshClicked() {
+        viewModelScope.launch {
+            uiStateInternal.update { it.copy(refreshing = true) }
+            mediaSynchronizer.refresh()
+            uiStateInternal.update { it.copy(refreshing = false) }
+        }
+    }
 }
+
+data class MediaPickerFolderUiState(
+    val refreshing: Boolean = false,
+)

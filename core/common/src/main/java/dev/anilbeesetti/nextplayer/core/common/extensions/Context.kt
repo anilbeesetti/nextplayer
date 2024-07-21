@@ -30,6 +30,7 @@ import java.io.FileWriter
 import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.mozilla.universalchardet.UniversalDetector
@@ -204,38 +205,40 @@ fun Context.showToast(string: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, string, duration).show()
 }
 
-suspend fun Context.scanPaths(
-    paths: List<String>,
-    callback: ((String?, Uri?) -> Unit)? = null,
-) = withContext(Dispatchers.IO) {
-    MediaScannerConnection.scanFile(
-        this@scanPaths,
-        paths.toTypedArray(),
-        arrayOf("video/*"),
-        callback,
-    )
-}
-
-suspend fun Context.scanPath(file: File) {
-    withContext(Dispatchers.IO) {
-        if (file.isDirectory) {
-            file.listFiles()?.forEach { scanPath(it) }
-        } else {
-            scanPaths(listOf(file.path))
+suspend fun Context.scanPaths(paths: List<String>): Boolean = suspendCoroutine { continuation ->
+    try {
+        MediaScannerConnection.scanFile(
+            this@scanPaths,
+            paths.toTypedArray(),
+            arrayOf("video/*"),
+        ) { path, uri ->
+            Log.d("ScanPath", "scanPaths: path=$path, uri=$uri")
+            continuation.resumeWith(Result.success(true))
         }
+    } catch (e: Exception) {
+        continuation.resumeWith(Result.failure(e))
     }
 }
 
-suspend fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) = withContext(Dispatchers.IO) {
-    val storagePath = Environment.getExternalStorageDirectory()?.path
+suspend fun Context.scanPath(file: File): Boolean {
+    return if (file.isDirectory) {
+        file.listFiles()?.all { scanPath(it) } ?: true
+    } else {
+        scanPaths(listOf(file.path))
+    }
+}
+
+suspend fun Context.scanStorage(
+    storagePath: String? = Environment.getExternalStorageDirectory()?.path,
+): Boolean = withContext(Dispatchers.IO) {
     if (storagePath != null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            scanPaths(listOf(storagePath), callback)
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            scanPaths(listOf(storagePath))
         } else {
             scanPath(File(storagePath))
         }
     } else {
-        callback?.invoke(null, null)
+        false
     }
 }
 
