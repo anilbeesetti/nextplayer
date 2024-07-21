@@ -1,64 +1,48 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
-import dev.anilbeesetti.nextplayer.core.remotesubs.service.Subtitle
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.ErrorDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.GetSubtitlesOnlineDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.LoadingDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.SubtitleResultDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonUiState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
 @Composable
 fun MediaPickerFolderRoute(
     viewModel: MediaPickerFolderViewModel = hiltViewModel(),
+    mediaCommonViewModel: MediaCommonViewModel = hiltViewModel(),
     onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
@@ -66,7 +50,7 @@ fun MediaPickerFolderRoute(
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
     val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by mediaCommonViewModel.uiState.collectAsStateWithLifecycle()
 
     MediaPickerFolderScreen(
         folderName = viewModel.folderName,
@@ -78,7 +62,7 @@ fun MediaPickerFolderRoute(
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
-        onGetSubtitlesOnline = viewModel::getSubtitlesOnline,
+        onGetSubtitlesOnline = mediaCommonViewModel::getSubtitlesOnline,
     )
 }
 
@@ -88,7 +72,7 @@ internal fun MediaPickerFolderScreen(
     folderName: String,
     videosState: VideosState,
     preferences: ApplicationPreferences,
-    uiState: MediaPicketFolderUiState,
+    uiState: MediaCommonUiState,
     onNavigateUp: () -> Unit,
     onPlayVideo: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
@@ -149,48 +133,18 @@ internal fun MediaPickerFolderScreen(
 
     uiState.dialog?.let { dialog ->
         when (dialog) {
-            is MediaPickerFolderScreenDialog.LoadingDialog -> {
-                NextDialog(
-                    onDismissRequest = {},
-                    title = {},
-                    content = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
-                            Text(
-                                text = stringResource(id = dialog.messageRes ?: R.string.loading),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    },
-                    confirmButton = {},
+            is MediaCommonDialog.Loading -> {
+                LoadingDialogComponent(message = dialog.message)
+            }
+
+            is MediaCommonDialog.Error -> {
+                ErrorDialogComponent(
+                    errorMessage = dialog.message,
+                    onDismissRequest = dialog.onDismiss,
                 )
             }
 
-            is MediaPickerFolderScreenDialog.ErrorDialog -> {
-                NextDialog(
-                    onDismissRequest = {},
-                    title = {
-                        Text(text = stringResource(id = R.string.error))
-                    },
-                    content = {
-                        Text(
-                            text = dialog.message ?: stringResource(id = R.string.unknown_error_try_again),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(onClick = dialog.onDismiss) {
-                            Text(text = stringResource(id = R.string.ok))
-                        }
-                    },
-                )
-            }
-
-            is MediaPickerFolderScreenDialog.GetSubtitlesOnlineDialog -> {
+            is MediaCommonDialog.GetSubtitlesOnline -> {
                 GetSubtitlesOnlineDialogComponent(
                     video = dialog.video,
                     onDismissRequest = dialog.onDismiss,
@@ -198,7 +152,7 @@ internal fun MediaPickerFolderScreen(
                 )
             }
 
-            is MediaPickerFolderScreenDialog.SubtitleResultsDialog -> {
+            is MediaCommonDialog.SubtitleResults -> {
                 SubtitleResultDialogComponent(
                     data = dialog.results,
                     onDismissRequest = dialog.onDismiss,
@@ -207,130 +161,6 @@ internal fun MediaPickerFolderScreen(
             }
         }
     }
-}
-
-@Composable
-fun GetSubtitlesOnlineDialogComponent(
-    modifier: Modifier = Modifier,
-    video: Video,
-    onDismissRequest: () -> Unit,
-    onConfirm: (searchText: String?, language: String) -> Unit,
-) {
-    var searchText by remember { mutableStateOf(video.displayName) }
-    var language by remember { mutableStateOf("en") }
-
-    NextDialog(
-        modifier = modifier,
-        onDismissRequest = onDismissRequest,
-        title = {
-            Text(
-                text = "Get subtitles online",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
-        content = {
-            Column {
-                Text(text = "Search subtitle from opensubtitles.com")
-                Text(text = "Language: English")
-                Spacer(modifier = Modifier.size(16.dp))
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    label = { Text(text = "Search") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    trailingIcon = {
-                        IconButton(onClick = { searchText = "" }) {
-                            Icon(
-                                imageVector = NextIcons.Close,
-                                contentDescription = null,
-                            )
-                        }
-                    },
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(searchText, language) }) {
-                Text(text = stringResource(id = R.string.okay))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(text = stringResource(id = R.string.cancel))
-            }
-        },
-    )
-}
-
-@Composable
-fun SubtitleResultDialogComponent(
-    modifier: Modifier = Modifier,
-    data: List<Subtitle>,
-    onDismissRequest: () -> Unit,
-    onSubtitleSelected: (Subtitle) -> Unit,
-) {
-    var selectedData: Subtitle? by remember { mutableStateOf(null) }
-
-    NextDialog(
-        modifier = modifier,
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = "Subtitles", maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        content = {
-            LazyColumn(
-                modifier = Modifier.selectableGroup(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(data) { subtitle ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = selectedData == subtitle,
-                                onValueChange = { selectedData = subtitle },
-                                role = Role.RadioButton,
-                            ),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        RadioButton(
-                            selected = selectedData == subtitle,
-                            onClick = null,
-                        )
-                        Column {
-                            Text(
-                                text = subtitle.name,
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            Text(
-                                text = buildString {
-                                    append(subtitle.languageName)
-                                    if (subtitle.rating != null) {
-                                        append(", ${subtitle.rating}")
-                                    }
-                                },
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { selectedData?.let { onSubtitleSelected(it) } },
-                enabled = selectedData != null,
-            ) {
-                Text(text = stringResource(id = R.string.download))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(text = stringResource(id = R.string.cancel))
-            }
-        },
-    )
 }
 
 @Preview
@@ -343,13 +173,7 @@ private fun MediaPickerFolderScreenPreview() {
                 data = List(10) { Video.sample.copy(path = it.toString()) },
             ),
             preferences = ApplicationPreferences(),
-            uiState = MediaPicketFolderUiState(
-                dialog = MediaPickerFolderScreenDialog.GetSubtitlesOnlineDialog(
-                    video = Video.sample,
-                    onDismiss = {},
-                    onConfirm = { _, _ -> },
-                ),
-            ),
+            uiState = MediaCommonUiState(),
             onNavigateUp = {},
             onPlayVideo = {},
             onDeleteVideoClick = {},

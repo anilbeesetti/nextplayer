@@ -11,6 +11,8 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.remotesubs.service.Subtitle
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
@@ -87,4 +89,20 @@ class MediaPickerViewModel @Inject constructor(
             mediaService.renameMedia(uri, to)
         }
     }
+}
+
+sealed interface MediaPickerScreenDialog {
+    data class LoadingDialog(val messageRes: Int?) : MediaPickerScreenDialog
+    data class ErrorDialog(val message: String?, val onDismiss: () -> Unit) : MediaPickerScreenDialog
+    data class GetSubtitlesOnlineDialog(
+        val video: Video,
+        val onDismiss: () -> Unit,
+        val onConfirm: (searchText: String?, language: String) -> Unit,
+    ) : MediaPickerScreenDialog
+
+    data class SubtitleResultsDialog(
+        val results: List<Subtitle>,
+        val onDismiss: () -> Unit,
+        val onSubtitleSelected: (Subtitle) -> Unit,
+    ) : MediaPickerScreenDialog
 }

@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.remotesubs.service
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.model.Video
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 interface SubtitlesService {
@@ -9,6 +10,7 @@ interface SubtitlesService {
     suspend fun download(subtitle: Subtitle, name: String, fullName: String = "$name.${subtitle.language}.srt"): Result<SubtitleDownloadResponse>
 }
 
+@Serializable
 data class Subtitle(
     val id: Int,
     val name: String,
