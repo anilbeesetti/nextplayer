@@ -258,25 +258,8 @@ fun Context.convertToUTF8(uri: Uri, charset: Charset?): Uri {
 }
 
 fun detectCharset(inputStream: BufferedInputStream): Charset {
-    val bufferSize = 8000
-    inputStream.mark(bufferSize)
-    val rawInput = ByteArray(bufferSize)
-
-    var rawLength = 0
-    var remainingLength = bufferSize
-    while (remainingLength > 0) {
-        // read() may give data in smallish chunks, esp. for remote sources.  Hence, this loop.
-        val bytesRead = inputStream.read(rawInput, rawLength, remainingLength)
-        if (bytesRead <= 0) {
-            break
-        }
-        rawLength += bytesRead
-        remainingLength -= bytesRead
-    }
-    inputStream.reset()
-
     val charsetDetector = UniversalDetector()
-    charsetDetector.handleData(rawInput)
+    charsetDetector.handleData(inputStream.readBytes())
     charsetDetector.dataEnd()
 
     val encoding = charsetDetector.detectedCharset
