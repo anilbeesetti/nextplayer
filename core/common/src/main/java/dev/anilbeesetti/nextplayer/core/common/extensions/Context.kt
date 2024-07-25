@@ -18,20 +18,17 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import android.util.TypedValue
-import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import androidx.core.text.isDigitsOnly
 import java.io.BufferedInputStream
 import java.io.File
+import java.io.InputStream
+import java.net.URL
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.mozilla.universalchardet.UniversalDetector
-import java.io.InputStream
-import java.net.URL
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
