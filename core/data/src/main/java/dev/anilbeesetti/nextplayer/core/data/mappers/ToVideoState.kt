@@ -12,5 +12,6 @@ fun MediumEntity.toVideoState(): VideoState {
         subtitleTrackIndex = subtitleTrackIndex,
         playbackSpeed = playbackSpeed,
         externalSubs = UriListConverter.fromStringToList(externalSubs),
+        videoScale = videoScale,
     )
 }

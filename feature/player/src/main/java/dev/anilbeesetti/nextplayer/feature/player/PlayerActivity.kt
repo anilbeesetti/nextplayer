@@ -239,38 +239,40 @@ class PlayerActivity : AppCompatActivity() {
             pipButton.visibility = View.GONE
         }
 
-        seekBar.addListener(object : TimeBar.OnScrubListener {
-            override fun onScrubStart(timeBar: TimeBar, position: Long) {
-                if (player.isPlaying) {
-                    isPlayingOnScrubStart = true
-                    player.pause()
+        seekBar.addListener(
+            object : TimeBar.OnScrubListener {
+                override fun onScrubStart(timeBar: TimeBar, position: Long) {
+                    if (player.isPlaying) {
+                        isPlayingOnScrubStart = true
+                        player.pause()
+                    }
+                    isFrameRendered = true
+                    scrubStartPosition = player.currentPosition
+                    previousScrubPosition = player.currentPosition
+                    scrub(position)
+                    showPlayerInfo(
+                        info = Utils.formatDurationMillis(position),
+                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
+                    )
                 }
-                isFrameRendered = true
-                scrubStartPosition = player.currentPosition
-                previousScrubPosition = player.currentPosition
-                scrub(position)
-                showPlayerInfo(
-                    info = Utils.formatDurationMillis(position),
-                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                )
-            }
 
-            override fun onScrubMove(timeBar: TimeBar, position: Long) {
-                scrub(position)
-                showPlayerInfo(
-                    info = Utils.formatDurationMillis(position),
-                    subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                )
-            }
-
-            override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
-                hidePlayerInfo(0L)
-                scrubStartPosition = -1L
-                if (isPlayingOnScrubStart) {
-                    player.play()
+                override fun onScrubMove(timeBar: TimeBar, position: Long) {
+                    scrub(position)
+                    showPlayerInfo(
+                        info = Utils.formatDurationMillis(position),
+                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
+                    )
                 }
-            }
-        })
+
+                override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                    hidePlayerInfo(0L)
+                    scrubStartPosition = -1L
+                    if (isPlayingOnScrubStart) {
+                        player.play()
+                    }
+                }
+            },
+        )
 
         volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
         brightnessManager = BrightnessManager(activity = this)
@@ -605,6 +607,9 @@ class PlayerActivity : AppCompatActivity() {
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             currentVideoSize = videoSize
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
+            exoContentFrameLayout.scaleX = viewModel.currentVideoScale
+            exoContentFrameLayout.scaleY = viewModel.currentVideoScale
+            exoContentFrameLayout.requestLayout()
 
             if (currentOrientation != null) return
 
@@ -949,6 +954,7 @@ class PlayerActivity : AppCompatActivity() {
                 subtitleTrackIndex = player.getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
                 playbackSpeed = player.playbackParameters.speed,
                 skipSilence = player.skipSilenceEnabled,
+                videoScale = exoContentFrameLayout.scaleX,
             )
         }
         isFirstFrameRendered = false

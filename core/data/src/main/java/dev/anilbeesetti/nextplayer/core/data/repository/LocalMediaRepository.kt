@@ -49,6 +49,7 @@ class LocalMediaRepository @Inject constructor(
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?,
         externalSubs: List<Uri>,
+        videoScale: Float,
     ) {
         Timber.d(
             "save state for [$uri]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]",
@@ -63,6 +64,7 @@ class LocalMediaRepository @Inject constructor(
                 playbackSpeed = playbackSpeed,
                 externalSubs = UriListConverter.fromListToString(externalSubs),
                 lastPlayedTime = System.currentTimeMillis(),
+                videoScale = videoScale,
             )
         }
     }
