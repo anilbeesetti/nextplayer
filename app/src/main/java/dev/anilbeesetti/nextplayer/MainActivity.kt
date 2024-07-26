@@ -28,6 +28,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.services.SystemService
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
@@ -43,6 +44,9 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     @Inject
+    lateinit var systemService: SystemService
+
+    @Inject
     lateinit var synchronizer: MediaSynchronizer
 
     @Inject
@@ -53,6 +57,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        systemService.initialize(this@MainActivity)
         mediaService.initialize(this@MainActivity)
 
         var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)

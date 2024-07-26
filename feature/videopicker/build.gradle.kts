@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:media"))
     implementation(project(":core:model"))
+    implementation(project(":core:remotesubs"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

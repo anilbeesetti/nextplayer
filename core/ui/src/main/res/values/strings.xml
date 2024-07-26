@@ -200,4 +200,19 @@
     <string name="exit">Exit</string>
     <string name="play_next_video">Play next video</string>
     <string name="skip_silence">Skip silence</string>
+    <string name="download">Download</string>
+    <string name="get_subtitles_online">Get subtitles online</string>
+    <string name="error">Error</string>
+    <string name="unknown_error_try_again">An unknown error has occurred. Please try again</string>
+    <string name="ok">OK</string>
+    <string name="loading">Loading...</string>
+    <string name="searching_subtitles">Searching for subtitles...</string>
+    <string name="subtitle_downloaded">Subtitle downloaded successfully</string>
+    <string name="error_downloading_subtitle">Error downloading subtitle. Try again</string>
+    <string name="downloading_subtitle">Downloading subtitles...</string>
+    <string name="downloads_remaining">%1$s downloads remaining</string>
+    <string name="download_quota_reached">"Download quota ended. Quota resets in %1$s"</string>
+    <string name="search_subtitles_from_open_subtitles">Search subtitle from opensubtitles.com</string>
+    <string name="search">Search</string>
+    <string name="subtitles">Subtitles</string>
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.CenterFocusStrong
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ClosedCaption
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
@@ -24,7 +25,6 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.FlipToBack
-import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOff
 import androidx.compose.material.icons.rounded.FontDownload
 import androidx.compose.material.icons.rounded.FormatBold
@@ -75,6 +75,7 @@ object NextIcons {
     val Check = Icons.Rounded.Check
     val CheckBox = Icons.Rounded.CheckCircle
     val CheckBoxOutline = Icons.Rounded.RadioButtonUnchecked
+    val Close = Icons.Rounded.Close
     val Contrast = Icons.Rounded.Contrast
     val DarkMode = Icons.Rounded.DarkMode
     val DashBoard = Icons.Rounded.Dashboard
@@ -85,7 +86,6 @@ object NextIcons {
     val Fast = Icons.Rounded.FastForward
     val FileOpen = Icons.Rounded.FileOpen
     val Focus = Icons.Rounded.CenterFocusStrong
-    val Folder = Icons.Rounded.Folder
     val FolderOff = Icons.Rounded.FolderOff
     val Font = Icons.Rounded.FontDownload
     val FontSize = Icons.Rounded.FormatSize

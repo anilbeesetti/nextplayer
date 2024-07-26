@@ -5,9 +5,11 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Parcelable
 import androidx.core.net.toUri
 import androidx.media3.common.MimeTypes
+import dev.anilbeesetti.nextplayer.core.common.extensions.getAllSubtitlesInFolder
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
@@ -40,7 +42,15 @@ val Uri.isSchemaContent: Boolean
 fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyList()): List<Subtitle> {
     return context.getPath(this)?.let { path ->
         val excludeSubsPathList = excludeSubsList.mapNotNull { context.getPath(it) }
-        File(path).getSubtitles().mapNotNull { file ->
+        val mediaFile = File(path)
+        buildList {
+            addAll(mediaFile.getSubtitles())
+            addAll(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+                    .getAllSubtitlesInFolder(forFile = mediaFile),
+            )
+            addAll(context.filesDir.getAllSubtitlesInFolder(forFile = mediaFile))
+        }.mapNotNull { file ->
             if (file.path !in excludeSubsPathList) {
                 Subtitle(
                     name = file.name,

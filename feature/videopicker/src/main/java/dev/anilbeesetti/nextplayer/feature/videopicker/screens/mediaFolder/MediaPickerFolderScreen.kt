@@ -23,21 +23,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.ErrorDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.GetSubtitlesOnlineDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.LoadingDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.SubtitleResultDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonUiState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
-import java.io.File
 
 @Composable
 fun MediaPickerFolderRoute(
     viewModel: MediaPickerFolderViewModel = hiltViewModel(),
+    mediaCommonViewModel: MediaCommonViewModel = hiltViewModel(),
     onVideoClick: (uri: Uri) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
@@ -45,34 +54,36 @@ fun MediaPickerFolderRoute(
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
     val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val commonUiState by mediaCommonViewModel.uiState.collectAsStateWithLifecycle()
 
     MediaPickerFolderScreen(
-        folderPath = viewModel.folderPath,
+        commonUiState = commonUiState,
+        folderName = viewModel.folderName,
         videosState = videosState,
         preferences = preferences,
-        isRefreshing = uiState.refreshing,
         onPlayVideo = onVideoClick,
         onNavigateUp = onNavigateUp,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
-        onRefreshClicked = viewModel::onRefreshClicked,
+        onGetSubtitlesOnline = mediaCommonViewModel::getSubtitlesOnline,
+        onRefreshClicked = mediaCommonViewModel::onRefreshClicked,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerFolderScreen(
-    folderPath: String,
+    commonUiState: MediaCommonUiState,
+    folderName: String,
     videosState: VideosState,
     preferences: ApplicationPreferences,
-    isRefreshing: Boolean = false,
     onNavigateUp: () -> Unit,
     onPlayVideo: (Uri) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit,
+    onGetSubtitlesOnline: (Video) -> Unit,
     onRefreshClicked: () -> Unit = {},
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
@@ -83,8 +94,8 @@ internal fun MediaPickerFolderScreen(
         }
     }
 
-    LaunchedEffect(isRefreshing) {
-        if (isRefreshing) {
+    LaunchedEffect(commonUiState.isRefreshing) {
+        if (commonUiState.isRefreshing) {
             pullToRefreshState.startRefresh()
         } else {
             pullToRefreshState.endRefresh()
@@ -95,7 +106,7 @@ internal fun MediaPickerFolderScreen(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         topBar = {
             NextTopAppBar(
-                title = File(folderPath).prettyName,
+                title = folderName,
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -138,6 +149,7 @@ internal fun MediaPickerFolderScreen(
                 onDeleteVideoClick = onDeleteVideoClick,
                 onVideoLoaded = onAddToSync,
                 onRenameVideoClick = onRenameVideoClick,
+                onGetSubtitlesOnline = onGetSubtitlesOnline,
             )
 
             PullToRefreshContainer(
@@ -145,5 +157,56 @@ internal fun MediaPickerFolderScreen(
                 modifier = Modifier.align(Alignment.TopCenter),
             )
         }
+    }
+
+    commonUiState.dialog?.let { dialog ->
+        when (dialog) {
+            is MediaCommonDialog.Loading -> {
+                LoadingDialogComponent(message = dialog.message)
+            }
+
+            is MediaCommonDialog.Error -> {
+                ErrorDialogComponent(
+                    errorMessage = dialog.message,
+                    onDismissRequest = dialog.onDismiss,
+                )
+            }
+
+            is MediaCommonDialog.GetSubtitlesOnline -> {
+                GetSubtitlesOnlineDialogComponent(
+                    video = dialog.video,
+                    onDismissRequest = dialog.onDismiss,
+                    onConfirm = dialog.onConfirm,
+                )
+            }
+
+            is MediaCommonDialog.SubtitleResults -> {
+                SubtitleResultDialogComponent(
+                    data = dialog.results,
+                    onDismissRequest = dialog.onDismiss,
+                    onSubtitleSelected = dialog.onSubtitleSelected,
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun MediaPickerFolderScreenPreview() {
+    NextPlayerTheme {
+        MediaPickerFolderScreen(
+            folderName = "Download",
+            videosState = VideosState.Success(
+                data = List(10) { Video.sample.copy(path = it.toString()) },
+            ),
+            preferences = ApplicationPreferences(),
+            commonUiState = MediaCommonUiState(),
+            onNavigateUp = {},
+            onPlayVideo = {},
+            onDeleteVideoClick = {},
+            onAddToSync = {},
+            onGetSubtitlesOnline = {},
+        )
     }
 }

@@ -71,6 +71,7 @@ dependencies {
     implementation(project(":core:media"))
     implementation(project(":core:model"))
     implementation(project(":core:ui"))
+    implementation(projects.core.remotesubs)
     implementation(project(":feature:videopicker"))
     implementation(project(":feature:player"))
     implementation(project(":feature:settings"))

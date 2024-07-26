@@ -77,7 +77,14 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.ErrorDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.GetSubtitlesOnlineDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.LoadingDialogComponent
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.dialogs.SubtitleResultDialogComponent
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonUiState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaCommonViewModel
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
@@ -88,19 +95,20 @@ fun MediaPickerRoute(
     onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel(),
+    mediaCommonViewModel: MediaCommonViewModel = hiltViewModel(),
 ) {
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val commonUiState by mediaCommonViewModel.uiState.collectAsStateWithLifecycle()
 
     val permissionState = rememberPermissionState(permission = storagePermission)
 
     MediaPickerScreen(
+        commonUiState = commonUiState,
         videosState = videosState,
         foldersState = foldersState,
         preferences = preferences,
-        isRefreshing = uiState.refreshing,
         permissionState = permissionState,
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
@@ -110,17 +118,18 @@ fun MediaPickerRoute(
         onDeleteFolderClick = { viewModel.deleteFolders(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
-        onRefreshClicked = viewModel::onRefreshClicked,
+        onGetSubtitlesOnline = mediaCommonViewModel::getSubtitlesOnline,
+        onRefreshClicked = mediaCommonViewModel::onRefreshClicked,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerScreen(
+    commonUiState: MediaCommonUiState,
     videosState: VideosState,
     foldersState: FoldersState,
     preferences: ApplicationPreferences,
-    isRefreshing: Boolean = false,
     permissionState: PermissionState = GrantedPermissionState,
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
@@ -130,6 +139,7 @@ internal fun MediaPickerScreen(
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onDeleteFolderClick: (String) -> Unit,
     onAddToSync: (Uri) -> Unit = {},
+    onGetSubtitlesOnline: (Video) -> Unit = {},
     onRefreshClicked: () -> Unit = {},
 ) {
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
@@ -147,8 +157,8 @@ internal fun MediaPickerScreen(
         }
     }
 
-    LaunchedEffect(isRefreshing) {
-        if (isRefreshing) {
+    LaunchedEffect(commonUiState.isRefreshing) {
+        if (commonUiState.isRefreshing) {
             pullToRefreshState.startRefresh()
         } else {
             pullToRefreshState.endRefresh()
@@ -250,6 +260,7 @@ internal fun MediaPickerScreen(
                             onDeleteVideoClick = onDeleteVideoClick,
                             onVideoLoaded = onAddToSync,
                             onRenameVideoClick = onRenameVideoClick,
+                            onGetSubtitlesOnline = onGetSubtitlesOnline,
                         )
                     }
                 }
@@ -275,6 +286,37 @@ internal fun MediaPickerScreen(
             onDismiss = { showUrlDialog = false },
             onDone = { onPlayVideo(Uri.parse(it)) },
         )
+    }
+
+    commonUiState.dialog?.let { dialog ->
+        when (dialog) {
+            is MediaCommonDialog.Loading -> {
+                LoadingDialogComponent(message = dialog.message)
+            }
+
+            is MediaCommonDialog.Error -> {
+                ErrorDialogComponent(
+                    errorMessage = dialog.message,
+                    onDismissRequest = dialog.onDismiss,
+                )
+            }
+
+            is MediaCommonDialog.GetSubtitlesOnline -> {
+                GetSubtitlesOnlineDialogComponent(
+                    video = dialog.video,
+                    onDismissRequest = dialog.onDismiss,
+                    onConfirm = dialog.onConfirm,
+                )
+            }
+
+            is MediaCommonDialog.SubtitleResults -> {
+                SubtitleResultDialogComponent(
+                    data = dialog.results,
+                    onDismissRequest = dialog.onDismiss,
+                    onSubtitleSelected = dialog.onSubtitleSelected,
+                )
+            }
+        }
     }
 }
 
@@ -346,6 +388,7 @@ fun MediaPickerScreenPreview(
                 videosState = VideosState.Success(
                     data = videos,
                 ),
+                commonUiState = MediaCommonUiState(),
                 foldersState = FoldersState.Loading,
                 preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                 onPlayVideo = {},
@@ -379,6 +422,7 @@ fun MediaPickerNoVideosFoundPreview() {
                 foldersState = FoldersState.Success(
                     data = emptyList(),
                 ),
+                commonUiState = MediaCommonUiState(),
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
@@ -397,6 +441,7 @@ fun MediaPickerLoadingPreview() {
             MediaPickerScreen(
                 videosState = VideosState.Loading,
                 foldersState = FoldersState.Loading,
+                commonUiState = MediaCommonUiState(),
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
