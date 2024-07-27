@@ -33,10 +33,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaState
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
 @Composable
