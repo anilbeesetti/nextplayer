@@ -7,8 +7,6 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 fun DirectoryWithMedia.toFolder() = Folder(
     name = directory.name,
     path = directory.path,
-    mediaSize = media.sumOf { it.size },
-    mediaCount = media.size,
     dateModified = directory.modified,
     formattedMediaSize = Utils.formatFileSize(media.sumOf { it.size }),
     mediaList = media.map { it.toVideo() },

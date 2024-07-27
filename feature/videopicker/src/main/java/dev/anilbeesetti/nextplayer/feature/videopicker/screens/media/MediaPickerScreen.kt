@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -47,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,6 +65,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -73,10 +77,16 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersView
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaLazyList
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NoVideosFound
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 
@@ -91,6 +101,7 @@ fun MediaPickerRoute(
 ) {
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
+    val folderTreeState by viewModel.folderTreeState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -99,6 +110,7 @@ fun MediaPickerRoute(
     MediaPickerScreen(
         videosState = videosState,
         foldersState = foldersState,
+        folderTreeState = folderTreeState,
         preferences = preferences,
         isRefreshing = uiState.refreshing,
         permissionState = permissionState,
@@ -119,6 +131,7 @@ fun MediaPickerRoute(
 internal fun MediaPickerScreen(
     videosState: VideosState,
     foldersState: FoldersState,
+    folderTreeState: FolderTreeState,
     preferences: ApplicationPreferences,
     isRefreshing: Boolean = false,
     permissionState: PermissionState = GrantedPermissionState,
@@ -128,7 +141,7 @@ internal fun MediaPickerScreen(
     updatePreferences: (ApplicationPreferences) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
-    onDeleteFolderClick: (String) -> Unit,
+    onDeleteFolderClick: (Folder) -> Unit,
     onAddToSync: (Uri) -> Unit = {},
     onRefreshClicked: () -> Unit = {},
 ) {
@@ -236,11 +249,15 @@ internal fun MediaPickerScreen(
                     launchPermissionRequest = { permissionState.launchPermissionRequest() },
                 ) {
                     if (preferences.groupVideosByFolder) {
-                        FoldersView(
-                            foldersState = foldersState,
+                        MediaView(
+                            isLoading = folderTreeState is FolderTreeState.Loading,
+                            rootFolder = (folderTreeState as? FolderTreeState.Success)?.data,
                             preferences = preferences,
                             onFolderClick = onFolderClick,
                             onDeleteFolderClick = onDeleteFolderClick,
+                            onVideoClick = onPlayVideo,
+                            onRenameVideoClick = onRenameVideoClick,
+                            onDeleteVideoClick = onDeleteVideoClick,
                         )
                     } else {
                         VideosView(
@@ -347,6 +364,7 @@ fun MediaPickerScreenPreview(
                     data = videos,
                 ),
                 foldersState = FoldersState.Loading,
+                folderTreeState = FolderTreeState.Loading,
                 preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
                 onPlayVideo = {},
                 onFolderClick = {},
@@ -379,6 +397,7 @@ fun MediaPickerNoVideosFoundPreview() {
                 foldersState = FoldersState.Success(
                     data = emptyList(),
                 ),
+                folderTreeState = FolderTreeState.Loading,
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
@@ -397,6 +416,7 @@ fun MediaPickerLoadingPreview() {
             MediaPickerScreen(
                 videosState = VideosState.Loading,
                 foldersState = FoldersState.Loading,
+                folderTreeState = FolderTreeState.Loading,
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},

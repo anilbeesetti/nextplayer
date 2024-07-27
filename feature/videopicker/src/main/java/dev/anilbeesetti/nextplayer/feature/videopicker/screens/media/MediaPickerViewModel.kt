@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedFolderTreeUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
@@ -28,6 +31,7 @@ import kotlinx.coroutines.launch
 class MediaPickerViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
     getSortedFoldersUseCase: GetSortedFoldersUseCase,
+    getSortedFolderTreeUseCase: GetSortedFolderTreeUseCase,
     private val mediaService: MediaService,
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
@@ -54,6 +58,14 @@ class MediaPickerViewModel @Inject constructor(
             initialValue = FoldersState.Loading,
         )
 
+    val folderTreeState = getSortedFolderTreeUseCase.invoke()
+        .map { FolderTreeState.Success(it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = FolderTreeState.Loading,
+        )
+
     val preferences = preferencesRepository.applicationPreferences
         .stateIn(
             scope = viewModelScope,
@@ -73,11 +85,11 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    fun deleteFolders(paths: List<String>) {
+    fun deleteFolders(folders: List<Folder>) {
         viewModelScope.launch {
-            val uris = paths.flatMap { path ->
-                mediaRepository.getVideosFlowFromFolderPath(path).first().mapNotNull {
-                    Uri.parse(it.uriString)
+            val uris = folders.flatMap { folder ->
+                folder.allMediaList.mapNotNull { video ->
+                    Uri.parse(video.uriString)
                 }
             }
             mediaService.deleteMedia(uris)

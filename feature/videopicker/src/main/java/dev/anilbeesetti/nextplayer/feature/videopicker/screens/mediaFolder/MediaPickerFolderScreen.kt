@@ -28,10 +28,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
@@ -39,25 +42,30 @@ import java.io.File
 fun MediaPickerFolderRoute(
     viewModel: MediaPickerFolderViewModel = hiltViewModel(),
     onVideoClick: (uri: Uri) -> Unit,
+    onFolderClick: (folderPath: String) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
     val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val folderTreeState by viewModel.folderTreeState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
         videosState = videosState,
+        folderTreeState = folderTreeState,
         preferences = preferences,
         isRefreshing = uiState.refreshing,
         onPlayVideo = onVideoClick,
         onNavigateUp = onNavigateUp,
+        onFolderClick = onFolderClick,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onAddToSync = viewModel::addToMediaInfoSynchronizer,
         onRenameVideoClick = viewModel::renameVideo,
         onRefreshClicked = viewModel::onRefreshClicked,
+        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it)) },
     )
 }
 
@@ -66,14 +74,17 @@ fun MediaPickerFolderRoute(
 internal fun MediaPickerFolderScreen(
     folderPath: String,
     videosState: VideosState,
+    folderTreeState: FolderTreeState,
     preferences: ApplicationPreferences,
     isRefreshing: Boolean = false,
     onNavigateUp: () -> Unit,
     onPlayVideo: (Uri) -> Unit,
+    onFolderClick: (String) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
     onAddToSync: (Uri) -> Unit,
     onRefreshClicked: () -> Unit = {},
+    onDeleteFolderClick: (Folder) -> Unit = {},
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -131,14 +142,25 @@ internal fun MediaPickerFolderScreen(
                 .nestedScroll(pullToRefreshState.nestedScrollConnection),
             contentAlignment = Alignment.Center,
         ) {
-            VideosView(
-                videosState = videosState,
+            MediaView(
+                isLoading = folderTreeState is FolderTreeState.Loading,
+                rootFolder = (folderTreeState as? FolderTreeState.Success)?.data,
                 preferences = preferences,
+                onFolderClick = onFolderClick,
+                onDeleteFolderClick = onDeleteFolderClick,
                 onVideoClick = onPlayVideo,
                 onDeleteVideoClick = onDeleteVideoClick,
                 onVideoLoaded = onAddToSync,
                 onRenameVideoClick = onRenameVideoClick,
             )
+//            VideosView(
+//                videosState = videosState,
+//                preferences = preferences,
+//                onVideoClick = onPlayVideo,
+//                onDeleteVideoClick = onDeleteVideoClick,
+//                onVideoLoaded = onAddToSync,
+//                onRenameVideoClick = onRenameVideoClick,
+//            )
 
             PullToRefreshContainer(
                 state = pullToRefreshState,

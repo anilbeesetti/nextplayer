@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens
 
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.recentPlayed
 
 sealed interface VideosState {
     data object Loading : VideosState
@@ -20,5 +21,7 @@ sealed interface FoldersState {
     }
 }
 
-private fun List<Video>.recentPlayed(): Video? =
-    filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()
+sealed interface FolderTreeState {
+    data object Loading : FolderTreeState
+    data class Success(val data: Folder) : FolderTreeState
+}

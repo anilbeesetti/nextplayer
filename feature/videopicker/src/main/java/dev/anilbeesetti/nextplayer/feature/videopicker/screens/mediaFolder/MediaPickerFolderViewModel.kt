@@ -6,17 +6,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedFolderTreeUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -25,6 +29,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class MediaPickerFolderViewModel @Inject constructor(
     getSortedVideosUseCase: GetSortedVideosUseCase,
+    getSortedFolderTreeUseCase: GetSortedFolderTreeUseCase,
     savedStateHandle: SavedStateHandle,
     private val mediaService: MediaService,
     private val preferencesRepository: PreferencesRepository,
@@ -45,6 +50,14 @@ class MediaPickerFolderViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = VideosState.Loading,
+        )
+
+    val folderTreeState = getSortedFolderTreeUseCase.invoke(folderPath)
+        .map { FolderTreeState.Success(it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = FolderTreeState.Loading,
         )
 
     val preferences = preferencesRepository.applicationPreferences
@@ -69,6 +82,17 @@ class MediaPickerFolderViewModel @Inject constructor(
     fun renameVideo(uri: Uri, to: String) {
         viewModelScope.launch {
             mediaService.renameMedia(uri, to)
+        }
+    }
+
+    fun deleteFolders(folders: List<Folder>) {
+        viewModelScope.launch {
+            val uris = folders.flatMap { folder ->
+                folder.allMediaList.mapNotNull { video ->
+                    Uri.parse(video.uriString)
+                }
+            }
+            mediaService.deleteMedia(uris)
         }
     }
 
