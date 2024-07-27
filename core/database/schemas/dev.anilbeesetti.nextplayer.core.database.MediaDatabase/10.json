@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "6fb65c72b8317cc4b692b87e68b8f8d3",
+    "identityHash": "2171e54cfeaf26836e2c54d3ef13f6b3",
     "entities": [
       {
         "tableName": "directories",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`path` TEXT NOT NULL, `filename` TEXT NOT NULL, `last_modified` INTEGER NOT NULL, `parent_path` TEXT DEFAULT NULL, PRIMARY KEY(`path`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`path` TEXT NOT NULL, `filename` TEXT NOT NULL, `last_modified` INTEGER NOT NULL, PRIMARY KEY(`path`))",
         "fields": [
           {
             "fieldPath": "path",
@@ -25,13 +25,6 @@
             "columnName": "last_modified",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "parentPath",
-            "columnName": "parent_path",
-            "affinity": "TEXT",
-            "notNull": false,
-            "defaultValue": "NULL"
           }
         ],
         "primaryKey": {
@@ -422,7 +415,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6fb65c72b8317cc4b692b87e68b8f8d3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2171e54cfeaf26836e2c54d3ef13f6b3')"
     ]
   }
 }
