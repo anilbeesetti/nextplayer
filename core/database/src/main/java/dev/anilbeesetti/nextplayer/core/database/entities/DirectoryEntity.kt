@@ -13,4 +13,5 @@ data class DirectoryEntity(
     val path: String,
     @ColumnInfo(name = "filename") val name: String,
     @ColumnInfo(name = "last_modified") val modified: Long,
+    @ColumnInfo(name = "parent_path", defaultValue = "NULL") val parentPath: String? = null,
 )

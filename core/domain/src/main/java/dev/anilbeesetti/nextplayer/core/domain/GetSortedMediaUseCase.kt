@@ -20,7 +20,7 @@ class GetSortedMediaUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(folderPath: String? = null): Flow<Folder> {
+    operator fun invoke(folderPath: String? = null): Flow<Folder?> {
         return combine(
             getSortedVideosUseCase(folderPath),
             getSortedFoldersUseCase(),

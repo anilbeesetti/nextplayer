@@ -8,6 +8,7 @@ fun DirectoryWithMedia.toFolder() = Folder(
     name = directory.name,
     path = directory.path,
     dateModified = directory.modified,
+    parentPath = directory.parentPath,
     formattedMediaSize = Utils.formatFileSize(media.sumOf { it.size }),
     mediaList = media.map { it.toVideo() },
 )

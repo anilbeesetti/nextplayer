@@ -6,6 +6,7 @@ data class Folder(
     val name: String,
     val path: String,
     val dateModified: Long,
+    val parentPath: String? = null,
     val formattedMediaSize: String = "",
     val mediaList: List<Video> = emptyList(),
     val folderList: List<Folder> = emptyList(),

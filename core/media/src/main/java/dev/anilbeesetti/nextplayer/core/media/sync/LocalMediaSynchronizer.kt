@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.database.ContentObserver
+import android.os.Environment
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
@@ -19,8 +20,6 @@ import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
-import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +34,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import javax.inject.Inject
 
 class LocalMediaSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
@@ -62,26 +63,48 @@ class LocalMediaSynchronizer @Inject constructor(
         mediaSyncingJob?.cancel()
     }
 
-    private suspend fun updateDirectories(media: List<MediaVideo>) = withContext(
-        Dispatchers.Default,
-    ) {
-        val directories = media.groupBy { File(it.data).parentFile!! }.map { (file, _) ->
+    private suspend fun updateDirectories(media: List<MediaVideo>) =
+        withContext(Dispatchers.Default) {
+            val directories = getDirectoryEntities(media = media)
+            directoryDao.upsertAll(directories)
+
+            val currentDirectoryPaths = directories.map { it.path }
+
+            val unwantedDirectories = directoryDao.getAll().first()
+                .filterNot { it.path in currentDirectoryPaths }
+
+            val unwantedDirectoriesPaths = unwantedDirectories.map { it.path }
+
+            directoryDao.delete(unwantedDirectoriesPaths)
+        }
+
+    private fun getDirectoryEntities(
+        parentFolder: File? = null,
+        currentFolder: File = Environment.getExternalStorageDirectory(),
+        media: List<MediaVideo>,
+    ): List<DirectoryEntity> {
+        val directories = mutableListOf<DirectoryEntity>()
+
+        directories.add(
             DirectoryEntity(
-                path = file.path,
-                name = file.prettyName,
-                modified = file.lastModified(),
+                path = currentFolder.path,
+                name = currentFolder.prettyName,
+                modified = currentFolder.lastModified(),
+                parentPath = parentFolder?.path,
+            ),
+        )
+
+        currentFolder.listFiles { file ->
+            file.isDirectory && media.any { it.data.startsWith(file.path) }
+        }?.onEach { file ->
+            directories += getDirectoryEntities(
+                parentFolder = currentFolder,
+                currentFolder = file,
+                media = media,
             )
         }
-        directoryDao.upsertAll(directories)
 
-        val currentDirectoryPaths = directories.map { it.path }
-
-        val unwantedDirectories = directoryDao.getAll().first()
-            .filterNot { it.path in currentDirectoryPaths }
-
-        val unwantedDirectoriesPaths = unwantedDirectories.map { it.path }
-
-        directoryDao.delete(unwantedDirectoriesPaths)
+        return directories
     }
 
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {

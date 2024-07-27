@@ -28,5 +28,5 @@ sealed interface FolderTreeState {
 
 sealed interface MediaState {
     data object Loading : MediaState
-    data class Success(val data: Folder) : MediaState
+    data class Success(val data: Folder?) : MediaState
 }
