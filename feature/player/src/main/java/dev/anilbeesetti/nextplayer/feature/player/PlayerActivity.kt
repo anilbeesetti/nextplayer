@@ -965,7 +965,7 @@ class PlayerActivity : AppCompatActivity() {
         .setUri(uri)
         .build()
 
-    private fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
+    private suspend fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
         return subtitles.map {
             val charset = if (with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
                 Charset.forName(playerPreferences.subtitleTextEncoding)
