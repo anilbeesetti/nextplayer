@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.model
 
-enum class ViewMode {
+enum class MediaViewMode {
     FOLDER_TREE,
     FOLDERS,
     VIDEOS,

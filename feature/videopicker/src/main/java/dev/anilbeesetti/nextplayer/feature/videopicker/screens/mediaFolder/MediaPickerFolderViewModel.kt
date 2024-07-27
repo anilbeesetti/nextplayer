@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFolderTreeUseCase
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
@@ -15,6 +16,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +30,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MediaPickerFolderViewModel @Inject constructor(
-    getSortedVideosUseCase: GetSortedVideosUseCase,
-    getSortedFolderTreeUseCase: GetSortedFolderTreeUseCase,
+    getSortedMediaUseCase: GetSortedMediaUseCase,
     savedStateHandle: SavedStateHandle,
     private val mediaService: MediaService,
     private val preferencesRepository: PreferencesRepository,
@@ -44,20 +45,12 @@ class MediaPickerFolderViewModel @Inject constructor(
     private val uiStateInternal = MutableStateFlow(MediaPickerFolderUiState())
     val uiState = uiStateInternal.asStateFlow()
 
-    val videos = getSortedVideosUseCase.invoke(folderPath)
-        .map { VideosState.Success(it) }
+    val mediaState = getSortedMediaUseCase.invoke(folderPath)
+        .map { MediaState.Success(it) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VideosState.Loading,
-        )
-
-    val folderTreeState = getSortedFolderTreeUseCase.invoke(folderPath)
-        .map { FolderTreeState.Success(it) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = FolderTreeState.Loading,
+            initialValue = MediaState.Loading,
         )
 
     val preferences = preferencesRepository.applicationPreferences

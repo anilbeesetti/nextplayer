@@ -35,6 +35,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import java.io.File
 
@@ -47,15 +48,13 @@ fun MediaPickerFolderRoute(
 ) {
     // The app experiences jank when videosState updates before the initial render finishes.
     // By adding Lifecycle.State.RESUMED, we ensure that we wait until the first render completes.
-    val videosState by viewModel.videos.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
-    val folderTreeState by viewModel.folderTreeState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val mediaState by viewModel.mediaState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     MediaPickerFolderScreen(
         folderPath = viewModel.folderPath,
-        videosState = videosState,
-        folderTreeState = folderTreeState,
+        mediaState = mediaState,
         preferences = preferences,
         isRefreshing = uiState.refreshing,
         onPlayVideo = onVideoClick,
@@ -73,8 +72,7 @@ fun MediaPickerFolderRoute(
 @Composable
 internal fun MediaPickerFolderScreen(
     folderPath: String,
-    videosState: VideosState,
-    folderTreeState: FolderTreeState,
+    mediaState: MediaState,
     preferences: ApplicationPreferences,
     isRefreshing: Boolean = false,
     onNavigateUp: () -> Unit,
@@ -121,8 +119,8 @@ internal fun MediaPickerFolderScreen(
             if (!preferences.showFloatingPlayButton) return@Scaffold
             FloatingActionButton(
                 onClick = {
-                    val state = videosState as? VideosState.Success
-                    val videoToPlay = state?.recentPlayedVideo ?: state?.firstVideo
+                    val state = mediaState as? MediaState.Success
+                    val videoToPlay = state?.data?.recentlyPlayedVideo ?: state?.data?.firstVideo
                     if (videoToPlay != null) {
                         onPlayVideo(Uri.parse(videoToPlay.uriString))
                     }
@@ -143,8 +141,8 @@ internal fun MediaPickerFolderScreen(
             contentAlignment = Alignment.Center,
         ) {
             MediaView(
-                isLoading = folderTreeState is FolderTreeState.Loading,
-                rootFolder = (folderTreeState as? FolderTreeState.Success)?.data,
+                isLoading = mediaState is MediaState.Loading,
+                rootFolder = (mediaState as? MediaState.Success)?.data,
                 preferences = preferences,
                 onFolderClick = onFolderClick,
                 onDeleteFolderClick = onDeleteFolderClick,
@@ -153,15 +151,6 @@ internal fun MediaPickerFolderScreen(
                 onVideoLoaded = onAddToSync,
                 onRenameVideoClick = onRenameVideoClick,
             )
-//            VideosView(
-//                videosState = videosState,
-//                preferences = preferences,
-//                onVideoClick = onPlayVideo,
-//                onDeleteVideoClick = onDeleteVideoClick,
-//                onVideoLoaded = onAddToSync,
-//                onRenameVideoClick = onRenameVideoClick,
-//            )
-
             PullToRefreshContainer(
                 state = pullToRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),

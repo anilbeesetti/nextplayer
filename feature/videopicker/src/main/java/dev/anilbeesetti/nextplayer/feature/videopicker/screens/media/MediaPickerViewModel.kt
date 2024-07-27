@@ -4,10 +4,10 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFolderTreeUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
@@ -16,12 +16,12 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FolderTreeState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaState
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -29,11 +29,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
-    getSortedVideosUseCase: GetSortedVideosUseCase,
-    getSortedFoldersUseCase: GetSortedFoldersUseCase,
-    getSortedFolderTreeUseCase: GetSortedFolderTreeUseCase,
+    getSortedMediaUseCase: GetSortedMediaUseCase,
     private val mediaService: MediaService,
-    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
     private val mediaSynchronizer: MediaSynchronizer,
@@ -42,28 +39,12 @@ class MediaPickerViewModel @Inject constructor(
     private val uiStateInternal = MutableStateFlow(MediaPickerUiState())
     val uiState = uiStateInternal.asStateFlow()
 
-    val videosState = getSortedVideosUseCase.invoke()
-        .map { VideosState.Success(it) }
+    val mediaState = getSortedMediaUseCase.invoke()
+        .map { MediaState.Success(it) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VideosState.Loading,
-        )
-
-    val foldersState = getSortedFoldersUseCase.invoke()
-        .map { FoldersState.Success(it) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = FoldersState.Loading,
-        )
-
-    val folderTreeState = getSortedFolderTreeUseCase.invoke()
-        .map { FolderTreeState.Success(it) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = FolderTreeState.Loading,
+            initialValue = MediaState.Loading,
         )
 
     val preferences = preferencesRepository.applicationPreferences

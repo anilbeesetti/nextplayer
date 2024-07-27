@@ -7,7 +7,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
-import dev.anilbeesetti.nextplayer.core.model.ViewMode
+import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import kotlinx.coroutines.launch
@@ -47,7 +46,7 @@ fun MediaView(
     onVideoClick: (Uri) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
-    onVideoLoaded: (Uri) -> Unit = {},
+    onVideoLoaded: (Uri) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
     var showFolderActionsFor: Folder? by rememberSaveable { mutableStateOf(null) }
@@ -71,7 +70,7 @@ fun MediaView(
                 return@MediaLazyList
             }
 
-            if (preferences.mediaViewMode == ViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
                 item {
                     SectionTitle(title = stringResource(id = R.string.folders))
                 }
@@ -91,13 +90,13 @@ fun MediaView(
                 )
             }
 
-            if (preferences.mediaViewMode == ViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
                 item {
                     Spacer(modifier = Modifier.size(12.dp))
                 }
             }
 
-            if (preferences.mediaViewMode == ViewMode.FOLDER_TREE && rootFolder.mediaList.isNotEmpty()) {
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.mediaList.isNotEmpty()) {
                 item {
                     SectionTitle(title = stringResource(id = R.string.videos))
                 }
@@ -246,9 +245,9 @@ fun MediaView(
 @Composable
 private fun SectionTitle(title: String) {
     Text(
-        text = title.capitalize(Locale.current),
+        text = title,
         modifier = Modifier
-            .padding(horizontal = 12.dp)
+            .padding(horizontal = 16.dp)
             .padding(bottom = 4.dp),
         color = MaterialTheme.colorScheme.primary
     )
