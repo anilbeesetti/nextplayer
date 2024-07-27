@@ -31,10 +31,7 @@ fun NavGraphBuilder.mediaNavGraph(
         mediaPickerFolderScreen(
             onNavigateUp = navController::navigateUp,
             onVideoClick = context::startPlayerActivity,
-            onFolderClick = {
-                println("Navigate to folder $it")
-                navController.navigateToMediaPickerFolderScreen(it)
-            },
+            onFolderClick = navController::navigateToMediaPickerFolderScreen,
         )
     }
 }
