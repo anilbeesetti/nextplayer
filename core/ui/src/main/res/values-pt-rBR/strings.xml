@@ -64,7 +64,7 @@
     <string name="seek_gesture_description">Deslize horizontalmente para avançar ou retroceder</string>
     <string name="about_description">Versão, créditos</string>
     <string name="grant_permission">Conceder permissão</string>
-    <string name="done">OK</string>
+    <string name="done">Concluir</string>
     <string name="permission_info">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão.</string>
     <string name="permission_settings">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
     <string name="audio">Áudio</string>
@@ -86,9 +86,9 @@
     <string name="yes">Sim</string>
     <string name="media_library">Biblioteca de mídia</string>
     <string name="force_rescan_storage_desc">Cuidado: iniciar uma nova verificação completa do armazenamento pode aumentar o uso de recursos em seu dispositivo</string>
-    <string name="videos">vídeos</string>
+    <string name="videos">Vídeos</string>
     <string name="manage_folders_desc">Selecione as pastas a serem excluídas na biblioteca de mídia</string>
-    <string name="video">vídeo</string>
+    <string name="video">Vídeo</string>
     <string name="scan">Verificar</string>
     <string name="force_rescan_storage">Verificar armazenamento</string>
     <string name="media_library_description">Verificar e gerenciar a biblioteca de mídia</string>
@@ -182,7 +182,7 @@
     <string name="format">Formato</string>
     <string name="volume_boost_desc">Aumenta o volume do áudio em até 200%</string>
     <string name="volume_boost">Amplificar volume</string>
-    <string name="pip_settings_description">Mude automaticamente para o player em miniatura ao tocar no botão home</string>
+    <string name="pip_settings_description">Se você tocar no botão \"Início\" enquanto assiste um vídeo, a reprodução continua no player em miniatura que aparece por cima dos outros apps</string>
     <string name="pip_settings">Modo picture-in-picture</string>
     <string name="open_subtitle">Abrir legenda local</string>
     <string name="no_subtitle_tracks_found">As faixas de legenda para este vídeo não estão disponíveis ou não são compatíveis.</string>
@@ -198,4 +198,7 @@
     <string name="exit">Sair</string>
     <string name="play_next_video">Reproduzir próximo vídeo</string>
     <string name="skip_silence">Pular silêncio</string>
+    <string name="folders">Pastas</string>
+    <string name="tree">Estrutura</string>
+    <string name="folder">Pasta</string>
 </resources>
