@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -54,8 +55,8 @@ fun FolderItem(
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
-                    .width(min(100.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                    .aspectRatio(20 / 15f),
+                    .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
+                    .aspectRatio(20 / 17f),
             )
         },
         headlineContent = {
@@ -83,12 +84,20 @@ fun FolderItem(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                InfoChip(
-                    text = "${folder.mediaCount} " +
-                        stringResource(id = R.string.video.takeIf { folder.mediaCount == 1 } ?: R.string.videos),
-                )
+                if (folder.mediaList.isNotEmpty()) {
+                    InfoChip(
+                        text = "${folder.mediaList.size} " +
+                            stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+                    )
+                }
+                if (folder.folderList.isNotEmpty()) {
+                    InfoChip(
+                        text = "${folder.folderList.size} " +
+                            stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
+                    )
+                }
                 if (preferences.showSizeField) {
-                    InfoChip(text = folder.formattedMediaSize)
+                    InfoChip(text = Utils.formatFileSize(folder.mediaSize))
                 }
             }
         },

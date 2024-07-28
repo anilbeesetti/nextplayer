@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -66,6 +67,25 @@ fun QuickSettingsDialog(
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
+                DialogSectionTitle(text = "Media view mode")
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    MediaViewMode.entries.forEachIndexed { index, viewMode ->
+                        SegmentedButton(
+                            selected = preferences.mediaViewMode == viewMode,
+                            onClick = { preferences = preferences.copy(mediaViewMode = viewMode) },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MediaViewMode.entries.size),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContentColor = MaterialTheme.colorScheme.primary,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                            ),
+                        ) {
+                            Text(text = viewMode.name())
+                        }
+                    }
+                }
+                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
                 DialogSectionTitle(text = stringResource(R.string.sort))
                 SortOptions(
                     selectedSortBy = preferences.sortBy,
@@ -135,16 +155,6 @@ fun QuickSettingsDialog(
                         onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) },
                     )
                 }
-                HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
-                DialogPreferenceSwitch(
-                    text = stringResource(id = R.string.group_videos),
-                    isChecked = preferences.groupVideosByFolder,
-                    onClick = {
-                        preferences = preferences.copy(
-                            groupVideosByFolder = !preferences.groupVideosByFolder,
-                        )
-                    },
-                )
             }
         },
         confirmButton = {

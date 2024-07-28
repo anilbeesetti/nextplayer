@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -39,63 +41,132 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun VideosView(
-    videosState: VideosState,
+fun MediaView(
+    isLoading: Boolean,
+    rootFolder: Folder?,
     preferences: ApplicationPreferences,
+    onFolderClick: (String) -> Unit,
+    onDeleteFolderClick: (Folder) -> Unit,
     onVideoClick: (Uri) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit,
     onDeleteVideoClick: (String) -> Unit,
-    onVideoLoaded: (Uri) -> Unit = {},
+    onVideoLoaded: (Uri) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
+    var showFolderActionsFor: Folder? by rememberSaveable { mutableStateOf(null) }
+    var deleteFolderAction: Folder? by rememberSaveable { mutableStateOf(null) }
+    val scope = rememberCoroutineScope()
+
     var showMediaActionsFor: Video? by rememberSaveable { mutableStateOf(null) }
     var deleteAction: Video? by rememberSaveable { mutableStateOf(null) }
     var renameAction: Video? by rememberSaveable { mutableStateOf(null) }
     var showInfoAction: Video? by rememberSaveable { mutableStateOf(null) }
-    val scope = rememberCoroutineScope()
+
     val context = LocalContext.current
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    when (videosState) {
-        VideosState.Loading -> CenterCircularProgressBar()
-        is VideosState.Success -> {
-            MediaLazyList {
-                if (videosState.data.isEmpty()) {
-                    item { NoVideosFound() }
-                } else {
-                    items(videosState.data, key = { it.path }) { video ->
-                        LaunchedEffect(Unit) {
-                            onVideoLoaded(Uri.parse(video.uriString))
-                        }
-                        VideoItem(
-                            video = video,
-                            preferences = preferences,
-                            isRecentlyPlayedVideo = video == videosState.recentPlayedVideo,
-                            modifier = Modifier.combinedClickable(
-                                onClick = { onVideoClick(Uri.parse(video.uriString)) },
-                                onLongClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    showMediaActionsFor = video
-                                },
-                            ),
-                        )
-                    }
+    if (isLoading) {
+        CenterCircularProgressBar()
+    } else {
+        MediaLazyList {
+            if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
+                item { NoVideosFound() }
+                return@MediaLazyList
+            }
+
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+                item {
+                    SectionTitle(title = stringResource(id = R.string.folders))
                 }
             }
+            items(rootFolder.folderList, key = { it.path }) { folder ->
+                FolderItem(
+                    folder = folder,
+                    isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
+                    preferences = preferences,
+                    modifier = Modifier.combinedClickable(
+                        onClick = { onFolderClick(folder.path) },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showFolderActionsFor = folder
+                        },
+                    ),
+                )
+            }
+
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.size(12.dp))
+                }
+            }
+
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.mediaList.isNotEmpty()) {
+                item {
+                    SectionTitle(title = stringResource(id = R.string.videos))
+                }
+            }
+            items(rootFolder.mediaList, key = { it.path }) { video ->
+                LaunchedEffect(Unit) {
+                    onVideoLoaded(Uri.parse(video.uriString))
+                }
+                VideoItem(
+                    video = video,
+                    preferences = preferences,
+                    isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
+                    modifier = Modifier.combinedClickable(
+                        onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showMediaActionsFor = video
+                        },
+                    ),
+                )
+            }
         }
+    }
+
+    showFolderActionsFor?.let {
+        OptionsBottomSheet(
+            title = it.name,
+            onDismiss = { showFolderActionsFor = null },
+        ) {
+            BottomSheetItem(
+                text = stringResource(R.string.delete),
+                icon = NextIcons.Delete,
+                onClick = {
+                    deleteFolderAction = it
+                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showFolderActionsFor = null
+                    }
+                },
+            )
+        }
+    }
+
+    deleteFolderAction?.let { folder ->
+        DeleteConfirmationDialog(
+            subText = stringResource(R.string.delete_folder),
+            onCancel = { deleteFolderAction = null },
+            onConfirm = {
+                onDeleteFolderClick(folder)
+                deleteFolderAction = null
+            },
+            fileNames = listOf(folder.name),
+        )
     }
 
     showMediaActionsFor?.let {
@@ -187,6 +258,17 @@ fun VideosView(
             },
         )
     }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 4.dp),
+        color = MaterialTheme.colorScheme.primary,
+    )
 }
 
 @Composable

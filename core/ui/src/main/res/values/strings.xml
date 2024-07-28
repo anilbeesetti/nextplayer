@@ -97,8 +97,8 @@
     <string name="scanning_storage">Scanning storage…</string>
     <string name="manage_folders">Manage folders</string>
     <string name="manage_folders_desc">Select folders to be excluded in the media library</string>
-    <string name="video">video</string>
-    <string name="videos">videos</string>
+    <string name="video">Video</string>
+    <string name="videos">Videos</string>
     <string name="screen_rotation">Screen Rotation</string>
     <string name="player_screen_orientation">Player screen orientation</string>
     <string name="automatic">Automatic (sensor)</string>
@@ -200,4 +200,7 @@
     <string name="exit">Exit</string>
     <string name="play_next_video">Play next video</string>
     <string name="skip_silence">Skip silence</string>
+    <string name="folder">Folder</string>
+    <string name="folders">Folders</string>
+    <string name="tree">Tree</string>
 </resources>

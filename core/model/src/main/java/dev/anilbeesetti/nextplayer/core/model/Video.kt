@@ -42,3 +42,6 @@ data class Video(
         )
     }
 }
+
+fun List<Video>.recentPlayed(): Video? =
+    filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()

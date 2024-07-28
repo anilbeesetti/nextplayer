@@ -30,8 +30,8 @@ fun ListItemComponent(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
             .background(color = colors.containerColor)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,

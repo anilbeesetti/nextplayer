@@ -62,6 +62,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -73,12 +74,10 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FoldersView
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideosView
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.FoldersState
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.VideosState
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaState
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
@@ -89,16 +88,14 @@ fun MediaPickerRoute(
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel(),
 ) {
-    val videosState by viewModel.videosState.collectAsStateWithLifecycle()
-    val foldersState by viewModel.foldersState.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val mediaState by viewModel.mediaState.collectAsStateWithLifecycle()
 
     val permissionState = rememberPermissionState(permission = storagePermission)
 
     MediaPickerScreen(
-        videosState = videosState,
-        foldersState = foldersState,
+        mediaState = mediaState,
         preferences = preferences,
         isRefreshing = uiState.refreshing,
         permissionState = permissionState,
@@ -117,8 +114,7 @@ fun MediaPickerRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerScreen(
-    videosState: VideosState,
-    foldersState: FoldersState,
+    mediaState: MediaState,
     preferences: ApplicationPreferences,
     isRefreshing: Boolean = false,
     permissionState: PermissionState = GrantedPermissionState,
@@ -128,7 +124,7 @@ internal fun MediaPickerScreen(
     updatePreferences: (ApplicationPreferences) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
-    onDeleteFolderClick: (String) -> Unit,
+    onDeleteFolderClick: (Folder) -> Unit,
     onAddToSync: (Uri) -> Unit = {},
     onRefreshClicked: () -> Unit = {},
 ) {
@@ -183,13 +179,8 @@ internal fun MediaPickerScreen(
             if (!permissionState.status.isGranted) return@Scaffold
             FloatingActionButton(
                 onClick = {
-                    val videoToPlay = if (preferences.groupVideosByFolder) {
-                        val state = foldersState as? FoldersState.Success
-                        state?.recentPlayedVideo ?: state?.firstVideo
-                    } else {
-                        val state = videosState as? VideosState.Success
-                        state?.recentPlayedVideo ?: state?.firstVideo
-                    }
+                    val state = mediaState as? MediaState.Success
+                    val videoToPlay = state?.data?.recentlyPlayedVideo ?: state?.data?.firstVideo
                     if (videoToPlay != null) {
                         onPlayVideo(Uri.parse(videoToPlay.uriString))
                     }
@@ -235,23 +226,17 @@ internal fun MediaPickerScreen(
                     permission = permissionState.permission,
                     launchPermissionRequest = { permissionState.launchPermissionRequest() },
                 ) {
-                    if (preferences.groupVideosByFolder) {
-                        FoldersView(
-                            foldersState = foldersState,
-                            preferences = preferences,
-                            onFolderClick = onFolderClick,
-                            onDeleteFolderClick = onDeleteFolderClick,
-                        )
-                    } else {
-                        VideosView(
-                            videosState = videosState,
-                            onVideoClick = onPlayVideo,
-                            preferences = preferences,
-                            onDeleteVideoClick = onDeleteVideoClick,
-                            onVideoLoaded = onAddToSync,
-                            onRenameVideoClick = onRenameVideoClick,
-                        )
-                    }
+                    MediaView(
+                        isLoading = mediaState is MediaState.Loading,
+                        rootFolder = (mediaState as? MediaState.Success)?.data,
+                        preferences = preferences,
+                        onFolderClick = onFolderClick,
+                        onDeleteFolderClick = onDeleteFolderClick,
+                        onVideoClick = onPlayVideo,
+                        onRenameVideoClick = onRenameVideoClick,
+                        onDeleteVideoClick = onDeleteVideoClick,
+                        onVideoLoaded = onAddToSync,
+                    )
                 }
             }
 
@@ -343,11 +328,8 @@ fun MediaPickerScreenPreview(
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                videosState = VideosState.Success(
-                    data = videos,
-                ),
-                foldersState = FoldersState.Loading,
-                preferences = ApplicationPreferences().copy(groupVideosByFolder = false),
+                mediaState = MediaState.Loading,
+                preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
@@ -375,10 +357,7 @@ fun MediaPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                videosState = VideosState.Loading,
-                foldersState = FoldersState.Success(
-                    data = emptyList(),
-                ),
+                mediaState = MediaState.Loading,
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},
@@ -395,8 +374,7 @@ fun MediaPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                videosState = VideosState.Loading,
-                foldersState = FoldersState.Loading,
+                mediaState = MediaState.Loading,
                 preferences = ApplicationPreferences(),
                 onPlayVideo = {},
                 onFolderClick = {},

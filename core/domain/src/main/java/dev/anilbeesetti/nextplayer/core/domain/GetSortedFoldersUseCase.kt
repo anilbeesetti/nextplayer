@@ -24,8 +24,8 @@ class GetSortedFoldersUseCase @Inject constructor(
             preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
 
-            val nonExcludedDirectories = folders.filterNot {
-                it.path in preferences.excludeFolders
+            val nonExcludedDirectories = folders.filter {
+                it.mediaList.isNotEmpty() && it.path !in preferences.excludeFolders
             }
 
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
