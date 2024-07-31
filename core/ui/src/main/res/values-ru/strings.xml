@@ -9,7 +9,7 @@
     <string name="disable">Выключить</string>
     <string name="done">Готово</string>
     <string name="double_tap">Жест двойного нажатия</string>
-    <string name="double_tap_description">Действие при двойном нажатии</string>
+    <string name="double_tap_description">Опция при двойном нажатии</string>
     <string name="navigate_up">Подняться вверх</string>
     <string name="player_controls_next">Воспроизвести следующее</string>
     <string name="player_controls_exit">Подняться вверх</string>
