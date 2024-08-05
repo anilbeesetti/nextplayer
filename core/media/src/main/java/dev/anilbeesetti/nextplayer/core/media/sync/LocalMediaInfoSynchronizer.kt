@@ -62,7 +62,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             val subtitleStreamsInfo =
                 mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.uriString) }
             val thumbnailPath =
-                thumbnail?.saveTo(storageDir = context.thumbnailCacheDir, quality = 30)
+                thumbnail?.saveTo(storageDir = context.thumbnailCacheDir, quality = 40)
 
             mediumDao.upsert(
                 medium.mediumEntity.copy(

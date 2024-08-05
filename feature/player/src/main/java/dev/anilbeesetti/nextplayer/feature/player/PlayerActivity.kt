@@ -295,7 +295,7 @@ class PlayerActivity : AppCompatActivity() {
         setOrientation()
         initPlaylist()
         initializePlayerView()
-        playVideo(playlistManager.getCurrent() ?: intent.data!!)
+        playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
         super.onStart()
     }
 
@@ -667,12 +667,6 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_BUFFERING -> {
                     Timber.d("Player state: BUFFERING")
-                    if (playlistManager.hasNext()) {
-                        nextButton.imageAlpha = 255
-                    } else {
-                        nextButton.imageAlpha = 75
-                        nextButton.isEnabled = false
-                    }
                 }
 
                 Player.STATE_IDLE -> {
