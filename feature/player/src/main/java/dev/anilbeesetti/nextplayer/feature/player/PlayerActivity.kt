@@ -291,11 +291,13 @@ class PlayerActivity : AppCompatActivity() {
         if (playerPreferences.rememberPlayerBrightness) {
             brightnessManager.setBrightness(playerPreferences.playerBrightness)
         }
-        createPlayer()
-        setOrientation()
-        initPlaylist()
-        initializePlayerView()
-        playVideo(playlistManager.getCurrent() ?: intent.data!!)
+        lifecycleScope.launch {
+            createPlayer()
+            setOrientation()
+            initPlaylist()
+            initializePlayerView()
+            playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
+        }
         super.onStart()
     }
 
@@ -526,7 +528,7 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private fun initPlaylist() = lifecycleScope.launch(Dispatchers.IO) {
+    private suspend fun initPlaylist() = withContext(Dispatchers.IO) {
         val mediaUri = getMediaContentUri(intent.data!!)
 
         if (mediaUri != null) {
@@ -667,12 +669,6 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_BUFFERING -> {
                     Timber.d("Player state: BUFFERING")
-                    if (playlistManager.hasNext()) {
-                        nextButton.imageAlpha = 255
-                    } else {
-                        nextButton.imageAlpha = 75
-                        nextButton.isEnabled = false
-                    }
                 }
 
                 Player.STATE_IDLE -> {
