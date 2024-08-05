@@ -291,13 +291,11 @@ class PlayerActivity : AppCompatActivity() {
         if (playerPreferences.rememberPlayerBrightness) {
             brightnessManager.setBrightness(playerPreferences.playerBrightness)
         }
-        lifecycleScope.launch {
-            createPlayer()
-            setOrientation()
-            initPlaylist()
-            initializePlayerView()
-            playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
-        }
+        createPlayer()
+        setOrientation()
+        initPlaylist()
+        initializePlayerView()
+        playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
         super.onStart()
     }
 
@@ -528,7 +526,7 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private suspend fun initPlaylist() = withContext(Dispatchers.IO) {
+    private fun initPlaylist() = lifecycleScope.launch(Dispatchers.IO) {
         val mediaUri = getMediaContentUri(intent.data!!)
 
         if (mediaUri != null) {
