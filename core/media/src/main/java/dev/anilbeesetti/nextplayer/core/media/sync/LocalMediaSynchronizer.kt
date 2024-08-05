@@ -112,17 +112,17 @@ class LocalMediaSynchronizer @Inject constructor(
             val file = File(it.data)
             val mediumEntity = mediumDao.get(it.uri.toString())
             mediumEntity?.copy(
-                uriString = it.uri.toString(),
-                modified = it.dateModified,
+                path = file.path,
                 name = file.name,
                 size = it.size,
                 width = it.width,
                 height = it.height,
                 duration = it.duration,
                 mediaStoreId = it.id,
+                modified = it.dateModified,
             ) ?: MediumEntity(
-                path = it.data,
                 uriString = it.uri.toString(),
+                path = it.data,
                 name = file.name,
                 parentPath = file.parent!!,
                 modified = it.dateModified,
