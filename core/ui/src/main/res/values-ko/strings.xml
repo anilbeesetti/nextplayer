@@ -197,4 +197,8 @@
     <string name="play_next_video">다음 동영상 재생</string>
     <string name="floating_play_button_desc">마지막으로 시청했던 미디어를 재생하는 플로팅 버튼을 표시합니다.</string>
     <string name="open_local_video">로컬 동영상 열기</string>
+    <string name="skip_silence">무음 건너뛰기</string>
+    <string name="folder">폴더</string>
+    <string name="folders">폴더</string>
+    <string name="tree">트리</string>
 </resources>
