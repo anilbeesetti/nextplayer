@@ -1,0 +1,49 @@
+name: Bump version code, change version name, and open pull request
+on:
+  push:
+    branches:
+      - 'release/v*.*.*'
+
+jobs:
+  bump-version-and-open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get updated version name and version code
+        run: |
+          # Extract version number from branch name
+          version_name=${GITHUB_REF#refs/heads/release/v}
+
+          # Get existing version code from build.gradle
+          version_code=$(grep "versionCode" app/build.gradle.kts | awk '{print $3}' | tr -d '\n')
+
+          # Increment existing version code by 1
+          version_code=$((version_code + 1))
+
+          # Set environment variable for later use
+          echo "VERSION_NAME=$version_name" >> $GITHUB_ENV
+          echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
+
+      - name: Update app/build.gradle.kts updated version name and version code
+        run: |
+          echo "Updating version code to ${{ env.VERSION_CODE }} and version name to ${{ env.version_name }}"
+          sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
+          sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts 
+
+      - name: Commit and push changes
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "Github Actions"
+          git commit -am "Bump version code and change version name"
+          git push origin HEAD
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v6.1.0
+        with:
+          commit-message: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
+          branch: "${{ github.ref }}"
+          title: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
+          body: ""
+          base: "main"
