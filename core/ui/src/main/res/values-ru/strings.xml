@@ -9,7 +9,7 @@
     <string name="disable">Выключить</string>
     <string name="done">Готово</string>
     <string name="double_tap">Жест двойного нажатия</string>
-    <string name="double_tap_description">Действие при двойном нажатии</string>
+    <string name="double_tap_description">Опция при двойном нажатии</string>
     <string name="navigate_up">Подняться вверх</string>
     <string name="player_controls_next">Воспроизвести следующее</string>
     <string name="player_controls_exit">Подняться вверх</string>
@@ -91,8 +91,8 @@
     <string name="media_library">Медиатека</string>
     <string name="media_library_description">Сканирование и управление медиатекой</string>
     <string name="scanning_storage">Сканирование хранилища…</string>
-    <string name="video">видео</string>
-    <string name="videos">видео</string>
+    <string name="video">Видео</string>
+    <string name="videos">Видео</string>
     <string name="manage_folders">Управление папками медиатеки</string>
     <string name="screen_rotation">Поворот экрана</string>
     <string name="player_screen_orientation">Ориентация экрана</string>
@@ -197,4 +197,8 @@
     <string name="floating_play_button_desc">Показать плавающую кнопку для продолжения воспроизведения.</string>
     <string name="open_local_video">Открыть локальное видео</string>
     <string name="mark_last_played_media_desc">Отмечать последнее просмотренное видео на домашнем экране и в папке</string>
+    <string name="skip_silence">Пропуск тишины</string>
+    <string name="folder">Папка</string>
+    <string name="folders">Папки</string>
+    <string name="tree">Дерево</string>
 </resources>

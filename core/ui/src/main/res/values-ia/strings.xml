@@ -197,4 +197,7 @@
     <string name="open_network_stream">Aperir fluxos in le rete</string>
     <string name="mark_last_played_media_desc">Marcar le ultime medio reproducite in le initio e in cata dossier</string>
     <string name="floating_play_button_desc">Monstrar button emergente pro reproducer le ultime medio reproducite.</string>
+    <string name="skip_silence">Saltar le silentio</string>
+    <string name="folder">Dossier</string>
+    <string name="folders">Dossieres</string>
 </resources>

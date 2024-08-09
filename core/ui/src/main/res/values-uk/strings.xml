@@ -92,8 +92,8 @@
     <string name="media_library_description">Сканування та керування медіатекою</string>
     <string name="manage_folders">Керування теками</string>
     <string name="scan">Сканування</string>
-    <string name="video">відео</string>
-    <string name="videos">відео</string>
+    <string name="video">Відео</string>
+    <string name="videos">Відео</string>
     <string name="screen_rotation">Поворот екрана</string>
     <string name="player_screen_orientation">Орієнтація екрана плеєра</string>
     <string name="automatic">Автоматичний (датник)</string>
@@ -197,4 +197,8 @@
     <string name="exit">Вихід</string>
     <string name="open_network_stream">Відкрити мережеву трансляцію</string>
     <string name="play_next_video">Відтворити наступне відео</string>
+    <string name="skip_silence">Пропустити тишу</string>
+    <string name="folder">Тека</string>
+    <string name="folders">Теки</string>
+    <string name="tree">Дерево</string>
 </resources>

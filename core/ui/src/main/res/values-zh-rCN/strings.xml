@@ -197,4 +197,8 @@
     <string name="mark_last_played_media">记录最近播放的媒体</string>
     <string name="mark_last_played_media_desc">在主页和每个文件夹中记录最近播放的媒体</string>
     <string name="exit">退出</string>
+    <string name="skip_silence">跳过静音部分</string>
+    <string name="folder">文件夹</string>
+    <string name="tree">树</string>
+    <string name="folders">文件夹</string>
 </resources>

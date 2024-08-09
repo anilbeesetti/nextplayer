@@ -97,7 +97,7 @@
     <string name="video">वीडियो</string>
     <string name="oldest">सबसे पुराना</string>
     <string name="date">तिथि</string>
-    <string name="videos">विडियोज</string>
+    <string name="videos">वीडियो</string>
     <string name="screen_rotation">स्क्रीन रोटेशन</string>
     <string name="player_screen_orientation">प्लेयर स्क्रीन ओरिएंटेशन</string>
     <string name="automatic">ऑटोमैटिक (सेंसर)</string>
@@ -197,4 +197,8 @@
     <string name="mark_last_played_media_desc">होम और प्रत्येक फ़ोल्डर में अंतिम बार चलाए गए मीडिया को चिह्नित करें</string>
     <string name="open_local_video">स्थानीय वीडियो खोलें</string>
     <string name="play_next_video">अगला वीडियो चलायें</string>
+    <string name="skip_silence">चुप्पी छोड़ें</string>
+    <string name="folder">फोल्डर</string>
+    <string name="folders">फोल्डर</string>
+    <string name="tree">ट्री</string>
 </resources>

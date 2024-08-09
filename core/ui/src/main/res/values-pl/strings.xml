@@ -8,7 +8,7 @@
     <string name="shortest">Najkrótsze</string>
     <string name="descending">Malejąco</string>
     <string name="no">Nie</string>
-    <string name="videos">wideo</string>
+    <string name="videos">Wideo</string>
     <string name="on">Włącz</string>
     <string name="none">Brak</string>
     <string name="autoplay_settings">Automatyczne odtwarzanie</string>
@@ -29,7 +29,7 @@
     <string name="largest">Największe</string>
     <string name="auto">Automatycznie</string>
     <string name="sort">Sortuj</string>
-    <string name="video">wideo</string>
+    <string name="video">Wideo</string>
     <string name="playback">Odtwarzanie</string>
     <string name="settings">Ustawienia</string>
     <string name="z_a">Z-A</string>
@@ -197,4 +197,8 @@
     <string name="system_volume_panel_desc">Wyświetla panel głośności systemu podczas regulacji głośności z włączonym zestawem słuchawkowym</string>
     <string name="no_subtitle_tracks_found">Napisy dla tego wideo są niedostępne lub nie są obsługiwane.</string>
     <string name="no_audio_tracks_found">Ścieżki dźwiękowe dla tego wideo są niedostępne lub nie są obsługiwane.</string>
+    <string name="skip_silence">Pomijaj ciszę</string>
+    <string name="folder">Katalog</string>
+    <string name="folders">Katalogi</string>
+    <string name="tree">Drzewo</string>
 </resources>

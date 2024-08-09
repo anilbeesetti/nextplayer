@@ -92,8 +92,8 @@
     <string name="enable">Ενεργή</string>
     <string name="no">Όχι</string>
     <string name="manage_folders_desc">Επιλέξτε φακέλους που θα εξαιρεθούν από τη βιβλιοθήκη πολυμέσων</string>
-    <string name="video">βίντεο</string>
-    <string name="videos">βίντεο</string>
+    <string name="video">Βίντεο</string>
+    <string name="videos">Βίντεο</string>
     <string name="screen_rotation">Διάταξη οθόνης</string>
     <string name="portrait">Κάθετη</string>
     <string name="automatic">Αυτόματη</string>
@@ -197,4 +197,8 @@
     <string name="floating_play_button">Αιωρούμενο κουμπί</string>
     <string name="floating_play_button_desc">Εμφάνιση κουμπιού αναπαραγωγής πρόσφατου βίντεο.</string>
     <string name="mark_last_played_media_desc">Επισήμανση τελευταίας αναπαραγωγής σε κάθε φάκελο</string>
+    <string name="skip_silence">Παράκαμψη σίγασης</string>
+    <string name="folders">Φάκελοι</string>
+    <string name="folder">Φάκελος</string>
+    <string name="tree">Δένδρο</string>
 </resources>

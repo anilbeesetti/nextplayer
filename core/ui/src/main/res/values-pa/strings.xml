@@ -197,4 +197,5 @@
     <string name="mark_last_played_media_desc">ਹੋਮ ਅਤੇ ਹਰੇਕ ਫ਼ੋਲਡਰ ਵਿੱਚ ਆਖਰੀ ਵਾਰ ਚਲਾਏ ਗਏ ਮੀਡੀਆ ਨੂੰ ਮਾਰਕ ਕਰੋ</string>
     <string name="open_local_video">ਸਥਾਨਿਕ ਵੀਡੀਓ ਖੋਲ੍ਹੋ</string>
     <string name="exit">ਬਾਹਰ ਨਿਕਲੋ</string>
+    <string name="skip_silence">ਸਕਿੱਪ ਸਾਈਲੈਂਸ</string>
 </resources>

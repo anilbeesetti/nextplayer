@@ -91,8 +91,8 @@
     <string name="scan">Escanear</string>
     <string name="media_library">Biblioteca multimedia</string>
     <string name="force_rescan_storage">Forzar reescaneo de almacenamiento</string>
-    <string name="video">vídeo</string>
-    <string name="videos">vídeos</string>
+    <string name="video">Vídeo</string>
+    <string name="videos">Vídeos</string>
     <string name="manage_folders">Gestionar carpetas</string>
     <string name="screen_rotation">Rotación de la pantalla</string>
     <string name="player_screen_orientation">Orientación de la pantalla del reproductor</string>
@@ -197,4 +197,8 @@
     <string name="mark_last_played_media_desc">Marcar el último medio reproducido al inicio y en cada carpeta</string>
     <string name="exit">Salir</string>
     <string name="play_next_video">Reproducir el siguiente vídeo</string>
+    <string name="skip_silence">Omitir silencio</string>
+    <string name="folder">Carpeta</string>
+    <string name="folders">Carpetas</string>
+    <string name="tree">Árbol</string>
 </resources>

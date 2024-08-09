@@ -13,4 +13,13 @@
     <string name="fast_seek">দ্রুত আগানো</string>
     <string name="about_name">সম্পর্কিত তথ্য</string>
     <string name="done">সম্পূর্ন</string>
+    <string name="grant_permission">অনুমতি প্রদান করুন</string>
+    <string name="group_videos">ভিডিও গুলিকে ফোল্ডারে দলবদ্ধ করুন</string>
+    <string name="duration">সময়সীমা</string>
+    <string name="location">অবস্থান</string>
+    <string name="menu">তালিকা</string>
+    <string name="no_videos_found">কোনো ভিডিও নেই</string>
+    <string name="permission_not_granted">অনুমতি প্রদান করেননি</string>
+    <string name="permission_request">অনুমতি অনুরোধ করুন</string>
+    <string name="open_settings">সেটিংসে যান</string>
 </resources>
