@@ -14,6 +14,7 @@ data class Video(
     val width: Int,
     val height: Int,
     val size: Long,
+    val playbackPosition: Long = 200,
     val dateModified: Long = 0,
     val formattedDuration: String = "",
     val formattedFileSize: String = "",
@@ -24,6 +25,8 @@ data class Video(
     val audioStreams: List<AudioStreamInfo> = emptyList(),
     val subtitleStreams: List<SubtitleStreamInfo> = emptyList(),
 ) : Serializable {
+
+    val playedPercentage: Float = playbackPosition.toFloat() / duration.toFloat()
 
     companion object {
         val sample = Video(
@@ -39,6 +42,7 @@ data class Video(
             size = 1000,
             formattedDuration = "29.36",
             formattedFileSize = "320KB",
+            playbackPosition = 200,
         )
     }
 }
