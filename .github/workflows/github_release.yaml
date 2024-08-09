@@ -1,11 +1,14 @@
 name: Build Release APK and Create Draft Github Release
 on:
-  push:
-    tags:
-      - v*
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 
 jobs:
   build_and_release:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/v')
     name: Build Release APK and Create Draft Release
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +28,9 @@ jobs:
         uses: gradle/gradle-build-action@v3
 
       - name: Get Tag Name
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: |
+          BRANCH_NAME=${{ github.event.pull_request.head.ref }}
+          echo "TAG_NAME=${BRANCH_NAME#release/}" >> $GITHUB_ENV
 
       - name: Build Release APK
         run: ./gradlew assembleRelease
@@ -53,8 +58,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ env.TAG_NAME }}
           files: app/build/outputs/apk/release/nextplayer*
           draft: true
-          title: Release ${{ github.ref }}
+          title: ${{ env.TAG_NAME }}
           body: |
             Your release notes go here.
