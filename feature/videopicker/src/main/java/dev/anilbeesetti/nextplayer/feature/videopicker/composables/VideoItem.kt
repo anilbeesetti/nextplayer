@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -95,6 +97,13 @@ fun VideoItem(
                         backgroundColor = Color.Black.copy(alpha = 0.6f),
                         contentColor = Color.White,
                         shape = MaterialTheme.shapes.extraSmall,
+                    )
+                }
+
+                if (video.playedPercentage > 0) {
+                    LinearProgressIndicator(
+                        progress = { video.playedPercentage },
+                        modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
             }
