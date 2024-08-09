@@ -2,10 +2,15 @@ package dev.anilbeesetti.nextplayer.core.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "media",
+    indices = [
+        Index(value = ["uri"], unique = true),
+        Index(value = ["path"], unique = true),
+    ],
 )
 data class MediumEntity(
     @PrimaryKey
@@ -22,8 +27,8 @@ data class MediumEntity(
     @ColumnInfo(name = "media_store_id") val mediaStoreId: Long,
 
     // Medium info
-    @ColumnInfo(name = "format", defaultValue = "NULL") val format: String? = null,
-    @ColumnInfo(name = "thumbnail_path", defaultValue = "NULL") val thumbnailPath: String? = null,
+    @ColumnInfo(name = "format") val format: String? = null,
+    @ColumnInfo(name = "thumbnail_path") val thumbnailPath: String? = null,
 
     // Medium playback state
     @ColumnInfo(name = "playback_position") val playbackPosition: Long = 0,
@@ -31,6 +36,6 @@ data class MediumEntity(
     @ColumnInfo(name = "subtitle_track_index") val subtitleTrackIndex: Int? = null,
     @ColumnInfo(name = "playback_speed") val playbackSpeed: Float? = null,
     @ColumnInfo(name = "last_played_time") val lastPlayedTime: Long? = null,
-    @ColumnInfo(name = "external_subs", defaultValue = "") val externalSubs: String = "",
-    @ColumnInfo(name = "video_scale", defaultValue = "1.0") val videoScale: Float = 1f,
+    @ColumnInfo(name = "external_subs") val externalSubs: String = "",
+    @ColumnInfo(name = "video_scale") val videoScale: Float = 1f,
 )
