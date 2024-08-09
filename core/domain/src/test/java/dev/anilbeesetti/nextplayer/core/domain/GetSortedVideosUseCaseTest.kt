@@ -127,7 +127,6 @@ class GetSortedVideosUseCaseTest {
 val testVideoItems = listOf(
     Video(
         id = 1,
-        displayName = "A",
         duration = 1000,
         uriString = "content://media/external/video/media/1",
         height = 1920,
@@ -138,7 +137,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 2,
-        displayName = "B",
         duration = 2000,
         uriString = "content://media/external/video/media/2",
         height = 1930,
@@ -149,7 +147,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 3,
-        displayName = "C",
         duration = 3000,
         uriString = "content://media/external/video/media/3",
         height = 1940,
@@ -160,7 +157,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 4,
-        displayName = "D",
         duration = 4000,
         uriString = "content://media/external/video/media/4",
         height = 1950,
@@ -171,7 +167,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 5,
-        displayName = "E",
         duration = 5000,
         uriString = "content://media/external/video/media/5",
         height = 1960,
@@ -182,7 +177,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 6,
-        displayName = "F",
         duration = 6000,
         uriString = "content://media/external/video/media/6",
         height = 1970,
@@ -193,7 +187,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 7,
-        displayName = "G",
         duration = 7000,
         uriString = "content://media/external/video/media/7",
         height = 1980,
@@ -204,7 +197,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 8,
-        displayName = "H",
         duration = 8000,
         uriString = "content://media/external/video/media/8",
         height = 1990,
@@ -215,7 +207,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 9,
-        displayName = "I",
         duration = 9000,
         uriString = "content://media/external/video/media/9",
         height = 2160,
@@ -226,7 +217,6 @@ val testVideoItems = listOf(
     ),
     Video(
         id = 10,
-        displayName = "J",
         duration = 10000,
         uriString = "content://media/external/video/media/10",
         height = 2170,
