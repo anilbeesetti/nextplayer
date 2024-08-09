@@ -9,7 +9,6 @@ data class Video(
     val parentPath: String = "",
     val duration: Long,
     val uriString: String,
-    val displayName: String,
     val nameWithExtension: String,
     val width: Int,
     val height: Int,
@@ -26,6 +25,7 @@ data class Video(
     val subtitleStreams: List<SubtitleStreamInfo> = emptyList(),
 ) : Serializable {
 
+    val displayName: String = nameWithExtension.substringBeforeLast(".")
     val playedPercentage: Float = playbackPosition.toFloat() / duration.toFloat()
 
     companion object {
@@ -36,7 +36,6 @@ data class Video(
             uriString = "",
             nameWithExtension = "Avengers Endgame (2019) BluRay x264.mp4",
             duration = 1000,
-            displayName = "Avengers Endgame (2019) BluRay x264",
             width = 1920,
             height = 1080,
             size = 1000,
