@@ -1,4 +1,4 @@
-name: Bump version code, change version name, and open pull request
+name: Update version code, version name and open pull request
 on:
   workflow_dispatch:
     inputs:
