@@ -65,6 +65,6 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           files: app/build/outputs/apk/release/nextplayer*
           draft: true
-          title: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
           body: |
             Your release notes go here.
