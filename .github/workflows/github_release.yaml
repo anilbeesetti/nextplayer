@@ -1,19 +1,16 @@
 name: Build Release APK and Create Draft Github Release
 on:
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build_and_release:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/v')
     name: Build Release APK and Create Draft Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v3
@@ -29,8 +26,15 @@ jobs:
 
       - name: Get Tag Name
         run: |
-          BRANCH_NAME=${{ github.event.pull_request.head.ref }}
-          echo "TAG_NAME=${BRANCH_NAME#release/}" >> $GITHUB_ENV
+          VERSION_NAME=$(grep "versionName" app/build.gradle.kts | awk '{print $3}' | tr -d '"' | tr -d '\n')
+          TAG_NAME="v${VERSION_NAME}"
+          
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+              echo "Tag $TAG_NAME already exists"
+              exit 1
+          else
+              echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          fi
 
       - name: Build Release APK
         run: ./gradlew assembleRelease
