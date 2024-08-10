@@ -1,8 +1,6 @@
 name: Build Release APK and Create Draft Github Release
 on:
-  push:
-    tags:
-      - v*
+  workflow_dispatch:
 
 jobs:
   build_and_release:
@@ -11,6 +9,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v3
@@ -25,7 +25,16 @@ jobs:
         uses: gradle/gradle-build-action@v3
 
       - name: Get Tag Name
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: |
+          VERSION_NAME=$(grep "versionName" app/build.gradle.kts | awk '{print $3}' | tr -d '"' | tr -d '\n')
+          TAG_NAME="v${VERSION_NAME}"
+          
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+              echo "Tag $TAG_NAME already exists"
+              exit 1
+          else
+              echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          fi
 
       - name: Build Release APK
         run: ./gradlew assembleRelease
@@ -53,8 +62,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ env.TAG_NAME }}
           files: app/build/outputs/apk/release/nextplayer*
           draft: true
-          title: Release ${{ github.ref }}
+          name: ${{ env.TAG_NAME }}
           body: |
             Your release notes go here.
