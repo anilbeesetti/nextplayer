@@ -1,8 +1,10 @@
 name: Update version code, version name and open pull request
 on:
-  push:
-    branches:
-      - 'release/v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (must be in x.y.z format)"
+        required: true
 
 jobs:
   bump-version-and-open-pr:
@@ -13,8 +15,8 @@ jobs:
 
       - name: Get updated version name and version code
         run: |
-          # Extract version number from branch name
-          version_name=${GITHUB_REF#refs/heads/release/v}
+          # Extract version name from github inputs
+          version_name="${{ github.event.inputs.version }}"
 
           # Get existing version code from build.gradle
           version_code=$(grep "versionCode" app/build.gradle.kts | awk '{print $3}' | tr -d '\n')
@@ -28,22 +30,15 @@ jobs:
 
       - name: Update app/build.gradle.kts updated version name and version code
         run: |
-          echo "Updating version code to ${{ env.VERSION_CODE }} and version name to ${{ env.version_name }}"
+          echo "Updating version code to ${{ env.VERSION_CODE }} and version name to ${{ env.VERSION_NAME }}"
           sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts 
-
-      - name: Commit and push changes
-        run: |
-          git config user.email "github-actions@github.com"
-          git config user.name "Github Actions"
-          git commit -am "Bump version code and change version name"
-          git push origin HEAD
 
       - name: Open pull request
         uses: peter-evans/create-pull-request@v6.1.0
         with:
           commit-message: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
-          branch: "${{ github.ref }}"
+          branch: "release/${{ github.event.inputs.version }}"
           title: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
           body: ""
           base: "main"
