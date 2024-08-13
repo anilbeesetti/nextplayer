@@ -49,7 +49,8 @@ class LocalMediaSynchronizer @Inject constructor(
     private var mediaSyncingJob: Job? = null
 
     override suspend fun refresh(path: String?): Boolean {
-        return path?.let { context.scanPaths(listOf(path)) } ?: context.scanStorage()
+        return path?.let { context.scanPaths(listOf(path)) }
+            ?: context.getVolumeDirs().all { context.scanStorage(it.path) }
     }
 
     override fun startSync() {
