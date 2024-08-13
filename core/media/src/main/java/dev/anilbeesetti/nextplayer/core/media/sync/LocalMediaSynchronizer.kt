@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
+import dev.anilbeesetti.nextplayer.core.common.extensions.getVolumeDirs
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
@@ -65,7 +66,12 @@ class LocalMediaSynchronizer @Inject constructor(
 
     private suspend fun updateDirectories(media: List<MediaVideo>) =
         withContext(Dispatchers.Default) {
-            val directories = getDirectoryEntities(media = media)
+            val directories = context.getVolumeDirs().flatMap {
+            getDirectoryEntities(
+                currentFolder = it,
+                media = media
+            )
+        }
             directoryDao.upsertAll(directories)
 
             val currentDirectoryPaths = directories.map { it.path }
@@ -90,7 +96,7 @@ class LocalMediaSynchronizer @Inject constructor(
                 path = currentFolder.path,
                 name = currentFolder.prettyName,
                 modified = currentFolder.lastModified(),
-                parentPath = parentFolder?.path,
+                parentPath = parentFolder?.path ?: "/",
             ),
         )
 

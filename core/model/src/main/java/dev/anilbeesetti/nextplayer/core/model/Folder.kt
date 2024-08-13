@@ -24,6 +24,12 @@ data class Folder(
     }
 
     companion object {
+        val rootFolder = Folder(
+            name = "Root",
+            path = "/",
+            dateModified = System.currentTimeMillis(),
+        )
+
         val sample = Folder(
             name = "Folder 1",
             path = "/storage/emulated/0/DCIM/Camera/Live Photos",
