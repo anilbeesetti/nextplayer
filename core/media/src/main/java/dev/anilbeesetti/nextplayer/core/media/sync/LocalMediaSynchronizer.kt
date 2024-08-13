@@ -11,7 +11,7 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
-import dev.anilbeesetti.nextplayer.core.common.extensions.getVolumeDirs
+import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
@@ -50,7 +50,7 @@ class LocalMediaSynchronizer @Inject constructor(
 
     override suspend fun refresh(path: String?): Boolean {
         return path?.let { context.scanPaths(listOf(path)) }
-            ?: context.getVolumeDirs().all { context.scanStorage(it.path) }
+            ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
     }
 
     override fun startSync() {
@@ -67,12 +67,9 @@ class LocalMediaSynchronizer @Inject constructor(
 
     private suspend fun updateDirectories(media: List<MediaVideo>) =
         withContext(Dispatchers.Default) {
-            val directories = context.getVolumeDirs().flatMap {
-            getDirectoryEntities(
-                currentFolder = it,
-                media = media
-            )
-        }
+            val directories = context.getStorageVolumes().flatMap {
+                getDirectoryEntities(currentFolder = it, media = media)
+            }
             directoryDao.upsertAll(directories)
 
             val currentDirectoryPaths = directories.map { it.path }

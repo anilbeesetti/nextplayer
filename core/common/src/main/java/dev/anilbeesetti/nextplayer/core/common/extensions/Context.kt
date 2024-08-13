@@ -398,5 +398,5 @@ suspend fun ContentResolver.deleteMedia(
     }
 }
 
-fun Context.getVolumeDirs() = getExternalFilesDirs(null)
+fun Context.getStorageVolumes() = getExternalFilesDirs(null)
     .map { File(it.path.substringBefore("/Android")) }
