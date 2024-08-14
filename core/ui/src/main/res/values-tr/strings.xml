@@ -110,10 +110,10 @@
     <string name="oldest">En Eski</string>
     <string name="date">Tarih</string>
     <string name="default_playback_speed">Varsayılan oynatma hızı</string>
-    <string name="enter_a_network_url">Bir ağ URL'si girin:</string>
+    <string name="enter_a_network_url">Bir ağ URL\'si girin:</string>
     <string name="network_stream">Ağ Akışı</string>
     <string name="play_file">Oynatmak için video dosyasını aç</string>
-    <string name="play_url">Oynatmak için video URL'si girin</string>
+    <string name="play_url">Oynatmak için video URL\'si girin</string>
     <string name="default_name">Varsayılan</string>
     <string name="monospace">Tek aralıklı</string>
     <string name="sans_serif">Sans Serif</string>
@@ -183,7 +183,7 @@
     <string name="okay">Tamam</string>
     <string name="properties">Özellikler</string>
     <string name="volume_boost">Ses artırma</string>
-    <string name="volume_boost_desc">Ses seviyesini %200'e kadar artırın</string>
+    <string name="volume_boost_desc">Ses seviyesini %200\'e kadar artırın</string>
     <string name="open_subtitle">Yerel altyazıyı aç</string>
     <string name="no_subtitle_tracks_found">Bu video için altyazı parçaları ya mevcut değil ya da desteklenmiyor.</string>
     <string name="no_audio_tracks_found">Bu video için ses parçaları ya mevcut değil ya da desteklenmiyor.</string>
