@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -24,9 +23,9 @@ class GetSortedFolderTreeUseCase @Inject constructor(
             mediaRepository.getFoldersFlow(),
             preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
-            val folder = folders.find {
-                it.path == (folderPath ?: Environment.getExternalStorageDirectory().path)
-            } ?: return@combine null
+            val folder = folderPath?.let {
+                folders.find { it.path == folderPath }
+            } ?: Folder.rootFolder
 
             val nestedFolders = folders.getFoldersFor(path = folder.path, preferences = preferences)
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
