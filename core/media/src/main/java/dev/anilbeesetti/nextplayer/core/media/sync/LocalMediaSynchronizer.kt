@@ -4,7 +4,6 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.database.ContentObserver
-import android.os.Environment
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
@@ -21,8 +20,6 @@ import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
-import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +34,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import javax.inject.Inject
 
 class LocalMediaSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
@@ -84,31 +83,31 @@ class LocalMediaSynchronizer @Inject constructor(
 
     private fun getDirectoryEntities(
         parentFolder: File? = null,
-        currentFolder: File = Environment.getExternalStorageDirectory(),
+        currentFolder: File,
         media: List<MediaVideo>,
     ): List<DirectoryEntity> {
-        val directories = mutableListOf<DirectoryEntity>()
+        val hasMediaInCurrentFolder = media.any { it.data.startsWith(currentFolder.path) }
 
-        directories.add(
-            DirectoryEntity(
-                path = currentFolder.path,
-                name = currentFolder.prettyName,
-                modified = currentFolder.lastModified(),
-                parentPath = parentFolder?.path ?: "/",
-            ),
+        if (!hasMediaInCurrentFolder) return emptyList()
+
+        val currentDirectoryEntity = DirectoryEntity(
+            path = currentFolder.path,
+            name = currentFolder.prettyName,
+            modified = currentFolder.lastModified(),
+            parentPath = parentFolder?.path ?: "/",
         )
 
-        currentFolder.listFiles { file ->
+        val subDirectories = currentFolder.listFiles { file ->
             file.isDirectory && media.any { it.data.startsWith(file.path) }
-        }?.onEach { file ->
-            directories += getDirectoryEntities(
+        }?.flatMap { file ->
+            getDirectoryEntities(
                 parentFolder = currentFolder,
                 currentFolder = file,
                 media = media,
             )
-        }
+        } ?: emptyList()
 
-        return directories
+        return listOf(currentDirectoryEntity) + subDirectories
     }
 
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
