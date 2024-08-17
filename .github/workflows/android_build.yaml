@@ -72,6 +72,7 @@ jobs:
           path: app/build/reports
 
   androidTest:
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 55
     strategy:
@@ -123,7 +124,7 @@ jobs:
           disable-animations: true
           disk-size: 6000M
           heap-size: 600M
-          script: ./gradlew connectedDemoDebugAndroidTest --daemon
+          script: ./gradlew connectedCheck --daemon
 
       - name: Upload test reports
         if: always()
