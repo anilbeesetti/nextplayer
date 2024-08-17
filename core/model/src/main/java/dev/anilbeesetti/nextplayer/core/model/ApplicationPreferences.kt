@@ -12,7 +12,7 @@ data class ApplicationPreferences(
     val markLastPlayedMedia: Boolean = true,
     val showFloatingPlayButton: Boolean = true,
     val excludeFolders: List<String> = emptyList(),
-    val mediaViewMode: MediaViewMode = MediaViewMode.FOLDER_TREE,
+    val mediaViewMode: MediaViewMode = MediaViewMode.FOLDERS,
 
     // Fields
     val showDurationField: Boolean = true,
