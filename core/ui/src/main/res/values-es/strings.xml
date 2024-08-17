@@ -201,4 +201,5 @@
     <string name="folder">Carpeta</string>
     <string name="folders">Carpetas</string>
     <string name="tree">Árbol</string>
+    <string name="played_progress">Progreso de la reproducción</string>
 </resources>
