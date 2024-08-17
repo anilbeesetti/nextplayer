@@ -36,8 +36,15 @@ class GetSortedFolderTreeUseCase @Inject constructor(
                 dateModified = folder.dateModified,
                 mediaList = folder.mediaList.sortedWith(sort.videoComparator()),
                 folderList = nestedFolders.sortedWith(sort.folderComparator()),
-            )
+            ).run { if (folderPath == null) getInitialFolderWithContent() else null }
         }.flowOn(defaultDispatcher)
+    }
+
+    private fun Folder.getInitialFolderWithContent(): Folder {
+        return when {
+            mediaList.isEmpty() && folderList.size == 1 -> folderList.first().getInitialFolderWithContent()
+            else -> this
+        }
     }
 
     private fun List<Folder>.getFoldersFor(
