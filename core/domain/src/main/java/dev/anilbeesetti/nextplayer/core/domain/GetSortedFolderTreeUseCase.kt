@@ -36,7 +36,7 @@ class GetSortedFolderTreeUseCase @Inject constructor(
                 dateModified = folder.dateModified,
                 mediaList = folder.mediaList.sortedWith(sort.videoComparator()),
                 folderList = nestedFolders.sortedWith(sort.folderComparator()),
-            ).run { if (folderPath == null) getInitialFolderWithContent() else null }
+            ).run { if (folderPath == null) getInitialFolderWithContent() else this }
         }.flowOn(defaultDispatcher)
     }
 
