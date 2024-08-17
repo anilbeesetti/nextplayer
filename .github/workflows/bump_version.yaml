@@ -40,5 +40,5 @@ jobs:
           commit-message: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
           branch: "release/${{ github.event.inputs.version }}"
           title: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
-          body: ""
+          body: "Note: Add release notes"
           base: "main"
