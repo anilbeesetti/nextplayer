@@ -29,7 +29,7 @@ platform :android do
     )
 
     upload_to_play_store(
-      track: "internal",
+      track: "production",
       json_key: ENV["PLAY_API_CREDENTIALS"],
       skip_upload_apk: true,
       sync_image_upload: true

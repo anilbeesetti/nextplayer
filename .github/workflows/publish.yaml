@@ -1,16 +1,16 @@
 name: Publish
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - v*
 
 jobs:
   publish:
-    name: Build Release APK and Create Draft Release
+    name: Build Release APK and Publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -52,3 +52,23 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           PLAY_API_CREDENTIALS: ${{ steps.play_api_credentials.outputs.filePath }}
+          
+      - name: Rename Files
+        run: |
+          mv app/build/outputs/apk/release/app-arm64-v8a-release.apk app/build/outputs/apk/release/nextplayer-${{ github.ref_name }}-arm64-v8a.apk
+          mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk app/build/outputs/apk/release/nextplayer-${{ github.ref_name }}-armeabi-v7a.apk
+          mv app/build/outputs/apk/release/app-universal-release.apk app/build/outputs/apk/release/nextplayer-${{ github.ref_name }}-universal.apk
+          mv app/build/outputs/apk/release/app-x86-release.apk app/build/outputs/apk/release/nextplayer-${{ github.ref_name }}-x86.apk
+          mv app/build/outputs/apk/release/app-x86_64-release.apk app/build/outputs/apk/release/nextplayer-${{ github.ref_name }}-x86_64.apk
+
+      - name: Create Draft Release
+        id: create_draft_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: app/build/outputs/apk/release/nextplayer*
+          draft: true
+          name: ${{ github.ref_name }}
+          body: |
+            Your release notes go here.
