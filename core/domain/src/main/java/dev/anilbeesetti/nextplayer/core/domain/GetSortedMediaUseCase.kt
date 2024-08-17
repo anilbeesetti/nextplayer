@@ -30,7 +30,7 @@ class GetSortedMediaUseCase @Inject constructor(
             when (preferences.mediaViewMode) {
                 MediaViewMode.FOLDER_TREE -> folderTree
                 MediaViewMode.FOLDERS -> if (folderPath == null) {
-                    rootFolder().copy(
+                    Folder.rootFolder.copy(
                         mediaList = emptyList(),
                         folderList = folders,
                     )
@@ -44,7 +44,7 @@ class GetSortedMediaUseCase @Inject constructor(
                         folderList = emptyList(),
                     )
                 }
-                MediaViewMode.VIDEOS -> rootFolder().copy(
+                MediaViewMode.VIDEOS -> Folder.rootFolder.copy(
                     mediaList = videos,
                     folderList = emptyList(),
                 )
@@ -52,9 +52,3 @@ class GetSortedMediaUseCase @Inject constructor(
         }.flowOn(defaultDispatcher)
     }
 }
-
-private fun rootFolder() = Folder(
-    name = "Root",
-    path = "/",
-    dateModified = System.currentTimeMillis(),
-)
