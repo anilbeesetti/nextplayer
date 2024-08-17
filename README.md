@@ -1,4 +1,4 @@
-![Next player banner](fastlane/metadata/android/en-US/images/nextplayer-banner.png)
+![Next player banner](fastlane/metadata/android/en-US/images/featureGraphic.png)
 
 # Next Player
 
