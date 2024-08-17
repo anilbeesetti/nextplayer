@@ -201,4 +201,5 @@
     <string name="folder">Katalog</string>
     <string name="folders">Katalogi</string>
     <string name="tree">Drzewo</string>
+    <string name="played_progress">Postęp odtwarzania</string>
 </resources>
