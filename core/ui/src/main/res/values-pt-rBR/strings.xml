@@ -201,4 +201,5 @@
     <string name="folders">Pastas</string>
     <string name="tree">Estrutura</string>
     <string name="folder">Pasta</string>
+    <string name="played_progress">Reprodução em andamento</string>
 </resources>
