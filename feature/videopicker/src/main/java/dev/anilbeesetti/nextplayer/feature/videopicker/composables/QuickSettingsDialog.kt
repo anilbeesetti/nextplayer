@@ -140,6 +140,11 @@ fun QuickSettingsDialog(
                         onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) },
                     )
                     FieldChip(
+                        label = stringResource(id = R.string.played_progress),
+                        selected = preferences.showPlayedProgress,
+                        onClick = { preferences = preferences.copy(showPlayedProgress = !preferences.showPlayedProgress) },
+                    )
+                    FieldChip(
                         label = stringResource(id = R.string.resolution),
                         selected = preferences.showResolutionField,
                         onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) },

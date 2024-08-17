@@ -203,4 +203,5 @@
     <string name="folder">Folder</string>
     <string name="folders">Folders</string>
     <string name="tree">Tree</string>
+    <string name="played_progress">Played progress</string>
 </resources>

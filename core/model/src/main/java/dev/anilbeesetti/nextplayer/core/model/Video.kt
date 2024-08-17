@@ -26,7 +26,7 @@ data class Video(
 ) : Serializable {
 
     val displayName: String = nameWithExtension.substringBeforeLast(".")
-    val playedPercentage: Float = playbackPosition.toFloat() / duration.toFloat()
+    val playedPercentage: Float = (playbackPosition.toFloat() / duration.toFloat()).takeIf { playbackPosition >= 0 } ?: 1f
 
     companion object {
         val sample = Video(
