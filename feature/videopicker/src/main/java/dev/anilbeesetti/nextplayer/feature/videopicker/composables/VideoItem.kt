@@ -100,7 +100,7 @@ fun VideoItem(
                     )
                 }
 
-                if (video.playedPercentage > 0) {
+                if (preferences.showPlayedProgress && video.playedPercentage > 0) {
                     LinearProgressIndicator(
                         progress = { video.playedPercentage },
                         modifier = Modifier.align(Alignment.BottomCenter),
