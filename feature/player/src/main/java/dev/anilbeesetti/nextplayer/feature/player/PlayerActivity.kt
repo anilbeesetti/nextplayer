@@ -129,7 +129,6 @@ class PlayerActivity : AppCompatActivity() {
     private var previousScrubPosition = 0L
     private var scrubStartPosition: Long = -1L
     private var currentOrientation: Int? = null
-    private var currentVideoOrientation: Int? = null
     var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
     private var hideBrightnessIndicatorJob: Job? = null
@@ -613,13 +612,14 @@ class PlayerActivity : AppCompatActivity() {
 
             if (currentOrientation != null) return
 
-            if (playerPreferences.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
-                currentVideoOrientation = if (videoSize.isPortrait) {
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                } else {
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            if (playerPreferences.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION &&
+                videoSize.width != 0 &&
+                videoSize.height != 0
+            ) {
+                requestedOrientation = when {
+                    videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                    else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 }
-                requestedOrientation = currentVideoOrientation!!
             }
             super.onVideoSizeChanged(videoSize)
         }
