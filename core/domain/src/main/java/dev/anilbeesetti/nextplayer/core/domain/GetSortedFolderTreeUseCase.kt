@@ -24,7 +24,7 @@ class GetSortedFolderTreeUseCase @Inject constructor(
             preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
             val folder = folderPath?.let {
-                folders.find { it.path == folderPath }
+                folders.firstOrNull { it.path == folderPath } ?: return@combine null
             } ?: Folder.rootFolder
 
             val nestedFolders = folders.getFoldersFor(path = folder.path, preferences = preferences)
@@ -36,7 +36,7 @@ class GetSortedFolderTreeUseCase @Inject constructor(
                 dateModified = folder.dateModified,
                 mediaList = folder.mediaList.sortedWith(sort.videoComparator()),
                 folderList = nestedFolders.sortedWith(sort.folderComparator()),
-            ).run { if (folderPath == null) getInitialFolderWithContent() else null }
+            ).run { if (folderPath == null) getInitialFolderWithContent() else this }
         }.flowOn(defaultDispatcher)
     }
 
