@@ -18,27 +18,27 @@ class GetSortedFolderTreeUseCase @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(folderPath: String? = null): Flow<Folder?> {
-        return combine(
-            mediaRepository.getFoldersFlow(),
-            preferencesRepository.applicationPreferences,
-        ) { folders, preferences ->
-            val folder = folderPath?.let {
-                folders.firstOrNull { it.path == folderPath } ?: return@combine null
-            } ?: Folder.rootFolder
+    operator fun invoke(folderPath: String? = null): Flow<Folder?> = combine(
+        mediaRepository.getFoldersFlow(),
+        preferencesRepository.applicationPreferences,
+    ) { folders, preferences ->
+        val currentFolder = folderPath?.let {
+            folders.find { it.path == folderPath } ?: return@combine null
+        } ?: Folder.rootFolder
 
-            val nestedFolders = folders.getFoldersFor(path = folder.path, preferences = preferences)
-            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+        val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
 
-            return@combine Folder(
-                name = folder.name,
-                path = folder.path,
-                dateModified = folder.dateModified,
+        currentFolder.copy(
+            folderList = folders.getFoldersFor(path = currentFolder.path, preferences = preferences),
+        ).let { folder ->
+            if (folderPath == null) folder.getInitialFolderWithContent() else folder
+        }.let { folder ->
+            folder.copy(
                 mediaList = folder.mediaList.sortedWith(sort.videoComparator()),
-                folderList = nestedFolders.sortedWith(sort.folderComparator()),
-            ).run { if (folderPath == null) getInitialFolderWithContent() else this }
-        }.flowOn(defaultDispatcher)
-    }
+                folderList = folder.folderList.sortedWith(sort.folderComparator()),
+            )
+        }
+    }.flowOn(defaultDispatcher)
 
     private fun Folder.getInitialFolderWithContent(): Folder {
         return when {
