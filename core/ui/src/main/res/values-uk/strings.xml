@@ -201,4 +201,5 @@
     <string name="folder">Тека</string>
     <string name="folders">Теки</string>
     <string name="tree">Дерево</string>
+    <string name="played_progress">Прогрес відтворюваного</string>
 </resources>

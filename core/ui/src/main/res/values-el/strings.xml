@@ -201,4 +201,5 @@
     <string name="folders">Φάκελοι</string>
     <string name="folder">Φάκελος</string>
     <string name="tree">Δένδρο</string>
+    <string name="played_progress">Πρόοδος αναπαραγωγής</string>
 </resources>

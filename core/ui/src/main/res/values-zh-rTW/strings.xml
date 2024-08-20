@@ -197,4 +197,8 @@
     <string name="mark_last_played_media">標記上次播放的媒體</string>
     <string name="mark_last_played_media_desc">標記首頁和每個資料夾中最後播放的媒體</string>
     <string name="open_local_video">打開本地視頻</string>
+    <string name="skip_silence">跳過無聲片段</string>
+    <string name="folder">目錄</string>
+    <string name="folders">目錄</string>
+    <string name="tree">樹</string>
 </resources>

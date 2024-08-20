@@ -132,7 +132,7 @@
     <string name="system_volume_panel">Panel głośności systemu</string>
     <string name="system_caption_style">Systemowy styl napisów</string>
     <string name="system_caption_style_desc">Dotknij, aby otworzyć systemowe preferencje napisów</string>
-    <string name="require_audio_focus_desc">Wstrzymuje działanie innych odtwarzaczy podczas odtwarzania filmów przez ten odtwarzacz i odwrotnie.</string>
+    <string name="require_audio_focus_desc">Wstrzymuje działanie innych odtwarzaczy podczas odtwarzania wideo przez ten odtwarzacz i odwrotnie</string>
     <string name="require_audio_focus">Wymagaj ukierunkowania dźwięku</string>
     <string name="okay">Okej</string>
     <string name="properties">Właściwości</string>
@@ -167,7 +167,7 @@
     <string name="rename_to">Zmień nazwę na</string>
     <string name="open_subtitle">Otwórz lokalne napisy</string>
     <string name="floating_play_button">Pływający przycisk odtwarzania</string>
-    <string name="floating_play_button_desc">Wyświetla pływający przycisk do odtwarzania ostatnio odtwarzanych multimediów.</string>
+    <string name="floating_play_button_desc">Wyświetla pływający przycisk do odtwarzania ostatnio odtwarzanych multimediów</string>
     <string name="mark_last_played_media_desc">Oznacza ostatnio odtwarzane multimedia w katalogu domowym i w każdym katalogu</string>
     <string name="open_network_stream">Otwórz transmisję sieciową</string>
     <string name="prefer_device_decoders">Preferuj dekodery urządzenia</string>
@@ -175,7 +175,7 @@
     <string name="play_next_video">Odtwórz następne wideo</string>
     <string name="mark_last_played_media">Oznaczaj ostatnio odtwarzane multimedia</string>
     <string name="open_local_video">Otwórz lokalne wideo</string>
-    <string name="fast_seek_description">Wyszukuje najbliższą klatkę kluczową zamiast dokładnej.</string>
+    <string name="fast_seek_description">Wyszukuje najbliższą klatkę kluczową zamiast dokładnej</string>
     <string name="player_controls_progress">Odtwarzacz pasek postępu</string>
     <string name="subtitle_track">Ścieżka napisów</string>
     <string name="codec">Kodek</string>
@@ -201,4 +201,5 @@
     <string name="folder">Katalog</string>
     <string name="folders">Katalogi</string>
     <string name="tree">Drzewo</string>
+    <string name="played_progress">Postęp odtwarzania</string>
 </resources>
