@@ -1,0 +1,15 @@
+New Features:
+- Add playback speed shortcuts and skip silence
+- Add Swipe refresh to media
+- Folder tree view mode
+- Add played progress indicator to video view
+
+Improvements:
+- Improved Charset detection for subtitles
+- Add subtitle charset detection for network files
+- Update androidxMedia3 to v1.4.0
+
+Fixes:
+- Video Zoom not remembered between player sessions
+- portrait thumbnails are rotated
+- Portrait video orientation changing to landscape first and then switching to portrait
