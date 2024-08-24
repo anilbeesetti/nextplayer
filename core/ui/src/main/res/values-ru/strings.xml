@@ -201,4 +201,5 @@
     <string name="folder">Папка</string>
     <string name="folders">Папки</string>
     <string name="tree">Дерево</string>
+    <string name="played_progress">Воспроизведённый прогресс</string>
 </resources>
