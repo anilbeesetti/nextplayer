@@ -202,4 +202,5 @@
     <string name="tree">树</string>
     <string name="folders">文件夹</string>
     <string name="played_progress">播放进度</string>
+    <string name="media_view_mode">媒体浏览模式</string>
 </resources>
