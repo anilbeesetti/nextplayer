@@ -19,9 +19,6 @@ import android.provider.OpenableColumns
 import android.util.Log
 import android.util.TypedValue
 import androidx.core.text.isDigitsOnly
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.mozilla.universalchardet.UniversalDetector
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
@@ -29,6 +26,9 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.mozilla.universalchardet.UniversalDetector
 
 val VIDEO_COLLECTION_URI: Uri
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
