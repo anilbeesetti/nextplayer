@@ -36,7 +36,7 @@
     <string name="media_library_description">Scannar e gerer le bibliotheca multimedia</string>
     <string name="player_controls_progress">Reproductor barra de progresso</string>
     <string name="date">Data</string>
-    <string name="videos">videos</string>
+    <string name="videos">Videos</string>
     <string name="audio_desc">Optiones de reproduction de audio</string>
     <string name="properties">Proprietates</string>
     <string name="fast_playback_speed">%.1fx velocitate</string>
@@ -66,7 +66,7 @@
     <string name="okay">OK</string>
     <string name="remember_brightness_level_description">Rememorar nivello de luminositate inter sessiones de reproduction</string>
     <string name="preferred_subtitle_lang_description">Lingua del tracia de subtitulos que tu vole usar per predefinition</string>
-    <string name="video">video</string>
+    <string name="video">Video</string>
     <string name="audio_track">Tracia de audio</string>
     <string name="fast_seek">Recerca veloce</string>
     <string name="select_playback_speed">Seliger le velocitate de reproduction</string>
@@ -200,4 +200,7 @@
     <string name="skip_silence">Saltar le silentio</string>
     <string name="folder">Dossier</string>
     <string name="folders">Dossieres</string>
+    <string name="played_progress">Progresso del reproduction</string>
+    <string name="tree">Arbore</string>
+    <string name="media_view_mode">Modo de visualisation de medio</string>
 </resources>
