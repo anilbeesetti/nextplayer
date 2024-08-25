@@ -1,0 +1,2 @@
+Fixes:
+- App crash on application startup

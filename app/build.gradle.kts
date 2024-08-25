@@ -14,8 +14,8 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         applicationId = "dev.anilbeesetti.nextplayer"
-        versionCode = 18
-        versionName = "0.12.1"
+        versionCode = 19
+        versionName = "0.12.2"
     }
 
     buildFeatures {
