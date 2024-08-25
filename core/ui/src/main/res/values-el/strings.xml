@@ -202,4 +202,5 @@
     <string name="folder">Φάκελος</string>
     <string name="tree">Δένδρο</string>
     <string name="played_progress">Πρόοδος αναπαραγωγής</string>
+    <string name="media_view_mode">Τρόπος προβολής πολυμέσων</string>
 </resources>
