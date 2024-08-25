@@ -67,7 +67,7 @@ fun QuickSettingsDialog(
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
-                DialogSectionTitle(text = "Media view mode")
+                DialogSectionTitle(text = stringResource(R.string.media_view_mode))
                 SingleChoiceSegmentedButtonRow(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
