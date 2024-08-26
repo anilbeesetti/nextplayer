@@ -201,4 +201,5 @@
     <string name="folder">مجلد</string>
     <string name="folders">مجلدات</string>
     <string name="tree">مشجر</string>
+    <string name="played_progress">ما تم تشغيله</string>
 </resources>
