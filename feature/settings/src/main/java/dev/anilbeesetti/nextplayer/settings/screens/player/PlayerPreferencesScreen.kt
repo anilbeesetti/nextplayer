@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
+import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -156,6 +157,12 @@ fun PlayerPreferencesScreen(
                     viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
                 },
             )
+            ControlButtonsPositionSetting(
+                currentControlButtonPosition = preferences.controlButtonsPosition,
+                onClick = {
+                    viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog)
+                },
+            )
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -225,6 +232,24 @@ fun PlayerPreferencesScreen(
                                 selected = it == preferences.playerScreenOrientation,
                                 onClick = {
                                     viewModel.updatePreferredPlayerOrientation(it)
+                                    viewModel.hideDialog()
+                                },
+                            )
+                        }
+                    }
+                }
+
+                PlayerPreferenceDialog.ControlButtonsDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.player_control_buttons_position),
+                        onDismissClick = viewModel::hideDialog,
+                    ) {
+                        items(ControlButtonsPosition.entries.toTypedArray()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = it == preferences.controlButtonsPosition,
+                                onClick = {
+                                    viewModel.updatePreferredControlButtonsPosition(it)
                                     viewModel.hideDialog()
                                 },
                             )
@@ -568,6 +593,19 @@ fun ScreenOrientationSetting(
         title = stringResource(id = R.string.player_screen_orientation),
         description = currentOrientationPreference.name(),
         icon = NextIcons.Rotation,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun ControlButtonsPositionSetting(
+    currentControlButtonPosition: ControlButtonsPosition,
+    onClick: () -> Unit,
+) {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.player_control_buttons_position),
+        description = currentControlButtonPosition.name(),
+        icon = NextIcons.ButtonsPosition,
         onClick = onClick,
     )
 }
