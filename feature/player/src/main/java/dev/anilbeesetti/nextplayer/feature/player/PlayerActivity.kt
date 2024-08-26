@@ -238,7 +238,7 @@ class PlayerActivity : AppCompatActivity() {
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
         extraControls = binding.playerView.findViewById(R.id.extra_controls)
 
-        if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
+        if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT_BOTTOM_CORNER) {
             extraControls.gravity = Gravity.RIGHT
         }
 
