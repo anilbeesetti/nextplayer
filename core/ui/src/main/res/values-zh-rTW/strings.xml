@@ -201,4 +201,6 @@
     <string name="folder">目錄</string>
     <string name="folders">目錄</string>
     <string name="tree">樹</string>
+    <string name="played_progress">播放進度</string>
+    <string name="media_view_mode">媒體檢視模式</string>
 </resources>
