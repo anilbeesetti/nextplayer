@@ -183,7 +183,7 @@
     <string name="volume_boost_desc">Ενίσχυση έντασης έως 200%</string>
     <string name="volume_boost">Ενίσχυση έντασης</string>
     <string name="rename">Μετονομασία</string>
-    <string name="pip_settings_description">Αυτόματη εναλλαγή σε αιωρούμενη οθόνη όταν πατάτε το κουμπί αρχικής οθόνης</string>
+    <string name="pip_settings_description">Εναλλαγή σε αιωρούμενη οθόνη όταν πατάτε το κουμπί αρχικής οθόνης</string>
     <string name="pip_settings">Αιωρούμενη οθόνη</string>
     <string name="no_subtitle_tracks_found">Τα κομμάτια υποτίτλων για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
     <string name="no_audio_tracks_found">Τα κομμάτια ήχου για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
@@ -202,4 +202,5 @@
     <string name="folder">Φάκελος</string>
     <string name="tree">Δένδρο</string>
     <string name="played_progress">Πρόοδος αναπαραγωγής</string>
+    <string name="media_view_mode">Τρόπος προβολής πολυμέσων</string>
 </resources>

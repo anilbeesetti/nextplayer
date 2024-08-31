@@ -202,4 +202,5 @@
     <string name="tree">Estrutura</string>
     <string name="folder">Pasta</string>
     <string name="played_progress">Reprodução em andamento</string>
+    <string name="media_view_mode">Modo de visualização de mídia</string>
 </resources>

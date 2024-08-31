@@ -197,4 +197,10 @@
     <string name="open_local_video">Lokales Video öffnen</string>
     <string name="open_network_stream">Netzwerk Stream öffnen</string>
     <string name="exit">Beenden</string>
+    <string name="skip_silence">Stille überspringen</string>
+    <string name="played_progress">Gespielter Fortschritt</string>
+    <string name="folder">Ordner</string>
+    <string name="folders">Ordner</string>
+    <string name="tree">Baum</string>
+    <string name="media_view_mode">Medienansicht Modus</string>
 </resources>

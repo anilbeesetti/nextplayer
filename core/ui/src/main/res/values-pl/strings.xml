@@ -202,4 +202,5 @@
     <string name="folders">Katalogi</string>
     <string name="tree">Drzewo</string>
     <string name="played_progress">Postęp odtwarzania</string>
+    <string name="media_view_mode">Tryb podglądu multimediów</string>
 </resources>

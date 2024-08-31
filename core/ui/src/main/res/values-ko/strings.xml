@@ -201,4 +201,5 @@
     <string name="folder">폴더</string>
     <string name="folders">폴더</string>
     <string name="tree">트리</string>
+    <string name="media_view_mode">미디어 보기 모드</string>
 </resources>

@@ -202,4 +202,5 @@
     <string name="folders">مجلدات</string>
     <string name="tree">مشجر</string>
     <string name="played_progress">ما تم تشغيله</string>
+    <string name="media_view_mode">وضع عرض الوسائط</string>
 </resources>
