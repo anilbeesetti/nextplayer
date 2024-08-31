@@ -50,7 +50,7 @@
     <string name="dark_theme">Σκοτεινό θέμα</string>
     <string name="video_zoom">Μεγέθυνση βίντεο</string>
     <string name="dynamic_theme">Δυναμικό χρώμα</string>
-    <string name="dynamic_theme_description">Εφαρμογή χρωμάτων από την ταπετσαρία συστήματος στο θέμα</string>
+    <string name="dynamic_theme_description">Εφαρμογή χρωμάτων ταπετσαρίας στο θέμα</string>
     <string name="controls_lock">Κλείδωμα χειριστηρίων</string>
     <string name="controls_unlock">Ξεκλείδωμα χειριστηρίων</string>
     <string name="select_playback_speed">Επιλογή ταχύτητας αναπαραγωγής</string>
