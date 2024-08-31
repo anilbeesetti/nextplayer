@@ -26,3 +26,10 @@ Key Features:
  * Controls lock
  * No ads, tracking or excessive permissions
  * Picture in picture mode
+
+Project Repo: https://github.com/anilbeesetti/nextplayer
+
+If you like my work, consider supporting me by buying me a coffee:
+ - UPI: https://pay.upilink.in/pay/anilbeesetti811@ybl
+ - PayPal: https://paypal.me/AnilBeesetti
+ - Ko-fi: https://ko-fi.com/anilbeesetti
