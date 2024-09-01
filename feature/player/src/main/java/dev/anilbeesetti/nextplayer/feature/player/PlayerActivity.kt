@@ -338,7 +338,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun updatePictureInPictureParams(): PictureInPictureParams {
+    private fun updatePictureInPictureParams(enableAutoEnter: Boolean = player.isPlaying): PictureInPictureParams {
         val displayAspectRatio = Rational(binding.playerView.width, binding.playerView.height)
 
         return PictureInPictureParams.Builder().apply {
@@ -347,9 +347,9 @@ class PlayerActivity : AppCompatActivity() {
                 val sourceRectHint = calculateSourceRectHint(displayAspectRatio, aspectRatio)
                 setAspectRatio(aspectRatio)
                 setSourceRectHint(sourceRectHint)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && playerPreferences.autoPip) {
-                    setAutoEnterEnabled(true)
-                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setAutoEnterEnabled(playerPreferences.autoPip && enableAutoEnter)
             }
         }.build().also { setPictureInPictureParams(it) }
     }
@@ -619,6 +619,9 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                updatePictureInPictureParams()
+            }
             super.onIsPlayingChanged(isPlaying)
         }
 
