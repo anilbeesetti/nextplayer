@@ -9,6 +9,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
@@ -339,12 +340,40 @@ class PlayerActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePictureInPictureParams(): PictureInPictureParams {
-        val params: PictureInPictureParams = PictureInPictureParams.Builder()
-            .setAspectRatio(Rational(16, 9))
-            .build()
+        val displayAspectRatio = Rational(binding.playerView.width, binding.playerView.height)
 
-        setPictureInPictureParams(params)
-        return params
+        return PictureInPictureParams.Builder().apply {
+            val aspectRatio = calculateVideoAspectRatio()
+            if (aspectRatio != null) {
+                val sourceRectHint = calculateSourceRectHint(displayAspectRatio, aspectRatio)
+                setAspectRatio(aspectRatio)
+                setSourceRectHint(sourceRectHint)
+            }
+        }.build().also { setPictureInPictureParams(it) }
+    }
+
+    private fun calculateVideoAspectRatio(): Rational? {
+        return binding.playerView.player?.videoSize?.let { videoSize ->
+            val minAspectRatio = 0.5f // 1:2 aspect ratio
+            val maxAspectRatio = 2.39f // 21:9 aspect ratio
+            Rational(
+                videoSize.width.coerceIn((videoSize.height * minAspectRatio).toInt(), (videoSize.height * maxAspectRatio).toInt()),
+                videoSize.height.coerceIn((videoSize.width * minAspectRatio).toInt(), (videoSize.width * maxAspectRatio).toInt())
+            )
+        }
+    }
+
+    private fun calculateSourceRectHint(displayAspectRatio: Rational, aspectRatio: Rational): Rect {
+        val playerWidth = binding.playerView.width.toFloat()
+        val playerHeight = binding.playerView.height.toFloat()
+
+        return if (displayAspectRatio < aspectRatio) {
+            val space = ((playerHeight - (playerWidth / aspectRatio.toFloat())) / 2).toInt()
+            Rect(0, space, playerWidth.toInt(), (playerWidth / aspectRatio.toFloat()).toInt() + space)
+        } else {
+            val space = ((playerWidth - (playerHeight * aspectRatio.toFloat())) / 2).toInt()
+            Rect(space, 0, (playerHeight * aspectRatio.toFloat()).toInt() + space, playerHeight.toInt())
+        }
     }
 
     private fun createPlayer() {
@@ -612,13 +641,15 @@ class PlayerActivity : AppCompatActivity() {
 
             if (currentOrientation != null) return
 
-            if (playerPreferences.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION &&
-                videoSize.width != 0 &&
-                videoSize.height != 0
-            ) {
-                requestedOrientation = when {
-                    videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                    else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            if (videoSize.width != 0 && videoSize.height != 0) {
+                if (playerPreferences.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
+                    requestedOrientation = when {
+                        videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                        else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                    }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    updatePictureInPictureParams()
                 }
             }
             super.onVideoSizeChanged(videoSize)
