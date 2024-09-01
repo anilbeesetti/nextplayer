@@ -309,8 +309,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O..<Build.VERSION_CODES.S &&
             isPipSupported &&
             playerPreferences.autoPip &&
             player.isPlaying &&
@@ -348,6 +347,9 @@ class PlayerActivity : AppCompatActivity() {
                 val sourceRectHint = calculateSourceRectHint(displayAspectRatio, aspectRatio)
                 setAspectRatio(aspectRatio)
                 setSourceRectHint(sourceRectHint)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && playerPreferences.autoPip) {
+                    setAutoEnterEnabled(true)
+                }
             }
         }.build().also { setPictureInPictureParams(it) }
     }
