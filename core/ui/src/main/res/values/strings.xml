@@ -205,4 +205,5 @@
     <string name="tree">Tree</string>
     <string name="played_progress">Played progress</string>
     <string name="media_view_mode">Media view mode</string>
+    <string name="enable_pip_from_settings">Picture-in-Picture is disabled. Enable it in Settings to use this feature.</string>
 </resources>

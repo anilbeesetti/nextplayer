@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AppOpsManager
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
@@ -16,6 +17,8 @@ import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import android.provider.Settings
 import android.util.Rational
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -28,6 +31,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -66,7 +70,6 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -98,13 +101,14 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.nio.charset.Charset
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -189,6 +193,19 @@ class PlayerActivity : AppCompatActivity() {
     private val isPipSupported: Boolean by lazy {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
     }
+
+    private val isPipEnabled: Boolean
+        get() {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager?
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    appOps?.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+                } else {
+                    @Suppress("DEPRECATION")
+                    appOps?.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+                }
+            } else false
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -549,6 +566,17 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         pipButton.setOnClickListener {
+            if (isPipSupported && !isPipEnabled) {
+                Toast.makeText(this, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                try {
+                    Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS").apply {
+                        data = Uri.parse("package:$packageName")
+                        startActivity(this@apply)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                 this.enterPictureInPictureMode(updatePictureInPictureParams())
             }
