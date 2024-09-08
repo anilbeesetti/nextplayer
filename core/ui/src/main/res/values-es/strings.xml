@@ -41,7 +41,7 @@
     <string name="seek_gesture">Gesto de búsqueda</string>
     <string name="seek_gesture_description">Desliza el dedo horizontalmente para avanzar o retroceder</string>
     <string name="select_subtitle_track">Seleccionar pista de subtítulos</string>
-    <string name="settings">Configuraciones</string>
+    <string name="settings">Ajustes</string>
     <string name="size">Tamaño</string>
     <string name="sort">Ordenar</string>
     <string name="swipe_gesture_description">Desliza el dedo verticalmente para ajustar el brillo y el volumen</string>
