@@ -18,7 +18,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
-import android.provider.Settings
 import android.util.Rational
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -70,6 +69,7 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -101,14 +101,13 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.nio.charset.Charset
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -204,7 +203,9 @@ class PlayerActivity : AppCompatActivity() {
                     @Suppress("DEPRECATION")
                     appOps?.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
                 }
-            } else false
+            } else {
+                false
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -377,7 +378,7 @@ class PlayerActivity : AppCompatActivity() {
             val maxAspectRatio = 2.39f // 21:9 aspect ratio
             Rational(
                 videoSize.width.coerceIn((videoSize.height * minAspectRatio).toInt(), (videoSize.height * maxAspectRatio).toInt()),
-                videoSize.height.coerceIn((videoSize.width * minAspectRatio).toInt(), (videoSize.width * maxAspectRatio).toInt())
+                videoSize.height.coerceIn((videoSize.width * minAspectRatio).toInt(), (videoSize.width * maxAspectRatio).toInt()),
             )
         }
     }
@@ -647,7 +648,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                 updatePictureInPictureParams()
             }
             super.onIsPlayingChanged(isPlaying)
@@ -681,7 +682,7 @@ class PlayerActivity : AppCompatActivity() {
                         else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                     }
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                     updatePictureInPictureParams()
                 }
             }
