@@ -202,4 +202,5 @@
     <string name="folders">Carpetas</string>
     <string name="tree">Árbol</string>
     <string name="played_progress">Progreso de la reproducción</string>
+    <string name="media_view_mode">Modo de visualización multimedia</string>
 </resources>

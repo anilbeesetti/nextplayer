@@ -8,4 +8,14 @@
     <string name="appearance_description">Sesuaikan aplikasi sesuai keinginan Anda</string>
     <string name="done">Konfirmasi</string>
     <string name="double_tap">Gerakan ketuk ganda</string>
+    <string name="about_description">Versi, kredit</string>
+    <string name="about_name">Tentang</string>
+    <string name="ascending">Naik</string>
+    <string name="descending">Turun</string>
+    <string name="fast_seek">Pencarian cepat</string>
+    <string name="fast_seek_description">Cari key frame terdekat, bukan yang tepat.</string>
+    <string name="grant_permission">Berikan Izin</string>
+    <string name="group_videos">Kelompokkan video berdasarkan folder</string>
+    <string name="duration">Durasi</string>
+    <string name="location">Lokasi</string>
 </resources>

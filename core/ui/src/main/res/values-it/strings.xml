@@ -187,4 +187,19 @@
     <string name="floating_play_button">Pulsante play fluttuante</string>
     <string name="floating_play_button_desc">Mostra pulsante fluttuante per eseguire l\'ultimo media riprodotto.</string>
     <string name="open_network_stream">Apri flusso di rete</string>
+    <string name="controller_timeout">Controllo Timeout</string>
+    <string name="long_press_gesture">Gesture lunga pressione</string>
+    <string name="long_press_gesture_desc">Premi a lungo per riprodutto alla %.1fx velocità</string>
+    <string name="navigate_up">Vai su</string>
+    <string name="player_controls_exit">Vai su</string>
+    <string name="mark_last_played_media_desc">Contrassegna gli ultimi contenuti multimediali riprodotti nella home e in ciascuna cartella</string>
+    <string name="played_progress">Percentuale visualizzato</string>
+    <string name="best_fit">Miglior aspetto</string>
+    <string name="codec">Codec</string>
+    <string name="folder">Cartella</string>
+    <string name="folders">Cartelle</string>
+    <string name="media_view_mode">Modalità visualizzazione</string>
+    <string name="pip_settings_description">Passa automaticamente in miniatura quando premi il tasto Home</string>
+    <string name="subtitle_text_encoding">Encoding sottotitoli</string>
+    <string name="skip_silence">Salta silenzio</string>
 </resources>

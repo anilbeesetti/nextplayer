@@ -202,4 +202,5 @@
     <string name="folders">फोल्डर</string>
     <string name="tree">ट्री</string>
     <string name="played_progress">चलने की प्रगति</string>
+    <string name="media_view_mode">मीडिया व्यू मोड</string>
 </resources>

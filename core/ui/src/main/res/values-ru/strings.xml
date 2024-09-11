@@ -18,7 +18,7 @@
     <string name="player_controls_progress">Полоса прогресса проигрывателя</string>
     <string name="about_name">О приложении</string>
     <string name="appearance_description">Настройте приложение по своему вкусу</string>
-    <string name="remember_brightness_level_description">Запоминать уровень яркости при смене медиаобъекта</string>
+    <string name="remember_brightness_level_description">Сохранять уровень яркости между сессиями воспроизведения</string>
     <string name="resume_description">Выберите, продолжать ли воспроизведение с того места, где вы остановились</string>
     <string name="select_audio_track">Выбор звуковой дорожки</string>
     <string name="select_subtitle_track">Выбор субтитров</string>
@@ -61,7 +61,7 @@
     <string name="quick_settings">Быстрые настройки</string>
     <string name="remember_brightness_level">Запоминать уровень яркости</string>
     <string name="settings">Настройки</string>
-    <string name="remember_selections_description">Запоминать предпочтения для медиаобъекта, например, звуковая дорожка, субтитры и так далее</string>
+    <string name="remember_selections_description">Сохранять настройки для каждого файла, такие как звуковая дорожка, субтитры и так далее</string>
     <string name="swipe_gesture_description">Проведите по вертикали для регулировки яркости и громкости</string>
     <string name="interface_name">Интерфейс</string>
     <string name="a_z">А-Я</string>
@@ -117,18 +117,18 @@
     <string name="subtitle_desc">Настройка внешнего вида субтитров, языка</string>
     <string name="subtitle_background">Фон под субтитрами</string>
     <string name="subtitle_background_desc">Включить фон под субтитрами</string>
-    <string name="delete_file">Выбранный файл будет удален навсегда</string>
-    <string name="high_contrast_dark_theme_desc">Использовать чисто черный фон для темной темы</string>
+    <string name="delete_file">Выбранный файл будет удалён навсегда</string>
+    <string name="high_contrast_dark_theme_desc">Использовать чисто чёрный фон для тёмной темы</string>
     <string name="zoom_gesture_description">Ущипните для масштабирования видео</string>
     <string name="landscape_reverse">Альбомная (перевернутая)</string>
-    <string name="delete_folder">Все медиафайлы в этой папке будут удаленны навсегда.</string>
+    <string name="delete_folder">Все медиафайлы в этой папке будут удалены навсегда.</string>
     <string name="autoplay_settings_description">Автоматически воспроизводить следующее видео в текущей папке</string>
     <string name="controller_timeout">Автоскрытие интерфейса</string>
     <string name="pause_on_headset_disconnect_desc">Пауза при отключении наушников</string>
     <string name="video_software_decoders">Программные видео декодеры</string>
     <string name="sans_serif">Sans Serif</string>
     <string name="audio_desc">Настройки воспроизведения аудио</string>
-    <string name="high_contrast_dark_theme">Высококонтрастная темная тема</string>
+    <string name="high_contrast_dark_theme">Высококонтрастная тёмная тема</string>
     <string name="autoplay_settings">Автовоспроизведение</string>
     <string name="seconds">%1$s секунд</string>
     <string name="pause_on_headset_disconnect">Пауза при отключении</string>
@@ -154,7 +154,7 @@
     <string name="decoder">Декодер</string>
     <string name="seek_increment">Время перемотки</string>
     <string name="decoder_priority">Приоритетные декодеры</string>
-    <string name="long_press_gesture">Жест долгого нажатия</string>
+    <string name="long_press_gesture">Жест долгого зажатия</string>
     <string name="fast_playback_speed">%.1fx скорость</string>
     <string name="fields">Поля</string>
     <string name="codec">Кодек</string>
@@ -180,10 +180,10 @@
     <string name="file">Файл</string>
     <string name="resolution">Разрешение</string>
     <string name="format">Формат</string>
-    <string name="volume_boost">Усиление громоксти</string>
+    <string name="volume_boost">Усиление громкости</string>
     <string name="volume_boost_desc">Усиление громкости звука вплоть до 200%</string>
     <string name="pip_settings">Картинка в картинке</string>
-    <string name="pip_settings_description">Автоматически переключаться на миниатюрный пллер при нажатии кнопки \"Домой\"</string>
+    <string name="pip_settings_description">Автоматически переключаться на миниатюрный плеер при нажатии кнопки «Домой»</string>
     <string name="rename">Переименовать</string>
     <string name="rename_to">Переименовать в</string>
     <string name="open_subtitle">Открыть локальные субтитры</string>
@@ -201,4 +201,6 @@
     <string name="folder">Папка</string>
     <string name="folders">Папки</string>
     <string name="tree">Дерево</string>
+    <string name="played_progress">Воспроизведённый прогресс</string>
+    <string name="media_view_mode">Вид отображения медиа</string>
 </resources>
