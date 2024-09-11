@@ -8,8 +8,8 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 @Composable
 fun ControlButtonsPosition.name(): String {
     val stringRes = when (this) {
-        ControlButtonsPosition.LEFT_BOTTOM_CORNER -> R.string.left_bottom_corner
-        ControlButtonsPosition.RIGHT_BOTTOM_CORNER -> R.string.right_bottom_corner
+        ControlButtonsPosition.LEFT -> R.string.control_buttons_alignment_left
+        ControlButtonsPosition.RIGHT -> R.string.control_buttons_alignment_right
     }
 
     return stringResource(stringRes)

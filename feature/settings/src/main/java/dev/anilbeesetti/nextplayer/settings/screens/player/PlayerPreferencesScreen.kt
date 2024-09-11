@@ -122,6 +122,12 @@ fun PlayerPreferencesScreen(
                 currentValue = preferences.controllerAutoHideTimeout,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) },
             )
+            ControlButtonsPositionSetting(
+                currentControlButtonPosition = preferences.controlButtonsPosition,
+                onClick = {
+                    viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog)
+                },
+            )
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             ResumeSetting(
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) },
@@ -155,12 +161,6 @@ fun PlayerPreferencesScreen(
                 currentOrientationPreference = preferences.playerScreenOrientation,
                 onClick = {
                     viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
-                },
-            )
-            ControlButtonsPositionSetting(
-                currentControlButtonPosition = preferences.controlButtonsPosition,
-                onClick = {
-                    viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog)
                 },
             )
         }
@@ -241,7 +241,7 @@ fun PlayerPreferencesScreen(
 
                 PlayerPreferenceDialog.ControlButtonsDialog -> {
                     OptionsDialog(
-                        text = stringResource(id = R.string.player_control_buttons_position),
+                        text = stringResource(id = R.string.control_buttons_alignment),
                         onDismissClick = viewModel::hideDialog,
                     ) {
                         items(ControlButtonsPosition.entries.toTypedArray()) {
@@ -603,7 +603,7 @@ fun ControlButtonsPositionSetting(
     onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
-        title = stringResource(id = R.string.player_control_buttons_position),
+        title = stringResource(id = R.string.control_buttons_alignment),
         description = currentControlButtonPosition.name(),
         icon = NextIcons.ButtonsPosition,
         onClick = onClick,

@@ -205,7 +205,7 @@
     <string name="tree">Tree</string>
     <string name="played_progress">Played progress</string>
     <string name="media_view_mode">Media view mode</string>
-    <string name="left_bottom_corner">Left bottom corner</string>
-    <string name="right_bottom_corner">Right bottom corner</string>
-    <string name="player_control_buttons_position">Player control buttons position</string>
+    <string name="control_buttons_alignment_left">Left</string>
+    <string name="control_buttons_alignment_right">Right</string>
+    <string name="control_buttons_alignment">Control buttons alignment</string>
 </resources>
