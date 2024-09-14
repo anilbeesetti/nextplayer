@@ -13,5 +13,6 @@ fun MediumEntity.toVideoState(): VideoState {
         playbackSpeed = playbackSpeed,
         externalSubs = UriListConverter.fromStringToList(externalSubs),
         videoScale = videoScale,
+        thumbnailPath = thumbnailPath
     )
 }

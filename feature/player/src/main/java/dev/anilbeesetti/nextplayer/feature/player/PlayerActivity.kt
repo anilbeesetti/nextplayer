@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PictureInPictureParams
 import android.content.ComponentName
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -30,6 +31,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
+import androidx.annotation.AnyRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -38,12 +40,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -105,6 +107,7 @@ import timber.log.Timber
 import java.nio.charset.Charset
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
+
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
 class PlayerActivity : AppCompatActivity() {
@@ -144,7 +147,6 @@ class PlayerActivity : AppCompatActivity() {
     private var player: Player? = null
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playlistManager: PlaylistManager
-    private lateinit var trackSelector: DefaultTrackSelector
     private var surfaceView: SurfaceView? = null
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
@@ -294,32 +296,34 @@ class PlayerActivity : AppCompatActivity() {
         }
         val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
         controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
-        controllerFuture?.addListener({
-            player = controllerFuture?.get()
-            player?.run {
-                println("HELLO")
-                binding.playerView.player = this
-                setVideoSurfaceView(binding.playerView.videoSurfaceView as? SurfaceView)
-                try {
-                    loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                addListener(playbackStateListener)
-                volumeManager.loudnessEnhancer = loudnessEnhancer
-                if (intent.data.toString() != currentMediaItem?.mediaId) {
-                    playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
-                } else {
-                    player?.run {
-                        surfaceView = SurfaceView(this@PlayerActivity).apply {
-                            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        controllerFuture?.addListener(
+            {
+                player = controllerFuture?.get()
+                player?.run {
+                    binding.playerView.player = this
+                    setVideoSurfaceView(binding.playerView.videoSurfaceView as? SurfaceView)
+                    try {
+                        loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    addListener(playbackStateListener)
+                    volumeManager.loudnessEnhancer = loudnessEnhancer
+                    if (intent.data.toString() != currentMediaItem?.mediaId) {
+                        playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
+                    } else {
+                        player?.run {
+                            surfaceView = SurfaceView(this@PlayerActivity).apply {
+                                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+                            }
+                            setVideoSurfaceView(surfaceView)
+                            exoContentFrameLayout.addView(surfaceView, 0)
                         }
-                        setVideoSurfaceView(surfaceView)
-                        exoContentFrameLayout.addView(surfaceView, 0)
                     }
                 }
-            }
-        }, MoreExecutors.directExecutor())
+            },
+            MoreExecutors.directExecutor(),
+        )
 
         setOrientation()
         initPlaylist()
@@ -336,7 +340,7 @@ class PlayerActivity : AppCompatActivity() {
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player?.removeListener(playbackStateListener)
         binding.playerView.player = null
-        if (playerPreferences.playInBackground) {
+        if (!playerPreferences.playInBackground) {
             player?.stop()
         }
         controllerFuture?.run {
@@ -425,8 +429,6 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         audioTrackButton.setOnClickListener {
-            trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
-
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_AUDIO,
                 tracks = player?.currentTracks ?: return@setOnClickListener,
@@ -435,8 +437,6 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         subtitleTrackButton.setOnClickListener {
-            trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
-
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_TEXT,
                 tracks = player?.currentTracks ?: return@setOnClickListener,
@@ -548,7 +548,24 @@ class PlayerActivity : AppCompatActivity() {
 
         // current uri as MediaItem with subs
         val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
-        val mediaStream = createMediaStream(uri).buildUpon()
+        val mediaStream = MediaItem.Builder()
+            .setMediaId(uri.toString())
+            .setUri(uri)
+            .setMediaMetadata(
+                MediaMetadata.Builder().apply {
+                    setTitle(playerApi.title.takeIf { isCurrentUriIsFromIntent && playerApi.hasTitle } ?: getFilenameFromUri(uri))
+                    setArtworkUri(
+                        viewModel.currentVideoState?.thumbnailPath?.let { Uri.parse(it) }
+                            ?: Uri.Builder().apply {
+                                val defaultArtwork = R.drawable.artwork_default
+                                scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                                authority(resources.getResourcePackageName(defaultArtwork))
+                                appendPath(resources.getResourceTypeName(defaultArtwork))
+                                appendPath(resources.getResourceEntryName(defaultArtwork))
+                            }.build(),
+                    )
+                }.build(),
+            )
             .setSubtitleConfigurations(subtitleStreams)
             .build()
 
@@ -950,11 +967,6 @@ class PlayerActivity : AppCompatActivity() {
         isFirstFrameRendered = false
     }
 
-    private fun createMediaStream(uri: Uri) = MediaItem.Builder()
-        .setMediaId(uri.toString())
-        .setUri(uri)
-        .build()
-
     private suspend fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
         return subtitles.map {
             val charset = if (with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
@@ -1026,4 +1038,17 @@ class PlayerActivity : AppCompatActivity() {
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
     }
+}
+
+fun getUriToDrawable(
+    context: Context,
+    @AnyRes drawableId: Int,
+): Uri {
+    val imageUri = Uri.parse(
+        ContentResolver.SCHEME_ANDROID_RESOURCE
+                + "://" + context.resources.getResourcePackageName(drawableId)
+                + '/' + context.resources.getResourceTypeName(drawableId)
+                + '/' + context.resources.getResourceEntryName(drawableId),
+    )
+    return imageUri
 }

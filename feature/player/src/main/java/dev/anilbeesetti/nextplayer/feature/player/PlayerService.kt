@@ -62,7 +62,7 @@ class PlayerService: MediaSessionService() {
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
                     .build(),
-                playerPreferences.requireAudioFocus
+                playerPreferences.requireAudioFocus,
             )
             .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
             .build()

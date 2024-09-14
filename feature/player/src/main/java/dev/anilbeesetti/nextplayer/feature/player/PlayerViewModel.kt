@@ -37,7 +37,7 @@ class PlayerViewModel @Inject constructor(
     val externalSubtitles = mutableSetOf<Uri>()
     var skipSilenceEnabled: Boolean = false
 
-    private var currentVideoState: VideoState? = null
+    var currentVideoState: VideoState? = null
 
     val playerPrefs = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
