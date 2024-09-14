@@ -207,6 +207,19 @@
                         android:src="@drawable/ic_pip"
                         app:tint="@android:color/white" />
 
+                    <com.google.android.material.button.MaterialButton
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:checkable="true"
+                        android:id="@+id/btn_background"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/dimen_controls_horizontal"
+                        android:padding="12dp"
+                        app:icon="@drawable/ic_headset"
+                        app:iconTint="@android:color/white"
+                        android:backgroundTint="@drawable/btn_toggle_background"
+                        android:background="@drawable/transparent_circle_background" />
+
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 

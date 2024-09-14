@@ -53,6 +53,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
@@ -184,6 +185,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
+    private lateinit var playInBackgroundButton: MaterialButton
 
     private val isPipSupported: Boolean by lazy {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
@@ -234,6 +236,7 @@ class PlayerActivity : AppCompatActivity() {
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
+        playInBackgroundButton = binding.playerView.findViewById(R.id.btn_background)
 
         if (!isPipSupported) {
             pipButton.visibility = View.GONE
@@ -301,9 +304,11 @@ class PlayerActivity : AppCompatActivity() {
                 setOrientation()
                 applyVideoScale(viewModel.currentVideoScale)
                 applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
+
                 player?.run {
                     binding.playerView.player = this
                     videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
+                    playInBackgroundButton.isChecked = currentMediaItem != null
                     try {
                         loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
                     } catch (e: Exception) {
@@ -324,7 +329,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        println("HELLO:- onStop")
         binding.volumeGestureLayout.visibility = View.GONE
         binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
@@ -333,7 +337,8 @@ class PlayerActivity : AppCompatActivity() {
         playlistManager.getCurrent()?.let { savePlayerState(it) }
         player?.removeListener(playbackStateListener)
         binding.playerView.player = null
-        if (!playerPreferences.playInBackground) {
+        if (!playInBackgroundButton.isChecked) {
+            player?.clearMediaItems()
             player?.stop()
         }
         controllerFuture?.run {
