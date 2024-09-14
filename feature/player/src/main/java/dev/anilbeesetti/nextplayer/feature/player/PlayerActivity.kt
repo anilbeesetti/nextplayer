@@ -119,7 +119,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private var playWhenReady = true
     private var isPlaybackFinished = false
-    private var playlist: List<Uri> = emptyList()
 
     var isFileLoaded = false
     var isControlsLocked = false
@@ -482,9 +481,8 @@ class PlayerActivity : AppCompatActivity() {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
                 viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getNext()!!)
-            } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                playVideo(playlist[0])
-                playlistManager.updateCurrent(playlist[0])
+            } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL && playlistManager.isNotEmpty()) {
+                playVideo(playlistManager.get(0)!!)
             }
         }
         prevButton.setOnClickListener {
@@ -492,9 +490,8 @@ class PlayerActivity : AppCompatActivity() {
                 playlistManager.getCurrent()?.let { savePlayerState(it) }
                 viewModel.resetAllToDefaults()
                 playVideo(playlistManager.getPrev()!!)
-            } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                playVideo(playlist[playlist.size - 1])
-                playlistManager.updateCurrent(playlist[playlist.size - 1])
+            } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL && playlistManager.isNotEmpty()) {
+                playVideo(playlistManager.get(playlistManager.size() - 1)!!)
             }
         }
         lockControlsButton.setOnClickListener {
@@ -544,7 +541,7 @@ class PlayerActivity : AppCompatActivity() {
         val mediaUri = getMediaContentUri(intent.data!!)
 
         if (mediaUri != null) {
-            playlist = viewModel.getPlaylistFromUri(mediaUri)
+            val playlist = viewModel.getPlaylistFromUri(mediaUri)
             playlistManager.setPlaylist(playlist)
         }
     }
@@ -647,13 +644,12 @@ class PlayerActivity : AppCompatActivity() {
                 setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
                     finish()
                 }
-                setPositiveButton("OK") { dialog, _ ->
+                setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
                     dialog.dismiss()
                     if (playlistManager.hasNext()) {
                         playVideo(playlistManager.getNext()!!)
-                    } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                        playVideo(playlist[0])
-                        playlistManager.updateCurrent(playlist[0])
+                    } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL && playlistManager.isNotEmpty()) {
+                        playVideo(playlistManager.get(0)!!)
                     } else {
                         finish()
                     }
@@ -673,9 +669,8 @@ class PlayerActivity : AppCompatActivity() {
                         playlistManager.getCurrent()?.let { savePlayerState(it) }
                         viewModel.resetAllToDefaults()
                         playVideo(playlistManager.getNext()!!)
-                    } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL) {
-                        playVideo(playlist[0])
-                        playlistManager.updateCurrent(playlist[0])
+                    } else if (playerPreferences.videoLoop == VideoLoop.LOOP_ALL && playlistManager.isNotEmpty()) {
+                        playVideo(playlistManager.get(0)!!)
                     } else {
                         finish()
                     }

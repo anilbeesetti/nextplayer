@@ -17,6 +17,8 @@ class PlaylistManager {
         return currentIndex() > 0
     }
 
+    fun get(index: Int): Uri? = queue.getOrNull(index)
+
     fun getNext(): Uri? = queue.getOrNull(currentIndex() + 1)
 
     fun getPrev(): Uri? = queue.getOrNull(currentIndex() - 1)
