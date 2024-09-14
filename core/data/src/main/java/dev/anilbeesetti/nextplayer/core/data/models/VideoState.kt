@@ -10,5 +10,5 @@ data class VideoState(
     val playbackSpeed: Float?,
     val externalSubs: List<Uri>,
     val videoScale: Float,
-    val thumbnailPath: String?
+    val thumbnailPath: String?,
 )

@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
@@ -18,13 +17,13 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
-class PlayerService: MediaSessionService() {
+class PlayerService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
 
     @Inject
@@ -77,7 +76,7 @@ class PlayerService: MediaSessionService() {
                         0,
                         Intent(this, PlayerActivity::class.java),
                         PendingIntent.FLAG_IMMUTABLE,
-                    )
+                    ),
                 )
                 .build()
         } catch (e: Exception) {
