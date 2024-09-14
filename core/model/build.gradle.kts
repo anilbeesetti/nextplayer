@@ -1,6 +1,14 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
-    id("nextplayer.jvm.library")
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.kotlinSerialization)
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = libs.versions.android.jvm.get()
+    }
 }
 
 dependencies {

@@ -5,13 +5,11 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import dev.anilbeesetti.nextplayer.core.database.MediaDatabase
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DirectoryDaoTest {
 
     private lateinit var directoryDao: DirectoryDao
@@ -23,7 +21,7 @@ class DirectoryDaoTest {
 
         db = Room.inMemoryDatabaseBuilder(
             context,
-            MediaDatabase::class.java
+            MediaDatabase::class.java,
         ).build()
         directoryDao = db.directoryDao()
     }
@@ -63,7 +61,7 @@ class DirectoryDaoTest {
 
         directoryDao.upsertAll(directoryEntities)
 
-        val updatedDirectoryEntities = directoryEntities.map { it.copy(size = 5) }
+        val updatedDirectoryEntities = directoryEntities.map { it.copy(name = "something") }
 
         directoryDao.upsertAll(updatedDirectoryEntities)
 
@@ -92,33 +90,25 @@ class DirectoryDaoTest {
 val directory1 = DirectoryEntity(
     path = "/storage/emulated/0/media",
     name = "media",
-    mediaCount = 10,
     modified = System.currentTimeMillis(),
-    size = 1024
 )
 
 val directory2 = DirectoryEntity(
     path = "/storage/emulated/0/pictures",
     name = "pictures",
-    mediaCount = 5,
     modified = System.currentTimeMillis(),
-    size = 512
 )
 
 val directory3 = DirectoryEntity(
     path = "/storage/emulated/0/music",
     name = "music",
-    mediaCount = 20,
     modified = System.currentTimeMillis(),
-    size = 2048
 )
 
 val directory4 = DirectoryEntity(
     path = "/storage/emulated/0/videos",
     name = "videos",
-    mediaCount = 8,
     modified = System.currentTimeMillis(),
-    size = 1024
 )
 
 private val sampleData = listOf(directory1, directory2, directory3, directory4)

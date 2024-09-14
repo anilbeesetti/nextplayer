@@ -1,4 +1,4 @@
-![Next player banner](fastlane/metadata/android/en-US/images/nextplayer-banner.png)
+![Next player banner](fastlane/metadata/android/en-US/images/featureGraphic.png)
 
 # Next Player
 
@@ -60,17 +60,20 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 - Vertical swipe to change brightness (left) / volume (right)
 - Horizontal swipe to seek through video
 - [Material 3 (You)](https://m3.material.io/) support
-- Media picker with folder and file view
+- Media picker with tree, folder and file view modes
 - Play videos from url
 - Play videos from storage access framework (Android Document picker)
 - Control playback speed
 - External Subtitle support
 - Zoom gesture
+- Picture-in-picture mode
 
 ## Planned Features
 
 - External Audio support
-- Picture-in-picture mode
+- Background playback
+- Android TV version
+- Search Functionality
 
 ## Contributing
 

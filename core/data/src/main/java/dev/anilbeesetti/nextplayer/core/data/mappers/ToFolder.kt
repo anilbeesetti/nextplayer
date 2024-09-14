@@ -1,14 +1,15 @@
 package dev.anilbeesetti.nextplayer.core.data.mappers
 
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
+import dev.anilbeesetti.nextplayer.core.database.relations.DirectoryWithMedia
+import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
 import dev.anilbeesetti.nextplayer.core.model.Folder
 
-fun DirectoryEntity.toFolder() = Folder(
-    name = name,
-    path = path,
-    mediaSize = size,
-    mediaCount = mediaCount,
-    dateModified = modified,
-    formattedMediaSize = Utils.formatFileSize(size)
+fun DirectoryWithMedia.toFolder() = Folder(
+    name = directory.name,
+    path = directory.path,
+    dateModified = directory.modified,
+    parentPath = directory.parentPath,
+    formattedMediaSize = Utils.formatFileSize(media.sumOf { it.mediumEntity.size }),
+    mediaList = media.map(MediumWithInfo::toVideo),
 )

@@ -182,4 +182,25 @@
     <string name="format">Format</string>
     <string name="volume_boost_desc">Erhöhen der Audiolautstärke um bis zu 200%</string>
     <string name="volume_boost">Lautstärkeerhöhung</string>
+    <string name="pip_settings">Bild im Bildmodus</string>
+    <string name="pip_settings_description">Automatischer Wechsel zum Miniaturplayer beim Antippen der Home-Taste</string>
+    <string name="rename">Umbenennen</string>
+    <string name="rename_to">Umbenennen in</string>
+    <string name="no_audio_tracks_found">Die Tonspuren für dieses Video sind entweder nicht verfügbar oder werden nicht unterstützt.</string>
+    <string name="open_subtitle">Lokale Untertitel öffnen</string>
+    <string name="no_subtitle_tracks_found">Die Untertitelspuren für dieses Video sind entweder nicht verfügbar oder werden nicht unterstützt.</string>
+    <string name="floating_play_button">Schwebende Wiedergabe-Taste</string>
+    <string name="floating_play_button_desc">Schwebende Wiedergabe-Taste zum Abspielen der zuletzt abgespielten Medien anzeigen.</string>
+    <string name="mark_last_played_media_desc">Markiere die zuletzt wiedergegebenen Medien auf der Startseite und in jedem Ordner</string>
+    <string name="mark_last_played_media">Markiere die zuletzt wiedergegebenen Medien</string>
+    <string name="play_next_video">Nächstes Video abspielen</string>
+    <string name="open_local_video">Lokales Video öffnen</string>
+    <string name="open_network_stream">Netzwerk Stream öffnen</string>
+    <string name="exit">Beenden</string>
+    <string name="skip_silence">Stille überspringen</string>
+    <string name="played_progress">Gespielter Fortschritt</string>
+    <string name="folder">Ordner</string>
+    <string name="folders">Ordner</string>
+    <string name="tree">Baum</string>
+    <string name="media_view_mode">Medienansicht Modus</string>
 </resources>

@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.common.extensions
 import android.app.UiModeManager
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,18 +18,14 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import android.util.TypedValue
-import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import androidx.core.text.isDigitsOnly
 import java.io.BufferedInputStream
-import java.io.BufferedReader
-import java.io.BufferedWriter
 import java.io.File
-import java.io.FileWriter
-import java.io.InputStreamReader
+import java.io.InputStream
+import java.net.URL
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.mozilla.universalchardet.UniversalDetector
@@ -68,7 +65,7 @@ fun Context.getPath(uri: Uri): String? {
                     return try {
                         val contentUri = ContentUris.withAppendedId(
                             Uri.parse("content://downloads/public_downloads"),
-                            docId.toLong()
+                            docId.toLong(),
                         )
                         getDataColumn(contentUri, null, null)
                     } catch (e: Exception) {
@@ -90,7 +87,7 @@ fun Context.getPath(uri: Uri): String? {
                 }
                 val selection = "_id=?"
                 val selectionArgs = arrayOf(
-                    split[1]
+                    split[1],
                 )
                 return contentUri?.let { getDataColumn(it, selection, selectionArgs) }
             }
@@ -117,7 +114,7 @@ fun Context.getPath(uri: Uri): String? {
 private fun Context.getDataColumn(
     uri: Uri,
     selection: String? = null,
-    selectionArgs: Array<String>? = null
+    selectionArgs: Array<String>? = null,
 ): String? {
     var cursor: Cursor? = null
     val column = MediaStore.Images.Media.DATA
@@ -156,7 +153,7 @@ fun Context.getFilenameFromUri(uri: Uri): String {
  */
 fun Context.getFilenameFromContentUri(uri: Uri): String? {
     val projection = arrayOf(
-        OpenableColumns.DISPLAY_NAME
+        OpenableColumns.DISPLAY_NAME,
     )
 
     try {
@@ -184,7 +181,7 @@ fun Context.getMediaContentUri(uri: Uri): Uri? {
             projection,
             "${MediaStore.Images.Media.DATA} = ?",
             arrayOf(path),
-            null
+            null,
         )
         if (cursor != null && cursor.moveToFirst()) {
             val index = cursor.getColumnIndexOrThrow(column)
@@ -199,127 +196,122 @@ fun Context.getMediaContentUri(uri: Uri): Uri? {
     return null
 }
 
-fun Context.showToast(string: String, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, string, duration).show()
-}
-
-suspend fun Context.scanPaths(
-    paths: List<String>,
-    callback: ((String?, Uri?) -> Unit)? = null
-) = withContext(Dispatchers.IO) {
-    MediaScannerConnection.scanFile(
-        this@scanPaths,
-        paths.toTypedArray(),
-        arrayOf("video/*"),
-        callback
-    )
-}
-
-suspend fun Context.scanPath(file: File) {
-    withContext(Dispatchers.IO) {
-        if (file.isDirectory) {
-            file.listFiles()?.forEach { scanPath(it) }
-        } else {
-            scanPaths(listOf(file.path))
+suspend fun Context.scanPaths(paths: List<String>): Boolean = suspendCoroutine { continuation ->
+    try {
+        MediaScannerConnection.scanFile(
+            this@scanPaths,
+            paths.toTypedArray(),
+            arrayOf("video/*"),
+        ) { path, uri ->
+            Log.d("ScanPath", "scanPaths: path=$path, uri=$uri")
+            continuation.resumeWith(Result.success(true))
         }
+    } catch (e: Exception) {
+        continuation.resumeWith(Result.failure(e))
     }
 }
 
-suspend fun Context.scanStorage(callback: ((String?, Uri?) -> Unit)? = null) = withContext(Dispatchers.IO) {
-    val storagePath = Environment.getExternalStorageDirectory()?.path
+suspend fun Context.scanPath(file: File): Boolean {
+    return if (file.isDirectory) {
+        file.listFiles()?.all { scanPath(it) } ?: true
+    } else {
+        scanPaths(listOf(file.path))
+    }
+}
+
+suspend fun Context.scanStorage(
+    storagePath: String? = Environment.getExternalStorageDirectory()?.path,
+): Boolean = withContext(Dispatchers.IO) {
     if (storagePath != null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            scanPaths(listOf(storagePath), callback)
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            scanPaths(listOf(storagePath))
         } else {
             scanPath(File(storagePath))
         }
     } else {
-        callback?.invoke(null, null)
+        false
     }
 }
 
-fun Context.convertToUTF8(uri: Uri, charset: Charset?): Uri {
+suspend fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri = withContext(Dispatchers.IO) {
     try {
-        // TODO: handle network uri
-        if (uri.scheme?.lowercase()?.startsWith("http") == true) return uri
-        contentResolver.openInputStream(uri)?.use { inputStream ->
-            val bufferedInputStream = BufferedInputStream(inputStream)
-            val detectedCharset = charset ?: detectCharset(bufferedInputStream)
-            return convertToUTF8(uri, bufferedInputStream.reader(detectedCharset))
+        when {
+            uri.scheme?.let { it in listOf("http", "https", "ftp") } == true -> {
+                val url = URL(uri.toString())
+                val detectedCharset = charset ?: detectCharset(url)
+                if (detectedCharset == StandardCharsets.UTF_8) {
+                    uri
+                } else {
+                    convertNetworkUriToUTF8(url = url, sourceCharset = detectedCharset)
+                }
+            }
+
+            else -> {
+                val detectedCharset = charset ?: detectCharset(uri = uri, context = this@convertToUTF8)
+                if (detectedCharset == StandardCharsets.UTF_8) {
+                    uri
+                } else {
+                    convertLocalUriToUTF8(uri = uri, sourceCharset = detectedCharset)
+                }
+            }
         }
     } catch (exception: Exception) {
         exception.printStackTrace()
+        uri
     }
-    return uri
 }
 
-fun detectCharset(inputStream: BufferedInputStream): Charset {
-    val bufferSize = 8000
-    inputStream.mark(bufferSize)
-    val rawInput = ByteArray(bufferSize)
+private fun detectCharset(uri: Uri, context: Context): Charset {
+    return context.contentResolver.openInputStream(uri)?.use { inputStream ->
+        detectCharsetFromStream(inputStream)
+    } ?: StandardCharsets.UTF_8
+}
 
-    var rawLength = 0
-    var remainingLength = bufferSize
-    while (remainingLength > 0) {
-        // read() may give data in smallish chunks, esp. for remote sources.  Hence, this loop.
-        val bytesRead = inputStream.read(rawInput, rawLength, remainingLength)
-        if (bytesRead <= 0) {
-            break
+private fun detectCharset(url: URL): Charset {
+    return url.openStream().use { inputStream ->
+        detectCharsetFromStream(inputStream)
+    }
+}
+
+private fun detectCharsetFromStream(inputStream: InputStream): Charset {
+    return BufferedInputStream(inputStream).use { bufferedStream ->
+        val data = bufferedStream.readBytes()
+        UniversalDetector(null).run {
+            handleData(data, 0, data.size)
+            dataEnd()
+            Charset.forName(detectedCharset ?: StandardCharsets.UTF_8.name())
         }
-        rawLength += bytesRead
-        remainingLength -= bytesRead
     }
-    inputStream.reset()
-
-    val charsetDetector = UniversalDetector()
-    charsetDetector.handleData(rawInput)
-    charsetDetector.dataEnd()
-
-    val encoding = charsetDetector.detectedCharset
-
-    Log.d("TAG", "detectCharset: $encoding")
-
-    return encoding?.let { Charset.forName(encoding) } ?: StandardCharsets.UTF_8
 }
 
-fun Context.convertToUTF8(inputUri: Uri, inputStreamReader: InputStreamReader): Uri {
-    if (!StandardCharsets.UTF_8.displayName().equals(inputStreamReader.encoding)) {
-        val fileName = getFilenameFromUri(inputUri)
-        val file = File(subtitleCacheDir, fileName)
-        val bufferedReader = BufferedReader(inputStreamReader)
-        val bufferedWriter = BufferedWriter(FileWriter(file))
+private fun Context.convertLocalUriToUTF8(uri: Uri, sourceCharset: Charset): Uri {
+    val fileName = getFilenameFromUri(uri)
+    val file = File(subtitleCacheDir, fileName)
 
-        val buffer = CharArray(512)
-        var bytesRead: Int
-
-        while (bufferedReader.read(buffer).also { bytesRead = it } != -1) {
-            bufferedWriter.write(buffer, 0, bytesRead)
-        }
-
-        bufferedWriter.close()
-        bufferedReader.close()
-
-        return Uri.fromFile(file)
-    }
-    return inputUri
-}
-
-/**
- * For this to work set android:requestLegacyExternalStorage=true in AndroidManifest.xml
- */
-suspend fun Context.deleteFiles(uris: List<Uri>, intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>) = withContext(Dispatchers.IO) {
-    try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val intentSender = MediaStore.createDeleteRequest(contentResolver, uris).intentSender
-            intentSenderLauncher.launch(IntentSenderRequest.Builder(intentSender).build())
-        } else {
-            for (uri in uris) {
-                contentResolver.delete(uri, null, null)
+    contentResolver.openInputStream(uri)?.use { inputStream ->
+        inputStream.reader(sourceCharset).buffered().use { reader ->
+            file.outputStream().writer(StandardCharsets.UTF_8).buffered().use { writer ->
+                reader.copyTo(writer)
             }
         }
-    } catch (e: Exception) {
-        Log.d("CONTEXT", "deleteFiles: ${e.printStackTrace()}")
     }
+
+    return Uri.fromFile(file)
+}
+
+private fun Context.convertNetworkUriToUTF8(url: URL, sourceCharset: Charset): Uri {
+    val fileName = url.path.substringAfterLast('/')
+    val file = File(subtitleCacheDir, fileName)
+
+    url.openStream().use { inputStream ->
+        inputStream.reader(sourceCharset).buffered().use { reader ->
+            file.outputStream().writer(StandardCharsets.UTF_8).buffered().use { writer ->
+                reader.copyTo(writer)
+            }
+        }
+    }
+
+    return Uri.fromFile(file)
 }
 
 fun Context.isDeviceTvBox(): Boolean {
@@ -378,3 +370,39 @@ val Context.thumbnailCacheDir: File
         if (!dir.exists()) dir.mkdir()
         return dir
     }
+
+suspend fun ContentResolver.updateMedia(
+    uri: Uri,
+    contentValues: ContentValues,
+): Boolean = withContext(Dispatchers.IO) {
+    return@withContext try {
+        update(
+            uri,
+            contentValues,
+            null,
+            null,
+        ) > 0
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
+
+suspend fun ContentResolver.deleteMedia(
+    uri: Uri,
+): Boolean = withContext(Dispatchers.IO) {
+    return@withContext try {
+        delete(uri, null, null) > 0
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
+
+fun Context.getStorageVolumes() = try {
+    getExternalFilesDirs(null)?.mapNotNull {
+        File(it.path.substringBefore("/Android")).takeIf { file -> file.exists() }
+    } ?: listOf(Environment.getExternalStorageDirectory())
+} catch (e: Exception) {
+    listOf(Environment.getExternalStorageDirectory())
+}

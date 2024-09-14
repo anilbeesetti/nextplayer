@@ -10,18 +10,18 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
 data class MediumWithInfo(
     @Embedded val mediumEntity: MediumEntity,
     @Relation(
-        parentColumn = "path",
-        entityColumn = "medium_path"
+        parentColumn = "uri",
+        entityColumn = "medium_uri",
     )
     val videoStreamInfo: VideoStreamInfoEntity?,
     @Relation(
-        parentColumn = "path",
-        entityColumn = "medium_path"
+        parentColumn = "uri",
+        entityColumn = "medium_uri",
     )
     val audioStreamsInfo: List<AudioStreamInfoEntity>,
     @Relation(
-        parentColumn = "path",
-        entityColumn = "medium_path"
+        parentColumn = "uri",
+        entityColumn = "medium_uri",
     )
-    val subtitleStreamsInfo: List<SubtitleStreamInfoEntity>
+    val subtitleStreamsInfo: List<SubtitleStreamInfoEntity>,
 )

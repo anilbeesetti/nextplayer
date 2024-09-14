@@ -12,5 +12,5 @@ data class AudioStreamInfo(
     val sampleFormat: String?,
     val sampleRate: Int,
     val channels: Int,
-    val channelLayout: String?
+    val channelLayout: String?,
 ) : Serializable

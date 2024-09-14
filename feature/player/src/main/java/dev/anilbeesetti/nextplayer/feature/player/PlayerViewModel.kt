@@ -9,16 +9,16 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.VideoLoop
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
+import kotlinx.coroutines.runBlocking
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -26,40 +26,42 @@ private const val END_POSITION_OFFSET = 5L
 class PlayerViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase
+    private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
 ) : ViewModel() {
 
     var currentPlaybackPosition: Long? = null
     var currentPlaybackSpeed: Float = 1f
     var currentAudioTrackIndex: Int? = null
     var currentSubtitleTrackIndex: Int? = null
+    var currentVideoScale: Float = 1f
     var isPlaybackSpeedChanged: Boolean = false
     val externalSubtitles = mutableSetOf<Uri>()
+    var skipSilenceEnabled: Boolean = false
 
     private var currentVideoState: VideoState? = null
 
     val playerPrefs = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = PlayerPreferences()
+        initialValue = runBlocking { preferencesRepository.playerPreferences.first() },
     )
 
     val appPrefs = preferencesRepository.applicationPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = ApplicationPreferences()
+        initialValue = runBlocking { preferencesRepository.applicationPreferences.first() },
     )
 
-    suspend fun updateState(path: String?) {
-        currentVideoState = path?.let { mediaRepository.getVideoState(it) }
-
-        Timber.d("$currentVideoState")
-
+    suspend fun initMediaState(uri: String?) {
+        if (currentPlaybackPosition != null) return
+        currentVideoState = uri?.let { mediaRepository.getVideoState(it) }
         val prefs = playerPrefs.value
+
         currentPlaybackPosition = currentVideoState?.position.takeIf { prefs.resume == Resume.YES } ?: currentPlaybackPosition
         currentAudioTrackIndex = currentVideoState?.audioTrackIndex.takeIf { prefs.rememberSelections } ?: currentAudioTrackIndex
         currentSubtitleTrackIndex = currentVideoState?.subtitleTrackIndex.takeIf { prefs.rememberSelections } ?: currentSubtitleTrackIndex
         currentPlaybackSpeed = currentVideoState?.playbackSpeed.takeIf { prefs.rememberSelections } ?: prefs.defaultPlaybackSpeed
+        currentVideoScale = currentVideoState?.videoScale.takeIf { prefs.rememberSelections } ?: 1f
         externalSubtitles += currentVideoState?.externalSubs ?: emptyList()
     }
 
@@ -68,19 +70,23 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun saveState(
-        path: String?,
+        uri: Uri,
         position: Long,
         duration: Long,
         audioTrackIndex: Int,
         subtitleTrackIndex: Int,
-        playbackSpeed: Float
+        playbackSpeed: Float,
+        skipSilence: Boolean,
+        videoScale: Float,
     ) {
         currentPlaybackPosition = position
         currentAudioTrackIndex = audioTrackIndex
         currentSubtitleTrackIndex = subtitleTrackIndex
         currentPlaybackSpeed = playbackSpeed
+        currentVideoScale = videoScale
+        skipSilenceEnabled = skipSilence
 
-        if (path == null) return
+        if (!uri.isSchemaContent) return
 
         val newPosition = position.takeIf {
             position < duration - END_POSITION_OFFSET
@@ -88,12 +94,13 @@ class PlayerViewModel @Inject constructor(
 
         viewModelScope.launch {
             mediaRepository.saveVideoState(
-                path = path,
+                uri = uri.toString(),
                 position = newPosition,
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed,
-                externalSubs = externalSubtitles.toList()
+                externalSubs = externalSubtitles.toList(),
+                videoScale = videoScale,
             )
         }
     }
@@ -124,6 +131,8 @@ class PlayerViewModel @Inject constructor(
         currentAudioTrackIndex = null
         currentSubtitleTrackIndex = null
         isPlaybackSpeedChanged = false
+        currentVideoScale = 1f
+        skipSilenceEnabled = false
         externalSubtitles.clear()
     }
 }

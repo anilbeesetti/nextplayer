@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cancel">Cancel·la</string>
+    <string name="error_playing_video">error_reproduint_vídeo</string>
+    <string name="disable">Desactiva</string>
+    <string name="location">locació</string>
+    <string name="done">Fet</string>
+</resources>

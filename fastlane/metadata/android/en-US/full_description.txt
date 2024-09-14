@@ -17,7 +17,7 @@ Key Features:
  * Audio/Subtitle track selection
  * Vertical swipe to change brightness (left) / volume (right)
  * Horizontal swipe to seek through video
- * Media picker with folder and file view
+ * Media picker with tree, folder and file view modes
  * Playback speed control
  * Pinch to zoom in and zoom out
  * Resize (fit/stretch/crop/100%)
@@ -25,3 +25,11 @@ Key Features:
  * External subtitle support (long press subtitle icon)
  * Controls lock
  * No ads, tracking or excessive permissions
+ * Picture in picture mode
+
+Project Repo: https://github.com/anilbeesetti/nextplayer
+
+If you like my work, consider supporting me by buying me a coffee:
+ - UPI: https://pay.upilink.in/pay/anilbeesetti811@ybl
+ - PayPal: https://paypal.me/AnilBeesetti
+ - Ko-fi: https://ko-fi.com/anilbeesetti

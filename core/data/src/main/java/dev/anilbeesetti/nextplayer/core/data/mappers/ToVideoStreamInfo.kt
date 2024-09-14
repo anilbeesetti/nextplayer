@@ -12,5 +12,5 @@ fun VideoStreamInfoEntity.toVideoStreamInfo() = VideoStreamInfo(
     bitRate = bitRate,
     frameRate = frameRate,
     frameWidth = frameWidth,
-    frameHeight = frameHeight
+    frameHeight = frameHeight,
 )

@@ -19,13 +19,13 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PlayerPreferencesViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = PlayerPreferences()
+        initialValue = PlayerPreferences(),
     )
 
     private val _uiState = MutableStateFlow(PlayerPreferencesUIState())
@@ -43,7 +43,7 @@ class PlayerPreferencesViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(
-                    resume = resume
+                    resume = resume,
                 )
             }
         }
@@ -81,7 +81,7 @@ class PlayerPreferencesViewModel @Inject constructor(
                         DoubleTapGesture.FAST_FORWARD_AND_REWIND
                     } else {
                         DoubleTapGesture.NONE
-                    }
+                    },
                 )
             }
         }
@@ -91,7 +91,7 @@ class PlayerPreferencesViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(
-                    fastSeek = if (it.fastSeek == FastSeek.DISABLE) FastSeek.AUTO else FastSeek.DISABLE
+                    fastSeek = if (it.fastSeek == FastSeek.DISABLE) FastSeek.AUTO else FastSeek.DISABLE,
                 )
             }
         }
@@ -193,7 +193,7 @@ class PlayerPreferencesViewModel @Inject constructor(
 }
 
 data class PlayerPreferencesUIState(
-    val showDialog: PlayerPreferenceDialog? = null
+    val showDialog: PlayerPreferenceDialog? = null,
 )
 
 sealed interface PlayerPreferenceDialog {

@@ -19,7 +19,7 @@ fun NextDialog(
     modifier: Modifier = Modifier,
     confirmButton: @Composable () -> Unit,
     dismissButton: @Composable (() -> Unit)? = null,
-    dialogProperties: DialogProperties = NextDialogDefaults.dialogProperties
+    dialogProperties: DialogProperties = NextDialogDefaults.dialogProperties,
 ) {
     val configuration = LocalConfiguration.current
 
@@ -31,7 +31,7 @@ fun NextDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = confirmButton,
         dismissButton = dismissButton,
-        properties = dialogProperties
+        properties = dialogProperties,
     )
 }
 
@@ -40,14 +40,14 @@ fun NextDialogWithDoneAndCancelButtons(
     title: String,
     onDoneClick: () -> Unit,
     onDismissClick: () -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     NextDialog(
         title = { Text(text = title) },
         confirmButton = { DoneButton(onClick = onDoneClick) },
         dismissButton = { CancelButton(onClick = onDismissClick) },
         onDismissRequest = onDismissClick,
-        content = content
+        content = content,
     )
 }
 
@@ -56,7 +56,7 @@ object NextDialogDefaults {
         usePlatformDefaultWidth = false,
         dismissOnBackPress = true,
         dismissOnClickOutside = true,
-        decorFitsSystemWindows = true
+        decorFitsSystemWindows = true,
     )
     val dialogMargin: Dp = 16.dp
 }

@@ -8,5 +8,5 @@ annotation class Dispatcher(val niaDispatcher: NextDispatchers)
 
 enum class NextDispatchers {
     Default,
-    IO
+    IO,
 }

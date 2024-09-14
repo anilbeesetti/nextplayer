@@ -16,12 +16,10 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideMediaDatabase(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): MediaDatabase = Room.databaseBuilder(
         context = context,
         klass = MediaDatabase::class.java,
-        name = MediaDatabase.DATABASE_NAME
-    ).addMigrations(MediaDatabase.migration4To5)
-        .fallbackToDestructiveMigration()
-        .build()
+        name = MediaDatabase.DATABASE_NAME,
+    ).fallbackToDestructiveMigration().build()
 }

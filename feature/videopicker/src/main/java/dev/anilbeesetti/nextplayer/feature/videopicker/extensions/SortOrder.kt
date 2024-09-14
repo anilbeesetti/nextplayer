@@ -2,30 +2,30 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.extensions
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import dev.anilbeesetti.nextplayer.core.model.SortBy
-import dev.anilbeesetti.nextplayer.core.model.SortOrder
+import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.ui.R
 
 @Composable
-fun SortOrder.name(sortBy: SortBy): String {
+fun Sort.Order.name(sortBy: Sort.By): String {
     val stringRes = when (sortBy) {
-        SortBy.TITLE,
-        SortBy.PATH -> when (this) {
-            SortOrder.ASCENDING -> R.string.a_z
-            SortOrder.DESCENDING -> R.string.z_a
+        Sort.By.TITLE,
+        Sort.By.PATH,
+        -> when (this) {
+            Sort.Order.ASCENDING -> R.string.a_z
+            Sort.Order.DESCENDING -> R.string.z_a
         }
-        SortBy.LENGTH -> when (this) {
-            SortOrder.ASCENDING -> R.string.shortest
-            SortOrder.DESCENDING -> R.string.longest
+        Sort.By.LENGTH -> when (this) {
+            Sort.Order.ASCENDING -> R.string.shortest
+            Sort.Order.DESCENDING -> R.string.longest
         }
-        SortBy.SIZE -> when (this) {
-            SortOrder.ASCENDING -> R.string.smallest
-            SortOrder.DESCENDING -> R.string.largest
+        Sort.By.SIZE -> when (this) {
+            Sort.Order.ASCENDING -> R.string.smallest
+            Sort.Order.DESCENDING -> R.string.largest
         }
 
-        SortBy.DATE -> when (this) {
-            SortOrder.ASCENDING -> R.string.oldest
-            SortOrder.DESCENDING -> R.string.newest
+        Sort.By.DATE -> when (this) {
+            Sort.Order.ASCENDING -> R.string.oldest
+            Sort.Order.DESCENDING -> R.string.newest
         }
     }
 

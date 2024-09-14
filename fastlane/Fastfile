@@ -1,0 +1,38 @@
+default_platform(:android)
+
+platform :android do
+  desc "Build and publish"
+  lane :publish do
+    gradle(task: "clean")
+    gradle(
+      task: "assemble",
+      build_type: "release",
+      print_command: false,
+      properties: {
+        "android.injected.signing.store.file" => ENV["KEYSTORE"],
+        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"],
+      }
+    )
+
+    gradle(
+      task: "bundle",
+      build_type: "release",
+      print_command: false,
+      properties: {
+        "android.injected.signing.store.file" => ENV["KEYSTORE"],
+        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"],
+      }
+    )
+
+    upload_to_play_store(
+      track: "production",
+      json_key: ENV["PLAY_API_CREDENTIALS"],
+      skip_upload_apk: true,
+      sync_image_upload: true
+    )
+  end
+end

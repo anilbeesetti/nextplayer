@@ -8,5 +8,5 @@ fun SubtitleStreamInfoEntity.toSubtitleStreamInfo() = SubtitleStreamInfo(
     title = title,
     codecName = codecName,
     language = language,
-    disposition = disposition
+    disposition = disposition,
 )

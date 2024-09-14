@@ -36,3 +36,9 @@ google-services.json
 nextlib/ffmpeg/build
 nextlib/ffmpeg/output
 nextlib/ffmpeg/sources
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output

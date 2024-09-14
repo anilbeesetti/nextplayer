@@ -1,0 +1,44 @@
+name: Update version code, version name and open pull request
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (must be in x.y.z format)"
+        required: true
+
+jobs:
+  bump-version-and-open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get updated version name and version code
+        run: |
+          # Extract version name from github inputs
+          version_name="${{ github.event.inputs.version }}"
+
+          # Get existing version code from build.gradle
+          version_code=$(grep "versionCode" app/build.gradle.kts | awk '{print $3}' | tr -d '\n')
+
+          # Increment existing version code by 1
+          version_code=$((version_code + 1))
+
+          # Set environment variable for later use
+          echo "VERSION_NAME=$version_name" >> $GITHUB_ENV
+          echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
+
+      - name: Update app/build.gradle.kts updated version name and version code
+        run: |
+          echo "Updating version code to ${{ env.VERSION_CODE }} and version name to ${{ env.VERSION_NAME }}"
+          sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
+          sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts 
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v6.1.0
+        with:
+          commit-message: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
+          branch: "release/${{ github.event.inputs.version }}"
+          title: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
+          body: "Note: Add release notes"
+          base: "main"

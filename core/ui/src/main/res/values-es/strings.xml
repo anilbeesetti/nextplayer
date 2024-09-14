@@ -91,8 +91,8 @@
     <string name="scan">Escanear</string>
     <string name="media_library">Biblioteca multimedia</string>
     <string name="force_rescan_storage">Forzar reescaneo de almacenamiento</string>
-    <string name="video">vídeo</string>
-    <string name="videos">vídeos</string>
+    <string name="video">Vídeo</string>
+    <string name="videos">Vídeos</string>
     <string name="manage_folders">Gestionar carpetas</string>
     <string name="screen_rotation">Rotación de la pantalla</string>
     <string name="player_screen_orientation">Orientación de la pantalla del reproductor</string>
@@ -182,4 +182,25 @@
     <string name="audio_track">Pista del audio</string>
     <string name="volume_boost_desc">Aumenta el volumen de audio hasta un 200%</string>
     <string name="volume_boost">Refuerzo del volumen</string>
+    <string name="pip_settings">Modo Imagen en imagen</string>
+    <string name="pip_settings_description">Cambia automáticamente al reproductor en miniatura al pulsar el botón de inicio</string>
+    <string name="no_audio_tracks_found">Las pistas de audio de este vídeo no están disponibles o no son compatibles.</string>
+    <string name="open_subtitle">Abrir los subtítulos locales</string>
+    <string name="no_subtitle_tracks_found">Las pistas de subtítulos para este vídeo no están disponibles o no son compatibles.</string>
+    <string name="rename">Cambie el nombre</string>
+    <string name="rename_to">Cambiar el nombre a</string>
+    <string name="mark_last_played_media">Marcar el último medio reproducido</string>
+    <string name="open_local_video">Abrir un video local</string>
+    <string name="open_network_stream">Abrir videos en la red</string>
+    <string name="floating_play_button">Botón de reproducción flotante</string>
+    <string name="floating_play_button_desc">Mostrar el botón flotante para reproducir el último medio reproducido.</string>
+    <string name="mark_last_played_media_desc">Marcar el último medio reproducido al inicio y en cada carpeta</string>
+    <string name="exit">Salir</string>
+    <string name="play_next_video">Reproducir el siguiente vídeo</string>
+    <string name="skip_silence">Omitir silencio</string>
+    <string name="folder">Carpeta</string>
+    <string name="folders">Carpetas</string>
+    <string name="tree">Árbol</string>
+    <string name="played_progress">Progreso de la reproducción</string>
+    <string name="media_view_mode">Modo de visualización multimedia</string>
 </resources>

@@ -8,7 +8,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
-import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.thumbnailCacheDir
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
@@ -32,7 +31,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
     @ApplicationScope private val applicationScope: CoroutineScope,
     @ApplicationContext private val context: Context,
-    @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher
+    @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher,
 ) : MediaInfoSynchronizer {
 
     private val media = MutableSharedFlow<Uri>()
@@ -41,26 +40,40 @@ class LocalMediaInfoSynchronizer @Inject constructor(
 
     private suspend fun sync(): Unit = withContext(dispatcher) {
         media.collect { mediumUri ->
-            val path = context.getPath(mediumUri) ?: return@collect
-            val medium = mediumDao.getWithInfo(path) ?: return@collect
-            Log.d(TAG, "sync: $mediumUri - ${medium.mediumEntity.thumbnailPath}")
-            if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) return@collect
-
-            Log.d(TAG, "sync: $mediumUri")
-
-            val mediaInfo = MediaInfoBuilder(context).from(mediumUri).build() ?: run {
-                Log.d(TAG, "sync: MediaInfoBuilder returned null")
+            val medium = mediumDao.getWithInfo(mediumUri.toString()) ?: return@collect
+            if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
                 return@collect
             }
-            val thumbnail = mediaInfo.getFrame()
+
+            val mediaInfo = runCatching {
+                MediaInfoBuilder().from(context = context, uri = mediumUri).build() ?: throw NullPointerException()
+            }.onFailure { e ->
+                e.printStackTrace()
+                Log.d(TAG, "sync: MediaInfoBuilder exception", e)
+            }.getOrNull() ?: return@collect
+
+            val thumbnail = runCatching { mediaInfo.getFrame() }.getOrNull()
             mediaInfo.release()
 
-            val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.path)
-            val audioStreamsInfo = mediaInfo.audioStreams.map { it.toAudioStreamInfoEntity(medium.mediumEntity.path) }
-            val subtitleStreamsInfo = mediaInfo.subtitleStreams.map { it.toSubtitleStreamInfoEntity(medium.mediumEntity.path) }
-            val thumbnailPath = thumbnail?.saveTo(storageDir = context.thumbnailCacheDir, quality = 30)
+            val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.uriString)
+            val audioStreamsInfo = mediaInfo.audioStreams.map {
+                it.toAudioStreamInfoEntity(medium.mediumEntity.uriString)
+            }
+            val subtitleStreamsInfo = mediaInfo.subtitleStreams.map {
+                it.toSubtitleStreamInfoEntity(medium.mediumEntity.uriString)
+            }
+            val thumbnailPath = thumbnail?.saveTo(
+                storageDir = context.thumbnailCacheDir,
+                quality = 40,
+                fileName = medium.mediumEntity.mediaStoreId.toString(),
+            )
 
-            mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format, thumbnailPath = thumbnailPath))
+            mediumDao.upsert(
+                medium.mediumEntity.copy(
+                    format = mediaInfo.format,
+                    thumbnailPath = thumbnailPath,
+                ),
+            )
             videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
             audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
             subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }
@@ -76,7 +89,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     }
 }
 
-fun VideoStream.toVideoStreamInfoEntity(mediumPath: String) = VideoStreamInfoEntity(
+private fun VideoStream.toVideoStreamInfoEntity(mediumUri: String) = VideoStreamInfoEntity(
     index = index,
     title = title,
     codecName = codecName,
@@ -86,10 +99,10 @@ fun VideoStream.toVideoStreamInfoEntity(mediumPath: String) = VideoStreamInfoEnt
     frameRate = frameRate,
     frameWidth = frameWidth,
     frameHeight = frameHeight,
-    mediumPath = mediumPath
+    mediumUri = mediumUri,
 )
 
-fun AudioStream.toAudioStreamInfoEntity(mediumPath: String) = AudioStreamInfoEntity(
+private fun AudioStream.toAudioStreamInfoEntity(mediumUri: String) = AudioStreamInfoEntity(
     index = index,
     title = title,
     codecName = codecName,
@@ -100,21 +113,24 @@ fun AudioStream.toAudioStreamInfoEntity(mediumPath: String) = AudioStreamInfoEnt
     sampleRate = sampleRate,
     channels = channels,
     channelLayout = channelLayout,
-    mediumPath = mediumPath
+    mediumUri = mediumUri,
 )
 
-fun SubtitleStream.toSubtitleStreamInfoEntity(mediumPath: String) = SubtitleStreamInfoEntity(
+private fun SubtitleStream.toSubtitleStreamInfoEntity(mediumUri: String) = SubtitleStreamInfoEntity(
     index = index,
     title = title,
     codecName = codecName,
     language = language,
     disposition = disposition,
-    mediumPath = mediumPath
+    mediumUri = mediumUri,
 )
 
-suspend fun Bitmap.saveTo(storageDir: File, quality: Int = 100): String? = withContext(Dispatchers.IO) {
-    val thumbnailFileName = "thumbnail-${System.currentTimeMillis()}"
-    val thumbFile = File(storageDir, thumbnailFileName)
+suspend fun Bitmap.saveTo(
+    storageDir: File,
+    quality: Int = 100,
+    fileName: String,
+): String? = withContext(Dispatchers.IO) {
+    val thumbFile = File(storageDir, fileName)
     try {
         FileOutputStream(thumbFile).use { fos ->
             compress(Bitmap.CompressFormat.JPEG, quality, fos)

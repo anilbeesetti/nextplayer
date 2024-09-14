@@ -12,7 +12,7 @@ import androidx.media3.exoplayer.trackselection.MappingTrackSelector
  */
 @UnstableApi
 fun MappingTrackSelector.MappedTrackInfo.isRendererAvailable(
-    type: @C.TrackType Int
+    type: @C.TrackType Int,
 ): Boolean {
     for (i in 0 until rendererCount) {
         if (getTrackGroups(i).length == 0) continue

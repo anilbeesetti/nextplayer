@@ -182,4 +182,25 @@
     <string name="format">ਫਾਰਮੈਟ</string>
     <string name="volume_boost_desc">ਆਡੀਓ ਵਾਲੀਅਮ ਨੂੰ 200% ਤੱਕ ਵਧਾਓ</string>
     <string name="volume_boost">ਵਾਲੀਅਮ ਬੂਸਟ</string>
+    <string name="pip_settings_description">ਹੋਮ ਬਟਨ \'ਤੇ ਟੈਪ ਕਰਨ \'ਤੇ ਆਪਣੇ ਆਪ ਛੋਟੇ ਪਲੇਅਰ \'ਤੇ ਸਵਿੱਚ ਕਰੋ</string>
+    <string name="pip_settings">ਤਸਵੀਰ ਵਿੱਚ ਤਸਵੀਰ ਮੋਡ</string>
+    <string name="no_subtitle_tracks_found">ਇਸ ਵੀਡੀਓ ਲਈ ਸਬਟਾਈਟਲ ਟਰੈਕ ਜਾਂ ਤਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ ਜਾਂ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।</string>
+    <string name="open_subtitle">ਸਥਾਨਿਕ ਸਬਟਾਈਟਲ ਖੋਲ੍ਹੋ</string>
+    <string name="no_audio_tracks_found">ਇਸ ਵੀਡੀਓ ਲਈ ਆਡੀਓ ਟਰੈਕ ਜਾਂ ਤਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ ਜਾਂ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।</string>
+    <string name="rename">ਨਾਮ ਬਦਲੋ</string>
+    <string name="rename_to">ਇਹਦੇ ਵਿੱਚ ਨਾਮ ਬਦਲੀ ਕਰੋ</string>
+    <string name="floating_play_button_desc">ਆਖਰੀ ਵਾਰ ਚਲਾਏ ਗਏ ਮੀਡੀਆ ਨੂੰ ਚਲਾਉਣ ਲਈ ਫਲੋਟਿੰਗ ਬਟਨ ਵਿਖਾਓ।</string>
+    <string name="floating_play_button">ਫਲੋਟਿੰਗ ਪਲੇਅ ਬਟਨ</string>
+    <string name="mark_last_played_media">ਆਖਰੀ ਵਾਰ ਚਲਾਏ ਮੀਡੀਆ ਨੂੰ ਮਾਰਕ ਕਰੋ</string>
+    <string name="open_network_stream">ਨੈੱਟਵਰਕ ਸਟ੍ਰੀਮ ਖੋਲ੍ਹੋ</string>
+    <string name="play_next_video">ਅਗਲਾ ਵੀਡੀਓ ਚਲਾਓ</string>
+    <string name="mark_last_played_media_desc">ਹੋਮ ਅਤੇ ਹਰੇਕ ਫ਼ੋਲਡਰ ਵਿੱਚ ਆਖਰੀ ਵਾਰ ਚਲਾਏ ਗਏ ਮੀਡੀਆ ਨੂੰ ਮਾਰਕ ਕਰੋ</string>
+    <string name="open_local_video">ਸਥਾਨਿਕ ਵੀਡੀਓ ਖੋਲ੍ਹੋ</string>
+    <string name="exit">ਬਾਹਰ ਨਿਕਲੋ</string>
+    <string name="skip_silence">ਸਕਿੱਪ ਸਾਈਲੈਂਸ</string>
+    <string name="played_progress">ਚੱਲਣ ਦੀ ਪ੍ਰਗਤੀ</string>
+    <string name="folder">ਫ਼ੋਲਡਰ</string>
+    <string name="folders">ਫ਼ੋਲਡਰ</string>
+    <string name="tree">ਟ੍ਰੀ</string>
+    <string name="media_view_mode">ਮੀਡੀਆ ਵਿਊ ਮੋਡ</string>
 </resources>

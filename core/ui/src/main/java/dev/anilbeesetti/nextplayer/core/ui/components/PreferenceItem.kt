@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,9 +29,9 @@ fun PreferenceItem(
     description: String? = null,
     icon: ImageVector? = null,
     enabled: Boolean,
-    content: @Composable () -> Unit = {}
+    content: @Composable () -> Unit = {},
 ) {
-    ListItem(
+    ListItemComponent(
         leadingContent = {
             icon?.let {
                 Icon(
@@ -41,7 +40,7 @@ fun PreferenceItem(
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
                         .size(24.dp),
-                    tint = MaterialTheme.colorScheme.secondary.applyAlpha(enabled)
+                    tint = MaterialTheme.colorScheme.secondary.applyAlpha(enabled),
                 )
             }
         },
@@ -50,7 +49,7 @@ fun PreferenceItem(
                 text = title,
                 maxLines = 1,
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
-                color = LocalContentColor.current.applyAlpha(enabled)
+                color = LocalContentColor.current.applyAlpha(enabled),
             )
         },
         supportingContent = {
@@ -61,12 +60,12 @@ fun PreferenceItem(
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium,
                     color = LocalContentColor.current.applyAlpha(enabled),
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.padding(top = 2.dp),
                 )
             }
         },
         trailingContent = content,
-        modifier = modifier.padding(vertical = 10.dp)
+        modifier = modifier.padding(vertical = 8.dp),
     )
 }
 
@@ -78,16 +77,16 @@ fun SelectablePreference(
     description: String? = null,
     selected: Boolean = false,
     onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {}
+    onLongClick: () -> Unit = {},
 ) {
-    ListItem(
+    ListItemComponent(
         headlineContent = {
             Text(
                 text = title,
                 maxLines = 1,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
-                )
+                    textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
+                ),
             )
         },
         supportingContent = {
@@ -97,8 +96,8 @@ fun SelectablePreference(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None
-                    )
+                        textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
+                    ),
                 )
             }
         },
@@ -106,36 +105,36 @@ fun SelectablePreference(
             Checkbox(
                 modifier = Modifier.semantics { contentDescription = title },
                 checked = selected,
-                onCheckedChange = null
+                onCheckedChange = null,
             )
         },
         modifier = modifier
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick
+                onLongClick = onLongClick,
             )
             .padding(start = 10.dp)
-            .padding(vertical = 2.dp)
+            .padding(vertical = 2.dp),
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun PreferenceItemPreview() {
     PreferenceItem(
         title = "Title",
         description = "Description of the preference item goes here.",
         icon = NextIcons.DoubleTap,
-        enabled = true
+        enabled = true,
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SelectablePreferencePreview() {
     SelectablePreference(
         title = "Title",
-        description = "Description of the preference item goes here."
+        description = "Description of the preference item goes here.",
     )
 }
 

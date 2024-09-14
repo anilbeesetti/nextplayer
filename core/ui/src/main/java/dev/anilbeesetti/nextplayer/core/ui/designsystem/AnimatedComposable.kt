@@ -17,7 +17,7 @@ fun NavGraphBuilder.animatedComposable(
     route: String,
     arguments: List<NamedNavArgument> = emptyList(),
     deepLinks: List<NavDeepLink> = emptyList(),
-    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit,
 ) = composable(
     route = route,
     arguments = arguments,
@@ -30,5 +30,5 @@ fun NavGraphBuilder.animatedComposable(
     popExitTransition = {
         slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(220)) + fadeOut(animationSpec = tween(220))
     },
-    content = content
+    content = content,
 )

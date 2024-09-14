@@ -19,7 +19,7 @@ fun InfoChip(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    shape: Shape = MaterialTheme.shapes.extraSmall.copy(CornerSize(2.dp))
+    shape: Shape = MaterialTheme.shapes.extraSmall.copy(CornerSize(2.dp)),
 ) {
     Text(
         text = text,
@@ -28,6 +28,6 @@ fun InfoChip(
         modifier = modifier
             .clip(shape)
             .background(backgroundColor)
-            .padding(vertical = 1.dp, horizontal = 3.dp)
+            .padding(vertical = 1.dp, horizontal = 3.dp),
     )
 }

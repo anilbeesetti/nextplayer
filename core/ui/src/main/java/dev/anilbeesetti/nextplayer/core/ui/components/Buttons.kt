@@ -11,12 +11,12 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 fun DoneButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     TextButton(
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Text(text = stringResource(R.string.done))
     }
@@ -26,12 +26,12 @@ fun DoneButton(
 fun CancelButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     TextButton(
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Text(text = stringResource(R.string.cancel))
     }

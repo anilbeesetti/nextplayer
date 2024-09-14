@@ -49,8 +49,8 @@
     <string name="largest">Μεγαλύτερο</string>
     <string name="dark_theme">Σκοτεινό θέμα</string>
     <string name="video_zoom">Μεγέθυνση βίντεο</string>
-    <string name="dynamic_theme">Δυναμικό χρωματικό θέμα</string>
-    <string name="dynamic_theme_description">Εφαρμογή χρωμάτων από την ταπετσαρία συστήματος στο θέμα της εφαρμογής</string>
+    <string name="dynamic_theme">Δυναμικό χρώμα</string>
+    <string name="dynamic_theme_description">Εφαρμογή χρωμάτων από την ταπετσαρία συστήματος στο θέμα</string>
     <string name="controls_lock">Κλείδωμα χειριστηρίων</string>
     <string name="controls_unlock">Ξεκλείδωμα χειριστηρίων</string>
     <string name="select_playback_speed">Επιλογή ταχύτητας αναπαραγωγής</string>
@@ -92,8 +92,8 @@
     <string name="enable">Ενεργή</string>
     <string name="no">Όχι</string>
     <string name="manage_folders_desc">Επιλέξτε φακέλους που θα εξαιρεθούν από τη βιβλιοθήκη πολυμέσων</string>
-    <string name="video">βίντεο</string>
-    <string name="videos">βίντεο</string>
+    <string name="video">Βίντεο</string>
+    <string name="videos">Βίντεο</string>
     <string name="screen_rotation">Διάταξη οθόνης</string>
     <string name="portrait">Κάθετη</string>
     <string name="automatic">Αυτόματη</string>
@@ -155,7 +155,7 @@
     <string name="system_volume_panel">Ένταση συστήματος</string>
     <string name="system_volume_panel_desc">Χρήση πίνακα έντασης συστήματος όταν χρησιμοποιούνται ακουστικά</string>
     <string name="system_caption_style">Στυλ συστήματος</string>
-    <string name="system_caption_style_desc">Άνοιγμα των προτιμήσεων υπότιτλων συστήματος</string>
+    <string name="system_caption_style_desc">Άνοιγμα των προτιμήσεων υποτίτλων συστήματος</string>
     <string name="fields">Πεδία</string>
     <string name="thumbnail">Εικονίδιο</string>
     <string name="extension">Επέκταση</string>
@@ -182,4 +182,25 @@
     <string name="format">Μορφή</string>
     <string name="volume_boost_desc">Ενίσχυση έντασης έως 200%</string>
     <string name="volume_boost">Ενίσχυση έντασης</string>
+    <string name="rename">Μετονομασία</string>
+    <string name="pip_settings_description">Εναλλαγή σε αιωρούμενη οθόνη όταν πατάτε το κουμπί αρχικής οθόνης</string>
+    <string name="pip_settings">Αιωρούμενη οθόνη</string>
+    <string name="no_subtitle_tracks_found">Τα κομμάτια υποτίτλων για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
+    <string name="no_audio_tracks_found">Τα κομμάτια ήχου για αυτό το βίντεο είτε δεν είναι διαθέσιμα είτε δεν υποστηρίζονται.</string>
+    <string name="rename_to">Μετονομασία σε</string>
+    <string name="open_subtitle">Άνοιγμα τοπικών υποτίτλων</string>
+    <string name="play_next_video">Αναπαραγωγή επόμενου</string>
+    <string name="exit">Έξοδος</string>
+    <string name="mark_last_played_media">Επισήμανση τελευταίας αναπαραγωγής</string>
+    <string name="open_local_video">Τοπικό βίντεο</string>
+    <string name="open_network_stream">Δικτυακή ροή</string>
+    <string name="floating_play_button">Αιωρούμενο κουμπί</string>
+    <string name="floating_play_button_desc">Εμφάνιση κουμπιού αναπαραγωγής πρόσφατου βίντεο.</string>
+    <string name="mark_last_played_media_desc">Επισήμανση τελευταίας αναπαραγωγής σε κάθε φάκελο</string>
+    <string name="skip_silence">Παράκαμψη σίγασης</string>
+    <string name="folders">Φάκελοι</string>
+    <string name="folder">Φάκελος</string>
+    <string name="tree">Δένδρο</string>
+    <string name="played_progress">Πρόοδος αναπαραγωγής</string>
+    <string name="media_view_mode">Τρόπος προβολής πολυμέσων</string>
 </resources>

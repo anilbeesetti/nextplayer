@@ -1,8 +1,13 @@
 package dev.anilbeesetti.nextplayer.settings.screens.audio
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -33,7 +38,7 @@ import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
 @Composable
 fun AudioPreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: AudioPreferencesViewModel = hiltViewModel()
+    viewModel: AudioPreferencesViewModel = hiltViewModel(),
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -42,48 +47,53 @@ fun AudioPreferencesScreen(
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.audio),
                 scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             PreferredAudioLanguageSetting(
                 currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredAudioLanguage),
-                onClick = { viewModel.showDialog(AudioPreferenceDialog.AudioLanguageDialog) }
+                onClick = { viewModel.showDialog(AudioPreferenceDialog.AudioLanguageDialog) },
             )
             VolumeBoost(
                 isChecked = preferences.shouldUseVolumeBoost,
-                onClick = viewModel::toggleShouldUseVolumeBoost
+                onClick = viewModel::toggleShouldUseVolumeBoost,
             )
             RequireAudioFocusSetting(
                 isChecked = preferences.requireAudioFocus,
-                onClick = viewModel::toggleRequireAudioFocus
+                onClick = viewModel::toggleRequireAudioFocus,
             )
             PauseOnHeadsetDisconnectSetting(
                 isChecked = preferences.pauseOnHeadsetDisconnect,
-                onClick = viewModel::togglePauseOnHeadsetDisconnect
+                onClick = viewModel::togglePauseOnHeadsetDisconnect,
             )
             ShowSystemVolumePanelSetting(
                 isChecked = preferences.showSystemVolumePanel,
-                onClick = viewModel::toggleShowSystemVolumePanel
+                onClick = viewModel::toggleShowSystemVolumePanel,
             )
         }
 
@@ -92,7 +102,7 @@ fun AudioPreferencesScreen(
                 AudioPreferenceDialog.AudioLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(languages) {
                             RadioTextButton(
@@ -101,7 +111,7 @@ fun AudioPreferencesScreen(
                                 onClick = {
                                     viewModel.updateAudioLanguage(it.second)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -114,70 +124,70 @@ fun AudioPreferencesScreen(
 @Composable
 fun PreferredAudioLanguageSetting(
     currentLanguage: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(id = R.string.preferred_audio_lang),
         description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
-            id = R.string.preferred_audio_lang_description
+            id = R.string.preferred_audio_lang_description,
         ),
         icon = NextIcons.Language,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun VolumeBoost(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(R.string.volume_boost),
         description = stringResource(R.string.volume_boost_desc),
         icon = NextIcons.VolumeUp,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun RequireAudioFocusSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(R.string.require_audio_focus),
         description = stringResource(R.string.require_audio_focus_desc),
         icon = NextIcons.Focus,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun PauseOnHeadsetDisconnectSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.pause_on_headset_disconnect),
         description = stringResource(id = R.string.pause_on_headset_disconnect_desc),
         icon = NextIcons.HeadsetOff,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
 fun ShowSystemVolumePanelSetting(
     isChecked: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     PreferenceSwitch(
         title = stringResource(id = R.string.system_volume_panel),
         description = stringResource(id = R.string.system_volume_panel_desc),
         icon = NextIcons.Headset,
         isChecked = isChecked,
-        onClick = onClick
+        onClick = onClick,
     )
 }

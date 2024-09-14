@@ -10,7 +10,10 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
+import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
+import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
@@ -39,10 +42,15 @@ class LocalMediaSynchronizer @Inject constructor(
     private val directoryDao: DirectoryDao,
     @ApplicationScope private val applicationScope: CoroutineScope,
     @ApplicationContext private val context: Context,
-    @Dispatcher(NextDispatchers.IO) private val dispatcher: CoroutineDispatcher
+    @Dispatcher(NextDispatchers.IO) private val dispatcher: CoroutineDispatcher,
 ) : MediaSynchronizer {
 
     private var mediaSyncingJob: Job? = null
+
+    override suspend fun refresh(path: String?): Boolean {
+        return path?.let { context.scanPaths(listOf(path)) }
+            ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
+    }
 
     override fun startSync() {
         if (mediaSyncingJob != null) return
@@ -56,45 +64,68 @@ class LocalMediaSynchronizer @Inject constructor(
         mediaSyncingJob?.cancel()
     }
 
-    private suspend fun updateDirectories(media: List<MediaVideo>) = withContext(
-        Dispatchers.Default
-    ) {
-        val directories = media.groupBy { File(it.data).parentFile!! }.map { (file, videos) ->
-            DirectoryEntity(
-                path = file.path,
-                name = file.prettyName,
-                mediaCount = videos.size,
-                size = videos.sumOf { it.size },
-                modified = file.lastModified()
-            )
+    private suspend fun updateDirectories(media: List<MediaVideo>) =
+        withContext(Dispatchers.Default) {
+            val directories = context.getStorageVolumes().flatMap {
+                getDirectoryEntities(currentFolder = it, media = media)
+            }
+            directoryDao.upsertAll(directories)
+
+            val currentDirectoryPaths = directories.map { it.path }
+
+            val unwantedDirectories = directoryDao.getAll().first()
+                .filterNot { it.path in currentDirectoryPaths }
+
+            val unwantedDirectoriesPaths = unwantedDirectories.map { it.path }
+
+            directoryDao.delete(unwantedDirectoriesPaths)
         }
-        directoryDao.upsertAll(directories)
 
-        val currentDirectoryPaths = directories.map { it.path }
+    private fun getDirectoryEntities(
+        parentFolder: File? = null,
+        currentFolder: File,
+        media: List<MediaVideo>,
+    ): List<DirectoryEntity> {
+        val hasMediaInCurrentFolder = media.any { it.data.startsWith(currentFolder.path) }
 
-        val unwantedDirectories = directoryDao.getAll().first()
-            .filterNot { it.path in currentDirectoryPaths }
+        if (!hasMediaInCurrentFolder) return emptyList()
 
-        val unwantedDirectoriesPaths = unwantedDirectories.map { it.path }
+        val currentDirectoryEntity = DirectoryEntity(
+            path = currentFolder.path,
+            name = currentFolder.prettyName,
+            modified = currentFolder.lastModified(),
+            parentPath = parentFolder?.path ?: "/",
+        )
 
-        directoryDao.delete(unwantedDirectoriesPaths)
+        val subDirectories = currentFolder.listFiles { file ->
+            file.isDirectory && media.any { it.data.startsWith(file.path) }
+        }?.flatMap { file ->
+            getDirectoryEntities(
+                parentFolder = currentFolder,
+                currentFolder = file,
+                media = media,
+            )
+        } ?: emptyList()
+
+        return listOf(currentDirectoryEntity) + subDirectories
     }
 
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
         val mediumEntities = media.map {
             val file = File(it.data)
-            val mediumEntity = mediumDao.get(it.data)
+            val mediumEntity = mediumDao.get(it.uri.toString())
             mediumEntity?.copy(
-                uriString = it.uri.toString(),
-                modified = it.dateModified,
+                path = file.path,
+                name = file.name,
                 size = it.size,
                 width = it.width,
                 height = it.height,
                 duration = it.duration,
-                mediaStoreId = it.id
+                mediaStoreId = it.id,
+                modified = it.dateModified,
             ) ?: MediumEntity(
-                path = it.data,
                 uriString = it.uri.toString(),
+                path = it.data,
                 name = file.name,
                 parentPath = file.parent!!,
                 modified = it.dateModified,
@@ -102,20 +133,20 @@ class LocalMediaSynchronizer @Inject constructor(
                 width = it.width,
                 height = it.height,
                 duration = it.duration,
-                mediaStoreId = it.id
+                mediaStoreId = it.id,
             )
         }
 
         mediumDao.upsertAll(mediumEntities)
 
-        val currentMediaPaths = mediumEntities.map { it.path }
+        val currentMediaUris = mediumEntities.map { it.uriString }
 
         val unwantedMedia = mediumDao.getAll().first()
-            .filterNot { it.path in currentMediaPaths }
+            .filterNot { it.uriString in currentMediaUris }
 
-        val unwantedMediaPaths = unwantedMedia.map { it.path }
+        val unwantedMediaUris = unwantedMedia.map { it.uriString }
 
-        mediumDao.delete(unwantedMediaPaths)
+        mediumDao.delete(unwantedMediaUris)
 
         // Delete unwanted thumbnails
         val unwantedThumbnailFiles = unwantedMedia.mapNotNull { medium -> medium.thumbnailPath?.let { File(it) } }
@@ -148,7 +179,7 @@ class LocalMediaSynchronizer @Inject constructor(
     private fun getMediaVideosFlow(
         selection: String? = null,
         selectionArgs: Array<String>? = null,
-        sortOrder: String? = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
+        sortOrder: String? = "${MediaStore.Video.Media.DISPLAY_NAME} ASC",
     ): Flow<List<MediaVideo>> = callbackFlow {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
@@ -165,7 +196,7 @@ class LocalMediaSynchronizer @Inject constructor(
     private fun getMediaVideo(
         selection: String?,
         selectionArgs: Array<String>?,
-        sortOrder: String?
+        sortOrder: String?,
     ): List<MediaVideo> {
         val mediaVideos = mutableListOf<MediaVideo>()
         context.contentResolver.query(
@@ -173,7 +204,7 @@ class LocalMediaSynchronizer @Inject constructor(
             VIDEO_PROJECTION,
             selection,
             selectionArgs,
-            sortOrder
+            sortOrder,
         )?.use { cursor ->
 
             val idColumn = cursor.getColumnIndex(MediaStore.Video.Media._ID)
@@ -195,8 +226,8 @@ class LocalMediaSynchronizer @Inject constructor(
                         width = cursor.getInt(widthColumn),
                         height = cursor.getInt(heightColumn),
                         size = cursor.getLong(sizeColumn),
-                        dateModified = cursor.getLong(dateModifiedColumn)
-                    )
+                        dateModified = cursor.getLong(dateModifiedColumn),
+                    ),
                 )
             }
         }
@@ -211,7 +242,7 @@ class LocalMediaSynchronizer @Inject constructor(
             MediaStore.Video.Media.HEIGHT,
             MediaStore.Video.Media.WIDTH,
             MediaStore.Video.Media.SIZE,
-            MediaStore.Video.Media.DATE_MODIFIED
+            MediaStore.Video.Media.DATE_MODIFIED,
         )
     }
 }

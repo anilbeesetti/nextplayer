@@ -1,40 +1,41 @@
 [versions]
-aboutlibraries = "10.8.3"
-accompanist = "0.32.0"
-androidGradlePlugin = "8.2.0"
-androidMaterial = "1.11.0"
-androidxActivity = "1.8.2"
-androidxAppCompat = "1.6.1"
-androidxComposeCompiler = "1.5.6"
-androidxComposeBom = "2023.10.01"
+android-compileSdk = "34"
+android-targetSdk = "34"
+android-minSdk = "21"
+android-jvm = "17"
+aboutlibraries = "11.2.2"
+accompanist = "0.34.0"
+androidGradlePlugin = "8.5.2"
+androidMaterial = "1.12.0"
+androidxActivity = "1.9.1"
+androidxAppCompat = "1.7.0"
+androidxComposeBom = "2024.08.00"
 androidxConstraintLayout = "2.1.4"
-androidxCore = "1.12.0"
+androidxCore = "1.13.1"
 androidxCoreSplashscreen = "1.0.1"
-androidxDataStore = "1.0.0"
-androidxEspresso = "3.5.1"
-androidxHiltNavigationCompose = "1.1.0"
-androidxLifecycle = "2.7.0"
-androidxMedia3 = "1.2.1"
-androidxNavigation = "2.7.6"
+androidxDataStore = "1.1.1"
+androidxEspresso = "3.6.1"
+androidxHiltNavigationCompose = "1.2.0"
+androidxLifecycle = "2.8.4"
+androidxMedia3 = "1.4.1"
+androidxNavigation = "2.7.7"
 androidxTestCore = "1.5.0"
-androidxTestExt = "1.1.5"
-coil = "2.5.0"
-hilt = "2.50"
+androidxTestExt = "1.2.1"
+coil = "2.7.0"
+hilt = "2.52"
 junit4 = "4.13.2"
-kotlin = "1.9.21"
-kotlinxCoroutines = "1.7.3"
-kotlinxSerializationJson = "1.6.2"
-ksp = "1.9.21-1.0.16"
-ktlint = "11.6.1"
-nextlib = "0.6.0"
+kotlin = "2.0.10"
+kotlinxCoroutines = "1.8.1"
+kotlinxSerializationJson = "1.7.1"
+ksp = "2.0.10-1.0.24"
+ktlint = "12.1.1"
+nextlib = "0.8.2"
 room = "2.6.1"
 timber = "5.0.1"
-universalChardet = "2.4.0"
+universalChardet = "2.5.0"
 
 
 [libraries]
-aboutlibraries-core = { group = "com.mikepenz", name = "aboutlibraries-core", version.ref = "aboutlibraries" }
-aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
 aboutlibraries-compose = { group = "com.mikepenz", name = "aboutlibraries-compose", version.ref = "aboutlibraries" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
@@ -83,22 +84,14 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
-# Dependencies of the included build-logic
-android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
-
-[bundles]
-compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-tooling-preview", "androidx-compose-material3", "androidx-lifecycle-runtimeCompose", "androidx-navigation-compose"]
-media3 = ["androidx-media3-common", "androidx-media3-exoplayer", "androidx-media3-exoplayer-dash", "androidx-media3-exoplayer-hls", "androidx-media3-exoplayer-rtsp", "androidx-media3-ui", "androidx-media3-session"]
-
-
 [plugins]
-aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
-android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
-android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
+androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_description">Juster appen til din smag</string>
+    <string name="ascending">Stigende</string>
+    <string name="cancel">Annuller</string>
+    <string name="about_name">Om</string>
+    <string name="appearance_name">Udseende</string>
+</resources>

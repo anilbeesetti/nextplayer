@@ -1,7 +1,12 @@
 package dev.anilbeesetti.nextplayer.settings.screens.about
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,40 +28,46 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutPreferencesScreen(
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
 ) {
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val uriHandler = LocalUriHandler.current
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
                 scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         LibrariesContainer(
             contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
             colors = LibraryDefaults.libraryColors(
                 backgroundColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 badgeBackgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                badgeContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                badgeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
             padding = LibraryDefaults.libraryPadding(
                 namePadding = PaddingValues(bottom = 4.dp),
-                badgeContentPadding = PaddingValues(4.dp)
+                badgeContentPadding = PaddingValues(4.dp),
             ),
             onLibraryClick = { library ->
                 library.website?.let {
@@ -64,7 +75,7 @@ fun AboutPreferencesScreen(
                         uriHandler.openUri(it)
                     }
                 }
-            }
+            },
         )
     }
 }

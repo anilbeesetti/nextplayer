@@ -19,7 +19,7 @@ object PlayerPreferencesSerializer : Serializer<PlayerPreferences> {
         try {
             return jsonFormat.decodeFromString(
                 deserializer = PlayerPreferences.serializer(),
-                string = input.readBytes().decodeToString()
+                string = input.readBytes().decodeToString(),
             )
         } catch (exception: SerializationException) {
             throw CorruptionException("Cannot read datastore", exception)
@@ -31,8 +31,8 @@ object PlayerPreferencesSerializer : Serializer<PlayerPreferences> {
         output.write(
             jsonFormat.encodeToString(
                 serializer = PlayerPreferences.serializer(),
-                value = t
-            ).encodeToByteArray()
+                value = t,
+            ).encodeToByteArray(),
         )
     }
 }

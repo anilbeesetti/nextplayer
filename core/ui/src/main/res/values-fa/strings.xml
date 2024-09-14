@@ -149,7 +149,7 @@
     <string name="long_press_gesture_desc">ضربه طولانی برای پخش با سرعت %.1f برابر</string>
     <string name="pause_on_headset_disconnect_desc">توقف پخش هنگام قطع اتصال هدست از دستگاه</string>
     <string name="audio_desc">گزینه های پخش صدا</string>
-    <string name="properties">تنظیمات</string>
+    <string name="properties">جزئیات</string>
     <string name="fast_playback_speed">سرعت %.1f برابر</string>
     <string name="high_contrast_dark_theme">هم سنجی بالا برای حالت تاریک</string>
     <string name="pause_on_headset_disconnect">توقف هنگام قطع اتصال</string>
@@ -160,7 +160,27 @@
     <string name="extension">افزونه</string>
     <string name="path">مسیر</string>
     <string name="language">زبان</string>
-    <string name="okay">حله</string>
+    <string name="okay">باشد</string>
     <string name="require_audio_focus_desc">توقف پخش کننده های دیگر هنگامى که این پخش کننده، ویدیوها را پخش میکند، و برعکس</string>
     <string name="resolution">ابعاد</string>
+    <string name="volume_boost">تقویت صدا</string>
+    <string name="system_volume_panel">صفحه صدای سیستم</string>
+    <string name="fields">جستارها</string>
+    <string name="file">فایل</string>
+    <string name="format">فرمت</string>
+    <string name="audio_track">ترَک صدا</string>
+    <string name="subtitle_track">ترَک زیرنویس</string>
+    <string name="codec">کُدِک</string>
+    <string name="sample_rate">نرخ نمونه</string>
+    <string name="bitrate">نرخ بیت</string>
+    <string name="channels">کانال ها</string>
+    <string name="frame_rate">نرخ فریم</string>
+    <string name="long_press_gesture">اشاره فشار طولانی</string>
+    <string name="system_volume_panel_desc">نمایش پنل صدای سیستم هنگام تنظیم وقتی که هدست متصل است</string>
+    <string name="zoom_gesture_description">باز کردن انگشتان برای بزرگ نمایی ویدیو</string>
+    <string name="require_audio_focus">لازم کردن تمرکز صدا</string>
+    <string name="video_track">ترَک ویدیو</string>
+    <string name="sample_format">فرمت نمونه</string>
+    <string name="volume_boost_desc">تقویت صدا تا 200%</string>
+    <string name="pip_settings">حالت تصویر در تصویر</string>
 </resources>

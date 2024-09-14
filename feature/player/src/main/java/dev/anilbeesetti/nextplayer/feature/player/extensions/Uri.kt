@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -33,6 +34,9 @@ fun Uri.getSubtitleMime(): String {
     }
 }
 
+val Uri.isSchemaContent: Boolean
+    get() = ContentResolver.SCHEME_CONTENT.equals(scheme, ignoreCase = true)
+
 fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyList()): List<Subtitle> {
     return context.getPath(this)?.let { path ->
         val excludeSubsPathList = excludeSubsList.mapNotNull { context.getPath(it) }
@@ -41,7 +45,7 @@ fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyLi
                 Subtitle(
                     name = file.name,
                     uri = file.toUri(),
-                    isSelected = false
+                    isSelected = false,
                 )
             } else {
                 null
@@ -53,7 +57,7 @@ fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyLi
 fun Uri.toSubtitle(context: Context) = Subtitle(
     name = context.getFilenameFromUri(this),
     uri = this,
-    isSelected = false
+    isSelected = false,
 )
 
 @Suppress("DEPRECATION")

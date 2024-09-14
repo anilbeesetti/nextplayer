@@ -36,7 +36,7 @@ class VolumeManager(private val audioManager: AudioManager) {
             audioManager.setStreamVolume(
                 AudioManager.STREAM_MUSIC,
                 currentVolume.toInt(),
-                if (showVolumePanel && audioManager.isWiredHeadsetOn) AudioManager.FLAG_SHOW_UI else 0
+                if (showVolumePanel && audioManager.isWiredHeadsetOn) AudioManager.FLAG_SHOW_UI else 0,
             )
         } else {
             try {

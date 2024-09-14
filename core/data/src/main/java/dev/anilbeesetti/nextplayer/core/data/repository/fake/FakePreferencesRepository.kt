@@ -18,13 +18,13 @@ class FakePreferencesRepository : PreferencesRepository {
         get() = playerPreferencesStateFlow
 
     override suspend fun updateApplicationPreferences(
-        transform: suspend (ApplicationPreferences) -> ApplicationPreferences
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
     ) {
         applicationPreferencesStateFlow.update { transform.invoke(it) }
     }
 
     override suspend fun updatePlayerPreferences(
-        transform: suspend (PlayerPreferences) -> PlayerPreferences
+        transform: suspend (PlayerPreferences) -> PlayerPreferences,
     ) {
         playerPreferencesStateFlow.update { transform.invoke(it) }
     }

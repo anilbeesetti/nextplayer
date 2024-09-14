@@ -1,8 +1,13 @@
 package dev.anilbeesetti.nextplayer.settings.screens.decoder
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -32,7 +37,7 @@ import dev.anilbeesetti.nextplayer.settings.extensions.name
 @Composable
 fun DecoderPreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: DecoderPreferencesViewModel = hiltViewModel()
+    viewModel: DecoderPreferencesViewModel = hiltViewModel(),
 ) {
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -40,32 +45,37 @@ fun DecoderPreferencesScreen(
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.decoder),
                 scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up)
+                            contentDescription = stringResource(id = R.string.navigate_up),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             DecoderPrioritySetting(
                 currentValue = preferences.decoderPriority,
-                onClick = { viewModel.showDialog(DecoderPreferenceDialog.DecoderPriorityDialog) }
+                onClick = { viewModel.showDialog(DecoderPreferenceDialog.DecoderPriorityDialog) },
             )
         }
 
@@ -74,7 +84,7 @@ fun DecoderPreferencesScreen(
                 DecoderPreferenceDialog.DecoderPriorityDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.decoder_priority),
-                        onDismissClick = viewModel::hideDialog
+                        onDismissClick = viewModel::hideDialog,
                     ) {
                         items(DecoderPriority.entries.toTypedArray()) {
                             RadioTextButton(
@@ -83,7 +93,7 @@ fun DecoderPreferencesScreen(
                                 onClick = {
                                     viewModel.updateDecoderPriority(it)
                                     viewModel.hideDialog()
-                                }
+                                },
                             )
                         }
                     }
@@ -96,12 +106,12 @@ fun DecoderPreferencesScreen(
 @Composable
 fun DecoderPrioritySetting(
     currentValue: DecoderPriority,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ClickablePreferenceItem(
         title = stringResource(R.string.decoder_priority),
         description = currentValue.name(),
         icon = NextIcons.Priority,
-        onClick = onClick
+        onClick = onClick,
     )
 }
