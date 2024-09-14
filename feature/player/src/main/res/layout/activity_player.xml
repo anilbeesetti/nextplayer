@@ -43,7 +43,6 @@
         android:background="@android:color/black"
         app:animation_enabled="false"
         app:show_buffering="always"
-        app:surface_type="none"
         tools:foreground="@color/player_background" />
 
     <LinearLayout

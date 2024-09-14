@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
@@ -68,7 +70,16 @@ class PlayerService: MediaSessionService() {
             .build()
 
         try {
-            mediaSession = MediaSession.Builder(this, player).build()
+            mediaSession = MediaSession.Builder(this, player)
+                .setSessionActivity(
+                    PendingIntent.getActivity(
+                        this,
+                        0,
+                        Intent(this, PlayerActivity::class.java),
+                        PendingIntent.FLAG_IMMUTABLE,
+                    )
+                )
+                .build()
         } catch (e: Exception) {
             e.printStackTrace()
         }

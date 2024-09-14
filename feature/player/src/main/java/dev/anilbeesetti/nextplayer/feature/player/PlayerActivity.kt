@@ -132,7 +132,6 @@ class PlayerActivity : AppCompatActivity() {
     private var previousScrubPosition = 0L
     private var scrubStartPosition: Long = -1L
     private var currentOrientation: Int? = null
-    var currentVideoSize: VideoSize? = null
     private var hideVolumeIndicatorJob: Job? = null
     private var hideBrightnessIndicatorJob: Job? = null
     private var hideInfoLayoutJob: Job? = null
@@ -147,7 +146,6 @@ class PlayerActivity : AppCompatActivity() {
     private var player: Player? = null
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playlistManager: PlaylistManager
-    private var surfaceView: SurfaceView? = null
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
@@ -192,6 +190,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        println("HELLO:- onCreate")
         super.onCreate(savedInstanceState)
         prettyPrintIntent()
 
@@ -299,9 +298,12 @@ class PlayerActivity : AppCompatActivity() {
         controllerFuture?.addListener(
             {
                 player = controllerFuture?.get()
+                setOrientation()
+                applyVideoScale(viewModel.currentVideoScale)
+                applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
                 player?.run {
                     binding.playerView.player = this
-                    setVideoSurfaceView(binding.playerView.videoSurfaceView as? SurfaceView)
+                    videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
                     try {
                         loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
                     } catch (e: Exception) {
@@ -311,27 +313,18 @@ class PlayerActivity : AppCompatActivity() {
                     volumeManager.loudnessEnhancer = loudnessEnhancer
                     if (intent.data.toString() != currentMediaItem?.mediaId) {
                         playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
-                    } else {
-                        player?.run {
-                            surfaceView = SurfaceView(this@PlayerActivity).apply {
-                                layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-                            }
-                            setVideoSurfaceView(surfaceView)
-                            exoContentFrameLayout.addView(surfaceView, 0)
-                        }
                     }
                 }
             },
             MoreExecutors.directExecutor(),
         )
-
-        setOrientation()
         initPlaylist()
         initializePlayerView()
         super.onStart()
     }
 
     override fun onStop() {
+        println("HELLO:- onStop")
         binding.volumeGestureLayout.visibility = View.GONE
         binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
@@ -391,7 +384,15 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun setOrientation() {
-        requestedOrientation = currentOrientation ?: playerPreferences.playerScreenOrientation.toActivityOrientation()
+        requestedOrientation = currentOrientation ?: playerPreferences.playerScreenOrientation.toActivityOrientation(
+            videoOrientation = player?.videoSize?.let { videoSize ->
+                when {
+                    videoSize.width == 0 || videoSize.height == 0 -> null
+                    videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                    else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                }
+            },
+        )
     }
 
     private fun initializePlayerView() {
@@ -524,7 +525,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun initPlaylist() = lifecycleScope.launch(Dispatchers.IO) {
-        val mediaUri = getMediaContentUri(intent.data!!)
+        val mediaUri = intent.data?.let { getMediaContentUri(it) }
 
         if (mediaUri != null) {
             val playlist = viewModel.getPlaylistFromUri(mediaUri)
@@ -571,12 +572,6 @@ class PlayerActivity : AppCompatActivity() {
 
         withContext(Dispatchers.Main) {
             player?.run {
-                surfaceView = SurfaceView(this@PlayerActivity).apply {
-                    layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-                }
-                setVideoSurfaceView(surfaceView)
-                exoContentFrameLayout.addView(surfaceView, 0)
-
                 if (isCurrentUriIsFromIntent && playerApi.hasTitle) {
                     videoTitleTextView.text = playerApi.title
                 } else {
@@ -610,23 +605,9 @@ class PlayerActivity : AppCompatActivity() {
 
         @SuppressLint("SourceLockedOrientationActivity")
         override fun onVideoSizeChanged(videoSize: VideoSize) {
-            currentVideoSize = videoSize
+            applyVideoScale(viewModel.currentVideoScale)
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
-            exoContentFrameLayout.scaleX = viewModel.currentVideoScale
-            exoContentFrameLayout.scaleY = viewModel.currentVideoScale
-            exoContentFrameLayout.requestLayout()
-
-            if (currentOrientation != null) return
-
-            if (playerPreferences.playerScreenOrientation == ScreenOrientation.VIDEO_ORIENTATION &&
-                videoSize.width != 0 &&
-                videoSize.height != 0
-            ) {
-                requestedOrientation = when {
-                    videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                    else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                }
-            }
+            setOrientation()
             super.onVideoSizeChanged(videoSize)
         }
 
@@ -722,12 +703,14 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        playlistManager.clearQueue()
-        viewModel.resetAllToDefaults()
-        setIntent(intent)
-        prettyPrintIntent()
-        shouldFetchPlaylist = true
-        playVideo(intent.data!!)
+        if (intent.data != null) {
+            playlistManager.clearQueue()
+            viewModel.resetAllToDefaults()
+            setIntent(intent)
+            prettyPrintIntent()
+            shouldFetchPlaylist = true
+            playVideo(intent.data!!)
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -996,6 +979,12 @@ class PlayerActivity : AppCompatActivity() {
         exoContentFrameLayout.requestLayout()
     }
 
+    private fun applyVideoScale(videoScale: Float) {
+        exoContentFrameLayout.scaleX = videoScale
+        exoContentFrameLayout.scaleY = videoScale
+        exoContentFrameLayout.requestLayout()
+    }
+
     private fun applyVideoZoom(videoZoom: VideoZoom, showInfo: Boolean) {
         viewModel.setVideoZoom(videoZoom)
         resetExoContentFrameWidthAndHeight()
@@ -1016,7 +1005,7 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             VideoZoom.HUNDRED_PERCENT -> {
-                currentVideoSize?.let {
+                player?.videoSize?.let {
                     exoContentFrameLayout.layoutParams.width = it.width
                     exoContentFrameLayout.layoutParams.height = it.height
                     exoContentFrameLayout.requestLayout()
