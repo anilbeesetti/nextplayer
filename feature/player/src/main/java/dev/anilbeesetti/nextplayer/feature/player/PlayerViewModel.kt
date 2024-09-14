@@ -10,6 +10,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.VideoLoop
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
 import javax.inject.Inject
@@ -113,6 +114,14 @@ class PlayerViewModel @Inject constructor(
     fun setVideoZoom(videoZoom: VideoZoom) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = videoZoom) }
+        }
+    }
+
+    fun setVideoLoop(videoLoop: VideoLoop) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(videoLoop = videoLoop)
+            }
         }
     }
 
