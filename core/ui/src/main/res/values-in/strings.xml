@@ -27,4 +27,14 @@
     <string name="permission_settings">Aplikasi Next Player memerlukan izin \"%1$s\" untuk mengakses dan memutar media. Tanpa izin tersebut, akses dan pemutaran media tidak akan berfungsi. Untuk menggunakan aplikasi sepenuhnya, berikan izin dari pengaturan karena izin tersebut ditolak secara permanen.</string>
     <string name="player_controls_exit">Navigasi ke atas</string>
     <string name="permission_request">Permintaan Izin</string>
+    <string name="player_controls_next">Pemain berikutnya</string>
+    <string name="player_controls_play_pause">Jeda permainan pemain</string>
+    <string name="player_controls_previous">Pemain sebelumnya</string>
+    <string name="player_controls_progress">Bilah kemajuan pemain</string>
+    <string name="player_description">Penampilan pemain, kontrol pemutaran</string>
+    <string name="player_name">Pemain</string>
+    <string name="quick_settings">Pengaturan Cepat</string>
+    <string name="autoplay_settings">Mulai otomatis</string>
+    <string name="autoplay_settings_description">Putar video berikutnya secara otomatis di folder saat ini</string>
+    <string name="pip_settings">Mode Picture in Picture</string>
 </resources>
