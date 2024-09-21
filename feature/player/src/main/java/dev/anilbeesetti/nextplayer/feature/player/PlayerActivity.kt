@@ -304,6 +304,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 player?.run {
                     binding.playerView.player = this
+                    binding.playerView.keepScreenOn = isPlaying
                     videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
                     playInBackgroundButton.isChecked = currentMediaItem != null
                     try {
