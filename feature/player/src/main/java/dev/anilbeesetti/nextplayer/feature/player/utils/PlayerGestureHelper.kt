@@ -223,7 +223,7 @@ class PlayerGestureHelper(
                 }
                 if (currentGestureAction != GestureAction.ZOOM) return false
 
-                activity.currentVideoSize?.let { videoSize ->
+                playerView.player?.videoSize?.let { videoSize ->
                     val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
                     val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / videoSize.width.toFloat()
                     if (updatedVideoScale in SCALE_RANGE) {

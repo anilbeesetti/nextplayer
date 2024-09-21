@@ -25,7 +25,7 @@ class FakeMediaRepository : MediaRepository {
         return flowOf(directories)
     }
 
-    override suspend fun saveVideoState(
+    override fun saveVideoState(
         uri: String,
         position: Long,
         audioTrackIndex: Int?,

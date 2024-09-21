@@ -10,7 +10,7 @@ interface MediaRepository {
     fun getVideosFlow(): Flow<List<Video>>
     fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>>
     fun getFoldersFlow(): Flow<List<Folder>>
-    suspend fun saveVideoState(
+    fun saveVideoState(
         uri: String,
         position: Long,
         audioTrackIndex: Int?,

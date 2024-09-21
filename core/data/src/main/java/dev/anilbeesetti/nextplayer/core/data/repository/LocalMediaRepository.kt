@@ -18,7 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
@@ -42,7 +41,7 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.get(uri)?.toVideoState()
     }
 
-    override suspend fun saveVideoState(
+    override fun saveVideoState(
         uri: String,
         position: Long,
         audioTrackIndex: Int?,
@@ -51,10 +50,6 @@ class LocalMediaRepository @Inject constructor(
         externalSubs: List<Uri>,
         videoScale: Float,
     ) {
-        Timber.d(
-            "save state for [$uri]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]",
-        )
-
         applicationScope.launch {
             mediumDao.updateMediumState(
                 uri = uri,
