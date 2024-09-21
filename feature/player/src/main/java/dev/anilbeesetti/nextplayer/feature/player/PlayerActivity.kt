@@ -361,7 +361,6 @@ class PlayerActivity : AppCompatActivity() {
 
         return PictureInPictureParams.Builder().apply {
             val aspectRatio = calculateVideoAspectRatio()
-            println("HELLO $aspectRatio")
             if (aspectRatio != null) {
                 val sourceRectHint = calculateSourceRectHint(displayAspectRatio, aspectRatio)
                 setAspectRatio(aspectRatio)
