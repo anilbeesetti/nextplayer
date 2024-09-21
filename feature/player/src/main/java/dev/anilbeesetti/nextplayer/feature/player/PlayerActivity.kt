@@ -30,13 +30,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
-import androidx.annotation.AnyRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -67,14 +65,13 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
@@ -98,13 +95,14 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
-import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.nio.charset.Charset
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -849,13 +847,6 @@ class PlayerActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
-    private fun getAudioAttributes(): AudioAttributes {
-        return AudioAttributes.Builder()
-            .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-            .build()
-    }
-
     private fun scrub(position: Long) {
         if (isFrameRendered) {
             isFrameRendered = false
@@ -941,12 +932,7 @@ class PlayerActivity : AppCompatActivity() {
             player?.run {
                 viewModel.saveState(
                     uri = uri,
-                    position = currentPosition,
-                    duration = duration,
-                    audioTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
-                    subtitleTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
-                    playbackSpeed = playbackParameters.speed,
-                    skipSilence = skipSilenceEnabled,
+                    mediaItemData = getCurrentMediaItemData(),
                     videoScale = exoContentFrameLayout.scaleX,
                 )
             }
@@ -1031,17 +1017,4 @@ class PlayerActivity : AppCompatActivity() {
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
     }
-}
-
-fun getUriToDrawable(
-    context: Context,
-    @AnyRes drawableId: Int,
-): Uri {
-    val imageUri = Uri.parse(
-        ContentResolver.SCHEME_ANDROID_RESOURCE +
-            "://" + context.resources.getResourcePackageName(drawableId) +
-            '/' + context.resources.getResourceTypeName(drawableId) +
-            '/' + context.resources.getResourceEntryName(drawableId),
-    )
-    return imageUri
 }

@@ -69,7 +69,8 @@ class PlayerService : MediaSessionService() {
             .build()
 
         try {
-            mediaSession = MediaSession.Builder(this, player)
+            mediaSession = MediaSession
+                .Builder(this, player)
                 .setSessionActivity(
                     PendingIntent.getActivity(
                         this,
@@ -77,8 +78,7 @@ class PlayerService : MediaSessionService() {
                         Intent(this, PlayerActivity::class.java),
                         PendingIntent.FLAG_IMMUTABLE,
                     ),
-                )
-                .build()
+                ).build()
         } catch (e: Exception) {
             e.printStackTrace()
         }

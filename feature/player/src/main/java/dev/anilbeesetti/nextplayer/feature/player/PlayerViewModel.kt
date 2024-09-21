@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaItemData
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -70,34 +71,29 @@ class PlayerViewModel @Inject constructor(
 
     fun saveState(
         uri: Uri,
-        position: Long,
-        duration: Long,
-        audioTrackIndex: Int,
-        subtitleTrackIndex: Int,
-        playbackSpeed: Float,
-        skipSilence: Boolean,
+        mediaItemData: MediaItemData,
         videoScale: Float,
     ) {
-        currentPlaybackPosition = position
-        currentAudioTrackIndex = audioTrackIndex
-        currentSubtitleTrackIndex = subtitleTrackIndex
-        currentPlaybackSpeed = playbackSpeed
+        currentPlaybackPosition = mediaItemData.position
+        currentAudioTrackIndex = mediaItemData.audioTrackIndex
+        currentSubtitleTrackIndex = mediaItemData.subtitleTrackIndex
+        currentPlaybackSpeed = mediaItemData.playbackSpeed
+        skipSilenceEnabled = mediaItemData.skipSilence
         currentVideoScale = videoScale
-        skipSilenceEnabled = skipSilence
 
         if (!uri.isSchemaContent) return
 
-        val newPosition = position.takeIf {
-            position < duration - END_POSITION_OFFSET
+        val newPosition = mediaItemData.position.takeIf {
+            mediaItemData.position < mediaItemData.duration - END_POSITION_OFFSET
         } ?: C.TIME_UNSET
 
         viewModelScope.launch {
             mediaRepository.saveVideoState(
                 uri = uri.toString(),
                 position = newPosition,
-                audioTrackIndex = audioTrackIndex,
-                subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed,
+                audioTrackIndex = mediaItemData.audioTrackIndex,
+                subtitleTrackIndex = mediaItemData.subtitleTrackIndex,
+                playbackSpeed = mediaItemData.playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed,
                 externalSubs = externalSubtitles.toList(),
                 videoScale = videoScale,
             )
