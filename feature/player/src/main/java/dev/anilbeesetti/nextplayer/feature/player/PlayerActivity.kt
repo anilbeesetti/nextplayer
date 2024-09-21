@@ -573,13 +573,6 @@ class PlayerActivity : AppCompatActivity() {
 
         withContext(Dispatchers.Main) {
             player?.run {
-                if (isCurrentUriIsFromIntent && playerApi.hasTitle) {
-                    videoTitleTextView.text = playerApi.title
-                } else {
-                    videoTitleTextView.text = getFilenameFromUri(uri)
-                }
-
-                // Set media and start player
                 setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
                 this.playWhenReady = this@PlayerActivity.playWhenReady
                 prepare()
@@ -588,6 +581,11 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playbackStateListener() = object : Player.Listener {
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            videoTitleTextView.text = mediaMetadata.title
+            super.onMediaMetadataChanged(mediaMetadata)
+        }
+
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             binding.playerView.keepScreenOn = isPlaying
             super.onIsPlayingChanged(isPlaying)
@@ -604,7 +602,6 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        @SuppressLint("SourceLockedOrientationActivity")
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             applyVideoScale(viewModel.currentVideoScale)
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
