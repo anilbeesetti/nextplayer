@@ -115,7 +115,7 @@ var Player.skipSilenceEnabled: Boolean
         }
     }
 
-data class MediaItemData(
+data class MediaState(
     val uri: String,
     val position: Long,
     val duration: Long,
@@ -125,7 +125,7 @@ data class MediaItemData(
     val skipSilence: Boolean,
 )
 
-fun Player.getCurrentMediaItemData() = MediaItemData(
+fun Player.getCurrentMediaItemData() = MediaState(
     uri = currentMediaItem!!.mediaId,
     position = currentPosition,
     duration = duration,

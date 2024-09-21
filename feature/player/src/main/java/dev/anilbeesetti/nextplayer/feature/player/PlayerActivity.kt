@@ -72,7 +72,6 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFr
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
@@ -929,13 +928,10 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun savePlayerState(uri: Uri) {
         if (isFirstFrameRendered) {
-            player?.run {
-                viewModel.saveState(
-                    uri = uri,
-                    mediaItemData = getCurrentMediaItemData(),
-                    videoScale = exoContentFrameLayout.scaleX,
-                )
-            }
+            viewModel.saveMediaUiState(
+                uri = uri,
+                videoScale = exoContentFrameLayout.scaleX,
+            )
         }
         isFirstFrameRendered = false
     }

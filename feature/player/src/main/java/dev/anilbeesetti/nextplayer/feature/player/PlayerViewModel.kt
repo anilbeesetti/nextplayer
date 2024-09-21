@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.C
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -11,7 +10,6 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaItemData
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,8 +17,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-
-private const val END_POSITION_OFFSET = 5L
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
@@ -69,35 +65,19 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    fun saveState(
+    fun saveMediaUiState(
         uri: Uri,
-        mediaItemData: MediaItemData,
         videoScale: Float,
     ) {
-        currentPlaybackPosition = mediaItemData.position
-        currentAudioTrackIndex = mediaItemData.audioTrackIndex
-        currentSubtitleTrackIndex = mediaItemData.subtitleTrackIndex
-        currentPlaybackSpeed = mediaItemData.playbackSpeed
-        skipSilenceEnabled = mediaItemData.skipSilence
         currentVideoScale = videoScale
 
         if (!uri.isSchemaContent) return
 
-        val newPosition = mediaItemData.position.takeIf {
-            mediaItemData.position < mediaItemData.duration - END_POSITION_OFFSET
-        } ?: C.TIME_UNSET
-
-        viewModelScope.launch {
-            mediaRepository.saveVideoState(
-                uri = uri.toString(),
-                position = newPosition,
-                audioTrackIndex = mediaItemData.audioTrackIndex,
-                subtitleTrackIndex = mediaItemData.subtitleTrackIndex,
-                playbackSpeed = mediaItemData.playbackSpeed.takeIf { isPlaybackSpeedChanged } ?: currentVideoState?.playbackSpeed,
-                externalSubs = externalSubtitles.toList(),
-                videoScale = videoScale,
-            )
-        }
+        mediaRepository.saveMediumUiState(
+            uri = uri.toString(),
+            videoScale = videoScale,
+            externalSubs = externalSubtitles.toList(),
+        )
     }
 
     fun setPlayerBrightness(value: Float) {

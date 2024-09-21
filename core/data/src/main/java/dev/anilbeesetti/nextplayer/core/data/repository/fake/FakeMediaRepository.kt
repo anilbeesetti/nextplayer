@@ -25,14 +25,19 @@ class FakeMediaRepository : MediaRepository {
         return flowOf(directories)
     }
 
-    override fun saveVideoState(
+    override fun saveMediumUiState(
+        uri: String,
+        externalSubs: List<Uri>,
+        videoScale: Float,
+    ) {
+    }
+
+    override fun saveMediumState(
         uri: String,
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?,
-        externalSubs: List<Uri>,
-        videoScale: Float,
     ) {
     }
 

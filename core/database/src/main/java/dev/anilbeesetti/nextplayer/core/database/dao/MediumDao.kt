@@ -46,13 +46,23 @@ interface MediumDao {
 
     @Query(
         "UPDATE OR REPLACE media SET " +
+            "external_subs = :externalSubs, " +
+            "video_scale = :videoScale " +
+            "WHERE uri = :uri",
+    )
+    suspend fun updateMediumUiState(
+        uri: String,
+        externalSubs: String,
+        videoScale: Float,
+    )
+
+    @Query(
+        "UPDATE OR REPLACE media SET " +
             "playback_position = :position, " +
             "audio_track_index = :audioTrackIndex, " +
             "subtitle_track_index = :subtitleTrackIndex, " +
             "playback_speed = :playbackSpeed, " +
-            "external_subs = :externalSubs, " +
-            "last_played_time = :lastPlayedTime, " +
-            "video_scale = :videoScale " +
+            "last_played_time = :lastPlayedTime " +
             "WHERE uri = :uri",
     )
     suspend fun updateMediumState(
@@ -61,9 +71,7 @@ interface MediumDao {
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?,
-        externalSubs: String,
         lastPlayedTime: Long?,
-        videoScale: Float,
     )
 
     @Upsert
