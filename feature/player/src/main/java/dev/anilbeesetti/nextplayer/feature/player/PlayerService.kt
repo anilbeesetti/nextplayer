@@ -132,6 +132,7 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        println("PlayerService: onTaskRemoved")
         val player = mediaSession?.player!!
         if (!player.playWhenReady || player.mediaItemCount == 0 || player.playbackState == Player.STATE_ENDED) {
             stopSelf()
@@ -139,6 +140,7 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        println("PlayerService: onDestroy")
         super.onDestroy()
         serviceScope.cancel()
         saveCurrentMediaState()

@@ -119,7 +119,6 @@ class PlayerActivity : AppCompatActivity() {
 
     var isFileLoaded = false
     var isControlsLocked = false
-    private var shouldFetchPlaylist = true
     private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
     private var isFrameRendered = false
@@ -140,7 +139,6 @@ class PlayerActivity : AppCompatActivity() {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var player: Player? = null
     private lateinit var playerGestureHelper: PlayerGestureHelper
-    private lateinit var playlistManager: PlaylistManager
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
@@ -150,13 +148,15 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
+    private var isSubtitleFileLauncherLaunched: Boolean = false
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
+        isSubtitleFileLauncherLaunched = false
         if (uri != null) {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             isSubtitleLauncherHasUri = true
             viewModel.externalSubtitles.add(uri)
         }
-        playVideo(playlistManager.getCurrent() ?: intent.data!!)
+        player?.play()
     }
 
     /**
@@ -166,12 +166,10 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var backButton: ImageButton
     private lateinit var exoContentFrameLayout: AspectRatioFrameLayout
     private lateinit var lockControlsButton: ImageButton
-    private lateinit var nextButton: ImageButton
     private lateinit var playbackSpeedButton: ImageButton
     private lateinit var playerLockControls: FrameLayout
     private lateinit var playerUnlockControls: FrameLayout
     private lateinit var playerCenterControls: LinearLayout
-    private lateinit var prevButton: ImageButton
     private lateinit var screenRotateButton: ImageButton
     private lateinit var pipButton: ImageButton
     private lateinit var seekBar: TimeBar
@@ -217,12 +215,10 @@ class PlayerActivity : AppCompatActivity() {
         backButton = binding.playerView.findViewById(R.id.back_button)
         exoContentFrameLayout = binding.playerView.findViewById(R.id.exo_content_frame)
         lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
-        nextButton = binding.playerView.findViewById(R.id.btn_play_next)
         playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
         playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
         playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
         playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
-        prevButton = binding.playerView.findViewById(R.id.btn_play_prev)
         screenRotateButton = binding.playerView.findViewById(R.id.screen_rotate)
         pipButton = binding.playerView.findViewById(R.id.btn_pip)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
@@ -282,7 +278,6 @@ class PlayerActivity : AppCompatActivity() {
             brightnessManager = brightnessManager,
         )
 
-        playlistManager = PlaylistManager()
         playerApi = PlayerApi(this)
     }
 
@@ -313,13 +308,12 @@ class PlayerActivity : AppCompatActivity() {
                     addListener(playbackStateListener)
                     volumeManager.loudnessEnhancer = loudnessEnhancer
                     if (intent.data.toString() != currentMediaItem?.mediaId) {
-                        playVideo(uri = playlistManager.getCurrent() ?: intent.data!!)
+                        playVideo(uri = intent.data!!)
                     }
                 }
             },
             MoreExecutors.directExecutor(),
         )
-        initPlaylist()
         initializePlayerView()
         super.onStart()
     }
@@ -330,10 +324,9 @@ class PlayerActivity : AppCompatActivity() {
         currentOrientation = requestedOrientation
         subtitleCacheDir.deleteFiles()
         playWhenReady = player?.playWhenReady == true
-        playlistManager.getCurrent()?.let { savePlayerState(it) }
         player?.removeListener(playbackStateListener)
         binding.playerView.player = null
-        if (!playInBackgroundButton.isChecked) {
+        if (!playInBackgroundButton.isChecked && !isSubtitleFileLauncherLaunched) {
             player?.clearMediaItems()
             player?.stop()
         }
@@ -444,6 +437,7 @@ class PlayerActivity : AppCompatActivity() {
                 tracks = player?.currentTracks ?: return@setOnClickListener,
                 onTrackSelected = { player?.switchTrack(C.TRACK_TYPE_TEXT, it) },
                 onOpenLocalTrackClicked = {
+                    isSubtitleFileLauncherLaunched = true
                     subtitleFileLauncher.launch(
                         arrayOf(
                             MimeTypes.APPLICATION_SUBRIP,
@@ -472,20 +466,6 @@ class PlayerActivity : AppCompatActivity() {
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 
-        nextButton.setOnClickListener {
-            if (playlistManager.hasNext()) {
-                playlistManager.getCurrent()?.let { savePlayerState(it) }
-                viewModel.resetAllToDefaults()
-                playVideo(playlistManager.getNext()!!)
-            }
-        }
-        prevButton.setOnClickListener {
-            if (playlistManager.hasPrev()) {
-                playlistManager.getCurrent()?.let { savePlayerState(it) }
-                viewModel.resetAllToDefaults()
-                playVideo(playlistManager.getPrev()!!)
-            }
-        }
         lockControlsButton.setOnClickListener {
             playerUnlockControls.visibility = View.INVISIBLE
             playerLockControls.visibility = View.VISIBLE
@@ -525,17 +505,7 @@ class PlayerActivity : AppCompatActivity() {
         backButton.setOnClickListener { finish() }
     }
 
-    private fun initPlaylist() = lifecycleScope.launch(Dispatchers.IO) {
-        val mediaUri = intent.data?.let { getMediaContentUri(it) }
-
-        if (mediaUri != null) {
-            val playlist = viewModel.getPlaylistFromUri(mediaUri)
-            playlistManager.setPlaylist(playlist)
-        }
-    }
-
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
-        playlistManager.updateCurrent(uri)
         val isCurrentUriIsFromIntent = intent.data == uri
 
         viewModel.initMediaState(uri.toString())
@@ -578,6 +548,49 @@ class PlayerActivity : AppCompatActivity() {
                 prepare()
             }
         }
+
+        if (playerPreferences.autoplay) {
+            val mediaUri = intent.data?.let { getMediaContentUri(it) }
+
+            if (mediaUri != null) {
+                val playlist = viewModel.getPlaylistFromUri(mediaUri)
+                var shouldPrepend = true
+
+                for (video in playlist) {
+                    val mediaItem = MediaItem.Builder().apply {
+                        setMediaId(video.uriString)
+                        setUri(video.uriString)
+                        setMediaMetadata(
+                            MediaMetadata.Builder().apply {
+                                setTitle(video.displayName)
+                                setArtworkUri(
+                                    video.thumbnailPath?.let { Uri.parse(it) }
+                                        ?: Uri.Builder().apply {
+                                            val defaultArtwork = R.drawable.artwork_default
+                                            scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                                            authority(resources.getResourcePackageName(defaultArtwork))
+                                            appendPath(resources.getResourceTypeName(defaultArtwork))
+                                            appendPath(resources.getResourceEntryName(defaultArtwork))
+                                        }.build(),
+                                )
+                            }.build(),
+                        )
+                    }.build()
+
+                    if (uri.toString() == video.uriString) {
+                        shouldPrepend = false
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            if (shouldPrepend) {
+                                player?.addMediaItem(player?.currentMediaItemIndex ?: 0, mediaItem)
+                            } else {
+                                player?.addMediaItem(mediaItem)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun playbackStateListener() = object : Player.Listener {
@@ -617,10 +630,10 @@ class PlayerActivity : AppCompatActivity() {
                 setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
                     finish()
                 }
-                if (playlistManager.hasNext()) {
+                if (player?.hasNextMediaItem() == true) {
                     setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
                         dialog.dismiss()
-                        playVideo(playlistManager.getNext()!!)
+                        player?.seekToNext()
                     }
                 }
             }.create()
@@ -634,18 +647,11 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
-                    if (playlistManager.hasNext() && playerPreferences.autoplay) {
-                        playlistManager.getCurrent()?.let { savePlayerState(it) }
-                        viewModel.resetAllToDefaults()
-                        playVideo(playlistManager.getNext()!!)
-                    } else {
-                        finish()
-                    }
+                    finish()
                 }
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
-                    Timber.d(playlistManager.toString())
                     isFrameRendered = true
                     isFileLoaded = true
                 }
@@ -702,11 +708,10 @@ class PlayerActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
-            playlistManager.clearQueue()
+            player?.clearMediaItems()
             viewModel.resetAllToDefaults()
             setIntent(intent)
             prettyPrintIntent()
-            shouldFetchPlaylist = true
             playVideo(intent.data!!)
         }
     }
