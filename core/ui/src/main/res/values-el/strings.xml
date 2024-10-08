@@ -203,4 +203,7 @@
     <string name="tree">Δένδρο</string>
     <string name="played_progress">Πρόοδος αναπαραγωγής</string>
     <string name="media_view_mode">Τρόπος προβολής πολυμέσων</string>
+    <string name="control_buttons_alignment_left">Αριστερά</string>
+    <string name="control_buttons_alignment_right">Δεξιά</string>
+    <string name="control_buttons_alignment">Ευθυγράμμιση κουμπιών</string>
 </resources>
