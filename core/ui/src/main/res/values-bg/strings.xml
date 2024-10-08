@@ -203,4 +203,7 @@
     <string name="subtitle_desc">Поява на субтитри, опции за възпроизвеждане</string>
     <string name="subtitle_background">Фон на субтитрите</string>
     <string name="subtitle_text_encoding">Кодиране на текста на субтитрите</string>
+    <string name="control_buttons_alignment_left">Наляво</string>
+    <string name="control_buttons_alignment_right">Надясно</string>
+    <string name="control_buttons_alignment">Подравняване на бутоните за управление</string>
 </resources>
