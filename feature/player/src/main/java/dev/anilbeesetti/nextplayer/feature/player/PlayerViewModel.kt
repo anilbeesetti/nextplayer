@@ -26,6 +26,7 @@ class PlayerViewModel @Inject constructor(
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
 ) : ViewModel() {
 
+    var playWhenReady: Boolean = true
     var currentPlaybackPosition: Long? = null
     var currentPlaybackSpeed: Float = 1f
     var currentAudioTrackIndex: Int? = null

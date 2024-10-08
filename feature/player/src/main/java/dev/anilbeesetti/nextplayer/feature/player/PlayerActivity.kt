@@ -72,6 +72,7 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFr
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
@@ -114,7 +115,6 @@ class PlayerActivity : AppCompatActivity() {
     private val applicationPreferences get() = viewModel.appPrefs.value
     private val playerPreferences get() = viewModel.playerPrefs.value
 
-    private var playWhenReady = true
     private var isPlaybackFinished = false
 
     var isFileLoaded = false
@@ -323,7 +323,14 @@ class PlayerActivity : AppCompatActivity() {
         binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
         subtitleCacheDir.deleteFiles()
-        playWhenReady = player?.playWhenReady == true
+        player?.run {
+            viewModel.playWhenReady = playWhenReady
+            viewModel.currentPlaybackPosition = currentPosition
+            viewModel.currentPlaybackSpeed = playbackParameters.speed
+            viewModel.currentAudioTrackIndex =  getCurrentTrackIndex(C.TRACK_TYPE_AUDIO)
+            viewModel.currentSubtitleTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_TEXT)
+            viewModel.skipSilenceEnabled = skipSilenceEnabled
+        }
         player?.removeListener(playbackStateListener)
         binding.playerView.player = null
         if (!playInBackgroundButton.isChecked && !isSubtitleFileLauncherLaunched) {
@@ -544,7 +551,7 @@ class PlayerActivity : AppCompatActivity() {
         withContext(Dispatchers.Main) {
             player?.run {
                 setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
-                this.playWhenReady = this@PlayerActivity.playWhenReady
+                playWhenReady = viewModel.playWhenReady
                 prepare()
             }
         }
