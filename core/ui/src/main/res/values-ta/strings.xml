@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="descending">இறங்குவரிசை</string>
+    <string name="error_playing_video">பிழை: காணொலியை இயக்க முடியவில்லை</string>
+    <string name="grant_permission">அனுமதி வழங்கவும்</string>
+    <string name="duration">கால அளவு</string>
+    <string name="location">இடம்</string>
+    <string name="permission_not_granted">அனுமதி வழங்கப்படவில்லை</string>
+    <string name="permission_request">அனுமதி கோரிக்கை</string>
+    <string name="settings">அமைப்புகள்</string>
+    <string name="size">உருவளவு</string>
+    <string name="sort">வகைப்படுத்து</string>
+    <string name="z_a">ஒள-அ</string>
+    <string name="audio">கேட்பொலி</string>
+    <string name="preferred_audio_lang">விருப்பமான கேட்பொலி மொழி</string>
+    <string name="preferred_audio_lang_description">நீங்கள் இயல்பாக பயன்படுத்த விரும்பும் கேட்போலித் தடத்தின் மொழி</string>
+    <string name="video">காணொளி</string>
+    <string name="videos">காணொளிகள்</string>
+    <string name="screen_rotation">திரை சுழற்சி</string>
+    <string name="date">தேதி</string>
+    <string name="hundred_percent">100%</string>
+    <string name="file">கோப்பு</string>
+    <string name="resolution">தெளிவுத்திறன்</string>
+    <string name="language">மொழி</string>
+    <string name="folder">கோப்புறை</string>
+    <string name="folders">கோப்புறைகள்</string>
+    <string name="ascending">ஏறுவரிசை</string>
+    <string name="preferred_subtitle_lang_description">நீங்கள் இயல்பாக பயன்படுத்த விரும்பும் துணை வரியின் மொழி</string>
+    <string name="title">தலைப்பு</string>
+    <string name="properties">பண்புகள்</string>
+    <string name="subtitle">துணை மொழி</string>
+    <string name="rename">மறுபெயரிடு</string>
+    <string name="rename_to">என மறுபெயரிடவும்</string>
+    <string name="preferred_subtitle_lang">விருப்பமான துணை மொழி</string>
+    <string name="subtitle_font">துனைமொழி எழுத்துரு</string>
+    <string name="a_z">அ-ஒள</string>
+    <string name="dark_theme">இருள் திணை</string>
+</resources>

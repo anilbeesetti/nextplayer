@@ -203,4 +203,7 @@
     <string name="tree">Drzewo</string>
     <string name="played_progress">Postęp odtwarzania</string>
     <string name="media_view_mode">Tryb podglądu multimediów</string>
+    <string name="control_buttons_alignment">Wyrównanie przycisków sterowania</string>
+    <string name="control_buttons_alignment_right">Do prawej</string>
+    <string name="control_buttons_alignment_left">Do lewej</string>
 </resources>

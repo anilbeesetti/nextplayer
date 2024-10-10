@@ -203,4 +203,7 @@
     <string name="folder">Pasta</string>
     <string name="played_progress">Reprodução em andamento</string>
     <string name="media_view_mode">Modo de visualização de mídia</string>
+    <string name="control_buttons_alignment_left">A esquerda</string>
+    <string name="control_buttons_alignment_right">A direita</string>
+    <string name="control_buttons_alignment">Alinhamento dos botões de controle</string>
 </resources>

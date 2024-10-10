@@ -203,4 +203,7 @@
     <string name="folders">文件夹</string>
     <string name="played_progress">播放进度</string>
     <string name="media_view_mode">媒体浏览模式</string>
+    <string name="control_buttons_alignment_left">左</string>
+    <string name="control_buttons_alignment_right">右</string>
+    <string name="control_buttons_alignment">操控按钮对齐</string>
 </resources>
