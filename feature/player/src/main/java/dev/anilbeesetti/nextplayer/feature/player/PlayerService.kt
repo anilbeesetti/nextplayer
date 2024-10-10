@@ -21,7 +21,6 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -77,6 +77,13 @@ class PlayerService : MediaSessionService() {
         }
     }
 
+    private val mediaSessionCallback = object : MediaSession.Callback {
+        override fun onDisconnected(session: MediaSession, controller: MediaSession.ControllerInfo) {
+            saveCurrentMediaState()
+            super.onDisconnected(session, controller)
+        }
+    }
+
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onCreate() {
@@ -116,16 +123,17 @@ class PlayerService : MediaSessionService() {
             }
 
         try {
-            mediaSession = MediaSession
-                .Builder(this, player)
-                .setSessionActivity(
+            mediaSession = MediaSession.Builder(this, player).apply {
+                setSessionActivity(
                     PendingIntent.getActivity(
-                        this,
+                        this@PlayerService,
                         0,
-                        Intent(this, PlayerActivity::class.java),
+                        Intent(this@PlayerService, PlayerActivity::class.java),
                         PendingIntent.FLAG_IMMUTABLE,
                     ),
-                ).build()
+                )
+                setCallback(mediaSessionCallback)
+            }.build()
         } catch (e: Exception) {
             e.printStackTrace()
         }
