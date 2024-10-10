@@ -18,6 +18,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
@@ -29,6 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
@@ -64,6 +66,16 @@ class PlayerService : MediaSessionService() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             saveCurrentMediaState()
             currentMediaItem = mediaItem
+            if (mediaItem != null) {
+                serviceScope.launch {
+                    val videoState = mediaRepository.getVideoState(mediaItem.mediaId) ?: return@launch
+                    withContext(Dispatchers.Main.immediate) {
+                        if (playerPreferences.resume == Resume.YES) {
+                            mediaSession?.player?.seekTo(videoState.position)
+                        }
+                    }
+                }
+            }
             super.onMediaItemTransition(mediaItem, reason)
         }
 
