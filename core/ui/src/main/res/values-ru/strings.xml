@@ -203,4 +203,7 @@
     <string name="tree">Дерево</string>
     <string name="played_progress">Воспроизведённый прогресс</string>
     <string name="media_view_mode">Вид отображения медиа</string>
+    <string name="control_buttons_alignment">Расположение кнопок управления</string>
+    <string name="control_buttons_alignment_right">Справа</string>
+    <string name="control_buttons_alignment_left">Слева</string>
 </resources>
