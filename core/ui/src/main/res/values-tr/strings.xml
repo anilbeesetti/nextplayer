@@ -201,4 +201,9 @@
     <string name="folder">Klasör</string>
     <string name="folders">Klasörler</string>
     <string name="tree">Ağaç</string>
+    <string name="played_progress">Oynatma ilerlemesi</string>
+    <string name="media_view_mode">Medya görüntüleme modu</string>
+    <string name="control_buttons_alignment_left">Sol</string>
+    <string name="control_buttons_alignment_right">Sağ</string>
+    <string name="control_buttons_alignment">Denetim düğmelerinin hizalanması</string>
 </resources>

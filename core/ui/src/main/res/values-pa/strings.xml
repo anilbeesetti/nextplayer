@@ -203,4 +203,7 @@
     <string name="folders">ਫ਼ੋਲਡਰ</string>
     <string name="tree">ਟ੍ਰੀ</string>
     <string name="media_view_mode">ਮੀਡੀਆ ਵਿਊ ਮੋਡ</string>
+    <string name="control_buttons_alignment_left">ਖੱਬਾ</string>
+    <string name="control_buttons_alignment_right">ਸੱਜਾ</string>
+    <string name="control_buttons_alignment">ਕੰਟਰੋਲ ਬਟਨ ਅਲਾਈਨਮੈਂਟ</string>
 </resources>
