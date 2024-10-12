@@ -42,7 +42,6 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -110,7 +109,6 @@ class PlayerActivity : AppCompatActivity() {
     lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
-    private val currentContext = this
     private val applicationPreferences get() = viewModel.appPrefs.value
     private val playerPreferences get() = viewModel.playerPrefs.value
 
@@ -146,11 +144,17 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private var isSubtitleFileLauncherLaunched: Boolean = false
+    private var subtitleFileLauncherLaunchedForMediaItem: MediaItem? = null
     private var subtitleFileLauncherResult: Uri? = null
 
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
-        subtitleFileLauncherResult = uri
+        if (uri != null && subtitleFileLauncherLaunchedForMediaItem != null) {
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            viewModel.addExternalSubtitle(
+                mediaUri = subtitleFileLauncherLaunchedForMediaItem!!.mediaId,
+                subtitleUri = uri,
+            )
+        }
     }
 
     /**
@@ -293,7 +297,7 @@ class PlayerActivity : AppCompatActivity() {
                     toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                     videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
                     if (!playInBackgroundButton.isChecked) {
-                        playInBackgroundButton.isChecked = currentMediaItem != null && !isSubtitleFileLauncherLaunched
+                        playInBackgroundButton.isChecked = currentMediaItem != null && subtitleFileLauncherLaunchedForMediaItem == null
                     }
                     try {
                         loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
@@ -305,28 +309,10 @@ class PlayerActivity : AppCompatActivity() {
                     if (intent.data.toString() != currentMediaItem?.mediaId) {
                         playVideo(uri = intent.data!!)
                     } else {
-                        subtitleFileLauncherResult?.let { uri ->
-                            lifecycleScope.launch {
-                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                val updateMediaItem = currentMediaItem
-                                    ?.buildUpon()
-                                    ?.setSubtitleConfigurations(
-                                        listOf(uri.toSubtitleConfiguration(this@PlayerActivity))
-                                    )?.build() ?: return@launch
-
-                                withContext(Dispatchers.Main.immediate) {
-                                    val index = currentMediaItemIndex
-                                    removeMediaItem(index)
-                                    addMediaItem(index, updateMediaItem)
-                                    seekToDefaultPosition(index)
-                                }
-                            }
-                        }
                         playWhenReady = viewModel.playWhenReady
                     }
                 }
-                isSubtitleFileLauncherLaunched = false
-                subtitleFileLauncherResult = null
+                subtitleFileLauncherLaunchedForMediaItem = null
             },
             MoreExecutors.directExecutor(),
         )
@@ -341,18 +327,14 @@ class PlayerActivity : AppCompatActivity() {
         subtitleCacheDir.deleteFiles()
         player?.run {
             viewModel.playWhenReady = playWhenReady
-            viewModel.currentPlaybackPosition = currentPosition
-            viewModel.currentPlaybackSpeed = playbackParameters.speed
-            viewModel.currentAudioTrackIndex =  getCurrentTrackIndex(C.TRACK_TYPE_AUDIO)
-            viewModel.currentSubtitleTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_TEXT)
             viewModel.skipSilenceEnabled = skipSilenceEnabled
         }
         player?.removeListener(playbackStateListener)
         binding.playerView.player = null
-        if (isSubtitleFileLauncherLaunched) {
+        if (subtitleFileLauncherLaunchedForMediaItem != null) {
             player?.pause()
         }
-        if (!playInBackgroundButton.isChecked && !isSubtitleFileLauncherLaunched) {
+        if (!playInBackgroundButton.isChecked && subtitleFileLauncherLaunchedForMediaItem == null) {
             player?.clearMediaItems()
             player?.stop()
         }
@@ -463,7 +445,7 @@ class PlayerActivity : AppCompatActivity() {
                 tracks = player?.currentTracks ?: return@setOnClickListener,
                 onTrackSelected = { player?.switchTrack(C.TRACK_TYPE_TEXT, it) },
                 onOpenLocalTrackClicked = {
-                    isSubtitleFileLauncherLaunched = true
+                    subtitleFileLauncherLaunchedForMediaItem = player?.currentMediaItem
                     subtitleFileLauncher.launch(
                         arrayOf(
                             MimeTypes.APPLICATION_SUBRIP,
@@ -483,7 +465,6 @@ class PlayerActivity : AppCompatActivity() {
                 currentSpeed = player?.playbackParameters?.speed ?: return@setOnClickListener,
                 skipSilenceEnabled = player?.skipSilenceEnabled ?: return@setOnClickListener,
                 onChange = {
-                    viewModel.isPlaybackSpeedChanged = true
                     player?.setPlaybackSpeed(it)
                 },
                 onSkipSilenceChanged = {
@@ -534,26 +515,23 @@ class PlayerActivity : AppCompatActivity() {
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
         val isCurrentUriIsFromIntent = intent.data == uri
 
-        viewModel.initMediaState(uri.toString())
-        if (isCurrentUriIsFromIntent && playerApi.hasPosition && viewModel.currentPlaybackPosition == null) {
-            viewModel.currentPlaybackPosition = playerApi.position?.toLong()
-        }
+        val mediaUri = intent.data?.let { getMediaContentUri(it) }
+        val playlist = mediaUri?.let { viewModel.getPlaylistFromUri(mediaUri) } ?: emptyList()
+        val currentMedia = playlist.find { it.uriString == uri.toString() }
 
         // Get all subtitles for current uri
         val apiSubs = if (isCurrentUriIsFromIntent) playerApi.getSubs() else emptyList()
-        val localSubs = uri.getLocalSubtitles(currentContext, viewModel.externalSubtitles.toList())
-        val externalSubs = viewModel.externalSubtitles.map { it.toSubtitle(currentContext) }
 
         // current uri as MediaItem with subs
-        val subtitleStreams = createExternalSubtitleStreams(apiSubs + localSubs + externalSubs)
+        val subtitleStreams = createExternalSubtitleStreams(apiSubs)
         val mediaStream = MediaItem.Builder()
             .setMediaId(uri.toString())
             .setUri(uri)
             .setMediaMetadata(
                 MediaMetadata.Builder().apply {
-                    setTitle(playerApi.title.takeIf { isCurrentUriIsFromIntent && playerApi.hasTitle } ?: getFilenameFromUri(uri))
+                    setTitle(playerApi.title.takeIf { isCurrentUriIsFromIntent && playerApi.hasTitle } ?: currentMedia?.displayName ?: getFilenameFromUri(uri))
                     setArtworkUri(
-                        viewModel.currentVideoState?.thumbnailPath?.let { Uri.parse(it) }
+                        currentMedia?.thumbnailPath?.let { Uri.parse(it) }
                             ?: Uri.Builder().apply {
                                 val defaultArtwork = R.drawable.artwork_default
                                 scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
@@ -569,17 +547,14 @@ class PlayerActivity : AppCompatActivity() {
 
         withContext(Dispatchers.Main) {
             player?.run {
-                setMediaItem(mediaStream, viewModel.currentPlaybackPosition ?: C.TIME_UNSET)
+                setMediaItem(mediaStream, currentMedia?.playbackPosition ?: playerApi.position?.toLong() ?: C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
                 prepare()
             }
         }
 
         if (playerPreferences.autoplay) {
-            val mediaUri = intent.data?.let { getMediaContentUri(it) }
-
             if (mediaUri != null) {
-                val playlist = viewModel.getPlaylistFromUri(mediaUri)
                 var shouldPrepend = true
 
                 for (video in playlist) {
@@ -721,7 +696,6 @@ class PlayerActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent.data != null) {
             player?.clearMediaItems()
-            viewModel.resetAllToDefaults()
             setIntent(intent)
             prettyPrintIntent()
             playVideo(intent.data!!)

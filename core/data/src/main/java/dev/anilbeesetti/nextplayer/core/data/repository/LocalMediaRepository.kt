@@ -16,6 +16,8 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -39,6 +41,20 @@ class LocalMediaRepository @Inject constructor(
 
     override suspend fun getVideoState(uri: String): VideoState? {
         return mediumDao.get(uri)?.toVideoState()
+    }
+
+    override suspend fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri) {
+        val currentExternalSubs = externalSubtitlesFlowForVideo(mediaUri).first().filterNot { it == subtitleUri }
+        mediumDao.addExternalSubtitle(
+            mediumUri = mediaUri,
+            externalSubs = UriListConverter.fromListToString(currentExternalSubs + subtitleUri),
+        )
+    }
+
+    override suspend fun externalSubtitlesFlowForVideo(uri: String): Flow<List<Uri>> {
+        return mediumDao.getAsFlow(uri).map { mediumEntity ->
+            mediumEntity?.let { UriListConverter.fromStringToList(it.externalSubs) } ?: emptyList()
+        }.distinctUntilChanged()
     }
 
     override fun saveMediumUiState(

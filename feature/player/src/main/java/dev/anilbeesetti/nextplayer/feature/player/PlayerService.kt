@@ -7,6 +7,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -23,13 +24,19 @@ import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.updateSubtitleConfigurations
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -52,10 +59,10 @@ class PlayerService : MediaSessionService() {
     private val playerPreferences: PlayerPreferences
         get() = runBlocking { preferencesRepository.playerPreferences.first() }
 
-    private var currentMediaItem: MediaItem? = null
+    private var isMediaItemReady = false
+    private var currentMediaItem = MutableStateFlow<MediaItem?>(null)
     private var currentVideoState: VideoState? = null
     private var currentMediaState: MediaState? = null
-    private var areTracksRestored: Boolean = false
 
     init {
         serviceScope.launch {
@@ -64,13 +71,30 @@ class PlayerService : MediaSessionService() {
                 delay(1000)
             }
         }
+
+
+        currentMediaItem.onEach { mediaItem ->
+            if (mediaItem == null) return@onEach
+            mediaRepository.externalSubtitlesFlowForVideo(mediaItem.mediaId).onEach { externalSubtitles ->
+                if (externalSubtitles.isNotEmpty()) {
+                    val subtitles = externalSubtitles.map { subtitleUri ->
+                        subtitleUri.toSubtitleConfiguration(
+                            context = this@PlayerService,
+                            subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                        )
+                    }
+
+                    mediaSession?.player?.updateSubtitleConfigurations(subtitles)
+                }
+            }.launchIn(serviceScope)
+        }.launchIn(serviceScope)
     }
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             saveCurrentMediaState()
-            currentMediaItem = mediaItem
-            areTracksRestored = false
+            currentMediaItem.update { mediaItem }
+            isMediaItemReady = false
             if (mediaItem != null) {
                 serviceScope.launch {
                     currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
@@ -84,13 +108,16 @@ class PlayerService : MediaSessionService() {
             super.onMediaItemTransition(mediaItem, reason)
         }
 
-        override fun onRenderedFirstFrame() {
-            super.onRenderedFirstFrame()
-            currentVideoState?.let { state ->
-                mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, state.audioTrackIndex)
-                mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, state.subtitleTrackIndex)
-                state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
+        override fun onTracksChanged(tracks: Tracks) {
+            if (!isMediaItemReady) {
+                currentVideoState?.let { state ->
+                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, state.audioTrackIndex)
+                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, state.subtitleTrackIndex)
+                    state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
+                }
+                isMediaItemReady = true
             }
+            super.onTracksChanged(tracks)
         }
 
         override fun onPositionDiscontinuity(
@@ -166,7 +193,6 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        println("PlayerService: onTaskRemoved")
         val player = mediaSession?.player!!
         if (!player.playWhenReady || player.mediaItemCount == 0 || player.playbackState == Player.STATE_ENDED) {
             stopSelf()
@@ -174,7 +200,6 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onDestroy() {
-        println("PlayerService: onDestroy")
         super.onDestroy()
         serviceScope.cancel()
         saveCurrentMediaState()
@@ -189,11 +214,12 @@ class PlayerService : MediaSessionService() {
     private fun updateCurrentMediaState() {
         val player = mediaSession?.player ?: return
         if (player.currentMediaItem == null) return
-        if (player.currentMediaItem?.mediaId != currentMediaItem?.mediaId) return
+        if (player.currentMediaItem?.mediaId != currentMediaItem.value?.mediaId) return
         currentMediaState = player.getCurrentMediaItemData()
     }
 
     private fun saveCurrentMediaState() {
+        if (!isMediaItemReady) return
         currentMediaState?.let { data ->
             mediaRepository.saveMediumState(
                 uri = data.uri,

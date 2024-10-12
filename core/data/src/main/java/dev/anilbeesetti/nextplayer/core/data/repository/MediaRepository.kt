@@ -23,4 +23,6 @@ interface MediaRepository {
         playbackSpeed: Float?,
     )
     suspend fun getVideoState(uri: String): VideoState?
+    suspend fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri)
+    suspend fun externalSubtitlesFlowForVideo(uri: String): Flow<List<Uri>>
 }

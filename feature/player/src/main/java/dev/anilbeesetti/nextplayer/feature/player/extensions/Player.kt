@@ -2,11 +2,14 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import androidx.annotation.OptIn
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -99,6 +102,18 @@ fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
     return currentTracks.groups
         .filter { it.type == type && it.isSupported }
         .indexOfFirst { it.isSelected }
+}
+
+fun Player.updateSubtitleConfigurations(subtitles: List<MediaItem.SubtitleConfiguration>) {
+    val updateMediaItem = currentMediaItem
+        ?.buildUpon()
+        ?.setSubtitleConfigurations(subtitles)
+        ?.build() ?: return
+
+    val index = currentMediaItemIndex
+    removeMediaItem(index)
+    addMediaItem(index, updateMediaItem)
+    seekToDefaultPosition(index)
 }
 
 @get:UnstableApi

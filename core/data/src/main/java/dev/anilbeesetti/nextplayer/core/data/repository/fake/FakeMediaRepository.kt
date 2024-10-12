@@ -44,4 +44,12 @@ class FakeMediaRepository : MediaRepository {
     override suspend fun getVideoState(uri: String): VideoState? {
         return null
     }
+
+    override suspend fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri) {
+
+    }
+
+    override suspend fun externalSubtitlesFlowForVideo(uri: String): Flow<List<Uri>> {
+        return flowOf(emptyList())
+    }
 }

@@ -7,12 +7,16 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import androidx.core.net.toUri
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import java.io.File
+import java.nio.charset.Charset
 
 fun Uri.getSubtitleMime(): String {
     return when {
@@ -59,6 +63,29 @@ fun Uri.toSubtitle(context: Context) = Subtitle(
     uri = this,
     isSelected = false,
 )
+
+suspend fun Uri.toSubtitleConfiguration(
+    context: Context,
+    subtitleEncoding: String = "",
+): MediaItem.SubtitleConfiguration {
+    val charset = if (with(subtitleEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
+        Charset.forName(subtitleEncoding)
+    } else {
+        null
+    }
+    val subtitle = toSubtitle(context)
+    return MediaItem.SubtitleConfiguration.Builder(
+        context.convertToUTF8(
+            uri = this,
+            charset = charset,
+        ),
+    ).apply {
+        setId(subtitle.uri.toString())
+        setMimeType(subtitle.uri.getSubtitleMime())
+        setLabel(subtitle.name)
+        if (subtitle.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+    }.build()
+}
 
 @Suppress("DEPRECATION")
 fun Bundle.getParcelableUriArray(key: String): Array<out Parcelable>? {
