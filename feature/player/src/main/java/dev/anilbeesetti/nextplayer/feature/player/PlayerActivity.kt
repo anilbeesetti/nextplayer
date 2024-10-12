@@ -653,7 +653,12 @@ class PlayerActivity : AppCompatActivity() {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
-                    finish()
+                    lifecycleScope.launch {
+                        delay(100)
+                        if (player?.playbackState == Player.STATE_ENDED) {
+                            finish()
+                        }
+                    }
                 }
 
                 Player.STATE_READY -> {
