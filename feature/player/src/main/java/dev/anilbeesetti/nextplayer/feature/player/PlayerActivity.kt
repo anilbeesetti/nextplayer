@@ -41,8 +41,8 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -118,7 +118,6 @@ class PlayerActivity : AppCompatActivity() {
 
     var isFileLoaded = false
     var isControlsLocked = false
-    private var isSubtitleLauncherHasUri = false
     private var isFirstFrameRendered = false
     private var isFrameRendered = false
     private var isPlayingOnScrubStart: Boolean = false
@@ -148,14 +147,10 @@ class PlayerActivity : AppCompatActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private var isSubtitleFileLauncherLaunched: Boolean = false
+    private var subtitleFileLauncherResult: Uri? = null
+
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
-        isSubtitleFileLauncherLaunched = false
-        if (uri != null) {
-            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            isSubtitleLauncherHasUri = true
-            viewModel.externalSubtitles.add(uri)
-        }
-        player?.play()
+        subtitleFileLauncherResult = uri
     }
 
     /**
@@ -183,7 +178,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        println("HELLO:- onCreate")
         super.onCreate(savedInstanceState)
         prettyPrintIntent()
 
@@ -298,7 +292,9 @@ class PlayerActivity : AppCompatActivity() {
                     binding.playerView.keepScreenOn = isPlaying
                     toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                     videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
-                    playInBackgroundButton.isChecked = currentMediaItem != null
+                    if (!playInBackgroundButton.isChecked) {
+                        playInBackgroundButton.isChecked = currentMediaItem != null && !isSubtitleFileLauncherLaunched
+                    }
                     try {
                         loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
                     } catch (e: Exception) {
@@ -308,8 +304,29 @@ class PlayerActivity : AppCompatActivity() {
                     volumeManager.loudnessEnhancer = loudnessEnhancer
                     if (intent.data.toString() != currentMediaItem?.mediaId) {
                         playVideo(uri = intent.data!!)
+                    } else {
+                        subtitleFileLauncherResult?.let { uri ->
+                            lifecycleScope.launch {
+                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                val updateMediaItem = currentMediaItem
+                                    ?.buildUpon()
+                                    ?.setSubtitleConfigurations(
+                                        listOf(uri.toSubtitleConfiguration(this@PlayerActivity))
+                                    )?.build() ?: return@launch
+
+                                withContext(Dispatchers.Main.immediate) {
+                                    val index = currentMediaItemIndex
+                                    removeMediaItem(index)
+                                    addMediaItem(index, updateMediaItem)
+                                    seekToDefaultPosition(index)
+                                }
+                            }
+                        }
+                        playWhenReady = viewModel.playWhenReady
                     }
                 }
+                isSubtitleFileLauncherLaunched = false
+                subtitleFileLauncherResult = null
             },
             MoreExecutors.directExecutor(),
         )
@@ -332,6 +349,9 @@ class PlayerActivity : AppCompatActivity() {
         }
         player?.removeListener(playbackStateListener)
         binding.playerView.player = null
+        if (isSubtitleFileLauncherLaunched) {
+            player?.pause()
+        }
         if (!playInBackgroundButton.isChecked && !isSubtitleFileLauncherLaunched) {
             player?.clearMediaItems()
             player?.stop()
@@ -939,6 +959,26 @@ class PlayerActivity : AppCompatActivity() {
                 if (it.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
             }.build()
         }
+    }
+
+    private suspend fun Uri.toSubtitleConfiguration(context: Context): MediaItem.SubtitleConfiguration {
+        val charset = if (with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
+            Charset.forName(playerPreferences.subtitleTextEncoding)
+        } else {
+            null
+        }
+        val subtitle = toSubtitle(context)
+        return MediaItem.SubtitleConfiguration.Builder(
+            convertToUTF8(
+                uri = this,
+                charset = charset,
+            ),
+        ).apply {
+            setId(subtitle.uri.toString())
+            setMimeType(subtitle.uri.getSubtitleMime())
+            setLabel(subtitle.name)
+            if (subtitle.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+        }.build()
     }
 
     private fun resetExoContentFrameWidthAndHeight() {
