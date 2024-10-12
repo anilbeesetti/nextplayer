@@ -72,7 +72,6 @@ class PlayerService : MediaSessionService() {
             }
         }
 
-
         currentMediaItem.onEach { mediaItem ->
             if (mediaItem == null) return@onEach
             mediaRepository.externalSubtitlesFlowForVideo(mediaItem.mediaId).onEach { externalSubtitles ->

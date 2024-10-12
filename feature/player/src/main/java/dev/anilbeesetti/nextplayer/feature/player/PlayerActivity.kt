@@ -41,6 +41,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -145,11 +146,11 @@ class PlayerActivity : AppCompatActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private var subtitleFileLauncherLaunchedForMediaItem: MediaItem? = null
-    private var subtitleFileLauncherResult: Uri? = null
-
+    private var isSubtitleLauncherHasUri: Boolean = false
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null && subtitleFileLauncherLaunchedForMediaItem != null) {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            isSubtitleLauncherHasUri = true
             viewModel.addExternalSubtitle(
                 mediaUri = subtitleFileLauncherLaunchedForMediaItem!!.mediaId,
                 subtitleUri = uri,
@@ -595,6 +596,10 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playbackStateListener() = object : Player.Listener {
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            super.onMediaItemTransition(mediaItem, reason)
+            isFirstFrameRendered = false
+        }
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             videoTitleTextView.text = mediaMetadata.title
             super.onMediaMetadataChanged(mediaMetadata)
@@ -677,6 +682,19 @@ class PlayerActivity : AppCompatActivity() {
             isFirstFrameRendered = true
             binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
             super.onRenderedFirstFrame()
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            super.onTracksChanged(tracks)
+            if (isFirstFrameRendered) return
+            if (!isSubtitleLauncherHasUri) return
+
+            val textTracks = player?.currentTracks?.groups?.filter {
+                it.type == C.TRACK_TYPE_TEXT && it.isSupported
+            }?.takeIf { it.isNotEmpty() } ?: return
+
+            player?.switchTrack(C.TRACK_TYPE_TEXT, textTracks.size - 1)
+            isSubtitleLauncherHasUri = false
         }
     }
 
