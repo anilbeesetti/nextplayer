@@ -14,6 +14,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
@@ -21,6 +22,8 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
+import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +54,9 @@ class PlayerService : MediaSessionService() {
         get() = runBlocking { preferencesRepository.playerPreferences.first() }
 
     private var currentMediaItem: MediaItem? = null
+    private var currentVideoState: VideoState? = null
     private var currentMediaState: MediaState? = null
+    private var areTracksRestored: Boolean = false
 
     init {
         serviceScope.launch {
@@ -66,17 +71,27 @@ class PlayerService : MediaSessionService() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             saveCurrentMediaState()
             currentMediaItem = mediaItem
+            areTracksRestored = false
             if (mediaItem != null) {
                 serviceScope.launch {
-                    val videoState = mediaRepository.getVideoState(mediaItem.mediaId) ?: return@launch
+                    currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
                     withContext(Dispatchers.Main.immediate) {
                         if (playerPreferences.resume == Resume.YES) {
-                            mediaSession?.player?.seekTo(videoState.position)
+                            currentVideoState?.position?.let { mediaSession?.player?.seekTo(it) }
                         }
                     }
                 }
             }
             super.onMediaItemTransition(mediaItem, reason)
+        }
+
+        override fun onRenderedFirstFrame() {
+            super.onRenderedFirstFrame()
+            currentVideoState?.let { state ->
+                mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, state.audioTrackIndex)
+                mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, state.subtitleTrackIndex)
+                state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
+            }
         }
 
         override fun onPositionDiscontinuity(

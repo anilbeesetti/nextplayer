@@ -683,25 +683,6 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
             super.onRenderedFirstFrame()
         }
-
-        override fun onTracksChanged(tracks: Tracks) {
-            super.onTracksChanged(tracks)
-            if (isFirstFrameRendered) return
-
-            player?.run {
-                if (isSubtitleLauncherHasUri) {
-                    val textTracks = currentTracks.groups.filter {
-                        it.type == C.TRACK_TYPE_TEXT && it.isSupported
-                    }
-                    viewModel.currentSubtitleTrackIndex = textTracks.size - 1
-                }
-                isSubtitleLauncherHasUri = false
-                switchTrack(C.TRACK_TYPE_AUDIO, viewModel.currentAudioTrackIndex)
-                switchTrack(C.TRACK_TYPE_TEXT, viewModel.currentSubtitleTrackIndex)
-                setPlaybackSpeed(viewModel.currentPlaybackSpeed)
-                skipSilenceEnabled = viewModel.skipSilenceEnabled
-            }
-        }
     }
 
     override fun finish() {
@@ -937,16 +918,6 @@ class PlayerActivity : AppCompatActivity() {
 
     fun hideTopInfo() {
         binding.topInfoLayout.visibility = View.GONE
-    }
-
-    private fun savePlayerState(uri: Uri) {
-        if (isFirstFrameRendered) {
-            viewModel.saveMediaUiState(
-                uri = uri,
-                videoScale = exoContentFrameLayout.scaleX,
-            )
-        }
-        isFirstFrameRendered = false
     }
 
     private suspend fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
