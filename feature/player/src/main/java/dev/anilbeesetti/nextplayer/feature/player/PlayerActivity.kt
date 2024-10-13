@@ -71,8 +71,6 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFr
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
@@ -115,7 +113,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private var isPlaybackFinished = false
 
-    var isFileLoaded = false
+    var isMediaItemReady = false
     var isControlsLocked = false
     private var isFirstFrameRendered = false
     private var isFrameRendered = false
@@ -598,16 +596,16 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            isFirstFrameRendered = false
+            isMediaItemReady = false
         }
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-            videoTitleTextView.text = mediaMetadata.title
             super.onMediaMetadataChanged(mediaMetadata)
+            videoTitleTextView.text = mediaMetadata.title
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            binding.playerView.keepScreenOn = isPlaying
             super.onIsPlayingChanged(isPlaying)
+            binding.playerView.keepScreenOn = isPlaying
         }
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
@@ -622,13 +620,14 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
+            super.onVideoSizeChanged(videoSize)
             applyVideoScale(viewModel.currentVideoScale)
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
             setOrientation()
-            super.onVideoSizeChanged(videoSize)
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
             Timber.e(error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
                 setTitle(getString(coreUiR.string.error_playing_video))
@@ -645,10 +644,10 @@ class PlayerActivity : AppCompatActivity() {
             }.create()
 
             alertDialog.show()
-            super.onPlayerError(error)
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
+            super.onPlaybackStateChanged(playbackState)
             when (playbackState) {
                 Player.STATE_ENDED -> {
                     Timber.d("Player state: ENDED")
@@ -663,8 +662,17 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
+                    if (!isMediaItemReady && isSubtitleLauncherHasUri) {
+                        val textTracks = player?.currentTracks?.groups?.filter {
+                            it.type == C.TRACK_TYPE_TEXT && it.isSupported
+                        }?.takeIf { it.isNotEmpty() } ?: return
+
+                        player?.switchTrack(C.TRACK_TYPE_TEXT, textTracks.size - 1)
+                        isSubtitleLauncherHasUri = false
+                    }
+                    binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
+                    isMediaItemReady = true
                     isFrameRendered = true
-                    isFileLoaded = true
                 }
 
                 Player.STATE_BUFFERING -> {
@@ -675,26 +683,6 @@ class PlayerActivity : AppCompatActivity() {
                     Timber.d("Player state: IDLE")
                 }
             }
-            super.onPlaybackStateChanged(playbackState)
-        }
-
-        override fun onRenderedFirstFrame() {
-            isFirstFrameRendered = true
-            binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
-            super.onRenderedFirstFrame()
-        }
-
-        override fun onTracksChanged(tracks: Tracks) {
-            super.onTracksChanged(tracks)
-            if (isFirstFrameRendered) return
-            if (!isSubtitleLauncherHasUri) return
-
-            val textTracks = player?.currentTracks?.groups?.filter {
-                it.type == C.TRACK_TYPE_TEXT && it.isSupported
-            }?.takeIf { it.isNotEmpty() } ?: return
-
-            player?.switchTrack(C.TRACK_TYPE_TEXT, textTracks.size - 1)
-            isSubtitleLauncherHasUri = false
         }
     }
 
