@@ -4,11 +4,9 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
@@ -61,7 +59,7 @@ class PlayerViewModel @Inject constructor(
         )
     }
 
-    fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri, ) {
+    fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri) {
         viewModelScope.launch {
             mediaRepository.addExternalSubtitle(mediaUri = mediaUri, subtitleUri = subtitleUri)
         }
