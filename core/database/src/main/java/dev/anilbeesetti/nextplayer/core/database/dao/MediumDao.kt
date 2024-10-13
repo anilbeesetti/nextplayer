@@ -23,6 +23,9 @@ interface MediumDao {
     @Query("SELECT * FROM media WHERE uri = :uri")
     suspend fun get(uri: String): MediumEntity?
 
+    @Query("SELECT * FROM media WHERE uri = :uri")
+    fun getAsFlow(uri: String): Flow<MediumEntity?>
+
     @Query("SELECT * FROM media")
     fun getAll(): Flow<List<MediumEntity>>
 
@@ -46,13 +49,23 @@ interface MediumDao {
 
     @Query(
         "UPDATE OR REPLACE media SET " +
+            "external_subs = :externalSubs, " +
+            "video_scale = :videoScale " +
+            "WHERE uri = :uri",
+    )
+    suspend fun updateMediumUiState(
+        uri: String,
+        externalSubs: String,
+        videoScale: Float,
+    )
+
+    @Query(
+        "UPDATE OR REPLACE media SET " +
             "playback_position = :position, " +
             "audio_track_index = :audioTrackIndex, " +
             "subtitle_track_index = :subtitleTrackIndex, " +
             "playback_speed = :playbackSpeed, " +
-            "external_subs = :externalSubs, " +
-            "last_played_time = :lastPlayedTime, " +
-            "video_scale = :videoScale " +
+            "last_played_time = :lastPlayedTime " +
             "WHERE uri = :uri",
     )
     suspend fun updateMediumState(
@@ -61,10 +74,11 @@ interface MediumDao {
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?,
-        externalSubs: String,
         lastPlayedTime: Long?,
-        videoScale: Float,
     )
+
+    @Query("UPDATE OR REPLACE media SET external_subs = :externalSubs WHERE uri = :mediumUri")
+    suspend fun addExternalSubtitle(mediumUri: String, externalSubs: String)
 
     @Upsert
     fun upsertVideoStreamInfo(videoStreamInfoEntity: VideoStreamInfoEntity)

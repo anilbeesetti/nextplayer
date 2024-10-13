@@ -16,9 +16,10 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
@@ -42,19 +43,41 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.get(uri)?.toVideoState()
     }
 
-    override suspend fun saveVideoState(
+    override suspend fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri) {
+        val currentExternalSubs = externalSubtitlesFlowForVideo(mediaUri).first().filterNot { it == subtitleUri }
+        mediumDao.addExternalSubtitle(
+            mediumUri = mediaUri,
+            externalSubs = UriListConverter.fromListToString(currentExternalSubs + subtitleUri),
+        )
+    }
+
+    override suspend fun externalSubtitlesFlowForVideo(uri: String): Flow<List<Uri>> {
+        return mediumDao.getAsFlow(uri).map { mediumEntity ->
+            mediumEntity?.let { UriListConverter.fromStringToList(it.externalSubs) } ?: emptyList()
+        }.distinctUntilChanged()
+    }
+
+    override fun saveMediumUiState(
+        uri: String,
+        externalSubs: List<Uri>,
+        videoScale: Float,
+    ) {
+        applicationScope.launch {
+            mediumDao.updateMediumUiState(
+                uri = uri,
+                externalSubs = UriListConverter.fromListToString(externalSubs),
+                videoScale = videoScale,
+            )
+        }
+    }
+
+    override fun saveMediumState(
         uri: String,
         position: Long,
         audioTrackIndex: Int?,
         subtitleTrackIndex: Int?,
         playbackSpeed: Float?,
-        externalSubs: List<Uri>,
-        videoScale: Float,
     ) {
-        Timber.d(
-            "save state for [$uri]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]",
-        )
-
         applicationScope.launch {
             mediumDao.updateMediumState(
                 uri = uri,
@@ -62,9 +85,7 @@ class LocalMediaRepository @Inject constructor(
                 audioTrackIndex = audioTrackIndex,
                 subtitleTrackIndex = subtitleTrackIndex,
                 playbackSpeed = playbackSpeed,
-                externalSubs = UriListConverter.fromListToString(externalSubs),
                 lastPlayedTime = System.currentTimeMillis(),
-                videoScale = videoScale,
             )
         }
     }

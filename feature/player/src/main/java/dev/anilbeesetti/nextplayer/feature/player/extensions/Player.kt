@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import androidx.annotation.OptIn
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
@@ -101,6 +102,18 @@ fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
         .indexOfFirst { it.isSelected }
 }
 
+fun Player.updateSubtitleConfigurations(subtitles: List<MediaItem.SubtitleConfiguration>) {
+    val updateMediaItem = currentMediaItem
+        ?.buildUpon()
+        ?.setSubtitleConfigurations(subtitles)
+        ?.build() ?: return
+
+    val index = currentMediaItemIndex
+    removeMediaItem(index)
+    addMediaItem(index, updateMediaItem)
+    seekToDefaultPosition(index)
+}
+
 @get:UnstableApi
 @set:UnstableApi
 var Player.skipSilenceEnabled: Boolean
@@ -114,3 +127,23 @@ var Player.skipSilenceEnabled: Boolean
             is ExoPlayer -> this.skipSilenceEnabled = value
         }
     }
+
+data class MediaState(
+    val uri: String,
+    val position: Long,
+    val duration: Long,
+    val audioTrackIndex: Int,
+    val subtitleTrackIndex: Int,
+    val playbackSpeed: Float,
+    val skipSilence: Boolean,
+)
+
+fun Player.getCurrentMediaItemData() = MediaState(
+    uri = currentMediaItem!!.mediaId,
+    position = currentPosition,
+    duration = duration,
+    audioTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
+    subtitleTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
+    playbackSpeed = playbackParameters.speed,
+    skipSilence = skipSilenceEnabled,
+)
