@@ -95,28 +95,12 @@ class PlayerService : MediaSessionService() {
             currentMediaItem.update { mediaItem }
             isMediaItemReady = false
             if (mediaItem != null) {
-                serviceScope.launch {
-                    currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
-                    withContext(Dispatchers.Main.immediate) {
-                        if (playerPreferences.resume == Resume.YES) {
-                            currentVideoState?.position?.let { mediaSession?.player?.seekTo(it) }
-                        }
-                    }
+                currentVideoState = runBlocking { mediaRepository.getVideoState(mediaItem.mediaId) }
+                if (playerPreferences.resume == Resume.YES) {
+                    currentVideoState?.position?.let { mediaSession?.player?.seekTo(it) }
                 }
             }
             super.onMediaItemTransition(mediaItem, reason)
-        }
-
-        override fun onTracksChanged(tracks: Tracks) {
-            if (!isMediaItemReady) {
-                currentVideoState?.let { state ->
-                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, state.audioTrackIndex)
-                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, state.subtitleTrackIndex)
-                    state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
-                }
-                isMediaItemReady = true
-            }
-            super.onTracksChanged(tracks)
         }
 
         override fun onPositionDiscontinuity(
@@ -126,6 +110,25 @@ class PlayerService : MediaSessionService() {
         ) {
             updateCurrentMediaState()
             super.onPositionDiscontinuity(oldPosition, newPosition, reason)
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            super.onPlaybackStateChanged(playbackState)
+
+            when (playbackState) {
+                Player.STATE_READY -> {
+                    if (!isMediaItemReady) {
+                        currentVideoState?.let { state ->
+                            mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, state.audioTrackIndex)
+                            mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, state.subtitleTrackIndex)
+                            state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
+                        }
+                        isMediaItemReady = true
+                    }
+                }
+
+                else -> {}
+            }
         }
     }
 
