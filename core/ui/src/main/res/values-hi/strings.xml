@@ -203,4 +203,7 @@
     <string name="tree">ट्री</string>
     <string name="played_progress">चलने की प्रगति</string>
     <string name="media_view_mode">मीडिया व्यू मोड</string>
+    <string name="control_buttons_alignment">कंट्रोल बटन अलाईनमैंट</string>
+    <string name="control_buttons_alignment_left">बायाँ</string>
+    <string name="control_buttons_alignment_right">दायां</string>
 </resources>

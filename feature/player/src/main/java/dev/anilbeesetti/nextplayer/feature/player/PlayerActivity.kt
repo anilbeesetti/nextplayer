@@ -19,6 +19,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Rational
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams
@@ -63,6 +64,9 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
+import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
+import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
@@ -175,6 +179,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
     private lateinit var playInBackgroundButton: MaterialButton
+    private lateinit var extraControls: LinearLayout
 
     private val isPipSupported: Boolean by lazy {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
@@ -223,6 +228,11 @@ class PlayerActivity : AppCompatActivity() {
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
         playInBackgroundButton = binding.playerView.findViewById(R.id.btn_background)
+        extraControls = binding.playerView.findViewById(R.id.extra_controls)
+
+        if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
+            extraControls.gravity = Gravity.RIGHT
+        }
 
         if (!isPipSupported) {
             pipButton.visibility = View.GONE

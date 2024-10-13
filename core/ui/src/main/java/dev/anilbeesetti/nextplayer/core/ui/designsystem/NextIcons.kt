@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.AppSettingsAlt
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Audiotrack
@@ -121,4 +122,5 @@ object NextIcons {
     val Update = Icons.Rounded.Update
     val Video = Icons.Rounded.Movie
     val VolumeUp = Icons.AutoMirrored.Rounded.VolumeUp
+    val ButtonsPosition = Icons.Rounded.AppSettingsAlt
 }
