@@ -175,7 +175,7 @@
     <string name="language">Язык</string>
     <string name="okay">Хорошо</string>
     <string name="audio_track">Аудиодорожка</string>
-    <string name="require_audio_focus_desc">Ставить на паузу другие источники звука при воспроизвдении в Next Player и наоборот.</string>
+    <string name="require_audio_focus_desc">Ставить на паузу другие источники звука при воспроизведении в Next Player и наоборот.</string>
     <string name="sample_rate">Частота дискретизации</string>
     <string name="file">Файл</string>
     <string name="resolution">Разрешение</string>
@@ -203,4 +203,7 @@
     <string name="tree">Дерево</string>
     <string name="played_progress">Воспроизведённый прогресс</string>
     <string name="media_view_mode">Вид отображения медиа</string>
+    <string name="control_buttons_alignment">Расположение кнопок управления</string>
+    <string name="control_buttons_alignment_right">Справа</string>
+    <string name="control_buttons_alignment_left">Слева</string>
 </resources>

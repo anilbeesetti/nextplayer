@@ -203,4 +203,7 @@
     <string name="folders">Ordner</string>
     <string name="tree">Baum</string>
     <string name="media_view_mode">Medienansicht-Modus</string>
+    <string name="control_buttons_alignment_left">Links</string>
+    <string name="control_buttons_alignment_right">Rechts</string>
+    <string name="control_buttons_alignment">Ausrichtung der Steuertasten</string>
 </resources>

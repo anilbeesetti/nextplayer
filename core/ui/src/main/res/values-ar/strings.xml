@@ -203,4 +203,7 @@
     <string name="tree">مشجر</string>
     <string name="played_progress">ما تم تشغيله</string>
     <string name="media_view_mode">وضع عرض الوسائط</string>
+    <string name="control_buttons_alignment_left">يسار</string>
+    <string name="control_buttons_alignment_right">يمين</string>
+    <string name="control_buttons_alignment">محاذاة أزرار التحكم</string>
 </resources>
