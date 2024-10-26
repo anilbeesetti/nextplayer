@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 fun MediumEntity.toVideoState(): VideoState {
     return VideoState(
         path = path,
+        title = name,
         position = playbackPosition,
         audioTrackIndex = audioTrackIndex,
         subtitleTrackIndex = subtitleTrackIndex,

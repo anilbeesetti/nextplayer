@@ -1,11 +1,15 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.app.PendingIntent
+import android.content.ContentResolver
 import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -13,7 +17,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -24,9 +30,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitleConfiguration
-import dev.anilbeesetti.nextplayer.feature.player.extensions.updateSubtitleConfigurations
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,11 +38,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
 
@@ -69,22 +73,6 @@ class PlayerService : MediaSessionService() {
                 delay(1000)
             }
         }
-
-        currentMediaItem.onEach { mediaItem ->
-            if (mediaItem == null) return@onEach
-            mediaRepository.externalSubtitlesFlowForVideo(mediaItem.mediaId).onEach { externalSubtitles ->
-                if (externalSubtitles.isNotEmpty()) {
-                    val subtitles = externalSubtitles.map { subtitleUri ->
-                        subtitleUri.toSubtitleConfiguration(
-                            context = this@PlayerService,
-                            subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                        )
-                    }
-
-                    mediaSession?.player?.updateSubtitleConfigurations(subtitles)
-                }
-            }.launchIn(serviceScope)
-        }.launchIn(serviceScope)
     }
 
     private val playbackStateListener = object : Player.Listener {
@@ -134,6 +122,59 @@ class PlayerService : MediaSessionService() {
         override fun onDisconnected(session: MediaSession, controller: MediaSession.ControllerInfo) {
             saveCurrentMediaState()
             super.onDisconnected(session, controller)
+        }
+
+        override fun onSetMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: MutableList<MediaItem>,
+            startIndex: Int,
+            startPositionMs: Long,
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future {
+            val updatedMediaItems = mediaItems.map { mediaItem ->
+                val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
+
+                val uri = Uri.parse(mediaItem.mediaId)
+                val externalSubs = mediaState?.externalSubs?.map { subtitleUri ->
+                    subtitleUri.toSubtitleConfiguration(
+                        context = this@PlayerService,
+                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                    )
+                } ?: emptyList()
+                val title = mediaItem.mediaMetadata.title ?: mediaState?.title ?: getFilenameFromUri(uri)
+                val artwork = mediaState?.thumbnailPath?.let { Uri.parse(it) } ?: Uri.Builder().apply {
+                    val defaultArtwork = R.drawable.artwork_default
+                    scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                    authority(resources.getResourcePackageName(defaultArtwork))
+                    appendPath(resources.getResourceTypeName(defaultArtwork))
+                    appendPath(resources.getResourceEntryName(defaultArtwork))
+                }.build()
+
+                mediaItem.buildUpon().apply {
+                    setUri(mediaItem.mediaId)
+                    setSubtitleConfigurations(externalSubs)
+                    setMediaMetadata(
+                        MediaMetadata.Builder().apply {
+                            setTitle(title)
+                            setArtworkUri(artwork)
+                            setExtras(
+                                Bundle().apply {
+                                    putLong("position", mediaState?.position ?: C.TIME_UNSET)
+                                    mediaState?.audioTrackIndex?.let { putInt("audioTrackIndex", it) }
+                                    mediaState?.subtitleTrackIndex?.let { putInt("subtitleTrackIndex", it) }
+                                    putFloat("playbackSpeed", mediaState?.playbackSpeed ?: 1f)
+                                },
+                            )
+                        }.build(),
+                    )
+                }.build()
+            }
+
+            return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
+        }
+
+        override fun onAddMediaItems(mediaSession: MediaSession, controller: MediaSession.ControllerInfo, mediaItems: MutableList<MediaItem>): ListenableFuture<MutableList<MediaItem>> {
+            return super.onAddMediaItems(mediaSession, controller, mediaItems)
         }
     }
 

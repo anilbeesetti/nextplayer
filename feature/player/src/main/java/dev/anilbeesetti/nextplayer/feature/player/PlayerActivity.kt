@@ -519,83 +519,26 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
-        val isCurrentUriIsFromIntent = intent.data == uri
-
         val mediaUri = intent.data?.let { getMediaContentUri(it) }
-        val playlist = mediaUri?.let { viewModel.getPlaylistFromUri(mediaUri) } ?: emptyList()
-        val currentMedia = playlist.find { it.uriString == uri.toString() }
+        val playlist = mediaUri?.let {
+            viewModel.getPlaylistFromUri(mediaUri).map { it.uriString }
+        } ?: listOf(uri.toString())
+        val currentMediaIndex = playlist.indexOfFirst { it == uri.toString() }
 
-        // Get all subtitles for current uri
-        val apiSubs = if (isCurrentUriIsFromIntent) playerApi.getSubs() else emptyList()
-
-        // current uri as MediaItem with subs
-        val subtitleStreams = createExternalSubtitleStreams(apiSubs)
-        val mediaStream = MediaItem.Builder()
-            .setMediaId(uri.toString())
-            .setUri(uri)
-            .setMediaMetadata(
-                MediaMetadata.Builder().apply {
-                    setTitle(playerApi.title.takeIf { isCurrentUriIsFromIntent && playerApi.hasTitle } ?: currentMedia?.displayName ?: getFilenameFromUri(uri))
-                    setArtworkUri(
-                        currentMedia?.thumbnailPath?.let { Uri.parse(it) }
-                            ?: Uri.Builder().apply {
-                                val defaultArtwork = R.drawable.artwork_default
-                                scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                                authority(resources.getResourcePackageName(defaultArtwork))
-                                appendPath(resources.getResourceTypeName(defaultArtwork))
-                                appendPath(resources.getResourceEntryName(defaultArtwork))
-                            }.build(),
-                    )
-                }.build(),
-            )
-            .setSubtitleConfigurations(subtitleStreams)
-            .build()
+        val mediaItems = playlist.mapIndexed { index, uri ->
+            MediaItem.Builder().apply {
+                setMediaId(uri)
+                if (index == currentMediaIndex && playerApi.hasTitle) {
+                    setMediaMetadata(MediaMetadata.Builder().setTitle(playerApi.title!!).build())
+                }
+            }.build()
+        }
 
         withContext(Dispatchers.Main) {
             player?.run {
-                setMediaItem(mediaStream, currentMedia?.playbackPosition ?: playerApi.position?.toLong() ?: C.TIME_UNSET)
+                setMediaItems(mediaItems, currentMediaIndex, C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
                 prepare()
-            }
-        }
-
-        if (playerPreferences.autoplay) {
-            if (mediaUri != null) {
-                var shouldPrepend = true
-
-                for (video in playlist) {
-                    val mediaItem = MediaItem.Builder().apply {
-                        setMediaId(video.uriString)
-                        setUri(video.uriString)
-                        setMediaMetadata(
-                            MediaMetadata.Builder().apply {
-                                setTitle(video.displayName)
-                                setArtworkUri(
-                                    video.thumbnailPath?.let { Uri.parse(it) }
-                                        ?: Uri.Builder().apply {
-                                            val defaultArtwork = R.drawable.artwork_default
-                                            scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                                            authority(resources.getResourcePackageName(defaultArtwork))
-                                            appendPath(resources.getResourceTypeName(defaultArtwork))
-                                            appendPath(resources.getResourceEntryName(defaultArtwork))
-                                        }.build(),
-                                )
-                            }.build(),
-                        )
-                    }.build()
-
-                    if (uri.toString() == video.uriString) {
-                        shouldPrepend = false
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            if (shouldPrepend) {
-                                player?.addMediaItem(player?.currentMediaItemIndex ?: 0, mediaItem)
-                            } else {
-                                player?.addMediaItem(mediaItem)
-                            }
-                        }
-                    }
-                }
             }
         }
     }
