@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -34,6 +33,8 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,10 +43,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 private const val END_POSITION_OFFSET = 5L
-
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class PlayerService : MediaSessionService() {
@@ -131,50 +132,17 @@ class PlayerService : MediaSessionService() {
             startIndex: Int,
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future {
-            val updatedMediaItems = mediaItems.map { mediaItem ->
-                val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
-
-                val uri = Uri.parse(mediaItem.mediaId)
-                val externalSubs = mediaState?.externalSubs?.map { subtitleUri ->
-                    subtitleUri.toSubtitleConfiguration(
-                        context = this@PlayerService,
-                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                    )
-                } ?: emptyList()
-                val title = mediaItem.mediaMetadata.title ?: mediaState?.title ?: getFilenameFromUri(uri)
-                val artwork = mediaState?.thumbnailPath?.let { Uri.parse(it) } ?: Uri.Builder().apply {
-                    val defaultArtwork = R.drawable.artwork_default
-                    scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                    authority(resources.getResourcePackageName(defaultArtwork))
-                    appendPath(resources.getResourceTypeName(defaultArtwork))
-                    appendPath(resources.getResourceEntryName(defaultArtwork))
-                }.build()
-
-                mediaItem.buildUpon().apply {
-                    setUri(mediaItem.mediaId)
-                    setSubtitleConfigurations(externalSubs)
-                    setMediaMetadata(
-                        MediaMetadata.Builder().apply {
-                            setTitle(title)
-                            setArtworkUri(artwork)
-                            setExtras(
-                                Bundle().apply {
-                                    putLong("position", mediaState?.position ?: C.TIME_UNSET)
-                                    mediaState?.audioTrackIndex?.let { putInt("audioTrackIndex", it) }
-                                    mediaState?.subtitleTrackIndex?.let { putInt("subtitleTrackIndex", it) }
-                                    putFloat("playbackSpeed", mediaState?.playbackSpeed ?: 1f)
-                                },
-                            )
-                        }.build(),
-                    )
-                }.build()
-            }
-
+            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
             return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
         }
 
-        override fun onAddMediaItems(mediaSession: MediaSession, controller: MediaSession.ControllerInfo, mediaItems: MutableList<MediaItem>): ListenableFuture<MutableList<MediaItem>> {
-            return super.onAddMediaItems(mediaSession, controller, mediaItems)
+        override fun onAddMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: MutableList<MediaItem>,
+        ): ListenableFuture<MutableList<MediaItem>> = serviceScope.future {
+            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+            return@future updatedMediaItems.toMutableList()
         }
     }
 
@@ -272,4 +240,42 @@ class PlayerService : MediaSessionService() {
             currentMediaState = null
         }
     }
+
+    private suspend fun updatedMediaItemsWithMetadata(
+        mediaItems: List<MediaItem>,
+    ): List<MediaItem> = supervisorScope {
+        mediaItems.map { mediaItem ->
+            async {
+                val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
+
+                val uri = Uri.parse(mediaItem.mediaId)
+                val externalSubs = mediaState?.externalSubs?.map { subtitleUri ->
+                    subtitleUri.toSubtitleConfiguration(
+                        context = this@PlayerService,
+                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                    )
+                } ?: emptyList()
+                val title = mediaItem.mediaMetadata.title ?: mediaState?.title ?: getFilenameFromUri(uri)
+                val artwork = mediaState?.thumbnailPath?.let { Uri.parse(it) } ?: Uri.Builder().apply {
+                    val defaultArtwork = R.drawable.artwork_default
+                    scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                    authority(resources.getResourcePackageName(defaultArtwork))
+                    appendPath(resources.getResourceTypeName(defaultArtwork))
+                    appendPath(resources.getResourceEntryName(defaultArtwork))
+                }.build()
+
+                mediaItem.buildUpon().apply {
+                    setUri(mediaItem.mediaId)
+                    setSubtitleConfigurations(externalSubs)
+                    setMediaMetadata(
+                        MediaMetadata.Builder().apply {
+                            setTitle(title)
+                            setArtworkUri(artwork)
+                        }.build(),
+                    )
+                }.build()
+            }
+        }.awaitAll()
+    }
 }
+
