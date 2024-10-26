@@ -98,6 +98,7 @@ import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -133,7 +134,7 @@ class PlayerActivity : AppCompatActivity() {
      * Player
      */
     private var controllerFuture: ListenableFuture<MediaController>? = null
-    private var player: Player? = null
+    private var player: MediaController? = null
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
@@ -145,15 +146,16 @@ class PlayerActivity : AppCompatActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private var subtitleFileLauncherLaunchedForMediaItem: MediaItem? = null
-    private var isSubtitleLauncherHasUri: Boolean = false
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null && subtitleFileLauncherLaunchedForMediaItem != null) {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            isSubtitleLauncherHasUri = true
-            viewModel.addExternalSubtitle(
-                mediaUri = subtitleFileLauncherLaunchedForMediaItem!!.mediaId,
-                subtitleUri = uri,
-            )
+            if (controllerFuture == null) {
+                val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
+                controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
+            }
+            lifecycleScope.launch {
+                controllerFuture?.await()?.addSubtitleTrack(uri)
+            }
         }
     }
 
@@ -285,45 +287,45 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStart() {
+        super.onStart()
         if (playerPreferences.rememberPlayerBrightness) {
             brightnessManager.setBrightness(playerPreferences.playerBrightness)
         }
-        val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
-        controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
-        controllerFuture?.addListener(
-            {
-                player = controllerFuture?.get()
-                setOrientation()
-                applyVideoScale(viewModel.currentVideoScale)
-                applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
+        if (controllerFuture == null) {
+            val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
+            controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
+        }
+        lifecycleScope.launch {
+            player = controllerFuture?.await()
 
-                player?.run {
-                    binding.playerView.player = this
-                    binding.playerView.keepScreenOn = isPlaying
-                    toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
-                    videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
-                    if (!playInBackgroundButton.isChecked) {
-                        playInBackgroundButton.isChecked = currentMediaItem != null && subtitleFileLauncherLaunchedForMediaItem == null
-                    }
-                    try {
-                        loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    addListener(playbackStateListener)
-                    volumeManager.loudnessEnhancer = loudnessEnhancer
-                    if (intent.data.toString() != currentMediaItem?.mediaId) {
-                        playVideo(uri = intent.data!!)
-                    } else {
-                        playWhenReady = viewModel.playWhenReady
-                    }
+            setOrientation()
+            applyVideoScale(viewModel.currentVideoScale)
+            applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
+
+            player?.run {
+                binding.playerView.player = this
+                binding.playerView.keepScreenOn = isPlaying
+                toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
+                videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
+                if (!playInBackgroundButton.isChecked) {
+                    playInBackgroundButton.isChecked = currentMediaItem != null && subtitleFileLauncherLaunchedForMediaItem == null
                 }
-                subtitleFileLauncherLaunchedForMediaItem = null
-            },
-            MoreExecutors.directExecutor(),
-        )
+                try {
+                    loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                addListener(playbackStateListener)
+                volumeManager.loudnessEnhancer = loudnessEnhancer
+                if (intent.data.toString() != currentMediaItem?.mediaId) {
+                    playVideo(uri = intent.data!!)
+                } else {
+                    playWhenReady = viewModel.playWhenReady
+                }
+            }
+            subtitleFileLauncherLaunchedForMediaItem = null
+        }
         initializePlayerView()
-        super.onStart()
     }
 
     override fun onStop() {
@@ -346,6 +348,7 @@ class PlayerActivity : AppCompatActivity() {
         }
         controllerFuture?.run {
             MediaController.releaseFuture(this)
+            controllerFuture = null
         }
         super.onStop()
     }
@@ -612,14 +615,6 @@ class PlayerActivity : AppCompatActivity() {
 
                 Player.STATE_READY -> {
                     Timber.d("Player state: READY")
-                    if (!isMediaItemReady && isSubtitleLauncherHasUri) {
-                        val textTracks = player?.currentTracks?.groups?.filter {
-                            it.type == C.TRACK_TYPE_TEXT && it.isSupported
-                        }?.takeIf { it.isNotEmpty() } ?: return
-
-                        player?.switchTrack(C.TRACK_TYPE_TEXT, textTracks.size - 1)
-                        isSubtitleLauncherHasUri = false
-                    }
                     binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                     isMediaItemReady = true
                     isFrameRendered = true

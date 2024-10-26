@@ -77,6 +77,36 @@ interface MediumDao {
         lastPlayedTime: Long?,
     )
 
+    @Query("UPDATE OR REPLACE media SET playback_position = :position WHERE uri = :uri")
+    suspend fun updateMediumPosition(
+        uri: String,
+        position: Long,
+    )
+
+    @Query("UPDATE OR REPLACE media SET playback_speed = :playbackSpeed WHERE uri = :uri")
+    suspend fun updateMediumPlaybackSpeed(
+        uri: String,
+        playbackSpeed: Float,
+    )
+
+    @Query("UPDATE OR REPLACE media SET audio_track_index = :audioTrackIndex WHERE uri = :uri")
+    suspend fun updateMediumAudioTrack(
+        uri: String,
+        audioTrackIndex: Int,
+    )
+
+    @Query("UPDATE OR REPLACE media SET subtitle_track_index = :subtitleTrackIndex WHERE uri = :uri")
+    suspend fun updateMediumSubtitleTrack(
+        uri: String,
+        subtitleTrackIndex: Int,
+    )
+
+    @Query("UPDATE OR REPLACE media SET last_played_time = :lastPlayedTime WHERE uri = :uri")
+    suspend fun updateMediumLastPlayedTime(
+        uri: String,
+        lastPlayedTime: Long,
+    )
+
     @Query("UPDATE OR REPLACE media SET external_subs = :externalSubs WHERE uri = :mediumUri")
     suspend fun addExternalSubtitle(mediumUri: String, externalSubs: String)
 

@@ -4,18 +4,28 @@ import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
+import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
+import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
+import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
@@ -25,10 +35,10 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
-import dev.anilbeesetti.nextplayer.feature.player.extensions.MediaState
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentMediaItemData
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.updateSubtitleConfigurations
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,17 +46,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.future
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
-private const val END_POSITION_OFFSET = 5L
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class PlayerService : MediaSessionService() {
@@ -62,23 +69,14 @@ class PlayerService : MediaSessionService() {
     private val playerPreferences: PlayerPreferences
         get() = runBlocking { preferencesRepository.playerPreferences.first() }
 
+    private val customCommands = CustomCommands.asSessionCommands()
+
     private var isMediaItemReady = false
     private var currentMediaItem = MutableStateFlow<MediaItem?>(null)
     private var currentVideoState: VideoState? = null
-    private var currentMediaState: MediaState? = null
-
-    init {
-        serviceScope.launch {
-            while (true) {
-                updateCurrentMediaState()
-                delay(1000)
-            }
-        }
-    }
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            saveCurrentMediaState()
             currentMediaItem.update { mediaItem }
             isMediaItemReady = false
             if (mediaItem != null) {
@@ -95,8 +93,50 @@ class PlayerService : MediaSessionService() {
             newPosition: Player.PositionInfo,
             reason: Int,
         ) {
-            updateCurrentMediaState()
+            if (
+                (reason == DISCONTINUITY_REASON_SEEK || reason == DISCONTINUITY_REASON_AUTO_TRANSITION) &&
+                oldPosition.mediaItem != null &&
+                newPosition.mediaItem != null &&
+                oldPosition.mediaItem != newPosition.mediaItem
+            ) {
+                mediaRepository.updateMediumPosition(
+                    uri = oldPosition.mediaItem!!.mediaId,
+                    position = oldPosition.positionMs,
+                )
+            }
+
+            if (reason == DISCONTINUITY_REASON_REMOVE && oldPosition.mediaItem != null) {
+                mediaRepository.updateMediumPosition(
+                    uri = oldPosition.mediaItem!!.mediaId,
+                    position = oldPosition.positionMs,
+                )
+            }
             super.onPositionDiscontinuity(oldPosition, newPosition, reason)
+        }
+
+        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
+            super.onPlaybackParametersChanged(playbackParameters)
+            mediaRepository.updateMediumPlaybackSpeed(
+                uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return,
+                playbackSpeed = playbackParameters.speed
+            )
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            super.onTracksChanged(tracks)
+            mediaSession?.player?.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO)?.let { audioTrackIndex ->
+                mediaRepository.updateMediumAudioTrack(
+                    uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return@let,
+                    audioTrackIndex = audioTrackIndex,
+                )
+            }
+
+            mediaSession?.player?.getCurrentTrackIndex(C.TRACK_TYPE_TEXT)?.let { subtitleTrackIndex ->
+                mediaRepository.updateMediumSubtitleTrack(
+                    uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return@let,
+                    subtitleTrackIndex = subtitleTrackIndex,
+                )
+            }
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -120,8 +160,18 @@ class PlayerService : MediaSessionService() {
     }
 
     private val mediaSessionCallback = object : MediaSession.Callback {
+        override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {
+            val connectionResult = super.onConnect(session, controller)
+            return MediaSession.ConnectionResult.accept(
+                connectionResult.availableSessionCommands
+                    .buildUpon()
+                    .addSessionCommands(customCommands)
+                    .build(),
+                connectionResult.availablePlayerCommands,
+            )
+        }
+
         override fun onDisconnected(session: MediaSession, controller: MediaSession.ControllerInfo) {
-            saveCurrentMediaState()
             super.onDisconnected(session, controller)
         }
 
@@ -143,6 +193,38 @@ class PlayerService : MediaSessionService() {
         ): ListenableFuture<MutableList<MediaItem>> = serviceScope.future {
             val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
             return@future updatedMediaItems.toMutableList()
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle,
+        ): ListenableFuture<SessionResult> = serviceScope.future {
+            val command = CustomCommands.fromSessionCommand(customCommand)
+                ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+
+            when (command) {
+                CustomCommands.ADD_SUBTITLE_TRACK -> {
+                    val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)
+                        ?.let { Uri.parse(it) } ?: run {
+                        return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                    }
+                    val existingSubtitleTracks = currentVideoState?.externalSubs ?: emptyList()
+
+                    val allSubtitles = existingSubtitleTracks + subtitleUri
+
+                    val subtitles = allSubtitles.map { uri ->
+                        uri.toSubtitleConfiguration(
+                            context = this@PlayerService,
+                            subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                        )
+                    }
+                    // TODO: add new uri to media state
+                    mediaSession?.player?.updateSubtitleConfigurations(subtitles)
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+            }
         }
     }
 
@@ -211,33 +293,12 @@ class PlayerService : MediaSessionService() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-        saveCurrentMediaState()
+        //TODO: Save current position
         mediaSession?.run {
             player.removeListener(playbackStateListener)
             player.release()
             release()
             mediaSession = null
-        }
-    }
-
-    private fun updateCurrentMediaState() {
-        val player = mediaSession?.player ?: return
-        if (player.currentMediaItem == null) return
-        if (player.currentMediaItem?.mediaId != currentMediaItem.value?.mediaId) return
-        currentMediaState = player.getCurrentMediaItemData()
-    }
-
-    private fun saveCurrentMediaState() {
-        if (!isMediaItemReady) return
-        currentMediaState?.let { data ->
-            mediaRepository.saveMediumState(
-                uri = data.uri,
-                position = data.position.takeIf { it < data.duration - END_POSITION_OFFSET } ?: C.TIME_UNSET,
-                audioTrackIndex = data.audioTrackIndex,
-                subtitleTrackIndex = data.subtitleTrackIndex,
-                playbackSpeed = data.playbackSpeed,
-            )
-            currentMediaState = null
         }
     }
 
@@ -277,5 +338,30 @@ class PlayerService : MediaSessionService() {
             }
         }.awaitAll()
     }
+}
+
+enum class CustomCommands(val customAction: String) {
+    ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK");
+
+    val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
+
+    companion object {
+        fun fromSessionCommand(sessionCommand: SessionCommand): CustomCommands? {
+            return entries.find { it.customAction == sessionCommand.customAction }
+        }
+
+        fun asSessionCommands(): List<SessionCommand> {
+            return entries.map { it.sessionCommand }
+        }
+
+        const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
+    }
+}
+
+fun MediaController.addSubtitleTrack(uri: Uri) {
+    val args = Bundle().apply {
+        putString(CustomCommands.SUBTITLE_TRACK_URI_KEY, uri.toString())
+    }
+    sendCustomCommand(CustomCommands.ADD_SUBTITLE_TRACK.sessionCommand, args)
 }
 

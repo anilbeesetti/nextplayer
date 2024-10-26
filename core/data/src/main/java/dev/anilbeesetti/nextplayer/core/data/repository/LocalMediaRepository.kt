@@ -89,4 +89,28 @@ class LocalMediaRepository @Inject constructor(
             )
         }
     }
+
+    override fun updateMediumPosition(uri: String, position: Long) {
+        applicationScope.launch {
+            mediumDao.updateMediumPosition(uri, position)
+        }
+    }
+
+    override fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float) {
+        applicationScope.launch {
+            mediumDao.updateMediumPlaybackSpeed(uri, playbackSpeed)
+        }
+    }
+
+    override fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
+        applicationScope.launch {
+            mediumDao.updateMediumAudioTrack(uri, audioTrackIndex)
+        }
+    }
+
+    override fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
+        applicationScope.launch {
+            mediumDao.updateMediumSubtitleTrack(uri, subtitleTrackIndex)
+        }
+    }
 }

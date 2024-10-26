@@ -127,23 +127,3 @@ var Player.skipSilenceEnabled: Boolean
             is ExoPlayer -> this.skipSilenceEnabled = value
         }
     }
-
-data class MediaState(
-    val uri: String,
-    val position: Long,
-    val duration: Long,
-    val audioTrackIndex: Int,
-    val subtitleTrackIndex: Int,
-    val playbackSpeed: Float,
-    val skipSilence: Boolean,
-)
-
-fun Player.getCurrentMediaItemData() = MediaState(
-    uri = currentMediaItem!!.mediaId,
-    position = currentPosition,
-    duration = duration,
-    audioTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_AUDIO),
-    subtitleTrackIndex = getCurrentTrackIndex(C.TRACK_TYPE_TEXT),
-    playbackSpeed = playbackParameters.speed,
-    skipSilence = skipSilenceEnabled,
-)
