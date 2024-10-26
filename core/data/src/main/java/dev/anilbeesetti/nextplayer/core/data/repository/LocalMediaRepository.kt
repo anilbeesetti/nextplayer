@@ -71,25 +71,6 @@ class LocalMediaRepository @Inject constructor(
         }
     }
 
-    override fun saveMediumState(
-        uri: String,
-        position: Long,
-        audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?,
-        playbackSpeed: Float?,
-    ) {
-        applicationScope.launch {
-            mediumDao.updateMediumState(
-                uri = uri,
-                position = position,
-                audioTrackIndex = audioTrackIndex,
-                subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed,
-                lastPlayedTime = System.currentTimeMillis(),
-            )
-        }
-    }
-
     override fun updateMediumPosition(uri: String, position: Long) {
         applicationScope.launch {
             mediumDao.updateMediumPosition(uri, position)

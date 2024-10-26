@@ -55,7 +55,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
@@ -63,14 +62,12 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
@@ -81,11 +78,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitle
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
-import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
@@ -93,7 +88,6 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
-import java.nio.charset.Charset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -101,6 +95,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -116,7 +111,6 @@ class PlayerActivity : AppCompatActivity() {
 
     var isMediaItemReady = false
     var isControlsLocked = false
-    private var isFirstFrameRendered = false
     private var isFrameRendered = false
     private var isPlayingOnScrubStart: Boolean = false
     private var previousScrubPosition = 0L
@@ -145,6 +139,7 @@ class PlayerActivity : AppCompatActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private var subtitleFileLauncherLaunchedForMediaItem: MediaItem? = null
+
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null && subtitleFileLauncherLaunchedForMediaItem != null) {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -229,7 +224,7 @@ class PlayerActivity : AppCompatActivity() {
         extraControls = binding.playerView.findViewById(R.id.extra_controls)
 
         if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
-            extraControls.gravity = Gravity.RIGHT
+            extraControls.gravity = Gravity.END
         }
 
         if (!isPipSupported) {
@@ -862,47 +857,6 @@ class PlayerActivity : AppCompatActivity() {
 
     fun hideTopInfo() {
         binding.topInfoLayout.visibility = View.GONE
-    }
-
-    private suspend fun createExternalSubtitleStreams(subtitles: List<Subtitle>): List<MediaItem.SubtitleConfiguration> {
-        return subtitles.map {
-            val charset = if (with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
-                Charset.forName(playerPreferences.subtitleTextEncoding)
-            } else {
-                null
-            }
-            MediaItem.SubtitleConfiguration.Builder(
-                convertToUTF8(
-                    uri = it.uri,
-                    charset = charset,
-                ),
-            ).apply {
-                setId(it.uri.toString())
-                setMimeType(it.uri.getSubtitleMime())
-                setLabel(it.name)
-                if (it.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-            }.build()
-        }
-    }
-
-    private suspend fun Uri.toSubtitleConfiguration(context: Context): MediaItem.SubtitleConfiguration {
-        val charset = if (with(playerPreferences.subtitleTextEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
-            Charset.forName(playerPreferences.subtitleTextEncoding)
-        } else {
-            null
-        }
-        val subtitle = toSubtitle(context)
-        return MediaItem.SubtitleConfiguration.Builder(
-            convertToUTF8(
-                uri = this,
-                charset = charset,
-            ),
-        ).apply {
-            setId(subtitle.uri.toString())
-            setMimeType(subtitle.uri.getSubtitleMime())
-            setLabel(subtitle.name)
-            if (subtitle.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-        }.build()
     }
 
     private fun resetExoContentFrameWidthAndHeight() {

@@ -15,13 +15,7 @@ interface MediaRepository {
         externalSubs: List<Uri>,
         videoScale: Float,
     )
-    fun saveMediumState(
-        uri: String,
-        position: Long,
-        audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?,
-        playbackSpeed: Float?,
-    )
+
     suspend fun getVideoState(uri: String): VideoState?
     suspend fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri)
     suspend fun externalSubtitlesFlowForVideo(uri: String): Flow<List<Uri>>

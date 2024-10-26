@@ -32,15 +32,6 @@ class FakeMediaRepository : MediaRepository {
     ) {
     }
 
-    override fun saveMediumState(
-        uri: String,
-        position: Long,
-        audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?,
-        playbackSpeed: Float?,
-    ) {
-    }
-
     override suspend fun getVideoState(uri: String): VideoState? {
         return null
     }

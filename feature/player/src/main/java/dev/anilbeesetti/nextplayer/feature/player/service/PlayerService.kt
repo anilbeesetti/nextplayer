@@ -178,7 +178,7 @@ class PlayerService : MediaSessionService() {
             mediaItems: MutableList<MediaItem>,
             startIndex: Int,
             startPositionMs: Long,
-        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future {
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future(Dispatchers.Default) {
             val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
             return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
         }
@@ -209,6 +209,7 @@ class PlayerService : MediaSessionService() {
                     }
                     val existingSubtitleTracks = currentVideoState?.externalSubs ?: emptyList()
 
+                    // TODO: get and set subtitles in the same folder
                     val allSubtitles = existingSubtitleTracks + subtitleUri
 
                     val subtitles = allSubtitles.map { uri ->
@@ -217,7 +218,7 @@ class PlayerService : MediaSessionService() {
                             subtitleEncoding = playerPreferences.subtitleTextEncoding,
                         )
                     }
-                    // TODO: add new uri to media state
+                    // TODO: add new subtitle uri to media state
                     mediaSession?.player?.updateSubtitleConfigurations(subtitles)
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
@@ -290,7 +291,6 @@ class PlayerService : MediaSessionService() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-        //TODO: Save current position
         mediaSession?.run {
             player.removeListener(playbackStateListener)
             player.release()
@@ -307,6 +307,7 @@ class PlayerService : MediaSessionService() {
                 val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
                 val uri = Uri.parse(mediaItem.mediaId)
+                // TODO: get and set subtitles in the same folder
                 val externalSubs = mediaState?.externalSubs?.map { subtitleUri ->
                     subtitleUri.toSubtitleConfiguration(
                         context = this@PlayerService,
