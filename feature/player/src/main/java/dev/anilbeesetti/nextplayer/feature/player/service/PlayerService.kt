@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player
+package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.app.PendingIntent
 import android.content.ContentResolver
@@ -20,7 +20,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
@@ -35,6 +34,8 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitleConfiguration
@@ -339,29 +340,3 @@ class PlayerService : MediaSessionService() {
         }.awaitAll()
     }
 }
-
-enum class CustomCommands(val customAction: String) {
-    ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK");
-
-    val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
-
-    companion object {
-        fun fromSessionCommand(sessionCommand: SessionCommand): CustomCommands? {
-            return entries.find { it.customAction == sessionCommand.customAction }
-        }
-
-        fun asSessionCommands(): List<SessionCommand> {
-            return entries.map { it.sessionCommand }
-        }
-
-        const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
-    }
-}
-
-fun MediaController.addSubtitleTrack(uri: Uri) {
-    val args = Bundle().apply {
-        putString(CustomCommands.SUBTITLE_TRACK_URI_KEY, uri.toString())
-    }
-    sendCustomCommand(CustomCommands.ADD_SUBTITLE_TRACK.sessionCommand, args)
-}
-
