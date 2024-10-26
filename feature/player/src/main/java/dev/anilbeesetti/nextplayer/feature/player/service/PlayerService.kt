@@ -102,7 +102,7 @@ class PlayerService : MediaSessionService() {
             ) {
                 mediaRepository.updateMediumPosition(
                     uri = oldPosition.mediaItem!!.mediaId,
-                    position = oldPosition.positionMs,
+                    position = if (reason == DISCONTINUITY_REASON_AUTO_TRANSITION) C.TIME_UNSET else oldPosition.positionMs,
                 )
             }
 
@@ -170,10 +170,6 @@ class PlayerService : MediaSessionService() {
                     .build(),
                 connectionResult.availablePlayerCommands,
             )
-        }
-
-        override fun onDisconnected(session: MediaSession, controller: MediaSession.ControllerInfo) {
-            super.onDisconnected(session, controller)
         }
 
         override fun onSetMediaItems(
