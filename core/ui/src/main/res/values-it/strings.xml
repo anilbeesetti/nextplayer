@@ -203,4 +203,7 @@
     <string name="subtitle_text_encoding">Encoding sottotitoli</string>
     <string name="skip_silence">Salta silenzio</string>
     <string name="tree">Albero</string>
+    <string name="control_buttons_alignment_left">Sinistra</string>
+    <string name="control_buttons_alignment_right">Destra</string>
+    <string name="control_buttons_alignment">Allineamento pulsanti di controllo</string>
 </resources>
