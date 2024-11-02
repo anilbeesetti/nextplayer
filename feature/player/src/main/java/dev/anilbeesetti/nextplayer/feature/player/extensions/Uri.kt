@@ -68,18 +68,14 @@ suspend fun Uri.toSubtitleConfiguration(
     context: Context,
     subtitleEncoding: String = "",
 ): MediaItem.SubtitleConfiguration {
-    val charset = if (with(subtitleEncoding) { isNotEmpty() && Charset.isSupported(this) }) {
+    val charset = if (subtitleEncoding.isNotEmpty() && Charset.isSupported(subtitleEncoding)) {
         Charset.forName(subtitleEncoding)
     } else {
         null
     }
     val subtitle = toSubtitle(context)
-    return MediaItem.SubtitleConfiguration.Builder(
-        context.convertToUTF8(
-            uri = this,
-            charset = charset,
-        ),
-    ).apply {
+    val utf8ConvertedUri = context.convertToUTF8(uri = this, charset = charset)
+    return MediaItem.SubtitleConfiguration.Builder(utf8ConvertedUri).apply {
         setId(subtitle.uri.toString())
         setMimeType(subtitle.uri.getSubtitleMime())
         setLabel(subtitle.name)
