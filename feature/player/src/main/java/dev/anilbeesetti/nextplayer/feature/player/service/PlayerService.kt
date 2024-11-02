@@ -43,6 +43,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -54,7 +55,6 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
@@ -101,7 +101,7 @@ class PlayerService : MediaSessionService() {
             when (reason) {
                 DISCONTINUITY_REASON_SEEK,
                 DISCONTINUITY_REASON_AUTO_TRANSITION,
-                    -> {
+                -> {
                     val newMediaItem = newPosition.mediaItem
                     if (newMediaItem != null && oldMediaItem != newMediaItem) {
                         mediaRepository.updateMediumPosition(

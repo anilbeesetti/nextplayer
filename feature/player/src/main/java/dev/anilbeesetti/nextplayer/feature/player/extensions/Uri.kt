@@ -14,7 +14,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
-import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 import java.io.File
 import java.nio.charset.Charset
 

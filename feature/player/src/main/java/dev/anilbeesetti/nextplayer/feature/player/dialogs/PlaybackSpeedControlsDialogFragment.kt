@@ -11,7 +11,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBinding
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class PlaybackSpeedControlsDialogFragment(
