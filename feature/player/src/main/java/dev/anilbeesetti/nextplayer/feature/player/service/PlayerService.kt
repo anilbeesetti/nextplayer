@@ -27,7 +27,9 @@ import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
+import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -288,6 +290,7 @@ class PlayerService : MediaSessionService() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+        subtitleCacheDir.deleteFiles()
         mediaSession?.run {
             player.removeListener(playbackStateListener)
             player.release()

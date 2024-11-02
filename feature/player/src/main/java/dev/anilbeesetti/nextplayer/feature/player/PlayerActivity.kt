@@ -326,7 +326,6 @@ class PlayerActivity : AppCompatActivity() {
         binding.volumeGestureLayout.visibility = View.GONE
         binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
-        subtitleCacheDir.deleteFiles()
         player?.run {
             viewModel.playWhenReady = playWhenReady
             viewModel.skipSilenceEnabled = skipSilenceEnabled
