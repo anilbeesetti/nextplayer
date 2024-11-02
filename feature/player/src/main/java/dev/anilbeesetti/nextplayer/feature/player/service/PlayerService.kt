@@ -15,7 +15,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
 import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
-import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -39,9 +38,7 @@ import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getTrackIndexFromId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
@@ -51,10 +48,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
@@ -77,18 +73,17 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
-    private var currentMediaItem = MutableStateFlow<MediaItem?>(null)
     private var currentVideoState: VideoState? = null
-    private var externalSubtitleId: String? = null
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            currentMediaItem.update { mediaItem }
             isMediaItemReady = false
             if (mediaItem != null) {
-                currentVideoState = runBlocking { mediaRepository.getVideoState(mediaItem.mediaId) }
-                if (playerPreferences.resume == Resume.YES) {
-                    currentVideoState?.position?.let { mediaSession?.player?.seekTo(it) }
+                serviceScope.launch {
+                    currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
+                    if (playerPreferences.resume == Resume.YES) {
+                        currentVideoState?.position?.let { mediaSession?.player?.seekTo(it) }
+                    }
                 }
             }
             super.onMediaItemTransition(mediaItem, reason)
@@ -128,23 +123,6 @@ class PlayerService : MediaSessionService() {
             )
         }
 
-        override fun onTracksChanged(tracks: Tracks) {
-            super.onTracksChanged(tracks)
-            mediaSession?.player?.getCurrentTrackIndex(C.TRACK_TYPE_AUDIO)?.let { audioTrackIndex ->
-                mediaRepository.updateMediumAudioTrack(
-                    uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return@let,
-                    audioTrackIndex = audioTrackIndex,
-                )
-            }
-
-            mediaSession?.player?.getCurrentTrackIndex(C.TRACK_TYPE_TEXT)?.let { subtitleTrackIndex ->
-                mediaRepository.updateMediumSubtitleTrack(
-                    uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return@let,
-                    subtitleTrackIndex = subtitleTrackIndex,
-                )
-            }
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
 
@@ -158,15 +136,8 @@ class PlayerService : MediaSessionService() {
                             state.audioTrackIndex?.let {
                                 mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
                             }
-                            externalSubtitleId?.let { subtitleId ->
-                                mediaSession?.player?.getTrackIndexFromId(C.TRACK_TYPE_TEXT, subtitleId)?.let {
-                                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
-                                }
-                                externalSubtitleId = null
-                            } ?: {
-                                state.subtitleTrackIndex?.let {
-                                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
-                                }
+                            state.subtitleTrackIndex?.let {
+                                mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
                             }
                             state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
                         }
@@ -180,7 +151,10 @@ class PlayerService : MediaSessionService() {
     }
 
     private val mediaSessionCallback = object : MediaSession.Callback {
-        override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult {
             val connectionResult = super.onConnect(session, controller)
             return MediaSession.ConnectionResult.accept(
                 connectionResult.availableSessionCommands
@@ -229,11 +203,48 @@ class PlayerService : MediaSessionService() {
                         uri = subtitleUri,
                         subtitleEncoding = playerPreferences.subtitleTextEncoding,
                     )
-                    mediaSession?.player?.currentMediaItem?.run {
-                        mediaRepository.addExternalSubtitleToMedium(uri = mediaId, subtitleUri = subtitleUri)
+                    mediaSession?.player?.let { player ->
+                        val currentMediaItem = player.currentMediaItem ?: return@let
+                        val textTracks = player.currentTracks.groups.filter {
+                            it.type == C.TRACK_TYPE_TEXT && it.isSupported
+                        }
+
+                        mediaRepository.updateMediumPosition(
+                            uri = currentMediaItem.mediaId,
+                            position = player.currentPosition,
+                        )
+                        mediaRepository.updateMediumSubtitleTrack(
+                            uri = currentMediaItem.mediaId,
+                            subtitleTrackIndex = textTracks.size,
+                        )
+                        mediaRepository.addExternalSubtitleToMedium(
+                            uri = currentMediaItem.mediaId,
+                            subtitleUri = subtitleUri
+                        )
+                        player.addAdditionalSubtitleConfiguration(newSubConfiguration)
                     }
-                    externalSubtitleId = newSubConfiguration.id
-                    mediaSession?.player?.addAdditionalSubtitleConfiguration(newSubConfiguration)
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+                CustomCommands.SWITCH_AUDIO_TRACK -> {
+                    val trackIndex = args.getInt(CustomCommands.AUDIO_TRACK_INDEX_KEY, 0)
+                    mediaSession?.player?.let { player ->
+                        player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex)
+                        mediaRepository.updateMediumAudioTrack(
+                            uri = player.currentMediaItem?.mediaId ?: return@let,
+                            audioTrackIndex = trackIndex,
+                        )
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+                CustomCommands.SWITCH_SUBTITLE_TRACK -> {
+                    val trackIndex = args.getInt(CustomCommands.SUBTITLE_TRACK_INDEX_KEY, 0)
+                    mediaSession?.player?.let { player ->
+                        player.switchTrack(C.TRACK_TYPE_TEXT, trackIndex)
+                        mediaRepository.updateMediumSubtitleTrack(
+                            uri = player.currentMediaItem?.mediaId ?: return@let,
+                            subtitleTrackIndex = trackIndex,
+                        )
+                    }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }
@@ -326,7 +337,7 @@ class PlayerService : MediaSessionService() {
                 val localSubs = uri.getLocalSubtitles(context = this@PlayerService, excludeSubsList = externalSubs)
 
                 val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
-                val subConfigurations = (externalSubs + localSubs).map { subtitleUri ->
+                val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
                     uriToSubtitleConfiguration(
                         uri = subtitleUri,
                         subtitleEncoding = playerPreferences.subtitleTextEncoding,

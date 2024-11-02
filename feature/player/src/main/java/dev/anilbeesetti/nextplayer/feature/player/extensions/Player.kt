@@ -95,19 +95,6 @@ val Player.audioSessionId: Int
         else -> C.AUDIO_SESSION_ID_UNSET
     }
 
-fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
-    return currentTracks.groups
-        .filter { it.type == type && it.isSupported }
-        .indexOfFirst { it.isSelected }
-}
-
-@OptIn(UnstableApi::class)
-fun Player.getTrackIndexFromId(type: @C.TrackType Int, id: String): Int? {
-    return currentTracks.groups
-        .filter { it.type == type && it.isSupported }
-        .indexOfFirst { it.mediaTrackGroup.getFormat(0).id?.contains(id) == true }.takeIf { it >= 0 }
-}
-
 fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
     val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
@@ -122,8 +109,8 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
         .build()
 
     val index = currentMediaItemIndex
+    addMediaItem(index + 1, updateMediaItem)
     removeMediaItem(index)
-    addMediaItem(index, updateMediaItem)
     seekToDefaultPosition(index)
 }
 

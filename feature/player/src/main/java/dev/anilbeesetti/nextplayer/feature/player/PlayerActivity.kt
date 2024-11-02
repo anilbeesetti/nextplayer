@@ -84,6 +84,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
@@ -440,7 +442,7 @@ class PlayerActivity : AppCompatActivity() {
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_AUDIO,
                 tracks = player?.currentTracks ?: return@setOnClickListener,
-                onTrackSelected = { player?.switchTrack(C.TRACK_TYPE_AUDIO, it) },
+                onTrackSelected = { player?.switchAudioTrack(it) },
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
 
@@ -448,7 +450,7 @@ class PlayerActivity : AppCompatActivity() {
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_TEXT,
                 tracks = player?.currentTracks ?: return@setOnClickListener,
-                onTrackSelected = { player?.switchTrack(C.TRACK_TYPE_TEXT, it) },
+                onTrackSelected = { player?.switchSubtitleTrack(it) },
                 onOpenLocalTrackClicked = {
                     subtitleFileLauncherLaunchedForMediaItem = player?.currentMediaItem
                     subtitleFileLauncher.launch(
@@ -608,30 +610,17 @@ class PlayerActivity : AppCompatActivity() {
             super.onPlaybackStateChanged(playbackState)
             when (playbackState) {
                 Player.STATE_ENDED -> {
-                    Timber.d("Player state: ENDED")
                     isPlaybackFinished = true
-                    lifecycleScope.launch {
-                        delay(100)
-                        if (player?.playbackState == Player.STATE_ENDED) {
-                            finish()
-                        }
-                    }
+                    finish()
                 }
 
                 Player.STATE_READY -> {
-                    Timber.d("Player state: READY")
                     binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                     isMediaItemReady = true
                     isFrameRendered = true
                 }
 
-                Player.STATE_BUFFERING -> {
-                    Timber.d("Player state: BUFFERING")
-                }
-
-                Player.STATE_IDLE -> {
-                    Timber.d("Player state: IDLE")
-                }
+                else -> {}
             }
         }
     }
