@@ -39,6 +39,7 @@ import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
+import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
@@ -94,25 +95,30 @@ class PlayerService : MediaSessionService() {
             newPosition: Player.PositionInfo,
             reason: Int,
         ) {
-            if (
-                (reason == DISCONTINUITY_REASON_SEEK || reason == DISCONTINUITY_REASON_AUTO_TRANSITION) &&
-                oldPosition.mediaItem != null &&
-                newPosition.mediaItem != null &&
-                oldPosition.mediaItem != newPosition.mediaItem
-            ) {
-                mediaRepository.updateMediumPosition(
-                    uri = oldPosition.mediaItem!!.mediaId,
-                    position = if (reason == DISCONTINUITY_REASON_AUTO_TRANSITION) C.TIME_UNSET else oldPosition.positionMs,
-                )
-            }
-
-            if (reason == DISCONTINUITY_REASON_REMOVE && oldPosition.mediaItem != null) {
-                mediaRepository.updateMediumPosition(
-                    uri = oldPosition.mediaItem!!.mediaId,
-                    position = oldPosition.positionMs,
-                )
-            }
             super.onPositionDiscontinuity(oldPosition, newPosition, reason)
+            val oldMediaItem = oldPosition.mediaItem ?: return
+
+            when (reason) {
+                DISCONTINUITY_REASON_SEEK,
+                DISCONTINUITY_REASON_AUTO_TRANSITION -> {
+                    val newMediaItem = newPosition.mediaItem
+                    if (newMediaItem != null && oldMediaItem != newMediaItem) {
+                        mediaRepository.updateMediumPosition(
+                            uri = oldMediaItem.mediaId,
+                            position = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET,
+                        )
+                    }
+                }
+
+                DISCONTINUITY_REASON_REMOVE -> {
+                    mediaRepository.updateMediumPosition(
+                        uri = oldMediaItem.mediaId,
+                        position = C.TIME_UNSET,
+                    )
+                }
+
+                else -> { /* DO NOTHING */ }
+            }
         }
 
         override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
@@ -244,6 +250,13 @@ class PlayerService : MediaSessionService() {
                             uri = player.currentMediaItem?.mediaId ?: return@let,
                             subtitleTrackIndex = trackIndex,
                         )
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+                CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
+                    val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
+                    mediaSession?.player?.let { player ->
+                        player.skipSilenceEnabled = enabled
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }

@@ -84,6 +84,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
@@ -475,7 +476,7 @@ class PlayerActivity : AppCompatActivity() {
                     player?.setPlaybackSpeed(it)
                 },
                 onSkipSilenceChanged = {
-                    player?.skipSilenceEnabled = it
+                    player?.setSkipSilenceEnabled(it)
                 },
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }

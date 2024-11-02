@@ -8,7 +8,8 @@ import androidx.media3.session.SessionCommand
 enum class CustomCommands(val customAction: String) {
     ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK"),
     SWITCH_AUDIO_TRACK(customAction = "SWITCH_AUDIO_TRACK"),
-    SWITCH_SUBTITLE_TRACK(customAction = "SWITCH_SUBTITLE_TRACK");
+    SWITCH_SUBTITLE_TRACK(customAction = "SWITCH_SUBTITLE_TRACK"),
+    SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED");
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
 
@@ -24,6 +25,7 @@ enum class CustomCommands(val customAction: String) {
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
         const val AUDIO_TRACK_INDEX_KEY = "audio_track_index"
         const val SUBTITLE_TRACK_INDEX_KEY = "subtitle_track_index"
+        const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
     }
 }
 
@@ -46,4 +48,11 @@ fun MediaController.switchSubtitleTrack(trackIndex: Int) {
         putInt(CustomCommands.SUBTITLE_TRACK_INDEX_KEY, trackIndex)
     }
     sendCustomCommand(CustomCommands.SWITCH_SUBTITLE_TRACK.sessionCommand, args)
+}
+
+fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
+    val args = Bundle().apply {
+        putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
+    }
+    sendCustomCommand(CustomCommands.SET_SKIP_SILENCE_ENABLED.sessionCommand, args)
 }
