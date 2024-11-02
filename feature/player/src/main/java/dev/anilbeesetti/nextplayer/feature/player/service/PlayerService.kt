@@ -137,9 +137,6 @@ class PlayerService : MediaSessionService() {
                 Player.STATE_READY -> {
                     if (!isMediaItemReady) {
                         currentVideoState?.let { state ->
-                            if (playerPreferences.resume == Resume.YES) {
-                                mediaSession?.player?.seekTo(state.position)
-                            }
                             state.audioTrackIndex?.let {
                                 mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
                             }
