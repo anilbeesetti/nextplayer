@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -24,6 +25,7 @@ class PlayerViewModel @Inject constructor(
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
 ) : ViewModel() {
 
+    var currentMediaItem: MediaItem? = null
     var playWhenReady: Boolean = true
     var currentVideoScale: Float = 1f
     var skipSilenceEnabled: Boolean = false
@@ -57,12 +59,6 @@ class PlayerViewModel @Inject constructor(
             videoScale = videoScale,
             externalSubs = listOf(),
         )
-    }
-
-    fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri) {
-        viewModelScope.launch {
-            mediaRepository.addExternalSubtitle(mediaUri = mediaUri, subtitleUri = subtitleUri)
-        }
     }
 
     fun setPlayerBrightness(value: Float) {

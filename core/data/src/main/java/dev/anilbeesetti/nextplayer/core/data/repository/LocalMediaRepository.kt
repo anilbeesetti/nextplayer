@@ -43,20 +43,6 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.get(uri)?.toVideoState()
     }
 
-    override suspend fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri) {
-        val currentExternalSubs = externalSubtitlesFlowForVideo(mediaUri).first().filterNot { it == subtitleUri }
-        mediumDao.addExternalSubtitle(
-            mediumUri = mediaUri,
-            externalSubs = UriListConverter.fromListToString(currentExternalSubs + subtitleUri),
-        )
-    }
-
-    override suspend fun externalSubtitlesFlowForVideo(uri: String): Flow<List<Uri>> {
-        return mediumDao.getAsFlow(uri).map { mediumEntity ->
-            mediumEntity?.let { UriListConverter.fromStringToList(it.externalSubs) } ?: emptyList()
-        }.distinctUntilChanged()
-    }
-
     override fun saveMediumUiState(
         uri: String,
         externalSubs: List<Uri>,

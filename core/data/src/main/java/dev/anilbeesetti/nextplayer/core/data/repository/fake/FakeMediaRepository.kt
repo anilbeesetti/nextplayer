@@ -36,13 +36,6 @@ class FakeMediaRepository : MediaRepository {
         return null
     }
 
-    override suspend fun addExternalSubtitle(mediaUri: String, subtitleUri: Uri) {
-    }
-
-    override suspend fun externalSubtitlesFlowForVideo(uri: String): Flow<List<Uri>> {
-        return flowOf(emptyList())
-    }
-
     override fun updateMediumPosition(uri: String, position: Long) {
     }
 

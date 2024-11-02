@@ -306,7 +306,8 @@ class PlayerActivity : AppCompatActivity() {
                 }
                 addListener(playbackStateListener)
                 volumeManager.loudnessEnhancer = loudnessEnhancer
-                if (intent.data.toString() != currentMediaItem?.mediaId) {
+
+                if (intent.data.toString() != currentMediaItem?.mediaId && viewModel.currentMediaItem == null) {
                     playVideo(uri = intent.data!!)
                 } else {
                     playWhenReady = viewModel.playWhenReady
@@ -552,6 +553,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
+            viewModel.currentMediaItem = mediaItem
             isMediaItemReady = false
         }
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
