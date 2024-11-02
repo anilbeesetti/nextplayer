@@ -306,7 +306,7 @@ class PlayerActivity : AppCompatActivity() {
                 addListener(playbackStateListener)
                 volumeManager.loudnessEnhancer = loudnessEnhancer
 
-                if (intent.data.toString() != currentMediaItem?.mediaId) {
+                if (intent.data != null && intent.data.toString() != currentMediaItem?.mediaId) {
                     playVideo(uri = viewModel.currentMediaItem?.localConfiguration?.uri ?: intent.data!!)
                 } else {
                     playWhenReady = viewModel.playWhenReady
