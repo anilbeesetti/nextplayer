@@ -54,4 +54,6 @@ class FakeMediaRepository : MediaRepository {
 
     override fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
     }
+    override fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
+    }
 }

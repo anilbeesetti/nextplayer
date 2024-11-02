@@ -101,13 +101,17 @@ fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
         .indexOfFirst { it.isSelected }
 }
 
-fun Player.addAdditionSubtitleConfigurations(subtitles: List<MediaItem.SubtitleConfiguration>) {
+fun Player.addAdditionSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
     val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
 
+    if (existingSubConfigurations.any { it.id == subtitle.id }) {
+        return
+    }
+
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()
-        .setSubtitleConfigurations(existingSubConfigurations + subtitles)
+        .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
         .build()
 
     val index = currentMediaItemIndex

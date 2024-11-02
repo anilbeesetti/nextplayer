@@ -98,4 +98,15 @@ class LocalMediaRepository @Inject constructor(
             mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
         }
     }
+
+    override fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
+        applicationScope.launch {
+            val currentExternalSubs = getVideoState(uri)?.externalSubs ?: emptyList()
+            if (currentExternalSubs.contains(subtitleUri)) return@launch
+            mediumDao.addExternalSubtitle(
+                mediumUri = uri,
+                externalSubs = UriListConverter.fromListToString(urlList = currentExternalSubs + subtitleUri),
+            )
+        }
+    }
 }

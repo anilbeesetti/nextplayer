@@ -38,7 +38,7 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
-import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionSubtitleConfigurations
+import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
@@ -217,9 +217,11 @@ class PlayerService : MediaSessionService() {
                         uri = subtitleUri,
                         subtitleEncoding = playerPreferences.subtitleTextEncoding,
                     )
-                    // TODO: add new subtitle uri to media state
                     // TODO: auto select newly added subtitle track
-                    mediaSession?.player?.addAdditionSubtitleConfigurations(listOf(newSubConfiguration))
+                    mediaSession?.player?.currentMediaItem?.run {
+                        mediaRepository.addExternalSubtitleToMedium(uri = mediaId, subtitleUri = subtitleUri)
+                    }
+                    mediaSession?.player?.addAdditionSubtitleConfiguration(newSubConfiguration)
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }
