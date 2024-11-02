@@ -100,7 +100,8 @@ class PlayerService : MediaSessionService() {
 
             when (reason) {
                 DISCONTINUITY_REASON_SEEK,
-                DISCONTINUITY_REASON_AUTO_TRANSITION -> {
+                DISCONTINUITY_REASON_AUTO_TRANSITION,
+                    -> {
                     val newMediaItem = newPosition.mediaItem
                     if (newMediaItem != null && oldMediaItem != newMediaItem) {
                         mediaRepository.updateMediumPosition(
@@ -117,7 +118,8 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                else -> { /* DO NOTHING */ }
+                else -> { /* DO NOTHING */
+                }
             }
         }
 
@@ -159,7 +161,7 @@ class PlayerService : MediaSessionService() {
     private val mediaSessionCallback = object : MediaSession.Callback {
         override fun onConnect(
             session: MediaSession,
-            controller: MediaSession.ControllerInfo
+            controller: MediaSession.ControllerInfo,
         ): MediaSession.ConnectionResult {
             val connectionResult = super.onConnect(session, controller)
             return MediaSession.ConnectionResult.accept(
@@ -225,12 +227,13 @@ class PlayerService : MediaSessionService() {
                         )
                         mediaRepository.addExternalSubtitleToMedium(
                             uri = currentMediaItem.mediaId,
-                            subtitleUri = subtitleUri
+                            subtitleUri = subtitleUri,
                         )
                         player.addAdditionalSubtitleConfiguration(newSubConfiguration)
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
+
                 CustomCommands.SWITCH_AUDIO_TRACK -> {
                     val trackIndex = args.getInt(CustomCommands.AUDIO_TRACK_INDEX_KEY, 0)
                     mediaSession?.player?.let { player ->
@@ -242,6 +245,7 @@ class PlayerService : MediaSessionService() {
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
+
                 CustomCommands.SWITCH_SUBTITLE_TRACK -> {
                     val trackIndex = args.getInt(CustomCommands.SUBTITLE_TRACK_INDEX_KEY, 0)
                     mediaSession?.player?.let { player ->
@@ -253,12 +257,23 @@ class PlayerService : MediaSessionService() {
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
+
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
                     mediaSession?.player?.let { player ->
                         player.skipSilenceEnabled = enabled
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
+                    val enabled = mediaSession?.player?.skipSilenceEnabled ?: false
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
+                        },
+                    )
                 }
             }
         }

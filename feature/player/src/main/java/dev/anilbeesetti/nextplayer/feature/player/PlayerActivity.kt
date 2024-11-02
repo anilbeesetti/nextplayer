@@ -42,6 +42,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -55,10 +56,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
-import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
@@ -76,7 +75,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
-import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
@@ -84,6 +82,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
@@ -97,6 +96,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -327,7 +327,9 @@ class PlayerActivity : AppCompatActivity() {
         currentOrientation = requestedOrientation
         player?.run {
             viewModel.playWhenReady = playWhenReady
-            viewModel.skipSilenceEnabled = skipSilenceEnabled
+            lifecycleScope.launch {
+                viewModel.skipSilenceEnabled = getSkipSilenceEnabled()
+            }
         }
         player?.removeListener(playbackStateListener)
         binding.playerView.player = null
@@ -470,14 +472,7 @@ class PlayerActivity : AppCompatActivity() {
 
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedControlsDialogFragment(
-                currentSpeed = player?.playbackParameters?.speed ?: return@setOnClickListener,
-                skipSilenceEnabled = player?.skipSilenceEnabled ?: return@setOnClickListener,
-                onChange = {
-                    player?.setPlaybackSpeed(it)
-                },
-                onSkipSilenceChanged = {
-                    player?.setSkipSilenceEnabled(it)
-                },
+                mediaController = player ?: return@setOnClickListener,
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 
