@@ -42,7 +42,6 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -74,7 +73,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
@@ -83,7 +81,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfig
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
-import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
@@ -96,7 +93,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -310,8 +306,8 @@ class PlayerActivity : AppCompatActivity() {
                 addListener(playbackStateListener)
                 volumeManager.loudnessEnhancer = loudnessEnhancer
 
-                if (intent.data.toString() != currentMediaItem?.mediaId && viewModel.currentMediaItem == null) {
-                    playVideo(uri = intent.data!!)
+                if (intent.data.toString() != currentMediaItem?.mediaId) {
+                    playVideo(uri = viewModel.currentMediaItem?.localConfiguration?.uri ?: intent.data!!)
                 } else {
                     playWhenReady = viewModel.playWhenReady
                 }
@@ -516,22 +512,23 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
-        val mediaUri = intent.data?.let { getMediaContentUri(it) }
-        val playlist = mediaUri?.let {
-            viewModel.getPlaylistFromUri(mediaUri).map { it.uriString }
-        } ?: listOf(uri.toString())
-        val currentMediaIndex = playlist.indexOfFirst { it == uri.toString() }
+        val playlist = intent.data
+            ?.let { getMediaContentUri(it) }
+            ?.let { viewModel.getPlaylistFromUri(it).map { it.uriString } }
+            ?: listOf(uri.toString())
+
+        val mediaItemIndexToPlay = playlist.indexOfFirst { it == uri.toString() }
 
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
                 setMediaId(uri)
-                if (index == currentMediaIndex) {
+                if (index == mediaItemIndexToPlay) {
                     setMediaMetadata(MediaMetadata.Builder().setTitle(playerApi.title).build())
                     val apiSubs = playerApi.getSubs().map { subtitle ->
                         uriToSubtitleConfiguration(
                             uri = subtitle.uri,
                             subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                            isSelected = subtitle.isSelected
+                            isSelected = subtitle.isSelected,
                         )
                     }
                     setSubtitleConfigurations(apiSubs)
@@ -541,7 +538,7 @@ class PlayerActivity : AppCompatActivity() {
 
         withContext(Dispatchers.Main) {
             player?.run {
-                setMediaItems(mediaItems, currentMediaIndex, playerApi.position?.toLong() ?: C.TIME_UNSET)
+                setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
                 prepare()
             }
@@ -554,6 +551,7 @@ class PlayerActivity : AppCompatActivity() {
             viewModel.currentMediaItem = mediaItem
             isMediaItemReady = false
         }
+
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             super.onMediaMetadataChanged(mediaMetadata)
             videoTitleTextView.text = mediaMetadata.title
@@ -647,7 +645,7 @@ class PlayerActivity : AppCompatActivity() {
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP,
             KeyEvent.KEYCODE_DPAD_UP,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                     volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
                     showVolumeGestureLayout()
@@ -657,7 +655,7 @@ class PlayerActivity : AppCompatActivity() {
 
             KeyEvent.KEYCODE_VOLUME_DOWN,
             KeyEvent.KEYCODE_DPAD_DOWN,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
                     volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
                     showVolumeGestureLayout()
@@ -669,7 +667,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_MEDIA_PAUSE,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
             KeyEvent.KEYCODE_BUTTON_SELECT,
-            -> {
+                -> {
                 when {
                     keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> player?.pause()
                     keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> player?.play()
@@ -682,7 +680,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_BUTTON_START,
             KeyEvent.KEYCODE_BUTTON_A,
             KeyEvent.KEYCODE_SPACE,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible) {
                     binding.playerView.togglePlayPause()
                     return true
@@ -692,7 +690,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_LEFT,
             KeyEvent.KEYCODE_BUTTON_L2,
             KeyEvent.KEYCODE_MEDIA_REWIND,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
                     player?.run {
                         if (scrubStartPosition == -1L) {
@@ -712,7 +710,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_BUTTON_R2,
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
                     player?.run {
                         if (scrubStartPosition == -1L) {
@@ -733,7 +731,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_ENTER,
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_NUMPAD_ENTER,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible) {
                     binding.playerView.showController()
                     return true
@@ -756,7 +754,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_VOLUME_DOWN,
             KeyEvent.KEYCODE_DPAD_UP,
             KeyEvent.KEYCODE_DPAD_DOWN,
-            -> {
+                -> {
                 hideVolumeGestureLayout()
                 return true
             }
@@ -767,7 +765,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_BUTTON_R2,
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-            -> {
+                -> {
                 hidePlayerInfo()
                 return true
             }

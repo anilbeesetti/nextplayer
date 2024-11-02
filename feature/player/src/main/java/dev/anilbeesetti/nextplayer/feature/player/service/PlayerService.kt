@@ -114,12 +114,11 @@ class PlayerService : MediaSessionService() {
                 DISCONTINUITY_REASON_REMOVE -> {
                     mediaRepository.updateMediumPosition(
                         uri = oldMediaItem.mediaId,
-                        position = C.TIME_UNSET,
+                        position = oldPosition.positionMs,
                     )
                 }
 
-                else -> { /* DO NOTHING */
-                }
+                else -> return
             }
         }
 
