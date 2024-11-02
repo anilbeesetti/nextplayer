@@ -114,6 +114,21 @@ fun Player.updateSubtitleConfigurations(subtitles: List<MediaItem.SubtitleConfig
     seekToDefaultPosition(index)
 }
 
+fun Player.addAdditionSubtitleConfigurations(subtitles: List<MediaItem.SubtitleConfiguration>) {
+    val currentMediaItemLocal = currentMediaItem ?: return
+    val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
+
+    val updateMediaItem = currentMediaItemLocal
+        .buildUpon()
+        .setSubtitleConfigurations(existingSubConfigurations + subtitles)
+        .build()
+
+    val index = currentMediaItemIndex
+    removeMediaItem(index)
+    addMediaItem(index, updateMediaItem)
+    seekToDefaultPosition(index)
+}
+
 @get:UnstableApi
 @set:UnstableApi
 var Player.skipSilenceEnabled: Boolean

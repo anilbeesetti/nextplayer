@@ -36,7 +36,9 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
+import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionSubtitleConfigurations
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.updateSubtitleConfigurations
@@ -119,7 +121,7 @@ class PlayerService : MediaSessionService() {
             super.onPlaybackParametersChanged(playbackParameters)
             mediaRepository.updateMediumPlaybackSpeed(
                 uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return,
-                playbackSpeed = playbackParameters.speed
+                playbackSpeed = playbackParameters.speed,
             )
         }
 
@@ -204,22 +206,17 @@ class PlayerService : MediaSessionService() {
             when (command) {
                 CustomCommands.ADD_SUBTITLE_TRACK -> {
                     val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)
-                        ?.let { Uri.parse(it) } ?: run {
-                        return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-                    }
-                    val existingSubtitleTracks = currentVideoState?.externalSubs ?: emptyList()
+                        ?.let { Uri.parse(it) }
+                        ?: run {
+                            return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                        }
 
-                    // TODO: get and set subtitles in the same folder
-                    val allSubtitles = existingSubtitleTracks + subtitleUri
-
-                    val subtitles = allSubtitles.map { uri ->
-                        uri.toSubtitleConfiguration(
-                            context = this@PlayerService,
-                            subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                        )
-                    }
+                    val newSubConfiguration = subtitleUri.toSubtitleConfiguration(
+                        context = this@PlayerService,
+                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                    )
                     // TODO: add new subtitle uri to media state
-                    mediaSession?.player?.updateSubtitleConfigurations(subtitles)
+                    mediaSession?.player?.addAdditionSubtitleConfigurations(listOf(newSubConfiguration))
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }
@@ -307,13 +304,16 @@ class PlayerService : MediaSessionService() {
                 val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
                 val uri = Uri.parse(mediaItem.mediaId)
-                // TODO: get and set subtitles in the same folder
-                val externalSubs = mediaState?.externalSubs?.map { subtitleUri ->
+                val externalSubs = mediaState?.externalSubs ?: emptyList()
+                val localSubs = uri.getLocalSubtitles(context = this@PlayerService, excludeSubsList = externalSubs)
+
+                val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
+                val subConfigurations = (externalSubs + localSubs).map { subtitleUri ->
                     subtitleUri.toSubtitleConfiguration(
                         context = this@PlayerService,
                         subtitleEncoding = playerPreferences.subtitleTextEncoding,
                     )
-                } ?: emptyList()
+                }
                 val title = mediaItem.mediaMetadata.title ?: mediaState?.title ?: getFilenameFromUri(uri)
                 val artwork = mediaState?.thumbnailPath?.let { Uri.parse(it) } ?: Uri.Builder().apply {
                     val defaultArtwork = R.drawable.artwork_default
@@ -325,7 +325,7 @@ class PlayerService : MediaSessionService() {
 
                 mediaItem.buildUpon().apply {
                     setUri(mediaItem.mediaId)
-                    setSubtitleConfigurations(externalSubs)
+                    setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(title)

@@ -24,7 +24,7 @@ fun String.getThumbnail(): File? {
 
 fun File.isSubtitle(): Boolean {
     val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
-    return extension in subtitleExtensions
+    return extension.lowercase() in subtitleExtensions
 }
 
 fun File.deleteFiles() {
