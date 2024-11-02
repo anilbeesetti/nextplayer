@@ -101,6 +101,13 @@ fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
         .indexOfFirst { it.isSelected }
 }
 
+@OptIn(UnstableApi::class)
+fun Player.getTrackIndexFromId(type: @C.TrackType Int, id: String): Int? {
+    return currentTracks.groups
+        .filter { it.type == type && it.isSupported }
+        .indexOfFirst { it.mediaTrackGroup.getFormat(0).id?.contains(id) == true }.takeIf { it >= 0 }
+}
+
 fun Player.addAdditionSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
     val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()

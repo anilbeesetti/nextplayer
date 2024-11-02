@@ -41,6 +41,7 @@ import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getTrackIndexFromId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
@@ -56,6 +57,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+import java.util.Locale.filter
 import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
@@ -78,6 +80,7 @@ class PlayerService : MediaSessionService() {
     private var isMediaItemReady = false
     private var currentMediaItem = MutableStateFlow<MediaItem?>(null)
     private var currentVideoState: VideoState? = null
+    private var externalSubtitleId: String? = null
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -156,8 +159,15 @@ class PlayerService : MediaSessionService() {
                             state.audioTrackIndex?.let {
                                 mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
                             }
-                            state.subtitleTrackIndex?.let {
-                                mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
+                            externalSubtitleId?.let { subtitleId ->
+                                mediaSession?.player?.getTrackIndexFromId(C.TRACK_TYPE_TEXT, subtitleId)?.let {
+                                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
+                                }
+                                externalSubtitleId = null
+                            } ?: {
+                                state.subtitleTrackIndex?.let {
+                                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
+                                }
                             }
                             state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
                         }
@@ -220,10 +230,10 @@ class PlayerService : MediaSessionService() {
                         uri = subtitleUri,
                         subtitleEncoding = playerPreferences.subtitleTextEncoding,
                     )
-                    // TODO: auto select newly added subtitle track
                     mediaSession?.player?.currentMediaItem?.run {
                         mediaRepository.addExternalSubtitleToMedium(uri = mediaId, subtitleUri = subtitleUri)
                     }
+                    externalSubtitleId = newSubConfiguration.id
                     mediaSession?.player?.addAdditionSubtitleConfiguration(newSubConfiguration)
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
