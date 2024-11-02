@@ -42,8 +42,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionSubtitle
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toSubtitleConfiguration
-import dev.anilbeesetti.nextplayer.feature.player.extensions.updateSubtitleConfigurations
+import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -151,8 +150,12 @@ class PlayerService : MediaSessionService() {
                 Player.STATE_READY -> {
                     if (!isMediaItemReady) {
                         currentVideoState?.let { state ->
-                            mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, state.audioTrackIndex)
-                            mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, state.subtitleTrackIndex)
+                            state.audioTrackIndex?.let {
+                                mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
+                            }
+                            state.subtitleTrackIndex?.let {
+                                mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
+                            }
                             state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
                         }
                         isMediaItemReady = true
@@ -208,16 +211,14 @@ class PlayerService : MediaSessionService() {
             when (command) {
                 CustomCommands.ADD_SUBTITLE_TRACK -> {
                     val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)
-                        ?.let { Uri.parse(it) }
-                        ?: run {
-                            return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-                        }
+                        ?.let { Uri.parse(it) } ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
 
-                    val newSubConfiguration = subtitleUri.toSubtitleConfiguration(
-                        context = this@PlayerService,
+                    val newSubConfiguration = uriToSubtitleConfiguration(
+                        uri = subtitleUri,
                         subtitleEncoding = playerPreferences.subtitleTextEncoding,
                     )
                     // TODO: add new subtitle uri to media state
+                    // TODO: auto select newly added subtitle track
                     mediaSession?.player?.addAdditionSubtitleConfigurations(listOf(newSubConfiguration))
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
@@ -312,8 +313,8 @@ class PlayerService : MediaSessionService() {
 
                 val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
                 val subConfigurations = (externalSubs + localSubs).map { subtitleUri ->
-                    subtitleUri.toSubtitleConfiguration(
-                        context = this@PlayerService,
+                    uriToSubtitleConfiguration(
+                        uri = subtitleUri,
                         subtitleEncoding = playerPreferences.subtitleTextEncoding,
                     )
                 }

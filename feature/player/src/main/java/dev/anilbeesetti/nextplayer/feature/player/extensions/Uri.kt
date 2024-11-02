@@ -54,28 +54,24 @@ fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyLi
     } ?: emptyList()
 }
 
-fun Uri.toSubtitle(context: Context) = Subtitle(
-    name = context.getFilenameFromUri(this),
-    uri = this,
-    isSelected = false,
-)
-
-suspend fun Uri.toSubtitleConfiguration(
-    context: Context,
+suspend fun Context.uriToSubtitleConfiguration(
+    uri: Uri,
     subtitleEncoding: String = "",
+    isSelected: Boolean = false,
 ): MediaItem.SubtitleConfiguration {
     val charset = if (subtitleEncoding.isNotEmpty() && Charset.isSupported(subtitleEncoding)) {
         Charset.forName(subtitleEncoding)
     } else {
         null
     }
-    val subtitle = toSubtitle(context)
-    val utf8ConvertedUri = context.convertToUTF8(uri = this, charset = charset)
+    val label = getFilenameFromUri(uri)
+    val mimeType = uri.getSubtitleMime()
+    val utf8ConvertedUri = convertToUTF8(uri = uri, charset = charset)
     return MediaItem.SubtitleConfiguration.Builder(utf8ConvertedUri).apply {
-        setId(subtitle.uri.toString())
-        setMimeType(subtitle.uri.getSubtitleMime())
-        setLabel(subtitle.name)
-        if (subtitle.isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+        setId(uri.toString())
+        setMimeType(mimeType)
+        setLabel(label)
+        if (isSelected) setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
     }.build()
 }
 

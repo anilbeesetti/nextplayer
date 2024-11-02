@@ -19,8 +19,7 @@ import timber.log.Timber
  * if trackIndex is a negative number, the track will be disabled
  * if trackIndex is a valid index, the track will be switched to that index
  */
-fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int?) {
-    if (trackIndex == null) return
+fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
     val trackTypeText = when (trackType) {
         C.TRACK_TYPE_AUDIO -> "audio"
         C.TRACK_TYPE_TEXT -> "subtitle"
@@ -100,18 +99,6 @@ fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
     return currentTracks.groups
         .filter { it.type == type && it.isSupported }
         .indexOfFirst { it.isSelected }
-}
-
-fun Player.updateSubtitleConfigurations(subtitles: List<MediaItem.SubtitleConfiguration>) {
-    val updateMediaItem = currentMediaItem
-        ?.buildUpon()
-        ?.setSubtitleConfigurations(subtitles)
-        ?.build() ?: return
-
-    val index = currentMediaItemIndex
-    removeMediaItem(index)
-    addMediaItem(index, updateMediaItem)
-    seekToDefaultPosition(index)
 }
 
 fun Player.addAdditionSubtitleConfigurations(subtitles: List<MediaItem.SubtitleConfiguration>) {
