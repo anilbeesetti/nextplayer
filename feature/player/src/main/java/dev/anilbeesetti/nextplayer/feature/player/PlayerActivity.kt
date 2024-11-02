@@ -81,6 +81,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientati
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
+import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
@@ -143,11 +144,8 @@ class PlayerActivity : AppCompatActivity() {
     private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
         if (uri != null && subtitleFileLauncherLaunchedForMediaItem != null) {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            if (controllerFuture == null) {
-                val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
-                controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
-            }
             lifecycleScope.launch {
+                maybeInitControllerFuture()
                 controllerFuture?.await()?.addSubtitleTrack(uri)
             }
         }
@@ -285,11 +283,8 @@ class PlayerActivity : AppCompatActivity() {
         if (playerPreferences.rememberPlayerBrightness) {
             brightnessManager.setBrightness(playerPreferences.playerBrightness)
         }
-        if (controllerFuture == null) {
-            val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
-            controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
-        }
         lifecycleScope.launch {
+            maybeInitControllerFuture()
             player = controllerFuture?.await()
 
             setOrientation()
@@ -344,6 +339,13 @@ class PlayerActivity : AppCompatActivity() {
             controllerFuture = null
         }
         super.onStop()
+    }
+
+    private fun maybeInitControllerFuture() {
+        if (controllerFuture == null) {
+            val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
+            controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
+        }
     }
 
     override fun onUserLeaveHint() {
@@ -524,15 +526,23 @@ class PlayerActivity : AppCompatActivity() {
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
                 setMediaId(uri)
-                if (index == currentMediaIndex && playerApi.hasTitle) {
-                    setMediaMetadata(MediaMetadata.Builder().setTitle(playerApi.title!!).build())
+                if (index == currentMediaIndex) {
+                    setMediaMetadata(MediaMetadata.Builder().setTitle(playerApi.title).build())
+                    val apiSubs = playerApi.getSubs().map { subtitle ->
+                        uriToSubtitleConfiguration(
+                            uri = subtitle.uri,
+                            subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                            isSelected = subtitle.isSelected
+                        )
+                    }
+                    setSubtitleConfigurations(apiSubs)
                 }
             }.build()
         }
 
         withContext(Dispatchers.Main) {
             player?.run {
-                setMediaItems(mediaItems, currentMediaIndex, C.TIME_UNSET)
+                setMediaItems(mediaItems, currentMediaIndex, playerApi.position?.toLong() ?: C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
                 prepare()
             }

@@ -108,7 +108,7 @@ fun Player.getTrackIndexFromId(type: @C.TrackType Int, id: String): Int? {
         .indexOfFirst { it.mediaTrackGroup.getFormat(0).id?.contains(id) == true }.takeIf { it >= 0 }
 }
 
-fun Player.addAdditionSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
+fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
     val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
 

@@ -38,7 +38,7 @@ import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
-import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getTrackIndexFromId
@@ -57,7 +57,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import java.util.Locale.filter
 import javax.inject.Inject
 
 @OptIn(UnstableApi::class)
@@ -234,7 +233,7 @@ class PlayerService : MediaSessionService() {
                         mediaRepository.addExternalSubtitleToMedium(uri = mediaId, subtitleUri = subtitleUri)
                     }
                     externalSubtitleId = newSubConfiguration.id
-                    mediaSession?.player?.addAdditionSubtitleConfiguration(newSubConfiguration)
+                    mediaSession?.player?.addAdditionalSubtitleConfiguration(newSubConfiguration)
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }
