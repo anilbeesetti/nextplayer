@@ -521,6 +521,7 @@ class PlayerActivity : AppCompatActivity() {
 
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
+                setUri(uri)
                 setMediaId(uri)
                 if (index == mediaItemIndexToPlay) {
                     setMediaMetadata(MediaMetadata.Builder().setTitle(playerApi.title).build())

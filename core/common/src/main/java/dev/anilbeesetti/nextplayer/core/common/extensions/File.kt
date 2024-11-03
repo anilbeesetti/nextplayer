@@ -1,16 +1,21 @@
 package dev.anilbeesetti.nextplayer.core.common.extensions
 
 import android.os.Environment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
-fun File.getSubtitles(): List<File> {
-    val mediaName = this.nameWithoutExtension
-    val subs = this.parentFile?.listFiles { file ->
-        file.nameWithoutExtension.startsWith(mediaName) && file.isSubtitle()
-    }?.toList() ?: emptyList()
+suspend fun File.getSubtitles(): List<File> = withContext(Dispatchers.IO) {
+    val mediaName = this@getSubtitles.nameWithoutExtension
+    val parentDir = this@getSubtitles.parentFile
+    val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
 
-    return subs
+    subtitleExtensions.mapNotNull { extension ->
+        val file = File(parentDir, "$mediaName.$extension")
+        file.takeIf { it.exists() }
+    }
 }
+
 
 fun String.getThumbnail(): File? {
     val filePathWithoutExtension = this.substringBeforeLast(".")

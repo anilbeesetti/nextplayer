@@ -14,6 +14,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.getSubtitles
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.charset.Charset
 
@@ -40,17 +42,20 @@ fun Uri.getSubtitleMime(): String {
 val Uri.isSchemaContent: Boolean
     get() = ContentResolver.SCHEME_CONTENT.equals(scheme, ignoreCase = true)
 
-fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyList()): List<Uri> {
-    return context.getPath(this)?.let { path ->
-        val excludeSubsPathList = excludeSubsList.mapNotNull { context.getPath(it) }
+suspend fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyList()): List<Uri> {
+    return withContext(Dispatchers.IO) {
+        val path = context.getPath(this@getLocalSubtitles) ?: return@withContext emptyList()
+
+        val excludeSubsPathSet = excludeSubsList.mapNotNull { context.getPath(it) }.toSet()
+
         File(path).getSubtitles().mapNotNull { file ->
-            if (file.path !in excludeSubsPathList) {
+            if (file.path !in excludeSubsPathSet) {
                 file.toUri()
             } else {
                 null
             }
         }
-    } ?: emptyList()
+    }
 }
 
 suspend fun Context.uriToSubtitleConfiguration(
