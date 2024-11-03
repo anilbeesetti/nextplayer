@@ -203,4 +203,7 @@
     <string name="played_progress">Progresso del reproduction</string>
     <string name="tree">Arbore</string>
     <string name="media_view_mode">Modo de visualisation de medio</string>
+    <string name="control_buttons_alignment_left">Sinistra</string>
+    <string name="control_buttons_alignment_right">Dextra</string>
+    <string name="control_buttons_alignment">Alineamento del buttones de controlo</string>
 </resources>
