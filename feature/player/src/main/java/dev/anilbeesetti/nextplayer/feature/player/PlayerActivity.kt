@@ -603,7 +603,6 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
-            println("HELLO: onPlaybackStateChanged $playbackState")
             when (playbackState) {
                 Player.STATE_ENDED, Player.STATE_IDLE -> {
                     isPlaybackFinished = player?.playbackState == Player.STATE_ENDED

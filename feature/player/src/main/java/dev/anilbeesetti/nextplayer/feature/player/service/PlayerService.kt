@@ -16,6 +16,7 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
 import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -91,8 +92,14 @@ class PlayerService : MediaSessionService() {
             if (mediaItem != null) {
                 serviceScope.launch {
                     currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
-                    if (playerPreferences.resume == Resume.YES) {
-                        currentVideoState?.position?.let { mediaSession?.player?.seekTo(it) }
+                    currentVideoState?.let { state ->
+                        state.position?.takeIf { playerPreferences.resume != Resume.YES }?.let {
+                            mediaSession?.player?.seekTo(it)
+                        }
+
+                        state.playbackSpeed?.let {
+                            mediaSession?.player?.setPlaybackSpeed(it)
+                        }
                     }
                 }
             }
@@ -138,35 +145,29 @@ class PlayerService : MediaSessionService() {
             )
         }
 
+        override fun onTracksChanged(tracks: Tracks) {
+            super.onTracksChanged(tracks)
+            if (!isMediaItemReady && tracks.groups.isNotEmpty()) {
+                isMediaItemReady = true
+
+                currentVideoState?.let { state ->
+                    if (!playerPreferences.rememberSelections) return@let
+                    state.audioTrackIndex?.let {
+                        mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
+                    }
+                    state.subtitleTrackIndex?.let {
+                        mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
+                    }
+                }
+            }
+        }
+
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
 
-            when (playbackState) {
-                Player.STATE_READY -> {
-                    if (!isMediaItemReady) {
-                        isMediaItemReady = true
-
-                        currentVideoState?.let { state ->
-                            if (!playerPreferences.rememberSelections) return@let
-                            state.audioTrackIndex?.let {
-                                mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
-                            }
-                            state.subtitleTrackIndex?.let {
-                                mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
-                            }
-                            state.playbackSpeed?.let {
-                                mediaSession?.player?.setPlaybackSpeed(it)
-                            }
-                        }
-                    }
-                }
-
-                Player.STATE_ENDED, Player.STATE_IDLE -> {
-                    mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.getDefaults(this@PlayerService)
-                    mediaSession?.player?.setPlaybackSpeed(1f)
-                }
-
-                else -> {}
+            if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
+                mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.getDefaults(this@PlayerService)
+                mediaSession?.player?.setPlaybackSpeed(1f)
             }
         }
     }
