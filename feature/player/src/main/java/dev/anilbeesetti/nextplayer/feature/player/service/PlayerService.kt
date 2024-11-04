@@ -46,6 +46,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import java.io.File
+import javax.inject.Inject
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -57,9 +60,6 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import java.io.File
-import javax.inject.Inject
-import kotlin.time.measureTimedValue
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint

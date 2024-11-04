@@ -4,9 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import androidx.core.net.toUri
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 
 suspend fun File.getSubtitles(): List<File> = withContext(Dispatchers.IO) {
     val mediaName = this@getSubtitles.nameWithoutExtension
@@ -33,7 +33,6 @@ suspend fun File.getLocalSubtitles(
         }
     }
 }
-
 
 fun String.getThumbnail(): File? {
     val filePathWithoutExtension = this.substringBeforeLast(".")
