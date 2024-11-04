@@ -121,13 +121,13 @@ class PlayerActivity : AppCompatActivity() {
     private var hideInfoLayoutJob: Job? = null
 
     private val shouldFastSeek: Boolean
-        get() = playerPreferences.shouldFastSeek(player?.duration ?: C.TIME_UNSET)
+        get() = playerPreferences.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET)
 
     /**
      * Player
      */
     private var controllerFuture: ListenableFuture<MediaController>? = null
-    private var player: MediaController? = null
+    private var mediaController: MediaController? = null
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
@@ -231,7 +231,7 @@ class PlayerActivity : AppCompatActivity() {
         seekBar.addListener(
             object : TimeBar.OnScrubListener {
                 override fun onScrubStart(timeBar: TimeBar, position: Long) {
-                    player?.run {
+                    mediaController?.run {
                         if (isPlaying) {
                             isPlayingOnScrubStart = true
                             pause()
@@ -259,7 +259,7 @@ class PlayerActivity : AppCompatActivity() {
                     hidePlayerInfo(0L)
                     scrubStartPosition = -1L
                     if (isPlayingOnScrubStart) {
-                        player?.play()
+                        mediaController?.play()
                     }
                 }
             },
@@ -284,13 +284,13 @@ class PlayerActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             maybeInitControllerFuture()
-            player = controllerFuture?.await()
+            mediaController = controllerFuture?.await()
 
             setOrientation()
             applyVideoScale(viewModel.currentVideoScale)
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
 
-            player?.run {
+            mediaController?.run {
                 binding.playerView.player = this
                 binding.playerView.keepScreenOn = isPlaying
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
@@ -321,20 +321,20 @@ class PlayerActivity : AppCompatActivity() {
         binding.volumeGestureLayout.visibility = View.GONE
         binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
-        player?.run {
+        mediaController?.run {
             viewModel.playWhenReady = playWhenReady
             lifecycleScope.launch {
                 viewModel.skipSilenceEnabled = getSkipSilenceEnabled()
             }
         }
-        player?.removeListener(playbackStateListener)
+        mediaController?.removeListener(playbackStateListener)
         binding.playerView.player = null
         if (subtitleFileLauncherLaunchedForMediaItem != null) {
-            player?.pause()
+            mediaController?.pause()
         }
         if (!playInBackgroundButton.isChecked && subtitleFileLauncherLaunchedForMediaItem == null) {
-            player?.clearMediaItems()
-            player?.stop()
+            mediaController?.clearMediaItems()
+            mediaController?.stop()
         }
         controllerFuture?.run {
             MediaController.releaseFuture(this)
@@ -356,7 +356,7 @@ class PlayerActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
             isPipSupported &&
             playerPreferences.autoPip &&
-            player?.isPlaying == true &&
+            mediaController?.isPlaying == true &&
             !isControlsLocked
         ) {
             try {
@@ -393,7 +393,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setOrientation() {
         requestedOrientation = currentOrientation ?: playerPreferences.playerScreenOrientation.toActivityOrientation(
-            videoOrientation = player?.videoSize?.let { videoSize ->
+            videoOrientation = mediaController?.videoSize?.let { videoSize ->
                 when {
                     videoSize.width == 0 || videoSize.height == 0 -> null
                     videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
@@ -440,18 +440,18 @@ class PlayerActivity : AppCompatActivity() {
         audioTrackButton.setOnClickListener {
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_AUDIO,
-                tracks = player?.currentTracks ?: return@setOnClickListener,
-                onTrackSelected = { player?.switchAudioTrack(it) },
+                tracks = mediaController?.currentTracks ?: return@setOnClickListener,
+                onTrackSelected = { mediaController?.switchAudioTrack(it) },
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
 
         subtitleTrackButton.setOnClickListener {
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_TEXT,
-                tracks = player?.currentTracks ?: return@setOnClickListener,
-                onTrackSelected = { player?.switchSubtitleTrack(it) },
+                tracks = mediaController?.currentTracks ?: return@setOnClickListener,
+                onTrackSelected = { mediaController?.switchSubtitleTrack(it) },
                 onOpenLocalTrackClicked = {
-                    subtitleFileLauncherLaunchedForMediaItem = player?.currentMediaItem
+                    subtitleFileLauncherLaunchedForMediaItem = mediaController?.currentMediaItem
                     subtitleFileLauncher.launch(
                         arrayOf(
                             MimeTypes.APPLICATION_SUBRIP,
@@ -468,7 +468,7 @@ class PlayerActivity : AppCompatActivity() {
 
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedControlsDialogFragment(
-                mediaController = player ?: return@setOnClickListener,
+                mediaController = mediaController ?: return@setOnClickListener,
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 
@@ -538,7 +538,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         withContext(Dispatchers.Main) {
-            player?.run {
+            mediaController?.run {
                 setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
                 prepare()
@@ -590,10 +590,10 @@ class PlayerActivity : AppCompatActivity() {
                 setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
                     finish()
                 }
-                if (player?.hasNextMediaItem() == true) {
+                if (mediaController?.hasNextMediaItem() == true) {
                     setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
                         dialog.dismiss()
-                        player?.seekToNext()
+                        mediaController?.seekToNext()
                     }
                 }
             }.create()
@@ -605,7 +605,7 @@ class PlayerActivity : AppCompatActivity() {
             super.onPlaybackStateChanged(playbackState)
             when (playbackState) {
                 Player.STATE_ENDED, Player.STATE_IDLE -> {
-                    isPlaybackFinished = player?.playbackState == Player.STATE_ENDED
+                    isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
                     finish()
                 }
 
@@ -624,8 +624,8 @@ class PlayerActivity : AppCompatActivity() {
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
-                duration = player?.duration ?: C.TIME_UNSET,
-                position = player?.currentPosition ?: C.TIME_UNSET,
+                duration = mediaController?.duration ?: C.TIME_UNSET,
+                position = mediaController?.currentPosition ?: C.TIME_UNSET,
             )
             setResult(Activity.RESULT_OK, result)
         }
@@ -635,7 +635,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
-            player?.clearMediaItems()
+            mediaController?.clearMediaItems()
             setIntent(intent)
             prettyPrintIntent()
             playVideo(intent.data!!)
@@ -670,10 +670,10 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_BUTTON_SELECT,
             -> {
                 when {
-                    keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> player?.pause()
-                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> player?.play()
-                    player?.isPlaying == true -> player?.pause()
-                    else -> player?.play()
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> mediaController?.pause()
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> mediaController?.play()
+                    mediaController?.isPlaying == true -> mediaController?.pause()
+                    else -> mediaController?.play()
                 }
                 return true
             }
@@ -693,7 +693,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_MEDIA_REWIND,
             -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                    player?.run {
+                    mediaController?.run {
                         if (scrubStartPosition == -1L) {
                             scrubStartPosition = currentPosition
                         }
@@ -713,7 +713,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
             -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                    player?.run {
+                    mediaController?.run {
                         if (scrubStartPosition == -1L) {
                             scrubStartPosition = currentPosition
                         }
@@ -740,7 +740,7 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             KeyEvent.KEYCODE_BACK -> {
-                if (binding.playerView.isControllerFullyVisible && player?.isPlaying == true && isDeviceTvBox()) {
+                if (binding.playerView.isControllerFullyVisible && mediaController?.isPlaying == true && isDeviceTvBox()) {
                     binding.playerView.hideController()
                     return true
                 }
@@ -778,9 +778,9 @@ class PlayerActivity : AppCompatActivity() {
         if (isFrameRendered) {
             isFrameRendered = false
             if (position > previousScrubPosition) {
-                player?.seekForward(position, shouldFastSeek)
+                mediaController?.seekForward(position, shouldFastSeek)
             } else {
-                player?.seekBack(position, shouldFastSeek)
+                mediaController?.seekBack(position, shouldFastSeek)
             }
             previousScrubPosition = position
         }
@@ -888,7 +888,7 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             VideoZoom.HUNDRED_PERCENT -> {
-                player?.videoSize?.let {
+                mediaController?.videoSize?.let {
                     exoContentFrameLayout.layoutParams.width = it.width
                     exoContentFrameLayout.layoutParams.height = it.height
                     exoContentFrameLayout.requestLayout()
