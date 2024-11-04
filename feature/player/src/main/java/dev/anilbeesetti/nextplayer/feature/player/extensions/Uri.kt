@@ -42,22 +42,6 @@ fun Uri.getSubtitleMime(): String {
 val Uri.isSchemaContent: Boolean
     get() = ContentResolver.SCHEME_CONTENT.equals(scheme, ignoreCase = true)
 
-suspend fun Uri.getLocalSubtitles(context: Context, excludeSubsList: List<Uri> = emptyList()): List<Uri> {
-    return withContext(Dispatchers.IO) {
-        val path = context.getPath(this@getLocalSubtitles) ?: return@withContext emptyList()
-
-        val excludeSubsPathSet = excludeSubsList.mapNotNull { context.getPath(it) }.toSet()
-
-        File(path).getSubtitles().mapNotNull { file ->
-            if (file.path !in excludeSubsPathSet) {
-                file.toUri()
-            } else {
-                null
-            }
-        }
-    }
-}
-
 suspend fun Context.uriToSubtitleConfiguration(
     uri: Uri,
     subtitleEncoding: String = "",

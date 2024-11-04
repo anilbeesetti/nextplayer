@@ -18,8 +18,6 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ConcatenatingMediaSource2
-import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -30,6 +28,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
+import dev.anilbeesetti.nextplayer.core.common.extensions.getLocalSubtitles
+import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -40,12 +40,10 @@ import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -57,7 +55,8 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import kotlin.time.measureTime
+import java.io.File
+import javax.inject.Inject
 import kotlin.time.measureTimedValue
 
 @OptIn(UnstableApi::class)
@@ -361,19 +360,9 @@ class PlayerService : MediaSessionService() {
     ): List<MediaItem> = supervisorScope {
         mediaItems.map { mediaItem ->
             async {
+                val uri = Uri.parse(mediaItem.mediaId)
                 val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
-                val uri = Uri.parse(mediaItem.mediaId)
-                val externalSubs = mediaState?.externalSubs ?: emptyList()
-                val localSubs = uri.getLocalSubtitles(context = this@PlayerService, excludeSubsList = externalSubs)
-
-                val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
-                val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
-                    uriToSubtitleConfiguration(
-                        uri = subtitleUri,
-                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                    )
-                }
                 val title = mediaItem.mediaMetadata.title ?: mediaState?.title ?: getFilenameFromUri(uri)
                 val artwork = mediaState?.thumbnailPath?.let { Uri.parse(it) } ?: Uri.Builder().apply {
                     val defaultArtwork = R.drawable.artwork_default
@@ -382,6 +371,22 @@ class PlayerService : MediaSessionService() {
                     appendPath(resources.getResourceTypeName(defaultArtwork))
                     appendPath(resources.getResourceEntryName(defaultArtwork))
                 }.build()
+
+                val externalSubs = mediaState?.externalSubs ?: emptyList()
+                val localSubs = (mediaState?.path ?: getPath(uri))?.let {
+                    File(it).getLocalSubtitles(
+                        context = this@PlayerService,
+                        excludeSubsList = externalSubs,
+                    )
+                } ?: emptyList()
+
+                val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
+                val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
+                    uriToSubtitleConfiguration(
+                        uri = subtitleUri,
+                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                    )
+                }
 
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
