@@ -8,7 +8,7 @@ fun MediumEntity.toVideoState(): VideoState {
     return VideoState(
         path = path,
         title = name,
-        position = playbackPosition,
+        position = playbackPosition.takeIf { it != 0L },
         audioTrackIndex = audioTrackIndex,
         subtitleTrackIndex = subtitleTrackIndex,
         playbackSpeed = playbackSpeed,

@@ -15,6 +15,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
 import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -81,6 +82,11 @@ class PlayerService : MediaSessionService() {
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            super.onMediaItemTransition(mediaItem, reason)
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !playerPreferences.autoplay) {
+                mediaSession?.player?.stop()
+                return
+            }
             isMediaItemReady = false
             if (mediaItem != null) {
                 serviceScope.launch {
@@ -90,7 +96,6 @@ class PlayerService : MediaSessionService() {
                     }
                 }
             }
-            super.onMediaItemTransition(mediaItem, reason)
         }
 
         override fun onPositionDiscontinuity(
@@ -141,17 +146,24 @@ class PlayerService : MediaSessionService() {
                     if (!isMediaItemReady) {
                         isMediaItemReady = true
 
-                        if (!playerPreferences.rememberSelections) return
                         currentVideoState?.let { state ->
+                            if (!playerPreferences.rememberSelections) return@let
                             state.audioTrackIndex?.let {
                                 mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
                             }
                             state.subtitleTrackIndex?.let {
                                 mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
                             }
-                            state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
+                            state.playbackSpeed?.let {
+                                mediaSession?.player?.setPlaybackSpeed(it)
+                            }
                         }
                     }
+                }
+
+                Player.STATE_ENDED, Player.STATE_IDLE -> {
+                    mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.getDefaults(this@PlayerService)
+                    mediaSession?.player?.setPlaybackSpeed(1f)
                 }
 
                 else -> {}
