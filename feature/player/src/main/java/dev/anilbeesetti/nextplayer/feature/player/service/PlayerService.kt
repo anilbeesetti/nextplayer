@@ -93,7 +93,7 @@ class PlayerService : MediaSessionService() {
                 serviceScope.launch {
                     currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
                     currentVideoState?.let { state ->
-                        state.position?.takeIf { playerPreferences.resume != Resume.YES }?.let {
+                        state.position?.takeIf { playerPreferences.resume == Resume.YES }?.let {
                             mediaSession?.player?.seekTo(it)
                         }
 
