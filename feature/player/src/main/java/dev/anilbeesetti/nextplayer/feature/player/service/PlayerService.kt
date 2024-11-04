@@ -139,6 +139,9 @@ class PlayerService : MediaSessionService() {
             when (playbackState) {
                 Player.STATE_READY -> {
                     if (!isMediaItemReady) {
+                        isMediaItemReady = true
+
+                        if (!playerPreferences.rememberSelections) return
                         currentVideoState?.let { state ->
                             state.audioTrackIndex?.let {
                                 mediaSession?.player?.switchTrack(C.TRACK_TYPE_AUDIO, it)
@@ -148,7 +151,6 @@ class PlayerService : MediaSessionService() {
                             }
                             state.playbackSpeed?.let { mediaSession?.player?.setPlaybackSpeed(it) }
                         }
-                        isMediaItemReady = true
                     }
                 }
 
