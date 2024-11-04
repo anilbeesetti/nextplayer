@@ -41,20 +41,6 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.get(uri)?.toVideoState()
     }
 
-    override fun saveMediumUiState(
-        uri: String,
-        externalSubs: List<Uri>,
-        videoScale: Float,
-    ) {
-        applicationScope.launch {
-            mediumDao.updateMediumUiState(
-                uri = uri,
-                externalSubs = UriListConverter.fromListToString(externalSubs),
-                videoScale = videoScale,
-            )
-        }
-    }
-
     override fun updateMediumPosition(uri: String, position: Long) {
         applicationScope.launch {
             mediumDao.updateMediumPosition(uri, position)
@@ -79,6 +65,13 @@ class LocalMediaRepository @Inject constructor(
     override fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
         applicationScope.launch {
             mediumDao.updateMediumSubtitleTrack(uri, subtitleTrackIndex)
+            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+        }
+    }
+
+    override fun updateMediumZoom(uri: String, zoom: Float) {
+        applicationScope.launch {
+            mediumDao.updateMediumZoom(uri, zoom)
             mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
         }
     }

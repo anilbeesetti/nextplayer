@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.feature.player.extensions.isSchemaContent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -27,7 +27,6 @@ class PlayerViewModel @Inject constructor(
 
     var currentMediaItem: MediaItem? = null
     var playWhenReady: Boolean = true
-    var currentVideoScale: Float = 1f
     var skipSilenceEnabled: Boolean = false
 
     val playerPrefs = preferencesRepository.playerPreferences.stateIn(
@@ -46,19 +45,12 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    fun saveMediaUiState(
-        uri: Uri,
-        videoScale: Float,
-    ) {
-        currentVideoScale = videoScale
+    suspend fun getVideoState(uri: String): VideoState? {
+        return mediaRepository.getVideoState(uri)
+    }
 
-        if (!uri.isSchemaContent) return
-
-        mediaRepository.saveMediumUiState(
-            uri = uri.toString(),
-            videoScale = videoScale,
-            externalSubs = listOf(),
-        )
+    fun updateMediumZoom(uri: String, zoom: Float) {
+        mediaRepository.updateMediumZoom(uri, zoom)
     }
 
     fun setPlayerBrightness(value: Float) {

@@ -272,6 +272,11 @@ class PlayerActivity : AppCompatActivity() {
             activity = this,
             volumeManager = volumeManager,
             brightnessManager = brightnessManager,
+            onScaleChanged = { scale ->
+                mediaController?.currentMediaItem?.mediaId?.let {
+                    viewModel.updateMediumZoom(uri = it, zoom = scale)
+                }
+            },
         )
 
         playerApi = PlayerApi(this)
@@ -287,8 +292,10 @@ class PlayerActivity : AppCompatActivity() {
             mediaController = controllerFuture?.await()
 
             setOrientation()
-            applyVideoScale(viewModel.currentVideoScale)
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
+            mediaController?.currentMediaItem?.mediaId?.let {
+                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 0f)
+            }
 
             mediaController?.run {
                 binding.playerView.player = this
@@ -576,9 +583,13 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             super.onVideoSizeChanged(videoSize)
-            applyVideoScale(viewModel.currentVideoScale)
-            applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
-            setOrientation()
+            lifecycleScope.launch {
+                applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
+                mediaController?.currentMediaItem?.mediaId?.let {
+                    applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 0f)
+                }
+                setOrientation()
+            }
         }
 
         override fun onPlayerError(error: PlaybackException) {

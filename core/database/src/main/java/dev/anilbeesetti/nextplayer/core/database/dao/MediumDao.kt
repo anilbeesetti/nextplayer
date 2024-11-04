@@ -101,6 +101,12 @@ interface MediumDao {
         subtitleTrackIndex: Int,
     )
 
+    @Query("UPDATE OR REPLACE media SET video_scale = :zoom WHERE uri = :uri")
+    suspend fun updateMediumZoom(
+        uri: String,
+        zoom: Float,
+    )
+
     @Query("UPDATE OR REPLACE media SET last_played_time = :lastPlayedTime WHERE uri = :uri")
     suspend fun updateMediumLastPlayedTime(
         uri: String,

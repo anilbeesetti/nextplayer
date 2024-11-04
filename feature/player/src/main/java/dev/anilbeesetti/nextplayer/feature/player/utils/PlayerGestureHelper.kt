@@ -29,6 +29,7 @@ class PlayerGestureHelper(
     private val activity: PlayerActivity,
     private val volumeManager: VolumeManager,
     private val brightnessManager: BrightnessManager,
+    private val onScaleChanged: (Float) -> Unit,
 ) {
     private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
@@ -229,6 +230,7 @@ class PlayerGestureHelper(
                     if (updatedVideoScale in SCALE_RANGE) {
                         exoContentFrameLayout.scaleX = scaleFactor
                         exoContentFrameLayout.scaleY = scaleFactor
+                        onScaleChanged(scaleFactor)
                     }
                     val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
                     activity.showPlayerInfo("${(currentVideoScale * 100).roundToInt()}%")
