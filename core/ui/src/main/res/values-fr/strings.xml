@@ -98,7 +98,7 @@
     <string name="dynamic_theme">Thème de couleur dynamique</string>
     <string name="select_playback_speed">Sélection de la vitesse de lecture</string>
     <string name="autoplay_settings">Lecture automatique</string>
-    <string name="autoplay_settings_description">Jouer la vidéo suivante du même dossier</string>
+    <string name="autoplay_settings_description">Lecture automatique dans le dossier courant</string>
     <string name="remember_selections_description">Mémoriser les sélections pour chaque fichier comme la piste audio, la piste de sous-titres, etc</string>
     <string name="controls_unlock">Déverrouiller les contrôles</string>
     <string name="audio">Audio</string>
@@ -161,4 +161,5 @@
     <string name="long_press_gesture_desc">Appuyez longuement pour lire à x%.1f</string>
     <string name="crop">Rogner</string>
     <string name="hundred_percent">100%</string>
+    <string name="audio_track">Piste Audio</string>
 </resources>
