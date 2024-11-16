@@ -12,6 +12,7 @@ enum class CustomCommands(val customAction: String) {
     SWITCH_SUBTITLE_TRACK(customAction = "SWITCH_SUBTITLE_TRACK"),
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
+    STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)

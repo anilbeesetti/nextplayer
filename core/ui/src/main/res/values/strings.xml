@@ -208,4 +208,5 @@
     <string name="control_buttons_alignment_left">Left</string>
     <string name="control_buttons_alignment_right">Right</string>
     <string name="control_buttons_alignment">Control buttons alignment</string>
+    <string name="stop_player_session">Stop player session</string>
 </resources>

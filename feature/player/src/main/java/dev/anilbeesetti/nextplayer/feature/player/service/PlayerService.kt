@@ -21,6 +21,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
@@ -39,6 +40,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
@@ -292,6 +294,12 @@ class PlayerService : MediaSessionService() {
                         },
                     )
                 }
+
+                CustomCommands.STOP_PLAYER_SESSION -> {
+                    mediaSession?.player?.stop()
+                    stopSelf()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
             }
         }
     }
@@ -345,6 +353,16 @@ class PlayerService : MediaSessionService() {
                     ),
                 )
                 setCallback(mediaSessionCallback)
+                setCustomLayout(
+                    listOf(
+                        CommandButton.Builder()
+                            .setIconResId(coreUiR.drawable.ic_close)
+                            .setDisplayName(getString(coreUiR.string.stop_player_session))
+                            .setSessionCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand)
+                            .setEnabled(true)
+                            .build()
+                    )
+                )
             }.build()
         } catch (e: Exception) {
             e.printStackTrace()
