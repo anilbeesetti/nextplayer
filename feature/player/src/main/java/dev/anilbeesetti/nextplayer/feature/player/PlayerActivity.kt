@@ -28,6 +28,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -49,7 +50,6 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
@@ -60,7 +60,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -96,6 +95,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -119,6 +119,8 @@ class PlayerActivity : AppCompatActivity() {
     private var hideVolumeIndicatorJob: Job? = null
     private var hideBrightnessIndicatorJob: Job? = null
     private var hideInfoLayoutJob: Job? = null
+
+    private var playInBackground: Boolean = false
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET)
@@ -168,7 +170,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
-    private lateinit var playInBackgroundButton: MaterialButton
+    private lateinit var playInBackgroundButton: ImageButton
     private lateinit var extraControls: LinearLayout
 
     private val isPipSupported: Boolean by lazy {
@@ -280,6 +282,13 @@ class PlayerActivity : AppCompatActivity() {
         )
 
         playerApi = PlayerApi(this)
+
+        onBackPressedDispatcher.addCallback {
+            mediaController?.run {
+                clearMediaItems()
+                stop()
+            }
+        }
     }
 
     override fun onStart() {
@@ -302,9 +311,6 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.keepScreenOn = isPlaying
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                 videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
-                if (!playInBackgroundButton.isChecked) {
-                    playInBackgroundButton.isChecked = currentMediaItem != null && subtitleFileLauncherLaunchedForMediaItem == null
-                }
                 try {
                     loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
                 } catch (e: Exception) {
@@ -325,6 +331,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
+        binding.playerView.player = null
         binding.volumeGestureLayout.visibility = View.GONE
         binding.brightnessGestureLayout.visibility = View.GONE
         currentOrientation = requestedOrientation
@@ -333,15 +340,15 @@ class PlayerActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 viewModel.skipSilenceEnabled = getSkipSilenceEnabled()
             }
+            removeListener(playbackStateListener)
         }
-        mediaController?.removeListener(playbackStateListener)
-        binding.playerView.player = null
         if (subtitleFileLauncherLaunchedForMediaItem != null) {
             mediaController?.pause()
-        }
-        if (!playInBackgroundButton.isChecked && subtitleFileLauncherLaunchedForMediaItem == null) {
-            mediaController?.clearMediaItems()
-            mediaController?.stop()
+        } else if (!playerPreferences.autoBackgroundPlay && !playInBackground) {
+            mediaController?.run {
+                clearMediaItems()
+                stop()
+            }
         }
         controllerFuture?.run {
             MediaController.releaseFuture(this)
@@ -515,7 +522,13 @@ class PlayerActivity : AppCompatActivity() {
                 this.enterPictureInPictureMode(updatePictureInPictureParams())
             }
         }
-        backButton.setOnClickListener { finish() }
+        playInBackgroundButton.setOnClickListener {
+            playInBackground = true
+            finish()
+        }
+        backButton.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
@@ -583,8 +596,8 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             super.onVideoSizeChanged(videoSize)
+            applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
             lifecycleScope.launch {
-                applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
                 mediaController?.currentMediaItem?.mediaId?.let {
                     applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 0f)
                 }

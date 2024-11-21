@@ -199,7 +199,6 @@ class PlayerService : MediaSessionService() {
             val (updatedMediaItems, time) = measureTimedValue {
                 updatedMediaItemsWithMetadata(mediaItems)
             }
-            println("HELLO: set media items ended - $time")
             return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
         }
 
@@ -296,8 +295,10 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
-                    mediaSession?.player?.stop()
-                    stopSelf()
+                    mediaSession?.player?.run {
+                        clearMediaItems()
+                        stop()
+                    } ?: stopSelf()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }

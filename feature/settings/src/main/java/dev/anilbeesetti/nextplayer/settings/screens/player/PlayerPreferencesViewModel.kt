@@ -114,6 +114,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun toggleAutoBackgroundPlay() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(autoBackgroundPlay = !it.autoBackgroundPlay)
+            }
+        }
+    }
+
     fun toggleRememberBrightnessLevel() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
