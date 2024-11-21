@@ -146,7 +146,7 @@ fun PlayerPreferencesScreen(
             )
             BackgroundPlaybackSetting(
                 isChecked = preferences.autoBackgroundPlay,
-                onClick = viewModel::toggleAutoBackgroundPlay
+                onClick = viewModel::toggleAutoBackgroundPlay,
             )
             RememberBrightnessSetting(
                 isChecked = preferences.rememberPlayerBrightness,

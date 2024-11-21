@@ -361,8 +361,8 @@ class PlayerService : MediaSessionService() {
                             .setDisplayName(getString(coreUiR.string.stop_player_session))
                             .setSessionCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand)
                             .setEnabled(true)
-                            .build()
-                    )
+                            .build(),
+                    ),
                 )
             }.build()
         } catch (e: Exception) {
