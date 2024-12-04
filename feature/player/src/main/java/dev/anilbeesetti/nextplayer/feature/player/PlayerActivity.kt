@@ -17,7 +17,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Rational
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.SurfaceView
 import android.view.View
@@ -28,11 +27,13 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
@@ -52,6 +53,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -62,7 +64,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
-import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -78,6 +79,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.getCurrentTrackInde
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getSubtitleMime
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
+import dev.anilbeesetti.nextplayer.feature.player.extensions.jumpToTimestamp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
@@ -105,7 +107,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -143,6 +148,9 @@ class PlayerActivity : AppCompatActivity() {
      * Player
      */
     private lateinit var player: Player
+    private lateinit var btnShowSections: ImageButton
+    private var isJsonFileLoaded = false
+
     private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playlistManager: PlaylistManager
     private lateinit var trackSelector: DefaultTrackSelector
@@ -186,10 +194,72 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
-    private lateinit var extraControls: LinearLayout
+    private lateinit var sectionsBottomSheet: BottomSheetDialog
+    private lateinit var sectionsList: LinearLayout
+
+    private val filePickerLauncher = registerForActivityResult(OpenDocument()) { uri: Uri? ->
+    uri?.let {
+        try {
+            if (!::sectionsBottomSheet.isInitialized) {
+                setupSectionsBottomSheet()
+            }
+            val sectionsJson = readJsonFromUri(it)
+            populateSectionsList(sectionsJson)
+            isJsonFileLoaded = true
+            sectionsBottomSheet.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Log the error message
+            Timber.e(e, "Failed to load JSON file: ${e.message}")
+            // Show a detailed error message to the user
+            Toast.makeText(this, "Failed to load JSON file: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    } ?: run {
+        // Handle the case where the URI is null
+        Timber.e("File picker returned a null URI")
+        Toast.makeText(this, "No file selected", Toast.LENGTH_SHORT).show()
+    }
+}
+
+    private fun readJsonFromUri(uri: Uri): String {
+        val inputStream = contentResolver.openInputStream(uri)
+        val bufferedReader = BufferedReader(InputStreamReader(inputStream))
+        return bufferedReader.use { it.readText() }
+    }
+
+    private fun populateSectionsList(sectionsJson: String) {
+        val sectionsArray = JSONArray(sectionsJson)
+        sectionsList.removeAllViews()
+
+        for (i in 0 until sectionsArray.length()) {
+            val section = sectionsArray.getJSONObject(i)
+            val title = section.getString("title")
+            val timestamp = section.getLong("timestamp")
+
+            val sectionItem = TextView(this).apply {
+                text = title
+                setPadding(16, 16, 16, 16)
+                setTextColor(ContextCompat.getColor(this@PlayerActivity, dev.anilbeesetti.nextplayer.core.ui.R.color.md_theme_dark_tertiaryContainer))
+                setOnClickListener {
+                    player.jumpToTimestamp(timestamp)
+                    sectionsBottomSheet.dismiss()
+                }
+            }
+            sectionsList.addView(sectionItem)
+        }
+    }
 
     private val isPipSupported: Boolean by lazy {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    }
+
+    private fun setupSectionsBottomSheet() {
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_sections, null)
+        sectionsList = view.findViewById(R.id.sections_list)
+
+        sectionsBottomSheet = BottomSheetDialog(this).apply {
+            setContentView(view)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -236,10 +306,21 @@ class PlayerActivity : AppCompatActivity() {
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
-        extraControls = binding.playerView.findViewById(R.id.extra_controls)
 
-        if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
-            extraControls.gravity = Gravity.RIGHT
+        // Initialize my views
+        btnShowSections = findViewById(R.id.btn_show_sections)
+
+        // Set up button click listener
+        btnShowSections.setOnClickListener {
+
+            if (!isJsonFileLoaded) {
+                filePickerLauncher.launch(arrayOf("application/json"))
+            } else {
+                if(!::sectionsBottomSheet.isInitialized) {
+                    setupSectionsBottomSheet()
+                }
+                sectionsBottomSheet.show()
+            }
         }
 
         if (!isPipSupported) {
@@ -434,6 +515,8 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
+
+
         audioTrackButton.setOnClickListener {
             trackSelector.currentMappedTrackInfo ?: return@setOnClickListener
 
@@ -465,6 +548,7 @@ class PlayerActivity : AppCompatActivity() {
                 },
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
+
 
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedControlsDialogFragment(
