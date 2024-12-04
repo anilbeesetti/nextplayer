@@ -533,9 +533,8 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
         val mediaUri = getMediaContentUri(uri)
-        val playlist = mediaUri?.let { viewModel.getPlaylistFromUri(it).map { it.uriString } } ?: listOf(uri.toString())
-
-        val mediaItemIndexToPlay = playlist.indexOfFirst { it == mediaUri.toString() }
+        val playlist = mediaUri?.let { viewModel.getPlaylistFromUri(it) }?.map { it.uriString } ?: listOf(uri.toString())
+        val mediaItemIndexToPlay = playlist.indexOfFirst { it == (mediaUri ?: uri).toString() }.takeIf { it >= 0 } ?: 0
 
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
@@ -596,9 +595,8 @@ class PlayerActivity : AppCompatActivity() {
             super.onVideoSizeChanged(videoSize)
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
             lifecycleScope.launch {
-                mediaController?.currentMediaItem?.mediaId?.let {
-                    applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 0f)
-                }
+                val videoScale = mediaController?.currentMediaItem?.mediaId?.let { viewModel.getVideoState(it)?.videoScale } ?: 1f
+                applyVideoScale(videoScale = videoScale)
                 setOrientation()
             }
         }
