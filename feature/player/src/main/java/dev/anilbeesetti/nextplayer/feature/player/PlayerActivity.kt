@@ -532,12 +532,10 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
-        val playlist = intent.data
-            ?.let { getMediaContentUri(it) }
-            ?.let { viewModel.getPlaylistFromUri(it).map { it.uriString } }
-            ?: listOf(uri.toString())
+        val mediaUri = getMediaContentUri(uri)
+        val playlist = mediaUri?.let { viewModel.getPlaylistFromUri(it).map { it.uriString } } ?: listOf(uri.toString())
 
-        val mediaItemIndexToPlay = playlist.indexOfFirst { it == uri.toString() }
+        val mediaItemIndexToPlay = playlist.indexOfFirst { it == mediaUri.toString() }
 
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
