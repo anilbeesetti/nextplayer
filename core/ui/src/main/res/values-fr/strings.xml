@@ -124,4 +124,8 @@
     <string name="subtitle_text_bold">Sous-titres en gras</string>
     <string name="subtitle_text_bold_desc">Utiliser un texte gras pour les sous-titres</string>
     <string name="serif">Serif</string>
+    <string name="monospace">Monodpace</string>
+    <string name="subtitle_background">Arrière-plan de sous-titres</string>
+    <string name="decoder">Décodeur</string>
+    <string name="no_audio_tracks_found">Les pistes audio pour cette vidéo sont indisponibles ou inexistantes.</string>
 </resources>

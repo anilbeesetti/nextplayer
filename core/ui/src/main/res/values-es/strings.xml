@@ -141,7 +141,7 @@
     <string name="delete_folder">Todos los archivos de vídeo de la siguiente carpeta se eliminarán de forma permanente.</string>
     <string name="best_fit">Mejor ajuste</string>
     <string name="stretch">Estirar</string>
-    <string name="crop">Cosecha</string>
+    <string name="crop">Cortar</string>
     <string name="hundred_percent">100%</string>
     <string name="autoplay_settings">Reproducción automática</string>
     <string name="autoplay_settings_description">Reproduce automáticamente el siguiente vídeo de esta carpeta</string>
