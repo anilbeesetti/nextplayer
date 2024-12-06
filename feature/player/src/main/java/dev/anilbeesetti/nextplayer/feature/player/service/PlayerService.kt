@@ -295,10 +295,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
-                    mediaSession?.player?.run {
-                        clearMediaItems()
-                        stop()
-                    } ?: stopSelf()
+                    stopSelf()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }
@@ -382,6 +379,8 @@ class PlayerService : MediaSessionService() {
         serviceScope.cancel()
         subtitleCacheDir.deleteFiles()
         mediaSession?.run {
+            player.clearMediaItems()
+            player.stop()
             player.removeListener(playbackStateListener)
             player.release()
             release()
