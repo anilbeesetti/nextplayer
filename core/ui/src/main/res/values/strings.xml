@@ -208,4 +208,7 @@
     <string name="control_buttons_alignment_left">Left</string>
     <string name="control_buttons_alignment_right">Right</string>
     <string name="control_buttons_alignment">Control buttons alignment</string>
+    <string name="stop_player_session">Stop player session</string>
+    <string name="background_play">Background play</string>
+    <string name="background_play_description">Play in background when tapped on home or screen is locked.</string>
 </resources>

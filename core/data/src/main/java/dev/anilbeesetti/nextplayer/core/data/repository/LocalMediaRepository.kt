@@ -18,7 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
@@ -42,29 +41,52 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.get(uri)?.toVideoState()
     }
 
-    override suspend fun saveVideoState(
-        uri: String,
-        position: Long,
-        audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?,
-        playbackSpeed: Float?,
-        externalSubs: List<Uri>,
-        videoScale: Float,
-    ) {
-        Timber.d(
-            "save state for [$uri]: [$position, $audioTrackIndex, $subtitleTrackIndex, $playbackSpeed]",
-        )
-
+    override fun updateMediumPosition(uri: String, position: Long) {
         applicationScope.launch {
-            mediumDao.updateMediumState(
+            val duration = mediumDao.get(uri)?.duration ?: position.plus(1)
+            mediumDao.updateMediumPosition(
                 uri = uri,
-                position = position,
-                audioTrackIndex = audioTrackIndex,
-                subtitleTrackIndex = subtitleTrackIndex,
-                playbackSpeed = playbackSpeed,
-                externalSubs = UriListConverter.fromListToString(externalSubs),
-                lastPlayedTime = System.currentTimeMillis(),
-                videoScale = videoScale,
+                position = position.takeIf { it < duration } ?: Long.MIN_VALUE.plus(1),
+            )
+            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+        }
+    }
+
+    override fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float) {
+        applicationScope.launch {
+            mediumDao.updateMediumPlaybackSpeed(uri, playbackSpeed)
+            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+        }
+    }
+
+    override fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
+        applicationScope.launch {
+            mediumDao.updateMediumAudioTrack(uri, audioTrackIndex)
+            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+        }
+    }
+
+    override fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
+        applicationScope.launch {
+            mediumDao.updateMediumSubtitleTrack(uri, subtitleTrackIndex)
+            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+        }
+    }
+
+    override fun updateMediumZoom(uri: String, zoom: Float) {
+        applicationScope.launch {
+            mediumDao.updateMediumZoom(uri, zoom)
+            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+        }
+    }
+
+    override fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
+        applicationScope.launch {
+            val currentExternalSubs = getVideoState(uri)?.externalSubs ?: emptyList()
+            if (currentExternalSubs.contains(subtitleUri)) return@launch
+            mediumDao.addExternalSubtitle(
+                mediumUri = uri,
+                externalSubs = UriListConverter.fromListToString(urlList = currentExternalSubs + subtitleUri),
             )
         }
     }
