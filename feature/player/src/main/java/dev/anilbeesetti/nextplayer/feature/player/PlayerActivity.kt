@@ -412,7 +412,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun updatePictureInPictureParams(enableAutoEnter: Boolean = player.isPlaying): PictureInPictureParams {
+    private fun updatePictureInPictureParams(enableAutoEnter: Boolean = mediaController?.isPlaying == true): PictureInPictureParams {
         val displayAspectRatio = Rational(binding.playerView.width, binding.playerView.height)
 
         return PictureInPictureParams.Builder().apply {
