@@ -10,14 +10,14 @@ interface MediaRepository {
     fun getVideosFlow(): Flow<List<Video>>
     fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>>
     fun getFoldersFlow(): Flow<List<Folder>>
-    suspend fun saveVideoState(
-        uri: String,
-        position: Long,
-        audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?,
-        playbackSpeed: Float?,
-        externalSubs: List<Uri>,
-        videoScale: Float,
-    )
+
     suspend fun getVideoState(uri: String): VideoState?
+
+    fun updateMediumPosition(uri: String, position: Long)
+    fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float)
+    fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int)
+    fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int)
+    fun updateMediumZoom(uri: String, zoom: Float)
+
+    fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri)
 }

@@ -1,15 +1,37 @@
 package dev.anilbeesetti.nextplayer.core.common.extensions
 
+import android.content.Context
+import android.net.Uri
 import android.os.Environment
+import androidx.core.net.toUri
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-fun File.getSubtitles(): List<File> {
-    val mediaName = this.nameWithoutExtension
-    val subs = this.parentFile?.listFiles { file ->
-        file.nameWithoutExtension.startsWith(mediaName) && file.isSubtitle()
-    }?.toList() ?: emptyList()
+suspend fun File.getSubtitles(): List<File> = withContext(Dispatchers.IO) {
+    val mediaName = this@getSubtitles.nameWithoutExtension
+    val parentDir = this@getSubtitles.parentFile
+    val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
 
-    return subs
+    subtitleExtensions.mapNotNull { extension ->
+        val file = File(parentDir, "$mediaName.$extension")
+        file.takeIf { it.exists() }
+    }
+}
+
+suspend fun File.getLocalSubtitles(
+    context: Context,
+    excludeSubsList: List<Uri> = emptyList(),
+): List<Uri> = withContext(Dispatchers.Default) {
+    val excludeSubsPathSet = excludeSubsList.mapNotNull { context.getPath(it) }.toSet()
+
+    getSubtitles().mapNotNull { file ->
+        if (file.path !in excludeSubsPathSet) {
+            file.toUri()
+        } else {
+            null
+        }
+    }
 }
 
 fun String.getThumbnail(): File? {
@@ -24,7 +46,7 @@ fun String.getThumbnail(): File? {
 
 fun File.isSubtitle(): Boolean {
     val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
-    return extension in subtitleExtensions
+    return extension.lowercase() in subtitleExtensions
 }
 
 fun File.deleteFiles() {

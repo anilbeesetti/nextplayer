@@ -4,14 +4,14 @@ android-targetSdk = "35"
 android-minSdk = "21"
 android-jvm = "17"
 aboutlibraries = "11.2.3"
-accompanist = "0.34.0"
+accompanist = "0.36.0"
 androidGradlePlugin = "8.7.3"
 androidMaterial = "1.12.0"
 androidxActivity = "1.9.3"
 androidxAppCompat = "1.7.0"
-androidxComposeBom = "2024.08.00"
+androidxComposeBom = "2024.11.00"
 androidxConstraintLayout = "2.2.0"
-androidxCore = "1.13.1"
+androidxCore = "1.15.0"
 androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.1.1"
 androidxEspresso = "3.6.1"
@@ -26,8 +26,9 @@ hilt = "2.53"
 junit4 = "4.13.2"
 kotlin = "2.1.0"
 kotlinxCoroutines = "1.8.1"
-ksp = "2.1.0-1.0.29"
+kotlinxCoroutinesGuava = "1.8.1"
 kotlinxSerializationJson = "1.7.3"
+ksp = "2.1.0-1.0.29"
 ktlint = "12.1.2"
 nextlib = "0.8.2"
 room = "2.6.1"
@@ -80,6 +81,7 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }

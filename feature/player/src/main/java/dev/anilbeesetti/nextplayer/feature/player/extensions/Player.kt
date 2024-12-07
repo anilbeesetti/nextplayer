@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import androidx.annotation.OptIn
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
@@ -18,8 +19,7 @@ import timber.log.Timber
  * if trackIndex is a negative number, the track will be disabled
  * if trackIndex is a valid index, the track will be switched to that index
  */
-fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int?) {
-    if (trackIndex == null) return
+fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
     val trackTypeText = when (trackType) {
         C.TRACK_TYPE_AUDIO -> "audio"
         C.TRACK_TYPE_TEXT -> "subtitle"
@@ -95,10 +95,22 @@ val Player.audioSessionId: Int
         else -> C.AUDIO_SESSION_ID_UNSET
     }
 
-fun Player.getCurrentTrackIndex(type: @C.TrackType Int): Int {
-    return currentTracks.groups
-        .filter { it.type == type && it.isSupported }
-        .indexOfFirst { it.isSelected }
+fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
+    val currentMediaItemLocal = currentMediaItem ?: return
+    val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
+
+    if (existingSubConfigurations.any { it.id == subtitle.id }) {
+        return
+    }
+
+    val updateMediaItem = currentMediaItemLocal
+        .buildUpon()
+        .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
+        .build()
+
+    val index = currentMediaItemIndex
+    addMediaItem(index + 1, updateMediaItem)
+    removeMediaItem(index)
 }
 
 @get:UnstableApi

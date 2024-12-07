@@ -207,6 +207,17 @@
                         android:src="@drawable/ic_pip"
                         app:tint="@android:color/white" />
 
+                    <ImageButton
+                        android:id="@+id/btn_background"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/dimen_controls_horizontal"
+                        android:background="@drawable/transparent_circle_background"
+                        android:contentDescription="@string/screen_rotation"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_headset"
+                        app:tint="@android:color/white" />
+
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -221,7 +232,7 @@
             android:orientation="horizontal">
 
             <ImageButton
-                android:id="@+id/btn_play_prev"
+                android:id="@+id/exo_prev"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:background="@drawable/transparent_circle_background"
@@ -245,7 +256,7 @@
 
 
             <ImageButton
-                android:id="@+id/btn_play_next"
+                android:id="@+id/exo_next"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:background="@drawable/transparent_circle_background"
