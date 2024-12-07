@@ -35,7 +35,7 @@ jobs:
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts 
 
       - name: Open pull request
-        uses: peter-evans/create-pull-request@v6.1.0
+        uses: peter-evans/create-pull-request@v7.0.5
         with:
           commit-message: "Build: prepare for v${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }}) release"
           branch: "release/${{ github.event.inputs.version }}"
