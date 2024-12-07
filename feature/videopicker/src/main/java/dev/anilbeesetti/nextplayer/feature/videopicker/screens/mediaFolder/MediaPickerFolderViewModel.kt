@@ -62,9 +62,7 @@ class MediaPickerFolderViewModel @Inject constructor(
     }
 
     fun addToMediaInfoSynchronizer(uri: Uri) {
-        viewModelScope.launch {
-            mediaInfoSynchronizer.addMedia(uri)
-        }
+        mediaInfoSynchronizer.syncMediaInfoForMediumUri(uri)
     }
 
     fun renameVideo(uri: Uri, to: String) {
