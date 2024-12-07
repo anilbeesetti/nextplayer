@@ -29,6 +29,7 @@ class PlayerGestureHelper(
     private val activity: PlayerActivity,
     private val volumeManager: VolumeManager,
     private val brightnessManager: BrightnessManager,
+    private val onScaleChanged: (Float) -> Unit,
 ) {
     private val prefs: PlayerPreferences
         get() = viewModel.playerPrefs.value
@@ -130,7 +131,7 @@ class PlayerGestureHelper(
                 if (inExclusionArea(firstEvent)) return false
                 if (!prefs.useSeekControls) return false
                 if (activity.isControlsLocked) return false
-                if (!activity.isFileLoaded) return false
+                if (!activity.isMediaItemReady) return false
                 if (abs(distanceX / distanceY) < 2) return false
 
                 if (currentGestureAction == null) {
@@ -223,12 +224,13 @@ class PlayerGestureHelper(
                 }
                 if (currentGestureAction != GestureAction.ZOOM) return false
 
-                activity.currentVideoSize?.let { videoSize ->
+                playerView.player?.videoSize?.let { videoSize ->
                     val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
                     val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / videoSize.width.toFloat()
                     if (updatedVideoScale in SCALE_RANGE) {
                         exoContentFrameLayout.scaleX = scaleFactor
                         exoContentFrameLayout.scaleY = scaleFactor
+                        onScaleChanged(scaleFactor)
                     }
                     val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
                     activity.showPlayerInfo("${(currentVideoScale * 100).roundToInt()}%")

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
+import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -121,6 +122,12 @@ fun PlayerPreferencesScreen(
                 currentValue = preferences.controllerAutoHideTimeout,
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) },
             )
+            ControlButtonsPositionSetting(
+                currentControlButtonPosition = preferences.controlButtonsPosition,
+                onClick = {
+                    viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog)
+                },
+            )
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             ResumeSetting(
                 onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) },
@@ -136,6 +143,10 @@ fun PlayerPreferencesScreen(
             PipSetting(
                 isChecked = preferences.autoPip,
                 onClick = viewModel::toggleAutoPip,
+            )
+            BackgroundPlaybackSetting(
+                isChecked = preferences.autoBackgroundPlay,
+                onClick = viewModel::toggleAutoBackgroundPlay,
             )
             RememberBrightnessSetting(
                 isChecked = preferences.rememberPlayerBrightness,
@@ -225,6 +236,24 @@ fun PlayerPreferencesScreen(
                                 selected = it == preferences.playerScreenOrientation,
                                 onClick = {
                                     viewModel.updatePreferredPlayerOrientation(it)
+                                    viewModel.hideDialog()
+                                },
+                            )
+                        }
+                    }
+                }
+
+                PlayerPreferenceDialog.ControlButtonsDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.control_buttons_alignment),
+                        onDismissClick = viewModel::hideDialog,
+                    ) {
+                        items(ControlButtonsPosition.entries.toTypedArray()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = it == preferences.controlButtonsPosition,
+                                onClick = {
+                                    viewModel.updatePreferredControlButtonsPosition(it)
                                     viewModel.hideDialog()
                                 },
                             )
@@ -514,6 +543,22 @@ fun PipSetting(
 }
 
 @Composable
+fun BackgroundPlaybackSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit,
+) {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.background_play),
+        description = stringResource(
+            id = R.string.background_play_description,
+        ),
+        icon = NextIcons.Headset,
+        isChecked = isChecked,
+        onClick = onClick,
+    )
+}
+
+@Composable
 fun RememberBrightnessSetting(
     isChecked: Boolean,
     onClick: () -> Unit,
@@ -568,6 +613,19 @@ fun ScreenOrientationSetting(
         title = stringResource(id = R.string.player_screen_orientation),
         description = currentOrientationPreference.name(),
         icon = NextIcons.Rotation,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun ControlButtonsPositionSetting(
+    currentControlButtonPosition: ControlButtonsPosition,
+    onClick: () -> Unit,
+) {
+    ClickablePreferenceItem(
+        title = stringResource(id = R.string.control_buttons_alignment),
+        description = currentControlButtonPosition.name(),
+        icon = NextIcons.ButtonsPosition,
         onClick = onClick,
     )
 }

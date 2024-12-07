@@ -55,6 +55,9 @@ dependencies {
     implementation(libs.github.anilbeesetti.nextlib.media3ext)
     implementation(libs.github.anilbeesetti.nextlib.mediainfo)
 
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.guava)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

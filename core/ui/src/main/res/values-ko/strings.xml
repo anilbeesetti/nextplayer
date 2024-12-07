@@ -202,4 +202,8 @@
     <string name="folders">폴더</string>
     <string name="tree">트리</string>
     <string name="media_view_mode">미디어 보기 모드</string>
+    <string name="played_progress">재생 진행률</string>
+    <string name="control_buttons_alignment_left">왼쪽</string>
+    <string name="control_buttons_alignment_right">오른쪽</string>
+    <string name="control_buttons_alignment">제어 버튼 정렬</string>
 </resources>

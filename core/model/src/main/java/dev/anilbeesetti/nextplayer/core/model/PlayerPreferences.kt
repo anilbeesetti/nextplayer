@@ -11,12 +11,14 @@ data class PlayerPreferences(
     val minDurationForFastSeek: Long = 120000L,
     val rememberSelections: Boolean = true,
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
+    val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
     val playerVideoZoom: VideoZoom = VideoZoom.BEST_FIT,
     val defaultPlaybackSpeed: Float = 1.0f,
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
     val autoPip: Boolean = true,
+    val autoBackgroundPlay: Boolean = false,
 
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,

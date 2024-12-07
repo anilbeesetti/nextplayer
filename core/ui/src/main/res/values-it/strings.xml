@@ -40,7 +40,7 @@
     <string name="unknown_error">Si è verificato un errore sconosciuto</string>
     <string name="video_zoom">Zoom video</string>
     <string name="video">video</string>
-    <string name="videos">video</string>
+    <string name="videos">Video</string>
     <string name="dark_theme">Tema scuro</string>
     <string name="enter_a_network_url">Inserisci un URL di rete:</string>
     <string name="network_stream">Flusso di rete</string>
@@ -202,4 +202,8 @@
     <string name="pip_settings_description">Passa automaticamente in miniatura quando premi il tasto Home</string>
     <string name="subtitle_text_encoding">Encoding sottotitoli</string>
     <string name="skip_silence">Salta silenzio</string>
+    <string name="tree">Albero</string>
+    <string name="control_buttons_alignment_left">Sinistra</string>
+    <string name="control_buttons_alignment_right">Destra</string>
+    <string name="control_buttons_alignment">Allineamento pulsanti di controllo</string>
 </resources>

@@ -180,4 +180,6 @@
     <string name="sample_rate">サンプリングレート</string>
     <string name="file">ファイル</string>
     <string name="format">形式</string>
+    <string name="pip_settings">ピクチャインピクチャ</string>
+    <string name="pip_settings_description">ホームボタンをタップすると、自動的にミニプレーヤーに切り替わります</string>
 </resources>
