@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/transparent_circle_background"
-            android:contentDescription="Export Bookmarks"
+            android:contentDescription="Export bookmarks"
             android:padding="12dp"
             android:src="@drawable/ic_export" />
     </LinearLayout>
