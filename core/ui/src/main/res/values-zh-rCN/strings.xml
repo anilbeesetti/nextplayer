@@ -209,4 +209,5 @@
     <string name="background_play_description">当返回主屏幕或锁屏时，继续在后台播放</string>
     <string name="stop_player_session">停止播放器会话</string>
     <string name="background_play">后台播放</string>
+    <string name="enable_pip_from_settings">画中画被停用。在设置中启用它来使用此功能。</string>
 </resources>
