@@ -83,6 +83,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.jumpToTimestamp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.jumpToTimestamp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
@@ -235,7 +236,7 @@ class PlayerActivity : AppCompatActivity() {
                 setPadding(16, 16, 16, 16)
                 setTextColor(ContextCompat.getColor(this@PlayerActivity, dev.anilbeesetti.nextplayer.core.ui.R.color.md_theme_dark_tertiaryContainer))
                 setOnClickListener {
-                    player.jumpToTimestamp(timestamp)
+                    mediaController?.jumpToTimestamp(timestamp)
                     sectionsBottomSheet.dismiss()
                 }
             }
