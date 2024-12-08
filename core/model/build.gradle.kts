@@ -7,7 +7,7 @@ plugins {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "21"
+        jvmTarget = libs.versions.android.jvm.get()
     }
 }
 
