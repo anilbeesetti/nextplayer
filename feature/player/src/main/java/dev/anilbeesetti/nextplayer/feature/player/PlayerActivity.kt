@@ -240,7 +240,6 @@ class PlayerActivity : AppCompatActivity() {
         val sectionItem = TextView(this).apply {
             text = title
             setPadding(16, 16, 16, 16)
-setTextColor(ContextCompat.getColor(this@PlayerActivity, dev.anilbeesetti.nextplayer.core.ui.R.color.md_theme_dark_inverseSurface))
             setOnClickListener {
                 mediaController?.jumpToTimestamp(timestamp)
                 sectionsBottomSheet.dismiss()
@@ -257,7 +256,7 @@ setTextColor(ContextCompat.getColor(this@PlayerActivity, dev.anilbeesetti.nextpl
         val sectionItem = TextView(this).apply {
             text = title
             setPadding(16, 16, 16, 16)
-            setTextColor(ContextCompat.getColor(this@PlayerActivity, dev.anilbeesetti.nextplayer.core.ui.R.color.md_theme_dark_tertiaryContainer))
+
             setOnClickListener {
                 mediaController?.jumpToTimestamp(timestamp)
                 sectionsBottomSheet.dismiss()
