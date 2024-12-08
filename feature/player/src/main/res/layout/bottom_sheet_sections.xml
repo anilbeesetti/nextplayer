@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<LinearLayout android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@drawable/bottom_sheet_background">
+    android:background="?attr/colorSurface"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sections"
-        android:textColor="@color/md_theme_dark_tertiaryContainer"
-        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-        android:paddingBottom="8dp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp"
+        android:background="?attr/colorSurface"
+        android:elevation="2dp"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sections"
+            android:textColor="?attr/colorOnSurface"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:paddingBottom="8dp" />
+
+        <ImageButton
+            android:id="@+id/btn_export_bookmarks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/transparent_circle_background"
+            android:contentDescription="Export Bookmarks"
+            android:padding="12dp"
+            android:src="@drawable/ic_export" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
