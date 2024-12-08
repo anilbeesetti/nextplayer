@@ -144,6 +144,10 @@ fun PlayerPreferencesScreen(
                 isChecked = preferences.autoPip,
                 onClick = viewModel::toggleAutoPip,
             )
+            BackgroundPlaybackSetting(
+                isChecked = preferences.autoBackgroundPlay,
+                onClick = viewModel::toggleAutoBackgroundPlay,
+            )
             RememberBrightnessSetting(
                 isChecked = preferences.rememberPlayerBrightness,
                 onClick = viewModel::toggleRememberBrightnessLevel,
@@ -533,6 +537,22 @@ fun PipSetting(
             id = R.string.pip_settings_description,
         ),
         icon = NextIcons.Pip,
+        isChecked = isChecked,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun BackgroundPlaybackSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit,
+) {
+    PreferenceSwitch(
+        title = stringResource(id = R.string.background_play),
+        description = stringResource(
+            id = R.string.background_play_description,
+        ),
+        icon = NextIcons.Headset,
         isChecked = isChecked,
         onClick = onClick,
     )

@@ -6,13 +6,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -101,10 +102,25 @@ fun VideoItem(
                 }
 
                 if (preferences.showPlayedProgress && video.playedPercentage > 0) {
-                    LinearProgressIndicator(
-                        progress = { video.playedPercentage },
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                    )
+                    Box(
+                        modifier = Modifier
+                            .height(4.dp)
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.secondaryContainer),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(video.playedPercentage)
+                                .fillMaxHeight()
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                        )
+                    }
                 }
             }
         },

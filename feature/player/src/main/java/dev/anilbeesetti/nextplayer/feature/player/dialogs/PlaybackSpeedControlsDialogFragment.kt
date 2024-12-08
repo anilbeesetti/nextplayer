@@ -3,16 +3,18 @@ package dev.anilbeesetti.nextplayer.feature.player.dialogs
 import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
+import androidx.media3.session.MediaController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBinding
+import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
+import kotlinx.coroutines.launch
 
 class PlaybackSpeedControlsDialogFragment(
-    private val currentSpeed: Float,
-    private val skipSilenceEnabled: Boolean,
-    private val onChange: (Float) -> Unit,
-    private val onSkipSilenceChanged: (Boolean) -> Unit,
+    private val mediaController: MediaController,
 ) : DialogFragment() {
 
     private lateinit var binding: PlaybackSpeedBinding
@@ -22,13 +24,16 @@ class PlaybackSpeedControlsDialogFragment(
 
         return activity?.let { activity ->
             binding.apply {
+                val currentSpeed = mediaController.playbackParameters.speed
                 speedText.text = currentSpeed.toString()
                 speed.value = currentSpeed.round(1)
-                skipSilence.isChecked = skipSilenceEnabled
+                lifecycleScope.launch {
+                    skipSilence.isChecked = mediaController.getSkipSilenceEnabled()
+                }
 
                 speed.addOnChangeListener { _, _, _ ->
                     val newSpeed = speed.value.round(1)
-                    onChange(newSpeed)
+                    mediaController.setPlaybackSpeed(newSpeed)
                     speedText.text = newSpeed.toString()
                 }
                 incSpeed.setOnClickListener {
@@ -53,7 +58,7 @@ class PlaybackSpeedControlsDialogFragment(
                 button40x.setOnClickListener { speed.value = 4.0f }
 
                 skipSilence.setOnCheckedChangeListener { _, isChecked ->
-                    onSkipSilenceChanged(isChecked)
+                    mediaController.setSkipSilenceEnabled(isChecked)
                 }
             }
 

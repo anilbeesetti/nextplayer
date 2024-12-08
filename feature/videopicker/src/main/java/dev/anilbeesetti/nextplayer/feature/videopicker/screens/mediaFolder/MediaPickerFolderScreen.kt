@@ -1,10 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -14,14 +12,12 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -83,20 +79,6 @@ internal fun MediaPickerFolderScreen(
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
-    LaunchedEffect(pullToRefreshState.isRefreshing) {
-        if (pullToRefreshState.isRefreshing) {
-            onRefreshClicked()
-        }
-    }
-
-    LaunchedEffect(isRefreshing) {
-        if (isRefreshing) {
-            pullToRefreshState.startRefresh()
-        } else {
-            pullToRefreshState.endRefresh()
-        }
-    }
-
     Scaffold(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         topBar = {
@@ -129,12 +111,12 @@ internal fun MediaPickerFolderScreen(
                 )
             }
         },
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-                .nestedScroll(pullToRefreshState.nestedScrollConnection),
+    ) { paddingValues ->
+        PullToRefreshBox(
+            modifier = Modifier.padding(paddingValues),
+            state = pullToRefreshState,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefreshClicked,
             contentAlignment = Alignment.Center,
         ) {
             MediaView(
@@ -147,10 +129,6 @@ internal fun MediaPickerFolderScreen(
                 onDeleteVideoClick = onDeleteVideoClick,
                 onVideoLoaded = onAddToSync,
                 onRenameVideoClick = onRenameVideoClick,
-            )
-            PullToRefreshContainer(
-                state = pullToRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter),
             )
         }
     }

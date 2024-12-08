@@ -18,6 +18,7 @@ data class PlayerPreferences(
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
     val autoPip: Boolean = true,
+    val autoBackgroundPlay: Boolean = false,
 
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,

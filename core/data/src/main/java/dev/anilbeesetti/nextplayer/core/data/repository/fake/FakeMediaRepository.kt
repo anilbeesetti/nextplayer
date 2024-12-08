@@ -25,18 +25,25 @@ class FakeMediaRepository : MediaRepository {
         return flowOf(directories)
     }
 
-    override suspend fun saveVideoState(
-        uri: String,
-        position: Long,
-        audioTrackIndex: Int?,
-        subtitleTrackIndex: Int?,
-        playbackSpeed: Float?,
-        externalSubs: List<Uri>,
-        videoScale: Float,
-    ) {
-    }
-
     override suspend fun getVideoState(uri: String): VideoState? {
         return null
+    }
+
+    override fun updateMediumPosition(uri: String, position: Long) {
+    }
+
+    override fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float) {
+    }
+
+    override fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
+    }
+
+    override fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
+    }
+
+    override fun updateMediumZoom(uri: String, zoom: Float) {
+    }
+
+    override fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
     }
 }

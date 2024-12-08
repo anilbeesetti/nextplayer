@@ -123,6 +123,7 @@ class LocalMediaSynchronizer @Inject constructor(
                 duration = it.duration,
                 mediaStoreId = it.id,
                 modified = it.dateModified,
+                parentPath = file.parent!!,
             ) ?: MediumEntity(
                 uriString = it.uri.toString(),
                 path = it.data,
