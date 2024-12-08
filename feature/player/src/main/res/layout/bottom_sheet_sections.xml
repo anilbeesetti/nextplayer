@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sections"
+            android:text="@string/sections"
             android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6"
             android:paddingBottom="8dp" />
@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/transparent_circle_background"
-            android:contentDescription="Export bookmarks"
+            android:contentDescription="@string/export_bookmarks"
             android:padding="12dp"
             android:src="@drawable/ic_export" />
     </LinearLayout>

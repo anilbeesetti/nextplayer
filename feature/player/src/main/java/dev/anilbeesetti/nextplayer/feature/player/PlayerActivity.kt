@@ -34,6 +34,7 @@ import android.widget.TextView
 import android.widget.Toast
 
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
@@ -275,23 +276,39 @@ class PlayerActivity : AppCompatActivity() {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
     }
 
-    private fun setupSectionsBottomSheet() {
-        val view = layoutInflater.inflate(R.layout.bottom_sheet_sections, null)
-        sectionsList = view.findViewById(R.id.sections_list)
-        exportBookmarksButton = view.findViewById(R.id.btn_export_bookmarks)
-
-        exportBookmarksButton.setOnClickListener {
+    private val createDocumentLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+    uri?.let {
+        try {
             val bookmarksJsonArray = JSONArray(bookmarks)
             val bookmarksJsonString = bookmarksJsonArray.toString()
-            val fileName = "bookmarks_${System.currentTimeMillis()}.json"
-            val file = File(getExternalFilesDir(null), fileName)
-            file.writeText(bookmarksJsonString)
-            Toast.makeText(this, "Bookmarks exported to $fileName", Toast.LENGTH_SHORT).show()
+            contentResolver.openOutputStream(it)?.use { outputStream ->
+                outputStream.write(bookmarksJsonString.toByteArray())
+            }
+            Toast.makeText(this, "Bookmarks exported successfully", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Timber.e(e, "Failed to export JSON file: ${e.message}")
+            Toast.makeText(this, "Failed to export JSON file: ${e.message}", Toast.LENGTH_LONG).show()
         }
-        sectionsBottomSheet = BottomSheetDialog(this).apply {
-            setContentView(view)
-        }
+    } ?: run {
+        Timber.e("Document creation returned a null URI")
+        Toast.makeText(this, "Export cancelled", Toast.LENGTH_SHORT).show()
     }
+}
+
+private fun setupSectionsBottomSheet() {
+    val view = layoutInflater.inflate(R.layout.bottom_sheet_sections, null)
+    sectionsList = view.findViewById(R.id.sections_list)
+    exportBookmarksButton = view.findViewById(R.id.btn_export_bookmarks)
+
+    exportBookmarksButton.setOnClickListener {
+        createDocumentLauncher.launch("${mediaController?.currentMediaItem?.mediaMetadata?.title}.json")
+    }
+    sectionsBottomSheet = BottomSheetDialog(this).apply {
+        setContentView(view)
+    }
+}
+
     private val isPipEnabled: Boolean
         get() {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -370,13 +387,13 @@ class PlayerActivity : AppCompatActivity() {
     // Set up long click listener to add bookmarks
     btnShowSections.setOnLongClickListener {
         val currentPosition = mediaController?.currentPosition ?: return@setOnLongClickListener true
-        val bookmarkTitle = "Bookmark at ${Utils.formatDurationMillis(currentPosition)}"
+        val bookmarkTitle = "${Utils.formatDurationMillis(currentPosition)}"
         val bookmark = JSONObject().apply {
             put("title", bookmarkTitle)
             put("timestamp", currentPosition)
         }
         bookmarks.add(bookmark)
-        Toast.makeText(this, "Bookmark added", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Section mark added", Toast.LENGTH_SHORT).show()
         populateSectionsList()
         true
     }
