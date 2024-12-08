@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment">Wyrównanie przycisków sterowania</string>
     <string name="control_buttons_alignment_right">Do prawej</string>
     <string name="control_buttons_alignment_left">Do lewej</string>
+    <string name="background_play">Odtwarzanie w tle</string>
+    <string name="background_play_description">Odtwarzanie w tle po dotknięciu ekranu głównego lub zablokowaniu ekranu.</string>
+    <string name="stop_player_session">Zatrzymaj sesję odtwarzacza</string>
+    <string name="enable_pip_from_settings">Obraz w obrazie jest wyłączony. Aby korzystać z tej funkcji, należy włączyć ją w Ustawieniach.</string>
 </resources>
