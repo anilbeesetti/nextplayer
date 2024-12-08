@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AppOpsManager
 import android.app.PictureInPictureParams
 import android.content.ComponentName
 import android.content.Context
@@ -10,12 +11,14 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
 import android.util.Rational
 import android.util.TypedValue
 import android.view.Gravity
@@ -28,6 +31,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
@@ -176,6 +180,21 @@ class PlayerActivity : AppCompatActivity() {
     private val isPipSupported: Boolean by lazy {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
     }
+
+    private val isPipEnabled: Boolean
+        get() {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager?
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    appOps?.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+                } else {
+                    @Suppress("DEPRECATION")
+                    appOps?.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+                }
+            } else {
+                false
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -364,8 +383,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O..<Build.VERSION_CODES.S &&
             isPipSupported &&
             playerPreferences.autoPip &&
             mediaController?.isPlaying == true &&
@@ -394,13 +412,46 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun updatePictureInPictureParams(): PictureInPictureParams {
-        val params: PictureInPictureParams = PictureInPictureParams.Builder()
-            .setAspectRatio(Rational(16, 9))
-            .build()
+    private fun updatePictureInPictureParams(enableAutoEnter: Boolean = mediaController?.isPlaying == true): PictureInPictureParams {
+        val displayAspectRatio = Rational(binding.playerView.width, binding.playerView.height)
 
-        setPictureInPictureParams(params)
-        return params
+        return PictureInPictureParams.Builder().apply {
+            val aspectRatio = calculateVideoAspectRatio()
+            if (aspectRatio != null) {
+                val sourceRectHint = calculateSourceRectHint(displayAspectRatio, aspectRatio)
+                setAspectRatio(aspectRatio)
+                setSourceRectHint(sourceRectHint)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setAutoEnterEnabled(playerPreferences.autoPip && enableAutoEnter)
+            }
+        }.build().also { setPictureInPictureParams(it) }
+    }
+
+    private fun calculateVideoAspectRatio(): Rational? {
+        return binding.playerView.player?.videoSize?.let { videoSize ->
+            if (videoSize.width == 0 || videoSize.height == 0) return@let null
+
+            val minAspectRatio = 0.5f // 1:2 aspect ratio
+            val maxAspectRatio = 2.39f // 21:9 aspect ratio
+            Rational(
+                videoSize.width.coerceIn((videoSize.height * minAspectRatio).toInt(), (videoSize.height * maxAspectRatio).toInt()),
+                videoSize.height.coerceIn((videoSize.width * minAspectRatio).toInt(), (videoSize.width * maxAspectRatio).toInt()),
+            )
+        }
+    }
+
+    private fun calculateSourceRectHint(displayAspectRatio: Rational, aspectRatio: Rational): Rect {
+        val playerWidth = binding.playerView.width.toFloat()
+        val playerHeight = binding.playerView.height.toFloat()
+
+        return if (displayAspectRatio < aspectRatio) {
+            val space = ((playerHeight - (playerWidth / aspectRatio.toFloat())) / 2).toInt()
+            Rect(0, space, playerWidth.toInt(), (playerWidth / aspectRatio.toFloat()).toInt() + space)
+        } else {
+            val space = ((playerWidth - (playerHeight * aspectRatio.toFloat())) / 2).toInt()
+            Rect(space, 0, (playerHeight * aspectRatio.toFloat()).toInt() + space, playerHeight.toInt())
+        }
     }
 
     private fun setOrientation() {
@@ -516,6 +567,17 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         pipButton.setOnClickListener {
+            if (isPipSupported && !isPipEnabled) {
+                Toast.makeText(this, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                try {
+                    Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS").apply {
+                        data = Uri.parse("package:$packageName")
+                        startActivity(this@apply)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                 this.enterPictureInPictureMode(updatePictureInPictureParams())
             }
@@ -576,6 +638,9 @@ class PlayerActivity : AppCompatActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             binding.playerView.keepScreenOn = isPlaying
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
+                updatePictureInPictureParams()
+            }
         }
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
@@ -592,6 +657,11 @@ class PlayerActivity : AppCompatActivity() {
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             super.onVideoSizeChanged(videoSize)
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
+            if (videoSize.width != 0 && videoSize.height != 0) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
+                    updatePictureInPictureParams()
+                }
+            }
             lifecycleScope.launch {
                 val videoScale = mediaController?.currentMediaItem?.mediaId?.let { viewModel.getVideoState(it)?.videoScale } ?: 1f
                 applyVideoScale(videoScale = videoScale)
