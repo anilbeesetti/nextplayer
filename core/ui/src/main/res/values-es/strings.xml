@@ -26,11 +26,11 @@
     <string name="permission_not_granted">Permiso NO concedido</string>
     <string name="permission_request">Solicitud de permiso</string>
     <string name="player_controls_exit">Navegar hacia arriba</string>
-    <string name="player_controls_next">Player next</string>
-    <string name="player_controls_play_pause">Reproductor reproducir pausa</string>
+    <string name="player_controls_next">Reproducir siguiente</string>
+    <string name="player_controls_play_pause">Pausa de reproducción del reproductor</string>
     <string name="player_controls_previous">Reproductor previo</string>
-    <string name="player_controls_progress">Reproductor barra de progreso</string>
-    <string name="player_description">Aspecto del reproductor, controles de reproducción</string>
+    <string name="player_controls_progress">Barra de progreso del reproductor</string>
+    <string name="player_description">Apariencia del reproductor , controles de reproducción</string>
     <string name="player_name">Reproductor</string>
     <string name="quick_settings">Configuraciones rápidas</string>
     <string name="remember_brightness_level">Recordar el nivel de brillo</string>
@@ -183,7 +183,7 @@
     <string name="volume_boost_desc">Aumenta el volumen de audio hasta un 200%</string>
     <string name="volume_boost">Refuerzo del volumen</string>
     <string name="pip_settings">Modo Imagen en imagen</string>
-    <string name="pip_settings_description">Cambia automáticamente al reproductor en miniatura al pulsar el botón de inicio</string>
+    <string name="pip_settings_description">Cambiar automáticamente al reproductor en miniatura al tocar el botón Inicio</string>
     <string name="no_audio_tracks_found">Las pistas de audio de este vídeo no están disponibles o no son compatibles.</string>
     <string name="open_subtitle">Abrir los subtítulos locales</string>
     <string name="no_subtitle_tracks_found">Las pistas de subtítulos para este vídeo no están disponibles o no son compatibles.</string>
@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment_left">Izquierda</string>
     <string name="control_buttons_alignment_right">Derecha</string>
     <string name="control_buttons_alignment">Alineación de los botones de control</string>
+    <string name="stop_player_session">Detener la sesión en curso</string>
+    <string name="enable_pip_from_settings">La función Imagen en imagen está deshabilitada. Habilítela en Configuración para usar esta función.</string>
+    <string name="background_play">Reproducción en segundo plano</string>
+    <string name="background_play_description">Reproducir en segundo plano cuando se toca en el inicio o la pantalla está bloqueada.</string>
 </resources>
