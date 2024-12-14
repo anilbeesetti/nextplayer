@@ -78,7 +78,6 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
-import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
@@ -205,7 +204,6 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prettyPrintIntent()
 
         AppCompatDelegate.setDefaultNightMode(
             when (applicationPreferences.themeConfig) {
@@ -346,7 +344,7 @@ class PlayerActivity : AppCompatActivity() {
                 volumeManager.loudnessEnhancer = loudnessEnhancer
 
                 if (intent.data != null && intent.data.toString() != currentMediaItem?.mediaId) {
-                    playVideo(uri = viewModel.currentMediaItem?.localConfiguration?.uri ?: intent.data!!)
+                    playVideo(uri = viewModel.currentMediaItemUri ?: intent.data!!)
                 }
             }
             subtitleFileLauncherLaunchedForMediaItem = null
@@ -686,7 +684,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            viewModel.currentMediaItem = mediaItem
+            viewModel.currentMediaItemUri = mediaItem?.localConfiguration?.uri
             isMediaItemReady = false
         }
 
@@ -721,11 +719,11 @@ class PlayerActivity : AppCompatActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                     updatePictureInPictureParams()
                 }
+                setOrientation()
             }
             lifecycleScope.launch {
                 val videoScale = mediaController?.currentMediaItem?.mediaId?.let { viewModel.getVideoState(it)?.videoScale } ?: 1f
                 applyVideoScale(videoScale = videoScale)
-                setOrientation()
             }
         }
 
@@ -783,10 +781,8 @@ class PlayerActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
-            mediaController?.clearMediaItems()
-            setIntent(intent)
-            prettyPrintIntent()
-            playVideo(intent.data!!)
+            currentOrientation = null
+            viewModel.currentMediaItemUri = intent.data
         }
     }
 

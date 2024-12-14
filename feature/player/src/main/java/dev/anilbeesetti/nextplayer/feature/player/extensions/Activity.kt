@@ -34,29 +34,3 @@ val Activity.currentBrightness: Float
         in WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF..WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL -> brightness
         else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
     }
-
-@Suppress("DEPRECATION")
-fun Activity.prettyPrintIntent() {
-    try {
-        Timber.apply {
-            d("* action: ${intent.action}")
-            d("* data: ${intent.data}")
-            d("* type: ${intent.type}")
-            d("* package: ${intent.`package`}")
-            d("* component: ${intent.component}")
-            d("* flags: ${intent.flags}")
-            intent.extras?.let { bundle ->
-                d("=== Extras ===")
-                bundle.keySet().forEachIndexed { i, key ->
-                    buildString {
-                        append("${i + 1}) $key: ")
-                        bundle.get(key).let { append(if (it is Array<*>) Arrays.toString(it) else it) }
-                    }.also { d(it) }
-                }
-            }
-        }
-    } catch (e: Exception) {
-        Timber.e(e)
-        e.printStackTrace()
-    }
-}

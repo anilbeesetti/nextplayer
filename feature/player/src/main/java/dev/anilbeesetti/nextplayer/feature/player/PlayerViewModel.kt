@@ -25,7 +25,7 @@ class PlayerViewModel @Inject constructor(
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
 ) : ViewModel() {
 
-    var currentMediaItem: MediaItem? = null
+    var currentMediaItemUri: Uri? = null
     var playWhenReady: Boolean = true
     var skipSilenceEnabled: Boolean = false
 
