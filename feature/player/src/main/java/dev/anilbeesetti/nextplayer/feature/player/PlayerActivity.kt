@@ -70,6 +70,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
@@ -104,7 +105,6 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -790,7 +790,7 @@ class PlayerActivity : AppCompatActivity() {
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP,
             KeyEvent.KEYCODE_DPAD_UP,
-                -> {
+            -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                     volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
                     showVolumeGestureLayout()
@@ -800,7 +800,7 @@ class PlayerActivity : AppCompatActivity() {
 
             KeyEvent.KEYCODE_VOLUME_DOWN,
             KeyEvent.KEYCODE_DPAD_DOWN,
-                -> {
+            -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
                     volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
                     showVolumeGestureLayout()
@@ -812,7 +812,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_MEDIA_PAUSE,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
             KeyEvent.KEYCODE_BUTTON_SELECT,
-                -> {
+            -> {
                 when {
                     keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> mediaController?.pause()
                     keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> mediaController?.play()
@@ -825,7 +825,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_BUTTON_START,
             KeyEvent.KEYCODE_BUTTON_A,
             KeyEvent.KEYCODE_SPACE,
-                -> {
+            -> {
                 if (!binding.playerView.isControllerFullyVisible) {
                     binding.playerView.togglePlayPause()
                     return true
@@ -835,7 +835,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_LEFT,
             KeyEvent.KEYCODE_BUTTON_L2,
             KeyEvent.KEYCODE_MEDIA_REWIND,
-                -> {
+            -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
                     mediaController?.run {
                         if (scrubStartPosition == -1L) {
@@ -855,7 +855,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_BUTTON_R2,
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-                -> {
+            -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
                     mediaController?.run {
                         if (scrubStartPosition == -1L) {
@@ -876,7 +876,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_ENTER,
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_NUMPAD_ENTER,
-                -> {
+            -> {
                 if (!binding.playerView.isControllerFullyVisible) {
                     binding.playerView.showController()
                     return true
@@ -899,7 +899,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_VOLUME_DOWN,
             KeyEvent.KEYCODE_DPAD_UP,
             KeyEvent.KEYCODE_DPAD_DOWN,
-                -> {
+            -> {
                 hideVolumeGestureLayout()
                 return true
             }
@@ -910,7 +910,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_BUTTON_R2,
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-                -> {
+            -> {
                 hidePlayerInfo()
                 return true
             }

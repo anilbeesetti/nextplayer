@@ -6,8 +6,6 @@ import android.view.WindowManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type
 import androidx.core.view.WindowInsetsControllerCompat
-import java.util.Arrays
-import timber.log.Timber
 
 /**
 * Must call this function after any configuration done to activity to keep system bars behaviour
