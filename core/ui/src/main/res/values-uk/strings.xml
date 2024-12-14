@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment_left">Вліво</string>
     <string name="control_buttons_alignment_right">Вправо</string>
     <string name="control_buttons_alignment">Вирівнювання кнопок керування</string>
+    <string name="background_play_description">Відтворення у фоновому режимі при натисканні на головний екран або коли екран заблоковано.</string>
+    <string name="stop_player_session">Зупинити сеанс відтворення</string>
+    <string name="background_play">Фонове відтворення</string>
+    <string name="enable_pip_from_settings">Функцію «Картинка в картинці» вимкнено. Увімкніть її в «Налаштуваннях», щоби використовувати.</string>
 </resources>

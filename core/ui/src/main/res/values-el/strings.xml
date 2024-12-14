@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment_left">Αριστερά</string>
     <string name="control_buttons_alignment_right">Δεξιά</string>
     <string name="control_buttons_alignment">Ευθυγράμμιση κουμπιών</string>
+    <string name="background_play">Παρασκήνιο</string>
+    <string name="stop_player_session">Διακοπή συνεδρίας</string>
+    <string name="background_play_description">Αναπαραγωγή στο παρασκήνιο όταν μεταβαίνετε στην αρχική οθόνη ή κλειδώνει η οθόνη.</string>
+    <string name="enable_pip_from_settings">Το Picture-in-Picture είναι απενεργοποιημένο. Ενεργοποιήστε το στις Ρυθμίσεις για να χρησιμοποιήσετε αυτήν τη δυνατότητα.</string>
 </resources>
