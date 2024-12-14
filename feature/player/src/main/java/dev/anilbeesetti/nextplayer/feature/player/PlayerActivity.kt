@@ -381,6 +381,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("NewApi")
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O..<Build.VERSION_CODES.S &&
@@ -423,6 +424,7 @@ class PlayerActivity : AppCompatActivity() {
                 setSourceRectHint(sourceRectHint)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setSeamlessResizeEnabled(playerPreferences.autoPip && enableAutoEnter)
                 setAutoEnterEnabled(playerPreferences.autoPip && enableAutoEnter)
             }
         }.build().also { setPictureInPictureParams(it) }
