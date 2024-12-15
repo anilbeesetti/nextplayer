@@ -783,6 +783,9 @@ class PlayerActivity : AppCompatActivity() {
         if (intent.data != null) {
             currentOrientation = null
             viewModel.currentMediaItemUri = intent.data
+            if (mediaController != null) {
+                playVideo(intent.data!!)
+            }
         }
     }
 
