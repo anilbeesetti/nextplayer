@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -25,7 +24,7 @@ class PlayerViewModel @Inject constructor(
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
 ) : ViewModel() {
 
-    var currentMediaItem: MediaItem? = null
+    var currentMediaItemUri: Uri? = null
     var playWhenReady: Boolean = true
     var skipSilenceEnabled: Boolean = false
 
