@@ -295,7 +295,10 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
-                    stopSelf()
+                    mediaSession?.run {
+                        player.clearMediaItems()
+                        player.stop()
+                    } ?: stopSelf()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }

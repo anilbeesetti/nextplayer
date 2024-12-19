@@ -3,16 +3,21 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AppOpsManager
+import android.app.PendingIntent
 import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.Typeface
+import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
@@ -38,6 +43,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -82,7 +88,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.jumpToTimestamp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
-import dev.anilbeesetti.nextplayer.feature.player.extensions.prettyPrintIntent
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.jumpToTimestamp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
@@ -157,6 +162,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
     var loudnessEnhancer: LoudnessEnhancer? = null
+    private var pipBroadcastReceiver: BroadcastReceiver? = null
 
     /**
      * Listeners
@@ -340,6 +346,7 @@ private fun setupSectionsBottomSheet() {
         DynamicColors.applyToActivityIfAvailable(this)
     }
 
+
     // The window is always allowed to extend into the DisplayCutout areas on the short edges of the screen
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -478,7 +485,7 @@ private fun setupSectionsBottomSheet() {
                 volumeManager.loudnessEnhancer = loudnessEnhancer
 
                 if (intent.data != null && intent.data.toString() != currentMediaItem?.mediaId) {
-                    playVideo(uri = viewModel.currentMediaItem?.localConfiguration?.uri ?: intent.data!!)
+                    playVideo(uri = viewModel.currentMediaItemUri ?: intent.data!!)
                 }
             }
             subtitleFileLauncherLaunchedForMediaItem = null
@@ -520,6 +527,7 @@ private fun setupSectionsBottomSheet() {
         }
     }
 
+    @SuppressLint("NewApi")
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O..<Build.VERSION_CODES.S &&
@@ -541,10 +549,31 @@ private fun setupSectionsBottomSheet() {
         if (isInPictureInPictureMode) {
             binding.playerView.subtitleView?.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
             playerUnlockControls.visibility = View.INVISIBLE
+            pipBroadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    if (intent == null || intent.action != PIP_INTENT_ACTION) return
+                    when (intent.getIntExtra(PIP_INTENT_ACTION_CODE, 0)) {
+                        PIP_ACTION_PLAY -> mediaController?.play()
+                        PIP_ACTION_PAUSE -> mediaController?.pause()
+                        PIP_ACTION_NEXT -> mediaController?.seekToNext()
+                        PIP_ACTION_PREVIOUS -> mediaController?.seekToPrevious()
+                    }
+                    updatePictureInPictureParams()
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(pipBroadcastReceiver, IntentFilter(PIP_INTENT_ACTION), RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(pipBroadcastReceiver, IntentFilter(PIP_INTENT_ACTION))
+            }
         } else {
             binding.playerView.subtitleView?.setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
             if (!isControlsLocked) {
                 playerUnlockControls.visibility = View.VISIBLE
+            }
+            pipBroadcastReceiver?.let {
+                unregisterReceiver(it)
+                pipBroadcastReceiver = null
             }
         }
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
@@ -562,8 +591,41 @@ private fun setupSectionsBottomSheet() {
                 setSourceRectHint(sourceRectHint)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setSeamlessResizeEnabled(playerPreferences.autoPip && enableAutoEnter)
                 setAutoEnterEnabled(playerPreferences.autoPip && enableAutoEnter)
             }
+
+            setActions(
+                listOf(
+                    createPipAction(
+                        context = this@PlayerActivity,
+                        "skip to previous",
+                        coreUiR.drawable.ic_skip_prev,
+                        PIP_ACTION_PREVIOUS,
+                    ),
+                    if (mediaController?.isPlaying == true) {
+                        createPipAction(
+                            context = this@PlayerActivity,
+                            "pause",
+                            coreUiR.drawable.ic_pause,
+                            PIP_ACTION_PAUSE,
+                        )
+                    } else {
+                        createPipAction(
+                            context = this@PlayerActivity,
+                            "play",
+                            coreUiR.drawable.ic_play,
+                            PIP_ACTION_PLAY,
+                        )
+                    },
+                    createPipAction(
+                        context = this@PlayerActivity,
+                        "skip to next",
+                        coreUiR.drawable.ic_skip_next,
+                        PIP_ACTION_NEXT,
+                    ),
+                ),
+            )
         }.build().also { setPictureInPictureParams(it) }
     }
 
@@ -571,12 +633,10 @@ private fun setupSectionsBottomSheet() {
         return binding.playerView.player?.videoSize?.let { videoSize ->
             if (videoSize.width == 0 || videoSize.height == 0) return@let null
 
-            val minAspectRatio = 0.5f // 1:2 aspect ratio
-            val maxAspectRatio = 2.39f // 21:9 aspect ratio
             Rational(
-                videoSize.width.coerceIn((videoSize.height * minAspectRatio).toInt(), (videoSize.height * maxAspectRatio).toInt()),
-                videoSize.height.coerceIn((videoSize.width * minAspectRatio).toInt(), (videoSize.width * maxAspectRatio).toInt()),
-            )
+                videoSize.width,
+                videoSize.height,
+            ).takeIf { it.toFloat() in 0.5f..2.39f }
         }
     }
 
@@ -770,7 +830,7 @@ private fun setupSectionsBottomSheet() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            viewModel.currentMediaItem = mediaItem
+            viewModel.currentMediaItemUri = mediaItem?.localConfiguration?.uri
             isMediaItemReady = false
         }
 
@@ -805,11 +865,11 @@ private fun setupSectionsBottomSheet() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                     updatePictureInPictureParams()
                 }
+                setOrientation()
             }
             lifecycleScope.launch {
                 val videoScale = mediaController?.currentMediaItem?.mediaId?.let { viewModel.getVideoState(it)?.videoScale } ?: 1f
                 applyVideoScale(videoScale = videoScale)
-                setOrientation()
             }
         }
 
@@ -867,10 +927,11 @@ private fun setupSectionsBottomSheet() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
-            mediaController?.clearMediaItems()
-            setIntent(intent)
-            prettyPrintIntent()
-            playVideo(intent.data!!)
+            currentOrientation = null
+            viewModel.currentMediaItemUri = intent.data
+            if (mediaController != null) {
+                playVideo(intent.data!!)
+            }
         }
     }
 
@@ -1141,5 +1202,34 @@ private fun setupSectionsBottomSheet() {
 
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
+        const val PIP_INTENT_ACTION = "pip_action"
+        const val PIP_INTENT_ACTION_CODE = "pip_action_code"
+        const val PIP_ACTION_PLAY = 1
+        const val PIP_ACTION_PAUSE = 2
+        const val PIP_ACTION_NEXT = 3
+        const val PIP_ACTION_PREVIOUS = 4
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun createPipAction(
+    context: Context,
+    title: String,
+    @DrawableRes icon: Int,
+    actionCode: Int,
+): RemoteAction {
+    return RemoteAction(
+        Icon.createWithResource(context, icon),
+        title,
+        title,
+        PendingIntent.getBroadcast(
+            context,
+            actionCode,
+            Intent(PlayerActivity.PIP_INTENT_ACTION).apply {
+                putExtra(PlayerActivity.PIP_INTENT_ACTION_CODE, actionCode)
+                setPackage(context.packageName)
+            },
+            PendingIntent.FLAG_IMMUTABLE,
+        ),
+    )
 }

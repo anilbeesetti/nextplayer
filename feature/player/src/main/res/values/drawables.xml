@@ -2,4 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <drawable name="exo_styled_controls_play" tools:ignore="PrivateResource">@drawable/ic_play</drawable>
     <drawable name="exo_styled_controls_pause" tools:ignore="PrivateResource">@drawable/ic_pause</drawable>
+    <drawable name="exo_styled_controls_next" tools:ignore="PrivateResource">@drawable/ic_skip_next</drawable>
+    <drawable name="exo_styled_controls_previous" tools:ignore="PrivateResource">@drawable/ic_skip_prev</drawable>
 </resources>

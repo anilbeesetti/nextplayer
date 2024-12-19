@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment_left">يسار</string>
     <string name="control_buttons_alignment_right">يمين</string>
     <string name="control_buttons_alignment">محاذاة أزرار التحكم</string>
+    <string name="background_play_description">التشغيل في الخلفية عند النقر على الشاشة الرئيسية أو قفلها.</string>
+    <string name="background_play">التشغيل في الخلفية</string>
+    <string name="enable_pip_from_settings">تم تعطيل ميزة الصورة داخل صورة. قم بتمكينها في الإعدادات لاستخدام هذه الميزة.</string>
+    <string name="stop_player_session">إيقاف جلسة المشغل</string>
 </resources>
