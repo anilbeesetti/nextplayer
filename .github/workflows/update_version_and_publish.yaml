@@ -146,5 +146,4 @@ jobs:
           files: app/build/outputs/apk/release/nextplayer*
           draft: true
           name: v${{ env.VERSION_NAME }}
-          body: |
-            Your release notes go here.
+          generate_release_notes: true
