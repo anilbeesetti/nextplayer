@@ -75,7 +75,26 @@ jobs:
           git config user.email "actions@github.com"
           git add .
           git commit -m "Release version ${{ env.VERSION_NAME }}" || echo "No changes to commit"
+          git config push.autoSetupRemote true
           git push --set-upstream origin ${BRANCH_NAME}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          validate-wrappers: true
+          gradle-home-cache-cleanup: true
 
       - name: Decode keystore file
         uses: timheuer/base64-to-file@v1
@@ -127,5 +146,4 @@ jobs:
           files: app/build/outputs/apk/release/nextplayer*
           draft: true
           name: v${{ env.VERSION_NAME }}
-          body: |
-            Your release notes go here.
+          generate_release_notes: true
