@@ -37,13 +37,17 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -60,6 +64,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
@@ -67,6 +72,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
+import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
+import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
+import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
@@ -78,8 +86,10 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
+import dev.anilbeesetti.nextplayer.feature.player.extensions.jumpToTimestamp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.jumpToTimestamp
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
@@ -104,7 +114,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -137,6 +152,9 @@ class PlayerActivity : AppCompatActivity() {
     /**
      * Player
      */
+    private lateinit var player: Player
+    private lateinit var btnShowSections: ImageButton
+    private var isJsonFileLoaded = false
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private lateinit var playerGestureHelper: PlayerGestureHelper
@@ -180,12 +198,122 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var unlockControlsButton: ImageButton
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
+    private lateinit var sectionsBottomSheet: BottomSheetDialog
+    private lateinit var sectionsList: LinearLayout
+    private lateinit var exportBookmarksButton: ImageButton
+
+
+
+    private val filePickerLauncher = registerForActivityResult(OpenDocument()) { uri: Uri? ->
+    uri?.let {
+        try {
+            if (!::sectionsBottomSheet.isInitialized) {
+                setupSectionsBottomSheet()
+            }
+            val sectionsJson = readJsonFromUri(it)
+            populateSectionsList(sectionsJson)
+            isJsonFileLoaded = true
+            sectionsBottomSheet.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Log the error message
+            Timber.e(e, "Failed to load JSON file: ${e.message}")
+            // Show a detailed error message to the user
+            Toast.makeText(this, "Failed to load JSON file: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    } ?: run {
+        // Handle the case where the URI is null
+        Timber.e("File picker returned a null URI")
+        Toast.makeText(this, "No file selected", Toast.LENGTH_SHORT).show()
+    }
+}
+
+    private fun readJsonFromUri(uri: Uri): String {
+        val inputStream = contentResolver.openInputStream(uri)
+        val bufferedReader = BufferedReader(InputStreamReader(inputStream))
+        return bufferedReader.use { it.readText() }
+    }
+
+    private fun populateSectionsList(sectionsJson: String? = null) {
+    sectionsList.removeAllViews()
+    val sectionsArray = sectionsJson?.let { JSONArray(it) } ?: JSONArray()
+
+    // Add imported sections
+    for (i in 0 until sectionsArray.length()) {
+        val section = sectionsArray.getJSONObject(i)
+        val title = section.getString("title")
+        val timestamp = section.getLong("timestamp")
+
+        val sectionItem = TextView(this).apply {
+            text = title
+            setPadding(16, 16, 16, 16)
+            setOnClickListener {
+                mediaController?.jumpToTimestamp(timestamp)
+                sectionsBottomSheet.dismiss()
+            }
+        }
+        sectionsList.addView(sectionItem)
+    }
+
+    // Add newly added bookmarks
+    for (bookmark in bookmarks) {
+        val title = bookmark.getString("title")
+        val timestamp = bookmark.getLong("timestamp")
+
+        val sectionItem = TextView(this).apply {
+            text = title
+            setPadding(16, 16, 16, 16)
+
+            setOnClickListener {
+                mediaController?.jumpToTimestamp(timestamp)
+                sectionsBottomSheet.dismiss()
+            }
+        }
+        sectionsList.addView(sectionItem)
+    }
+}
+
     private lateinit var playInBackgroundButton: ImageButton
     private lateinit var extraControls: LinearLayout
+    private val bookmarks = mutableListOf<JSONObject>()
+
 
     private val isPipSupported: Boolean by lazy {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
     }
+
+    private val createDocumentLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+    uri?.let {
+        try {
+            val bookmarksJsonArray = JSONArray(bookmarks)
+            val bookmarksJsonString = bookmarksJsonArray.toString()
+            contentResolver.openOutputStream(it)?.use { outputStream ->
+                outputStream.write(bookmarksJsonString.toByteArray())
+            }
+            Toast.makeText(this, "Bookmarks exported successfully", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Timber.e(e, "Failed to export JSON file: ${e.message}")
+            Toast.makeText(this, "Failed to export JSON file: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    } ?: run {
+        Timber.e("Document creation returned a null URI")
+        Toast.makeText(this, "Export cancelled", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun setupSectionsBottomSheet() {
+    val view = layoutInflater.inflate(R.layout.bottom_sheet_sections, null)
+    sectionsList = view.findViewById(R.id.sections_list)
+    exportBookmarksButton = view.findViewById(R.id.btn_export_bookmarks)
+
+    exportBookmarksButton.setOnClickListener {
+        createDocumentLauncher.launch("${mediaController?.currentMediaItem?.mediaMetadata?.title}.json")
+    }
+    sectionsBottomSheet = BottomSheetDialog(this).apply {
+        setContentView(view)
+    }
+}
 
     private val isPipEnabled: Boolean
         get() {
@@ -203,117 +331,130 @@ class PlayerActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    super.onCreate(savedInstanceState)
+    prettyPrintIntent()
 
-        AppCompatDelegate.setDefaultNightMode(
-            when (applicationPreferences.themeConfig) {
-                ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
-                ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
-            },
-        )
+    AppCompatDelegate.setDefaultNightMode(
+        when (applicationPreferences.themeConfig) {
+            ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
+            ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
+        },
+    )
 
-        if (applicationPreferences.useDynamicColors) {
-            DynamicColors.applyToActivityIfAvailable(this)
-        }
+    if (applicationPreferences.useDynamicColors) {
+        DynamicColors.applyToActivityIfAvailable(this)
+    }
 
-        // The window is always allowed to extend into the DisplayCutout areas on the short edges of the screen
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+    // The window is always allowed to extend into the DisplayCutout areas on the short edges of the screen
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+    }
 
-        binding = ActivityPlayerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Initializing views
-        audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
-        backButton = binding.playerView.findViewById(R.id.back_button)
-        exoContentFrameLayout = binding.playerView.findViewById(R.id.exo_content_frame)
-        lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
-        playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
-        playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
-        playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
-        playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
-        screenRotateButton = binding.playerView.findViewById(R.id.screen_rotate)
-        pipButton = binding.playerView.findViewById(R.id.btn_pip)
-        seekBar = binding.playerView.findViewById(R.id.exo_progress)
-        subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
-        unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
-        videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
-        videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
-        playInBackgroundButton = binding.playerView.findViewById(R.id.btn_background)
-        extraControls = binding.playerView.findViewById(R.id.extra_controls)
+    binding = ActivityPlayerBinding.inflate(layoutInflater)
+    setContentView(binding.root)
 
-        if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
-            extraControls.gravity = Gravity.END
-        }
+    // Initializing views
+    audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
+    backButton = binding.playerView.findViewById(R.id.back_button)
+    exoContentFrameLayout = binding.playerView.findViewById(R.id.exo_content_frame)
+    lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
+    playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
+    playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
+    playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
+    playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
+    screenRotateButton = binding.playerView.findViewById(R.id.screen_rotate)
+    pipButton = binding.playerView.findViewById(R.id.btn_pip)
+    seekBar = binding.playerView.findViewById(R.id.exo_progress)
+    subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
+    unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
+    videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
+    videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
 
-        if (!isPipSupported) {
-            pipButton.visibility = View.GONE
-        }
 
-        seekBar.addListener(
-            object : TimeBar.OnScrubListener {
-                override fun onScrubStart(timeBar: TimeBar, position: Long) {
-                    mediaController?.run {
-                        if (isPlaying) {
-                            isPlayingOnScrubStart = true
-                            pause()
-                        }
-                        isFrameRendered = true
-                        scrubStartPosition = currentPosition
-                        previousScrubPosition = currentPosition
-                        scrub(position)
-                        showPlayerInfo(
-                            info = Utils.formatDurationMillis(position),
-                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                        )
-                    }
-                }
 
-                override fun onScrubMove(timeBar: TimeBar, position: Long) {
-                    scrub(position)
-                    showPlayerInfo(
-                        info = Utils.formatDurationMillis(position),
-                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                    )
-                }
+    // Initialize my views
+    btnShowSections = findViewById(R.id.btn_show_sections)
 
-                override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
-                    hidePlayerInfo(0L)
-                    scrubStartPosition = -1L
-                    if (isPlayingOnScrubStart) {
-                        mediaController?.play()
-                    }
-                }
-            },
-        )
+    // Set up sections bottom sheet
+    setupSectionsBottomSheet()
 
-        volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
-        brightnessManager = BrightnessManager(activity = this)
-        playerGestureHelper = PlayerGestureHelper(
-            viewModel = viewModel,
-            activity = this,
-            volumeManager = volumeManager,
-            brightnessManager = brightnessManager,
-            onScaleChanged = { scale ->
-                mediaController?.currentMediaItem?.mediaId?.let {
-                    viewModel.updateMediumZoom(uri = it, zoom = scale)
-                }
-            },
-        )
-
-        playerApi = PlayerApi(this)
-
-        onBackPressedDispatcher.addCallback {
-            mediaController?.run {
-                clearMediaItems()
-                stop()
-            }
+    // Set up button click listener
+    btnShowSections.setOnClickListener {
+        if (!isJsonFileLoaded && bookmarks.isEmpty()) {
+            filePickerLauncher.launch(arrayOf("application/json"))
+        } else {
+            sectionsBottomSheet.show()
         }
     }
+
+    // Set up long click listener to add bookmarks
+    btnShowSections.setOnLongClickListener {
+        val currentPosition = mediaController?.currentPosition ?: return@setOnLongClickListener true
+        val bookmarkTitle = "${Utils.formatDurationMillis(currentPosition)}"
+        val bookmark = JSONObject().apply {
+            put("title", bookmarkTitle)
+            put("timestamp", currentPosition)
+        }
+        bookmarks.add(bookmark)
+        Toast.makeText(this, "Section mark added", Toast.LENGTH_SHORT).show()
+        populateSectionsList()
+        true
+    }
+
+    playInBackgroundButton = binding.playerView.findViewById(R.id.btn_background)
+    extraControls = binding.playerView.findViewById(R.id.extra_controls)
+
+    if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
+        extraControls.gravity = Gravity.END
+    }
+
+    if (!isPipSupported) {
+        pipButton.visibility = View.GONE
+    }
+
+    seekBar.addListener(
+        object : TimeBar.OnScrubListener {
+            override fun onScrubStart(timeBar: TimeBar, position: Long) {
+                // Implementation
+            }
+
+            override fun onScrubMove(timeBar: TimeBar, position: Long) {
+                // Implementation
+            }
+
+            override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                // Implementation
+            }
+        },
+    )
+
+    volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+    brightnessManager = BrightnessManager(activity = this)
+    playerGestureHelper = PlayerGestureHelper(
+        viewModel = viewModel,
+        activity = this,
+        volumeManager = volumeManager,
+        brightnessManager = brightnessManager,
+        onScaleChanged = { scale ->
+            mediaController?.currentMediaItem?.mediaId?.let {
+                // Implementation
+            }
+        },
+    )
+
+    playerApi = PlayerApi(this)
+
+    onBackPressedDispatcher.addCallback {
+        mediaController?.run {
+            clearMediaItems()
+            stop()
+        }
+    }
+}
 
     override fun onStart() {
         super.onStart()
@@ -558,6 +699,8 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
+
+
         audioTrackButton.setOnClickListener {
             TrackSelectionDialogFragment(
                 type = C.TRACK_TYPE_AUDIO,
@@ -565,6 +708,8 @@ class PlayerActivity : AppCompatActivity() {
                 onTrackSelected = { mediaController?.switchAudioTrack(it) },
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
+
+
 
         subtitleTrackButton.setOnClickListener {
             TrackSelectionDialogFragment(
@@ -586,6 +731,7 @@ class PlayerActivity : AppCompatActivity() {
                 },
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
+
 
         playbackSpeedButton.setOnClickListener {
             PlaybackSpeedControlsDialogFragment(
