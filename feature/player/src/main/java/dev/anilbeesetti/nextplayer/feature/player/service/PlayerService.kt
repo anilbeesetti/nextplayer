@@ -94,13 +94,12 @@ class PlayerService : MediaSessionService() {
             if (mediaItem != null) {
                 serviceScope.launch {
                     currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
+                    mediaSession?.player?.setPlaybackSpeed(
+                        currentVideoState?.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed
+                    )
                     currentVideoState?.let { state ->
                         state.position?.takeIf { playerPreferences.resume == Resume.YES }?.let {
                             mediaSession?.player?.seekTo(it)
-                        }
-
-                        state.playbackSpeed?.let {
-                            mediaSession?.player?.setPlaybackSpeed(it)
                         }
                     }
                 }
@@ -139,14 +138,6 @@ class PlayerService : MediaSessionService() {
             }
         }
 
-        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-            super.onPlaybackParametersChanged(playbackParameters)
-            mediaRepository.updateMediumPlaybackSpeed(
-                uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return,
-                playbackSpeed = playbackParameters.speed,
-            )
-        }
-
         override fun onTracksChanged(tracks: Tracks) {
             super.onTracksChanged(tracks)
             if (!isMediaItemReady && tracks.groups.isNotEmpty()) {
@@ -169,7 +160,7 @@ class PlayerService : MediaSessionService() {
 
             if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.getDefaults(this@PlayerService)
-                mediaSession?.player?.setPlaybackSpeed(1f)
+                mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
         }
     }
@@ -292,6 +283,18 @@ class PlayerService : MediaSessionService() {
                             putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
                         },
                     )
+                }
+
+                CustomCommands.SET_PLAYBACK_SPEED -> {
+                    val playbackSpeed = args.getFloat(CustomCommands.PLAYBACK_SPEED_KEY, 1.0f)
+                    mediaSession?.player?.let { player ->
+                        player.setPlaybackSpeed(playbackSpeed)
+                        mediaRepository.updateMediumPlaybackSpeed(
+                            uri = player.currentMediaItem?.mediaId ?: return@let,
+                            playbackSpeed = playbackSpeed,
+                        )
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {

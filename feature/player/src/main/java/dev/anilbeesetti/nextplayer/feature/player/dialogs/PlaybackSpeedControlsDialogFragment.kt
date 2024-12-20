@@ -7,11 +7,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBinding
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.setSpeed
 import kotlinx.coroutines.launch
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 class PlaybackSpeedControlsDialogFragment(
     private val mediaController: MediaController,
@@ -33,7 +34,7 @@ class PlaybackSpeedControlsDialogFragment(
 
                 speed.addOnChangeListener { _, _, _ ->
                     val newSpeed = speed.value.round(1)
-                    mediaController.setPlaybackSpeed(newSpeed)
+                    mediaController.setSpeed(newSpeed)
                     speedText.text = newSpeed.toString()
                 }
                 incSpeed.setOnClickListener {
