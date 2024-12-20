@@ -10,7 +10,6 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
@@ -95,7 +94,7 @@ class PlayerService : MediaSessionService() {
                 serviceScope.launch {
                     currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
                     mediaSession?.player?.setPlaybackSpeed(
-                        currentVideoState?.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed
+                        currentVideoState?.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,
                     )
                     currentVideoState?.let { state ->
                         state.position?.takeIf { playerPreferences.resume == Resume.YES }?.let {

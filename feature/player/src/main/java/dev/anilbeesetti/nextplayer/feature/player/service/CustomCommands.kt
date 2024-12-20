@@ -13,7 +13,7 @@ enum class CustomCommands(val customAction: String) {
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
-    SET_PLAYBACK_SPEED(customAction = "SET_PLAYBACK_SPEED")
+    SET_PLAYBACK_SPEED(customAction = "SET_PLAYBACK_SPEED"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
