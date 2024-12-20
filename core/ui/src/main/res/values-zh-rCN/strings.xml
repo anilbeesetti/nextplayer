@@ -183,7 +183,7 @@
     <string name="volume_boost_desc">将音量增强至 200%</string>
     <string name="volume_boost">音量增强</string>
     <string name="pip_settings">画中画模式</string>
-    <string name="pip_settings_description">点击 主页 按钮时自动切换到小窗播放</string>
+    <string name="pip_settings_description">当切换到其它应用时自动开启小窗播放</string>
     <string name="open_subtitle">打开本地字幕</string>
     <string name="no_subtitle_tracks_found">此视频的字幕轨道不可用或不被支持。</string>
     <string name="no_audio_tracks_found">此视频的音轨不可用或不被支持。</string>
@@ -206,8 +206,8 @@
     <string name="control_buttons_alignment_left">左</string>
     <string name="control_buttons_alignment_right">右</string>
     <string name="control_buttons_alignment">控制按钮对齐</string>
-    <string name="background_play_description">当返回主屏幕或锁屏时，继续在后台播放</string>
+    <string name="background_play_description">当返回主屏幕或锁屏时继续在后台播放</string>
     <string name="stop_player_session">停止播放器会话</string>
     <string name="background_play">后台播放</string>
-    <string name="enable_pip_from_settings">画中画被停用，在设置中启用它来使用此功能</string>
+    <string name="enable_pip_from_settings">画中画模式被停用，请在设置中启用它来使用此功能</string>
 </resources>
