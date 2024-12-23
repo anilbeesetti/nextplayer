@@ -27,7 +27,7 @@ jobs:
           BASE_VERSION="${{ github.event.inputs.version }}"
           BRANCH_NAME="release/v${BASE_VERSION}"
           
-          git fetch origin release/${BASE_VERSION} || git fetch --all
+          git fetch origin ${BRANCH_NAME} || git fetch --all
           
           if git rev-parse --verify origin/${BRANCH_NAME} >/dev/null 2>&1; then
             echo "Branch ${BRANCH_NAME} exists, checking out..."
@@ -37,7 +37,7 @@ jobs:
             git checkout -b ${BRANCH_NAME}
           fi
           
-          CURRENT_RC=$(git tag -l "${BASE_VERSION}-rc*" | sort | tail -n 1)
+          CURRENT_RC=$(git tag -l "v${BASE_VERSION}-rc*" | sort | tail -n 1)
           if [[ -z "$CURRENT_RC" ]]; then
             RC_SUFFIX="-rc01"
           else
