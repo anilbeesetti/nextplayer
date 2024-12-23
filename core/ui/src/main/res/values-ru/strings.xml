@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment">Расположение кнопок управления</string>
     <string name="control_buttons_alignment_right">Справа</string>
     <string name="control_buttons_alignment_left">Слева</string>
+    <string name="enable_pip_from_settings">Картинка в картинке отключена. Включите её в настройках, чтобы использовать эту функцию.</string>
+    <string name="background_play_description">Воспроизведение в фоновом режиме при нажатии на «Домой» или при заблокированном экране.</string>
+    <string name="stop_player_session">Остановить сеанс</string>
+    <string name="background_play">Фоновое воспроизведение</string>
 </resources>
