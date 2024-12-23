@@ -345,6 +345,7 @@ class PlayerActivity : AppCompatActivity() {
 
                 if (intent.data != null && intent.data.toString() != currentMediaItem?.mediaId) {
                     playVideo(uri = viewModel.currentMediaItemUri ?: intent.data!!)
+                    intent.data = null
                 }
             }
             subtitleFileLauncherLaunchedForMediaItem = null
@@ -785,6 +786,7 @@ class PlayerActivity : AppCompatActivity() {
             viewModel.currentMediaItemUri = intent.data
             if (mediaController != null) {
                 playVideo(intent.data!!)
+                intent.data = null
             }
         }
     }
