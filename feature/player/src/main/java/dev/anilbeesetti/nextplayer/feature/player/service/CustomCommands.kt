@@ -13,6 +13,7 @@ enum class CustomCommands(val customAction: String) {
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
+    SET_PLAYBACK_SPEED(customAction = "SET_PLAYBACK_SPEED"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
@@ -30,6 +31,7 @@ enum class CustomCommands(val customAction: String) {
         const val AUDIO_TRACK_INDEX_KEY = "audio_track_index"
         const val SUBTITLE_TRACK_INDEX_KEY = "subtitle_track_index"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
+        const val PLAYBACK_SPEED_KEY = "playback_speed"
     }
 }
 
@@ -64,4 +66,11 @@ fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
+}
+
+fun MediaController.setSpeed(speed: Float) {
+    val args = Bundle().apply {
+        putFloat(CustomCommands.PLAYBACK_SPEED_KEY, speed)
+    }
+    sendCustomCommand(CustomCommands.SET_PLAYBACK_SPEED.sessionCommand, args)
 }

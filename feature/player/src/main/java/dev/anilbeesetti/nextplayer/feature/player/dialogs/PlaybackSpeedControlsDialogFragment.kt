@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.PlaybackSpeedBinding
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.setSpeed
 import kotlinx.coroutines.launch
 
 class PlaybackSpeedControlsDialogFragment(
@@ -33,7 +34,7 @@ class PlaybackSpeedControlsDialogFragment(
 
                 speed.addOnChangeListener { _, _, _ ->
                     val newSpeed = speed.value.round(1)
-                    mediaController.setPlaybackSpeed(newSpeed)
+                    mediaController.setSpeed(newSpeed)
                     speedText.text = newSpeed.toString()
                 }
                 incSpeed.setOnClickListener {
