@@ -69,15 +69,6 @@ jobs:
           sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts
 
-      - name: Commit and Push Changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Release version ${{ env.VERSION_NAME }}" || echo "No changes to commit"
-          git config push.autoSetupRemote true
-          git push --set-upstream origin ${BRANCH_NAME}
-
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -136,6 +127,15 @@ jobs:
           mv app/build/outputs/apk/release/app-universal-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-universal.apk
           mv app/build/outputs/apk/release/app-x86-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-x86.apk
           mv app/build/outputs/apk/release/app-x86_64-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-x86_64.apk
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Release version ${{ env.VERSION_NAME }}" || echo "No changes to commit"
+          git config push.autoSetupRemote true
+          git push --set-upstream origin ${BRANCH_NAME}
 
       - name: Create Draft Release
         id: create_draft_release
