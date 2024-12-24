@@ -27,7 +27,7 @@ jobs:
           BASE_VERSION="${{ github.event.inputs.version }}"
           BRANCH_NAME="release/v${BASE_VERSION}"
           
-          git fetch origin release/${BASE_VERSION} || git fetch --all
+          git fetch --all
           
           if git rev-parse --verify origin/${BRANCH_NAME} >/dev/null 2>&1; then
             echo "Branch ${BRANCH_NAME} exists, checking out..."
@@ -37,7 +37,7 @@ jobs:
             git checkout -b ${BRANCH_NAME}
           fi
           
-          CURRENT_RC=$(git tag -l "${BASE_VERSION}-rc*" | sort | tail -n 1)
+          CURRENT_RC=$(git tag -l "v${BASE_VERSION}-rc*" | sort | tail -n 1)
           if [[ -z "$CURRENT_RC" ]]; then
             RC_SUFFIX="-rc01"
           else
@@ -68,15 +68,6 @@ jobs:
           echo "Updating version code to ${{ env.VERSION_CODE }} and version name to ${{ env.VERSION_NAME }}"
           sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts
-
-      - name: Commit and Push Changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Release version ${{ env.VERSION_NAME }}" || echo "No changes to commit"
-          git config push.autoSetupRemote true
-          git push --set-upstream origin ${BRANCH_NAME}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -137,6 +128,15 @@ jobs:
           mv app/build/outputs/apk/release/app-x86-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-x86.apk
           mv app/build/outputs/apk/release/app-x86_64-release.apk app/build/outputs/apk/release/nextplayer-v${{ env.VERSION_NAME }}-x86_64.apk
 
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Release version ${{ env.VERSION_NAME }}" || echo "No changes to commit"
+          git config push.autoSetupRemote true
+          git push --set-upstream origin ${BRANCH_NAME}
+
       - name: Create Draft Release
         id: create_draft_release
         uses: softprops/action-gh-release@v2
@@ -147,3 +147,5 @@ jobs:
           draft: true
           name: v${{ env.VERSION_NAME }}
           generate_release_notes: true
+          prerelease: ${{ github.event.inputs.release_type == 'preview' }}
+          tag_name: v${{ env.VERSION_NAME }}
