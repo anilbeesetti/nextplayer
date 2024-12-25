@@ -651,9 +651,21 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
-        val mediaUri = getMediaContentUri(uri)
-        val playlist = mediaUri?.let { viewModel.getPlaylistFromUri(it) }?.map { it.uriString } ?: listOf(uri.toString())
-        val mediaItemIndexToPlay = playlist.indexOfFirst { it == (mediaUri ?: uri).toString() }.takeIf { it >= 0 } ?: 0
+        val mediaContentUri = getMediaContentUri(uri)
+        val playlist = mediaContentUri?.let { mediaUri ->
+            viewModel.getPlaylistFromUri(mediaUri)
+                .map { it.uriString }
+                .toMutableList()
+                .apply {
+                    if (!contains(mediaUri.toString())) {
+                        add(index = 0, element = mediaUri.toString())
+                    }
+                }
+        } ?: listOf(uri.toString())
+
+        val mediaItemIndexToPlay = playlist.indexOfFirst {
+            it == (mediaContentUri ?: uri).toString()
+        }.takeIf { it >= 0 } ?: 0
 
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
