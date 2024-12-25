@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+
+print File.expand_path('../../lib/travis_formatter.rb', __FILE__)

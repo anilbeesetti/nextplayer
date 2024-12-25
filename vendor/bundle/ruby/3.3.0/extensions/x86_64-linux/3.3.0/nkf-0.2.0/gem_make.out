@@ -1,0 +1,18 @@
+current directory: /home/runner/work/nextplayer/nextplayer/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+/opt/hostedtoolcache/Ruby/3.3.0/x64/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /home/runner/work/nextplayer/nextplayer/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241219-1838-9r619q sitelibdir\=./.gem.20241219-1838-9r619q clean
+
+current directory: /home/runner/work/nextplayer/nextplayer/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241219-1838-9r619q sitelibdir\=./.gem.20241219-1838-9r619q
+compiling nkf.c
+linking shared-object nkf.so
+
+current directory: /home/runner/work/nextplayer/nextplayer/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241219-1838-9r619q sitelibdir\=./.gem.20241219-1838-9r619q install
+/usr/bin/install -c -m 0755 nkf.so ./.gem.20241219-1838-9r619q
+
+current directory: /home/runner/work/nextplayer/nextplayer/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241219-1838-9r619q sitelibdir\=./.gem.20241219-1838-9r619q clean

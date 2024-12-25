@@ -1,0 +1,105 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'rubygems'
+require 'commander/import'
+
+program :name, 'commander'
+program :version, Commander::VERSION
+program :description, 'Commander utility program.'
+
+command :init do |c|
+  c.syntax = 'commander init [option] <file>'
+  c.summary = 'Initialize a commander template'
+  c.description = 'Initialize an empty <file> with a commander template,
+    allowing very quick creation of commander executables.'
+  c.example 'Create a new classic style template file.', 'commander init bin/my_executable'
+  c.example 'Create a new modular style template file.', 'commander init --modular bin/my_executable'
+  c.option '-m', '--modular', 'Initialize a modular style template'
+  c.action do |args, options|
+    file = args.shift || abort('file argument required.')
+    name = ask 'Machine name of program: '
+    description = ask 'Describe your program: '
+    commands = ask_for_array 'List the commands you wish to create: '
+    begin
+      if options.modular
+        File.open(file, 'w') do |f|
+          f.write <<-"...".gsub!(/^ {10}/, '')
+          #!/usr/bin/env ruby
+
+          require 'rubygems'
+          require 'commander'
+
+          class MyApplication
+            include Commander::Methods
+            # include whatever modules you need
+
+            def run
+              program :name, '#{name}'
+              program :version, '0.0.1'
+              program :description, '#{description}'
+
+          ...
+          commands.each do |command|
+            f.write <<-"...".gsub!(/^ {12}/, '')
+                command :#{command} do |c|
+                  c.syntax = '#{name} #{command} [options]'
+                  c.summary = ''
+                  c.description = ''
+                  c.example 'description', 'command example'
+                  c.option '--some-switch', 'Some switch that does something'
+                  c.action do |args, options|
+                    # Do something or c.when_called #{name.capitalize}::Commands::#{command.capitalize}
+                  end
+                end
+
+            ...
+          end
+          f.write <<-"...".gsub!(/^ {12}/, '')
+                run!
+              end
+            end
+
+            MyApplication.new.run if $0 == __FILE__
+          ...
+        end
+
+        File.chmod(0755, file)
+        say "Initialized modular template in #{file}"
+      else
+        File.open(file, 'w') do |f|
+          f.write <<-"...".gsub!(/^ {10}/, '')
+          #!/usr/bin/env ruby
+
+          require 'rubygems'
+          require 'commander/import'
+
+          program :name, '#{name}'
+          program :version, '0.0.1'
+          program :description, '#{description}'
+
+          ...
+          commands.each do |command|
+            f.write <<-"...".gsub!(/^ {12}/, '')
+            command :#{command} do |c|
+              c.syntax = '#{name} #{command} [options]'
+              c.summary = ''
+              c.description = ''
+              c.example 'description', 'command example'
+              c.option '--some-switch', 'Some switch that does something'
+              c.action do |args, options|
+                # Do something or c.when_called #{name.capitalize}::Commands::#{command.capitalize}
+              end
+            end
+
+            ...
+          end
+        end
+        File.chmod 0755, file
+        say "Initialized template in #{file}"
+      end
+    rescue StandardError => e
+      abort e
+    end
+  end
+end

@@ -1,0 +1,14 @@
+version: 2
+updates:
+- package-ecosystem: bundler
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: rake
+    versions:
+    - ">= 13.a, < 14"
+  - dependency-name: rubocop
+    versions:
+    - "> 0.52.1"

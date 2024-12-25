@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+# Copyright (c) 2014 Radek Pazdera
+# Distributed under the MIT License
+
+require 'optparse'
+require 'word_wrap'
+
+
+options = {:width => 80, :fit => false, :inplace => false}
+OptionParser.new do |opts|
+  opts.banner = "Usage: ww [OPTIONS] [input-file]"
+
+  opts.on("-f", "--fit", "Fit precisely to the defined width") do |f|
+    options[:fit] = f
+  end
+
+  opts.on("-w", "--width COLUMNS", "Set line width (defaults to 80)") do |w|
+    options[:width] = w.to_i
+  end
+
+  opts.on("-i", "--in-place", "Edit the input file in-place") do |i|
+    options[:inplace] = true
+  end
+end.parse!
+
+if ARGV.length > 0
+  result = nil
+  File.open(ARGV[0], "r") do |f|
+    result = WordWrap::ww f.read, options[:width], options[:fit]
+  end
+
+  if options[:inplace]
+    File.open(ARGV[0], "w") do |f|
+      f.print result
+    end
+  else
+    print result
+  end
+else
+  print WordWrap::ww STDIN.read, options[:width], options[:fit]
+end

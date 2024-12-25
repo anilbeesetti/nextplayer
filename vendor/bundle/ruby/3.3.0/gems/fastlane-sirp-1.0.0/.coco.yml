@@ -1,0 +1,7 @@
+:include:
+  - lib
+:exclude:
+  - spec
+  - lib/sirp/version.rb
+:theme: dark
+:show_link_in_terminal: true
