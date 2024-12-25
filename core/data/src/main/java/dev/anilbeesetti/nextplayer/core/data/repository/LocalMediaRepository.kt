@@ -41,6 +41,12 @@ class LocalMediaRepository @Inject constructor(
         return mediumDao.get(uri)?.toVideoState()
     }
 
+    override fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
+        applicationScope.launch {
+            mediumDao.updateMediumLastPlayedTime(uri, lastPlayedTime)
+        }
+    }
+
     override fun updateMediumPosition(uri: String, position: Long) {
         applicationScope.launch {
             val duration = mediumDao.get(uri)?.duration ?: position.plus(1)

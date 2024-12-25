@@ -161,6 +161,15 @@ class PlayerService : MediaSessionService() {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.getDefaults(this@PlayerService)
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
+
+            if (playbackState == Player.STATE_READY) {
+                mediaSession?.player?.let {
+                    mediaRepository.updateMediumLastPlayedTime(
+                        uri = it.currentMediaItem?.mediaId ?: return@let,
+                        lastPlayedTime = System.currentTimeMillis(),
+                    )
+                }
+            }
         }
     }
 
