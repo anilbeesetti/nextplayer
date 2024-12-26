@@ -88,6 +88,15 @@ fun Player.seekForward(positionMs: Long, shouldFastSeek: Boolean = false) {
     this.seekTo(positionMs)
 }
 
+/**
+ * Jumps to the specified timestamp.
+ *
+ * @param timestampMs The timestamp to jump to, in milliseconds.
+ */
+fun Player.jumpToTimestamp(timestampMs: Long) {
+    this.seekTo(timestampMs)
+}
+
 @get:UnstableApi
 val Player.audioSessionId: Int
     get() = when (this) {

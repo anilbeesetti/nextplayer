@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="export_bookmarks">Export Sections</string>
+    <string name="sections">Chapters</string>
+</resources>
