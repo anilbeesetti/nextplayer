@@ -130,6 +130,7 @@ class PlayerActivity : AppCompatActivity() {
     private var hideInfoLayoutJob: Job? = null
 
     private var playInBackground: Boolean = false
+    private var isIntentNew: Boolean = true
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET)
@@ -343,10 +344,7 @@ class PlayerActivity : AppCompatActivity() {
                 addListener(playbackStateListener)
                 volumeManager.loudnessEnhancer = loudnessEnhancer
 
-                if (intent.data != null && intent.data.toString() != currentMediaItem?.mediaId) {
-                    playVideo(uri = viewModel.currentMediaItemUri ?: intent.data!!)
-                    intent.data = null
-                }
+                startPlayback()
             }
             subtitleFileLauncherLaunchedForMediaItem = null
         }
@@ -650,7 +648,21 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
+    private fun startPlayback(uri: Uri = intent.data!!) {
+        // If the intent is not new and the current media item is not null, return
+        if (!isIntentNew && mediaController?.currentMediaItem != null) return
+
+        // If the current media item is not null and the current media item's uri is the same as the intent's data, return
+        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == intent.data.toString()) return
+
+        isIntentNew = false
+
+        lifecycleScope.launch {
+            playVideo(uri)
+        }
+    }
+
+    private suspend fun playVideo(uri: Uri) = withContext(Dispatchers.Default) {
         val mediaContentUri = getMediaContentUri(uri)
         val playlist = mediaContentUri?.let { mediaUri ->
             viewModel.getPlaylistFromUri(mediaUri)
@@ -697,7 +709,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            viewModel.currentMediaItemUri = mediaItem?.localConfiguration?.uri
+            intent.data = mediaItem?.localConfiguration?.uri
             isMediaItemReady = false
         }
 
@@ -795,10 +807,10 @@ class PlayerActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent.data != null) {
             currentOrientation = null
-            viewModel.currentMediaItemUri = intent.data
+            setIntent(intent)
+            isIntentNew = true
             if (mediaController != null) {
-                playVideo(intent.data!!)
-                intent.data = null
+                startPlayback()
             }
         }
     }
