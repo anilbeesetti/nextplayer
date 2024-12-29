@@ -648,12 +648,14 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun startPlayback(uri: Uri = intent.data!!) {
+    private fun startPlayback() {
+        val uri = intent.data ?: return
+
         // If the intent is not new and the current media item is not null, return
         if (!isIntentNew && mediaController?.currentMediaItem != null) return
 
         // If the current media item is not null and the current media item's uri is the same as the intent's data, return
-        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == intent.data.toString()) return
+        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()) return
 
         isIntentNew = false
 

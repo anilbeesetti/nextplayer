@@ -44,3 +44,4 @@ fastlane/test_output
 
 vendor/
 .bundle/
+.kotlin
