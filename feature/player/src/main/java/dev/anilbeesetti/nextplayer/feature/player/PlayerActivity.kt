@@ -76,7 +76,6 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsD
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
-import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
@@ -90,6 +89,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
@@ -144,7 +144,6 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
-    var loudnessEnhancer: LoudnessEnhancer? = null
     private var pipBroadcastReceiver: BroadcastReceiver? = null
 
     /**
@@ -336,14 +335,14 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.keepScreenOn = isPlaying
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                 videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
-                try {
-                    loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                if (playerPreferences.shouldUseVolumeBoost) {
+                    try {
+                        volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
                 addListener(playbackStateListener)
-                volumeManager.loudnessEnhancer = loudnessEnhancer
-
                 startPlayback()
             }
             subtitleFileLauncherLaunchedForMediaItem = null
@@ -385,7 +384,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("NewApi")
+    @SuppressLint("NewApi", "MissingSuperCall")
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O..<Build.VERSION_CODES.S &&
@@ -730,12 +729,14 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
             super.onAudioSessionIdChanged(audioSessionId)
-            loudnessEnhancer?.release()
+            volumeManager.loudnessEnhancer?.release()
 
-            try {
-                loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            if (playerPreferences.shouldUseVolumeBoost) {
+                try {
+                    volumeManager.loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
 

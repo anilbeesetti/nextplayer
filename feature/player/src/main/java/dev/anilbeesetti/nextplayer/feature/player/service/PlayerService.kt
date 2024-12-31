@@ -43,7 +43,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
-import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
@@ -305,6 +304,16 @@ class PlayerService : MediaSessionService() {
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
+                CustomCommands.GET_AUDIO_SESSION_ID -> {
+                    val audioSessionId = mediaSession?.player?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putInt(CustomCommands.AUDIO_SESSION_ID_KEY, audioSessionId)
+                        },
+                    )
+                }
+
                 CustomCommands.STOP_PLAYER_SESSION -> {
                     mediaSession?.run {
                         player.clearMediaItems()
@@ -448,3 +457,24 @@ class PlayerService : MediaSessionService() {
         }.awaitAll()
     }
 }
+
+@get:UnstableApi
+private val Player.audioSessionId: Int
+    get() = when (this) {
+        is ExoPlayer -> this.audioSessionId
+        else -> C.AUDIO_SESSION_ID_UNSET
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.skipSilenceEnabled: Boolean
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.skipSilenceEnabled
+        else -> false
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.skipSilenceEnabled = value
+        }
+    }
