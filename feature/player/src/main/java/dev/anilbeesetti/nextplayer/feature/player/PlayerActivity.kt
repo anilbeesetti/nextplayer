@@ -327,7 +327,7 @@ class PlayerActivity : AppCompatActivity() {
             setOrientation()
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
             mediaController?.currentMediaItem?.mediaId?.let {
-                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 0f)
+                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 1f)
             }
 
             mediaController?.run {
