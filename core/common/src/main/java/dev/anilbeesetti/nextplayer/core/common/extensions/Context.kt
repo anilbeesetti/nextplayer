@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -93,6 +92,9 @@ fun Context.getPath(uri: Uri): String? {
             }
         }
     } else if (ContentResolver.SCHEME_CONTENT.equals(uri.scheme, ignoreCase = true)) {
+        if (uri.isLocalPhotoPickerUri) return null
+        if (uri.isCloudPhotoPickerUri) return null
+
         return if (uri.isGooglePhotosUri) {
             uri.lastPathSegment
         } else {
@@ -116,19 +118,17 @@ private fun Context.getDataColumn(
     selection: String? = null,
     selectionArgs: Array<String>? = null,
 ): String? {
-    var cursor: Cursor? = null
     val column = MediaStore.Images.Media.DATA
     val projection = arrayOf(column)
     try {
-        cursor = contentResolver.query(uri, projection, selection, selectionArgs, null)
-        if (cursor != null && cursor.moveToFirst()) {
-            val index = cursor.getColumnIndexOrThrow(column)
-            return cursor.getString(index)
+        contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val index = cursor.getColumnIndexOrThrow(column)
+                return cursor.getString(index)
+            }
         }
     } catch (e: Exception) {
         return null
-    } finally {
-        cursor?.close()
     }
     return null
 }
@@ -172,26 +172,24 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
 fun Context.getMediaContentUri(uri: Uri): Uri? {
     val path = getPath(uri) ?: return null
 
-    var cursor: Cursor? = null
     val column = MediaStore.Video.Media._ID
     val projection = arrayOf(column)
     try {
-        cursor = contentResolver.query(
+        contentResolver.query(
             VIDEO_COLLECTION_URI,
             projection,
             "${MediaStore.Images.Media.DATA} = ?",
             arrayOf(path),
             null,
-        )
-        if (cursor != null && cursor.moveToFirst()) {
-            val index = cursor.getColumnIndexOrThrow(column)
-            val id = cursor.getLong(index)
-            return ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id)
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val index = cursor.getColumnIndexOrThrow(column)
+                val id = cursor.getLong(index)
+                return ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id)
+            }
         }
     } catch (e: Exception) {
         return null
-    } finally {
-        cursor?.close()
     }
     return null
 }
@@ -275,7 +273,14 @@ private fun detectCharset(url: URL): Charset {
 
 private fun detectCharsetFromStream(inputStream: InputStream): Charset {
     return BufferedInputStream(inputStream).use { bufferedStream ->
-        val data = bufferedStream.readBytes()
+        val maxBytes = 1024 * 100 // 100 KB
+        val data = ByteArray(maxBytes)
+        val bytesRead = bufferedStream.read(data, 0, maxBytes)
+
+        if (bytesRead <= 0) {
+            return@use Charset.forName(StandardCharsets.UTF_8.name())
+        }
+
         UniversalDetector(null).run {
             handleData(data, 0, data.size)
             dataEnd()
