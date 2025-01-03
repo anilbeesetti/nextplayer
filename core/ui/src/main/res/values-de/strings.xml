@@ -206,4 +206,5 @@
     <string name="control_buttons_alignment_left">Links</string>
     <string name="control_buttons_alignment_right">Rechts</string>
     <string name="control_buttons_alignment">Ausrichtung der Steuertasten</string>
+    <string name="enable_pip_from_settings">Bild-in-Bild ist deaktiviert. Aktivieren Sie es in den Einstellungen, um diese Funktion zu nutzen.</string>
 </resources>

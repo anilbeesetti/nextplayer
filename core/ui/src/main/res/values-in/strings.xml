@@ -45,6 +45,8 @@
     <string name="resume">Lanjutkan</string>
     <string name="resume_description">Pilih apakah akan melanjutkan video yang diputar dari titik di mana Anda berhenti</string>
     <string name="seek_gesture">Cari gestur</string>
-    <string name="seek_gesture_description">Usap secara horizontal untuk mencari ke depan atau ke belakang</string>
+    <string name="seek_gesture_description">Geser secara horizontal untuk mencari ke depan atau ke belakang</string>
     <string name="select_audio_track">Pilih trek audio</string>
+    <string name="settings">Pengaturan</string>
+    <string name="size">Ukuran</string>
 </resources>
