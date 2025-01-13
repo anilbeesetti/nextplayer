@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment_left">왼쪽</string>
     <string name="control_buttons_alignment_right">오른쪽</string>
     <string name="control_buttons_alignment">제어 버튼 정렬</string>
+    <string name="stop_player_session">플레이어 세션 중지</string>
+    <string name="background_play">백그라운드 재생</string>
+    <string name="background_play_description">홈을 누르거나 화면이 잠겨 있을 때 백그라운드에서 계속 재생합니다.</string>
+    <string name="enable_pip_from_settings">PIP 기능이 꺼져 있습니다. 설정에서 PIP 모드를 켜 주세요.</string>
 </resources>
