@@ -6,7 +6,7 @@ on:
         description: "Version number (must be in x.y.z format)"
         required: true
       version_code:
-        description: "Version code of the new build (must be a number only). Enter 0 to automatically increment one from the previous version code"
+        description: "Version code of the new build (must be a number). Enter 0 to automatically increment one from the previous version code"
         required: true
         default: 0
       release_type:
@@ -18,7 +18,7 @@ on:
           - release
           - preview
       release_notes:
-        description: "Release notes for the release type"
+        description: "Release notes for the release type (use '\\n' as a separator for new lines)"
         default: ""
 
 jobs:
@@ -82,7 +82,9 @@ jobs:
         if: ${{ github.event.inputs.release_notes != '' }}
         run: |
           echo "Creating changelog for version code ${{ env.VERSION_CODE }}"
-          echo "${{ github.event.inputs.release_notes }}" > fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
+          echo "${{ github.event.inputs.release_notes }}" | tr '\\n' '\n' > fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
+          echo "Generated Changelog:"
+          cat fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
