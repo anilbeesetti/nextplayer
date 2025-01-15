@@ -2,9 +2,13 @@ name: Update version and publish APK
 on:
   workflow_dispatch:
     inputs:
-      version:
+      version_name:
         description: "Version number (must be in x.y.z format)"
         required: true
+      version_code:
+        description: "Version code of the new build (must be a number only). Enter 0 to automatically increment one from the previous version code"
+        required: true
+        default: 0
       release_type:
         description: "Type of release (release or preview)"
         required: true
@@ -13,6 +17,9 @@ on:
         options:
           - release
           - preview
+      release_notes:
+        description: "Release notes for the release type"
+        default: ""
 
 jobs:
   update_version_and_publish:
@@ -24,7 +31,7 @@ jobs:
       - name: Get updated version name and version code
         run: |
           # Extract version name from github inputs
-          BASE_VERSION="${{ github.event.inputs.version }}"
+          BASE_VERSION="${{ github.event.inputs.version_name }}"
           BRANCH_NAME="release/v${BASE_VERSION}"
           
           git fetch --all
@@ -53,11 +60,13 @@ jobs:
             VERSION_NAME="${BASE_VERSION}"
           fi
 
-          # Get existing version code from build.gradle
-          VERSION_CODE=$(grep "versionCode" app/build.gradle.kts | awk '{print $3}' | tr -d '\n')
-
-          # Increment existing version code by 1
-          VERSION_CODE=$((VERSION_CODE + 1))
+          if [[ "${{ github.event.inputs.version_code }}" == "0" ]]; then
+            # Get existing version code from build.gradle
+            VERSION_CODE=$(grep "versionCode" app/build.gradle.kts | awk '{print $3}')
+            VERSION_CODE=$((VERSION_CODE + 1))
+          else
+            VERSION_CODE=${{ github.event.inputs.version_code }}
+          fi
 
           # Set environment variable for later use
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
@@ -68,6 +77,12 @@ jobs:
           echo "Updating version code to ${{ env.VERSION_CODE }} and version name to ${{ env.VERSION_NAME }}"
           sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts
+
+      - name: Create changelog file (if release notes provided)
+        if: ${{ github.event.inputs.release_notes != '' }}
+        run: |
+          echo "Creating changelog for version code ${{ env.VERSION_CODE }}"
+          echo "${{ github.event.inputs.release_notes }}" > fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -101,17 +116,15 @@ jobs:
           fileName: 'play-api-credentials.json'
           encodedString: ${{ secrets.PLAY_API_CREDENTIALS }}
 
-      - name: Build app
-        run: bundle exec fastlane build
-        if: ${{ github.event.inputs.release_type == 'preview' }}
-        env:
-          KEYSTORE: ${{ steps.keystore.outputs.filePath }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
       - name: Build app and publish
-        run: bundle exec fastlane build
+        run: |
+          if [[ "${{ github.event.inputs.release_type }}" == "release" ]]; then
+            echo "Running fastlane publish"
+            bundle exec fastlane publish
+          else
+            echo "Running fastlane build"
+            bundle exec fastlane build
+          fi
         if: ${{ github.event.inputs.release_type == 'release' }}
         env:
           KEYSTORE: ${{ steps.keystore.outputs.filePath }}
