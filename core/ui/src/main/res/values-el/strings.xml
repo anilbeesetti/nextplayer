@@ -191,7 +191,7 @@
     <string name="open_subtitle">Άνοιγμα τοπικών υποτίτλων</string>
     <string name="play_next_video">Αναπαραγωγή επόμενου</string>
     <string name="exit">Έξοδος</string>
-    <string name="mark_last_played_media">Επισήμανση τελευταίας αναπαραγωγής</string>
+    <string name="mark_last_played_media">Επισήμανση αναπαραγωγής</string>
     <string name="open_local_video">Τοπικό βίντεο</string>
     <string name="open_network_stream">Δικτυακή ροή</string>
     <string name="floating_play_button">Αιωρούμενο κουμπί</string>
