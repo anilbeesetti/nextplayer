@@ -188,7 +188,7 @@
     <string name="no_subtitle_tracks_found">Bu video için altyazı parçaları ya mevcut değil ya da desteklenmiyor.</string>
     <string name="no_audio_tracks_found">Bu video için ses parçaları ya mevcut değil ya da desteklenmiyor.</string>
     <string name="rename">Yeniden adlandır</string>
-    <string name="rename_to">Yeniden adlandır</string>
+    <string name="rename_to">Şuna isimlendir</string>
     <string name="floating_play_button">Yüzen oynatma düğmesi</string>
     <string name="floating_play_button_desc">Son oynatılan medyayı oynatmak için yüzen düğmeyi göster.</string>
     <string name="mark_last_played_media">Son oynatılan medyayı işaretle</string>
@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment_left">Sol</string>
     <string name="control_buttons_alignment_right">Sağ</string>
     <string name="control_buttons_alignment">Denetim düğmelerinin hizalanması</string>
+    <string name="enable_pip_from_settings">Resim içinde resim özelliği devre dışı. Bu özelliği ayarlardan aktif edin.</string>
+    <string name="stop_player_session">Oynatıcı oturumunu durdur</string>
+    <string name="background_play">Arka planda oynat</string>
+    <string name="background_play_description">Arka planda oynat.</string>
 </resources>
