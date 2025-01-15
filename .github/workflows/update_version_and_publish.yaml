@@ -82,7 +82,7 @@ jobs:
         if: ${{ github.event.inputs.release_notes != '' }}
         run: |
           echo "Creating changelog for version code ${{ env.VERSION_CODE }}"
-          echo "${{ github.event.inputs.release_notes }}" | tr '\\n' '\n' > fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
+          echo "${{ github.event.inputs.release_notes }}" > fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
           echo "Generated Changelog:"
           cat fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
 
