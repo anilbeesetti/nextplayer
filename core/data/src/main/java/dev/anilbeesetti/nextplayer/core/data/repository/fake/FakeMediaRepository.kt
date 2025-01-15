@@ -29,6 +29,9 @@ class FakeMediaRepository : MediaRepository {
         return null
     }
 
+    override fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
+    }
+
     override fun updateMediumPosition(uri: String, position: Long) {
     }
 
