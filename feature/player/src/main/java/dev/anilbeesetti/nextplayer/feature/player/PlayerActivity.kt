@@ -76,7 +76,6 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsD
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
-import dev.anilbeesetti.nextplayer.feature.player.extensions.audioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
@@ -90,6 +89,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
@@ -130,6 +130,7 @@ class PlayerActivity : AppCompatActivity() {
     private var hideInfoLayoutJob: Job? = null
 
     private var playInBackground: Boolean = false
+    private var isIntentNew: Boolean = true
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET)
@@ -143,7 +144,6 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
-    var loudnessEnhancer: LoudnessEnhancer? = null
     private var pipBroadcastReceiver: BroadcastReceiver? = null
 
     /**
@@ -327,7 +327,7 @@ class PlayerActivity : AppCompatActivity() {
             setOrientation()
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
             mediaController?.currentMediaItem?.mediaId?.let {
-                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 0f)
+                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 1f)
             }
 
             mediaController?.run {
@@ -335,17 +335,15 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.keepScreenOn = isPlaying
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                 videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
-                try {
-                    loudnessEnhancer = if (playerPreferences.shouldUseVolumeBoost) LoudnessEnhancer(audioSessionId) else null
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                if (playerPreferences.shouldUseVolumeBoost) {
+                    try {
+                        volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
                 addListener(playbackStateListener)
-                volumeManager.loudnessEnhancer = loudnessEnhancer
-
-                if (intent.data != null && intent.data.toString() != currentMediaItem?.mediaId) {
-                    playVideo(uri = viewModel.currentMediaItemUri ?: intent.data!!)
-                }
+                startPlayback()
             }
             subtitleFileLauncherLaunchedForMediaItem = null
         }
@@ -386,7 +384,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("NewApi")
+    @SuppressLint("NewApi", "MissingSuperCall")
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O..<Build.VERSION_CODES.S &&
@@ -649,10 +647,38 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun playVideo(uri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
-        val mediaUri = getMediaContentUri(uri)
-        val playlist = mediaUri?.let { viewModel.getPlaylistFromUri(it) }?.map { it.uriString } ?: listOf(uri.toString())
-        val mediaItemIndexToPlay = playlist.indexOfFirst { it == (mediaUri ?: uri).toString() }.takeIf { it >= 0 } ?: 0
+    private fun startPlayback() {
+        val uri = intent.data ?: return
+
+        // If the intent is not new and the current media item is not null, return
+        if (!isIntentNew && mediaController?.currentMediaItem != null) return
+
+        // If the current media item is not null and the current media item's uri is the same as the intent's data, return
+        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()) return
+
+        isIntentNew = false
+
+        lifecycleScope.launch {
+            playVideo(uri)
+        }
+    }
+
+    private suspend fun playVideo(uri: Uri) = withContext(Dispatchers.Default) {
+        val mediaContentUri = getMediaContentUri(uri)
+        val playlist = mediaContentUri?.let { mediaUri ->
+            viewModel.getPlaylistFromUri(mediaUri)
+                .map { it.uriString }
+                .toMutableList()
+                .apply {
+                    if (!contains(mediaUri.toString())) {
+                        add(index = 0, element = mediaUri.toString())
+                    }
+                }
+        } ?: listOf(uri.toString())
+
+        val mediaItemIndexToPlay = playlist.indexOfFirst {
+            it == (mediaContentUri ?: uri).toString()
+        }.takeIf { it >= 0 } ?: 0
 
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
@@ -684,7 +710,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            viewModel.currentMediaItemUri = mediaItem?.localConfiguration?.uri
+            intent.data = mediaItem?.localConfiguration?.uri
             isMediaItemReady = false
         }
 
@@ -703,12 +729,14 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
             super.onAudioSessionIdChanged(audioSessionId)
-            loudnessEnhancer?.release()
+            volumeManager.loudnessEnhancer?.release()
 
-            try {
-                loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            if (playerPreferences.shouldUseVolumeBoost) {
+                try {
+                    volumeManager.loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
 
@@ -782,9 +810,10 @@ class PlayerActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         if (intent.data != null) {
             currentOrientation = null
-            viewModel.currentMediaItemUri = intent.data
+            setIntent(intent)
+            isIntentNew = true
             if (mediaController != null) {
-                playVideo(intent.data!!)
+                startPlayback()
             }
         }
     }

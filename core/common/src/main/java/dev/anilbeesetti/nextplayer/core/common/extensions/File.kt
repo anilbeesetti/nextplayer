@@ -15,7 +15,7 @@ suspend fun File.getSubtitles(): List<File> = withContext(Dispatchers.IO) {
 
     subtitleExtensions.mapNotNull { extension ->
         val file = File(parentDir, "$mediaName.$extension")
-        file.takeIf { it.exists() }
+        file.takeIf { it.exists() && it.isFile }
     }
 }
 

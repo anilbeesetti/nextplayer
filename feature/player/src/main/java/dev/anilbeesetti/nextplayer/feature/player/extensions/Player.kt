@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
-import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -88,13 +87,6 @@ fun Player.seekForward(positionMs: Long, shouldFastSeek: Boolean = false) {
     this.seekTo(positionMs)
 }
 
-@get:UnstableApi
-val Player.audioSessionId: Int
-    get() = when (this) {
-        is ExoPlayer -> this.audioSessionId
-        else -> C.AUDIO_SESSION_ID_UNSET
-    }
-
 fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
     val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()
@@ -112,17 +104,3 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     addMediaItem(index + 1, updateMediaItem)
     removeMediaItem(index)
 }
-
-@get:UnstableApi
-@set:UnstableApi
-var Player.skipSilenceEnabled: Boolean
-    @OptIn(UnstableApi::class)
-    get() = when (this) {
-        is ExoPlayer -> this.skipSilenceEnabled
-        else -> false
-    }
-    set(value) {
-        when (this) {
-            is ExoPlayer -> this.skipSilenceEnabled = value
-        }
-    }

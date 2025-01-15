@@ -10,7 +10,6 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
@@ -44,7 +43,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
-import dev.anilbeesetti.nextplayer.feature.player.extensions.skipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
@@ -94,13 +92,12 @@ class PlayerService : MediaSessionService() {
             if (mediaItem != null) {
                 serviceScope.launch {
                     currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
+                    mediaSession?.player?.setPlaybackSpeed(
+                        currentVideoState?.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,
+                    )
                     currentVideoState?.let { state ->
                         state.position?.takeIf { playerPreferences.resume == Resume.YES }?.let {
                             mediaSession?.player?.seekTo(it)
-                        }
-
-                        state.playbackSpeed?.let {
-                            mediaSession?.player?.setPlaybackSpeed(it)
                         }
                     }
                 }
@@ -139,14 +136,6 @@ class PlayerService : MediaSessionService() {
             }
         }
 
-        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-            super.onPlaybackParametersChanged(playbackParameters)
-            mediaRepository.updateMediumPlaybackSpeed(
-                uri = mediaSession?.player?.currentMediaItem?.mediaId ?: return,
-                playbackSpeed = playbackParameters.speed,
-            )
-        }
-
         override fun onTracksChanged(tracks: Tracks) {
             super.onTracksChanged(tracks)
             if (!isMediaItemReady && tracks.groups.isNotEmpty()) {
@@ -169,7 +158,16 @@ class PlayerService : MediaSessionService() {
 
             if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.getDefaults(this@PlayerService)
-                mediaSession?.player?.setPlaybackSpeed(1f)
+                mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
+            }
+
+            if (playbackState == Player.STATE_READY) {
+                mediaSession?.player?.let {
+                    mediaRepository.updateMediumLastPlayedTime(
+                        uri = it.currentMediaItem?.mediaId ?: return@let,
+                        lastPlayedTime = System.currentTimeMillis(),
+                    )
+                }
             }
         }
     }
@@ -290,6 +288,28 @@ class PlayerService : MediaSessionService() {
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
                             putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_PLAYBACK_SPEED -> {
+                    val playbackSpeed = args.getFloat(CustomCommands.PLAYBACK_SPEED_KEY, 1.0f)
+                    mediaSession?.player?.let { player ->
+                        player.setPlaybackSpeed(playbackSpeed)
+                        mediaRepository.updateMediumPlaybackSpeed(
+                            uri = player.currentMediaItem?.mediaId ?: return@let,
+                            playbackSpeed = playbackSpeed,
+                        )
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_AUDIO_SESSION_ID -> {
+                    val audioSessionId = mediaSession?.player?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putInt(CustomCommands.AUDIO_SESSION_ID_KEY, audioSessionId)
                         },
                     )
                 }
@@ -437,3 +457,24 @@ class PlayerService : MediaSessionService() {
         }.awaitAll()
     }
 }
+
+@get:UnstableApi
+private val Player.audioSessionId: Int
+    get() = when (this) {
+        is ExoPlayer -> this.audioSessionId
+        else -> C.AUDIO_SESSION_ID_UNSET
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.skipSilenceEnabled: Boolean
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.skipSilenceEnabled
+        else -> false
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.skipSilenceEnabled = value
+        }
+    }
