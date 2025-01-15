@@ -18,7 +18,7 @@
     <string name="open_settings">Abrir configurações</string>
     <string name="permission_not_granted">Permissão não concedida</string>
     <string name="fast_seek">Navegação rápida</string>
-    <string name="fast_seek_description">Procure o quadro-chave mais próximo em vez do exato</string>
+    <string name="fast_seek_description">Procurar o quadro-chave mais próximo em vez de um exato.</string>
     <string name="error_playing_video">Erro: não foi possível reproduzir o vídeo</string>
     <string name="permission_request">Solicitação de permissão</string>
     <string name="player_controls_exit">Navegar para cima</string>
@@ -209,4 +209,5 @@
     <string name="enable_pip_from_settings">Picture-in-Picture está desabilitado. Ative-o em Configurações para usar este recurso.</string>
     <string name="background_play">Reproduzir em segundo plano</string>
     <string name="background_play_description">Reproduzir em segundo plano quando tocado na tela inicial ou de bloqueio</string>
+    <string name="stop_player_session">Parar sessão do player</string>
 </resources>
