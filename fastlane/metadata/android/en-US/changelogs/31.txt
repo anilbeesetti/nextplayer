@@ -1,0 +1,1 @@
+- Added preference to change control buttons position to either left or right\n- Added Background playback with notification\n- Improved Pip functionality\n- Updated Androidx Media3 version 1.5.1\n- Fixed an issue where video locations weren't properly updating after moving files to new folders\n- Resolved bugs related to Picture-in-Picture mode and background playback
