@@ -22,4 +22,16 @@
     <string name="permission_not_granted">অনুমতি প্রদান করেননি</string>
     <string name="permission_request">অনুমতি অনুরোধ করুন</string>
     <string name="open_settings">সেটিংসে যান</string>
+    <string name="fast_seek_description">সঠিক কী ফ্রেমের পরিবর্তে নিকটতম কী ফ্রেমের সন্ধান করুন।</string>
+    <string name="navigate_up">উপরে নেভিগেট করুন</string>
+    <string name="player_controls_exit">উপরে নেভিগেট করুন</string>
+    <string name="player_controls_next">পরবর্তী প্লেয়ার</string>
+    <string name="player_controls_play_pause">প্লেয়ার চালু বিরতি</string>
+    <string name="player_controls_previous">পূর্ববর্তী প্লেয়ার</string>
+    <string name="autoplay_settings">অটো প্লে</string>
+    <string name="resume">পুনরায় শুরু</string>
+    <string name="resume_description">আপনি যেখানে থামলেন সেখান থেকে প্লে করা ভিডিওগুলি পুনরায় চালু করবেন কি না তা নির্বাচন করুন</string>
+    <string name="permission_settings">নেক্সট প্লেয়ার অ্যাপের মিডিয়া অ্যাক্সেস এবং চালানোর জন্য %1$s অনুমতি প্রয়োজন। এটি ছাড়া, মিডিয়া অ্যাক্সেস এবং প্লেব্যাক কাজ করবে না। অ্যাপটি সম্পূর্ণরূপে ব্যবহার করতে, সেটিংস থেকে অনুমতি দিন কারণ এটি স্থায়ীভাবে অস্বীকার করা হয়েছিল।</string>
+    <string name="permission_info">নেক্সট প্লেয়ার অ্যাপের মিডিয়া অ্যাক্সেস এবং চালানোর জন্য \"%1$s\" অনুমতি প্রয়োজন। এটি ছাড়া, মিডিয়া অ্যাক্সেস এবং প্লেব্যাক কাজ করবে না। অ্যাপটি সম্পূর্ণরূপে ব্যবহার করার জন্য অনুমতি দিন।</string>
+    <string name="autoplay_settings_description">বর্তমান ফোল্ডারে স্বয়ংক্রিয়ভাবে পরবর্তী ভিডিওটি চালান</string>
 </resources>
