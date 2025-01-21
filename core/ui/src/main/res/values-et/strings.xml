@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="done">Valmis</string>
+    <string name="about_name">Rakenduse teave</string>
+    <string name="appearance_name">Välimus</string>
+    <string name="ascending">Kasvavalt</string>
+    <string name="descending">Kahanevalt</string>
+    <string name="disable">Lülita välja</string>
+    <string name="appearance_description">Kohanda rakendus endale meeldivaks</string>
+    <string name="about_description">Versioon ja tänuavaldused</string>
+    <string name="cancel">Katkesta</string>
+</resources>
