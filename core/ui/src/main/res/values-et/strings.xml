@@ -9,4 +9,9 @@
     <string name="appearance_description">Kohanda rakendus endale meeldivaks</string>
     <string name="about_description">Versioon ja tänuavaldused</string>
     <string name="cancel">Katkesta</string>
+    <string name="fast_seek_description">Täpse kaadri asemel keri järgmise võtmekaadrini.</string>
+    <string name="double_tap">Topeltpuudutuse žest</string>
+    <string name="double_tap_description">Vali toiming topeltpuudutuse žesti kasutamisel</string>
+    <string name="error_playing_video">Viga: video esitamine ei õnnestu</string>
+    <string name="fast_seek">Kiirkerimine</string>
 </resources>
