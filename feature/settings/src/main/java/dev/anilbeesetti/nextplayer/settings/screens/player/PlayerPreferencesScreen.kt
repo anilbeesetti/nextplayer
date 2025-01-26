@@ -95,6 +95,10 @@ fun PlayerPreferencesScreen(
                 isChecked = preferences.useSeekControls,
                 onClick = viewModel::toggleUseSeekControls,
             )
+            SeekStepMillisecondsPreference(
+                    currentValue = preferences.seekStepMilliseconds,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekStepMillisecondsDialog) },
+            )
             SwipeGestureSetting(
                 isChecked = preferences.useSwipeControls,
                 onClick = viewModel::toggleUseSwipeControls,
@@ -379,6 +383,36 @@ fun PlayerPreferencesScreen(
                         },
                     )
                 }
+                PlayerPreferenceDialog.SeekStepMillisecondsDialog -> {
+                    var seekStepMilliseconds by remember {
+                        mutableIntStateOf(preferences.seekStepMilliseconds)
+                    }
+
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.seek_step_gesture_increment
+),
+                        onDoneClick = {
+                            viewModel.updateSeekStepMilliseconds(seekStepMilliseconds)
+                            viewModel.hideDialog()
+                        },
+                        onDismissClick = viewModel::hideDialog,
+                        content = {
+                            Text(
+                                text = stringResource(R.string.milliseconds, seekStepMilliseconds),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Slider(
+                                value = seekStepMilliseconds.toFloat(),
+                                onValueChange = { seekStepMilliseconds = it.toInt() },
+                                valueRange = 1.0f..1000.0f,
+                            )
+                        },
+                    )
+                }
             }
         }
     }
@@ -467,6 +501,18 @@ fun SeekIncrementPreference(
     ClickablePreferenceItem(
         title = stringResource(R.string.seek_increment),
         description = stringResource(R.string.seconds, currentValue),
+        icon = NextIcons.Replay,
+        onClick = onClick,
+    )
+}
+@Composable
+fun SeekStepMillisecondsPreference(
+    currentValue: Int,
+    onClick: () -> Unit,
+) {
+    ClickablePreferenceItem(
+        title = stringResource(R.string.seek_step_gesture_increment),
+        description = stringResource(R.string.milliseconds, currentValue),
         icon = NextIcons.Replay,
         onClick = onClick,
     )

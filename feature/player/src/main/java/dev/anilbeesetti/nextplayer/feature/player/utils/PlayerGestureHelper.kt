@@ -147,7 +147,7 @@ class PlayerGestureHelper(
                 if (currentGestureAction != GestureAction.SEEK) return false
 
                 val distanceDiff = abs(Utils.pxToDp(distanceX) / 4).coerceIn(0.5f, 10f)
-                val change = (distanceDiff * SEEK_STEP_MS).toLong()
+                val change = (distanceDiff * prefs.seekStepMilliseconds).toLong()
 
                 playerView.player?.run {
                     if (distanceX < 0L) {
@@ -296,7 +296,6 @@ class PlayerGestureHelper(
     companion object {
         const val FULL_SWIPE_RANGE_SCREEN_RATIO = 0.66f
         const val GESTURE_EXCLUSION_AREA = 20f
-        const val SEEK_STEP_MS = 1000L
     }
 }
 
