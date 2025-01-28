@@ -199,7 +199,7 @@
     <string name="exit">退出</string>
     <string name="skip_silence">跳过无声部分</string>
     <string name="folder">文件夹</string>
-    <string name="tree">树</string>
+    <string name="tree">树形目录</string>
     <string name="folders">文件夹</string>
     <string name="played_progress">播放进度</string>
     <string name="media_view_mode">媒体浏览模式</string>
