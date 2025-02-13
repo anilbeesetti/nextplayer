@@ -203,4 +203,11 @@
     <string name="tree">樹</string>
     <string name="played_progress">播放進度</string>
     <string name="media_view_mode">媒體檢視模式</string>
+    <string name="control_buttons_alignment_left">左</string>
+    <string name="stop_player_session">停止播放器會話</string>
+    <string name="background_play">背景播放</string>
+    <string name="background_play_description">當輕觸主畫面按鈕或螢幕鎖定時在背景中播放。</string>
+    <string name="enable_pip_from_settings">子母畫面已禁用。在設定中啟用它以使用此功能。</string>
+    <string name="control_buttons_alignment_right">右</string>
+    <string name="control_buttons_alignment">控制按鈕對齊</string>
 </resources>
