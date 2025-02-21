@@ -184,7 +184,7 @@
     <string name="volume_boost">音量增幅器</string>
     <string name="pip_settings">子母畫面模式</string>
     <string name="pip_settings_description">當輕觸主畫面按鈕時自動切換至迷你播放器</string>
-    <string name="open_subtitle">打開本地字幕</string>
+    <string name="open_subtitle">開啟本機字幕</string>
     <string name="no_subtitle_tracks_found">該影片的字幕軌道不可用或不受支援。</string>
     <string name="no_audio_tracks_found">該影片的音軌不可用或不受支援。</string>
     <string name="rename">重命名</string>
@@ -192,15 +192,22 @@
     <string name="exit">退出</string>
     <string name="floating_play_button">浮動播放按鈕</string>
     <string name="open_network_stream">開啟網路視訊串流</string>
-    <string name="play_next_video">播放下一個視頻</string>
+    <string name="play_next_video">播放下一個影片</string>
     <string name="floating_play_button_desc">顯示浮動按鈕以播放上次播放的媒體。</string>
     <string name="mark_last_played_media">標記上次播放的媒體</string>
     <string name="mark_last_played_media_desc">標記首頁和每個資料夾中最後播放的媒體</string>
-    <string name="open_local_video">打開本地視頻</string>
+    <string name="open_local_video">開啟本機影片</string>
     <string name="skip_silence">跳過無聲片段</string>
     <string name="folder">目錄</string>
     <string name="folders">目錄</string>
     <string name="tree">樹</string>
     <string name="played_progress">播放進度</string>
     <string name="media_view_mode">媒體檢視模式</string>
+    <string name="control_buttons_alignment_left">左</string>
+    <string name="stop_player_session">停止播放器會話</string>
+    <string name="background_play">背景播放</string>
+    <string name="background_play_description">當輕觸主畫面按鈕或螢幕鎖定時在背景中播放。</string>
+    <string name="enable_pip_from_settings">子母畫面已禁用。在設定中啟用它以使用此功能。</string>
+    <string name="control_buttons_alignment_right">右</string>
+    <string name="control_buttons_alignment">控制按鈕對齊</string>
 </resources>
