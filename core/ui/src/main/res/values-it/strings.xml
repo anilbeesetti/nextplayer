@@ -206,4 +206,8 @@
     <string name="control_buttons_alignment_left">Sinistra</string>
     <string name="control_buttons_alignment_right">Destra</string>
     <string name="control_buttons_alignment">Allineamento pulsanti di controllo</string>
+    <string name="enable_pip_from_settings">Picture-in-Picture è disattivata. Attivala in Impostazioni per utilizzare questa funzione.</string>
+    <string name="stop_player_session">Stop sessione player</string>
+    <string name="background_play">Esecuzione in secondo piano</string>
+    <string name="background_play_description">Esegui in secondo piano quando vai a schermata principale o lo schermo è bloccato.</string>
 </resources>
