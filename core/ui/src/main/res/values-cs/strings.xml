@@ -115,4 +115,11 @@
     <string name="folders">Složky/ek</string>
     <string name="volume_boost_desc">Zvýšit hlasitost až na 200%</string>
     <string name="skip_silence">Přeskočit ticho</string>
+    <string name="ascending">Vzestupně</string>
+    <string name="descending">Sestupně</string>
+    <string name="play_file">Otevřete video pro přehrávání</string>
+    <string name="play_url">Zadejte URL pro přehrávání</string>
+    <string name="high_contrast_dark_theme_desc">Úplně černé pozadí pro tmavé téma</string>
+    <string name="open_local_video">Otevřít místní video</string>
+    <string name="open_network_stream">Otevřít video na síti</string>
 </resources>
