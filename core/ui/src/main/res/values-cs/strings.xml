@@ -130,4 +130,8 @@
     <string name="scan">Prohledat</string>
     <string name="force_rescan_storage">Vnutit prohledávání uložiště</string>
     <string name="network_stream">Ze sítě</string>
+    <string name="media_library_description">Prohledat a spravovat knihovnu videí</string>
+    <string name="scanning_storage">Prohledávání uložiště…</string>
+    <string name="manage_folders">Spravovat složky</string>
+    <string name="manage_folders_desc">Vyberte skožky, které budou vyloučené ze knihovny videí</string>
 </resources>
