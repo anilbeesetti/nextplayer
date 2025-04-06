@@ -122,4 +122,12 @@
     <string name="high_contrast_dark_theme_desc">Úplně černé pozadí pro tmavé téma</string>
     <string name="open_local_video">Otevřít místní video</string>
     <string name="open_network_stream">Otevřít video na síti</string>
+    <string name="grant_permission">Poskytnout Oprávění</string>
+    <string name="swipe_gesture">Gesto na jas/hlasitost</string>
+    <string name="swipe_gesture_description">Přejeďte prstem narohu/dolů od prava/leva pro změnu jasu a hlasitosti</string>
+    <string name="seek_gesture_description">Přejeďte prstem doleva/doprava pro posun ve videí</string>
+    <string name="media_library">Knihovna videí</string>
+    <string name="scan">Prohledat</string>
+    <string name="force_rescan_storage">Vnutit prohledávání uložiště</string>
+    <string name="network_stream">Ze sítě</string>
 </resources>
