@@ -134,4 +134,8 @@
     <string name="scanning_storage">Prohledávání uložiště…</string>
     <string name="manage_folders">Spravovat složky</string>
     <string name="manage_folders_desc">Vyberte skožky, které budou vyloučené ze knihovny videí</string>
+    <string name="player_controls_play_pause">Přehrávač - Přehrát/Zastavit</string>
+    <string name="player_controls_previous">Přehrávač - Předchozí</string>
+    <string name="player_controls_progress">Přehrávač - Průběh</string>
+    <string name="player_controls_next">Přehrávač - Další</string>
 </resources>
