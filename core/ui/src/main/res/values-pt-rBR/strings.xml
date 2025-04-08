@@ -8,7 +8,7 @@
     <string name="descending">Decrescente</string>
     <string name="disable">Desativar</string>
     <string name="double_tap">Gesto de toque duplo</string>
-    <string name="double_tap_description">Selecione a ação do gesto de toque duplo</string>
+    <string name="double_tap_description">Selecione uma ação para o gesto de toque duplo</string>
     <string name="group_videos">Agrupar vídeos por pasta</string>
     <string name="duration">Duração</string>
     <string name="location">Localização</string>
@@ -17,8 +17,8 @@
     <string name="no_videos_found">Nenhum vídeo encontrado</string>
     <string name="open_settings">Abrir configurações</string>
     <string name="permission_not_granted">Permissão não concedida</string>
-    <string name="fast_seek">Navegação rápida</string>
-    <string name="fast_seek_description">Procurar o quadro-chave mais próximo em vez de um exato.</string>
+    <string name="fast_seek">Busca rápida</string>
+    <string name="fast_seek_description">Procura o quadro-chave mais próximo em vez de um exato.</string>
     <string name="error_playing_video">Erro: não foi possível reproduzir o vídeo</string>
     <string name="permission_request">Solicitação de permissão</string>
     <string name="player_controls_exit">Navegar para cima</string>
@@ -40,7 +40,7 @@
     <string name="settings">Configurações</string>
     <string name="size">Tamanho</string>
     <string name="sort">Organizar</string>
-    <string name="swipe_gesture">Gesto de deslizar</string>
+    <string name="swipe_gesture">Gesto ao deslizar</string>
     <string name="swipe_gesture_description">Deslize verticalmente para ajustar o brilho e o volume</string>
     <string name="title">Título</string>
     <string name="title_activity_player">Atividade do Next Player</string>
@@ -94,14 +94,14 @@
     <string name="media_library_description">Verificar e gerenciar a biblioteca de mídia</string>
     <string name="scanning_storage">Verificando armazenamento…</string>
     <string name="manage_folders">Gerenciar pastas</string>
-    <string name="screen_rotation">Rotação de tela</string>
+    <string name="screen_rotation">Rotação da tela</string>
     <string name="landscape">Paisagem</string>
     <string name="landscape_reverse">Paisagem (invertido)</string>
     <string name="portrait">Retrato</string>
     <string name="automatic">Automático (detectar)</string>
-    <string name="player_screen_orientation">Orientação de tela no modo de reprodução</string>
+    <string name="player_screen_orientation">Orientação da tela no modo de reprodução</string>
     <string name="landscape_auto">Paisagem (detectar)</string>
-    <string name="video_orientation">Orientação de vídeo</string>
+    <string name="video_orientation">Orientação do vídeo</string>
     <string name="oldest">Mais antigo</string>
     <string name="date">Data</string>
     <string name="newest">Mais recente</string>
@@ -165,7 +165,7 @@
     <string name="long_press_gesture">Gesto de toque longo</string>
     <string name="fast_playback_speed">%.1fx velocidade</string>
     <string name="require_audio_focus_desc">Pausar outros players enquanto este player estiver reproduzindo vídeos e vice-versa.</string>
-    <string name="require_audio_focus">Requerer foco de áudio</string>
+    <string name="require_audio_focus">Exigir foco no áudio</string>
     <string name="codec">Codec</string>
     <string name="properties">Propriedades</string>
     <string name="channels">Canais</string>
@@ -208,6 +208,6 @@
     <string name="control_buttons_alignment">Alinhamento dos botões de controle</string>
     <string name="enable_pip_from_settings">Picture-in-Picture está desabilitado. Ative-o em Configurações para usar este recurso.</string>
     <string name="background_play">Reproduzir em segundo plano</string>
-    <string name="background_play_description">Reproduzir em segundo plano quando tocado na tela inicial ou de bloqueio</string>
+    <string name="background_play_description">Reproduzir em segundo plano quando tocado no botão \"Início\" ou quando a tela estiver bloqueada.</string>
     <string name="stop_player_session">Parar sessão do player</string>
 </resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_description">Säädä sovellusta tykkäämääsi</string>
+    <string name="appearance_name">Ulkoasu</string>
+    <string name="cancel">Peru</string>
+    <string name="disable">Poista käytöstä</string>
+    <string name="double_tap">Kaksoisnapaus eleitä</string>
+    <string name="double_tap_description">Valitse kaksinapainen ele</string>
+    <string name="error_playing_video">Virhe: Videota ei voitu toistaa</string>
+    <string name="fast_seek">Nopea etsiminen</string>
+    <string name="grant_permission">Anna oikeudet</string>
+    <string name="group_videos">Aseta videot ryhmiin kansioittain</string>
+    <string name="duration">Kesto</string>
+    <string name="menu">Menu</string>
+    <string name="navigate_up">Navigoi ylös</string>
+    <string name="no_videos_found">Videooita ei löytynyt</string>
+    <string name="permission_not_granted">Oikeiksua ei myönnetty</string>
+    <string name="permission_request">Oikeuspyyntö</string>
+    <string name="ascending">Nouseva</string>
+    <string name="location">Sijainti</string>
+    <string name="done">Valmis</string>
+    <string name="about_description">Versio, kiitettävää</string>
+    <string name="descending">Laskeva</string>
+    <string name="open_settings">Avaa asetukset</string>
+    <string name="about_name">Tietoja</string>
+    <string name="permission_info">Next player sovellus vaatii \"%1$s\" oikeudet videon toistamista varten. Ilman sitä videon toistaminen ei toimi. Sovelluksen käyttämistä varten, anna oikeudet.</string>
+</resources>

@@ -162,4 +162,16 @@
     <string name="crop">Rogner</string>
     <string name="hundred_percent">100%</string>
     <string name="audio_track">Piste Audio</string>
+    <string name="path">Chemin</string>
+    <string name="format">Format</string>
+    <string name="video_track">Piste vidéo</string>
+    <string name="subtitle_track">Piste des sous-titres</string>
+    <string name="codec">Codec</string>
+    <string name="system_caption_style">Sous-titres du système</string>
+    <string name="system_caption_style_desc">Cliquez pour ouvrir les paramètres des sous-titres système</string>
+    <string name="extension">Extension</string>
+    <string name="resolution">Résolution</string>
+    <string name="thumbnail">Miniature</string>
+    <string name="file">Fichier</string>
+    <string name="require_audio_focus">Nécessite une mise au point audio</string>
 </resources>

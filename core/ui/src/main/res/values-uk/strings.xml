@@ -23,7 +23,7 @@
     <string name="appearance_name">Зовнішній вигляд</string>
     <string name="descending">За спаданням</string>
     <string name="disable">Вимкнути</string>
-    <string name="done">Готово</string>
+    <string name="done">Застосувати</string>
     <string name="grant_permission">Надати дозвіл</string>
     <string name="double_tap_description">Виберіть дію жесту подвійного дотику</string>
     <string name="fast_seek">Швидкий пошук</string>
@@ -76,7 +76,7 @@
     <string name="subtitle">Субтитри</string>
     <string name="preferred_subtitle_lang">Бажана мова субтитрів</string>
     <string name="preferred_subtitle_lang_description">Мова доріжки субтитрів, яку ви хочете використовувати типово</string>
-    <string name="system_default">Система типово</string>
+    <string name="system_default">Як в системі</string>
     <string name="play_pause">Відтворення/Пауза</string>
     <string name="ff_rewind">Перемотування вперед/назад</string>
     <string name="play_pause_ff_rewind">Відтворення/пауза та перемотування вперед/назад</string>
@@ -160,7 +160,7 @@
     <string name="system_caption_style_desc">Натисніть, щоб відкрити налаштування системних субтитрів</string>
     <string name="extension">Розширення</string>
     <string name="path">Шлях</string>
-    <string name="resolution">Роздільна здатність</string>
+    <string name="resolution">Роздільність</string>
     <string name="long_press_gesture_desc">Тривале натискання для відтворення зі швидкістю %.1fx</string>
     <string name="long_press_gesture">Тривале натискання</string>
     <string name="require_audio_focus">Вимагати аудіо фокус</string>

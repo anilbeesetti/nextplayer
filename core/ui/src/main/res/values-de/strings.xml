@@ -207,4 +207,7 @@
     <string name="control_buttons_alignment_right">Rechts</string>
     <string name="control_buttons_alignment">Ausrichtung der Steuertasten</string>
     <string name="enable_pip_from_settings">Bild-in-Bild ist deaktiviert. Aktivieren Sie es in den Einstellungen, um diese Funktion zu nutzen.</string>
+    <string name="background_play">Hintergrundwiedergabe</string>
+    <string name="stop_player_session">Aktuelle Session beenden</string>
+    <string name="background_play_description">Wiedergabe erfolgt im Hintergrund, sobald die Home Taste gedrückt oder der Bildschirm gesperrt wird.</string>
 </resources>
