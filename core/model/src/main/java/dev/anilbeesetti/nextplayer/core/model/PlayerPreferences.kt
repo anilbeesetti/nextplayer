@@ -23,6 +23,7 @@ data class PlayerPreferences(
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,
     val useSeekControls: Boolean = true,
+    val seekStepMilliseconds: Int = 1000,
     val useZoomControls: Boolean = true,
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.BOTH,
     val useLongPressControls: Boolean = false,
