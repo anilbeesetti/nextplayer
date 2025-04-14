@@ -138,4 +138,13 @@
     <string name="player_controls_previous">Přehrávač - Předchozí</string>
     <string name="player_controls_progress">Přehrávač - Průběh</string>
     <string name="player_controls_next">Přehrávač - Další</string>
+    <string name="auto">Automatické</string>
+    <string name="enter_a_network_url">Napište URL:</string>
+    <string name="subtitle_text_bold">Tučný text</string>
+    <string name="fields">Pole</string>
+    <string name="codec">Kódek</string>
+    <string name="open_subtitle">Otevřít místní titulky</string>
+    <string name="no_audio_tracks_found">Zvukové stopy jsou buď nepodporované nebo nedostupné.</string>
+    <string name="subtitle_text_bold_desc">Použít tučný text pro titulky</string>
+    <string name="no_subtitle_tracks_found">Titulkové stopy jsou buď nepodporované nebo nedostupné.</string>
 </resources>
