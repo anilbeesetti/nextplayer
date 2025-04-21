@@ -147,4 +147,8 @@
     <string name="no_audio_tracks_found">Zvukové stopy jsou buď nepodporované nebo nedostupné.</string>
     <string name="subtitle_text_bold_desc">Použít tučný text pro titulky</string>
     <string name="no_subtitle_tracks_found">Titulkové stopy jsou buď nepodporované nebo nedostupné.</string>
+    <string name="force_rescan_storage_desc">Upozornění: Plné prohledávání uložiště může způsobit zátež na vaše zařízení</string>
+    <string name="tree">Strom</string>
+    <string name="played_progress">Postup přehrávání</string>
+    <string name="background_play_description">Přehrát v pozadí když je aplikace minimalizovaná.</string>
 </resources>
