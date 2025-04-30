@@ -25,7 +25,7 @@ Next Player 是一款以 Kotlin 和 Jetpack 工具開發，為 Android 裝置提
  * 支援外部字幕 (按住圖示)
  * 控制鎖定
  * 無廣告、追蹤或過多權限
- * 字母畫面模式
+ * 子母畫面模式
 
 計畫內容： https://github.com/anilbeesetti/nextplayer
 
