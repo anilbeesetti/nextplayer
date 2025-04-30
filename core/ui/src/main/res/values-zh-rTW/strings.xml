@@ -121,7 +121,7 @@
     <string name="enable">啟用</string>
     <string name="video_zoom">影片縮放</string>
     <string name="media_library">媒體庫</string>
-    <string name="disable">禁用</string>
+    <string name="disable">停用</string>
     <string name="play_url">輸入影片 URL 進行播放</string>
     <string name="landscape_auto">橫向 (感測器)</string>
     <string name="remember_brightness_level_description">記住播放時的亮度等級</string>
@@ -149,7 +149,7 @@
     <string name="fast_seek_description">挑轉至最接近的關鍵影格而不是準確的影格。</string>
     <string name="subtitle_text_bold">粗體字幕文字</string>
     <string name="player_controls_next">播放下一個</string>
-    <string name="stretch">拉伸</string>
+    <string name="stretch">延伸</string>
     <string name="ff_rewind">快進/快退</string>
     <string name="permission_not_granted">未授予權限</string>
     <string name="resolution">解析度</string>
@@ -198,16 +198,16 @@
     <string name="mark_last_played_media_desc">標記首頁和每個資料夾中最後播放的媒體</string>
     <string name="open_local_video">開啟本機影片</string>
     <string name="skip_silence">跳過無聲片段</string>
-    <string name="folder">目錄</string>
-    <string name="folders">目錄</string>
-    <string name="tree">樹</string>
+    <string name="folder">資料夾</string>
+    <string name="folders">資料夾</string>
+    <string name="tree">階層</string>
     <string name="played_progress">播放進度</string>
     <string name="media_view_mode">媒體檢視模式</string>
     <string name="control_buttons_alignment_left">左</string>
     <string name="stop_player_session">停止播放器會話</string>
     <string name="background_play">背景播放</string>
     <string name="background_play_description">當輕觸主畫面按鈕或螢幕鎖定時在背景中播放。</string>
-    <string name="enable_pip_from_settings">子母畫面已禁用。在設定中啟用它以使用此功能。</string>
+    <string name="enable_pip_from_settings">子母畫面已停用。請在設定中啟用以使用此功能。</string>
     <string name="control_buttons_alignment_right">右</string>
     <string name="control_buttons_alignment">控制按鈕對齊</string>
 </resources>
