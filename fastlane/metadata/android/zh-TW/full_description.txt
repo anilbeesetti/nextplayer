@@ -1,15 +1,15 @@
 Next Player 是一款以 Kotlin 和 Jetpack 工具開發，為 Android 裝置提供簡易介面的本機影片播放器。
 
-這項計畫仍在開發階段，可能還存在一些問題。
+這項計畫仍處於測試階段，可能還存在一些問題。
 
 支援格式：
 
  * 音訊：Vorbis、Opus、FLAC、ALAC、PCM / WAVE (μ-law、A-law)、MP1、MP2、MP3、AMR (NB，WB)，AAC (LC、ELD、HE；Android 9 以上的 xHE)、AC-3、E-AC-3、DTS、DTS-HD、TrueHD
- * 視訊：H.263、H.264 AVC (Baseline 設定檔；Android 6 以上的 Main 設定檔)、H.265 HEVC、MPEG-4 SP、VP8、VP9、AV1
+ * 視訊：H.263、H.264 AVC (基準設定檔；Android 6 以上的主要設定檔)、H.265 HEVC、MPEG-4 SP、VP8、VP9、AV1
  * 串流：DASH、HLS、RTSP
  * 字幕：SRT、SSA、ASS、TTML、VTT
 
-主要功能
+特色
 
  * 介面簡單易用的本地 Android 應用程式
  * 開放原始碼，完全免費
