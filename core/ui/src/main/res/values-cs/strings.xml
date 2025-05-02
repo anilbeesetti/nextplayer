@@ -168,7 +168,7 @@
     <string name="permission_settings">Aplikace Next Player potřebuje k přístupu k médiím a jejich přehrávání oprávnění „%1$s“. Bez něj nebude přístup k médiím a jejich přehrávání fungovat. Chcete-li aplikaci plně používat, povolte toto oprávnění v nastavení, protože bylo trvale odepřeno.</string>
     <string name="enable_pip_from_settings">Režim Obraz v obraze je vypnutý. Chcete-li tuto funkci používat, povolte ji v Nastavení.</string>
     <string name="control_buttons_alignment_left">Vlevo</string>
-    <string name="system_caption_style_desc">Kliknutím otevřete systémové nastavení titulků</string>
+    <string name="system_caption_style_desc">Klepnutím otevřete systémové nastavení titulků</string>
     <string name="bitrate">Datový tok</string>
     <string name="z_a">Z-A</string>
     <string name="sample_rate">Vzorkovací frekvence</string>
@@ -187,4 +187,5 @@
     <string name="player_screen_orientation">Orientace obrazovky přehrávače</string>
     <string name="automatic">Automatická (senzor)</string>
     <string name="portrait">Na výšku</string>
+    <string name="system_caption_style">Styl systémových titulek</string>
 </resources>
