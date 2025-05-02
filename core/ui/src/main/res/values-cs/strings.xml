@@ -178,4 +178,13 @@
     <string name="sample_format">Formát vzorku</string>
     <string name="floating_play_button_desc">Zobrazí plovoucí tlačítko pro přehrávání naposledy přehrávaných médií.</string>
     <string name="screen_rotation">Otáčení obrazovky</string>
+    <string name="title_activity_player">Next Player Aktivita</string>
+    <string name="landscape_reverse">Na šířku (naopak)</string>
+    <string name="landscape_auto">Na šířku (senzor)</string>
+    <string name="video_orientation">Orientace videa</string>
+    <string name="seek_increment">Posun ve videí</string>
+    <string name="landscape">Na šířku</string>
+    <string name="player_screen_orientation">Orientace obrazovky přehrávače</string>
+    <string name="automatic">Automatická (senzor)</string>
+    <string name="portrait">Na výšku</string>
 </resources>
