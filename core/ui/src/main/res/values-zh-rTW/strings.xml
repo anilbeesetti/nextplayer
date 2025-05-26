@@ -29,7 +29,7 @@
     <string name="long_press_gesture">長按手勢</string>
     <string name="player_controls_exit">向上巡覽</string>
     <string name="shortest">最短</string>
-    <string name="portrait">縱向</string>
+    <string name="portrait">直向</string>
     <string name="require_audio_focus">需要音訊焦點</string>
     <string name="media_library_description">掃描與管理媒體庫</string>
     <string name="player_controls_progress">播放器進度列</string>
@@ -43,7 +43,7 @@
     <string name="videos">影片</string>
     <string name="newest">最新</string>
     <string name="swipe_gesture_description">垂直滑動以調整亮度與音量</string>
-    <string name="pause_on_headset_disconnect_desc">當耳機與裝置斷開連接時暫停播放</string>
+    <string name="pause_on_headset_disconnect_desc">耳機與裝置中斷連接時暫停播放</string>
     <string name="video_software_decoders">軟體影片解碼器</string>
     <string name="scanning_storage">正在掃描儲存區…</string>
     <string name="sans_serif">無襯線字型</string>
@@ -67,7 +67,7 @@
     <string name="seconds">%1$s 秒</string>
     <string name="smallest">最小</string>
     <string name="off">關閉</string>
-    <string name="pause_on_headset_disconnect">在斷開時暫停</string>
+    <string name="pause_on_headset_disconnect">卸除時暫停</string>
     <string name="prefer_app_decoders">優先選擇應用解碼器</string>
     <string name="automatic">自動 (感測器)</string>
     <string name="delete">刪除</string>
@@ -93,7 +93,7 @@
     <string name="preferred_subtitle_lang">優先的字幕語言</string>
     <string name="a_z">A-Z</string>
     <string name="unknown_error">發生了一個未知的錯誤</string>
-    <string name="video_software_decoders_desc">使用應用軟體解碼器（實驗）</string>
+    <string name="video_software_decoders_desc">使用應用程式視訊解碼器 (實驗性)</string>
     <string name="hundred_percent">100%</string>
     <string name="error_playing_video">錯誤：無法播放影片</string>
     <string name="controls_lock">鎖定控制元件</string>
@@ -162,12 +162,12 @@
     <string name="manage_folders">管理資料夾</string>
     <string name="default_playback_speed">預設播放速度</string>
     <string name="subtitle_desc">字幕外觀、播放選項</string>
-    <string name="dynamic_theme_description">應用來自系統桌布的色彩至應用程式主題</string>
+    <string name="dynamic_theme_description">為應用程式主題套用系統桌布色彩</string>
     <string name="system_default">系統預設</string>
     <string name="decoder_priority">解碼器優先等級</string>
     <string name="done">完成</string>
     <string name="codec">編解碼器</string>
-    <string name="properties">屬性</string>
+    <string name="properties">資訊</string>
     <string name="channels">聲道數</string>
     <string name="video_track">視訊軌</string>
     <string name="subtitle_track">字幕軌</string>
