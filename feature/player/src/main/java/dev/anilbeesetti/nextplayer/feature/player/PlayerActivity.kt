@@ -133,6 +133,8 @@ class PlayerActivity : AppCompatActivity() {
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
 
+    private var isPipActive: Boolean = false
+
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET)
 
@@ -378,6 +380,10 @@ class PlayerActivity : AppCompatActivity() {
             MediaController.releaseFuture(this)
             controllerFuture = null
         }
+
+        if (isPipActive) {
+            finishAndRemoveTask()
+        }
         super.onStop()
     }
 
@@ -407,6 +413,8 @@ class PlayerActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        isPipActive = isInPictureInPictureMode
         if (isInPictureInPictureMode) {
             binding.playerView.subtitleView?.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
             playerUnlockControls.visibility = View.INVISIBLE
@@ -437,7 +445,6 @@ class PlayerActivity : AppCompatActivity() {
                 pipBroadcastReceiver = null
             }
         }
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -460,30 +467,30 @@ class PlayerActivity : AppCompatActivity() {
                 listOf(
                     createPipAction(
                         context = this@PlayerActivity,
-                        "skip to previous",
-                        coreUiR.drawable.ic_skip_prev,
-                        PIP_ACTION_PREVIOUS,
+                        title = "skip to previous",
+                        icon = coreUiR.drawable.ic_skip_prev,
+                        actionCode = PIP_ACTION_PREVIOUS,
                     ),
                     if (mediaController?.isPlaying == true) {
                         createPipAction(
                             context = this@PlayerActivity,
-                            "pause",
-                            coreUiR.drawable.ic_pause,
-                            PIP_ACTION_PAUSE,
+                            title = "pause",
+                            icon = coreUiR.drawable.ic_pause,
+                            actionCode = PIP_ACTION_PAUSE,
                         )
                     } else {
                         createPipAction(
                             context = this@PlayerActivity,
-                            "play",
-                            coreUiR.drawable.ic_play,
-                            PIP_ACTION_PLAY,
+                            title = "play",
+                            icon = coreUiR.drawable.ic_play,
+                            actionCode = PIP_ACTION_PLAY,
                         )
                     },
                     createPipAction(
                         context = this@PlayerActivity,
-                        "skip to next",
-                        coreUiR.drawable.ic_skip_next,
-                        PIP_ACTION_NEXT,
+                        title = "skip to next",
+                        icon = coreUiR.drawable.ic_skip_next,
+                        actionCode = PIP_ACTION_NEXT,
                     ),
                 ),
             )
