@@ -333,6 +333,7 @@ class PlayerActivity : AppCompatActivity() {
             mediaController?.run {
                 binding.playerView.player = this
                 binding.playerView.keepScreenOn = isPlaying
+                isMediaItemReady = currentMediaItem != null
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                 videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
                 if (playerPreferences.shouldUseVolumeBoost) {

@@ -71,6 +71,7 @@ fun Player.setSeekParameters(seekParameters: SeekParameters) {
  */
 @UnstableApi
 fun Player.seekBack(positionMs: Long, shouldFastSeek: Boolean = false) {
+    if (currentMediaItem == null) return
     setSeekParameters(if (shouldFastSeek) SeekParameters.PREVIOUS_SYNC else SeekParameters.DEFAULT)
     this.seekTo(positionMs)
 }
@@ -83,6 +84,7 @@ fun Player.seekBack(positionMs: Long, shouldFastSeek: Boolean = false) {
  */
 @UnstableApi
 fun Player.seekForward(positionMs: Long, shouldFastSeek: Boolean = false) {
+    if (currentMediaItem == null) return
     setSeekParameters(if (shouldFastSeek) SeekParameters.NEXT_SYNC else SeekParameters.DEFAULT)
     this.seekTo(positionMs)
 }
