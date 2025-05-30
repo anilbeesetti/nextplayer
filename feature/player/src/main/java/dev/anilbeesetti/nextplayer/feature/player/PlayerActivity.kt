@@ -68,6 +68,7 @@ import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
+import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -181,6 +182,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var videoTitleTextView: TextView
     private lateinit var videoZoomButton: ImageButton
     private lateinit var playInBackgroundButton: ImageButton
+    private lateinit var loopModeButton: ImageButton
     private lateinit var extraControls: LinearLayout
 
     private val isPipSupported: Boolean by lazy {
@@ -244,6 +246,7 @@ class PlayerActivity : AppCompatActivity() {
         videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
         videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
         playInBackgroundButton = binding.playerView.findViewById(R.id.btn_background)
+        loopModeButton = binding.playerView.findViewById(R.id.btn_loop_mode)
         extraControls = binding.playerView.findViewById(R.id.extra_controls)
 
         if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
@@ -335,6 +338,7 @@ class PlayerActivity : AppCompatActivity() {
                 binding.playerView.keepScreenOn = isPlaying
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                 videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
+                applyLoopMode(playerPreferences.loopMode)
                 if (playerPreferences.shouldUseVolumeBoost) {
                     try {
                         volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
@@ -644,6 +648,47 @@ class PlayerActivity : AppCompatActivity() {
         }
         backButton.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
+        }
+
+        // Set initial loop mode icon based on preference
+        updateLoopModeIcon(playerPreferences.loopMode)
+
+        // Loop mode button click listener
+        loopModeButton.setOnClickListener {
+            val currentLoopMode = playerPreferences.loopMode
+            val nextLoopMode = when (currentLoopMode) {
+                LoopMode.OFF -> LoopMode.ONE
+                LoopMode.ONE -> LoopMode.ALL
+                LoopMode.ALL -> LoopMode.OFF
+            }
+
+            viewModel.setLoopMode(nextLoopMode)
+            updateLoopModeIcon(nextLoopMode)
+            applyLoopMode(nextLoopMode)
+            showPlayerInfo(
+                info = when (nextLoopMode) {
+                    LoopMode.OFF -> getString(coreUiR.string.loop_mode_off)
+                    LoopMode.ONE -> getString(coreUiR.string.loop_mode_one)
+                    LoopMode.ALL -> getString(coreUiR.string.loop_mode_all)
+                }
+            )
+        }
+    }
+
+    private fun updateLoopModeIcon(loopMode: LoopMode) {
+        val iconResId = when (loopMode) {
+            LoopMode.OFF -> coreUiR.drawable.ic_loop_off
+            LoopMode.ONE -> coreUiR.drawable.ic_loop_one
+            LoopMode.ALL -> coreUiR.drawable.ic_loop_all
+        }
+        loopModeButton.setImageResource(iconResId)
+    }
+
+    private fun applyLoopMode(loopMode: LoopMode) {
+        mediaController?.repeatMode = when (loopMode) {
+            LoopMode.OFF -> Player.REPEAT_MODE_OFF
+            LoopMode.ONE -> Player.REPEAT_MODE_ONE
+            LoopMode.ALL -> Player.REPEAT_MODE_ALL
         }
     }
 
