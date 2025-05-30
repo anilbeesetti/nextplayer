@@ -367,7 +367,6 @@ class PlayerActivity : AppCompatActivity() {
             mediaController?.pause()
         } else if (!playerPreferences.autoBackgroundPlay && !playInBackground) {
             mediaController?.run {
-                clearMediaItems()
                 stop()
             }
         }
@@ -652,10 +651,16 @@ class PlayerActivity : AppCompatActivity() {
         val uri = intent.data ?: return
 
         // If the intent is not new and the current media item is not null, return
-        if (!isIntentNew && mediaController?.currentMediaItem != null) return
+        if (!isIntentNew && mediaController?.currentMediaItem != null) {
+            mediaController?.prepare()
+            return
+        }
 
         // If the current media item is not null and the current media item's uri is the same as the intent's data, return
-        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()) return
+        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()) {
+            mediaController?.prepare()
+            return
+        }
 
         isIntentNew = false
 
