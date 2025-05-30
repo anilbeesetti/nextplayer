@@ -212,4 +212,8 @@
     <string name="stop_player_session">Stop player session</string>
     <string name="background_play">Background play</string>
     <string name="background_play_description">Play in background when tapped on home or screen is locked.</string>
+    <string name="loop_mode">Loop mode</string>
+    <string name="loop_mode_off">Loop: Off</string>
+    <string name="loop_mode_one">Loop: One</string>
+    <string name="loop_mode_all">Loop: All</string>
 </resources>

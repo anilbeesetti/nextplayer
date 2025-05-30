@@ -19,6 +19,7 @@ data class PlayerPreferences(
     val autoplay: Boolean = true,
     val autoPip: Boolean = true,
     val autoBackgroundPlay: Boolean = false,
+    val loopMode: LoopMode = LoopMode.OFF,
 
     // Controls (Gestures)
     val useSwipeControls: Boolean = true,
