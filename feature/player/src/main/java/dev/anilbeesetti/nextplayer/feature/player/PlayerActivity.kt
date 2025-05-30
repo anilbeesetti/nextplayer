@@ -332,7 +332,6 @@ class PlayerActivity : AppCompatActivity() {
 
             mediaController?.run {
                 binding.playerView.player = this
-                binding.playerView.keepScreenOn = isPlaying
                 isMediaItemReady = currentMediaItem != null
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
                 videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
@@ -343,6 +342,7 @@ class PlayerActivity : AppCompatActivity() {
                         e.printStackTrace()
                     }
                 }
+                updateKeepScreenOnFlag()
                 addListener(playbackStateListener)
                 startPlayback()
             }
@@ -727,7 +727,7 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
-            binding.playerView.keepScreenOn = isPlaying
+            updateKeepScreenOnFlag()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
                 updatePictureInPictureParams()
             }
@@ -1048,6 +1048,14 @@ class PlayerActivity : AppCompatActivity() {
         exoContentFrameLayout.scaleX = videoScale
         exoContentFrameLayout.scaleY = videoScale
         exoContentFrameLayout.requestLayout()
+    }
+
+    private fun updateKeepScreenOnFlag() {
+        if (mediaController?.isPlaying == true) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     private fun applyVideoZoom(videoZoom: VideoZoom, showInfo: Boolean) {
