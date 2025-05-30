@@ -650,10 +650,7 @@ class PlayerActivity : AppCompatActivity() {
             onBackPressedDispatcher.onBackPressed()
         }
 
-        // Set initial loop mode icon based on preference
         updateLoopModeIcon(playerPreferences.loopMode)
-
-        // Loop mode button click listener
         loopModeButton.setOnClickListener {
             val currentLoopMode = playerPreferences.loopMode
             val nextLoopMode = when (currentLoopMode) {
@@ -670,7 +667,7 @@ class PlayerActivity : AppCompatActivity() {
                     LoopMode.OFF -> getString(coreUiR.string.loop_mode_off)
                     LoopMode.ONE -> getString(coreUiR.string.loop_mode_one)
                     LoopMode.ALL -> getString(coreUiR.string.loop_mode_all)
-                }
+                },
             )
         }
     }

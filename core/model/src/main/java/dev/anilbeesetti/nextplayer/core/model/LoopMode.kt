@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 enum class LoopMode {
     OFF,
     ONE,
-    ALL
+    ALL,
 }
