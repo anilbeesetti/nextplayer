@@ -192,4 +192,6 @@
     <string name="loop_mode_one">Smyčka: Jenom toto</string>
     <string name="loop_mode_all">Smyčka: Vše</string>
     <string name="loop_mode">Režim smyčky</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="serif">Serif</string>
 </resources>
