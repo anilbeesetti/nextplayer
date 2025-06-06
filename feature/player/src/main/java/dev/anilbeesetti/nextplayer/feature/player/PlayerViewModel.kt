@@ -26,7 +26,7 @@ class PlayerViewModel @Inject constructor(
 ) : ViewModel() {
 
     var playWhenReady: Boolean = true
-    var skipSilenceEnabled: Boolean = false
+    var skipSilenceEnabled: Boolean = true
 
     val playerPrefs = preferencesRepository.playerPreferences.stateIn(
         scope = viewModelScope,
