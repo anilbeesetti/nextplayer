@@ -70,7 +70,7 @@ fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
 
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
-    return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
+    return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, true)
 }
 
 fun MediaController.setSpeed(speed: Float) {
