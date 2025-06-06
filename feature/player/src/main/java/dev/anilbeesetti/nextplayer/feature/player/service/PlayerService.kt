@@ -283,7 +283,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = mediaSession?.player?.skipSilenceEnabled ?: false
+                    val enabled = mediaSession?.player?.skipSilenceEnabled ?: true
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
