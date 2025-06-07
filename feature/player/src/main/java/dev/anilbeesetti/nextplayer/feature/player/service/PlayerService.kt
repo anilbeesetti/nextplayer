@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
+import androidx.media3.session.CommandButton.ICON_UNDEFINED
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
@@ -377,7 +378,8 @@ class PlayerService : MediaSessionService() {
                 setCallback(mediaSessionCallback)
                 setCustomLayout(
                     listOf(
-                        CommandButton.Builder(coreUiR.drawable.ic_close)
+                        CommandButton.Builder(ICON_UNDEFINED)
+                            .setCustomIconResId(coreUiR.drawable.ic_close)
                             .setDisplayName(getString(coreUiR.string.stop_player_session))
                             .setSessionCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand)
                             .setEnabled(true)
