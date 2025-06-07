@@ -25,13 +25,12 @@ coil = "2.7.0"
 hilt = "2.54"
 junit4 = "4.13.2"
 kotlin = "2.1.21"
-kotlinxCoroutines = "1.10.1"
-kotlinxCoroutinesGuava = "1.10.1"
-kotlinxSerializationJson = "1.7.3"
-ksp = "2.1.0-1.0.29"
+kotlinxCoroutines = "1.10.2"
+kotlinxSerializationJson = "1.8.1"
+ksp = "2.1.21-2.0.1"
 ktlint = "12.1.2"
 nextlib = "0.8.4"
-room = "2.6.1"
+room = "2.7.1"
 timber = "5.0.1"
 universalChardet = "2.5.0"
 
@@ -81,7 +80,7 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
+kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
