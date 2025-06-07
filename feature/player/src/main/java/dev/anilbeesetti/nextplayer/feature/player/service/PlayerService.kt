@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -157,7 +158,7 @@ class PlayerService : MediaSessionService() {
             super.onPlaybackStateChanged(playbackState)
 
             if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
-                mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.getDefaults(this@PlayerService)
+                mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
 
@@ -220,8 +221,8 @@ class PlayerService : MediaSessionService() {
 
             when (command) {
                 CustomCommands.ADD_SUBTITLE_TRACK -> {
-                    val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)
-                        ?.let { Uri.parse(it) } ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                    val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)?.toUri()
+                        ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
 
                     val newSubConfiguration = uriToSubtitleConfiguration(
                         uri = subtitleUri,
@@ -376,8 +377,7 @@ class PlayerService : MediaSessionService() {
                 setCallback(mediaSessionCallback)
                 setCustomLayout(
                     listOf(
-                        CommandButton.Builder()
-                            .setIconResId(coreUiR.drawable.ic_close)
+                        CommandButton.Builder(coreUiR.drawable.ic_close)
                             .setDisplayName(getString(coreUiR.string.stop_player_session))
                             .setSessionCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand)
                             .setEnabled(true)
@@ -416,11 +416,11 @@ class PlayerService : MediaSessionService() {
     ): List<MediaItem> = supervisorScope {
         mediaItems.map { mediaItem ->
             async {
-                val uri = Uri.parse(mediaItem.mediaId)
+                val uri = mediaItem.mediaId.toUri()
                 val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
                 val title = mediaItem.mediaMetadata.title ?: mediaState?.title ?: getFilenameFromUri(uri)
-                val artwork = mediaState?.thumbnailPath?.let { Uri.parse(it) } ?: Uri.Builder().apply {
+                val artwork = mediaState?.thumbnailPath?.toUri() ?: Uri.Builder().apply {
                     val defaultArtwork = R.drawable.artwork_default
                     scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
                     authority(resources.getResourcePackageName(defaultArtwork))

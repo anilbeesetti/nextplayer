@@ -29,8 +29,8 @@ kotlinxCoroutines = "1.10.2"
 kotlinxSerializationJson = "1.8.1"
 ksp = "2.1.21-2.0.1"
 ktlint = "12.1.2"
-nextlib = "0.8.4"
 room = "2.7.1"
+nextlib = "1.7.1-0.9.0"
 timber = "5.0.1"
 universalChardet = "2.5.0"
 
@@ -73,8 +73,8 @@ androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espres
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 github-albfernandez-juniversalchardet = { group="com.github.albfernandez", name = "juniversalchardet", version.ref="universalChardet" }
-github-anilbeesetti-nextlib-media3ext = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-media3ext", version.ref = "nextlib" }
-github-anilbeesetti-nextlib-mediainfo = { group = "com.github.anilbeesetti.nextlib", name = "nextlib-mediainfo", version.ref = "nextlib" }
+github-anilbeesetti-nextlib-media3ext = { group = "io.github.anilbeesetti", name = "nextlib-media3ext", version.ref = "nextlib" }
+github-anilbeesetti-nextlib-mediainfo = { group = "io.github.anilbeesetti", name = "nextlib-mediainfo", version.ref = "nextlib" }
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "androidMaterial" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
