@@ -210,4 +210,8 @@
     <string name="stop_player_session">Peata taasesituse sessioon</string>
     <string name="background_play">Esitamine taustal</string>
     <string name="background_play_description">Kui ekraan on lukus või oled klõpsinud avavaate ikooni, siis esita videot taustal.</string>
+    <string name="loop_mode_off">Kordus: pole kasutusel</string>
+    <string name="loop_mode_all">Kordus: korda kõiki</string>
+    <string name="loop_mode">Korduse viis</string>
+    <string name="loop_mode_one">Kordus: korda üht</string>
 </resources>

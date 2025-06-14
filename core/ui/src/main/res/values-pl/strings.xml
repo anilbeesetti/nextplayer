@@ -210,4 +210,8 @@
     <string name="background_play_description">Odtwarzanie w tle po dotknięciu ekranu głównego lub zablokowaniu ekranu.</string>
     <string name="stop_player_session">Zatrzymaj sesję odtwarzacza</string>
     <string name="enable_pip_from_settings">Obraz w obrazie jest wyłączony. Aby korzystać z tej funkcji, należy włączyć ją w Ustawieniach.</string>
+    <string name="loop_mode">Tryb zapętlony</string>
+    <string name="loop_mode_all">Zapętlenie: Wszystkich</string>
+    <string name="loop_mode_one">Zapętlenie: Raz</string>
+    <string name="loop_mode_off">Zapętlenie: Wyłączone</string>
 </resources>
