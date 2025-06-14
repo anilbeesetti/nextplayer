@@ -210,4 +210,8 @@
     <string name="background_play_description">Воспроизведение в фоновом режиме при нажатии на «Домой» или при заблокированном экране.</string>
     <string name="stop_player_session">Остановить сеанс</string>
     <string name="background_play">Фоновое воспроизведение</string>
+    <string name="loop_mode_one">Цикл: Один</string>
+    <string name="loop_mode_all">Цикл: Все</string>
+    <string name="loop_mode">Циклический режим</string>
+    <string name="loop_mode_off">Цикл: выключен</string>
 </resources>
