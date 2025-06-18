@@ -92,7 +92,7 @@ private fun VideoListItem(
                 video = video,
                 preferences = preferences,
                 modifier = Modifier
-                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f))
+                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f)),
             )
         },
         headlineContent = {
@@ -143,11 +143,11 @@ private fun VideoGridItem(
         modifier = modifier
             .width(IntrinsicSize.Min),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         ThumbnailView(
             video = video,
-            preferences = preferences
+            preferences = preferences,
         )
         Text(
             text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
@@ -268,7 +268,7 @@ fun VideoGridItemPreview() {
         VideoGridItem(
             video = Video.sample,
             preferences = ApplicationPreferences(),
-            isRecentlyPlayedVideo = true
+            isRecentlyPlayedVideo = true,
         )
     }
 }

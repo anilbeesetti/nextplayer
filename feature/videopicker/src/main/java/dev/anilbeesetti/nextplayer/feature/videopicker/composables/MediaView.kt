@@ -54,10 +54,10 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -120,7 +120,7 @@ fun MediaView(
                 columns = GridCells.Fixed(spans),
                 contentPadding = PaddingValues(horizontal = contentHorizontalPadding, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(itemSpacing),
-                horizontalArrangement = Arrangement.spacedBy(itemSpacing)
+                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
             ) {
                 if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
                     item(
@@ -137,8 +137,9 @@ fun MediaView(
                     }
                 }
                 items(
-                    items = rootFolder.folderList, key = { it.path },
-                    span = { GridItemSpan(singleFolderSpan) }
+                    items = rootFolder.folderList,
+                    key = { it.path },
+                    span = { GridItemSpan(singleFolderSpan) },
                 ) { folder ->
                     FolderItem(
                         folder = folder,
@@ -166,8 +167,9 @@ fun MediaView(
                     }
                 }
                 items(
-                    items = rootFolder.mediaList, key = { it.path },
-                    span = { GridItemSpan(singleVideoSpan) }
+                    items = rootFolder.mediaList,
+                    key = { it.path },
+                    span = { GridItemSpan(singleVideoSpan) },
                 ) { video ->
                     LaunchedEffect(Unit) {
                         onVideoLoaded(Uri.parse(video.uriString))

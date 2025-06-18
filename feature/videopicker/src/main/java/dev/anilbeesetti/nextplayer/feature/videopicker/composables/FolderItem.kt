@@ -34,7 +34,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-
 @Composable
 fun FolderItem(
     folder: Folder,
@@ -145,7 +144,7 @@ private fun FolderGridItem(
     Column(
         modifier = modifier.width(IntrinsicSize.Min),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
@@ -158,7 +157,7 @@ private fun FolderGridItem(
 
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = folder.name,
@@ -170,14 +169,18 @@ private fun FolderGridItem(
                 } else {
                     ListItemDefaults.colors().headlineColor
                 },
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             val mediaCount = if (folder.mediaList.isNotEmpty()) {
                 "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
-            } else null
+            } else {
+                null
+            }
             val folderCount = if (folder.folderList.isNotEmpty()) {
                 "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
-            } else null
+            } else {
+                null
+            }
 
             Text(
                 text = buildString {
@@ -194,7 +197,7 @@ private fun FolderGridItem(
                 },
                 maxLines = 2,
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }
