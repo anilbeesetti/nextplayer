@@ -210,4 +210,8 @@
     <string name="stop_player_session">停止播放器会话</string>
     <string name="background_play">后台播放</string>
     <string name="enable_pip_from_settings">画中画已停用。在设置中启用它可使用此功能。</string>
+    <string name="loop_mode_one">循环：单文件</string>
+    <string name="loop_mode_all">循环：全部</string>
+    <string name="loop_mode_off">循环：关</string>
+    <string name="loop_mode">循环模式</string>
 </resources>

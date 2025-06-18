@@ -210,4 +210,8 @@
     <string name="stop_player_session">Зупинити сеанс відтворення</string>
     <string name="background_play">Фонове відтворення</string>
     <string name="enable_pip_from_settings">Функцію «Картинка в картинці» вимкнено. Увімкніть її в «Налаштуваннях», щоби використовувати.</string>
+    <string name="loop_mode_off">Повтор: вимк.</string>
+    <string name="loop_mode_all">Повтор: усе</string>
+    <string name="loop_mode_one">Повтор: один</string>
+    <string name="loop_mode">Режим повтору</string>
 </resources>
