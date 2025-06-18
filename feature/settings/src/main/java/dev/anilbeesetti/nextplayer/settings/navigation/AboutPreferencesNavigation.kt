@@ -21,7 +21,7 @@ fun NavController.navigateToLibraries(navOptions: NavOptions? = navOptions { lau
 
 fun NavGraphBuilder.aboutPreferencesScreen(
     onLibrariesClick: () -> Unit,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
 ) {
     animatedComposable(route = aboutPreferencesNavigationRoute) {
         AboutPreferencesScreen(
@@ -32,7 +32,7 @@ fun NavGraphBuilder.aboutPreferencesScreen(
 }
 
 fun NavGraphBuilder.librariesScreen(
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
 ) {
     animatedComposable(route = librariesNavigationRoute) {
         LibrariesScreen(

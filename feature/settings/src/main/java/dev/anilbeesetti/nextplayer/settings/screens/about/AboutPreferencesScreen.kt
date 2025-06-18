@@ -114,10 +114,10 @@ fun AboutPreferencesScreen(
                 onGithubClick = {
                     uriHandler.openUriOrShowToast(
                         uri = GITHUB_URL,
-                        context = context
+                        context = context,
                     )
                 },
-                onLibrariesClick = onLibrariesClick
+                onLibrariesClick = onLibrariesClick,
             )
             PreferenceSubtitle(text = stringResource(id = R.string.donate))
             ClickablePreferenceItem(
@@ -127,9 +127,9 @@ fun AboutPreferencesScreen(
                 onClick = {
                     uriHandler.openUriOrShowToast(
                         uri = KOFI_URL,
-                        context = context
+                        context = context,
                     )
-                }
+                },
             )
 
             ClickablePreferenceItem(
@@ -139,9 +139,9 @@ fun AboutPreferencesScreen(
                 onClick = {
                     uriHandler.openUriOrShowToast(
                         uri = PAYPAL_URL,
-                        context = context
+                        context = context,
                     )
-                }
+                },
             )
 
             if (Locale.current.region == "IN") {
@@ -152,9 +152,9 @@ fun AboutPreferencesScreen(
                     onClick = {
                         uriHandler.openUriOrShowToast(
                             uri = UPI_URL,
-                            context = context
+                            context = context,
                         )
-                    }
+                    },
                 )
             }
         }
@@ -180,8 +180,8 @@ fun AboutApp(
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 5000),
-            repeatMode = RepeatMode.Reverse
-        )
+            repeatMode = RepeatMode.Reverse,
+        ),
     )
     val cornerRadius = 24.dp
 
@@ -195,7 +195,7 @@ fun AboutApp(
                 val gradient = Brush.radialGradient(
                     colors = listOf(colorPrimary, colorTertiary),
                     center = Offset(cx, cy),
-                    radius = 800f
+                    radius = 800f,
                 )
 
                 onDrawBehind {
@@ -203,37 +203,37 @@ fun AboutApp(
                         brush = gradient,
                         cornerRadius = CornerRadius(
                             cornerRadius.toPx(),
-                            cornerRadius.toPx()
-                        )
+                            cornerRadius.toPx(),
+                        ),
                     )
                 }
             }
             .padding(all = 24.dp)
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             appIcon?.let {
                 Image(
                     bitmap = it,
                     contentDescription = "App Logo",
-                    modifier = Modifier.size(48.dp).clip(CircleShape)
+                    modifier = Modifier.size(48.dp).clip(CircleShape),
                 )
             }
             Column {
                 Text(
                     text = stringResource(id = R.string.app_name),
                     fontSize = 22.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = appVersion,
@@ -244,7 +244,7 @@ fun AboutApp(
                     Text(
                         text = stringResource(R.string.by, stringResource(R.string.app_developer)),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -252,7 +252,7 @@ fun AboutApp(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Button(
                 onClick = onLibrariesClick,
@@ -266,7 +266,7 @@ fun AboutApp(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .weight(1f)
+                    .weight(1f),
             ) {
                 Text(text = stringResource(R.string.libraries))
             }
@@ -276,13 +276,13 @@ fun AboutApp(
                     contentColor = MaterialTheme.colorScheme.onTertiary,
                     disabledContentColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = .12f),
                     containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
-                    disabledContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = .12f)
+                    disabledContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = .12f),
                 ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .height(52.dp)
+                    .height(52.dp),
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_github),
@@ -306,7 +306,7 @@ private fun Context.appVersion(): String {
         packageInfo.versionCode
     }
 
-    return "${packageInfo.versionName} (${versionCode})"
+    return "${packageInfo.versionName} ($versionCode)"
 }
 
 private fun Context.appIcon(): ImageBitmap? {
