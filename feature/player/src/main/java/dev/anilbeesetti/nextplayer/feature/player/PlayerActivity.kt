@@ -1109,6 +1109,9 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun applyVideoZoom(videoZoom: VideoZoom, showInfo: Boolean) {
         viewModel.setVideoZoom(videoZoom)
+        mediaController?.currentMediaItem?.mediaId?.let {
+            viewModel.updateMediumZoom(uri = it, zoom = 1f)
+        }
         resetExoContentFrameWidthAndHeight()
         when (videoZoom) {
             VideoZoom.BEST_FIT -> {
