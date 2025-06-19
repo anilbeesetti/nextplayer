@@ -222,4 +222,7 @@
     <string name="upi">UPI</string>
     <string name="kofi">Ko-fi</string>
     <string name="paypal">PayPal</string>
+    <string name="list">Λίστα</string>
+    <string name="media_layout">Διάταξη μέσων</string>
+    <string name="grid">Πλέγμα</string>
 </resources>
