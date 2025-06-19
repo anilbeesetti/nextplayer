@@ -223,4 +223,7 @@
     <string name="github">GitHub</string>
     <string name="error_opening_link">未找到可打开此链接的应用</string>
     <string name="upi">UPI</string>
+    <string name="list">列表</string>
+    <string name="media_layout">媒体布局</string>
+    <string name="grid">网格</string>
 </resources>
