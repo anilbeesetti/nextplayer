@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,7 +13,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -49,6 +54,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -82,59 +88,105 @@ fun MediaView(
     if (isLoading) {
         CenterCircularProgressBar()
     } else {
-        MediaLazyList {
-            if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
-                item { NoVideosFound() }
-                return@MediaLazyList
+        val folderMinWidth = 90.dp
+        val videoMinWidth = 130.dp
+        BoxWithConstraints {
+            val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 0.dp
+                MediaLayoutMode.GRID -> 16.dp
+            }
+            val itemSpacing = when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 0.dp
+                MediaLayoutMode.GRID -> 16.dp
+            }
+            val maxWidth = this.maxWidth - (contentHorizontalPadding * 2) - itemSpacing
+            val maxFolders = (maxWidth / folderMinWidth).toInt()
+            val maxVideos = (maxWidth / videoMinWidth).toInt()
+            val spans = when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 1
+                MediaLayoutMode.GRID -> lcm(maxFolders, maxVideos)
             }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
-                item {
-                    SectionTitle(title = stringResource(id = R.string.folders))
-                }
+            val singleFolderSpan = when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 1
+                MediaLayoutMode.GRID -> spans / maxFolders
             }
-            items(rootFolder.folderList, key = { it.path }) { folder ->
-                FolderItem(
-                    folder = folder,
-                    isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
-                    preferences = preferences,
-                    modifier = Modifier.combinedClickable(
-                        onClick = { onFolderClick(folder.path) },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showFolderActionsFor = folder
-                        },
-                    ),
-                )
+            val singleVideoSpan = when (preferences.mediaLayoutMode) {
+                MediaLayoutMode.LIST -> 1
+                MediaLayoutMode.GRID -> spans / maxVideos
             }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.size(12.dp))
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(spans),
+                contentPadding = PaddingValues(horizontal = contentHorizontalPadding, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(itemSpacing),
+                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+            ) {
+                if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
+                    item(
+                        span = { GridItemSpan(maxLineSpan) },
+                    ) { NoVideosFound() }
+                    return@LazyVerticalGrid
                 }
-            }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.mediaList.isNotEmpty()) {
-                item {
-                    SectionTitle(title = stringResource(id = R.string.videos))
+                if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+                    item(
+                        span = { GridItemSpan(maxLineSpan) },
+                    ) {
+                        SectionTitle(title = stringResource(id = R.string.folders))
+                    }
                 }
-            }
-            items(rootFolder.mediaList, key = { it.path }) { video ->
-                LaunchedEffect(Unit) {
-                    onVideoLoaded(Uri.parse(video.uriString))
+                items(
+                    items = rootFolder.folderList,
+                    key = { it.path },
+                    span = { GridItemSpan(singleFolderSpan) },
+                ) { folder ->
+                    FolderItem(
+                        folder = folder,
+                        isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
+                        preferences = preferences,
+                        modifier = Modifier.combinedClickable(
+                            onClick = { onFolderClick(folder.path) },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showFolderActionsFor = folder
+                            },
+                        ),
+                    )
                 }
-                VideoItem(
-                    video = video,
-                    preferences = preferences,
-                    isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
-                    modifier = Modifier.combinedClickable(
-                        onClick = { onVideoClick(Uri.parse(video.uriString)) },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showMediaActionsFor = video
-                        },
-                    ),
-                )
+
+                if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Spacer(modifier = Modifier.size(12.dp))
+                    }
+                }
+
+                if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.mediaList.isNotEmpty()) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        SectionTitle(title = stringResource(id = R.string.videos))
+                    }
+                }
+                items(
+                    items = rootFolder.mediaList,
+                    key = { it.path },
+                    span = { GridItemSpan(singleVideoSpan) },
+                ) { video ->
+                    LaunchedEffect(Unit) {
+                        onVideoLoaded(Uri.parse(video.uriString))
+                    }
+                    VideoItem(
+                        video = video,
+                        preferences = preferences,
+                        isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
+                        modifier = Modifier.combinedClickable(
+                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showMediaActionsFor = video
+                            },
+                        ),
+                    )
+                }
             }
         }
     }
@@ -460,4 +512,12 @@ fun MediaInfoText(
         Text(text = "$title: ", style = MaterialTheme.typography.titleSmall)
         Text(text = subText)
     }
+}
+
+fun lcm(a: Int, b: Int): Int {
+    return abs(a * b) / gcd(a, b)
+}
+
+fun gcd(a: Int, b: Int): Int {
+    return if (b == 0) a else gcd(b, a % b)
 }

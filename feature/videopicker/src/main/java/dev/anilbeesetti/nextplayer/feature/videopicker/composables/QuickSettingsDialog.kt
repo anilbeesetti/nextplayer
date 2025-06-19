@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -82,6 +83,24 @@ fun QuickSettingsDialog(
                             ),
                         ) {
                             Text(text = viewMode.name())
+                        }
+                    }
+                }
+                DialogSectionTitle(text = stringResource(R.string.media_layout))
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    MediaLayoutMode.entries.forEachIndexed { index, layoutMode ->
+                        SegmentedButton(
+                            selected = preferences.mediaLayoutMode == layoutMode,
+                            onClick = { preferences = preferences.copy(mediaLayoutMode = layoutMode) },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MediaLayoutMode.entries.size),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContentColor = MaterialTheme.colorScheme.primary,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                            ),
+                        ) {
+                            Text(text = layoutMode.name())
                         }
                     }
                 }
