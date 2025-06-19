@@ -225,4 +225,5 @@
     <string name="list">Λίστα</string>
     <string name="media_layout">Διάταξη μέσων</string>
     <string name="grid">Πλέγμα</string>
+    <string name="by">από τον %1$s</string>
 </resources>
