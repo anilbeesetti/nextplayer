@@ -47,7 +47,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,6 +62,8 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
+import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -298,7 +302,8 @@ fun NetworkUrlDialog(
     )
 }
 
-@Preview
+@PreviewScreenSizes
+@PreviewLightDark
 @Composable
 fun MediaPickerScreenPreview(
     @PreviewParameter(VideoPickerPreviewParameterProvider::class)
@@ -307,8 +312,22 @@ fun MediaPickerScreenPreview(
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                mediaState = MediaState.Loading,
-                preferences = ApplicationPreferences(),
+                mediaState = MediaState.Success(
+                    data = Folder(
+                        name = "Root Folder",
+                        path = "/root",
+                        dateModified = System.currentTimeMillis(),
+                        folderList = listOf(
+                            Folder(name = "Folder 1", path = "/root/folder1", dateModified = System.currentTimeMillis()),
+                            Folder(name = "Folder 2", path = "/root/folder2", dateModified = System.currentTimeMillis()),
+                        ),
+                        mediaList = videos,
+                    ),
+                ),
+                preferences = ApplicationPreferences().copy(
+                    mediaViewMode = MediaViewMode.FOLDER_TREE,
+                    mediaLayoutMode = MediaLayoutMode.GRID,
+                ),
                 onPlayVideo = {},
                 onFolderClick = {},
                 onDeleteVideoClick = {},
