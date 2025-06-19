@@ -206,4 +206,10 @@
     <string name="control_buttons_alignment_left">Sinistra</string>
     <string name="control_buttons_alignment_right">Dextra</string>
     <string name="control_buttons_alignment">Alineamento del buttones de controlo</string>
+    <string name="loop_mode">Modo de repetition</string>
+    <string name="loop_mode_off">Repeter: Disactivate</string>
+    <string name="loop_mode_one">Repeter: Un vice</string>
+    <string name="loop_mode_all">Repeter: Toto</string>
+    <string name="stop_player_session">Stoppar session de reproductor</string>
+    <string name="background_play">Reproduction in secunde plano</string>
 </resources>

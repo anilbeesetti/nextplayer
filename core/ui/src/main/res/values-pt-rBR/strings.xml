@@ -18,7 +18,7 @@
     <string name="open_settings">Abrir configurações</string>
     <string name="permission_not_granted">Permissão não concedida</string>
     <string name="fast_seek">Busca rápida</string>
-    <string name="fast_seek_description">Procura o quadro-chave mais próximo em vez de um exato.</string>
+    <string name="fast_seek_description">Procura o quadro-chave mais próximo em vez de um exato</string>
     <string name="error_playing_video">Erro: não foi possível reproduzir o vídeo</string>
     <string name="permission_request">Solicitação de permissão</string>
     <string name="player_controls_exit">Navegar para cima</string>
@@ -210,4 +210,8 @@
     <string name="background_play">Reproduzir em segundo plano</string>
     <string name="background_play_description">Reproduzir em segundo plano quando tocado no botão \"Início\" ou quando a tela estiver bloqueada.</string>
     <string name="stop_player_session">Parar sessão do player</string>
+    <string name="loop_mode_off">Repetir: desligado</string>
+    <string name="loop_mode_all">Repetir: tudo</string>
+    <string name="loop_mode_one">Repetir: um</string>
+    <string name="loop_mode">Repetição</string>
 </resources>

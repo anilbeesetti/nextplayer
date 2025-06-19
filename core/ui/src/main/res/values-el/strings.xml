@@ -210,4 +210,8 @@
     <string name="stop_player_session">Διακοπή συνεδρίας</string>
     <string name="background_play_description">Αναπαραγωγή στο παρασκήνιο όταν μεταβαίνετε στην αρχική οθόνη ή κλειδώνει η οθόνη.</string>
     <string name="enable_pip_from_settings">Το Picture-in-Picture είναι απενεργοποιημένο. Ενεργοποιήστε το στις Ρυθμίσεις για να χρησιμοποιήσετε αυτήν τη δυνατότητα.</string>
+    <string name="loop_mode_off">Επανάληψη: Ανενεργή</string>
+    <string name="loop_mode_all">Επανάληψη: Όλων</string>
+    <string name="loop_mode">Λειτουργία επανάληψης</string>
+    <string name="loop_mode_one">Επανάληψη: Ενός</string>
 </resources>

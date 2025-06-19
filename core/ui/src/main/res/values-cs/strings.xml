@@ -188,4 +188,10 @@
     <string name="automatic">Automatická (senzor)</string>
     <string name="portrait">Na výšku</string>
     <string name="system_caption_style">Styl systémových titulek</string>
+    <string name="loop_mode_off">Smyčka: Vypnutá</string>
+    <string name="loop_mode_one">Smyčka: Jenom toto</string>
+    <string name="loop_mode_all">Smyčka: Vše</string>
+    <string name="loop_mode">Režim smyčky</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="serif">Serif</string>
 </resources>

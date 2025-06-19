@@ -210,4 +210,8 @@
     <string name="enable_pip_from_settings">子母畫面已停用。請在設定中啟用以使用此功能。</string>
     <string name="control_buttons_alignment_right">右</string>
     <string name="control_buttons_alignment">控制按鈕對齊</string>
+    <string name="loop_mode_off">循環：停用</string>
+    <string name="loop_mode_one">循環：單項</string>
+    <string name="loop_mode_all">循環：全部</string>
+    <string name="loop_mode">循環模式</string>
 </resources>

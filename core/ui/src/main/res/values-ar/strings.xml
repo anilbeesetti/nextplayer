@@ -210,4 +210,8 @@
     <string name="background_play">التشغيل في الخلفية</string>
     <string name="enable_pip_from_settings">تم تعطيل ميزة الصورة داخل صورة. قم بتمكينها في الإعدادات لاستخدام هذه الميزة.</string>
     <string name="stop_player_session">إيقاف جلسة المشغل</string>
+    <string name="loop_mode_off">التكرار: موقف</string>
+    <string name="loop_mode">وضع التكرار</string>
+    <string name="loop_mode_all">تكرار: الكل</string>
+    <string name="loop_mode_one">التكرار: واحدة</string>
 </resources>
