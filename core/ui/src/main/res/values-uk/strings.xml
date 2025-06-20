@@ -223,4 +223,7 @@
     <string name="github">Github</string>
     <string name="support_the_developer_on">Підтримати розробника на %1$s</string>
     <string name="kofi">Ko-fi</string>
+    <string name="media_layout">Розміщення медіафайлів</string>
+    <string name="list">Список</string>
+    <string name="grid">Сітка</string>
 </resources>
