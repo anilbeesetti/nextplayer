@@ -137,6 +137,7 @@ private fun FolderListItem(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FolderGridItem(
     folder: Folder,
@@ -174,46 +175,29 @@ private fun FolderGridItem(
                 },
                 textAlign = TextAlign.Center,
             )
-            val mediaCount = if (folder.mediaList.isNotEmpty()) {
-                "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
-            } else {
-                null
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                if (folder.mediaList.isNotEmpty()) {
+                    InfoChip(
+                        text = "${folder.mediaList.size} " +
+                            stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+                    )
+                }
+                if (folder.folderList.isNotEmpty()) {
+                    InfoChip(
+                        text = "${folder.folderList.size} " +
+                            stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
+                    )
+                }
+                if (folder.mediaDuration > 0) {
+                    InfoChip(text = Utils.formatDurationMillis(folder.mediaDuration))
+                }
             }
-            val folderCount = if (folder.folderList.isNotEmpty()) {
-                "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
-            } else {
-                null
-            }
-            val durationText = if (folder.mediaDuration > 0) {
-                Utils.formatDurationMillis(folder.mediaDuration)
-            } else {
-                null
-            }
-
-            Text(
-                text = buildString {
-                    mediaCount?.let {
-                        append(it)
-                        if (folderCount != null || durationText != null) {
-                            append(", ")
-                            append("\u00A0")
-                        }
-                    }
-                    folderCount?.let {
-                        append(it)
-                        if (durationText != null) {
-                            append(", ")
-                            append("\u00A0")
-                        }
-                    }
-                    durationText?.let {
-                        append(it)
-                    }
-                },
-                maxLines = 2,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
-                textAlign = TextAlign.Center,
-            )
         }
     }
 }
