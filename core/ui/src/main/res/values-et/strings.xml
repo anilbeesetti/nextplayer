@@ -222,4 +222,7 @@
     <string name="donate">Toeta arendajat</string>
     <string name="error_opening_link">Selle lingi avamiseks ei leidu sobilikku rakendust</string>
     <string name="upi">UPI</string>
+    <string name="media_layout">Meedia paigutus</string>
+    <string name="list">Loend</string>
+    <string name="grid">Ruudustik</string>
 </resources>
