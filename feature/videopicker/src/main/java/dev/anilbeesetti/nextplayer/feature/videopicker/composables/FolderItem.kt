@@ -128,6 +128,9 @@ private fun FolderListItem(
                 if (preferences.showSizeField) {
                     InfoChip(text = Utils.formatFileSize(folder.mediaSize))
                 }
+                if (folder.mediaDuration > 0) {
+                    InfoChip(text = Utils.formatDurationMillis(folder.mediaDuration))
+                }
             }
         },
         modifier = modifier,
@@ -181,17 +184,29 @@ private fun FolderGridItem(
             } else {
                 null
             }
+            val durationText = if (folder.mediaDuration > 0) {
+                Utils.formatDurationMillis(folder.mediaDuration)
+            } else {
+                null
+            }
 
             Text(
                 text = buildString {
                     mediaCount?.let {
                         append(it)
-                        folderCount?.let {
+                        if (folderCount != null || durationText != null) {
                             append(", ")
                             append("\u00A0")
                         }
                     }
                     folderCount?.let {
+                        append(it)
+                        if (durationText != null) {
+                            append(", ")
+                            append("\u00A0")
+                        }
+                    }
+                    durationText?.let {
                         append(it)
                     }
                 },
