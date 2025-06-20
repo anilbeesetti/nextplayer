@@ -223,4 +223,7 @@
     <string name="donate">贊助</string>
     <string name="libraries">函式庫</string>
     <string name="by">作者 %1$s</string>
+    <string name="grid">格狀</string>
+    <string name="list">清單</string>
+    <string name="media_layout">媒體顯示</string>
 </resources>
