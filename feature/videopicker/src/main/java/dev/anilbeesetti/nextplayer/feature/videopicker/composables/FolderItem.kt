@@ -128,7 +128,7 @@ private fun FolderListItem(
                 if (preferences.showSizeField) {
                     InfoChip(text = Utils.formatFileSize(folder.mediaSize))
                 }
-                if (folder.mediaDuration > 0) {
+                if (preferences.showDurationField && folder.mediaDuration > 0) {
                     InfoChip(text = Utils.formatDurationMillis(folder.mediaDuration))
                 }
             }
@@ -193,9 +193,6 @@ private fun FolderGridItem(
                         text = "${folder.folderList.size} " +
                             stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
                     )
-                }
-                if (folder.mediaDuration > 0) {
-                    InfoChip(text = Utils.formatDurationMillis(folder.mediaDuration))
                 }
             }
         }
