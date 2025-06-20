@@ -192,7 +192,7 @@
     <string name="best_fit">சிறந்த பொருத்தம்</string>
     <string name="zoom_gesture_description">வீடியோவை பெரிதாக்க பிஞ்ச்</string>
     <string name="high_contrast_dark_theme">உயர் மாறுபட்ட இருண்ட கருப்பொருள்</string>
-    <string name="pause_on_headset_disconnect_desc">சாதனத்திலிருந்து எட்செட் துண்டிக்கும்போது பின்னணி பின்னணி</string>
+    <string name="pause_on_headset_disconnect_desc">சாதனத்திலிருந்து எட்செட் துண்டிக்கும்போது பின்னணி நிறுத்து</string>
     <string name="system_caption_style_desc">கணினி தலைப்பு விருப்பங்களை திறக்க சொடுக்கு செய்க</string>
     <string name="fields">புலங்கள்</string>
     <string name="extension">நீட்டிப்பு</string>
@@ -210,4 +210,20 @@
     <string name="mark_last_played_media_desc">மார்க் கடைசியாக வீட்டிலும் ஒவ்வொரு கோப்புறையிலும் ஊடகங்களில் விளையாடினார்</string>
     <string name="open_network_stream">பிணையம் ச்ட்ரீம் திறந்த</string>
     <string name="skip_silence">ம .னத்தைத் தவிர்க்கவும்</string>
+    <string name="loop_mode">லூப் பயன்முறை</string>
+    <string name="loop_mode_off">லூப்: ஆஃப்</string>
+    <string name="loop_mode_all">லூப்: அனைத்தும்</string>
+    <string name="by">%1$s மூலம்</string>
+    <string name="github">கிரப்</string>
+    <string name="loop_mode_one">லூப்: ஒன்று</string>
+    <string name="libraries">நூலகங்கள்</string>
+    <string name="donate">நன்கொடை</string>
+    <string name="error_opening_link">இந்த இணைப்பைக் கையாள எந்த பயன்பாடும் கிடைக்கவில்லை</string>
+    <string name="support_the_developer_on">டெவலப்பரை %1$s இல் ஆதரிக்கவும்</string>
+    <string name="kofi">காபி</string>
+    <string name="paypal">பேபால்</string>
+    <string name="upi">யுபிஐ</string>
+    <string name="media_layout">மீடியா தளவமைப்பு</string>
+    <string name="list">பட்டியல்</string>
+    <string name="grid">வலைவாய்</string>
 </resources>
