@@ -223,4 +223,7 @@
     <string name="paypal">PayPal</string>
     <string name="upi">UPI</string>
     <string name="by">według %1$s</string>
+    <string name="media_layout">Układ multimediów</string>
+    <string name="list">Lista</string>
+    <string name="grid">Siatka</string>
 </resources>
