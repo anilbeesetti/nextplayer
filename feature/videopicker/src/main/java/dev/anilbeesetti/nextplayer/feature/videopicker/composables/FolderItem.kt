@@ -137,7 +137,6 @@ private fun FolderListItem(
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FolderGridItem(
     folder: Folder,
@@ -175,26 +174,34 @@ private fun FolderGridItem(
                 },
                 textAlign = TextAlign.Center,
             )
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                if (folder.mediaList.isNotEmpty()) {
-                    InfoChip(
-                        text = "${folder.mediaList.size} " +
-                            stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
-                    )
-                }
-                if (folder.folderList.isNotEmpty()) {
-                    InfoChip(
-                        text = "${folder.folderList.size} " +
-                            stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
-                    )
-                }
+            val mediaCount = if (folder.mediaList.isNotEmpty()) {
+                "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
+            } else {
+                null
             }
+            val folderCount = if (folder.folderList.isNotEmpty()) {
+                "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
+            } else {
+                null
+            }
+
+            Text(
+                text = buildString {
+                    mediaCount?.let {
+                        append(it)
+                        folderCount?.let {
+                            append(", ")
+                            append("\u00A0")
+                        }
+                    }
+                    folderCount?.let {
+                        append(it)
+                    }
+                },
+                maxLines = 2,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
