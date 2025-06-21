@@ -225,4 +225,5 @@
     <string name="media_layout">Meedia paigutus</string>
     <string name="list">Loend</string>
     <string name="grid">Ruudustik</string>
+    <string name="by">autorilt %1$s</string>
 </resources>
