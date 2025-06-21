@@ -209,9 +209,21 @@
     <string name="background_play_description">点按主屏幕按钮或屏幕锁定时在后台播放</string>
     <string name="stop_player_session">停止播放器会话</string>
     <string name="background_play">后台播放</string>
-    <string name="enable_pip_from_settings">画中画已停用。在设置中启用它可使用此功能。</string>
+    <string name="enable_pip_from_settings">已停用画中画。在设置中启用它可使用此功能。</string>
     <string name="loop_mode_one">循环：单文件</string>
     <string name="loop_mode_all">循环：全部</string>
     <string name="loop_mode_off">循环：关</string>
     <string name="loop_mode">循环模式</string>
+    <string name="donate">捐助</string>
+    <string name="libraries">库</string>
+    <string name="by">由 %1$s 开发</string>
+    <string name="support_the_developer_on">通过 %1$s 支持开发者</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="github">GitHub</string>
+    <string name="error_opening_link">未找到可打开此链接的应用</string>
+    <string name="upi">UPI</string>
+    <string name="list">列表</string>
+    <string name="media_layout">媒体布局</string>
+    <string name="grid">网格</string>
 </resources>

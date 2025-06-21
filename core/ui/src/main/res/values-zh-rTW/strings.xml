@@ -214,4 +214,16 @@
     <string name="loop_mode_one">循環：單項</string>
     <string name="loop_mode_all">循環：全部</string>
     <string name="loop_mode">循環模式</string>
+    <string name="github">Github</string>
+    <string name="error_opening_link">沒有應用程式可開啟這個連結</string>
+    <string name="support_the_developer_on">透過 %1$s 支援開發者</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="donate">贊助</string>
+    <string name="libraries">函式庫</string>
+    <string name="by">作者 %1$s</string>
+    <string name="grid">格狀</string>
+    <string name="list">清單</string>
+    <string name="media_layout">媒體顯示</string>
 </resources>
