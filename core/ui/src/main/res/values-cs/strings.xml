@@ -211,4 +211,7 @@
     <string name="github">GitHub</string>
     <string name="paypal">PayPal</string>
     <string name="mark_last_played_media_desc">Označit posledně přehráté video ve každé složce</string>
+    <string name="grid">Mřížka</string>
+    <string name="list">Seznam</string>
+    <string name="media_layout">Rozhraní seznamu Medií</string>
 </resources>
