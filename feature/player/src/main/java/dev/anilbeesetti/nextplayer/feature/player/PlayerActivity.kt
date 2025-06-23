@@ -92,6 +92,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
@@ -372,9 +373,7 @@ class PlayerActivity : AppCompatActivity() {
         if (subtitleFileLauncherLaunchedForMediaItem != null) {
             mediaController?.pause()
         } else if (!playerPreferences.autoBackgroundPlay && !playInBackground) {
-            mediaController?.run {
-                stop()
-            }
+            mediaController?.stopPlayerSession()
         }
         controllerFuture?.run {
             MediaController.releaseFuture(this)
@@ -831,6 +830,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
+            println("HELLO: $playbackState")
             super.onPlaybackStateChanged(playbackState)
             when (playbackState) {
                 Player.STATE_ENDED, Player.STATE_IDLE -> {
