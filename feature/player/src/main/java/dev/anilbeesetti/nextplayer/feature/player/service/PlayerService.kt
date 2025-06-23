@@ -86,6 +86,7 @@ class PlayerService : MediaSessionService() {
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !playerPreferences.autoplay) {
                 mediaSession?.player?.stop()
                 return
