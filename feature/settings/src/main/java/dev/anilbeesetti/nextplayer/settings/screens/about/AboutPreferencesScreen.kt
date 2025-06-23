@@ -57,7 +57,6 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmapOrNull
@@ -144,19 +143,17 @@ fun AboutPreferencesScreen(
                 },
             )
 
-            if (Locale.current.region == "IN") {
-                ClickablePreferenceItem(
-                    title = stringResource(R.string.upi),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.upi)),
-                    icon = ImageVector.vectorResource(R.drawable.ic_upi),
-                    onClick = {
-                        uriHandler.openUriOrShowToast(
-                            uri = UPI_URL,
-                            context = context,
-                        )
-                    },
-                )
-            }
+            ClickablePreferenceItem(
+                title = stringResource(R.string.upi),
+                description = stringResource(R.string.support_the_developer_on, stringResource(R.string.upi)),
+                icon = ImageVector.vectorResource(R.drawable.ic_upi),
+                onClick = {
+                    uriHandler.openUriOrShowToast(
+                        uri = UPI_URL,
+                        context = context,
+                    )
+                },
+            )
         }
     }
 }
