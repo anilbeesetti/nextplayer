@@ -32,6 +32,11 @@ dependencies {
     implementation(project(":core:datastore"))
 
     implementation(libs.timber)
+    // Use Sardine for WebDAV
+    implementation(libs.sardine.android)
+    // Use OkHttp for additional HTTP support
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)

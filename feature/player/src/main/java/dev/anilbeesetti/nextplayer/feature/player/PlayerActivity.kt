@@ -92,6 +92,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.setWebDavCredentials
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
@@ -149,6 +150,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
     private var pipBroadcastReceiver: BroadcastReceiver? = null
+    private var errorDialog: androidx.appcompat.app.AlertDialog? = null
 
     /**
      * Listeners
@@ -329,6 +331,23 @@ class PlayerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             maybeInitControllerFuture()
             mediaController = controllerFuture?.await()
+            
+            // Check for WebDAV credentials in the intent and set them BEFORE starting playback
+            val webDavUsername = intent.getStringExtra("webdav_username")
+            val webDavPassword = intent.getStringExtra("webdav_password")
+            
+            // If WebDAV credentials are present, set them in the player FIRST and wait for confirmation
+            if (!webDavUsername.isNullOrEmpty() && !webDavPassword.isNullOrEmpty()) {
+                android.util.Log.d("PlayerActivity", "Setting WebDAV credentials: username=$webDavUsername")
+                
+                // Set credentials and wait longer to ensure they're applied
+                mediaController?.setWebDavCredentials(webDavUsername, webDavPassword)
+                
+                // Wait for the command to be processed by the service
+                delay(500)
+                
+                android.util.Log.d("PlayerActivity", "WebDAV credentials set, starting playback")
+            }
 
             setOrientation()
             applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom, showInfo = false)
@@ -812,21 +831,31 @@ class PlayerActivity : AppCompatActivity() {
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
             Timber.e(error)
-            val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
-                setTitle(getString(coreUiR.string.error_playing_video))
-                setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
-                    finish()
-                }
-                if (mediaController?.hasNextMediaItem() == true) {
-                    setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
-                        dialog.dismiss()
-                        mediaController?.seekToNext()
+            
+            // Dismiss any existing error dialog to prevent multiple dialogs
+            errorDialog?.dismiss()
+            
+            // Check if activity is not finishing before showing dialog
+            if (!isFinishing && !isDestroyed) {
+                errorDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
+                    setTitle(getString(coreUiR.string.error_playing_video))
+                    setMessage(error.message ?: getString(coreUiR.string.unknown_error))
+                    setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
+                        finish()
                     }
-                }
-            }.create()
+                    if (mediaController?.hasNextMediaItem() == true) {
+                        setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
+                            dialog.dismiss()
+                            mediaController?.seekToNext()
+                        }
+                    }
+                    setOnDismissListener {
+                        errorDialog = null
+                    }
+                }.create()
 
-            alertDialog.show()
+                errorDialog?.show()
+            }
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -849,6 +878,13 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        // Dismiss error dialog to prevent window leak
+        errorDialog?.dismiss()
+        errorDialog = null
+        super.onDestroy()
+    }
+
     override fun finish() {
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
@@ -868,7 +904,20 @@ class PlayerActivity : AppCompatActivity() {
             setIntent(intent)
             isIntentNew = true
             if (mediaController != null) {
-                startPlayback()
+                lifecycleScope.launch {
+                    // Check for WebDAV credentials in the new intent and set them BEFORE starting playback
+                    val webDavUsername = intent.getStringExtra("webdav_username")
+                    val webDavPassword = intent.getStringExtra("webdav_password")
+                    
+                    // If WebDAV credentials are present, set them in the player FIRST and wait
+                    if (!webDavUsername.isNullOrEmpty() && !webDavPassword.isNullOrEmpty()) {
+                        mediaController?.setWebDavCredentials(webDavUsername, webDavPassword)
+                        // Wait for credentials to be processed
+                        delay(500)
+                    }
+                    
+                    startPlayback()
+                }
             }
         }
     }

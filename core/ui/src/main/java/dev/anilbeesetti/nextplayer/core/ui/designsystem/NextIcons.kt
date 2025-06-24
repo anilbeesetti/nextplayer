@@ -61,6 +61,10 @@ import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.automirrored.rounded.Sort
 
 object NextIcons {
     val Appearance = Icons.Rounded.Palette
@@ -123,4 +127,8 @@ object NextIcons {
     val Video = Icons.Rounded.Movie
     val VolumeUp = Icons.AutoMirrored.Rounded.VolumeUp
     val ButtonsPosition = Icons.Rounded.AppSettingsAlt
+    val WebDav = Icons.Rounded.Cloud
+    val Add = Icons.Rounded.Add
+    val Search = Icons.Rounded.Search
+    val Sort = Icons.AutoMirrored.Rounded.Sort
 }

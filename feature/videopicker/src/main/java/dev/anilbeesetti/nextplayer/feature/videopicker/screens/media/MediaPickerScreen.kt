@@ -87,6 +87,7 @@ fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
     onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
+    onWebDavClick: () -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel(),
 ) {
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
@@ -103,6 +104,7 @@ fun MediaPickerRoute(
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
+        onWebDavClick = onWebDavClick,
         updatePreferences = viewModel::updateMenu,
         onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
         onDeleteFolderClick = { viewModel.deleteFolders(listOf(it)) },
@@ -122,6 +124,7 @@ internal fun MediaPickerScreen(
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
+    onWebDavClick: () -> Unit = {},
     updatePreferences: (ApplicationPreferences) -> Unit = {},
     onDeleteVideoClick: (String) -> Unit,
     onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
@@ -205,6 +208,13 @@ internal fun MediaPickerScreen(
                             text = stringResource(id = R.string.open_network_stream),
                             icon = NextIcons.Link,
                             onClick = { showUrlDialog = true },
+                        )
+                    }
+                    item {
+                        ShortcutChipButton(
+                            text = "WebDAV",
+                            icon = NextIcons.WebDav,
+                            onClick = onWebDavClick,
                         )
                     }
                 }

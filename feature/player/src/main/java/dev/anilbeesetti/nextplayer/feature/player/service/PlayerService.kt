@@ -18,9 +18,14 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import dev.anilbeesetti.nextplayer.feature.player.utils.SardineWebDavDataSource
+import dev.anilbeesetti.nextplayer.feature.player.utils.SmartDataSourceFactory
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
 import androidx.media3.session.MediaSession
@@ -82,6 +87,14 @@ class PlayerService : MediaSessionService() {
 
     private var isMediaItemReady = false
     private var currentVideoState: VideoState? = null
+    
+    // Reference to the WebDAV data source factory
+    private var webDavDataSourceFactory: SardineWebDavDataSource.Factory? = null
+    private var webDavUsername: String = ""
+    private var webDavPassword: String = ""
+    
+    // Smart data source factory that can handle both regular and WebDAV URLs
+    private lateinit var smartDataSourceFactory: SmartDataSourceFactory
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -324,6 +337,37 @@ class PlayerService : MediaSessionService() {
                     } ?: stopSelf()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
+                
+                CustomCommands.SET_WEBDAV_CREDENTIALS -> {
+                    val username = args.getString(CustomCommands.WEBDAV_USERNAME_KEY) ?: ""
+                    val password = args.getString(CustomCommands.WEBDAV_PASSWORD_KEY) ?: ""
+                    
+                    android.util.Log.d("PlayerService", "Setting WebDAV credentials: username=$username, password=${password.take(3)}***")
+                    
+                    if (username.isNotEmpty() && password.isNotEmpty()) {
+                        // Store credentials for future use
+                        webDavUsername = username
+                        webDavPassword = password
+                        
+                        // Create new Sardine WebDAV data source factory with credentials
+                        webDavDataSourceFactory = SardineWebDavDataSource.Factory(
+                            username = username,
+                            password = password,
+                            userAgent = "NextPlayer/1.0"
+                        )
+                        
+                        // Update the smart data source factory with WebDAV support
+                        smartDataSourceFactory.setWebDavDataSourceFactory(webDavDataSourceFactory)
+                        
+                        android.util.Log.d("PlayerService", "WebDAV Sardine credentials set successfully")
+                        android.util.Log.d("PlayerService", "Sardine factory configured for user: $username")
+                        
+                    } else {
+                        android.util.Log.w("PlayerService", "WebDAV credentials are empty")
+                    }
+                    
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
             }
         }
     }
@@ -350,9 +394,16 @@ class PlayerService : MediaSessionService() {
             )
         }
 
+        // Create smart data source factory that can handle both regular and WebDAV URLs
+        smartDataSourceFactory = SmartDataSourceFactory(applicationContext)
+        
+        // Create a media source factory that uses our smart data source factory
+        val mediaSourceFactory = DefaultMediaSourceFactory(smartDataSourceFactory)
+        
         val player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)

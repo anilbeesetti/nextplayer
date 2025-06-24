@@ -64,6 +64,9 @@ dependencies {
     kspAndroidTest(libs.hilt.compiler)
 
     implementation(libs.timber)
+    
+    // Use Sardine for WebDAV
+    implementation("com.github.thegrizzlylabs:sardine-android:0.8")
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
