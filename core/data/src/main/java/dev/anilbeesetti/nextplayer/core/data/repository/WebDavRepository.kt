@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import dev.anilbeesetti.nextplayer.core.model.WebDavServer
 import dev.anilbeesetti.nextplayer.core.model.WebDavFile
+import dev.anilbeesetti.nextplayer.core.model.WebDavServer
 import kotlinx.coroutines.flow.Flow
 
 interface WebDavRepository {

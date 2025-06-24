@@ -11,7 +11,7 @@ import timber.log.Timber
 @UnstableApi
 class SmartDataSourceFactory(
     private val context: Context,
-    private var webDavDataSourceFactory: SardineWebDavDataSource.Factory? = null
+    private var webDavDataSourceFactory: SardineWebDavDataSource.Factory? = null,
 ) : DataSource.Factory {
 
     private val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
@@ -22,7 +22,7 @@ class SmartDataSourceFactory(
 
     private val defaultDataSourceFactory = DefaultDataSource.Factory(
         context,
-        defaultHttpDataSourceFactory
+        defaultHttpDataSourceFactory,
     )
 
     fun setWebDavDataSourceFactory(factory: SardineWebDavDataSource.Factory?) {
@@ -32,7 +32,7 @@ class SmartDataSourceFactory(
     override fun createDataSource(): DataSource {
         return SmartDataSource(
             defaultDataSource = defaultDataSourceFactory.createDataSource(),
-            webDavDataSourceFactory = webDavDataSourceFactory
+            webDavDataSourceFactory = webDavDataSourceFactory,
         )
     }
 }
@@ -40,13 +40,13 @@ class SmartDataSourceFactory(
 @UnstableApi
 class SmartDataSource(
     private val defaultDataSource: DataSource,
-    private val webDavDataSourceFactory: SardineWebDavDataSource.Factory?
+    private val webDavDataSourceFactory: SardineWebDavDataSource.Factory?,
 ) : DataSource {
 
     companion object {
         private const val TAG = "SmartDataSource"
     }
-    
+
     private var currentDataSource: DataSource? = null
     private var transferListeners = mutableListOf<androidx.media3.datasource.TransferListener>()
 
@@ -57,13 +57,13 @@ class SmartDataSource(
 
     override fun open(dataSpec: androidx.media3.datasource.DataSpec): Long {
         val uri = dataSpec.uri
-        
-        // 检查是否是WebDAV URL并且有配置的WebDAV数据源工厂
+
+        // Check if it's a WebDAV URL and there's a configured WebDAV data source factory
         if (isWebDavUrl(uri) && webDavDataSourceFactory != null) {
             Timber.tag(TAG).d("Using WebDAV data source for: $uri")
             try {
                 val webDavDataSource = webDavDataSourceFactory.createDataSource()
-                // 添加已注册的传输监听器
+                // Add registered transfer listeners
                 transferListeners.forEach { listener ->
                     webDavDataSource.addTransferListener(listener)
                 }
@@ -71,10 +71,10 @@ class SmartDataSource(
                 return webDavDataSource.open(dataSpec)
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to open WebDAV data source, falling back to default")
-                // 失败时回退到默认数据源
+                // Fall back to default data source on failure
             }
         }
-        
+
         Timber.tag(TAG).d("Using default data source for: $uri")
         currentDataSource = defaultDataSource
         return defaultDataSource.open(dataSpec)
@@ -97,24 +97,24 @@ class SmartDataSource(
         val scheme = uri.scheme?.lowercase()
         val host = uri.host?.lowercase()
         val path = uri.path?.lowercase() ?: ""
-        
-        // 只要有WebDAV数据源工厂可用，就尝试使用它
-        // 这是因为用户明确设置了WebDAV凭据，说明他们想要使用WebDAV
+
+        // Try to use WebDAV as long as WebDAV data source factory is available
+        // This is because the user explicitly set WebDAV credentials, indicating they want to use WebDAV
         if (webDavDataSourceFactory != null && (scheme == "http" || scheme == "https")) {
             Timber.tag(TAG).d("WebDAV factory available, trying WebDAV for: $uri")
             return true
         }
-        
+
         return false
     }
-    
+
     private fun isLikelyWebDav(uri: Uri): Boolean {
-        // 这里可以添加更多启发式规则来判断是否是WebDAV
-        // 例如检查URI模式、主机名等
+        // More heuristic rules can be added here to determine if it's WebDAV
+        // For example, check URI patterns, hostnames, etc.
         val path = uri.path?.lowercase() ?: ""
-        return path.contains("webdav") || 
-               path.contains("/dav") ||
-               path.contains("/remote.php") ||
-               path.contains("/files")
+        return path.contains("webdav") ||
+            path.contains("/dav") ||
+            path.contains("/remote.php") ||
+            path.contains("/files")
     }
 }

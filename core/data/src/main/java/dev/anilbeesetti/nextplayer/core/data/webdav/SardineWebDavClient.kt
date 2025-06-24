@@ -4,17 +4,14 @@ import com.thegrizzlylabs.sardineandroid.Sardine
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import dev.anilbeesetti.nextplayer.core.model.WebDavFile
 import dev.anilbeesetti.nextplayer.core.model.WebDavServer
+import java.io.InputStream
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import timber.log.Timber
-import java.io.IOException
-import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class SardineWebDavClient @Inject constructor() {
@@ -23,8 +20,8 @@ class SardineWebDavClient @Inject constructor() {
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
-        .followRedirects(true)        // 允许跟随重定向
-        .followSslRedirects(true)     // 允许SSL重定向
+        .followRedirects(true) // Allow following redirects
+        .followSslRedirects(true) // Allow SSL redirects
         .retryOnConnectionFailure(true)
         .build()
 
@@ -42,61 +39,53 @@ class SardineWebDavClient @Inject constructor() {
                 val sardine = createSardine(server)
                 val url = buildUrl(server.url, path)
                 Timber.d("WebDAV Sardine PROPFIND request URL: $url")
-                
                 val resources = sardine.list(url)
                 val files = mutableListOf<WebDavFile>()
-                
                 for (resource in resources) {
-                    // 跳过当前目录条目 - 更严格的过滤
+                    // Skip current directory entry - more strict filtering
                     val resourceHref = resource.href.toString()
                     val normalizedResourceHref = resourceHref.trimEnd('/')
                     val normalizedUrl = url.trimEnd('/')
-                    
-                    // 跳过当前目录（完全匹配或只是路径末尾不同）
-                    if (normalizedResourceHref == normalizedUrl || 
+                    // Skip current directory (exact match or just different path ending)
+                    if (normalizedResourceHref == normalizedUrl ||
                         normalizedResourceHref == normalizedUrl + "/" ||
-                        resourceHref == url) {
+                        resourceHref == url
+                    ) {
                         Timber.d("Skipping current directory: $resourceHref (matches $url)")
                         continue
                     }
-                    
-                    // 额外检查：如果是当前路径的父目录引用，也跳过
+                    // Additional check: if it's a parent directory reference of current path, skip it too
                     val resourcePath = try {
                         java.net.URI(resourceHref).path.trimEnd('/')
                     } catch (e: Exception) {
                         resourceHref.trimEnd('/')
                     }
-                    
                     val currentPath = try {
                         java.net.URI(url).path.trimEnd('/')
                     } catch (e: Exception) {
                         path.trimEnd('/')
                     }
-                    
                     if (resourcePath == currentPath) {
                         Timber.d("Skipping current directory by path: $resourcePath == $currentPath")
                         continue
                     }
-                    
                     val fileName = resource.displayName ?: resource.name ?: resourceHref.substringAfterLast("/").removeSuffix("/")
                     val isDirectory = resource.isDirectory
                     val size = if (isDirectory) 0L else (resource.contentLength ?: 0L)
                     val lastModified = resource.modified?.time ?: 0L
                     val mimeType = if (isDirectory) null else resource.contentType
-                    
-                    // 使用相对于服务器根目录的路径，处理AList等服务器的基础路径
+                    // Use path relative to server root directory, handle base path for servers like AList
                     val filePath = try {
                         val uri = java.net.URI(resourceHref)
                         val path = uri.path
-                        
-                        // 如果服务器URL包含基础路径（如/dav/），确保文件路径是完整的
+
+                        // If server URL contains base path (like /dav/), ensure file path is complete
                         val baseUrlPath = try {
                             java.net.URL(server.url).path.trimEnd('/')
                         } catch (e: Exception) {
                             ""
                         }
-                        
-                        // 如果基础路径存在且文件路径不包含它，则添加基础路径
+                        // If base path exists and file path doesn't contain it, add base path
                         if (baseUrlPath.isNotEmpty() && !path.startsWith(baseUrlPath)) {
                             if (path.startsWith("/")) {
                                 baseUrlPath + path
@@ -110,7 +99,6 @@ class SardineWebDavClient @Inject constructor() {
                         Timber.w(e, "Failed to parse resource href: $resourceHref")
                         resourceHref
                     }
-                    
                     files.add(
                         WebDavFile(
                             name = fileName,
@@ -118,16 +106,13 @@ class SardineWebDavClient @Inject constructor() {
                             isDirectory = isDirectory,
                             size = size,
                             lastModified = lastModified,
-                            mimeType = mimeType ?: if (!isDirectory) guessMimeType(fileName) else null
-                        )
+                            mimeType = mimeType ?: if (!isDirectory) guessMimeType(fileName) else null,
+                        ),
                     )
-                    
                     Timber.d("Added file: $fileName (isDirectory: $isDirectory, path: $filePath)")
                 }
-                
                 Timber.d("Parsed ${files.size} files/directories using Sardine")
                 Result.success(files)
-                
             } catch (e: Exception) {
                 Timber.e(e, "Failed to list WebDAV files using Sardine")
                 Result.failure(e)
@@ -140,11 +125,9 @@ class SardineWebDavClient @Inject constructor() {
             try {
                 val sardine = createSardine(server)
                 val url = normalizeUrl(server.url)
-                
-                // 简单测试：尝试列出根目录
+                // Simple test: try to list root directory
                 sardine.list(url, 0) // depth = 0 means only check the directory itself
                 Result.success(true)
-                
             } catch (e: Exception) {
                 Timber.e(e, "WebDAV Sardine connection test failed")
                 Result.failure(e)
@@ -158,10 +141,8 @@ class SardineWebDavClient @Inject constructor() {
                 val sardine = createSardine(server)
                 val url = buildUrl(server.url, filePath)
                 Timber.d("Getting file stream for: $url")
-                
                 val inputStream = sardine.get(url)
                 Result.success(inputStream)
-                
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get file stream for: $filePath")
                 Result.failure(e)
@@ -172,7 +153,6 @@ class SardineWebDavClient @Inject constructor() {
     private fun buildUrl(baseUrl: String, path: String): String {
         val normalizedUrl = normalizeUrl(baseUrl)
         val normalizedPath = normalizePath(path)
-        
         val result = if (normalizedPath == "/") {
             normalizedUrl
         } else {
@@ -182,7 +162,7 @@ class SardineWebDavClient @Inject constructor() {
             } catch (e: Exception) {
                 ""
             }
-            
+
             if (baseUrlPath.isNotEmpty() && normalizedPath.startsWith(baseUrlPath)) {
                 // Path already includes the base path, so we need to construct the full URL differently
                 // Extract the scheme, host, and port from the base URL
@@ -193,7 +173,7 @@ class SardineWebDavClient @Inject constructor() {
                 normalizedUrl.trimEnd('/') + normalizedPath
             }
         }
-        
+
         Timber.d("buildUrl: baseUrl=$baseUrl, path=$path -> result=$result")
         return result
     }
@@ -223,10 +203,8 @@ class SardineWebDavClient @Inject constructor() {
     private fun guessMimeType(fileName: String): String? {
         // Only return MIME type if the file has a valid extension
         if (!fileName.contains(".")) return null
-        
         val extension = fileName.substringAfterLast(".", "").lowercase()
         if (extension.isEmpty()) return null
-        
         return when (extension) {
             // Video formats
             "mp4", "m4v" -> "video/mp4"
@@ -242,7 +220,6 @@ class SardineWebDavClient @Inject constructor() {
             "mts" -> "video/mp2t"
             "vob" -> "video/dvd"
             "ogv" -> "video/ogg"
-            
             // Audio formats
             "mp3" -> "audio/mpeg"
             "flac" -> "audio/flac"
@@ -251,12 +228,10 @@ class SardineWebDavClient @Inject constructor() {
             "wav" -> "audio/wav"
             "wma" -> "audio/x-ms-wma"
             "m4a" -> "audio/mp4"
-            
             // Playlist formats
             "m3u8" -> "application/vnd.apple.mpegurl"
             "m3u" -> "audio/x-mpegurl"
             "pls" -> "audio/x-scpls"
-            
             else -> null
         }
     }

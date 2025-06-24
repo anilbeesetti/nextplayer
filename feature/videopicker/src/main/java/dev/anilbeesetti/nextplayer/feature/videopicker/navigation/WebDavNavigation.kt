@@ -7,8 +7,8 @@ import androidx.navigation.NavOptions
 import androidx.navigation.navOptions
 import dev.anilbeesetti.nextplayer.core.model.WebDavServer
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.animatedComposable
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.webdav.WebDavRoute
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.webdav.WebDavBrowserRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.webdav.WebDavRoute
 
 const val webDavNavigationRoute = "webdav_screen"
 const val webDavBrowserNavigationRoute = "webdav_browser_screen/{serverId}"

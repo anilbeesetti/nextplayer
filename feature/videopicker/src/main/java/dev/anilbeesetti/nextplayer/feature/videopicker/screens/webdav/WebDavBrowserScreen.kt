@@ -1,24 +1,62 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.webdav
 
 import android.net.Uri
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,7 +65,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.WebDavFile
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import kotlinx.coroutines.delay
 
@@ -45,11 +82,11 @@ fun WebDavBrowserRoute(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val sortType by viewModel.sortType.collectAsStateWithLifecycle()
     // 移除derivedStateOf，因为canNavigateBack()已经返回了当前状态
-    
+
     LaunchedEffect(serverId) {
         viewModel.loadServer(serverId)
     }
-    
+
     WebDavBrowserScreen(
         files = files,
         isLoading = isLoading,
@@ -72,10 +109,10 @@ fun WebDavBrowserRoute(
             } else {
                 // Create WebDAV URI for video playback (without embedded credentials)
                 val uri = viewModel.createAuthenticatedUri(file.path)
-                
+
                 // Get authentication info if available
                 val authInfo = viewModel.getAuthenticationInfo()
-                
+
                 onPlayVideo(uri, authInfo?.first, authInfo?.second)
             }
         },
@@ -113,20 +150,20 @@ internal fun WebDavBrowserScreen(
     val searchFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val pullToRefreshState = rememberPullToRefreshState()
-    
+
     // 搜索栏展开动效
     val searchBarHeight by animateDpAsState(
         targetValue = if (isSearchExpanded) 56.dp else 0.dp,
         animationSpec = tween(300, easing = EaseInOutCubic),
-        label = "search_bar_height"
+        label = "search_bar_height",
     )
-    
+
     val searchBarAlpha by animateFloatAsState(
         targetValue = if (isSearchExpanded) 1f else 0f,
         animationSpec = tween(300, easing = EaseInOutCubic),
-        label = "search_bar_alpha"
+        label = "search_bar_alpha",
     )
-    
+
     // 当搜索展开时自动聚焦
     LaunchedEffect(isSearchExpanded) {
         if (isSearchExpanded) {
@@ -137,7 +174,7 @@ internal fun WebDavBrowserScreen(
             onSearchQueryChange("") // 清空搜索内容
         }
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -147,51 +184,53 @@ internal fun WebDavBrowserScreen(
                         targetState = isSearchExpanded,
                         transitionSpec = {
                             slideInHorizontally { width -> -width } + fadeIn() togetherWith
-                            slideOutHorizontally { width -> width } + fadeOut()
+                                slideOutHorizontally { width -> width } + fadeOut()
                         },
-                        label = "title_search_transition"
+                        label = "title_search_transition",
                     ) { expanded ->
                         if (expanded) {
                             // 搜索栏
                             OutlinedTextField(
                                 value = searchQuery,
                                 onValueChange = onSearchQueryChange,
-                                placeholder = { 
+                                placeholder = {
                                     Text(
                                         "搜索文件...",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                    ) 
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    )
                                 },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = NextIcons.Search,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 },
                                 trailingIcon = if (searchQuery.isNotEmpty()) {
                                     {
                                         IconButton(
-                                            onClick = { onSearchQueryChange("") }
+                                            onClick = { onSearchQueryChange("") },
                                         ) {
                                             Icon(
                                                 imageVector = NextIcons.Delete,
                                                 contentDescription = "Clear",
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         }
                                     }
-                                } else null,
+                                } else {
+                                    null
+                                },
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                                     unfocusedBorderColor = Color.Transparent,
                                     focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent
+                                    unfocusedContainerColor = Color.Transparent,
                                 ),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .focusRequester(searchFocusRequester)
+                                    .focusRequester(searchFocusRequester),
                             )
                         } else {
                             // 标题
@@ -199,7 +238,7 @@ internal fun WebDavBrowserScreen(
                                 text = if (currentPath == "/") "WebDAV" else currentPath,
                                 style = MaterialTheme.typography.titleLarge,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }
@@ -215,21 +254,21 @@ internal fun WebDavBrowserScreen(
                 actions = {
                     // 搜索按钮
                     IconButton(
-                        onClick = { 
+                        onClick = {
                             isSearchExpanded = !isSearchExpanded
-                        }
+                        },
                     ) {
                         Icon(
                             imageVector = if (isSearchExpanded) NextIcons.ArrowBack else NextIcons.Search,
                             contentDescription = if (isSearchExpanded) "Close Search" else "Search",
                         )
                     }
-                    
+
                     // 排序按钮
                     AnimatedVisibility(
                         visible = !isSearchExpanded,
                         enter = fadeIn() + scaleIn(),
-                        exit = fadeOut() + scaleOut()
+                        exit = fadeOut() + scaleOut(),
                     ) {
                         IconButton(onClick = { showSortDialog = true }) {
                             Icon(
@@ -245,7 +284,7 @@ internal fun WebDavBrowserScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
         ) {
             when {
                 error != null -> {
@@ -278,7 +317,7 @@ internal fun WebDavBrowserScreen(
                         }
                     }
                 }
-                
+
                 isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -287,7 +326,7 @@ internal fun WebDavBrowserScreen(
                         CircularProgressIndicator()
                     }
                 }
-                
+
                 files.filter { file -> file.isDirectory || isVideoFile(file) }.isEmpty() -> {
                     Column(
                         modifier = Modifier
@@ -309,22 +348,22 @@ internal fun WebDavBrowserScreen(
                         )
                     }
                 }
-                
+
                 else -> {
                     val filteredFiles = files.filter { file ->
                         // 过滤掉当前目录引用，避免显示root或当前文件夹
                         val isCurrentDirectory = file.path.trimEnd('/') == currentPath.trimEnd('/') ||
-                                               (file.name.isEmpty() && file.path == currentPath)
-                        
+                            (file.name.isEmpty() && file.path == currentPath)
+
                         !isCurrentDirectory && (file.isDirectory || isVideoFile(file))
                     }
-                    
+
                     // 使用PullToRefresh实现下拉刷新
                     PullToRefreshBox(
                         state = pullToRefreshState,
                         isRefreshing = isLoading,
                         onRefresh = onRefresh,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     ) {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
@@ -343,13 +382,13 @@ internal fun WebDavBrowserScreen(
             }
         }
     }
-    
+
     // 排序对话框
     if (showSortDialog) {
         SortDialog(
             currentSortType = sortType,
             onSortTypeSelected = onSortTypeChange,
-            onDismiss = { showSortDialog = false }
+            onDismiss = { showSortDialog = false },
         )
     }
 }
@@ -374,12 +413,15 @@ fun WebDavFileItem(
                 imageVector = if (file.isDirectory) NextIcons.Folder else NextIcons.Video,
                 contentDescription = null,
                 modifier = Modifier.size(40.dp),
-                tint = if (file.isDirectory) MaterialTheme.colorScheme.primary 
-                      else MaterialTheme.colorScheme.secondary,
+                tint = if (file.isDirectory) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.secondary
+                },
             )
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(
                 modifier = Modifier.weight(1f),
             ) {
@@ -415,7 +457,7 @@ private fun formatFileSize(bytes: Long): String {
 private fun SortDialog(
     currentSortType: SortType,
     onSortTypeSelected: (SortType) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -431,19 +473,19 @@ private fun SortDialog(
                                 onDismiss()
                             }
                             .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
                             selected = currentSortType == sortType,
                             onClick = {
                                 onSortTypeSelected(sortType)
                                 onDismiss()
-                            }
+                            },
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = sortType.displayName,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
                 }
@@ -453,19 +495,19 @@ private fun SortDialog(
             TextButton(onClick = onDismiss) {
                 Text("Done")
             }
-        }
+        },
     )
 }
 
 private fun isVideoFile(file: WebDavFile): Boolean {
     if (file.isDirectory) return false
-    
+
     val videoExtensions = setOf(
         "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "m4v", "3gp", "3g2",
         "asf", "divx", "f4v", "m2ts", "m2v", "mts", "ogv", "rm", "rmvb", "ts",
-        "vob", "xvid", "mpg", "mpeg", "mp2", "mpe", "mpv", "m1v", "m2p", "ps"
+        "vob", "xvid", "mpg", "mpeg", "mp2", "mpe", "mpv", "m1v", "m2p", "ps",
     )
-    
+
     val extension = file.name.substringAfterLast('.', "").lowercase()
     return extension in videoExtensions || file.mimeType?.startsWith("video/") == true
 }

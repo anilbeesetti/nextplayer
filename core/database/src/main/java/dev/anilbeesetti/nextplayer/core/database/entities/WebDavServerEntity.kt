@@ -13,5 +13,5 @@ data class WebDavServerEntity(
     val password: String,
     val isConnected: Boolean = false,
     val lastConnected: Long = 0L,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
 )

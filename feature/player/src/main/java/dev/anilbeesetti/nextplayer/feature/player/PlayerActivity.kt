@@ -331,21 +331,21 @@ class PlayerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             maybeInitControllerFuture()
             mediaController = controllerFuture?.await()
-            
+
             // Check for WebDAV credentials in the intent and set them BEFORE starting playback
             val webDavUsername = intent.getStringExtra("webdav_username")
             val webDavPassword = intent.getStringExtra("webdav_password")
-            
+
             // If WebDAV credentials are present, set them in the player FIRST and wait for confirmation
             if (!webDavUsername.isNullOrEmpty() && !webDavPassword.isNullOrEmpty()) {
                 android.util.Log.d("PlayerActivity", "Setting WebDAV credentials: username=$webDavUsername")
-                
+
                 // Set credentials and wait longer to ensure they're applied
                 mediaController?.setWebDavCredentials(webDavUsername, webDavPassword)
-                
+
                 // Wait for the command to be processed by the service
                 delay(500)
-                
+
                 android.util.Log.d("PlayerActivity", "WebDAV credentials set, starting playback")
             }
 
@@ -831,10 +831,10 @@ class PlayerActivity : AppCompatActivity() {
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
             Timber.e(error)
-            
+
             // Dismiss any existing error dialog to prevent multiple dialogs
             errorDialog?.dismiss()
-            
+
             // Check if activity is not finishing before showing dialog
             if (!isFinishing && !isDestroyed) {
                 errorDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
@@ -908,14 +908,14 @@ class PlayerActivity : AppCompatActivity() {
                     // Check for WebDAV credentials in the new intent and set them BEFORE starting playback
                     val webDavUsername = intent.getStringExtra("webdav_username")
                     val webDavPassword = intent.getStringExtra("webdav_password")
-                    
+
                     // If WebDAV credentials are present, set them in the player FIRST and wait
                     if (!webDavUsername.isNullOrEmpty() && !webDavPassword.isNullOrEmpty()) {
                         mediaController?.setWebDavCredentials(webDavUsername, webDavPassword)
                         // Wait for credentials to be processed
                         delay(500)
                     }
-                    
+
                     startPlayback()
                 }
             }

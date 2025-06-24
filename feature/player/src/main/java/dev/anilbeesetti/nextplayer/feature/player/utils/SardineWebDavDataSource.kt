@@ -9,16 +9,16 @@ import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.HttpDataSource
 import com.thegrizzlylabs.sardineandroid.Sardine
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
-import okhttp3.OkHttpClient
-import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.TimeUnit
+import okhttp3.OkHttpClient
+import timber.log.Timber
 
 @UnstableApi
 class SardineWebDavDataSource private constructor(
     private val sardine: Sardine,
-    private val userAgent: String?
+    private val userAgent: String?,
 ) : BaseDataSource(true) {
 
     private var uri: Uri? = null
@@ -35,7 +35,7 @@ class SardineWebDavDataSource private constructor(
     class Factory(
         private val username: String? = null,
         private val password: String? = null,
-        private val userAgent: String? = "NextPlayer/1.0"
+        private val userAgent: String? = "NextPlayer/1.0",
     ) : DataSource.Factory {
 
         private val client by lazy {
@@ -43,10 +43,10 @@ class SardineWebDavDataSource private constructor(
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
-                .followRedirects(true)        
-                .followSslRedirects(true)     
+                .followRedirects(true)
+                .followSslRedirects(true)
                 .retryOnConnectionFailure(true)
-            
+
             if (!username.isNullOrEmpty() && !password.isNullOrEmpty()) {
                 builder.addInterceptor { chain ->
                     val originalRequest = chain.request()
@@ -54,13 +54,13 @@ class SardineWebDavDataSource private constructor(
                         .header("Authorization", okhttp3.Credentials.basic(username, password))
                         .header("User-Agent", userAgent ?: "NextPlayer/1.0")
                         .build()
-                    
+
                     val response = chain.proceed(newRequest)
                     Timber.tag(TAG).d("WebDAV request: ${newRequest.method} ${newRequest.url} - Response: ${response.code}")
                     response
                 }
             }
-            
+
             builder.build()
         }
 
@@ -70,7 +70,7 @@ class SardineWebDavDataSource private constructor(
                     setCredentials(username, password)
                 }
             }
-            
+
             return SardineWebDavDataSource(sardine, userAgent)
         }
     }
@@ -79,75 +79,76 @@ class SardineWebDavDataSource private constructor(
         try {
             uri = dataSpec.uri
             val url = dataSpec.uri.toString()
-            
+
             Timber.tag(TAG).d("Opening WebDAV stream for: $url")
-            
+
             if (dataSpec.position > 0) {
                 val rangeHeader = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
                     "bytes=${dataSpec.position}-${dataSpec.position + dataSpec.length - 1}"
                 } else {
                     "bytes=${dataSpec.position}-"
                 }
-                
+
                 inputStream = sardine.get(url, mapOf("Range" to rangeHeader))
                 Timber.tag(TAG).d("Using range request: $rangeHeader")
             } else {
                 inputStream = sardine.get(url)
             }
-            
+
             opened = true
             bytesRead = dataSpec.position
-            
+
             bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
                 dataSpec.length
             } else {
                 C.LENGTH_UNSET.toLong()
             }
-            
+
             Timber.tag(TAG).d("WebDAV stream opened. Position: ${dataSpec.position}, Bytes remaining: $bytesRemaining")
-            
+
             transferStarted(dataSpec)
             return bytesRemaining
-            
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Failed to open WebDAV stream: ${dataSpec.uri}")
             throw HttpDataSource.HttpDataSourceException.createForIOException(
-                e as IOException, dataSpec, HttpDataSource.HttpDataSourceException.TYPE_OPEN
+                e as IOException,
+                dataSpec,
+                HttpDataSource.HttpDataSourceException.TYPE_OPEN,
             )
         }
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
         if (length == 0) return 0
-        
+
         val inputStream = this.inputStream ?: throw IOException("Stream not opened")
-        
+
         try {
             val readLength = if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
                 minOf(length.toLong(), bytesRemaining).toInt()
             } else {
                 length
             }
-            
+
             val bytesRead = inputStream.read(buffer, offset, readLength)
-            
+
             if (bytesRead == -1) {
                 return C.RESULT_END_OF_INPUT
             }
-            
+
             this.bytesRead += bytesRead
             if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
                 bytesRemaining -= bytesRead
             }
-            
+
             bytesTransferred(bytesRead)
             return bytesRead
-            
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Failed to read from WebDAV stream")
             throw HttpDataSource.HttpDataSourceException.createForIOException(
-                e as IOException, DataSpec.Builder().setUri(uri!!).build(),
-                HttpDataSource.HttpDataSourceException.TYPE_READ
+                e as IOException,
+                DataSpec.Builder().setUri(uri!!).build(),
+                HttpDataSource.HttpDataSourceException.TYPE_READ,
             )
         }
     }

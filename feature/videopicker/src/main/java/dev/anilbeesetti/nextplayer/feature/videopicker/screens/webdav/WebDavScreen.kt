@@ -1,11 +1,35 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.webdav
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -27,7 +51,7 @@ fun WebDavRoute(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val testConnectionResult by viewModel.testConnectionResult.collectAsStateWithLifecycle()
-    
+
     WebDavScreen(
         servers = servers,
         searchQuery = searchQuery,
@@ -59,7 +83,7 @@ internal fun WebDavScreen(
     onClearTestResult: () -> Unit,
 ) {
     var showAddServerDialog by rememberSaveable { mutableStateOf(false) }
-    
+
     Scaffold(
         topBar = {
             NextCenterAlignedTopAppBar(
@@ -103,9 +127,9 @@ internal fun WebDavScreen(
                 },
                 singleLine = true,
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -156,10 +180,10 @@ internal fun WebDavScreen(
             }
         }
     }
-    
+
     if (showAddServerDialog) {
         AddServerDialog(
-            onDismiss = { 
+            onDismiss = {
                 showAddServerDialog = false
                 onClearTestResult()
             },
@@ -183,7 +207,7 @@ fun WebDavServerItem(
     onDelete: () -> Unit,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
-    
+
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -198,12 +222,15 @@ fun WebDavServerItem(
                 imageVector = NextIcons.WebDav,
                 contentDescription = null,
                 modifier = Modifier.size(40.dp),
-                tint = if (server.isConnected) MaterialTheme.colorScheme.primary 
-                      else MaterialTheme.colorScheme.outline,
+                tint = if (server.isConnected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.outline
+                },
             )
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(
                 modifier = Modifier.weight(1f),
             ) {
@@ -224,7 +251,7 @@ fun WebDavServerItem(
                     )
                 }
             }
-            
+
             IconButton(onClick = { showDeleteDialog = true }) {
                 Icon(
                     imageVector = NextIcons.Delete,
@@ -233,7 +260,7 @@ fun WebDavServerItem(
             }
         }
     }
-    
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -262,7 +289,7 @@ private fun formatTimestamp(timestamp: Long): String {
     val diff = now - timestamp
     val hours = diff / (1000 * 60 * 60)
     val days = hours / 24
-    
+
     return when {
         days > 0 -> "${days}d ago"
         hours > 0 -> "${hours}h ago"

@@ -4,18 +4,18 @@ import dev.anilbeesetti.nextplayer.core.data.webdav.SardineWebDavClient
 import dev.anilbeesetti.nextplayer.core.database.dao.WebDavServerDao
 import dev.anilbeesetti.nextplayer.core.database.mapper.toWebDavServer
 import dev.anilbeesetti.nextplayer.core.database.mapper.toWebDavServerEntity
-import dev.anilbeesetti.nextplayer.core.model.WebDavServer
 import dev.anilbeesetti.nextplayer.core.model.WebDavFile
+import dev.anilbeesetti.nextplayer.core.model.WebDavServer
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class WebDavRepositoryImpl @Inject constructor(
     private val webDavServerDao: WebDavServerDao,
-    private val webDavClient: SardineWebDavClient
+    private val webDavClient: SardineWebDavClient,
 ) : WebDavRepository {
 
     override fun getAllServers(): Flow<List<WebDavServer>> {
@@ -48,9 +48,9 @@ class WebDavRepositoryImpl @Inject constructor(
         return try {
             val server = getServerById(serverId)
                 ?: return Result.failure(IllegalArgumentException("Server not found"))
-            
+
             Timber.d("Listing WebDAV files at: ${server.url}$path")
-            
+
             val result = webDavClient.listFiles(server, path)
             if (result.isSuccess) {
                 Timber.d("Found ${result.getOrNull()?.size ?: 0} files/directories")
@@ -65,7 +65,7 @@ class WebDavRepositoryImpl @Inject constructor(
     override suspend fun testConnection(server: WebDavServer): Result<Boolean> {
         return try {
             Timber.d("Testing WebDAV connection to: ${server.url}")
-            
+
             val result = webDavClient.testConnection(server)
             if (result.isSuccess) {
                 Timber.d("WebDAV connection test successful")
@@ -76,5 +76,4 @@ class WebDavRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
-    
 }

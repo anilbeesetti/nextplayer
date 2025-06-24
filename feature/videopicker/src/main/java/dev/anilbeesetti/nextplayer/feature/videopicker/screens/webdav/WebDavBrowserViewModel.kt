@@ -1,35 +1,40 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.webdav
 
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.WebDavRepository
 import dev.anilbeesetti.nextplayer.core.model.WebDavFile
 import dev.anilbeesetti.nextplayer.core.model.WebDavServer
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.core.net.toUri
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 enum class SortType(val displayName: String) {
     NAME("Name"),
     SIZE("Size"),
-    DATE("Date")
+    DATE("Date"),
 }
 
 @HiltViewModel
 class WebDavBrowserViewModel @Inject constructor(
     private val webDavRepository: WebDavRepository,
 ) : ViewModel() {
-    
+
     private val _server = MutableStateFlow<WebDavServer?>(null)
     val server: StateFlow<WebDavServer?> = _server.asStateFlow()
-    
+
     private val _allFiles = MutableStateFlow<List<WebDavFile>>(emptyList())
-    
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-    
+
     private val _sortType = MutableStateFlow(SortType.NAME)
     val sortType: StateFlow<SortType> = _sortType.asStateFlow()
     val files: StateFlow<List<WebDavFile>> = combine(
@@ -44,7 +49,7 @@ class WebDavBrowserViewModel @Inject constructor(
                 file.name.contains(query, ignoreCase = true)
             }
         }
-        
+
         when (sortType) {
             SortType.NAME -> filteredFiles.sortedBy { file ->
                 if (file.isDirectory) "0${file.name}" else "1${file.name}"
@@ -69,26 +74,25 @@ class WebDavBrowserViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList(),
     )
-    
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
-    
+
     private val _currentPath = MutableStateFlow("/")
     val currentPath: StateFlow<String> = _currentPath.asStateFlow()
-    
-    
+
     private val pathHistory = mutableListOf<String>()
-    
+
     fun loadServer(serverId: String) {
         viewModelScope.launch {
             try {
                 val serverInfo = webDavRepository.getServerById(serverId)
                 _server.value = serverInfo
                 if (serverInfo != null) {
-                    // 从服务器URL中提取基础路径作为起始路径
+                    // Extract base path from server URL as starting path
                     val basePath = extractBasePath(serverInfo.url)
                     _currentPath.value = basePath
                     loadFiles(basePath)
@@ -100,13 +104,13 @@ class WebDavBrowserViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun navigateToPath(path: String) {
         pathHistory.add(_currentPath.value)
         _currentPath.value = path
         loadFiles(path)
     }
-    
+
     fun navigateBack() {
         if (pathHistory.isNotEmpty()) {
             val previousPath = pathHistory.removeLastOrNull() ?: getBasePath()
@@ -114,11 +118,11 @@ class WebDavBrowserViewModel @Inject constructor(
             loadFiles(previousPath)
         }
     }
-    
+
     fun canNavigateBack(): Boolean {
         return pathHistory.isNotEmpty()
     }
-    
+
     /**
      * Get the base path for the current server
      */
@@ -126,40 +130,40 @@ class WebDavBrowserViewModel @Inject constructor(
         val server = _server.value ?: return "/"
         return extractBasePath(server.url)
     }
-    
+
     fun refresh() {
         loadFiles(_currentPath.value)
     }
-    
+
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
     }
-    
+
     fun updateSortType(sortType: SortType) {
         _sortType.value = sortType
     }
-    
+
     fun getServerUrl(): String {
         return _server.value?.url ?: ""
     }
-    
+
     fun createAuthenticatedUri(filePath: String): android.net.Uri {
         val server = _server.value ?: return android.net.Uri.EMPTY
-        
+
         // Create URL without embedded credentials (ExoPlayer doesn't handle them well)
         val baseUrl = server.url.trimEnd('/')
         val fullPath = if (filePath.startsWith("/")) filePath else "/$filePath"
-        
+
         // Debug logging
         android.util.Log.d("WebDavBrowserVM", "Creating URI for file: $filePath")
         android.util.Log.d("WebDavBrowserVM", "Base URL: $baseUrl")
         android.util.Log.d("WebDavBrowserVM", "Full path: $fullPath")
-        
+
         // Check if the path already contains the base URL's path to avoid duplication
         val finalUri = try {
             val baseUrlObj = java.net.URL(baseUrl)
             val baseUrlPath = baseUrlObj.path.trimEnd('/')
-            
+
             if (baseUrlPath.isNotEmpty() && fullPath.startsWith(baseUrlPath)) {
                 // Path already includes the base path, construct URL differently
                 val baseUrlWithoutPath = "${baseUrlObj.protocol}://${baseUrlObj.authority}"
@@ -176,12 +180,12 @@ class WebDavBrowserViewModel @Inject constructor(
             // Fallback to simple concatenation
             (baseUrl.trimEnd('/') + fullPath).toUri()
         }
-        
+
         android.util.Log.d("WebDavBrowserVM", "Final URI: $finalUri")
-        
+
         return finalUri
     }
-    
+
     fun getAuthenticationInfo(): Pair<String, String>? {
         val server = _server.value ?: return null
         return if (server.username.isNotEmpty()) {
@@ -190,7 +194,7 @@ class WebDavBrowserViewModel @Inject constructor(
             null
         }
     }
-    
+
     /**
      * Extract base path from WebDAV server URL.
      * For AList URLs like "http://host:port/dav/", this returns "/dav"
@@ -203,29 +207,29 @@ class WebDavBrowserViewModel @Inject constructor(
             path.ifEmpty { "/" }
         } catch (e: Exception) {
             android.util.Log.w("WebDavBrowserVM", "Failed to extract base path from URL: $url", e)
-            "/"  // Fallback to root
+            "/" // Fallback to root
         }
     }
-    
+
     /**
      * Encode path for WebDAV URLs - only encode necessary characters like spaces,
      * but keep safe characters like brackets, parentheses, etc.
      */
     private fun encodePathForWebDav(path: String): String {
         return path
-            .replace(" ", "%20")  // Encode spaces
-            // Keep other characters like [], (), &, etc. as they are safe in URLs
+            .replace(" ", "%20") // Encode spaces
+        // Keep other characters like [], (), &, etc. as they are safe in URLs
     }
-    
+
     private fun loadFiles(path: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            
+
             try {
                 val serverId = _server.value?.id ?: return@launch
                 val result = webDavRepository.getServerFiles(serverId, path)
-                
+
                 result.onSuccess { fileList ->
                     _allFiles.value = fileList
                 }.onFailure { exception ->

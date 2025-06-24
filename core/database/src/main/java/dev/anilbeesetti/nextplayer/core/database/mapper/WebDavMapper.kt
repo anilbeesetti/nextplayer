@@ -12,7 +12,7 @@ fun WebDavServerEntity.toWebDavServer(): WebDavServer {
         password = password,
         isConnected = isConnected,
         lastConnected = lastConnected,
-        createdAt = createdAt
+        createdAt = createdAt,
     )
 }
 
@@ -25,6 +25,6 @@ fun WebDavServer.toWebDavServerEntity(): WebDavServerEntity {
         password = password,
         isConnected = isConnected,
         lastConnected = lastConnected,
-        createdAt = createdAt
+        createdAt = createdAt,
     )
 }
