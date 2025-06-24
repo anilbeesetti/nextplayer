@@ -128,6 +128,9 @@ private fun FolderListItem(
                 if (preferences.showSizeField) {
                     InfoChip(text = Utils.formatFileSize(folder.mediaSize))
                 }
+                if (preferences.showDurationField && folder.mediaDuration > 0) {
+                    InfoChip(text = Utils.formatDurationMillis(folder.mediaDuration))
+                }
             }
         },
         modifier = modifier,
