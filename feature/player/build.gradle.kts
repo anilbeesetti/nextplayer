@@ -65,7 +65,7 @@ dependencies {
 
     implementation(libs.timber)
     // Use Sardine for WebDAV
-    implementation("com.github.thegrizzlylabs:sardine-android:0.8")
+    implementation(libs.sardine.android)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)

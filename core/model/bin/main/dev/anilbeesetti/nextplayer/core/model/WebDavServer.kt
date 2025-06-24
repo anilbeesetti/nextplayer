@@ -11,7 +11,7 @@ data class WebDavServer(
     val password: String = "",
     val isConnected: Boolean = false,
     val lastConnected: Long = 0L,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
 )
 
 @Serializable
@@ -21,7 +21,7 @@ data class WebDavFile(
     val isDirectory: Boolean,
     val size: Long = 0L,
     val lastModified: Long = 0L,
-    val mimeType: String? = null
+    val mimeType: String? = null,
 )
 
 @Serializable
@@ -29,5 +29,5 @@ data class WebDavConnectionState(
     val serverId: String,
     val isConnecting: Boolean = false,
     val isConnected: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 )
