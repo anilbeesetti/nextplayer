@@ -140,6 +140,8 @@
     <string name="controller_timeout">Controller timeout</string>
     <string name="seek_increment">Seek increment</string>
     <string name="seconds">%1$s seconds</string>
+    <string name="milliseconds">%1$s milliseconds</string>
+    <string name="seek_step_gesture_increment">Seek increment gesture</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
     <string name="delete_file">The following file will be deleted permanently</string>
