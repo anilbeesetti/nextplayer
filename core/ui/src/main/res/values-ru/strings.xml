@@ -202,7 +202,7 @@
     <string name="folders">Папки</string>
     <string name="tree">Древо</string>
     <string name="played_progress">Воспроизведённый прогресс</string>
-    <string name="media_view_mode">Вид отображения медиафайлов</string>
+    <string name="media_view_mode">Структура отображения медиа</string>
     <string name="control_buttons_alignment">Расположение кнопок управления</string>
     <string name="control_buttons_alignment_right">Справа</string>
     <string name="control_buttons_alignment_left">Слева</string>
