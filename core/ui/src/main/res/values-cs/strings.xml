@@ -217,4 +217,5 @@
     <string name="decoder_desc">Priorita dekodéru, nastavení dekodéru pro přehrávání</string>
     <string name="embedded_styles">Vložené styly</string>
     <string name="embedded_styles_desc">Použít vložené styly, které jsou obsažené v souborech s titulky, jako například ASS a podobné</string>
+    <string name="best_fit">Nejlepší zvětšení</string>
 </resources>
