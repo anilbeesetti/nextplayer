@@ -214,4 +214,16 @@
     <string name="loop_mode_all">Repetir: tudo</string>
     <string name="loop_mode_one">Repetir: um</string>
     <string name="loop_mode">Repetição</string>
+    <string name="by">por %1$s</string>
+    <string name="libraries">Bibliotecas</string>
+    <string name="github">Github</string>
+    <string name="donate">Doar</string>
+    <string name="error_opening_link">Nenhum aplicativo encontrado para acessar este link</string>
+    <string name="support_the_developer_on">Apoie o desenvolvedor em %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">Layout de mídia</string>
+    <string name="list">Lista</string>
+    <string name="grid">Grade</string>
 </resources>
