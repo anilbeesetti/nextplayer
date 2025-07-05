@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -79,14 +81,29 @@ private fun FolderListItem(
             },
         ),
         leadingContent = {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier
-                    .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                    .aspectRatio(20 / 17f),
-            )
+            Box {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
+                    contentDescription = "",
+                    tint = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier
+                        .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
+                        .aspectRatio(20 / 17f),
+                )
+
+                if (preferences.showDurationField) {
+                    InfoChip(
+                        text = Utils.formatDurationMillis(folder.mediaDuration),
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .padding(bottom = 3.dp)
+                            .align(Alignment.BottomEnd),
+                        backgroundColor = Color.Black.copy(alpha = 0.6f),
+                        contentColor = Color.White,
+                        shape = MaterialTheme.shapes.extraSmall,
+                    )
+                }
+            }
         },
         headlineContent = {
             Text(
@@ -146,14 +163,29 @@ private fun FolderGridItem(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
-            contentDescription = "",
-            tint = MaterialTheme.colorScheme.secondaryContainer,
-            modifier = Modifier
-                .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                .aspectRatio(20 / 17f),
-        )
+        Box {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier
+                    .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
+                    .aspectRatio(20 / 17f),
+            )
+
+            if (preferences.showDurationField) {
+                InfoChip(
+                    text = Utils.formatDurationMillis(folder.mediaDuration),
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .padding(bottom = 3.dp)
+                        .align(Alignment.BottomEnd),
+                    backgroundColor = Color.Black.copy(alpha = 0.6f),
+                    contentColor = Color.White,
+                    shape = MaterialTheme.shapes.extraSmall,
+                )
+            }
+        }
 
         Column(
             modifier = Modifier.fillMaxWidth(),
