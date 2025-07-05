@@ -87,10 +87,6 @@ class PlayerService : MediaSessionService() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !playerPreferences.autoplay) {
-                mediaSession?.player?.stop()
-                return
-            }
             isMediaItemReady = false
             if (mediaItem != null) {
                 serviceScope.launch {
@@ -171,6 +167,14 @@ class PlayerService : MediaSessionService() {
                         lastPlayedTime = System.currentTimeMillis(),
                     )
                 }
+            }
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            super.onPlayWhenReadyChanged(playWhenReady, reason)
+
+            if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
+                mediaSession?.player?.stop()
             }
         }
     }
@@ -364,6 +368,7 @@ class PlayerService : MediaSessionService() {
             .build()
             .also {
                 it.addListener(playbackStateListener)
+                it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
             }
 
         try {
