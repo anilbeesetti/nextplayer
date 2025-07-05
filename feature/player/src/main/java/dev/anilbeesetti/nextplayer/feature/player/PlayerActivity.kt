@@ -315,10 +315,7 @@ class PlayerActivity : AppCompatActivity() {
         playerApi = PlayerApi(this)
 
         onBackPressedDispatcher.addCallback {
-            mediaController?.run {
-                clearMediaItems()
-                stop()
-            }
+            mediaController?.stopPlayerSession()
         }
     }
 
@@ -371,11 +368,11 @@ class PlayerActivity : AppCompatActivity() {
             }
             removeListener(playbackStateListener)
         }
-        if (subtitleFileLauncherLaunchedForMediaItem != null) {
+        val shouldPlayInBackground = playInBackground || playerPreferences.autoBackgroundPlay
+        if (subtitleFileLauncherLaunchedForMediaItem != null || !shouldPlayInBackground) {
             mediaController?.pause()
-        } else if (!playerPreferences.autoBackgroundPlay && !playInBackground) {
-            mediaController?.stopPlayerSession()
         }
+
         controllerFuture?.run {
             MediaController.releaseFuture(this)
             controllerFuture = null
@@ -700,15 +697,12 @@ class PlayerActivity : AppCompatActivity() {
     private fun startPlayback() {
         val uri = intent.data ?: return
 
-        // If the intent is not new and the current media item is not null, return
-        if (!isIntentNew && mediaController?.currentMediaItem != null) {
-            mediaController?.prepare()
-            return
-        }
+        val returningFromBackground = !isIntentNew && mediaController?.currentMediaItem != null
+        val isNewUriTheCurrentMediaItem = mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
 
-        // If the current media item is not null and the current media item's uri is the same as the intent's data, return
-        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()) {
+        if (returningFromBackground || isNewUriTheCurrentMediaItem) {
             mediaController?.prepare()
+            mediaController?.playWhenReady = viewModel.playWhenReady
             return
         }
 

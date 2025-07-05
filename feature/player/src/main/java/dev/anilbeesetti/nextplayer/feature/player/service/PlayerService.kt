@@ -325,7 +325,8 @@ class PlayerService : MediaSessionService() {
                     mediaSession?.run {
                         player.clearMediaItems()
                         player.stop()
-                    } ?: stopSelf()
+                    }
+                    stopSelf()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
             }
