@@ -214,4 +214,16 @@
     <string name="loop_mode">وضع التكرار</string>
     <string name="loop_mode_all">تكرار: الكل</string>
     <string name="loop_mode_one">التكرار: واحدة</string>
+    <string name="by">من %1$s</string>
+    <string name="libraries">المكتبات</string>
+    <string name="github">Github</string>
+    <string name="donate">تبرع</string>
+    <string name="error_opening_link">ليس هناك تطبيق يفتح هذا الرابط</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">تصميم الوسائط</string>
+    <string name="list">قائمة</string>
+    <string name="grid">شبكة</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="support_the_developer_on">ادعم المطور على %1$s</string>
 </resources>

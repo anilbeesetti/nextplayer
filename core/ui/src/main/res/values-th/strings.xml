@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="permission_not_granted">ไม่ได้รับอนุญาต</string>
+    <string name="player_controls_play_pause">ผู้เล่นหยุดการเล่นชั่วคราว</string>
+    <string name="autoplay_settings">เล่นอัตโนมัติ</string>
+    <string name="appearance_description">ปรับแต่งแอปให้เหมาะกับความต้องการของคุณ</string>
+    <string name="grant_permission">การอนุญาต</string>
+    <string name="cancel">ยกเลิก</string>
+    <string name="disable">ปิดใช้งาน</string>
+    <string name="done">เสร็จ</string>
+    <string name="double_tap">ท่าทางแตะสองครั้ง</string>
+    <string name="menu">เมนู</string>
+    <string name="no_videos_found">ไม่พบวิดีโอ</string>
+    <string name="open_settings">เปิดตั้งค่า</string>
+    <string name="remember_brightness_level">จำระดับความสว่าง</string>
+    <string name="player_controls_previous">ผู้เล่นก่อนหน้า</string>
+    <string name="about_name">เกี่ยวกับ</string>
+    <string name="remember_selections">จดจำการเลือก</string>
+    <string name="fast_seek_description">ค้นหาคีย์เฟรมที่ใกล้ที่สุดแทนที่จะค้นหาคีย์เฟรมที่แน่นอน</string>
+    <string name="player_name">ผู้เล่น</string>
+    <string name="fast_seek">ค้นหาอย่างรวดเร็ว</string>
+    <string name="quick_settings">ตั้งค่าอย่างรวดเร็ว</string>
+    <string name="player_controls_progress">แถบความคืบหน้าของผู้เล่น</string>
+    <string name="group_videos">จัดกลุ่มวิดีโอตามโฟลเดอร์</string>
+    <string name="appearance_name">รูปร่าง</string>
+    <string name="duration">ระยะเวลา</string>
+    <string name="autoplay_settings_description">เล่นวิดีโอถัดไปในโฟลเดอร์ปัจจุบันโดยอัตโนมัติ</string>
+    <string name="error_playing_video">ผิดพลาด: ไม่สามารถเล่นวิดีโอได้</string>
+</resources>

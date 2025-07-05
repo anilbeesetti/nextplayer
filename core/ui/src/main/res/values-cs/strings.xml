@@ -179,7 +179,7 @@
     <string name="floating_play_button_desc">Zobrazí plovoucí tlačítko pro přehrávání naposledy přehrávaných médií.</string>
     <string name="screen_rotation">Otáčení obrazovky</string>
     <string name="title_activity_player">Next Player Aktivita</string>
-    <string name="landscape_reverse">Na šířku (naopak)</string>
+    <string name="landscape_reverse">Na šířku (opačně)</string>
     <string name="landscape_auto">Na šířku (senzor)</string>
     <string name="video_orientation">Orientace videa</string>
     <string name="seek_increment">Posun ve videí</string>
@@ -194,4 +194,28 @@
     <string name="loop_mode">Režim smyčky</string>
     <string name="sans_serif">Sans Serif</string>
     <string name="serif">Serif</string>
+    <string name="video_software_decoders_desc">Použít aplikační softwarové dekodéry videí (experimentální)</string>
+    <string name="decoder">Dekodér</string>
+    <string name="video_software_decoders">Softwarové dekodéry videí</string>
+    <string name="decoder_priority">Priorita dekodérů</string>
+    <string name="prefer_device_decoders">Preferovat dekodéry v zařízení</string>
+    <string name="prefer_app_decoders">Preferovat dekodéry v aplikaci</string>
+    <string name="device_decoders_only">Jenom dekodéry v zařízení</string>
+    <string name="donate">Darovat</string>
+    <string name="libraries">Knihovny</string>
+    <string name="support_the_developer_on">Podpořte vývojáře na %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="error_opening_link">Žádná aplikace nenalezena pro tento odkaz</string>
+    <string name="upi">UPI</string>
+    <string name="by">od %1$s</string>
+    <string name="github">GitHub</string>
+    <string name="paypal">PayPal</string>
+    <string name="mark_last_played_media_desc">Označit posledně přehráté video ve každé složce</string>
+    <string name="grid">Mřížka</string>
+    <string name="list">Seznam</string>
+    <string name="media_layout">Rozhraní seznamu Medií</string>
+    <string name="decoder_desc">Priorita dekodéru, nastavení dekodéru pro přehrávání</string>
+    <string name="embedded_styles">Vložené styly</string>
+    <string name="embedded_styles_desc">Použít vložené styly, které jsou obsažené v souborech s titulky, jako například ASS a podobné</string>
+    <string name="best_fit">Nejlepší zvětšení</string>
 </resources>

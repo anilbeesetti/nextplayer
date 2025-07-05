@@ -200,9 +200,9 @@
     <string name="skip_silence">Пропуск тишины</string>
     <string name="folder">Папка</string>
     <string name="folders">Папки</string>
-    <string name="tree">Дерево</string>
+    <string name="tree">Древо</string>
     <string name="played_progress">Воспроизведённый прогресс</string>
-    <string name="media_view_mode">Вид отображения медиа</string>
+    <string name="media_view_mode">Структура отображения медиа</string>
     <string name="control_buttons_alignment">Расположение кнопок управления</string>
     <string name="control_buttons_alignment_right">Справа</string>
     <string name="control_buttons_alignment_left">Слева</string>
@@ -214,4 +214,16 @@
     <string name="loop_mode_all">Цикл: Все</string>
     <string name="loop_mode">Циклический режим</string>
     <string name="loop_mode_off">Цикл: выключен</string>
+    <string name="libraries">Библиотеки</string>
+    <string name="github">GitHub</string>
+    <string name="donate">Поддержка</string>
+    <string name="error_opening_link">Не найдено ни одного приложения для работы с этой ссылкой</string>
+    <string name="support_the_developer_on">Поддержите разработчика на %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">Отображение медиа</string>
+    <string name="list">Список</string>
+    <string name="grid">Сетка</string>
+    <string name="by">от %1$s</string>
 </resources>
