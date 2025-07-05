@@ -13,6 +13,7 @@ data class Folder(
 ) : Serializable {
 
     val mediaSize: Long = mediaList.sumOf { it.size } + folderList.sumOf { it.mediaSize }
+    val mediaDuration: Long = mediaList.sumOf { it.duration } + folderList.sumOf { it.mediaDuration }
     val allMediaList: List<Video> = mediaList + folderList.flatMap { it.allMediaList }
     val recentlyPlayedVideo: Video? = allMediaList.recentPlayed()
     val firstVideo: Video? = allMediaList.firstOrNull()
