@@ -18,12 +18,14 @@ fun NavGraphBuilder.mediaPickerScreen(
     onSettingsClick: () -> Unit,
     onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (path: String) -> Unit,
+    onWebDavClick: () -> Unit,
 ) {
     animatedComposable(route = mediaPickerNavigationRoute) {
         MediaPickerRoute(
             onSettingsClick = onSettingsClick,
             onPlayVideo = onPlayVideo,
             onFolderClick = onFolderClick,
+            onWebDavClick = onWebDavClick,
         )
     }
 }

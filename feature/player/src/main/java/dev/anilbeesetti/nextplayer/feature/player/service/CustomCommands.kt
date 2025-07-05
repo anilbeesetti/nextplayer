@@ -18,6 +18,7 @@ enum class CustomCommands(val customAction: String) {
     SET_PLAYBACK_SPEED(customAction = "SET_PLAYBACK_SPEED"),
     GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
+    SET_WEBDAV_CREDENTIALS(customAction = "SET_WEBDAV_CREDENTIALS"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
@@ -37,6 +38,8 @@ enum class CustomCommands(val customAction: String) {
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
         const val PLAYBACK_SPEED_KEY = "playback_speed"
         const val AUDIO_SESSION_ID_KEY = "audio_session_id"
+        const val WEBDAV_USERNAME_KEY = "webdav_username"
+        const val WEBDAV_PASSWORD_KEY = "webdav_password"
     }
 }
 
@@ -88,4 +91,12 @@ suspend fun MediaController.getAudioSessionId(): Int {
 
 fun MediaController.stopPlayerSession() {
     sendCustomCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
+}
+
+fun MediaController.setWebDavCredentials(username: String, password: String) {
+    val args = Bundle().apply {
+        putString(CustomCommands.WEBDAV_USERNAME_KEY, username)
+        putString(CustomCommands.WEBDAV_PASSWORD_KEY, password)
+    }
+    sendCustomCommand(CustomCommands.SET_WEBDAV_CREDENTIALS.sessionCommand, args)
 }
