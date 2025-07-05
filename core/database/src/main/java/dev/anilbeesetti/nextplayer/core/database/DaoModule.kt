@@ -15,5 +15,8 @@ object DaoModule {
     fun provideMediumDao(db: MediaDatabase): MediumDao = db.mediumDao()
 
     @Provides
+    fun provideMediumStateDao(db: MediaDatabase) = db.mediumStateDao()
+
+    @Provides
     fun provideDirectoryDao(db: MediaDatabase): DirectoryDao = db.directoryDao()
 }

@@ -425,10 +425,11 @@ class PlayerService : MediaSessionService() {
         mediaItems.map { mediaItem ->
             async {
                 val uri = mediaItem.mediaId.toUri()
-                val mediaState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
+                val video = mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
+                val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
-                val title = mediaItem.mediaMetadata.title ?: mediaState?.title ?: getFilenameFromUri(uri)
-                val artwork = mediaState?.thumbnailPath?.toUri() ?: Uri.Builder().apply {
+                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
+                val artwork = video?.thumbnailPath?.toUri() ?: Uri.Builder().apply {
                     val defaultArtwork = R.drawable.artwork_default
                     scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
                     authority(resources.getResourcePackageName(defaultArtwork))
@@ -436,8 +437,8 @@ class PlayerService : MediaSessionService() {
                     appendPath(resources.getResourceEntryName(defaultArtwork))
                 }.build()
 
-                val externalSubs = mediaState?.externalSubs ?: emptyList()
-                val localSubs = (mediaState?.path ?: getPath(uri))?.let {
+                val externalSubs = videoState?.externalSubs ?: emptyList()
+                val localSubs = (videoState?.path ?: getPath(uri))?.let {
                     File(it).getLocalSubtitles(
                         context = this@PlayerService,
                         excludeSubsList = externalSubs,

@@ -11,6 +11,7 @@ interface MediaRepository {
     fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>>
     fun getFoldersFlow(): Flow<List<Folder>>
 
+    suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?
 
     fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long)

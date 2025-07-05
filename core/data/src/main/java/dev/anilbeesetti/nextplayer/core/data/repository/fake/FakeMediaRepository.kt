@@ -25,6 +25,10 @@ class FakeMediaRepository : MediaRepository {
         return flowOf(directories)
     }
 
+    override suspend fun getVideoByUri(uri: String): Video? {
+        return videos.find { it.path == uri }
+    }
+
     override suspend fun getVideoState(uri: String): VideoState? {
         return null
     }
