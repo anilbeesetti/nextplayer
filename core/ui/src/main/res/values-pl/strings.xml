@@ -214,4 +214,16 @@
     <string name="loop_mode_all">Zapętlenie: Wszystkich</string>
     <string name="loop_mode_one">Zapętlenie: Raz</string>
     <string name="loop_mode_off">Zapętlenie: Wyłączone</string>
+    <string name="github">Github</string>
+    <string name="donate">Darowizna</string>
+    <string name="error_opening_link">Nie znaleziono aplikacji do obsługi tego łącza</string>
+    <string name="support_the_developer_on">Wesprzyj programistę: %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="libraries">Biblioteki</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="by">według %1$s</string>
+    <string name="media_layout">Układ multimediów</string>
+    <string name="list">Lista</string>
+    <string name="grid">Siatka</string>
 </resources>

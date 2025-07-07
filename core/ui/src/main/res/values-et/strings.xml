@@ -214,4 +214,16 @@
     <string name="loop_mode_all">Kordus: korda kõiki</string>
     <string name="loop_mode">Korduse viis</string>
     <string name="loop_mode_one">Kordus: korda üht</string>
+    <string name="support_the_developer_on">Toeta arendajat rahaliselt: %1$s</string>
+    <string name="paypal">PayPal</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="github">Github</string>
+    <string name="libraries">Teegid</string>
+    <string name="donate">Toeta arendajat</string>
+    <string name="error_opening_link">Selle lingi avamiseks ei leidu sobilikku rakendust</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">Meedia paigutus</string>
+    <string name="list">Loend</string>
+    <string name="grid">Ruudustik</string>
+    <string name="by">autorilt %1$s</string>
 </resources>

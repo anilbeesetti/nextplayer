@@ -214,4 +214,16 @@
     <string name="loop_mode_all">Повтор: усе</string>
     <string name="loop_mode_one">Повтор: один</string>
     <string name="loop_mode">Режим повтору</string>
+    <string name="libraries">Бібліотеки</string>
+    <string name="error_opening_link">Не знайдено застосунку для оброблення цього посилання</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="by">від %1$s</string>
+    <string name="donate">Задонатити</string>
+    <string name="github">Github</string>
+    <string name="support_the_developer_on">Підтримати розробника на %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="media_layout">Розміщення медіафайлів</string>
+    <string name="list">Список</string>
+    <string name="grid">Сітка</string>
 </resources>
