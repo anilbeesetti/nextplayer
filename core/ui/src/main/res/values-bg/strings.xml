@@ -2,9 +2,9 @@
 <resources>
     <string name="video_zoom">Видео мащабиране</string>
     <string name="dynamic_theme_description">Приложи цветове от системния тапет към темата на приложението</string>
-    <string name="preferred_audio_lang_description">Език на аудио записа, който искате да използвате по подразбиране</string>
+    <string name="preferred_audio_lang_description">Език на аудиото, което искате да използвате по подразбиране</string>
     <string name="subtitle">Субтитри</string>
-    <string name="preferred_subtitle_lang_description">Език на записа със субтитри, който искате да използвате по подразбиране</string>
+    <string name="preferred_subtitle_lang_description">Език на субтитрите, който искате да използвате по подразбиране</string>
     <string name="play_pause_ff_rewind">Изпълни/Пауза и Бързо превъртане напред/Назад</string>
     <string name="scanning_storage">Хранилището се сканира…</string>
     <string name="manage_folders_desc">Избери папки, които да бъдат изключени от медийната библиотека</string>
@@ -37,9 +37,9 @@
     <string name="player_description">Плейър външен вид, контроли за възпроизвеждане</string>
     <string name="autoplay_settings_description">Автоматично изпълнение на следващо видео в текущата папка</string>
     <string name="remember_brightness_level">Запомни нивото на яркост</string>
-    <string name="remember_selections">Запомни изборите</string>
+    <string name="remember_selections">Запомни избора</string>
     <string name="resume">Резюме</string>
-    <string name="resume_description">Избери дали да възобновите изпълнението на видеоклипове от точката, в която сте спрели</string>
+    <string name="resume_description">Изберете дали да възобновите изпълнението на видеоклипове от точката, в която сте спрели</string>
     <string name="seek_gesture">Жест за търсене</string>
     <string name="seek_gesture_description">Плъзни хоризонтално, за да търсите напред или назад</string>
     <string name="select_audio_track">Избери аудио запис</string>
