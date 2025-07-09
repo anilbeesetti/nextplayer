@@ -37,7 +37,7 @@
     <string name="player_description">Плейър външен вид, контроли за възпроизвеждане</string>
     <string name="autoplay_settings_description">Автоматично изпълнение на следващо видео в текущата папка</string>
     <string name="remember_brightness_level">Запомни нивото на яркост</string>
-    <string name="remember_selections">Запомни селекциите</string>
+    <string name="remember_selections">Запомни изборите</string>
     <string name="resume">Резюме</string>
     <string name="resume_description">Избери дали да възобновите изпълнението на видеоклипове от точката, в която сте спрели</string>
     <string name="seek_gesture">Жест за търсене</string>
@@ -171,7 +171,7 @@
     <string name="media_view_mode">Режим преглед на медия</string>
     <string name="open_network_stream">Отвори мрежов поток</string>
     <string name="open_local_video">Отвори локално видео</string>
-    <string name="about_description">Версия, кредити</string>
+    <string name="about_description">Версия, автори</string>
     <string name="about_name">Относно</string>
     <string name="disable">Деактивирай</string>
     <string name="grant_permission">Предоставяне на разрешение</string>
@@ -183,8 +183,8 @@
     <string name="autoplay_settings">Автоматично изпълнение</string>
     <string name="pip_settings_description">Автоматично превключване към миниатюрен плейър при докосване на бутона Начало</string>
     <string name="player_name">Плейър</string>
-    <string name="remember_brightness_level_description">Запомни нивото на яркост между сесиите на възпроизвеждане</string>
-    <string name="remember_selections_description">Запомни селекциите за всеки файл като аудио запис, запис на субтитри и т.н</string>
+    <string name="remember_brightness_level_description">Запомняне на нивото на яркост между сесиите на възпроизвеждане</string>
+    <string name="remember_selections_description">Запомняне на избора за всеки файл като аудио запис, запис на субтитри и т.н</string>
     <string name="select_subtitle_track">Избери запис със субтитри</string>
     <string name="swipe_gesture_description">Плъзни вертикално, за да регулирате яркостта и силата на звука</string>
     <string name="unknown_error">Възникна неизвестна грешка</string>
@@ -212,5 +212,18 @@
     <string name="enable_pip_from_settings">Картина в картината е деактивирана. Активирайте я в Настройки, за да използвате тази функция.</string>
     <string name="loop_mode">Режим на повторение</string>
     <string name="loop_mode_off">Повторение: Изключен</string>
-    <string name="loop_mode_one">Повторение: Едино</string>
+    <string name="loop_mode_one">Повторение: Едно</string>
+    <string name="loop_mode_all">Повторение: Всички</string>
+    <string name="by">от %1$s</string>
+    <string name="libraries">Библиотеки</string>
+    <string name="github">Github</string>
+    <string name="donate">Дарете</string>
+    <string name="error_opening_link">Не е намерено приложение, което да обработва тази връзка</string>
+    <string name="support_the_developer_on">Подкрепете разработчика на %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">Медийно оформление</string>
+    <string name="list">Списък</string>
+    <string name="grid">Решетка</string>
 </resources>
