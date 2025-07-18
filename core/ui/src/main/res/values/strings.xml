@@ -229,4 +229,10 @@
     <string name="media_layout">Media Layout</string>
     <string name="list">List</string>
     <string name="grid">Grid</string>
+    <string name="buttons">Buttons</string>
+    <string name="show_or_hide_the_lock_controls_button">Show or hide the lock controls button</string>
+    <string name="show_or_hide_the_video_zoom_button">Show or hide the video zoom button</string>
+    <string name="show_or_hide_the_pip_button">Show or hide the picture in picture button</string>
+    <string name="show_or_hide_the_background_play_button">Show or hide the background play button</string>
+    <string name="show_or_hide_the_screen_rotation_button">Show or hide the screen rotation button</string>
 </resources>

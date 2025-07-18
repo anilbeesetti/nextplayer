@@ -48,4 +48,11 @@ data class PlayerPreferences(
 
     // Decoder Preferences
     val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE,
+
+    // Player buttons
+    val showLockControlsButton: Boolean = true,
+    val showVideoZoomButton: Boolean = true,
+    val showPipButton: Boolean = true,
+    val showBackgroundPlayButton: Boolean = true,
+    val showScreenRotationButton: Boolean = true,
 )

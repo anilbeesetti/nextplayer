@@ -62,6 +62,7 @@ class LocalMediaSynchronizer @Inject constructor(
 
     override fun stopSync() {
         mediaSyncingJob?.cancel()
+        mediaSyncingJob = null
     }
 
     private suspend fun updateDirectories(media: List<MediaVideo>) =

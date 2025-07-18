@@ -253,13 +253,21 @@ class PlayerActivity : AppCompatActivity() {
         loopModeButton = binding.playerView.findViewById(R.id.btn_loop_mode)
         extraControls = binding.playerView.findViewById(R.id.extra_controls)
 
-        if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
-            extraControls.gravity = Gravity.END
-        }
+        extraControls.visibility = if (playerPreferences.showLockControlsButton || playerPreferences.showVideoZoomButton || playerPreferences.showPipButton || playerPreferences.showBackgroundPlayButton) View.VISIBLE else View.GONE
+            lockControlsButton.visibility = if (playerPreferences.showLockControlsButton) View.VISIBLE else View.GONE
+            videoZoomButton.visibility = if (playerPreferences.showVideoZoomButton) View.VISIBLE else View.GONE
+            pipButton.visibility = if (playerPreferences.showPipButton && isPipSupported) View.VISIBLE else View.GONE
+            playInBackgroundButton.visibility = if (playerPreferences.showBackgroundPlayButton) View.VISIBLE else View.GONE
 
-        if (!isPipSupported) {
-            pipButton.visibility = View.GONE
-        }
+            if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
+                extraControls.gravity = Gravity.END
+            }
+
+            if (!isPipSupported) {
+                pipButton.visibility = View.GONE
+            }
+
+            screenRotateButton.visibility = if (playerPreferences.showScreenRotationButton) View.VISIBLE else View.GONE
 
         seekBar.addListener(
             object : TimeBar.OnScrubListener {

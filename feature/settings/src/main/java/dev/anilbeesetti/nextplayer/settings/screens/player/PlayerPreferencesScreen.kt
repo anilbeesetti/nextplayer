@@ -167,6 +167,28 @@ fun PlayerPreferencesScreen(
                     viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
                 },
             )
+
+            PreferenceSubtitle(text = stringResource(id = R.string.buttons))
+            LockControlsButtonSetting(
+                isChecked = preferences.showLockControlsButton,
+                onClick = viewModel::toggleShowLockControlsButton,
+            )
+            VideoZoomButtonSetting(
+                isChecked = preferences.showVideoZoomButton,
+                onClick = viewModel::toggleShowVideoZoomButton,
+            )
+            PipButtonSetting(
+                isChecked = preferences.showPipButton,
+                onClick = viewModel::toggleShowPipButton,
+            )
+            BackgroundPlayButtonSetting(
+                isChecked = preferences.showBackgroundPlayButton,
+                onClick = viewModel::toggleShowBackgroundPlayButton,
+            )
+            ScreenRotationButtonSetting(
+                isChecked = preferences.showScreenRotationButton,
+                onClick = viewModel::toggleShowScreenRotationButton,
+            )
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -626,6 +648,76 @@ fun ControlButtonsPositionSetting(
         title = stringResource(id = R.string.control_buttons_alignment),
         description = currentControlButtonPosition.name(),
         icon = NextIcons.ButtonsPosition,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun LockControlsButtonSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit,
+) {
+    PreferenceSwitch(
+        title = stringResource(R.string.controls_lock),
+        description = stringResource(R.string.show_or_hide_the_lock_controls_button),
+        icon = NextIcons.Lock,
+        isChecked = isChecked,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun VideoZoomButtonSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit,
+) {
+    PreferenceSwitch(
+        title = stringResource(R.string.video_zoom),
+        description = stringResource(R.string.show_or_hide_the_video_zoom_button),
+        icon = NextIcons.Pinch,
+        isChecked = isChecked,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun PipButtonSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit,
+) {
+    PreferenceSwitch(
+        title = stringResource(R.string.pip_settings),
+        description = stringResource(R.string.show_or_hide_the_pip_button),
+        icon = NextIcons.Pip,
+        isChecked = isChecked,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun BackgroundPlayButtonSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit,
+) {
+    PreferenceSwitch(
+        title = stringResource(R.string.background_play),
+        description = stringResource(R.string.show_or_hide_the_background_play_button),
+        icon = NextIcons.Background,
+        isChecked = isChecked,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun ScreenRotationButtonSetting(
+    isChecked: Boolean,
+    onClick: () -> Unit,
+) {
+    PreferenceSwitch(
+        title = stringResource(R.string.screen_rotation),
+        description = stringResource(R.string.show_or_hide_the_screen_rotation_button),
+        icon = NextIcons.Rotation,
+        isChecked = isChecked,
         onClick = onClick,
     )
 }
