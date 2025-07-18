@@ -1,0 +1,6 @@
+fix: Handle media synchronization on permission change
+
+This commit fixes a bug where the app would crash if the storage permission was revoked while the media synchronizer was running.
+
+- The `LocalMediaSynchronizer` is updated to properly stop and restart.
+- The `MainActivity` now manages the synchronizer's lifecycle based on the permission status.
