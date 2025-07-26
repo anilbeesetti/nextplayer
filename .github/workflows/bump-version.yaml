@@ -1,0 +1,49 @@
+name: Android Version Bump Automation
+on:
+  push:
+    branches:
+      - 'bump/v*.*.*'
+
+jobs:
+  bump-version-and-open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract and prepare version information
+        run: |
+          # Extract version name from branch (removing 'bump/v' prefix)
+          version_name=${GITHUB_REF#refs/heads/bump/v}
+
+          # Extract current version code from build.gradle.kts
+          version_code=$(grep "versionCode =" app/build.gradle.kts | awk '{print $3}' | tr -d '\n')
+
+          # Increment version code by 1
+          version_code=$((version_code + 1))
+
+          # Store values as environment variables
+          echo "VERSION_NAME=$version_name" >> $GITHUB_ENV
+          echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
+
+      - name: Update version in build file
+        run: |
+          # Update version code and name in build.gradle.kts
+          sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
+          sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts
+
+      - name: Commit and push changes
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "Github Actions"
+          git commit -am "Bump version to ${{ env.VERSION_NAME }} (code: ${{ env.VERSION_CODE }})"
+          git push origin HEAD
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "Bump Android version to ${{ env.VERSION_NAME }} (code: ${{ env.VERSION_CODE }})"
+          branch: "${{ github.ref_name }}"
+          title: "Version bump: ${{ env.VERSION_NAME }} (code: ${{ env.VERSION_CODE }})"
+          body: "Automated version update for Android app to version ${{ env.VERSION_NAME }} with version code ${{ env.VERSION_CODE }}"
+          base: "main"
