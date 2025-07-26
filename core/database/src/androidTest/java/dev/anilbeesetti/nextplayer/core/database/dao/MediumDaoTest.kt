@@ -87,7 +87,7 @@ class MediumDaoTest {
 
         mediumDao.upsertAll(mediumEntities)
 
-        val updatedMediumEntities = mediumEntities.map { it.copy(subtitleTrackIndex = 8) }
+        val updatedMediumEntities = mediumEntities.map { it.copy(thumbnailPath = "/data/data/thumbnail.png") }
 
         mediumDao.upsertAll(updatedMediumEntities)
 
@@ -123,10 +123,6 @@ val medium1 = MediumEntity(
     width = 1920,
     height = 1080,
     duration = 60000,
-    playbackPosition = 0,
-    audioTrackIndex = 1,
-    subtitleTrackIndex = null,
-    playbackSpeed = 1f,
     mediaStoreId = 1234,
 )
 
@@ -140,10 +136,6 @@ val medium2 = MediumEntity(
     width = 1280,
     height = 720,
     duration = 0,
-    playbackPosition = 0,
-    audioTrackIndex = null,
-    subtitleTrackIndex = null,
-    playbackSpeed = 1f,
     mediaStoreId = 5678,
 )
 
@@ -157,10 +149,6 @@ val medium3 = MediumEntity(
     width = 0,
     height = 0,
     duration = 180000,
-    playbackPosition = 0,
-    audioTrackIndex = 0,
-    subtitleTrackIndex = null,
-    playbackSpeed = 1f,
     mediaStoreId = 7890,
 )
 
@@ -174,10 +162,6 @@ val medium4 = MediumEntity(
     width = 1920,
     height = 1080,
     duration = 0,
-    playbackPosition = 0,
-    audioTrackIndex = null,
-    subtitleTrackIndex = null,
-    playbackSpeed = 1f,
     mediaStoreId = 2468,
 )
 
