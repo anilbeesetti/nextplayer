@@ -43,7 +43,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "Bump Android version to ${{ env.VERSION_NAME }} (code: ${{ env.VERSION_CODE }})"
-          branch: "${{ github.ref }}"
+          branch: "${{ github.ref_name }}"
           title: "Version bump: ${{ env.VERSION_NAME }} (code: ${{ env.VERSION_CODE }})"
           body: "Automated version update for Android app to version ${{ env.VERSION_NAME }} with version code ${{ env.VERSION_CODE }}"
           base: "main"
