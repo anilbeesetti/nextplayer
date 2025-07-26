@@ -32,13 +32,6 @@ jobs:
           sed -i "s/versionCode = [0-9]\+/versionCode = ${{ env.VERSION_CODE }}/g" app/build.gradle.kts
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts
 
-      - name: Commit and push changes
-        run: |
-          git config user.email "github-actions@github.com"
-          git config user.name "Github Actions"
-          git commit -am "Bump version to ${{ env.VERSION_NAME }} (code: ${{ env.VERSION_CODE }})"
-          git push origin HEAD
-
       - name: Create pull request
         uses: peter-evans/create-pull-request@v7
         with:
