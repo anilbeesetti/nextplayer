@@ -19,7 +19,7 @@ platform :android do
     lane :publish do
         build
         upload_to_play_store(
-            track: "production",
+            track: ENV["TRACK"],
             json_key: ENV["PLAY_API_CREDENTIALS"],
             skip_upload_apk: true,
             sync_image_upload: true
