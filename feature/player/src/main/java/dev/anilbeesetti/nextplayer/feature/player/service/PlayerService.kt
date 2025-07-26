@@ -95,6 +95,7 @@ class PlayerService : MediaSessionService() {
                         currentVideoState?.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,
                     )
                     currentVideoState?.let { state ->
+                        if (mediaSession?.player?.currentPosition != 0L) return@let
                         state.position?.takeIf { playerPreferences.resume == Resume.YES }?.let {
                             mediaSession?.player?.seekTo(it)
                         }

@@ -108,6 +108,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.apply
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -315,6 +316,7 @@ class PlayerActivity : AppCompatActivity() {
         playerApi = PlayerApi(this)
 
         onBackPressedDispatcher.addCallback {
+            finish()
             mediaController?.stopPlayerSession()
         }
     }
@@ -735,7 +737,11 @@ class PlayerActivity : AppCompatActivity() {
                 setUri(uri)
                 setMediaId(uri)
                 if (index == mediaItemIndexToPlay) {
-                    setMediaMetadata(MediaMetadata.Builder().setTitle(playerApi.title).build())
+                    setMediaMetadata(
+                        MediaMetadata.Builder().apply {
+                            setTitle(playerApi.title)
+                        }.build()
+                    )
                     val apiSubs = playerApi.getSubs().map { subtitle ->
                         uriToSubtitleConfiguration(
                             uri = subtitle.uri,
@@ -851,7 +857,7 @@ class PlayerActivity : AppCompatActivity() {
                 duration = mediaController?.duration ?: C.TIME_UNSET,
                 position = mediaController?.currentPosition ?: C.TIME_UNSET,
             )
-            setResult(Activity.RESULT_OK, result)
+            setResult(RESULT_OK, result)
         }
         super.finish()
     }
