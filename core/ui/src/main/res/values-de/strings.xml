@@ -210,4 +210,20 @@
     <string name="background_play">Hintergrundwiedergabe</string>
     <string name="stop_player_session">Aktuelle Session beenden</string>
     <string name="background_play_description">Wiedergabe erfolgt im Hintergrund, sobald die Home Taste gedrückt oder der Bildschirm gesperrt wird.</string>
+    <string name="loop_mode_off">Wiederholung: Aus</string>
+    <string name="loop_mode_one">Wiederholung: Einzel</string>
+    <string name="loop_mode_all">Wiederholung: Alle</string>
+    <string name="by">Von %1$s</string>
+    <string name="libraries">Bibliotheken</string>
+    <string name="github">GitHub</string>
+    <string name="donate">Spenden</string>
+    <string name="error_opening_link">Keine App zum Öffnen des Links gefunden</string>
+    <string name="support_the_developer_on">Unterstütze den Entwickler auf %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">Medienlayout</string>
+    <string name="list">Liste</string>
+    <string name="grid">Raster</string>
+    <string name="loop_mode">Wiedergabemodus</string>
 </resources>
