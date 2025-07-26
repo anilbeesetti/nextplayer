@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AppOpsManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
@@ -101,6 +100,7 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
+import kotlin.apply
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -108,7 +108,6 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import kotlin.apply
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -740,7 +739,7 @@ class PlayerActivity : AppCompatActivity() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(playerApi.title)
-                        }.build()
+                        }.build(),
                     )
                     val apiSubs = playerApi.getSubs().map { subtitle ->
                         uriToSubtitleConfiguration(

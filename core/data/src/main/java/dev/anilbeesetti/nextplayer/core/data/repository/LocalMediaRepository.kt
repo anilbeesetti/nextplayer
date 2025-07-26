@@ -54,8 +54,8 @@ class LocalMediaRepository @Inject constructor(
 
             mediumStateDao.upsert(
                 mediumState = stateEntity.copy(
-                    lastPlayedTime = lastPlayedTime
-                )
+                    lastPlayedTime = lastPlayedTime,
+                ),
             )
         }
     }
@@ -70,8 +70,8 @@ class LocalMediaRepository @Inject constructor(
             mediumStateDao.upsert(
                 mediumState = stateEntity.copy(
                     playbackPosition = adjustedPosition,
-                    lastPlayedTime = System.currentTimeMillis()
-                )
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
         }
     }
@@ -83,8 +83,8 @@ class LocalMediaRepository @Inject constructor(
             mediumStateDao.upsert(
                 mediumState = stateEntity.copy(
                     playbackSpeed = playbackSpeed,
-                    lastPlayedTime = System.currentTimeMillis()
-                )
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
         }
     }
@@ -96,8 +96,8 @@ class LocalMediaRepository @Inject constructor(
             mediumStateDao.upsert(
                 mediumState = stateEntity.copy(
                     audioTrackIndex = audioTrackIndex,
-                    lastPlayedTime = System.currentTimeMillis()
-                )
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
         }
     }
@@ -109,8 +109,8 @@ class LocalMediaRepository @Inject constructor(
             mediumStateDao.upsert(
                 mediumState = stateEntity.copy(
                     subtitleTrackIndex = subtitleTrackIndex,
-                    lastPlayedTime = System.currentTimeMillis()
-                )
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
         }
     }
@@ -122,8 +122,8 @@ class LocalMediaRepository @Inject constructor(
             mediumStateDao.upsert(
                 mediumState = stateEntity.copy(
                     videoScale = zoom,
-                    lastPlayedTime = System.currentTimeMillis()
-                )
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
         }
     }
@@ -139,8 +139,8 @@ class LocalMediaRepository @Inject constructor(
             mediumStateDao.upsert(
                 mediumState = stateEntity.copy(
                     externalSubs = newExternalSubs,
-                    lastPlayedTime = System.currentTimeMillis()
-                )
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
         }
     }

@@ -53,14 +53,14 @@ abstract class MediaDatabase : RoomDatabase() {
                         `video_scale` REAL NOT NULL DEFAULT 1, 
                         PRIMARY KEY(`uri`)
                     )
-                    """
+                    """,
                 )
 
                 // Create index for the uri column
                 db.execSQL(
                     """
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_media_state_uri` ON `media_state` (`uri`)
-                    """
+                    """,
                 )
 
                 // Copy data from media table to media_state table
@@ -86,7 +86,7 @@ abstract class MediaDatabase : RoomDatabase() {
                         `external_subs`, 
                         `video_scale` 
                     FROM `media`
-                    """
+                    """,
                 )
 
                 // Create a temporary table for the new media schema
@@ -107,7 +107,7 @@ abstract class MediaDatabase : RoomDatabase() {
                         `thumbnail_path` TEXT, 
                         PRIMARY KEY(`uri`)
                     )
-                    """
+                    """,
                 )
 
                 // Copy data from the old media table to the new one
@@ -141,7 +141,7 @@ abstract class MediaDatabase : RoomDatabase() {
                         `format`, 
                         `thumbnail_path` 
                     FROM `media`
-                    """
+                    """,
                 )
 
                 // Drop the old media table
@@ -154,12 +154,12 @@ abstract class MediaDatabase : RoomDatabase() {
                 db.execSQL(
                     """
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_media_uri` ON `media` (`uri`)
-                    """
+                    """,
                 )
                 db.execSQL(
                     """
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_media_path` ON `media` (`path`)
-                    """
+                    """,
                 )
             }
         }

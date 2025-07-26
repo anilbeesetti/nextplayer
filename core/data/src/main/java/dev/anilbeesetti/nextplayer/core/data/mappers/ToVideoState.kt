@@ -2,9 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.mappers
 
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
-import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
-import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
 
 fun MediumStateEntity.toVideoState(): VideoState {
     return VideoState(
