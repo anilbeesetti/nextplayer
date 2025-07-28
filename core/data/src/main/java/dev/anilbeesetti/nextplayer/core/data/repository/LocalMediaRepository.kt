@@ -9,6 +9,8 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
+import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
+import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.database.relations.DirectoryWithMedia
 import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -21,6 +23,7 @@ import kotlinx.coroutines.launch
 
 class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
+    private val mediumStateDao: MediumStateDao,
     private val directoryDao: DirectoryDao,
     @ApplicationScope private val applicationScope: CoroutineScope,
 ) : MediaRepository {
@@ -37,62 +40,107 @@ class LocalMediaRepository @Inject constructor(
         return directoryDao.getAllWithMedia().map { it.map(DirectoryWithMedia::toFolder) }
     }
 
+    override suspend fun getVideoByUri(uri: String): Video? {
+        return mediumDao.getWithInfo(uri)?.toVideo()
+    }
+
     override suspend fun getVideoState(uri: String): VideoState? {
-        return mediumDao.get(uri)?.toVideoState()
+        return mediumStateDao.get(uri)?.toVideoState()
     }
 
     override fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
         applicationScope.launch {
-            mediumDao.updateMediumLastPlayedTime(uri, lastPlayedTime)
+            val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+            mediumStateDao.upsert(
+                mediumState = stateEntity.copy(
+                    lastPlayedTime = lastPlayedTime,
+                ),
+            )
         }
     }
 
     override fun updateMediumPosition(uri: String, position: Long) {
         applicationScope.launch {
             val duration = mediumDao.get(uri)?.duration ?: position.plus(1)
-            mediumDao.updateMediumPosition(
-                uri = uri,
-                position = position.takeIf { it < duration } ?: Long.MIN_VALUE.plus(1),
+            val adjustedPosition = position.takeIf { it < duration } ?: Long.MIN_VALUE.plus(1)
+
+            val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+            mediumStateDao.upsert(
+                mediumState = stateEntity.copy(
+                    playbackPosition = adjustedPosition,
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
-            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
         }
     }
 
     override fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float) {
         applicationScope.launch {
-            mediumDao.updateMediumPlaybackSpeed(uri, playbackSpeed)
-            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+            val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+            mediumStateDao.upsert(
+                mediumState = stateEntity.copy(
+                    playbackSpeed = playbackSpeed,
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
+            )
         }
     }
 
     override fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {
         applicationScope.launch {
-            mediumDao.updateMediumAudioTrack(uri, audioTrackIndex)
-            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+            val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+            mediumStateDao.upsert(
+                mediumState = stateEntity.copy(
+                    audioTrackIndex = audioTrackIndex,
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
+            )
         }
     }
 
     override fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
         applicationScope.launch {
-            mediumDao.updateMediumSubtitleTrack(uri, subtitleTrackIndex)
-            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+            val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+            mediumStateDao.upsert(
+                mediumState = stateEntity.copy(
+                    subtitleTrackIndex = subtitleTrackIndex,
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
+            )
         }
     }
 
     override fun updateMediumZoom(uri: String, zoom: Float) {
         applicationScope.launch {
-            mediumDao.updateMediumZoom(uri, zoom)
-            mediumDao.updateMediumLastPlayedTime(uri, System.currentTimeMillis())
+            val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+            mediumStateDao.upsert(
+                mediumState = stateEntity.copy(
+                    videoScale = zoom,
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
+            )
         }
     }
 
     override fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
         applicationScope.launch {
-            val currentExternalSubs = getVideoState(uri)?.externalSubs ?: emptyList()
+            val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+            val currentExternalSubs = UriListConverter.fromStringToList(stateEntity.externalSubs)
+
             if (currentExternalSubs.contains(subtitleUri)) return@launch
-            mediumDao.addExternalSubtitle(
-                mediumUri = uri,
-                externalSubs = UriListConverter.fromListToString(urlList = currentExternalSubs + subtitleUri),
+            val newExternalSubs = UriListConverter.fromListToString(urlList = currentExternalSubs + subtitleUri)
+
+            mediumStateDao.upsert(
+                mediumState = stateEntity.copy(
+                    externalSubs = newExternalSubs,
+                    lastPlayedTime = System.currentTimeMillis(),
+                ),
             )
         }
     }

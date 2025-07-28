@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AppOpsManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
@@ -101,6 +100,7 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
+import kotlin.apply
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -315,10 +315,8 @@ class PlayerActivity : AppCompatActivity() {
         playerApi = PlayerApi(this)
 
         onBackPressedDispatcher.addCallback {
-            mediaController?.run {
-                clearMediaItems()
-                stop()
-            }
+            finish()
+            mediaController?.stopPlayerSession()
         }
     }
 
@@ -371,11 +369,11 @@ class PlayerActivity : AppCompatActivity() {
             }
             removeListener(playbackStateListener)
         }
-        if (subtitleFileLauncherLaunchedForMediaItem != null) {
+        val shouldPlayInBackground = playInBackground || playerPreferences.autoBackgroundPlay
+        if (subtitleFileLauncherLaunchedForMediaItem != null || !shouldPlayInBackground) {
             mediaController?.pause()
-        } else if (!playerPreferences.autoBackgroundPlay && !playInBackground) {
-            mediaController?.stopPlayerSession()
         }
+
         controllerFuture?.run {
             MediaController.releaseFuture(this)
             controllerFuture = null
@@ -700,15 +698,12 @@ class PlayerActivity : AppCompatActivity() {
     private fun startPlayback() {
         val uri = intent.data ?: return
 
-        // If the intent is not new and the current media item is not null, return
-        if (!isIntentNew && mediaController?.currentMediaItem != null) {
-            mediaController?.prepare()
-            return
-        }
+        val returningFromBackground = !isIntentNew && mediaController?.currentMediaItem != null
+        val isNewUriTheCurrentMediaItem = mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
 
-        // If the current media item is not null and the current media item's uri is the same as the intent's data, return
-        if (mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()) {
+        if (returningFromBackground || isNewUriTheCurrentMediaItem) {
             mediaController?.prepare()
+            mediaController?.playWhenReady = viewModel.playWhenReady
             return
         }
 
@@ -741,7 +736,11 @@ class PlayerActivity : AppCompatActivity() {
                 setUri(uri)
                 setMediaId(uri)
                 if (index == mediaItemIndexToPlay) {
-                    setMediaMetadata(MediaMetadata.Builder().setTitle(playerApi.title).build())
+                    setMediaMetadata(
+                        MediaMetadata.Builder().apply {
+                            setTitle(playerApi.title)
+                        }.build(),
+                    )
                     val apiSubs = playerApi.getSubs().map { subtitle ->
                         uriToSubtitleConfiguration(
                             uri = subtitle.uri,
@@ -857,7 +856,7 @@ class PlayerActivity : AppCompatActivity() {
                 duration = mediaController?.duration ?: C.TIME_UNSET,
                 position = mediaController?.currentPosition ?: C.TIME_UNSET,
             )
-            setResult(Activity.RESULT_OK, result)
+            setResult(RESULT_OK, result)
         }
         super.finish()
     }
