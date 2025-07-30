@@ -766,7 +766,6 @@ class PlayerActivity : AppCompatActivity() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             intent.data = mediaItem?.localConfiguration?.uri
-            isMediaItemReady = false
         }
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
