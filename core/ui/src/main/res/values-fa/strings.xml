@@ -210,4 +210,20 @@
     <string name="stop_player_session">توقف جلسه پخش</string>
     <string name="background_play">پخش در پس زمینه</string>
     <string name="background_play_description">وقتی روی صفحه اصلی ضربه بزنید یا صفحه قفل است، در پس‌زمینه پخش کنید.</string>
+    <string name="loop_mode">حالت حلقه</string>
+    <string name="loop_mode_off">حلقه: خاموش</string>
+    <string name="loop_mode_one">حلقه: روشن</string>
+    <string name="loop_mode_all">حلقه: همه</string>
+    <string name="by">به‌دست %1$s</string>
+    <string name="libraries">کتابخانه‌ها</string>
+    <string name="github">گیت‌هاب</string>
+    <string name="donate">حمایت مالی</string>
+    <string name="error_opening_link">هیچ برنامه‌ای ندارید که این پیوند را باز کند</string>
+    <string name="support_the_developer_on">از توسعه دهنده در %1$s حمایت کنید</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">چیدمان رسانه</string>
+    <string name="list">فهرست</string>
+    <string name="grid">شبکه</string>
 </resources>
