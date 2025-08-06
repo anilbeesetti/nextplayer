@@ -69,7 +69,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 private const val GITHUB_URL = "https://github.com/anilbeesetti/nextplayer"
 private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
-private const val UPI_URL = "upi://pay?pa=anilbeesetti811@ybl&pn=Next%20Player&cu=INR"
+private const val UPI_URL = "upi://pay?pa=nextplayer@ybl&pn=Next%20Player&cu=INR"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
