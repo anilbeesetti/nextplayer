@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="player_description">Управление проигрывателем, настройка жестов</string>
-    <string name="about_description">Версии и благодарности</string>
+    <string name="about_description">Версия, поддержка, о программе</string>
     <string name="appearance_name">Внешний вид</string>
     <string name="ascending">По возрастанию</string>
     <string name="cancel">Отмена</string>
