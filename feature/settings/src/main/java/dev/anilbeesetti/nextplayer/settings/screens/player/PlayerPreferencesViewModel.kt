@@ -207,6 +207,13 @@ class PlayerPreferencesViewModel @Inject constructor(
             }
         }
     }
+    fun updateSeekStepMilliseconds (value: Int) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(seekStepMilliseconds = value)
+            }
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
@@ -223,6 +230,7 @@ sealed interface PlayerPreferenceDialog {
     object LongPressControlsSpeedDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
     object SeekIncrementDialog : PlayerPreferenceDialog
+    object SeekStepMillisecondsDialog : PlayerPreferenceDialog
 }
 
 sealed interface PlayerPreferencesEvent {
