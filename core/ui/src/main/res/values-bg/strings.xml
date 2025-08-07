@@ -171,7 +171,7 @@
     <string name="media_view_mode">Режим преглед на медия</string>
     <string name="open_network_stream">Отвори мрежов поток</string>
     <string name="open_local_video">Отвори локално видео</string>
-    <string name="about_description">Версия, автори</string>
+    <string name="about_description">Версия, поддръжка, автори</string>
     <string name="about_name">Относно</string>
     <string name="disable">Деактивирай</string>
     <string name="grant_permission">Предоставяне на разрешение</string>
