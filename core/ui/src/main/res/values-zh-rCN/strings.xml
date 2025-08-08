@@ -57,7 +57,7 @@
     <string name="controls_unlock">解锁控件</string>
     <string name="select_playback_speed">选择播放速度</string>
     <string name="size">大小</string>
-    <string name="about_description">版本、鸣谢</string>
+    <string name="about_description">版本、支持、鸣谢</string>
     <string name="fast_seek">快速跳转</string>
     <string name="grant_permission">授予权限</string>
     <string name="duration">时长</string>

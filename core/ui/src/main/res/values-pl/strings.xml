@@ -39,7 +39,7 @@
     <string name="audio">Dźwięk</string>
     <string name="done">Gotowe</string>
     <string name="delete_file">Następujący plik zostanie trwale usunięty</string>
-    <string name="about_description">Wersja, użyte biblioteki</string>
+    <string name="about_description">Wersja, wsparcie, użyte biblioteki</string>
     <string name="player_screen_orientation">Orientacja odtwarzacza</string>
     <string name="double_tap">Gest podwójnego dotknięcia</string>
     <string name="double_tap_description">Wybierz działanie podwójnego dotknięcia</string>

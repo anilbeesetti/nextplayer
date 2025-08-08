@@ -7,7 +7,7 @@
     <string name="descending">Kahanevalt</string>
     <string name="disable">Lülita välja</string>
     <string name="appearance_description">Kohanda rakendus endale meeldivaks</string>
-    <string name="about_description">Versioon ja tänuavaldused</string>
+    <string name="about_description">Versioon, kasutajatugi ja tänuavaldused</string>
     <string name="cancel">Katkesta</string>
     <string name="fast_seek_description">Täpse kaadri asemel keri järgmise võtmekaadrini.</string>
     <string name="double_tap">Topeltpuudutuse viibe</string>

@@ -12,7 +12,7 @@
     <string name="dynamic_theme">Dynamické téma</string>
     <string name="extension">Koncovka</string>
     <string name="remember_brightness_level_description">Pamatovat úrověn jasu mezi videí</string>
-    <string name="about_description">Verze, poděkování</string>
+    <string name="about_description">Verze, podpora, poděkování</string>
     <string name="rename_to">Přejmenovat na</string>
     <string name="long_press_gesture_desc">Dlouhé klepnutí pro přehrávání v %.1fx rychlosti</string>
     <string name="zoom_gesture">Gesto na přiblížení</string>
