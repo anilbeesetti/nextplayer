@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.about
 
+import android.content.ClipData
 import android.content.Context
 import android.os.Build
 import android.widget.Toast
@@ -40,6 +41,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +53,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -65,11 +69,12 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
+import kotlinx.coroutines.launch
 
 private const val GITHUB_URL = "https://github.com/anilbeesetti/nextplayer"
 private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
-private const val UPI_URL = "upi://pay?pa=nextplayer@ybl&pn=Next%20Player&cu=INR"
+private const val UPI_ID = "anilbeesetti10@oksbi"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +85,8 @@ fun AboutPreferencesScreen(
     val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         modifier = Modifier
@@ -145,13 +152,13 @@ fun AboutPreferencesScreen(
 
             ClickablePreferenceItem(
                 title = stringResource(R.string.upi),
-                description = stringResource(R.string.support_the_developer_on, stringResource(R.string.upi)),
+                description = UPI_ID,
                 icon = ImageVector.vectorResource(R.drawable.ic_upi),
                 onClick = {
-                    uriHandler.openUriOrShowToast(
-                        uri = UPI_URL,
-                        context = context,
-                    )
+                    scope.launch {
+                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
+                        Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                    }
                 },
             )
         }
