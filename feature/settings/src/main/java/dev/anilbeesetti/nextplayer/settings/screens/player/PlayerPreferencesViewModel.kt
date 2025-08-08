@@ -207,6 +207,46 @@ class PlayerPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleShowLockControlsButton() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showLockControlsButton = !it.showLockControlsButton)
+            }
+        }
+    }
+
+    fun toggleShowVideoZoomButton() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showVideoZoomButton = !it.showVideoZoomButton)
+            }
+        }
+    }
+
+    fun toggleShowPipButton() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showPipButton = !it.showPipButton)
+            }
+        }
+    }
+
+    fun toggleShowBackgroundPlayButton() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showBackgroundPlayButton = !it.showBackgroundPlayButton)
+            }
+        }
+    }
+
+    fun toggleShowScreenRotationButton() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(showScreenRotationButton = !it.showScreenRotationButton)
+            }
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
