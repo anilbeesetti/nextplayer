@@ -9,7 +9,7 @@
     <string name="fields">欄位</string>
     <string name="navigate_up">向上巡覽</string>
     <string name="zoom_gesture_description">捏放以縮放影片</string>
-    <string name="about_description">版本、銘謝</string>
+    <string name="about_description">版本、支援、銘謝</string>
     <string name="player_screen_orientation">播放器畫面方向</string>
     <string name="subtitle_text_size">字幕文字大小</string>
     <string name="player_controls_play_pause">播放器 播放 暫停</string>
