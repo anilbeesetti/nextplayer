@@ -83,14 +83,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val storagePermissionState = rememberPermissionState(permission = storagePermission)
 
-                    LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
-                        storagePermissionState.launchPermissionRequest()
+                    if (storagePermissionState.status.isGranted) {
+                        synchronizer.startSync()
+                    } else {
+                        synchronizer.stopSync()
                     }
 
-                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
-                        if (storagePermissionState.status.isGranted) {
-                            synchronizer.startSync()
-                        }
+                    LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
+                        storagePermissionState.launchPermissionRequest()
                     }
 
                     val mainNavController = rememberNavController()
