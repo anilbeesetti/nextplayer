@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_description">Versão, créditos</string>
+    <string name="about_description">Versão, apoio, créditos</string>
     <string name="about_name">Sobre</string>
     <string name="appearance_description">Personalize a app</string>
     <string name="appearance_name">Aparência</string>
@@ -113,8 +113,8 @@
     <string name="scanning_storage">A verificar o armazenamento…</string>
     <string name="manage_folders">Gerir pastas</string>
     <string name="manage_folders_desc">Selecione as pastas a serem excluídas na biblioteca de mídia</string>
-    <string name="video">vídeo</string>
-    <string name="videos">vídeos</string>
+    <string name="video">Vídeo</string>
+    <string name="videos">Vídeos</string>
     <string name="portrait">Retrato</string>
     <string name="video_orientation">Orientação de vídeo</string>
     <string name="newest">Mais recente</string>
@@ -182,4 +182,48 @@
     <string name="decoder_priority">Prioridade do decodificador</string>
     <string name="volume_boost">Aumento de volume</string>
     <string name="volume_boost_desc">Aumentar o volume de áudio até 200%</string>
+    <string name="pip_settings">Modo picture-in-picture</string>
+    <string name="pip_settings_description">Se tocar no botão \"Início\" enquanto assiste um vídeo, a reprodução continua no player em miniatura que aparece por cima dos outras apps</string>
+    <string name="open_subtitle">Abrir legenda local</string>
+    <string name="no_subtitle_tracks_found">As faixas de legenda para este vídeo não estão disponíveis ou não são compatíveis.</string>
+    <string name="no_audio_tracks_found">As faixas de áudio para este vídeo não estão disponíveis ou não são compatíveis.</string>
+    <string name="rename">Renomear</string>
+    <string name="rename_to">Renomear para</string>
+    <string name="floating_play_button">Botão de reprodução flutuante</string>
+    <string name="floating_play_button_desc">Mostrar botão flutuante para reproduzir a última média reproduzida.</string>
+    <string name="mark_last_played_media">Marcar a última média reproduzida</string>
+    <string name="mark_last_played_media_desc">Marque a última média reproduzida na página inicial e em cada pasta</string>
+    <string name="open_local_video">Abrir vídeo local</string>
+    <string name="open_network_stream">Abrir streaming</string>
+    <string name="exit">Sair</string>
+    <string name="play_next_video">Reproduzir próximo vídeo</string>
+    <string name="skip_silence">Pular silêncio</string>
+    <string name="folder">Pasta</string>
+    <string name="folders">Pastas</string>
+    <string name="tree">Estrutura</string>
+    <string name="played_progress">Reprodução em andamento</string>
+    <string name="media_view_mode">Modo de visualização de média</string>
+    <string name="enable_pip_from_settings">Picture-in-Picture está desativado. Ative-o em Configurações para usar este recurso.</string>
+    <string name="control_buttons_alignment_left">A esquerda</string>
+    <string name="control_buttons_alignment_right">A direita</string>
+    <string name="control_buttons_alignment">Alinhamento dos botões de controlo</string>
+    <string name="stop_player_session">Parar sessão do player</string>
+    <string name="background_play">Reproduzir em segundo plano</string>
+    <string name="background_play_description">Reproduzir em segundo plano quando tocado no botão \"Início\" ou quando o ecrã estiver bloqueado.</string>
+    <string name="loop_mode">Repetição</string>
+    <string name="loop_mode_off">Repetir: desligado</string>
+    <string name="loop_mode_one">Repetir: um</string>
+    <string name="loop_mode_all">Repetir: tudo</string>
+    <string name="by">por %1$s</string>
+    <string name="libraries">Bibliotecas</string>
+    <string name="github">Github</string>
+    <string name="donate">Doar</string>
+    <string name="error_opening_link">Nenhuma app encontrada para aceder esta ligação</string>
+    <string name="support_the_developer_on">Apoie o programador em %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">Layout de média</string>
+    <string name="list">Lista</string>
+    <string name="grid">Grade</string>
 </resources>

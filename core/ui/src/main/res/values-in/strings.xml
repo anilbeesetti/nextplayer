@@ -8,7 +8,7 @@
     <string name="appearance_description">Sesuaikan aplikasi sesuai keinginan Anda</string>
     <string name="done">Konfirmasi</string>
     <string name="double_tap">Gerakan ketuk ganda</string>
-    <string name="about_description">Versi, kredit</string>
+    <string name="about_description">Versi, dukungan, kredit</string>
     <string name="about_name">Tentang</string>
     <string name="ascending">Naik</string>
     <string name="descending">Turun</string>
@@ -210,4 +210,9 @@
     <string name="system_caption_style_desc">Klik untuk membuka preferensi teks sistem</string>
     <string name="swipe_gesture">Gestur Usap</string>
     <string name="unknown_error">Terjadi kesalahan yang tidak diketahui</string>
+    <string name="loop_mode">Putar berulang</string>
+    <string name="loop_mode_off">Pengulangan: Mati</string>
+    <string name="loop_mode_one">Ulangi: Satu</string>
+    <string name="loop_mode_all">Ulangi: Semua</string>
+    <string name="by">buatan %1$s</string>
 </resources>

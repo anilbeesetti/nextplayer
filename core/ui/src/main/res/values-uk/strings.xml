@@ -18,7 +18,7 @@
     <string name="unknown_error">Виникла невідома помилка</string>
     <string name="dynamic_theme_description">Застосувати кольори з системних шпалер до теми застосунку</string>
     <string name="controls_unlock">Розблокувати</string>
-    <string name="about_description">Версія, подяка</string>
+    <string name="about_description">Версія, підтримка, подяка</string>
     <string name="cancel">Скасувати</string>
     <string name="appearance_name">Зовнішній вигляд</string>
     <string name="descending">За спаданням</string>
