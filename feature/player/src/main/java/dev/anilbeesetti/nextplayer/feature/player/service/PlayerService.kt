@@ -175,7 +175,11 @@ class PlayerService : MediaSessionService() {
             super.onPlayWhenReadyChanged(playWhenReady, reason)
 
             if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
-                mediaSession?.player?.stop()
+                mediaSession?.run {
+                    player.clearMediaItems()
+                    player.stop()
+                }
+                stopSelf()
             }
         }
     }
