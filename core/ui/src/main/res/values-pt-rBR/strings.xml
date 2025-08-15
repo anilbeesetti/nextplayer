@@ -62,7 +62,7 @@
     <string name="select_playback_speed">Selecionar velocidade de reprodução</string>
     <string name="seek_gesture">Gesto de busca</string>
     <string name="seek_gesture_description">Deslize horizontalmente para avançar ou retroceder</string>
-    <string name="about_description">Versão, créditos</string>
+    <string name="about_description">Versão, suporte, créditos</string>
     <string name="grant_permission">Conceder permissão</string>
     <string name="done">OK</string>
     <string name="permission_info">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão.</string>
