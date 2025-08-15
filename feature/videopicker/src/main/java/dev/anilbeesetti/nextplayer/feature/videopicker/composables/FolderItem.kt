@@ -158,9 +158,13 @@ private fun FolderGridItem(
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
 ) {
+    val contentPadding = if (preferences.isTvLayout) 4.dp else 0.dp
+    val horizontalSpacing = if (preferences.isTvLayout) 0.dp else 8.dp
     Column(
-        modifier = modifier.width(IntrinsicSize.Min),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .width(IntrinsicSize.Min)
+            .padding(contentPadding),
+        verticalArrangement = Arrangement.spacedBy(horizontalSpacing),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box {
@@ -193,7 +197,7 @@ private fun FolderGridItem(
         ) {
             Text(
                 text = folder.name,
-                maxLines = 2,
+                maxLines = if (preferences.isTvLayout) 1 else 2,
                 style = MaterialTheme.typography.titleMedium,
                 overflow = TextOverflow.Ellipsis,
                 color = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {

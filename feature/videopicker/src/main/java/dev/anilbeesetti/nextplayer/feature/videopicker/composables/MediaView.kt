@@ -3,7 +3,10 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -18,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,6 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -58,6 +64,7 @@ import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -84,6 +91,7 @@ fun MediaView(
 
     val context = LocalContext.current
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     if (isLoading) {
         CenterCircularProgressBar()
@@ -92,7 +100,7 @@ fun MediaView(
         val videoMinWidth = 130.dp
         BoxWithConstraints {
             val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
-                MediaLayoutMode.LIST -> 0.dp
+                MediaLayoutMode.LIST -> if (preferences.isTvLayout) 16.dp else 0.dp
                 MediaLayoutMode.GRID -> 16.dp
             }
             val itemSpacing = when (preferences.mediaLayoutMode) {
@@ -109,11 +117,11 @@ fun MediaView(
 
             val singleFolderSpan = when (preferences.mediaLayoutMode) {
                 MediaLayoutMode.LIST -> 1
-                MediaLayoutMode.GRID -> spans / maxFolders
+                MediaLayoutMode.GRID -> if (preferences.isTvLayout) preferences.folderGridSpanForTv else spans / maxFolders
             }
             val singleVideoSpan = when (preferences.mediaLayoutMode) {
                 MediaLayoutMode.LIST -> 1
-                MediaLayoutMode.GRID -> spans / maxVideos
+                MediaLayoutMode.GRID -> if (preferences.isTvLayout) preferences.videoGridSpanForTv else spans / maxVideos
             }
 
             LazyVerticalGrid(
@@ -141,18 +149,41 @@ fun MediaView(
                     key = { it.path },
                     span = { GridItemSpan(singleFolderSpan) },
                 ) { folder ->
-                    FolderItem(
-                        folder = folder,
-                        isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
-                        preferences = preferences,
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onFolderClick(folder.path) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showFolderActionsFor = folder
-                            },
-                        ),
-                    )
+                    if (!preferences.isTvLayout) {
+                        FolderItem(
+                            folder = folder,
+                            isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
+                            preferences = preferences,
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onFolderClick(folder.path) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showFolderActionsFor = folder
+                                },
+                            ),
+                        )
+                    } else {
+                        var borderColor by remember { mutableStateOf(Color.Transparent) }
+                        FolderItem(
+                            folder = folder,
+                            isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
+                            preferences = preferences,
+                            modifier = Modifier
+                                .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
+                                .onFocusChanged { focusState ->
+                                    borderColor = if (focusState.isFocused) {
+                                        primaryColor
+                                    } else {
+                                        Color.Transparent
+                                    }
+                                }
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = { onFolderClick(folder.path) },
+                                )
+                        )
+                    }
                 }
 
                 if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
@@ -174,18 +205,41 @@ fun MediaView(
                     LaunchedEffect(Unit) {
                         onVideoLoaded(Uri.parse(video.uriString))
                     }
-                    VideoItem(
-                        video = video,
-                        preferences = preferences,
-                        isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
-                        modifier = Modifier.combinedClickable(
-                            onClick = { onVideoClick(Uri.parse(video.uriString)) },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showMediaActionsFor = video
-                            },
-                        ),
-                    )
+                    if (!preferences.isTvLayout) {
+                        VideoItem(
+                            video = video,
+                            preferences = preferences,
+                            isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onVideoClick(Uri.parse(video.uriString)) },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showMediaActionsFor = video
+                                },
+                            ),
+                        )
+                    } else {
+                        var borderColor by remember { mutableStateOf(Color.Transparent) }
+                        VideoItem(
+                            video = video,
+                            preferences = preferences,
+                            isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
+                            modifier = Modifier
+                                .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(12.dp))
+                                .onFocusChanged { focusState ->
+                                    borderColor = if (focusState.isFocused) {
+                                        primaryColor
+                                    } else {
+                                        Color.Transparent
+                                    }
+                                }
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = { onVideoClick(video.uriString.toUri()) },
+                                )
+                        )
+                    }
                 }
             }
         }
