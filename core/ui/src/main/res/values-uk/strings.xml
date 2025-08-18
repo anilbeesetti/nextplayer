@@ -189,8 +189,8 @@
     <string name="no_subtitle_tracks_found">Доріжки субтитрів для цього відео недоступні або не підтримуються.</string>
     <string name="rename">Перейменувати</string>
     <string name="rename_to">Перейменувати на</string>
-    <string name="floating_play_button">Плаваюча кнопка відтворення</string>
-    <string name="floating_play_button_desc">Показати плаваючу кнопку для відтворення останнього відтвореного медіафайлу.</string>
+    <string name="floating_play_button">Плавуча кнопка відтворення</string>
+    <string name="floating_play_button_desc">Показати плавучу кнопку для відтворення останнього відтвореного медіафайлу.</string>
     <string name="mark_last_played_media">Позначити останній відтворений медіафайл</string>
     <string name="mark_last_played_media_desc">Позначити останній відтворений медіафайл на домашньому екрані та в кожній теці</string>
     <string name="open_local_video">Відкрити локальне відео</string>
