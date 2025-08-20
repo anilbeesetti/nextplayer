@@ -130,7 +130,8 @@ fun PlayerPreferencesScreen(
             )
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
             ResumeSetting(
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) },
+                resume = preferences.resume,
+                onClick = viewModel::toggleResume,
             )
             DefaultPlaybackSpeedSetting(
                 currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
@@ -487,12 +488,14 @@ fun ControllerTimeoutPreference(
 
 @Composable
 fun ResumeSetting(
+    resume: Resume,
     onClick: () -> Unit,
 ) {
-    ClickablePreferenceItem(
+    PreferenceSwitch(
         title = stringResource(id = R.string.resume),
         description = stringResource(id = R.string.resume_description),
         icon = NextIcons.Resume,
+        isChecked = resume == Resume.YES,
         onClick = onClick,
     )
 }

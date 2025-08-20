@@ -182,6 +182,21 @@ class PlayerService : MediaSessionService() {
                 stopSelf()
             }
         }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            super.onIsPlayingChanged(isPlaying)
+            if (!isPlaying) {
+                // Save position when playback stops
+                mediaSession?.player?.let { player ->
+                    player.currentMediaItem?.mediaId?.let { mediaId ->
+                        val currentPos = player.currentPosition
+                        if (currentPos > 0) {
+                            mediaRepository.updateMediumPosition(mediaId, currentPos)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private val mediaSessionCallback = object : MediaSession.Callback {

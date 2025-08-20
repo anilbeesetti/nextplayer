@@ -367,6 +367,13 @@ class PlayerActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 viewModel.skipSilenceEnabled = getSkipSilenceEnabled()
             }
+            // Save current position before stopping
+            mediaController?.currentMediaItem?.mediaId?.let { mediaId ->
+                val currentPos = mediaController?.currentPosition ?: 0L
+                if (currentPos > 0) {
+                    viewModel.updateMediumPosition(mediaId, currentPos)
+                }
+            }
             removeListener(playbackStateListener)
         }
         val shouldPlayInBackground = playInBackground || playerPreferences.autoBackgroundPlay

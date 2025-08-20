@@ -98,6 +98,16 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun toggleResume() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(
+                    resume = if (it.resume == Resume.YES) Resume.NO else Resume.YES,
+                )
+            }
+        }
+    }
+
     fun toggleAutoplay() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {

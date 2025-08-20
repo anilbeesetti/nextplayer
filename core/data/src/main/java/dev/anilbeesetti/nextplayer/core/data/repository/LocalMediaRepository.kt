@@ -63,7 +63,11 @@ class LocalMediaRepository @Inject constructor(
     override fun updateMediumPosition(uri: String, position: Long) {
         applicationScope.launch {
             val duration = mediumDao.get(uri)?.duration ?: position.plus(1)
-            val adjustedPosition = position.takeIf { it < duration } ?: Long.MIN_VALUE.plus(1)
+            val adjustedPosition = when {
+                position < 0 -> 0L
+                position >= duration -> return@launch
+                else -> position
+            }
 
             val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
 
