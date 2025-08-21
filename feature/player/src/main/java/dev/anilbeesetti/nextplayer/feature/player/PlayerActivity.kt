@@ -832,9 +832,13 @@ class PlayerActivity : AppCompatActivity() {
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
             when (playbackState) {
-                Player.STATE_ENDED, Player.STATE_IDLE -> {
+                Player.STATE_ENDED -> {
                     isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
                     finish()
+                }
+
+                Player.STATE_IDLE -> {
+                    isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
                 }
 
                 Player.STATE_READY -> {
