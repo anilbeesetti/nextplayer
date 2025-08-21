@@ -14,9 +14,9 @@ import dev.anilbeesetti.nextplayer.core.database.relations.DirectoryWithMedia
 import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
@@ -66,7 +66,6 @@ class LocalMediaRepository @Inject constructor(
                 lastPlayedTime = System.currentTimeMillis(),
             ),
         )
-
     }
 
     override suspend fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float) {
