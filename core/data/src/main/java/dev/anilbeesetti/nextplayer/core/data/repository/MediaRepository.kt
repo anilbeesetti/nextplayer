@@ -14,12 +14,12 @@ interface MediaRepository {
     suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?
 
-    fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long)
-    fun updateMediumPosition(uri: String, position: Long)
-    fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float)
-    fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int)
-    fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int)
-    fun updateMediumZoom(uri: String, zoom: Float)
+    suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long)
+    suspend fun updateMediumPosition(uri: String, position: Long)
+    suspend fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float)
+    suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int)
+    suspend fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int)
+    suspend fun updateMediumZoom(uri: String, zoom: Float)
 
-    fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri)
+    suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri)
 }
