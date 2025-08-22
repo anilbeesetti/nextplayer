@@ -118,18 +118,22 @@ class PlayerService : MediaSessionService() {
                 -> {
                     val newMediaItem = newPosition.mediaItem
                     if (newMediaItem != null && oldMediaItem != newMediaItem) {
-                        mediaRepository.updateMediumPosition(
-                            uri = oldMediaItem.mediaId,
-                            position = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET,
-                        )
+                        serviceScope.launch {
+                            mediaRepository.updateMediumPosition(
+                                uri = oldMediaItem.mediaId,
+                                position = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET,
+                            )
+                        }
                     }
                 }
 
                 DISCONTINUITY_REASON_REMOVE -> {
-                    mediaRepository.updateMediumPosition(
-                        uri = oldMediaItem.mediaId,
-                        position = oldPosition.positionMs,
-                    )
+                    serviceScope.launch {
+                        mediaRepository.updateMediumPosition(
+                            uri = oldMediaItem.mediaId,
+                            position = oldPosition.positionMs,
+                        )
+                    }
                 }
 
                 else -> return
@@ -163,10 +167,12 @@ class PlayerService : MediaSessionService() {
 
             if (playbackState == Player.STATE_READY) {
                 mediaSession?.player?.let {
-                    mediaRepository.updateMediumLastPlayedTime(
-                        uri = it.currentMediaItem?.mediaId ?: return@let,
-                        lastPlayedTime = System.currentTimeMillis(),
-                    )
+                    serviceScope.launch {
+                        mediaRepository.updateMediumLastPlayedTime(
+                            uri = it.currentMediaItem?.mediaId ?: return@launch,
+                            lastPlayedTime = System.currentTimeMillis(),
+                        )
+                    }
                 }
             }
         }

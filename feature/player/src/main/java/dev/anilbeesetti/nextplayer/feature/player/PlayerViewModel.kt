@@ -49,7 +49,9 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun updateMediumZoom(uri: String, zoom: Float) {
-        mediaRepository.updateMediumZoom(uri, zoom)
+        viewModelScope.launch {
+            mediaRepository.updateMediumZoom(uri, zoom)
+        }
     }
 
     fun setPlayerBrightness(value: Float) {
