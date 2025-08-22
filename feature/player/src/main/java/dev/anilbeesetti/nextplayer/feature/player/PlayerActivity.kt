@@ -23,6 +23,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
+import android.util.Log
 import android.util.Rational
 import android.util.TypedValue
 import android.view.Gravity
@@ -43,9 +44,12 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -60,6 +64,9 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
+import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
@@ -317,6 +324,14 @@ class PlayerActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback {
             finish()
             mediaController?.stopPlayerSession()
+        }
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(this@PlayerActivity).windowLayoutInfo(this@PlayerActivity).collect { newLayoutInfo ->
+                    updateUI(newLayoutInfo)
+                }
+            }
         }
     }
 
@@ -1154,6 +1169,40 @@ class PlayerActivity : AppCompatActivity() {
             delay(HIDE_DELAY_MILLIS)
             binding.infoLayout.visibility = View.GONE
         }
+    }
+
+    private fun updateUI(newLayoutInfo: WindowLayoutInfo) {
+        if (newLayoutInfo.displayFeatures.isEmpty()) {
+            centerPlayer()
+        } else {
+            val foldingFeature = newLayoutInfo.displayFeatures[0] as? FoldingFeature
+            foldingFeature?.let {
+                //Determine for Tabletop
+                if (it.state == FoldingFeature.State.HALF_OPENED && it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
+                    foldPlayer()
+                } else {
+                    centerPlayer()
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets the Player Screen to occupy the top 50% area of screen when half folded
+     */
+    private fun foldPlayer() {
+        val layoutParams = binding.playerViewContainer.layoutParams as ConstraintLayout.LayoutParams
+        layoutParams.matchConstraintPercentHeight = 0.5f
+        binding.playerViewContainer.layoutParams = layoutParams
+    }
+
+    /**
+     * Sets the Player Screen to occupy the entire screen when not folded
+     */
+    private fun centerPlayer() {
+        val layoutParams = binding.playerViewContainer.layoutParams as ConstraintLayout.LayoutParams
+        layoutParams.matchConstraintPercentHeight = 1f
+        binding.playerViewContainer.layoutParams = layoutParams
     }
 
     companion object {

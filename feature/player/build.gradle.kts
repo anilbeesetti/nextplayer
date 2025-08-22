@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewModel.ktx)
     implementation(libs.google.android.material)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.window)
 
     // Media3
     implementation(libs.androidx.media3.common)
