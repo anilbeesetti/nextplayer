@@ -3,11 +3,15 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.media
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -34,16 +39,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -137,6 +146,7 @@ internal fun MediaPickerScreen(
     )
 
     val pullToRefreshState = rememberPullToRefreshState()
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     Scaffold(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
@@ -144,7 +154,19 @@ internal fun MediaPickerScreen(
             NextCenterAlignedTopAppBar(
                 title = stringResource(id = R.string.app_name),
                 navigationIcon = {
-                    IconButton(onClick = onSettingsClick) {
+                    var borderColor by remember { mutableStateOf(Color.Transparent) }
+                    IconButton(
+                        modifier = Modifier
+                            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(50))
+                            .onFocusChanged { focusState ->
+                                borderColor = if (focusState.isFocused) {
+                                    primaryColor
+                                } else {
+                                    Color.Transparent
+                                }
+                            },
+                        onClick = onSettingsClick
+                    ) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(id = R.string.settings),
@@ -152,7 +174,19 @@ internal fun MediaPickerScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showQuickSettingsDialog = true }) {
+                    var borderColor by remember { mutableStateOf(Color.Transparent) }
+                    IconButton(
+                        modifier = Modifier
+                            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(50))
+                            .onFocusChanged { focusState ->
+                                borderColor = if (focusState.isFocused) {
+                                    primaryColor
+                                } else {
+                                    Color.Transparent
+                                }
+                            },
+                        onClick = { showQuickSettingsDialog = true }
+                    ) {
                         Icon(
                             imageVector = NextIcons.DashBoard,
                             contentDescription = stringResource(id = R.string.menu),
@@ -164,7 +198,17 @@ internal fun MediaPickerScreen(
         floatingActionButton = {
             if (!preferences.showFloatingPlayButton) return@Scaffold
             if (!permissionState.status.isGranted) return@Scaffold
+            var borderColor by remember { mutableStateOf(Color.Transparent) }
             FloatingActionButton(
+                modifier = Modifier
+                    .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
+                    .onFocusChanged { focusState ->
+                        borderColor = if (focusState.isFocused) {
+                            primaryColor
+                        } else {
+                            Color.Transparent
+                        }
+                    },
                 onClick = {
                     val state = mediaState as? MediaState.Success
                     val videoToPlay = state?.data?.recentlyPlayedVideo ?: state?.data?.firstVideo
@@ -180,51 +224,92 @@ internal fun MediaPickerScreen(
             }
         },
     ) { paddingValues ->
-        PullToRefreshBox(
-            modifier = Modifier.padding(paddingValues),
-            state = pullToRefreshState,
-            isRefreshing = isRefreshing,
-            onRefresh = onRefreshClicked,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
+        if (!preferences.isTvLayout) {
+            PullToRefreshBox(
+                modifier = Modifier.padding(paddingValues),
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefreshClicked,
             ) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                Column(
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    item {
-                        ShortcutChipButton(
-                            text = stringResource(id = R.string.open_local_video),
-                            icon = NextIcons.FileOpen,
-                            onClick = { selectVideoFileLauncher.launch("video/*") },
-                        )
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        item {
+                            ShortcutChipButton(
+                                text = stringResource(id = R.string.open_local_video),
+                                icon = NextIcons.FileOpen,
+                                onClick = { selectVideoFileLauncher.launch("video/*") },
+                            )
+                        }
+                        item {
+                            ShortcutChipButton(
+                                text = stringResource(id = R.string.open_network_stream),
+                                icon = NextIcons.Link,
+                                onClick = { showUrlDialog = true },
+                            )
+                        }
                     }
-                    item {
-                        ShortcutChipButton(
-                            text = stringResource(id = R.string.open_network_stream),
-                            icon = NextIcons.Link,
-                            onClick = { showUrlDialog = true },
+                    PermissionMissingView(
+                        isGranted = permissionState.status.isGranted,
+                        showRationale = permissionState.status.shouldShowRationale,
+                        permission = permissionState.permission,
+                        launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                    ) {
+                        MediaView(
+                            isLoading = mediaState is MediaState.Loading,
+                            rootFolder = (mediaState as? MediaState.Success)?.data,
+                            preferences = preferences,
+                            onFolderClick = onFolderClick,
+                            onDeleteFolderClick = onDeleteFolderClick,
+                            onVideoClick = onPlayVideo,
+                            onRenameVideoClick = onRenameVideoClick,
+                            onDeleteVideoClick = onDeleteVideoClick,
+                            onVideoLoaded = onAddToSync,
                         )
                     }
                 }
-                PermissionMissingView(
-                    isGranted = permissionState.status.isGranted,
-                    showRationale = permissionState.status.shouldShowRationale,
-                    permission = permissionState.permission,
-                    launchPermissionRequest = { permissionState.launchPermissionRequest() },
+            }
+        } else {
+            Box(
+                modifier = Modifier.padding(paddingValues),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    MediaView(
-                        isLoading = mediaState is MediaState.Loading,
-                        rootFolder = (mediaState as? MediaState.Success)?.data,
-                        preferences = preferences,
-                        onFolderClick = onFolderClick,
-                        onDeleteFolderClick = onDeleteFolderClick,
-                        onVideoClick = onPlayVideo,
-                        onRenameVideoClick = onRenameVideoClick,
-                        onDeleteVideoClick = onDeleteVideoClick,
-                        onVideoLoaded = onAddToSync,
-                    )
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        item {
+                            ShortcutChipButton(
+                                text = stringResource(id = R.string.open_local_video),
+                                icon = NextIcons.FileOpen,
+                                onClick = { selectVideoFileLauncher.launch("video/*") },
+                            )
+                        }
+                    }
+                    PermissionMissingView(
+                        isGranted = permissionState.status.isGranted,
+                        showRationale = permissionState.status.shouldShowRationale,
+                        permission = permissionState.permission,
+                        launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                    ) {
+                        MediaView(
+                            isLoading = mediaState is MediaState.Loading,
+                            rootFolder = (mediaState as? MediaState.Success)?.data,
+                            preferences = preferences,
+                            onFolderClick = onFolderClick,
+                            onDeleteFolderClick = onDeleteFolderClick,
+                            onVideoClick = onPlayVideo,
+                            onRenameVideoClick = onRenameVideoClick,
+                            onDeleteVideoClick = onDeleteVideoClick,
+                            onVideoLoaded = onAddToSync,
+                        )
+                    }
                 }
             }
         }
@@ -253,11 +338,21 @@ fun ShortcutChipButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    var borderColor by remember { mutableStateOf(Color.Transparent) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .clip(CircleShape)
+            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
+            .onFocusChanged { focusState ->
+                borderColor = if (focusState.isFocused) {
+                    primaryColor
+                } else {
+                    Color.Transparent
+                }
+            }
             .clickable { onClick() }
             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -348,7 +443,6 @@ fun ButtonPreview() {
         )
     }
 }
-
 @DayNightPreview
 @Composable
 fun MediaPickerNoVideosFoundPreview() {
