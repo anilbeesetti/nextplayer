@@ -850,6 +850,7 @@ class PlayerActivity : AppCompatActivity() {
             super.onPlayWhenReadyChanged(playWhenReady, reason)
 
             if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
+                if (mediaController?.repeatMode != Player.REPEAT_MODE_OFF) return
                 isPlaybackFinished = true
                 finishAndStopPlayerSession()
             }
