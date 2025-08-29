@@ -75,7 +75,7 @@
     <string name="videos">Vidéos</string>
     <string name="player_controls_play_pause">Lecteur : lecture/pause</string>
     <string name="player_controls_previous">Lecteur : lire le précédent</string>
-    <string name="player_controls_progress">Barre de progression</string>
+    <string name="player_controls_progress">Barre de progression du lecteur</string>
     <string name="player_description">Apparence et contrôles du lecteur</string>
     <string name="player_name">Lecteur</string>
     <string name="remember_brightness_level">Mémoriser la luminosité</string>
@@ -222,4 +222,5 @@
     <string name="kofi">Ko-fi</string>
     <string name="paypal">PayPal</string>
     <string name="upi">UPI</string>
+    <string name="channels">Canaux</string>
 </resources>
