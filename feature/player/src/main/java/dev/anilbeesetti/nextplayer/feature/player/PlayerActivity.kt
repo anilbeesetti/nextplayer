@@ -315,8 +315,7 @@ class PlayerActivity : AppCompatActivity() {
         playerApi = PlayerApi(this)
 
         onBackPressedDispatcher.addCallback {
-            finish()
-            mediaController?.stopPlayerSession()
+            finishAndStopPlayerSession()
         }
     }
 
@@ -834,11 +833,7 @@ class PlayerActivity : AppCompatActivity() {
             when (playbackState) {
                 Player.STATE_ENDED -> {
                     isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
-                    finish()
-                }
-
-                Player.STATE_IDLE -> {
-                    isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
+                    finishAndStopPlayerSession()
                 }
 
                 Player.STATE_READY -> {
@@ -848,6 +843,16 @@ class PlayerActivity : AppCompatActivity() {
                 }
 
                 else -> {}
+            }
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            super.onPlayWhenReadyChanged(playWhenReady, reason)
+
+            if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
+                if (mediaController?.repeatMode != Player.REPEAT_MODE_OFF) return
+                isPlaybackFinished = true
+                finishAndStopPlayerSession()
             }
         }
     }
@@ -1154,6 +1159,11 @@ class PlayerActivity : AppCompatActivity() {
             delay(HIDE_DELAY_MILLIS)
             binding.infoLayout.visibility = View.GONE
         }
+    }
+
+    private fun finishAndStopPlayerSession() {
+        finish()
+        mediaController?.stopPlayerSession()
     }
 
     companion object {
