@@ -29,7 +29,7 @@
     <string name="double_tap_description">Choisir l\'action du double appui</string>
     <string name="error_playing_video">Erreur : impossible de lire la vidéo</string>
     <string name="fast_seek">Avance rapide</string>
-    <string name="fast_seek_description">Avancer jusqu\'à l\'image clé la plus proche au lieu d\'une image exacte.</string>
+    <string name="fast_seek_description">Avancer jusqu\'à l\'image clé la plus proche au lieu d\'une image exacte</string>
     <string name="grant_permission">Accorder l\'autorisation</string>
     <string name="group_videos">Regrouper les vidéos par dossier</string>
     <string name="duration">Durée</string>
@@ -185,7 +185,7 @@
     <string name="rename_to">Renommer en</string>
     <string name="skip_silence">Ignorer les silences</string>
     <string name="floating_play_button">Bouton de lecture flottant</string>
-    <string name="floating_play_button_desc">Afficher un bouton de lecture flottant pour reprendre le dernier média lu.</string>
+    <string name="floating_play_button_desc">Afficher un bouton de lecture flottant pour reprendre le dernier média lu</string>
     <string name="open_network_stream">Ouvrir un flux réseau</string>
     <string name="exit">Quitter</string>
     <string name="mark_last_played_media">Marquer le dernier média lu</string>
