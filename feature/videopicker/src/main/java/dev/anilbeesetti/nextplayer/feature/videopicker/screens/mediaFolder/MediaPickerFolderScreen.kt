@@ -1,24 +1,34 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,7 +106,18 @@ internal fun MediaPickerFolderScreen(
         },
         floatingActionButton = {
             if (!preferences.showFloatingPlayButton) return@Scaffold
+            val primaryColor = MaterialTheme.colorScheme.primary
+            var borderColor by remember { mutableStateOf(Color.Transparent) }
             FloatingActionButton(
+                modifier = Modifier
+                    .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
+                    .onFocusChanged { focusState ->
+                        borderColor = if (focusState.isFocused) {
+                            primaryColor
+                        } else {
+                            Color.Transparent
+                        }
+                    },
                 onClick = {
                     val state = mediaState as? MediaState.Success
                     val videoToPlay = state?.data?.recentlyPlayedVideo ?: state?.data?.firstVideo
@@ -112,24 +133,43 @@ internal fun MediaPickerFolderScreen(
             }
         },
     ) { paddingValues ->
-        PullToRefreshBox(
-            modifier = Modifier.padding(paddingValues),
-            state = pullToRefreshState,
-            isRefreshing = isRefreshing,
-            onRefresh = onRefreshClicked,
-            contentAlignment = Alignment.Center,
-        ) {
-            MediaView(
-                isLoading = mediaState is MediaState.Loading,
-                rootFolder = (mediaState as? MediaState.Success)?.data,
-                preferences = preferences,
-                onFolderClick = onFolderClick,
-                onDeleteFolderClick = onDeleteFolderClick,
-                onVideoClick = onPlayVideo,
-                onDeleteVideoClick = onDeleteVideoClick,
-                onVideoLoaded = onAddToSync,
-                onRenameVideoClick = onRenameVideoClick,
-            )
+        if (!preferences.isTvLayout) {
+            PullToRefreshBox(
+                modifier = Modifier.padding(paddingValues),
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefreshClicked,
+                contentAlignment = Alignment.Center,
+            ) {
+                MediaView(
+                    isLoading = mediaState is MediaState.Loading,
+                    rootFolder = (mediaState as? MediaState.Success)?.data,
+                    preferences = preferences,
+                    onFolderClick = onFolderClick,
+                    onDeleteFolderClick = onDeleteFolderClick,
+                    onVideoClick = onPlayVideo,
+                    onDeleteVideoClick = onDeleteVideoClick,
+                    onVideoLoaded = onAddToSync,
+                    onRenameVideoClick = onRenameVideoClick,
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier.padding(paddingValues),
+                contentAlignment = Alignment.Center,
+            ) {
+                MediaView(
+                    isLoading = mediaState is MediaState.Loading,
+                    rootFolder = (mediaState as? MediaState.Success)?.data,
+                    preferences = preferences,
+                    onFolderClick = onFolderClick,
+                    onDeleteFolderClick = onDeleteFolderClick,
+                    onVideoClick = onPlayVideo,
+                    onDeleteVideoClick = onDeleteVideoClick,
+                    onVideoLoaded = onAddToSync,
+                    onRenameVideoClick = onRenameVideoClick,
+                )
+            }
         }
     }
 }

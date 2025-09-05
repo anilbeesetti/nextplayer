@@ -23,4 +23,10 @@ data class ApplicationPreferences(
     val showSizeField: Boolean = false,
     val showThumbnailField: Boolean = true,
     val showPlayedProgress: Boolean = true,
+
+    //TV Fields
+    var isTvLayout: Boolean = false,
+    val folderGridSpanForTv: Int = 10,
+    val videoGridSpanForTv: Int = 12,
+    val borderWidthForTv: Int = 2
 )
