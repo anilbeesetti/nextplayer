@@ -59,7 +59,6 @@ android {
 
     splits {
         abi {
-            //noinspection WrongGradleMethod
             val isBuildingBundle = gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
 
             isEnable = !isBuildingBundle
@@ -76,9 +75,7 @@ android {
     }
 
     dependenciesInfo {
-        // Disables dependency metadata when building APKs.
         includeInApk = false
-        // Disables dependency metadata when building Android App Bundles.
         includeInBundle = false
     }
 }
@@ -98,7 +95,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
 
-    // Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -110,7 +106,6 @@ dependencies {
     implementation(libs.google.android.material)
     implementation(libs.androidx.core.splashscreen)
 
-    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     kspAndroidTest(libs.hilt.compiler)
