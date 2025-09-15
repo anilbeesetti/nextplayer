@@ -2,7 +2,7 @@
 <resources>
     <string name="delete_file">以下檔案將會被永久地刪除</string>
     <string name="size">大小</string>
-    <string name="high_contrast_dark_theme_desc">使用純黑背景於黑暗模式</string>
+    <string name="high_contrast_dark_theme_desc">使用純黑背景於深色主題</string>
     <string name="force_rescan_storage">強制掃描儲存區</string>
     <string name="ascending">遞增</string>
     <string name="dynamic_theme">動態色彩主題</string>
@@ -56,7 +56,7 @@
     <string name="subtitle_text_bold_desc">使用粗體文字於字幕</string>
     <string name="none">無</string>
     <string name="fast_playback_speed">%.1fx 速度</string>
-    <string name="high_contrast_dark_theme">高對比深色模式</string>
+    <string name="high_contrast_dark_theme">高對比深色主題</string>
     <string name="autoplay_settings">自動播放</string>
     <string name="resume_description">選擇是否從你停止時的進度再續播放影片</string>
     <string name="grant_permission">授予權限</string>
@@ -187,7 +187,7 @@
     <string name="open_subtitle">開啟本機字幕</string>
     <string name="no_subtitle_tracks_found">該影片的字幕軌道不可用或不受支援。</string>
     <string name="no_audio_tracks_found">該影片的音軌不可用或不受支援。</string>
-    <string name="rename">重命名</string>
+    <string name="rename">重新命名</string>
     <string name="rename_to">重新命名為</string>
     <string name="exit">退出</string>
     <string name="floating_play_button">浮動播放按鈕</string>
