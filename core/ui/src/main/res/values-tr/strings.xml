@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_description">Sürüm, katkıda bulunanlar</string>
+    <string name="about_description">Sürüm, destek, katkıda bulunanlar</string>
     <string name="about_name">Hakkında</string>
     <string name="appearance_description">Uygulamayı istediğiniz gibi ayarlayın</string>
     <string name="appearance_name">Görünüm</string>
@@ -210,4 +210,20 @@
     <string name="stop_player_session">Oynatıcı oturumunu durdur</string>
     <string name="background_play">Arka planda oynat</string>
     <string name="background_play_description">Arka planda oynat.</string>
+    <string name="loop_mode">Döngü modu</string>
+    <string name="loop_mode_off">Döngü: Kapalı</string>
+    <string name="loop_mode_one">Döngü: Bir</string>
+    <string name="loop_mode_all">Döngü: Tümü</string>
+    <string name="libraries">Kütüphaneler</string>
+    <string name="github">Github</string>
+    <string name="donate">Bağış yap</string>
+    <string name="support_the_developer_on">Geliştiriciyi %1$s aracılığıyla destekle</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="list">Liste</string>
+    <string name="by">%1$s tarafından</string>
+    <string name="media_layout">Medya Düzeni</string>
+    <string name="grid">Izgara</string>
+    <string name="error_opening_link">Bu bağlantıyı işleyecek bir uygulama bulunamadı</string>
 </resources>
