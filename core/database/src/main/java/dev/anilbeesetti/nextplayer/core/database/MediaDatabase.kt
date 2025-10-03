@@ -168,7 +168,7 @@ abstract class MediaDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Drop the unique index on path
                 db.execSQL("DROP INDEX IF EXISTS `index_media_path`")
-                
+
                 // Recreate the index without unique constraint
                 db.execSQL(
                     """

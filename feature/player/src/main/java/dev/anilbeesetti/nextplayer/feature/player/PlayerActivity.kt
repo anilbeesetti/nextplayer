@@ -451,13 +451,13 @@ class PlayerActivity : AppCompatActivity() {
     private fun updatePictureInPictureParams(enableAutoEnter: Boolean = mediaController?.isPlaying == true): PictureInPictureParams {
         val playerViewWidth = binding.playerView.width
         val playerViewHeight = binding.playerView.height
-        
+
         // Validate playerView dimensions
         if (playerViewWidth <= 0 || playerViewHeight <= 0) {
             Timber.w("Invalid playerView dimensions: $playerViewWidth x $playerViewHeight")
             return PictureInPictureParams.Builder().build()
         }
-        
+
         val displayAspectRatio = Rational(playerViewWidth, playerViewHeight)
 
         return PictureInPictureParams.Builder().apply {
