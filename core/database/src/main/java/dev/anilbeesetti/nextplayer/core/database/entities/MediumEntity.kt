@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
     tableName = "media",
     indices = [
         Index(value = ["uri"], unique = true),
-        Index(value = ["path"], unique = true),
+        Index(value = ["path"]),
     ],
 )
 data class MediumEntity(

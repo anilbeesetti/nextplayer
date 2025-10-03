@@ -22,7 +22,7 @@ object DatabaseModule {
         klass = MediaDatabase::class.java,
         name = MediaDatabase.DATABASE_NAME,
     ).apply {
-        addMigrations(MediaDatabase.MIGRATION_1_2)
+        addMigrations(MediaDatabase.MIGRATION_1_2, MediaDatabase.MIGRATION_2_3)
         fallbackToDestructiveMigration(false)
     }.build()
 }

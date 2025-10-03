@@ -23,7 +23,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         AudioStreamInfoEntity::class,
         SubtitleStreamInfoEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -159,6 +159,20 @@ abstract class MediaDatabase : RoomDatabase() {
                 db.execSQL(
                     """
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_media_path` ON `media` (`path`)
+                    """,
+                )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Drop the unique index on path
+                db.execSQL("DROP INDEX IF EXISTS `index_media_path`")
+
+                // Recreate the index without unique constraint
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_media_path` ON `media` (`path`)
                     """,
                 )
             }

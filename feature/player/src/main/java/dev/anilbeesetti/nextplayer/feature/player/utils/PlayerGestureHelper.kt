@@ -225,6 +225,7 @@ class PlayerGestureHelper(
                 if (currentGestureAction != GestureAction.ZOOM) return false
 
                 playerView.player?.videoSize?.let { videoSize ->
+                    if (videoSize.width <= 0) return false
                     val scaleFactor = (exoContentFrameLayout.scaleX * detector.scaleFactor)
                     val updatedVideoScale = (exoContentFrameLayout.width * scaleFactor) / videoSize.width.toFloat()
                     if (updatedVideoScale in SCALE_RANGE) {
@@ -233,6 +234,7 @@ class PlayerGestureHelper(
                         onScaleChanged(scaleFactor)
                     }
                     val currentVideoScale = (exoContentFrameLayout.width * exoContentFrameLayout.scaleX) / videoSize.width.toFloat()
+                    if (currentVideoScale.isNaN() || currentVideoScale.isInfinite()) return false
                     activity.showPlayerInfo("${(currentVideoScale * 100).roundToInt()}%")
                 }
                 return true

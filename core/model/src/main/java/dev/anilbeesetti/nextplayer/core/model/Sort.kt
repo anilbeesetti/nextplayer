@@ -33,19 +33,22 @@ data class Sort(
             str2Marker += thatChunk.length
 
             // If both chunks contain numeric characters, sort them numerically.
-            var result: Int
+            val result: Int
             if (thisChunk[0].isDigit() && thatChunk[0].isDigit()) {
                 // Simple chunk comparison by length.
                 val thisChunkLength = thisChunk.length
-                result = thisChunkLength - thatChunk.length
+                val lengthDiff = thisChunkLength - thatChunk.length
                 // If equal, the first different number counts.
-                if (result == 0) {
+                if (lengthDiff == 0) {
                     for (i in 0 until thisChunkLength) {
-                        result = thisChunk[i] - thatChunk[i]
-                        if (result != 0) {
-                            return@Comparator result
+                        val charDiff = thisChunk[i] - thatChunk[i]
+                        if (charDiff != 0) {
+                            return@Comparator charDiff
                         }
                     }
+                    result = 0
+                } else {
+                    result = lengthDiff
                 }
             } else {
                 result = thisChunk.compareTo(thatChunk)
