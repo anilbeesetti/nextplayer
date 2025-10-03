@@ -193,6 +193,18 @@ class PlayerService : MediaSessionService() {
                 stopSelf()
             }
         }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            super.onIsPlayingChanged(isPlaying)
+            mediaSession?.player?.let { player ->
+                serviceScope.launch {
+                    mediaRepository.updateMediumPosition(
+                        uri = player.currentMediaItem?.mediaId ?: return@launch,
+                        position = player.currentPosition,
+                    )
+                }
+            }
+        }
     }
 
     private val mediaSessionCallback = object : MediaSession.Callback {
