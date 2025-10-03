@@ -425,7 +425,9 @@ class PlayerActivity : AppCompatActivity() {
                         PIP_ACTION_NEXT -> mediaController?.seekToNext()
                         PIP_ACTION_PREVIOUS -> mediaController?.seekToPrevious()
                     }
-                    updatePictureInPictureParams()
+                    if (isInPictureInPictureMode && !isFinishing && !isDestroyed) {
+                        updatePictureInPictureParams()
+                    }
                 }
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
