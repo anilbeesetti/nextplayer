@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_description">버전 및 기여자 정보</string>
+    <string name="about_description">버전, 지원, 기여자 정보</string>
     <string name="about_name">정보</string>
     <string name="ascending">오름차순</string>
     <string name="cancel">취소</string>
@@ -210,4 +210,20 @@
     <string name="background_play">백그라운드 재생</string>
     <string name="background_play_description">홈을 누르거나 화면이 잠겨 있을 때 백그라운드에서 계속 재생합니다.</string>
     <string name="enable_pip_from_settings">PIP 기능이 꺼져 있습니다. 설정에서 PIP 모드를 켜 주세요.</string>
+    <string name="loop_mode">반복 모드</string>
+    <string name="loop_mode_off">반복: 꺼짐</string>
+    <string name="loop_mode_one">반복: 단일 동영상</string>
+    <string name="loop_mode_all">반복: 전체</string>
+    <string name="by">%1$s 제작</string>
+    <string name="libraries">라이브러리</string>
+    <string name="github">GitHub</string>
+    <string name="donate">후원</string>
+    <string name="support_the_developer_on">%1$s에서 개발자에게 도움 주기</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="media_layout">미디어 레이아웃</string>
+    <string name="list">목록</string>
+    <string name="grid">그리드</string>
+    <string name="error_opening_link">이 링크를 열 수 있는 앱이 없습니다</string>
 </resources>
