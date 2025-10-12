@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material.icons.rounded.HeadsetOff
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Movie
@@ -96,6 +97,7 @@ object NextIcons {
     val Language = Icons.Rounded.Translate
     val Length = Icons.Rounded.Straighten
     val Link = Icons.Rounded.Link
+    val Lock = Icons.Rounded.Lock
     val Location = Icons.Rounded.LocationOn
     val Movie = Icons.Rounded.LocalMovies
     val Pip = Icons.Rounded.PictureInPictureAlt
