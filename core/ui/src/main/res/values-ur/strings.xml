@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="done">ہو گیا</string>
+    <string name="double_tap">دو بار تھپتھپانے کا اشارہ</string>
+    <string name="double_tap_description">ڈبل تھپتھپانے کے اشارے کی کارروائی کو منتخب کریں۔</string>
+    <string name="error_playing_video">خرابی: ویڈیو نہیں چل سکتا</string>
+    <string name="fast_seek">تیزی سے تلاش کرنا</string>
+    <string name="fast_seek_description">عین مطابق کے بجائے قریب ترین کلیدی فریم تلاش کریں۔</string>
+    <string name="grant_permission">اجازت دیں۔</string>
+    <string name="group_videos">فولڈر کے لحاظ سے ویڈیوز کو گروپ کریں۔</string>
+    <string name="duration">دورانیہ</string>
+    <string name="location">مقام</string>
+    <string name="menu">مینو</string>
+</resources>
