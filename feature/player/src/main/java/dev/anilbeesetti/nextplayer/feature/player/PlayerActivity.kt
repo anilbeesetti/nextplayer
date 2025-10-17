@@ -373,13 +373,16 @@ class PlayerActivity : AppCompatActivity() {
             mediaController?.pause()
         }
 
+        if (isPipActive) {
+            finish()
+            if (!shouldPlayInBackground) {
+                mediaController?.stopPlayerSession()
+            }
+        }
+
         controllerFuture?.run {
             MediaController.releaseFuture(this)
             controllerFuture = null
-        }
-
-        if (isPipActive) {
-            finishAndRemoveTask()
         }
         super.onStop()
     }
