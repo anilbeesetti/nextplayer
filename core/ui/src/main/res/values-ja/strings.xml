@@ -225,4 +225,5 @@
     <string name="list">リスト</string>
     <string name="grid">グリッド</string>
     <string name="libraries">ライブラリー</string>
+    <string name="tree">ツリー</string>
 </resources>
