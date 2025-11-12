@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_description">Versión, créditos</string>
+    <string name="about_description">Versión, soporte, créditos</string>
     <string name="about_name">Acerca de</string>
     <string name="appearance_description">Configura la aplicación a tu gusto</string>
     <string name="appearance_name">Apariencia</string>
