@@ -210,4 +210,20 @@
     <string name="enable_pip_from_settings">La función Imagen en imagen está deshabilitada. Habilítela en Configuración para usar esta función.</string>
     <string name="background_play">Reproducción en segundo plano</string>
     <string name="background_play_description">Reproducir en segundo plano cuando se toca en el inicio o la pantalla está bloqueada.</string>
+    <string name="loop_mode">Modo de bucle</string>
+    <string name="loop_mode_off">Bucle: Apagado</string>
+    <string name="loop_mode_one">Bucle: Uno</string>
+    <string name="loop_mode_all">Bucle: Todo</string>
+    <string name="by">por %1$s</string>
+    <string name="libraries">Librerías</string>
+    <string name="github">Github</string>
+    <string name="donate">Donar</string>
+    <string name="error_opening_link">No se encontró aplicación para abrir este enlace</string>
+    <string name="support_the_developer_on">Apoya al desarrollador en %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="list">Lista</string>
+    <string name="grid">Cuadricula</string>
+    <string name="media_layout">Diseño</string>
 </resources>
