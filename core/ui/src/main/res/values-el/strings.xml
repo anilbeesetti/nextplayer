@@ -64,7 +64,7 @@
     <string name="location">Τοποθεσία</string>
     <string name="permission_request">Αίτημα άδειας</string>
     <string name="permission_settings">Ο Next Player χρειάζεται άδεια \"%1$s\" για πρόσβαση και αναπαραγωγή πολυμέσων. Χωρίς αυτό, η πρόσβαση και η αναπαραγωγή πολυμέσων δε θα λειτουργήσουν. Για να χρησιμοποιήσετε την εφαρμογή πλήρως, παραχωρήστε την άδεια από τις ρυθμίσεις, καθώς απορρίφθηκε οριστικά.</string>
-    <string name="remember_selections_description">Απομνημόνευση για κάθε αρχείο (ήχο, υπότιτλους κλπ)</string>
+    <string name="remember_selections_description">Απομνημόνευση για κάθε αρχείο (ήχο, υπότιτλους κλπ).</string>
     <string name="seek_gesture_description">Οριζόντια για αναζήτηση εμπρός ή πίσω</string>
     <string name="seek_gesture">Χειρονομία</string>
     <string name="preferred_audio_lang_description">Γλώσσα ήχου που θέλετε να χρησιμοποιείτε από προεπιλογή</string>
