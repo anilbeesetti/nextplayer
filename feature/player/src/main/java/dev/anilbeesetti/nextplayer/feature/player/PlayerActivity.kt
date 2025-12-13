@@ -79,6 +79,7 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
+import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
@@ -156,17 +157,8 @@ class PlayerActivity : AppCompatActivity() {
      * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private var subtitleFileLauncherLaunchedForMediaItem: MediaItem? = null
 
-    private val subtitleFileLauncher = registerForActivityResult(OpenDocument()) { uri ->
-        if (uri != null && subtitleFileLauncherLaunchedForMediaItem != null) {
-            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            lifecycleScope.launch {
-                maybeInitControllerFuture()
-                controllerFuture?.await()?.addSubtitleTrack(uri)
-            }
-        }
-    }
+    private val subtitleFileSuspendLauncher = registerForSuspendActivityResult(OpenDocument())
 
     /**
      * Player controller views
@@ -352,7 +344,6 @@ class PlayerActivity : AppCompatActivity() {
                 addListener(playbackStateListener)
                 startPlayback()
             }
-            subtitleFileLauncherLaunchedForMediaItem = null
         }
         initializePlayerView()
     }
@@ -370,7 +361,7 @@ class PlayerActivity : AppCompatActivity() {
             removeListener(playbackStateListener)
         }
         val shouldPlayInBackground = playInBackground || playerPreferences.autoBackgroundPlay
-        if (subtitleFileLauncherLaunchedForMediaItem != null || !shouldPlayInBackground) {
+        if (subtitleFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
             mediaController?.pause()
         }
 
@@ -602,17 +593,22 @@ class PlayerActivity : AppCompatActivity() {
                 tracks = mediaController?.currentTracks ?: return@setOnClickListener,
                 onTrackSelected = { mediaController?.switchSubtitleTrack(it) },
                 onOpenLocalTrackClicked = {
-                    subtitleFileLauncherLaunchedForMediaItem = mediaController?.currentMediaItem
-                    subtitleFileLauncher.launch(
-                        arrayOf(
-                            MimeTypes.APPLICATION_SUBRIP,
-                            MimeTypes.APPLICATION_TTML,
-                            MimeTypes.TEXT_VTT,
-                            MimeTypes.TEXT_SSA,
-                            MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                            MimeTypes.BASE_TYPE_TEXT + "/*",
-                        ),
-                    )
+                    lifecycleScope.launch {
+                        val uri = subtitleFileSuspendLauncher.launch(
+                            arrayOf(
+                                MimeTypes.APPLICATION_SUBRIP,
+                                MimeTypes.APPLICATION_TTML,
+                                MimeTypes.TEXT_VTT,
+                                MimeTypes.TEXT_SSA,
+                                MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                MimeTypes.BASE_TYPE_TEXT + "/*",
+                            ),
+                        ) ?: return@launch
+                        println("HELLO: ${uri.toString()}")
+                        contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        maybeInitControllerFuture()
+                        controllerFuture?.await()?.addSubtitleTrack(uri)
+                    }
                 },
             ).show(supportFragmentManager, "TrackSelectionDialog")
         }
