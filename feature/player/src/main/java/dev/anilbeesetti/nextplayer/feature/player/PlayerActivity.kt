@@ -36,6 +36,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
@@ -73,10 +74,10 @@ import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
@@ -580,15 +581,15 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         audioTrackButton.setOnClickListener {
-            TrackSelectionDialogFragment(
+            trackSelectionDialog(
                 type = C.TRACK_TYPE_AUDIO,
                 tracks = mediaController?.currentTracks ?: return@setOnClickListener,
                 onTrackSelected = { mediaController?.switchAudioTrack(it) },
-            ).show(supportFragmentManager, "TrackSelectionDialog")
+            ).show()
         }
 
         subtitleTrackButton.setOnClickListener {
-            TrackSelectionDialogFragment(
+            trackSelectionDialog(
                 type = C.TRACK_TYPE_TEXT,
                 tracks = mediaController?.currentTracks ?: return@setOnClickListener,
                 onTrackSelected = { mediaController?.switchSubtitleTrack(it) },
@@ -604,19 +605,19 @@ class PlayerActivity : AppCompatActivity() {
                                 MimeTypes.BASE_TYPE_TEXT + "/*",
                             ),
                         ) ?: return@launch
-                        println("HELLO: ${uri.toString()}")
                         contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         maybeInitControllerFuture()
                         controllerFuture?.await()?.addSubtitleTrack(uri)
                     }
                 },
-            ).show(supportFragmentManager, "TrackSelectionDialog")
+            ).show()
         }
 
         playbackSpeedButton.setOnClickListener {
-            PlaybackSpeedControlsDialogFragment(
+            playbackSpeedControlsDialog(
                 mediaController = mediaController ?: return@setOnClickListener,
-            ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
+                lifecycleScope = lifecycleScope
+            ).show()
         }
 
         lockControlsButton.setOnClickListener {
@@ -638,10 +639,10 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         videoZoomButton.setOnLongClickListener {
-            VideoZoomOptionsDialogFragment(
+            videoZoomOptionsDialog(
                 currentVideoZoom = playerPreferences.playerVideoZoom,
                 onVideoZoomOptionSelected = { changeAndSaveVideoZoom(videoZoom = it) },
-            ).show(supportFragmentManager, "VideoZoomOptionsDialog")
+            )
             true
         }
         screenRotateButton.setOnClickListener {
