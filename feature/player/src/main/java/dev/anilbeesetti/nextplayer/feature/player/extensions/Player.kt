@@ -104,5 +104,6 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
 
     val index = currentMediaItemIndex
     addMediaItem(index + 1, updateMediaItem)
+    seekToDefaultPosition(index + 1)
     removeMediaItem(index)
 }

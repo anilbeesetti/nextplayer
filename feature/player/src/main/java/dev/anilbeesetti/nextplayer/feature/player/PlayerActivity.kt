@@ -81,6 +81,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
@@ -760,6 +761,7 @@ class PlayerActivity : AppCompatActivity() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(playerApi.title)
+                            setExtras(positionMs = playerApi.position?.toLong())
                         }.build(),
                     )
                     val apiSubs = playerApi.getSubs().map { subtitle ->
