@@ -15,7 +15,7 @@
     <string name="player_controls_next">Nächster Player</string>
     <string name="player_controls_play_pause">Player: Wiedergabe/Pause</string>
     <string name="remember_brightness_level_description">Helligkeitsstufe zwischen Wiedergabesitzungen merken</string>
-    <string name="remember_selections_description">Merke Auswahl für jede Datei, wie z.B. Audiospur, Untertitelspur usw.</string>
+    <string name="remember_selections_description">Merke Auswahl für jede Datei, wie z.B. Audiospur, Untertitelspur, usw.</string>
     <string name="resume">Fortsetzen</string>
     <string name="resume_description">Wähle, ob wiedergegebene Videos an der Stelle fortgesetzt werden sollen, wo du aufgehört hast</string>
     <string name="seek_gesture">Such-Geste</string>
