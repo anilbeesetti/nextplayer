@@ -63,11 +63,13 @@ import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaControlsState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper.Companion.SEEK_STEP_MS
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @Composable
@@ -79,19 +81,12 @@ fun PlayerActivity.MediaPlayerScreen(
     val presentationState = rememberPresentationState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
     val metadataState = rememberMetadataState(player)
+    val mediaControlsState = rememberMediaControlsState(
+        player = player,
+        hideAfter = playerPreferences.controllerAutoHideTimeout.toMillis.milliseconds,
+    )
 
-    var showControls by remember { mutableStateOf(true) }
     var videoZoom by remember { mutableStateOf(playerPreferences.playerVideoZoom) }
-
-    LaunchedEffect(showControls) {
-        if (showControls) {
-            toggleSystemBars(showBars = true)
-//                    delay(5.seconds)
-//                    showControls = false
-        } else {
-            toggleSystemBars(showBars = false)
-        }
-    }
 
     Box(
         modifier = modifier
@@ -99,7 +94,7 @@ fun PlayerActivity.MediaPlayerScreen(
             .background(Color.Black)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { showControls = !showControls },
+                    onTap = { mediaControlsState.toggleControlsVisibility() },
                     onDoubleTap = { offset ->
                         val action = when (playerPreferences.doubleTapGesture) {
                             DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
@@ -199,7 +194,7 @@ fun PlayerActivity.MediaPlayerScreen(
             ),
         )
 
-        if (showControls) {
+        if (mediaControlsState.controlsVisible) {
             Column(
                 modifier = Modifier
                     .safeDrawingPadding()
