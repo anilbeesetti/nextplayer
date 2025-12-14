@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -80,7 +81,6 @@ fun PlayerActivity.MediaPlayerScreen(
     onSelectSubtitleClick: () -> Unit = {},
 ) {
     val presentationState = rememberPresentationState(player)
-    val mediaPresentationState = rememberMediaPresentationState(player)
     val metadataState = rememberMetadataState(player)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
@@ -136,236 +136,256 @@ fun PlayerActivity.MediaPlayerScreen(
             playerPreferences = playerPreferences,
         )
 
-        if (controlsVisibilityState.controlsVisible) {
-            if (controlsVisibilityState.controlsLocked) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .safeDrawingPadding()
-                        .padding(horizontal = 8.dp),
-                ) {
-                    PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
-                        Icon(
-                            painter = painterResource(coreUiR.drawable.ic_lock),
-                            contentDescription = stringResource(coreUiR.string.controls_unlock),
-                        )
-                    }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(horizontal = 8.dp),
+        ) {
+            if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
+                PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
+                    Icon(
+                        painter = painterResource(coreUiR.drawable.ic_lock),
+                        contentDescription = stringResource(coreUiR.string.controls_unlock),
+                    )
                 }
 
-                return@Box
+                return
             }
 
-            Column(
-                modifier = Modifier
-                    .safeDrawingPadding()
-                    .padding(horizontal = 8.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
-                        Icon(
-                            painter = painterResource(coreUiR.drawable.ic_arrow_left),
-                            contentDescription = null,
-                        )
-                    }
-                    Text(
-                        text = metadataState.title ?: "",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        PlayerButton(
-                            onClick = {
-                                playbackSpeedControlsDialog(
-                                    mediaController = player,
-                                    lifecycleScope = lifecycleScope,
-                                ).show()
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(coreUiR.drawable.ic_speed),
-                                contentDescription = null,
-                            )
-                        }
-                        PlayerButton(
-                            onClick = {
-                                trackSelectionDialog(
-                                    type = C.TRACK_TYPE_AUDIO,
-                                    tracks = player.currentTracks,
-                                    onTrackSelected = { player.switchAudioTrack(it) },
-                                ).show()
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(coreUiR.drawable.ic_audio_track),
-                                contentDescription = null,
-                            )
-                        }
-                        PlayerButton(
-                            onClick = {
-                                trackSelectionDialog(
-                                    type = C.TRACK_TYPE_TEXT,
-                                    tracks = player.currentTracks,
-                                    onTrackSelected = { player.switchSubtitleTrack(it) },
-                                    onOpenLocalTrackClicked = onSelectSubtitleClick,
-                                ).show()
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(coreUiR.drawable.ic_subtitle_track),
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                }
-
-                // MIDDLE
-                Spacer(modifier = Modifier.weight(1f))
-                if (seekGestureState.isSeeking) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                            ),
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        PreviousButton(player = player)
-                        PlayPauseButton(player = player)
-                        NextButton(player = player)
-                    }
-                }
-
-
-                // BOTTOM
-                Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    var showPendingPosition by remember { mutableStateOf(false) }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.noRippleClickable { showPendingPosition = !showPendingPosition },
-                    ) {
-                        Text(
-                            text = when (showPendingPosition) {
-                                true -> "-${mediaPresentationState.pendingPositionFormatted}"
-                                false -> mediaPresentationState.positionFormatted
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
-                        )
-                        Text(
-                            text = " / ",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
-                        )
-                        Text(
-                            text = mediaPresentationState.durationFormatted,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-                    RotationButton()
-                }
-                Slider(
-                    value = mediaPresentationState.position.toFloat(),
-                    valueRange = 0f..mediaPresentationState.duration.toFloat(),
-                    onValueChange = {
-                        player.setScrubbingModeEnabled(true)
-                        player.seekTo(it.toLong())
-                    },
-                    onValueChangeFinished = {
-                        player.setScrubbingModeEnabled(false)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
+            if (controlsVisibilityState.controlsVisible) {
+                ControlsTopView(
+                    player = player,
+                    title = metadataState.title ?: "",
+                    onSelectSubtitleClick = onSelectSubtitleClick,
                 )
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+            }
+
+            // MIDDLE
+            Spacer(modifier = Modifier.weight(1f))
+            if (seekGestureState.isSeeking) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    PlayerButton(onClick = { controlsVisibilityState.lockControls() }) {
-                        Icon(
-                            painter = painterResource(coreUiR.drawable.ic_lock_open),
-                            contentDescription = null,
-                        )
-                    }
-                    PlayerButton(
-                        onClick = {
-                            val nextVideoZoom = videoZoom.next()
-                            videoZoom = nextVideoZoom
-                            changeAndSaveVideoZoom(videoZoom = nextVideoZoom)
-                        },
-                        onLongClick = {
-                            videoZoomOptionsDialog(
-                                currentVideoZoom = videoZoom,
-                                onVideoZoomOptionSelected = {
-                                    videoZoom = it
-                                    changeAndSaveVideoZoom(videoZoom = it)
-                                },
-                            ).show()
-                        },
-                    ) {
-                        Icon(
-                            painter = when (videoZoom) {
-                                VideoZoom.BEST_FIT -> painterResource(coreUiR.drawable.ic_fit_screen)
-                                VideoZoom.STRETCH -> painterResource(coreUiR.drawable.ic_aspect_ratio)
-                                VideoZoom.CROP -> painterResource(coreUiR.drawable.ic_crop_landscape)
-                                VideoZoom.HUNDRED_PERCENT -> painterResource(coreUiR.drawable.ic_width_wide)
-                            },
-                            contentDescription = null,
-                        )
-                    }
-                    PlayerButton(onClick = { }) {
-                        Icon(
-                            painter = painterResource(coreUiR.drawable.ic_pip),
-                            contentDescription = null,
-                        )
-                    }
-                    PlayerButton(onClick = { }) {
-                        Icon(
-                            painter = painterResource(coreUiR.drawable.ic_headset),
-                            contentDescription = null,
-                        )
-                    }
-                    LoopButton(player = player)
+                    Text(
+                        text = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                        ),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                    )
                 }
+            } else if (controlsVisibilityState.controlsVisible) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    PreviousButton(player = player)
+                    PlayPauseButton(player = player)
+                    NextButton(player = player)
+                }
+            }
+
+
+            // BOTTOM
+            Spacer(modifier = Modifier.weight(1f))
+            if (controlsVisibilityState.controlsVisible) {
+                ControlsBottomView(
+                    player = player,
+                    videoZoom = videoZoom,
+                    onVideoZoomOptionSelected = {
+                        videoZoom = it
+                        changeAndSaveVideoZoom(videoZoom)
+                    },
+                    onLockControlsClick = { controlsVisibilityState.lockControls() },
+                )
             }
         }
     }
 }
 
-enum class DoubleTapAction {
-    SEEK_BACKWARD,
-    SEEK_FORWARD,
-    PLAY_PAUSE,
+@Composable
+fun PlayerActivity.ControlsTopView(
+    modifier: Modifier = Modifier,
+    player: MediaController,
+    title: String,
+    onSelectSubtitleClick: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+            Icon(
+                painter = painterResource(coreUiR.drawable.ic_arrow_left),
+                contentDescription = null,
+            )
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            PlayerButton(
+                onClick = {
+                    playbackSpeedControlsDialog(
+                        mediaController = player,
+                        lifecycleScope = lifecycleScope,
+                    ).show()
+                },
+            ) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_speed),
+                    contentDescription = null,
+                )
+            }
+            PlayerButton(
+                onClick = {
+                    trackSelectionDialog(
+                        type = C.TRACK_TYPE_AUDIO,
+                        tracks = player.currentTracks,
+                        onTrackSelected = { player.switchAudioTrack(it) },
+                    ).show()
+                },
+            ) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_audio_track),
+                    contentDescription = null,
+                )
+            }
+            PlayerButton(
+                onClick = {
+                    trackSelectionDialog(
+                        type = C.TRACK_TYPE_TEXT,
+                        tracks = player.currentTracks,
+                        onTrackSelected = { player.switchSubtitleTrack(it) },
+                        onOpenLocalTrackClicked = onSelectSubtitleClick,
+                    ).show()
+                },
+            ) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_subtitle_track),
+                    contentDescription = null,
+                )
+            }
+        }
+    }
 }
 
+@Composable
+fun PlayerActivity.ControlsBottomView(
+    modifier: Modifier = Modifier,
+    player: MediaController,
+    videoZoom: VideoZoom,
+    onVideoZoomOptionSelected: (VideoZoom) -> Unit,
+    onLockControlsClick: () -> Unit,
+) {
+    val mediaPresentationState = rememberMediaPresentationState(player)
+
+    Column(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            var showPendingPosition by remember { mutableStateOf(false) }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.noRippleClickable { showPendingPosition = !showPendingPosition },
+            ) {
+                Text(
+                    text = when (showPendingPosition) {
+                        true -> "-${mediaPresentationState.pendingPositionFormatted}"
+                        false -> mediaPresentationState.positionFormatted
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                )
+                Text(
+                    text = " / ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                )
+                Text(
+                    text = mediaPresentationState.durationFormatted,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            RotationButton()
+        }
+        Slider(
+            value = mediaPresentationState.position.toFloat(),
+            valueRange = 0f..mediaPresentationState.duration.toFloat(),
+            onValueChange = {
+                player.setScrubbingModeEnabled(true)
+                player.seekTo(it.toLong())
+            },
+            onValueChangeFinished = {
+                player.setScrubbingModeEnabled(false)
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            PlayerButton(onClick = onLockControlsClick) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_lock_open),
+                    contentDescription = null,
+                )
+            }
+            PlayerButton(
+                onClick = { onVideoZoomOptionSelected(videoZoom.next()) },
+                onLongClick = {
+                    videoZoomOptionsDialog(
+                        currentVideoZoom = videoZoom,
+                        onVideoZoomOptionSelected = onVideoZoomOptionSelected,
+                    ).show()
+                },
+            ) {
+                Icon(
+                    painter = when (videoZoom) {
+                        VideoZoom.BEST_FIT -> painterResource(coreUiR.drawable.ic_fit_screen)
+                        VideoZoom.STRETCH -> painterResource(coreUiR.drawable.ic_aspect_ratio)
+                        VideoZoom.CROP -> painterResource(coreUiR.drawable.ic_crop_landscape)
+                        VideoZoom.HUNDRED_PERCENT -> painterResource(coreUiR.drawable.ic_width_wide)
+                    },
+                    contentDescription = null,
+                )
+            }
+            PlayerButton(onClick = { }) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_pip),
+                    contentDescription = null,
+                )
+            }
+            PlayerButton(onClick = { }) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_headset),
+                    contentDescription = null,
+                )
+            }
+            LoopButton(player = player)
+        }
+    }
+}
 
 private fun VideoZoom.toContentScale(): ContentScale = when (this) {
     VideoZoom.BEST_FIT -> ContentScale.Fit
