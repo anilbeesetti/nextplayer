@@ -1,6 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.app.Activity
+import android.content.res.Configuration
+import androidx.annotation.OptIn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -9,24 +15,39 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +56,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
@@ -50,10 +73,9 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
@@ -66,14 +88,15 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberDoubleTapGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
-import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
+@OptIn(UnstableApi::class)
 @Composable
 fun PlayerActivity.MediaPlayerScreen(
     player: MediaController,
@@ -98,122 +121,343 @@ fun PlayerActivity.MediaPlayerScreen(
     )
 
     var videoZoom by remember { mutableStateOf(playerPreferences.playerVideoZoom) }
+    var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { controlsVisibilityState.toggleControlsVisibility() },
-                    onDoubleTap = {
-                        if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                        doubleTapGestureHandler.handleDoubleTap(offset = it, size = size)
-                    },
-                )
-            }
-            .pointerInput(controlsVisibilityState.controlsLocked) {
-                if (controlsVisibilityState.controlsLocked) return@pointerInput
-
-                detectHorizontalDragGestures(
-                    onDragStart = seekGestureState::onDragStart,
-                    onHorizontalDrag = seekGestureState::onDrag,
-                    onDragEnd = seekGestureState::onDragEnd,
-                )
-            },
-    ) {
-        PlayerSurface(
-            player = player,
-            surfaceType = SURFACE_TYPE_SURFACE_VIEW,
-            modifier = Modifier.resizeWithContentScale(
-                contentScale = videoZoom.toContentScale(),
-                sourceSizeDp = presentationState.videoSizeDp,
-            ),
-        )
-
-        SubtitleView(
-            player = player,
-            playerPreferences = playerPreferences,
-        )
-
-        Column(
-            modifier = Modifier
+    Box {
+        Box(
+            modifier = modifier
                 .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(horizontal = 8.dp),
+                .background(Color.Black)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            if (overlayView != null) {
+                                overlayView = null
+                            } else {
+                                controlsVisibilityState.toggleControlsVisibility()
+                            }
+                        },
+                        onDoubleTap = {
+                            if (controlsVisibilityState.controlsLocked) return@detectTapGestures
+                            doubleTapGestureHandler.handleDoubleTap(offset = it, size = size)
+                        },
+                    )
+                }
+                .pointerInput(controlsVisibilityState.controlsLocked) {
+                    if (controlsVisibilityState.controlsLocked) return@pointerInput
+
+                    detectHorizontalDragGestures(
+                        onDragStart = seekGestureState::onDragStart,
+                        onHorizontalDrag = seekGestureState::onDrag,
+                        onDragEnd = seekGestureState::onDragEnd,
+                    )
+                },
         ) {
-            if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
-                PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
-                    Icon(
-                        painter = painterResource(coreUiR.drawable.ic_lock),
-                        contentDescription = stringResource(coreUiR.string.controls_unlock),
+            PlayerSurface(
+                player = player,
+                surfaceType = SURFACE_TYPE_SURFACE_VIEW,
+                modifier = Modifier.resizeWithContentScale(
+                    contentScale = videoZoom.toContentScale(),
+                    sourceSizeDp = presentationState.videoSizeDp,
+                ),
+            )
+
+            SubtitleView(
+                player = player,
+                playerPreferences = playerPreferences,
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .safeDrawingPadding()
+                    .padding(horizontal = 8.dp),
+            ) {
+                if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
+                    PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
+                        Icon(
+                            painter = painterResource(coreUiR.drawable.ic_lock),
+                            contentDescription = stringResource(coreUiR.string.controls_unlock),
+                        )
+                    }
+
+                    return
+                }
+
+                if (controlsVisibilityState.controlsVisible) {
+                    ControlsTopView(
+                        player = player,
+                        title = metadataState.title ?: "",
+                        onSelectSubtitleClick = onSelectSubtitleClick,
+                        onClickAudioTrackSelector = {
+                            controlsVisibilityState.hideControls()
+                            overlayView = OverlayView.AUDIO_SELECTOR
+                        },
+                        onClickSubtitleTrackSelector = {
+                            controlsVisibilityState.hideControls()
+                            overlayView = OverlayView.SUBTITLE_SELECTOR
+                        }
                     )
                 }
 
-                return
-            }
+                // MIDDLE
+                Spacer(modifier = Modifier.weight(1f))
+                if (seekGestureState.isSeeking) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                } else if (controlsVisibilityState.controlsVisible) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PreviousButton(player = player)
+                        PlayPauseButton(player = player)
+                        NextButton(player = player)
+                    }
+                }
 
-            if (controlsVisibilityState.controlsVisible) {
-                ControlsTopView(
-                    player = player,
-                    title = metadataState.title ?: "",
-                    onSelectSubtitleClick = onSelectSubtitleClick,
-                )
-            }
 
-            // MIDDLE
-            Spacer(modifier = Modifier.weight(1f))
-            if (seekGestureState.isSeeking) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
+                // BOTTOM
+                Spacer(modifier = Modifier.weight(1f))
+                if (controlsVisibilityState.controlsVisible) {
+                    ControlsBottomView(
+                        player = player,
+                        videoZoom = videoZoom,
+                        onVideoZoomOptionSelected = {
+                            videoZoom = it
+                            changeAndSaveVideoZoom(videoZoom)
+                        },
+                        onLockControlsClick = { controlsVisibilityState.lockControls() },
                     )
                 }
-            } else if (controlsVisibilityState.controlsVisible) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    PreviousButton(player = player)
-                    PlayPauseButton(player = player)
-                    NextButton(player = player)
-                }
             }
+        }
 
+        val configuration = LocalConfiguration.current
 
-            // BOTTOM
-            Spacer(modifier = Modifier.weight(1f))
-            if (controlsVisibilityState.controlsVisible) {
-                ControlsBottomView(
-                    player = player,
-                    videoZoom = videoZoom,
-                    onVideoZoomOptionSelected = {
-                        videoZoom = it
-                        changeAndSaveVideoZoom(videoZoom)
-                    },
-                    onLockControlsClick = { controlsVisibilityState.lockControls() },
-                )
+        AnimatedVisibility(
+            modifier = Modifier.align(
+                if (configuration.isPortrait) {
+                    Alignment.BottomCenter
+                } else {
+                    Alignment.CenterEnd
+                },
+            ),
+            visible = overlayView != null,
+            enter = if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
+            exit = if (configuration.isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
+        ) {
+            when (overlayView) {
+                OverlayView.AUDIO_SELECTOR -> {
+                    AudioTrackSelectorView(
+                        player = player,
+                        onDismiss = { overlayView = null },
+                    )
+                }
+                OverlayView.SUBTITLE_SELECTOR -> {
+                    SubtitleSelectorView(
+                        player = player,
+                        onSelectSubtitleClick = onSelectSubtitleClick,
+                        onDismiss = { overlayView = null },
+                    )
+                }
+                OverlayView.PLAYBACK_SPEED -> {
+
+                }
+                null -> {}
             }
         }
     }
 }
 
 @Composable
+fun AudioTrackSelectorView(
+    modifier: Modifier = Modifier,
+    player: MediaController,
+    onDismiss: () -> Unit,
+) {
+    val audioTracksState = rememberTracksState(player, C.TRACK_TYPE_AUDIO)
+
+    OverlayView(
+        title = stringResource(coreUiR.string.select_audio_track)
+    ) {
+        Column(modifier = modifier.selectableGroup()) {
+            audioTracksState.tracks.forEachIndexed { index, track ->
+                RadioButtonRow(
+                    selected = track.isSelected,
+                    text = track.mediaTrackGroup.getName(C.TRACK_TYPE_AUDIO, index),
+                    onClick = {
+                        player.switchAudioTrack(index)
+                        onDismiss()
+                    }
+                )
+            }
+            RadioButtonRow(
+                selected = audioTracksState.tracks.none { it.isSelected },
+                text = stringResource(coreUiR.string.disable),
+                onClick = {
+                    player.switchAudioTrack(-1)
+                    onDismiss()
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun SubtitleSelectorView(
+    modifier: Modifier = Modifier,
+    player: MediaController,
+    onSelectSubtitleClick: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
+
+    OverlayView(
+        title = stringResource(coreUiR.string.select_subtitle_track)
+    ) {
+        Column(modifier = modifier.selectableGroup()) {
+            subtitleTracksState.tracks.forEachIndexed { index, track ->
+                RadioButtonRow(
+                    selected = track.isSelected,
+                    text = track.mediaTrackGroup.getName(C.TRACK_TYPE_TEXT, index),
+                    onClick = {
+                        player.switchSubtitleTrack(index)
+                        onDismiss()
+                    }
+                )
+            }
+            RadioButtonRow(
+                selected = subtitleTracksState.tracks.none { it.isSelected },
+                text = stringResource(coreUiR.string.disable),
+                onClick = {
+                    player.switchSubtitleTrack(-1)
+                    onDismiss()
+                }
+            )
+        }
+        Spacer(modifier = Modifier.size(16.dp))
+        FilledTonalButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                onSelectSubtitleClick()
+                onDismiss()
+            }
+        ) {
+            Text(text = stringResource(coreUiR.string.open_subtitle))
+        }
+    }
+}
+
+enum class OverlayView {
+    AUDIO_SELECTOR, SUBTITLE_SELECTOR, PLAYBACK_SPEED
+}
+
+@Composable
+fun OverlayView(
+    modifier: Modifier = Modifier,
+    title: String,
+    content: @Composable () -> Unit,
+) {
+    val configuration = LocalConfiguration.current
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .then(
+                if (configuration.isPortrait) {
+                    Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.4f)
+                } else {
+                    Modifier
+                        .fillMaxWidth(0.4f)
+                        .fillMaxHeight()
+                },
+            ),
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .padding(top = 16.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 16.dp),
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+fun RadioButtonRow(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    text: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(4.dp))
+            .selectable(
+                selected = selected,
+                onClick = onClick,
+            )
+            .padding(
+                horizontal = 4.dp,
+                vertical = 8.dp,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null,
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+val Configuration.isPortrait: Boolean
+    get() = orientation == Configuration.ORIENTATION_PORTRAIT
+
+@OptIn(UnstableApi::class)
+@Composable
 fun PlayerActivity.ControlsTopView(
     modifier: Modifier = Modifier,
     player: MediaController,
     title: String,
     onSelectSubtitleClick: () -> Unit = {},
+    onClickAudioTrackSelector: () -> Unit = {},
+    onClickSubtitleTrackSelector: () -> Unit = {},
 ) {
     Row(
         modifier = modifier,
@@ -252,30 +496,13 @@ fun PlayerActivity.ControlsTopView(
                     contentDescription = null,
                 )
             }
-            PlayerButton(
-                onClick = {
-                    trackSelectionDialog(
-                        type = C.TRACK_TYPE_AUDIO,
-                        tracks = player.currentTracks,
-                        onTrackSelected = { player.switchAudioTrack(it) },
-                    ).show()
-                },
-            ) {
+            PlayerButton(onClick = onClickAudioTrackSelector) {
                 Icon(
                     painter = painterResource(coreUiR.drawable.ic_audio_track),
                     contentDescription = null,
                 )
             }
-            PlayerButton(
-                onClick = {
-                    trackSelectionDialog(
-                        type = C.TRACK_TYPE_TEXT,
-                        tracks = player.currentTracks,
-                        onTrackSelected = { player.switchSubtitleTrack(it) },
-                        onOpenLocalTrackClicked = onSelectSubtitleClick,
-                    ).show()
-                },
-            ) {
+            PlayerButton(onClick = onClickSubtitleTrackSelector) {
                 Icon(
                     painter = painterResource(coreUiR.drawable.ic_subtitle_track),
                     contentDescription = null,
@@ -285,6 +512,7 @@ fun PlayerActivity.ControlsTopView(
     }
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 fun PlayerActivity.ControlsBottomView(
     modifier: Modifier = Modifier,
