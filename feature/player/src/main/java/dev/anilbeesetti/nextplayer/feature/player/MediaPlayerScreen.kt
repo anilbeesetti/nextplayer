@@ -1,5 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -86,7 +90,7 @@ fun PlayerActivity.MediaPlayerScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color.Black)
+            .background(Color.Black)
             .noRippleClickable { showControls = !showControls },
     ) {
         PlayerSurface(
@@ -100,10 +104,11 @@ fun PlayerActivity.MediaPlayerScreen(
 
         if (showControls) {
             Column(
-                modifier = Modifier.safeDrawingPadding(),
+                modifier = Modifier
+                    .safeDrawingPadding()
+                    .padding(horizontal = 8.dp),
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
@@ -187,6 +192,29 @@ fun PlayerActivity.MediaPlayerScreen(
                 // BOTTOM
 
                 Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // TODO: implement duration
+                    Text(
+                        text = "00:00",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = "/",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = "24:21",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White,
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+                    RotationButton()
+                }
                 Slider(
                     value = 40f,
                     valueRange = 0f..100f,
@@ -294,12 +322,12 @@ internal fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
     PlayerButton(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
-        onClick = state::onClick
+        onClick = state::onClick,
     ) {
         Icon(
             painter = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(32.dp),
         )
     }
 }
@@ -324,6 +352,26 @@ internal fun NextButton(player: Player, modifier: Modifier = Modifier) {
         Icon(
             painter = painterResource(coreUiR.drawable.ic_skip_next),
             contentDescription = stringResource(coreUiR.string.player_controls_next),
+        )
+    }
+}
+
+@Composable
+fun RotationButton(modifier: Modifier = Modifier) {
+    val activity = LocalActivity.current
+
+    PlayerButton(
+        onClick = {
+            activity?.requestedOrientation = when (activity.resources.configuration.orientation) {
+                Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+        },
+    ) {
+        Icon(
+            painter = painterResource(coreUiR.drawable.ic_screen_rotation),
+            contentDescription = null,
+            modifier = Modifier.size(12.dp),
         )
     }
 }
