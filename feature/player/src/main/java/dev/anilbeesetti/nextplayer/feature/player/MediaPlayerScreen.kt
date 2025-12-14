@@ -200,7 +200,7 @@ fun PlayerActivity.MediaPlayerScreen(
             if (controlsVisibilityState.controlsLocked) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .safeDrawingPadding()
                         .padding(horizontal = 8.dp),
                 ) {

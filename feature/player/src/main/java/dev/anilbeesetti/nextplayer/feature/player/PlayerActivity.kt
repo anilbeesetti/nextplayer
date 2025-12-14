@@ -51,6 +51,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -229,6 +232,17 @@ class PlayerActivity : AppCompatActivity() {
         setContent {
             var player by remember { mutableStateOf<MediaController?>(null) }
 
+            LifecycleStartEffect(Unit) {
+                maybeInitControllerFuture()
+                lifecycleScope.launch {
+                    player = controllerFuture?.await()
+                }
+
+                onStopOrDispose {
+                    player = null
+                }
+            }
+
             NextPlayerTheme(darkTheme = true) {
                 player?.let {
                     MediaPlayerScreen(
@@ -252,10 +266,6 @@ class PlayerActivity : AppCompatActivity() {
                         }
                     )
                 }
-            }
-
-            LaunchedEffect(Unit) {
-                player = controllerFuture?.await()
             }
         }
 
