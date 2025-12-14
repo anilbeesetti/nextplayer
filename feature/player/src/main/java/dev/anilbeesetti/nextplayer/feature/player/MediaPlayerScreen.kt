@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +38,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
+import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import androidx.media3.ui.compose.state.rememberPresentationState
 import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
@@ -157,6 +159,16 @@ fun PlayerActivity.MediaPlayerScreen(
                     }
                 }
 
+                // MIDDLE
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    PlayPauseButton(player = player)
+                }
+
 
                 // BOTTOM
 
@@ -165,7 +177,7 @@ fun PlayerActivity.MediaPlayerScreen(
                     value = 40f,
                     valueRange = 0f..100f,
                     onValueChange = {},
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Row(
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -184,7 +196,7 @@ fun PlayerActivity.MediaPlayerScreen(
                                 currentVideoZoom = playerPreferences.playerVideoZoom,
                                 onVideoZoomOptionSelected = { changeAndSaveVideoZoom(videoZoom = it) },
                             ).show()
-                        }
+                        },
                     ) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_fit_screen),
@@ -237,5 +249,25 @@ private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): St
         Player.REPEAT_MODE_OFF -> stringResource(coreUiR.string.loop_mode_off)
         Player.REPEAT_MODE_ONE -> stringResource(coreUiR.string.loop_mode_one)
         else -> stringResource(coreUiR.string.loop_mode_all)
+    }
+}
+
+@Composable
+internal fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
+    val state = rememberPlayPauseButtonState(player)
+    val icon = when (state.showPlay) {
+        true -> painterResource(coreUiR.drawable.ic_play)
+        false -> painterResource(coreUiR.drawable.ic_pause)
+    }
+    val contentDescription = when (state.showPlay) {
+        true -> stringResource(coreUiR.string.play_pause)
+        false -> stringResource(coreUiR.string.play_pause)
+    }
+
+    FilledTonalIconButton(modifier = modifier.size(40.dp), onClick = state::onClick) {
+        Icon(
+            painter = icon,
+            contentDescription = contentDescription,
+        )
     }
 }
