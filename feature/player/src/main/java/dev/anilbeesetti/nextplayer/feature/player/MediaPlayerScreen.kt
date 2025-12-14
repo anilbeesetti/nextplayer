@@ -59,6 +59,7 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
@@ -218,9 +219,15 @@ fun PlayerActivity.MediaPlayerScreen(
                     RotationButton()
                 }
                 Slider(
-                    value = 40f,
-                    valueRange = 0f..100f,
-                    onValueChange = {},
+                    value = mediaPresentationState.position.toFloat(),
+                    valueRange = 0f..mediaPresentationState.duration.toFloat(),
+                    onValueChange = {
+                        player.setScrubbingModeEnabled(true)
+                        player.seekTo(it.toLong())
+                    },
+                    onValueChangeFinished = {
+                        player.setScrubbingModeEnabled(false)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(

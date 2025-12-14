@@ -107,3 +107,9 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     seekToDefaultPosition(index + 1)
     removeMediaItem(index)
 }
+
+fun Player.setScrubbingModeEnabled(enabled: Boolean) {
+    when (this) {
+        is ExoPlayer -> this.isScrubbingModeEnabled = enabled
+    }
+}

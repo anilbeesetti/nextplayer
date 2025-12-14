@@ -38,7 +38,7 @@ class MediaPresentationState(
 
     suspend fun observe() {
         position = player.currentPosition
-        duration = player.duration
+        duration = player.duration.coerceAtLeast(0L)
         isPlaying = player.isPlaying
 
         coroutineScope {
@@ -50,7 +50,7 @@ class MediaPresentationState(
                             Player.EVENT_PLAYBACK_STATE_CHANGED,
                         )
                     ) {
-                        this@MediaPresentationState.duration = player.duration
+                        updateDuration()
                     }
 
                     if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
@@ -58,7 +58,7 @@ class MediaPresentationState(
                     }
 
                     if (events.containsAny(Player.EVENT_POSITION_DISCONTINUITY)) {
-                        this@MediaPresentationState.position = player.currentPosition
+                        updatePosition()
                     }
                 }
             }
@@ -66,13 +66,20 @@ class MediaPresentationState(
             while (true) {
                 delay(300)
                 if (player.isPlaying) {
-                    position = player.currentPosition
+                    updatePosition()
                 }
             }
         }
     }
-}
 
+    private fun updatePosition() {
+        position = player.currentPosition.coerceAtLeast(0L)
+    }
+
+    private fun updateDuration() {
+        duration = player.duration.coerceAtLeast(0L)
+    }
+}
 
 val MediaPresentationState.positionFormatted: String
     get() = position.milliseconds.formatted()
