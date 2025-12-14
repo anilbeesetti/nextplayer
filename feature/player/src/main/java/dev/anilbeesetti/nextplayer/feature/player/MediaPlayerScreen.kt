@@ -17,19 +17,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -39,7 +37,6 @@ import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
-import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
@@ -57,13 +54,12 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaControlsState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper.Companion.SEEK_STEP_MS
@@ -81,7 +77,7 @@ fun PlayerActivity.MediaPlayerScreen(
     val presentationState = rememberPresentationState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
     val metadataState = rememberMetadataState(player)
-    val mediaControlsState = rememberMediaControlsState(
+    val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.toMillis.milliseconds,
     )
@@ -94,8 +90,10 @@ fun PlayerActivity.MediaPlayerScreen(
             .background(Color.Black)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { mediaControlsState.toggleControlsVisibility() },
+                    onTap = { controlsVisibilityState.toggleControlsVisibility() },
                     onDoubleTap = { offset ->
+                        if (controlsVisibilityState.controlsLocked) return@detectTapGestures
+
                         val action = when (playerPreferences.doubleTapGesture) {
                             DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
                                 val viewCenterX = size.width / 2
@@ -149,12 +147,16 @@ fun PlayerActivity.MediaPlayerScreen(
 
                 detectHorizontalDragGestures(
                     onDragStart = {
+                        if (controlsVisibilityState.controlsLocked) return@detectHorizontalDragGestures
+
                         player.setScrubbingModeEnabled(true)
                         seekStart = player.currentPosition
                         seekChange = 0L
                         position = 0L
                     },
                     onHorizontalDrag = { change, dragAmount ->
+                        if (controlsVisibilityState.controlsLocked) return@detectHorizontalDragGestures
+
                         val changeDiff = change.previousPosition.x - change.position.x
                         val distanceDiff = abs(changeDiff / 4).coerceIn(0.5f, 10f)
                         val changeValue = (distanceDiff * SEEK_STEP_MS).toLong()
@@ -194,7 +196,25 @@ fun PlayerActivity.MediaPlayerScreen(
             ),
         )
 
-        if (mediaControlsState.controlsVisible) {
+        if (controlsVisibilityState.controlsVisible) {
+            if (controlsVisibilityState.controlsLocked) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .safeDrawingPadding()
+                        .padding(horizontal = 8.dp),
+                ) {
+                    PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
+                        Icon(
+                            painter = painterResource(coreUiR.drawable.ic_lock),
+                            contentDescription = stringResource(coreUiR.string.controls_unlock),
+                        )
+                    }
+                }
+
+                return@Box
+            }
+
             Column(
                 modifier = Modifier
                     .safeDrawingPadding()
@@ -332,7 +352,7 @@ fun PlayerActivity.MediaPlayerScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    PlayerButton(onClick = { }) {
+                    PlayerButton(onClick = { controlsVisibilityState.lockControls() }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_lock_open),
                             contentDescription = null,

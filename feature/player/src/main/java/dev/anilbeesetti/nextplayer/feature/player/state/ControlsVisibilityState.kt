@@ -20,23 +20,27 @@ import kotlin.time.Duration
 
 @UnstableApi
 @Composable
-fun rememberMediaControlsState(player: Player, hideAfter: Duration): MediaControlsState {
+fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): ControlsVisibilityState {
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
-    val mediaControlsState = remember { MediaControlsState(player, hideAfter, coroutineScope) }
-    LaunchedEffect(player) { mediaControlsState.observe() }
-    LaunchedEffect(mediaControlsState.controlsVisible) {
-        if (mediaControlsState.controlsVisible) {
+    val controlsVisibilityState = remember { ControlsVisibilityState(player, hideAfter, coroutineScope) }
+    LaunchedEffect(player) { controlsVisibilityState.observe() }
+    LaunchedEffect(controlsVisibilityState.controlsVisible, controlsVisibilityState.controlsLocked) {
+        if (controlsVisibilityState.controlsLocked) {
+            activity?.toggleSystemBars(showBars = false)
+            return@LaunchedEffect
+        }
+        if (controlsVisibilityState.controlsVisible) {
             activity?.toggleSystemBars(showBars = true)
         } else {
             activity?.toggleSystemBars(showBars = false)
         }
     }
-    return mediaControlsState
+    return controlsVisibilityState
 }
 
 @UnstableApi
-class MediaControlsState(
+class ControlsVisibilityState(
     private val player: Player,
     private val hideAfter: Duration,
     private val scope: CoroutineScope,
@@ -45,6 +49,10 @@ class MediaControlsState(
 
     var controlsVisible: Boolean by mutableStateOf(true)
         private set
+
+    var controlsLocked: Boolean by mutableStateOf(false)
+        private set
+
 
     fun showControls(duration: Duration = hideAfter) {
         controlsVisible = true
@@ -68,6 +76,14 @@ class MediaControlsState(
         } else {
             showControls()
         }
+    }
+
+    fun lockControls() {
+        controlsLocked = true
+    }
+
+    fun unlockControls() {
+        controlsLocked = false
     }
 
     suspend fun observe() {
