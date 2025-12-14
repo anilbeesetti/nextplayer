@@ -62,6 +62,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper.Companion.SEEK_STEP_MS
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import kotlin.math.abs
@@ -194,6 +195,11 @@ fun PlayerActivity.MediaPlayerScreen(
                 contentScale = videoZoom.toContentScale(),
                 sourceSizeDp = presentationState.videoSizeDp,
             ),
+        )
+
+        SubtitleView(
+            player = player,
+            playerPreferences = playerPreferences
         )
 
         if (controlsVisibilityState.controlsVisible) {
