@@ -15,10 +15,10 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 fun Activity.videoZoomOptionsDialog(
     currentVideoZoom: VideoZoom,
     onVideoZoomOptionSelected: (videoZoom: VideoZoom) -> Unit,
-) {
+): Dialog {
     val videoZoomValues = VideoZoom.entries.toTypedArray()
 
-    MaterialAlertDialogBuilder(this)
+    return MaterialAlertDialogBuilder(this)
         .setTitle(getString(R.string.video_zoom))
         .setSingleChoiceItems(
             videoZoomValues.map { getString(it.nameRes()) }.toTypedArray(),
@@ -26,7 +26,7 @@ fun Activity.videoZoomOptionsDialog(
         ) { dialog, trackIndex ->
             onVideoZoomOptionSelected(videoZoomValues[trackIndex])
             dialog.dismiss()
-        }.show()
+        }.create()
 }
 
 fun VideoZoom.nameRes(): Int {

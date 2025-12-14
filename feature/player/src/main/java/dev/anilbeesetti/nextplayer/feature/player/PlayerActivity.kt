@@ -38,12 +38,43 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -61,6 +92,10 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
+import androidx.media3.ui.compose.PlayerSurface
+import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
+import androidx.media3.ui.compose.modifiers.resizeWithContentScale
+import androidx.media3.ui.compose.state.rememberPresentationState
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
@@ -72,6 +107,7 @@ import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
@@ -80,6 +116,7 @@ import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
+import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
@@ -98,6 +135,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
@@ -111,6 +149,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -120,7 +159,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private val viewModel: PlayerViewModel by viewModels()
     private val applicationPreferences get() = viewModel.appPrefs.value
-    private val playerPreferences get() = viewModel.playerPrefs.value
+    val playerPreferences get() = viewModel.playerPrefs.value
 
     private var isPlaybackFinished = false
 
@@ -217,15 +256,42 @@ class PlayerActivity : AppCompatActivity() {
             DynamicColors.applyToActivityIfAvailable(this)
         }
 
-        // The window is always allowed to extend into the DisplayCutout areas on the short edges of the screen
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
 
         binding = ActivityPlayerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+
+        setContent {
+            var player by remember { mutableStateOf<MediaController?>(null) }
+
+            NextPlayerTheme(darkTheme = true) {
+                player?.let {
+                    MediaPlayerScreen(
+                        player = it,
+                        onSelectSubtitleClick = {
+                            lifecycleScope.launch {
+                                val uri = subtitleFileSuspendLauncher.launch(
+                                    arrayOf(
+                                        MimeTypes.APPLICATION_SUBRIP,
+                                        MimeTypes.APPLICATION_TTML,
+                                        MimeTypes.TEXT_VTT,
+                                        MimeTypes.TEXT_SSA,
+                                        MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                        MimeTypes.BASE_TYPE_TEXT + "/*",
+                                    ),
+                                ) ?: return@launch
+                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                maybeInitControllerFuture()
+                                controllerFuture?.await()?.addSubtitleTrack(uri)
+                            }
+                        }
+                    )
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                player = controllerFuture?.await()
+            }
+        }
 
         // Initializing views
         audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
@@ -616,7 +682,7 @@ class PlayerActivity : AppCompatActivity() {
         playbackSpeedButton.setOnClickListener {
             playbackSpeedControlsDialog(
                 mediaController = mediaController ?: return@setOnClickListener,
-                lifecycleScope = lifecycleScope
+                lifecycleScope = lifecycleScope,
             ).show()
         }
 
@@ -642,7 +708,7 @@ class PlayerActivity : AppCompatActivity() {
             videoZoomOptionsDialog(
                 currentVideoZoom = playerPreferences.playerVideoZoom,
                 onVideoZoomOptionSelected = { changeAndSaveVideoZoom(videoZoom = it) },
-            )
+            ).show()
             true
         }
         screenRotateButton.setOnClickListener {
@@ -906,7 +972,7 @@ class PlayerActivity : AppCompatActivity() {
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP,
             KeyEvent.KEYCODE_DPAD_UP,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                     volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
                     showVolumeGestureLayout()
@@ -916,7 +982,7 @@ class PlayerActivity : AppCompatActivity() {
 
             KeyEvent.KEYCODE_VOLUME_DOWN,
             KeyEvent.KEYCODE_DPAD_DOWN,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
                     volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
                     showVolumeGestureLayout()
@@ -928,7 +994,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_MEDIA_PAUSE,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
             KeyEvent.KEYCODE_BUTTON_SELECT,
-            -> {
+                -> {
                 when {
                     keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> mediaController?.pause()
                     keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> mediaController?.play()
@@ -941,7 +1007,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_BUTTON_START,
             KeyEvent.KEYCODE_BUTTON_A,
             KeyEvent.KEYCODE_SPACE,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible) {
                     binding.playerView.togglePlayPause()
                     return true
@@ -951,7 +1017,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_LEFT,
             KeyEvent.KEYCODE_BUTTON_L2,
             KeyEvent.KEYCODE_MEDIA_REWIND,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
                     mediaController?.run {
                         if (scrubStartPosition == -1L) {
@@ -971,7 +1037,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_BUTTON_R2,
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
                     mediaController?.run {
                         if (scrubStartPosition == -1L) {
@@ -992,7 +1058,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_ENTER,
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_NUMPAD_ENTER,
-            -> {
+                -> {
                 if (!binding.playerView.isControllerFullyVisible) {
                     binding.playerView.showController()
                     return true
@@ -1015,7 +1081,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_VOLUME_DOWN,
             KeyEvent.KEYCODE_DPAD_UP,
             KeyEvent.KEYCODE_DPAD_DOWN,
-            -> {
+                -> {
                 hideVolumeGestureLayout()
                 return true
             }
@@ -1026,7 +1092,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_BUTTON_R2,
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-            -> {
+                -> {
                 hidePlayerInfo()
                 return true
             }
@@ -1166,7 +1232,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun changeAndSaveVideoZoom(videoZoom: VideoZoom) {
+    fun changeAndSaveVideoZoom(videoZoom: VideoZoom) {
         applyVideoZoom(videoZoom)
         viewModel.setVideoZoom(videoZoom)
 
