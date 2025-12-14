@@ -56,13 +56,7 @@ class ControlsVisibilityState(
 
     fun showControls(duration: Duration = hideAfter) {
         controlsVisible = true
-        autoHideControlsJob?.cancel()
-        autoHideControlsJob = scope.launch {
-            delay(duration)
-            if (player.isPlaying) {
-                controlsVisible = false
-            }
-        }
+        autoHideControls(duration)
     }
 
     fun hideControls() {
@@ -90,8 +84,18 @@ class ControlsVisibilityState(
         player.listen { events ->
             if (events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
                 if (player.isPlaying) {
-                    showControls()
+                    autoHideControls()
                 }
+            }
+        }
+    }
+
+    private fun autoHideControls(duration: Duration = hideAfter) {
+        autoHideControlsJob?.cancel()
+        autoHideControlsJob = scope.launch {
+            delay(duration)
+            if (player.isPlaying) {
+                controlsVisible = false
             }
         }
     }

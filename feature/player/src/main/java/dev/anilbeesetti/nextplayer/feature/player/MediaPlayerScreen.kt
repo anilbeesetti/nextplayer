@@ -28,6 +28,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -37,7 +39,6 @@ import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
-import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
@@ -60,10 +61,13 @@ import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberDoubleTapGestureHandler
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
+import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
-import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper.Companion.SEEK_STEP_MS
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
@@ -82,6 +86,16 @@ fun PlayerActivity.MediaPlayerScreen(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.toMillis.milliseconds,
     )
+    val doubleTapGestureHandler = rememberDoubleTapGestureHandler(
+        player = player,
+        doubleTapGesture = playerPreferences.doubleTapGesture,
+        seekIncrementMillis = playerPreferences.seekIncrement.toMillis.toLong(),
+        shouldFastSeek = { playerPreferences.shouldFastSeek(it) },
+    )
+    val seekGestureState = rememberSeekGestureState(
+        player = player,
+        shouldFastSeek = { playerPreferences.shouldFastSeek(it) },
+    )
 
     var videoZoom by remember { mutableStateOf(playerPreferences.playerVideoZoom) }
 
@@ -92,99 +106,19 @@ fun PlayerActivity.MediaPlayerScreen(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { controlsVisibilityState.toggleControlsVisibility() },
-                    onDoubleTap = { offset ->
+                    onDoubleTap = {
                         if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-
-                        val action = when (playerPreferences.doubleTapGesture) {
-                            DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
-                                val viewCenterX = size.width / 2
-                                when {
-                                    offset.x < viewCenterX -> DoubleTapAction.SEEK_BACKWARD
-                                    else -> DoubleTapAction.SEEK_FORWARD
-                                }
-                            }
-
-                            DoubleTapGesture.BOTH -> {
-                                val eventPositionX = offset.x / size.width
-                                when {
-                                    eventPositionX < 0.35 -> DoubleTapAction.SEEK_BACKWARD
-                                    eventPositionX > 0.65 -> DoubleTapAction.SEEK_FORWARD
-                                    else -> DoubleTapAction.PLAY_PAUSE
-                                }
-                            }
-
-                            DoubleTapGesture.PLAY_PAUSE -> DoubleTapAction.PLAY_PAUSE
-
-                            DoubleTapGesture.NONE -> return@detectTapGestures
-                        }
-
-                        when (action) {
-                            DoubleTapAction.SEEK_BACKWARD -> {
-                                player.seekBack(
-                                    positionMs = player.currentPosition - playerPreferences.seekIncrement.toMillis,
-                                    shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
-                                )
-                            }
-                            DoubleTapAction.SEEK_FORWARD -> {
-                                player.seekForward(
-                                    positionMs = player.currentPosition + playerPreferences.seekIncrement.toMillis,
-                                    shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
-                                )
-                            }
-                            DoubleTapAction.PLAY_PAUSE -> {
-                                when (player.isPlaying) {
-                                    true -> player.pause()
-                                    false -> player.play()
-                                }
-                            }
-                        }
+                        doubleTapGestureHandler.handleDoubleTap(offset = it, size = size)
                     },
                 )
             }
-            .pointerInput(Unit) {
-                var seekStart = player.currentPosition
-                var seekChange = 0L
-                var position = 0L
+            .pointerInput(controlsVisibilityState.controlsLocked) {
+                if (controlsVisibilityState.controlsLocked) return@pointerInput
 
                 detectHorizontalDragGestures(
-                    onDragStart = {
-                        if (controlsVisibilityState.controlsLocked) return@detectHorizontalDragGestures
-
-                        player.setScrubbingModeEnabled(true)
-                        seekStart = player.currentPosition
-                        seekChange = 0L
-                        position = 0L
-                    },
-                    onHorizontalDrag = { change, dragAmount ->
-                        if (controlsVisibilityState.controlsLocked) return@detectHorizontalDragGestures
-
-                        val changeDiff = change.previousPosition.x - change.position.x
-                        val distanceDiff = abs(changeDiff / 4).coerceIn(0.5f, 10f)
-                        val changeValue = (distanceDiff * SEEK_STEP_MS).toLong()
-
-                        if (changeDiff < 0) {
-                            seekChange = (seekChange + changeValue)
-                                .takeIf { it + seekStart < player.duration } ?: (player.duration - seekStart)
-                            position = (seekStart + seekChange).coerceAtMost(player.duration)
-                            player.seekForward(
-                                positionMs = position,
-                                shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
-                            )
-                        } else {
-                            seekChange = (seekChange - changeValue)
-                                .takeIf { it + seekStart > 0 } ?: (0 - seekStart)
-                            position = seekStart + seekChange
-                            player.seekBack(
-                                positionMs = position,
-                                shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
-                            )
-                        }
-
-                        change.consume()
-                    },
-                    onDragEnd = {
-                        player.setScrubbingModeEnabled(false)
-                    }
+                    onDragStart = seekGestureState::onDragStart,
+                    onHorizontalDrag = seekGestureState::onDrag,
+                    onDragEnd = seekGestureState::onDragEnd,
                 )
             },
     ) {
@@ -199,7 +133,7 @@ fun PlayerActivity.MediaPlayerScreen(
 
         SubtitleView(
             player = player,
-            playerPreferences = playerPreferences
+            playerPreferences = playerPreferences,
         )
 
         if (controlsVisibilityState.controlsVisible) {
@@ -296,14 +230,31 @@ fun PlayerActivity.MediaPlayerScreen(
 
                 // MIDDLE
                 Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    PreviousButton(player = player)
-                    PlayPauseButton(player = player)
-                    NextButton(player = player)
+                if (seekGestureState.isSeeking) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PreviousButton(player = player)
+                        PlayPauseButton(player = player)
+                        NextButton(player = player)
+                    }
                 }
 
 
@@ -409,7 +360,7 @@ fun PlayerActivity.MediaPlayerScreen(
     }
 }
 
-private enum class DoubleTapAction {
+enum class DoubleTapAction {
     SEEK_BACKWARD,
     SEEK_FORWARD,
     PLAY_PAUSE,

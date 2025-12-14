@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.media3.common.Player
 import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -89,13 +90,3 @@ val MediaPresentationState.durationFormatted: String
 
 val MediaPresentationState.pendingPositionFormatted: String
     get() = (duration - position).milliseconds.formatted()
-
-private fun Duration.formatted(): String = toComponents { hours, minutes, seconds, nanoseconds ->
-    if (hours > 0) {
-        "$hours:${minutes.padStartWith0()}:${seconds.padStartWith0()}"
-    } else {
-        "${minutes.padStartWith0()}:${seconds.padStartWith0()}"
-    }
-}
-
-private fun Number.padStartWith0() = this.toString().padStart(2, '0')
