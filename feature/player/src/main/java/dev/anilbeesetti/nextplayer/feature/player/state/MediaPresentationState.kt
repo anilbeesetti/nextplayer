@@ -1,0 +1,91 @@
+package dev.anilbeesetti.nextplayer.feature.player.state
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.media3.common.Player
+import androidx.media3.common.listen
+import androidx.media3.common.util.UnstableApi
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+
+@UnstableApi
+@Composable
+fun rememberMediaPresentationState(player: Player): MediaPresentationState {
+    val mediaPresentationState = remember { MediaPresentationState(player) }
+    LaunchedEffect(player) { mediaPresentationState.observe() }
+    return mediaPresentationState
+}
+
+
+class MediaPresentationState(
+    private val player: Player,
+) {
+    var position: Long by mutableStateOf(0L)
+        private set
+
+    var duration: Long by mutableStateOf(0L)
+        private set
+
+    var isPlaying: Boolean by mutableStateOf(false)
+        private set
+
+    suspend fun observe() {
+        position = player.currentPosition
+        duration = player.duration
+        isPlaying = player.isPlaying
+
+        coroutineScope {
+            launch {
+                player.listen { events ->
+                    if (events.containsAny(
+                            Player.EVENT_MEDIA_ITEM_TRANSITION,
+                            Player.EVENT_TIMELINE_CHANGED,
+                            Player.EVENT_PLAYBACK_STATE_CHANGED,
+                        )
+                    ) {
+                        this@MediaPresentationState.duration = player.duration
+                    }
+
+                    if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
+                        this@MediaPresentationState.isPlaying = player.isPlaying
+                    }
+
+                    if (events.containsAny(Player.EVENT_POSITION_DISCONTINUITY)) {
+                        this@MediaPresentationState.position = player.currentPosition
+                    }
+                }
+            }
+
+            while (true) {
+                delay(300)
+                if (player.isPlaying) {
+                    position = player.currentPosition
+                }
+            }
+        }
+    }
+}
+
+
+val MediaPresentationState.positionFormatted: String
+    get() = position.milliseconds.formatted()
+
+val MediaPresentationState.durationFormatted: String
+    get() = duration.milliseconds.formatted()
+
+private fun Duration.formatted(): String = toComponents { hours, minutes, seconds, nanoseconds ->
+    if (hours > 0) {
+        "$hours:${minutes.padStartWith0()}:${seconds.padStartWith0()}"
+    } else {
+        "${minutes.padStartWith0()}:${seconds.padStartWith0()}"
+    }
+}
+
+private fun Number.padStartWith0() = this.toString().padStart(2, '0')

@@ -62,6 +62,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
+import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
@@ -72,6 +75,7 @@ fun PlayerActivity.MediaPlayerScreen(
     onSelectSubtitleClick: () -> Unit = {},
 ) {
     val presentationState = rememberPresentationState(player)
+    val mediaPresentationState = rememberMediaPresentationState(player)
     val metadataState = rememberMetadataState(player)
 
     var showControls by remember { mutableStateOf(true) }
@@ -190,24 +194,22 @@ fun PlayerActivity.MediaPlayerScreen(
 
 
                 // BOTTOM
-
                 Spacer(modifier = Modifier.weight(1f))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // TODO: implement duration
                     Text(
-                        text = "00:00",
+                        text = mediaPresentationState.positionFormatted,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White,
                     )
                     Text(
-                        text = "/",
+                        text = " - ",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White,
                     )
                     Text(
-                        text = "24:21",
+                        text = mediaPresentationState.durationFormatted,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White,
                     )

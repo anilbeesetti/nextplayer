@@ -13,9 +13,9 @@ import androidx.media3.common.util.UnstableApi
 @UnstableApi
 @Composable
 fun rememberMetadataState(player: Player): MetadataState {
-    val presentationState = remember { MetadataState(player) }
-    LaunchedEffect(player) { presentationState.observe() }
-    return presentationState
+    val metadataState = remember { MetadataState(player) }
+    LaunchedEffect(player) { metadataState.observe() }
+    return metadataState
 }
 
 @UnstableApi
