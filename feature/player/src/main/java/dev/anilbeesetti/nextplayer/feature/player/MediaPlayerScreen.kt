@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,17 +24,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
+import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
@@ -95,7 +100,7 @@ fun PlayerActivity.MediaPlayerScreen(
                         )
                     }
                     Text(
-                        text = metadataState?.title ?: "",
+                        text = metadataState.title ?: "",
                         style = MaterialTheme.typography.titleMedium,
                         color = androidx.compose.ui.graphics.Color.White,
                         maxLines = 2,
@@ -110,7 +115,7 @@ fun PlayerActivity.MediaPlayerScreen(
                         FilledTonalIconButton(
                             onClick = {
                                 playbackSpeedControlsDialog(
-                                    mediaController = player ?: return@FilledTonalIconButton,
+                                    mediaController = player,
                                     lifecycleScope = lifecycleScope,
                                 ).show()
                             },
@@ -124,8 +129,8 @@ fun PlayerActivity.MediaPlayerScreen(
                             onClick = {
                                 trackSelectionDialog(
                                     type = C.TRACK_TYPE_AUDIO,
-                                    tracks = player?.currentTracks ?: return@FilledTonalIconButton,
-                                    onTrackSelected = { player?.switchAudioTrack(it) },
+                                    tracks = player.currentTracks,
+                                    onTrackSelected = { player.switchAudioTrack(it) },
                                 ).show()
                             },
                         ) {
@@ -198,14 +203,39 @@ fun PlayerActivity.MediaPlayerScreen(
                             contentDescription = null,
                         )
                     }
-                    FilledTonalIconButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
-                        Icon(
-                            painter = painterResource(coreUiR.drawable.ic_loop_off),
-                            contentDescription = null,
-                        )
-                    }
+                    LoopButton(player = player)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun LoopButton(player: Player, modifier: Modifier = Modifier) {
+    val state = rememberRepeatButtonState(player)
+
+    FilledTonalIconButton(modifier = modifier, onClick = state::onClick) {
+        Icon(
+            painter = repeatModeIconPainter(state.repeatModeState),
+            contentDescription = repeatModeContentDescription(state.repeatModeState),
+        )
+    }
+}
+
+@Composable
+private fun repeatModeIconPainter(repeatMode: @Player.RepeatMode Int): Painter {
+    return when (repeatMode) {
+        Player.REPEAT_MODE_OFF -> painterResource(coreUiR.drawable.ic_loop_off)
+        Player.REPEAT_MODE_ONE -> painterResource(coreUiR.drawable.ic_loop_one)
+        else -> painterResource(coreUiR.drawable.ic_loop_all)
+    }
+}
+
+@Composable
+private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): String {
+    return when (repeatMode) {
+        Player.REPEAT_MODE_OFF -> stringResource(coreUiR.string.loop_mode_off)
+        Player.REPEAT_MODE_ONE -> stringResource(coreUiR.string.loop_mode_one)
+        else -> stringResource(coreUiR.string.loop_mode_all)
     }
 }
