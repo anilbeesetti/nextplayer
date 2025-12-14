@@ -45,7 +45,7 @@
     <string name="player_name">Плеєр</string>
     <string name="remember_brightness_level">Запам\'ятати рівень яскравості</string>
     <string name="remember_brightness_level_description">Запам\'ятовує рівень яскравості між сеансами відтворення</string>
-    <string name="remember_selections_description">Запам\'ятовує вибір для кожного файлу, наприклад, звукову доріжку, доріжку субтитрів тощо</string>
+    <string name="remember_selections_description">Запам\'ятовує вибір для кожного файлу, наприклад, звукову доріжку, доріжку субтитрів тощо.</string>
     <string name="seek_gesture">Горизонтальний жест</string>
     <string name="playback">Відтворення</string>
     <string name="remember_selections">Запам\'ятати вибір</string>
