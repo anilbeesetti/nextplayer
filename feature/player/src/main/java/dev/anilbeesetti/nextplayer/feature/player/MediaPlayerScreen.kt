@@ -1,10 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,10 +13,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,10 +27,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -43,9 +49,11 @@ import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import androidx.media3.ui.compose.state.rememberPresentationState
 import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import androidx.media3.ui.compose.state.rememberRepeatButtonState
+import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
+import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
@@ -59,9 +67,11 @@ fun PlayerActivity.MediaPlayerScreen(
     modifier: Modifier = Modifier,
     onSelectSubtitleClick: () -> Unit = {},
 ) {
-    var showControls by remember { mutableStateOf(true) }
     val presentationState = rememberPresentationState(player)
     val metadataState = rememberMetadataState(player)
+
+    var showControls by remember { mutableStateOf(true) }
+    var videoZoom by remember { mutableStateOf(playerPreferences.playerVideoZoom) }
 
     LaunchedEffect(showControls) {
         if (showControls) {
@@ -83,7 +93,7 @@ fun PlayerActivity.MediaPlayerScreen(
             player = player,
             surfaceType = SURFACE_TYPE_SURFACE_VIEW,
             modifier = Modifier.resizeWithContentScale(
-                contentScale = ContentScale.Fit,
+                contentScale = videoZoom.toContentScale(),
                 sourceSizeDp = presentationState.videoSizeDp,
             ),
         )
@@ -97,7 +107,7 @@ fun PlayerActivity.MediaPlayerScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    FilledTonalIconButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_arrow_left),
                             contentDescription = null,
@@ -106,7 +116,7 @@ fun PlayerActivity.MediaPlayerScreen(
                     Text(
                         text = metadataState.title ?: "",
                         style = MaterialTheme.typography.titleMedium,
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = Color.White,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
@@ -114,9 +124,9 @@ fun PlayerActivity.MediaPlayerScreen(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        FilledTonalIconButton(
+                        PlayerButton(
                             onClick = {
                                 playbackSpeedControlsDialog(
                                     mediaController = player,
@@ -129,7 +139,7 @@ fun PlayerActivity.MediaPlayerScreen(
                                 contentDescription = null,
                             )
                         }
-                        FilledTonalIconButton(
+                        PlayerButton(
                             onClick = {
                                 trackSelectionDialog(
                                     type = C.TRACK_TYPE_AUDIO,
@@ -143,7 +153,7 @@ fun PlayerActivity.MediaPlayerScreen(
                                 contentDescription = null,
                             )
                         }
-                        FilledTonalIconButton(
+                        PlayerButton(
                             onClick = {
                                 trackSelectionDialog(
                                     type = C.TRACK_TYPE_TEXT,
@@ -166,7 +176,7 @@ fun PlayerActivity.MediaPlayerScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     PreviousButton(player = player)
                     PlayPauseButton(player = player)
@@ -186,34 +196,47 @@ fun PlayerActivity.MediaPlayerScreen(
                 Row(
                     modifier = Modifier.padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    FilledTonalIconButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_lock_open),
                             contentDescription = null,
                         )
                     }
-                    FilledTonalIconButton(
+                    PlayerButton(
                         onClick = {
+                            val nextVideoZoom = videoZoom.next()
+                            videoZoom = nextVideoZoom
+                            changeAndSaveVideoZoom(videoZoom = nextVideoZoom)
+                        },
+                        onLongClick = {
                             videoZoomOptionsDialog(
-                                currentVideoZoom = playerPreferences.playerVideoZoom,
-                                onVideoZoomOptionSelected = { changeAndSaveVideoZoom(videoZoom = it) },
+                                currentVideoZoom = videoZoom,
+                                onVideoZoomOptionSelected = {
+                                    videoZoom = it
+                                    changeAndSaveVideoZoom(videoZoom = it)
+                                },
                             ).show()
                         },
                     ) {
                         Icon(
-                            painter = painterResource(coreUiR.drawable.ic_fit_screen),
+                            painter = when (videoZoom) {
+                                VideoZoom.BEST_FIT -> painterResource(coreUiR.drawable.ic_fit_screen)
+                                VideoZoom.STRETCH -> painterResource(coreUiR.drawable.ic_aspect_ratio)
+                                VideoZoom.CROP -> painterResource(coreUiR.drawable.ic_crop_landscape)
+                                VideoZoom.HUNDRED_PERCENT -> painterResource(coreUiR.drawable.ic_width_wide)
+                            },
                             contentDescription = null,
                         )
                     }
-                    FilledTonalIconButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_pip),
                             contentDescription = null,
                         )
                     }
-                    FilledTonalIconButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_headset),
                             contentDescription = null,
@@ -230,7 +253,7 @@ fun PlayerActivity.MediaPlayerScreen(
 fun LoopButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberRepeatButtonState(player)
 
-    FilledTonalIconButton(modifier = modifier, onClick = state::onClick) {
+    PlayerButton(modifier = modifier, onClick = state::onClick) {
         Icon(
             painter = repeatModeIconPainter(state.repeatModeState),
             contentDescription = repeatModeContentDescription(state.repeatModeState),
@@ -268,10 +291,15 @@ internal fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
         false -> stringResource(coreUiR.string.play_pause)
     }
 
-    FilledTonalIconButton(modifier = modifier.size(40.dp), onClick = state::onClick) {
+    PlayerButton(
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
+        onClick = state::onClick
+    ) {
         Icon(
             painter = icon,
             contentDescription = contentDescription,
+            modifier = Modifier.size(32.dp)
         )
     }
 }
@@ -280,7 +308,7 @@ internal fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
 internal fun PreviousButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberPreviousButtonState(player)
 
-    FilledTonalIconButton(modifier = modifier, onClick = state::onClick) {
+    PlayerButton(modifier = modifier, onClick = state::onClick) {
         Icon(
             painter = painterResource(coreUiR.drawable.ic_skip_prev),
             contentDescription = stringResource(coreUiR.string.player_controls_previous),
@@ -292,10 +320,49 @@ internal fun PreviousButton(player: Player, modifier: Modifier = Modifier) {
 internal fun NextButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberNextButtonState(player)
 
-    FilledTonalIconButton(modifier = modifier, onClick = state::onClick) {
+    PlayerButton(modifier = modifier, onClick = state::onClick) {
         Icon(
             painter = painterResource(coreUiR.drawable.ic_skip_next),
             contentDescription = stringResource(coreUiR.string.player_controls_next),
         )
     }
+}
+
+@Composable
+fun PlayerButton(
+    modifier: Modifier = Modifier,
+    shape: Shape = CircleShape,
+    contentPadding: PaddingValues = PaddingValues(8.dp),
+    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .clip(shape)
+            .combinedClickable(
+                role = Role.Button,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
+        shape = shape,
+        color = containerColor,
+        contentColor = contentColor,
+    ) {
+        Box(
+            modifier = modifier.padding(contentPadding),
+            contentAlignment = Alignment.Center,
+        ) {
+            content()
+        }
+    }
+}
+
+private fun VideoZoom.toContentScale(): ContentScale = when (this) {
+    VideoZoom.BEST_FIT -> ContentScale.Fit
+    VideoZoom.STRETCH -> ContentScale.FillBounds
+    VideoZoom.CROP -> ContentScale.Crop
+    VideoZoom.HUNDRED_PERCENT -> ContentScale.None // TODO: fix this
 }
