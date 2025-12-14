@@ -1,27 +1,19 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.content.pm.ActivityInfo
-import android.content.res.Configuration
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,35 +23,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
-import androidx.media3.ui.compose.state.rememberNextButtonState
-import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import androidx.media3.ui.compose.state.rememberPresentationState
-import androidx.media3.ui.compose.state.rememberPreviousButtonState
-import androidx.media3.ui.compose.state.rememberRepeatButtonState
+import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
+import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
+import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
+import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
+import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
+import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
@@ -68,6 +61,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @Composable
@@ -97,7 +91,56 @@ fun PlayerActivity.MediaPlayerScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
-            .noRippleClickable { showControls = !showControls },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { showControls = !showControls },
+                    onDoubleTap = { offset ->
+                        val action = when (playerPreferences.doubleTapGesture) {
+                            DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
+                                val viewCenterX = size.width / 2
+                                when {
+                                    offset.x < viewCenterX -> DoubleTapAction.SEEK_BACKWARD
+                                    else -> DoubleTapAction.SEEK_FORWARD
+                                }
+                            }
+
+                            DoubleTapGesture.BOTH -> {
+                                val eventPositionX = offset.x / size.width
+                                when {
+                                    eventPositionX < 0.35 -> DoubleTapAction.SEEK_BACKWARD
+                                    eventPositionX > 0.65 -> DoubleTapAction.SEEK_FORWARD
+                                    else -> DoubleTapAction.PLAY_PAUSE
+                                }
+                            }
+
+                            DoubleTapGesture.PLAY_PAUSE -> DoubleTapAction.PLAY_PAUSE
+
+                            DoubleTapGesture.NONE -> return@detectTapGestures
+                        }
+
+                        when (action) {
+                            DoubleTapAction.SEEK_BACKWARD -> {
+                                player.seekBack(
+                                    positionMs = player.currentPosition - playerPreferences.seekIncrement.toMillis,
+                                    shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
+                                )
+                            }
+                            DoubleTapAction.SEEK_FORWARD -> {
+                                player.seekForward(
+                                    positionMs = player.currentPosition + playerPreferences.seekIncrement.toMillis,
+                                    shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
+                                )
+                            }
+                            DoubleTapAction.PLAY_PAUSE -> {
+                                when (player.isPlaying) {
+                                    true -> player.pause()
+                                    false -> player.play()
+                                }
+                            }
+                        }
+                    },
+                )
+            },
     ) {
         PlayerSurface(
             player = player,
@@ -204,7 +247,7 @@ fun PlayerActivity.MediaPlayerScreen(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.noRippleClickable { showPendingPosition = !showPendingPosition }
+                        modifier = Modifier.noRippleClickable { showPendingPosition = !showPendingPosition },
                     ) {
                         Text(
                             text = when (showPendingPosition) {
@@ -297,136 +340,12 @@ fun PlayerActivity.MediaPlayerScreen(
     }
 }
 
-@Composable
-fun LoopButton(player: Player, modifier: Modifier = Modifier) {
-    val state = rememberRepeatButtonState(player)
-
-    PlayerButton(modifier = modifier, onClick = state::onClick) {
-        Icon(
-            painter = repeatModeIconPainter(state.repeatModeState),
-            contentDescription = repeatModeContentDescription(state.repeatModeState),
-        )
-    }
+private enum class DoubleTapAction {
+    SEEK_BACKWARD,
+    SEEK_FORWARD,
+    PLAY_PAUSE,
 }
 
-@Composable
-private fun repeatModeIconPainter(repeatMode: @Player.RepeatMode Int): Painter {
-    return when (repeatMode) {
-        Player.REPEAT_MODE_OFF -> painterResource(coreUiR.drawable.ic_loop_off)
-        Player.REPEAT_MODE_ONE -> painterResource(coreUiR.drawable.ic_loop_one)
-        else -> painterResource(coreUiR.drawable.ic_loop_all)
-    }
-}
-
-@Composable
-private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): String {
-    return when (repeatMode) {
-        Player.REPEAT_MODE_OFF -> stringResource(coreUiR.string.loop_mode_off)
-        Player.REPEAT_MODE_ONE -> stringResource(coreUiR.string.loop_mode_one)
-        else -> stringResource(coreUiR.string.loop_mode_all)
-    }
-}
-
-@Composable
-internal fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
-    val state = rememberPlayPauseButtonState(player)
-    val icon = when (state.showPlay) {
-        true -> painterResource(coreUiR.drawable.ic_play)
-        false -> painterResource(coreUiR.drawable.ic_pause)
-    }
-    val contentDescription = when (state.showPlay) {
-        true -> stringResource(coreUiR.string.play_pause)
-        false -> stringResource(coreUiR.string.play_pause)
-    }
-
-    PlayerButton(
-        modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
-        onClick = state::onClick,
-    ) {
-        Icon(
-            painter = icon,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(32.dp),
-        )
-    }
-}
-
-@Composable
-internal fun PreviousButton(player: Player, modifier: Modifier = Modifier) {
-    val state = rememberPreviousButtonState(player)
-
-    PlayerButton(modifier = modifier, onClick = state::onClick) {
-        Icon(
-            painter = painterResource(coreUiR.drawable.ic_skip_prev),
-            contentDescription = stringResource(coreUiR.string.player_controls_previous),
-        )
-    }
-}
-
-@Composable
-internal fun NextButton(player: Player, modifier: Modifier = Modifier) {
-    val state = rememberNextButtonState(player)
-
-    PlayerButton(modifier = modifier, onClick = state::onClick) {
-        Icon(
-            painter = painterResource(coreUiR.drawable.ic_skip_next),
-            contentDescription = stringResource(coreUiR.string.player_controls_next),
-        )
-    }
-}
-
-@Composable
-fun RotationButton(modifier: Modifier = Modifier) {
-    val activity = LocalActivity.current
-
-    PlayerButton(
-        onClick = {
-            activity?.requestedOrientation = when (activity.resources.configuration.orientation) {
-                Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            }
-        },
-    ) {
-        Icon(
-            painter = painterResource(coreUiR.drawable.ic_screen_rotation),
-            contentDescription = null,
-            modifier = Modifier.size(12.dp),
-        )
-    }
-}
-
-@Composable
-fun PlayerButton(
-    modifier: Modifier = Modifier,
-    shape: Shape = CircleShape,
-    contentPadding: PaddingValues = PaddingValues(8.dp),
-    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    onClick: () -> Unit,
-    onLongClick: (() -> Unit)? = null,
-    content: @Composable () -> Unit,
-) {
-    Surface(
-        modifier = modifier
-            .clip(shape)
-            .combinedClickable(
-                role = Role.Button,
-                onClick = onClick,
-                onLongClick = onLongClick,
-            ),
-        shape = shape,
-        color = containerColor,
-        contentColor = contentColor,
-    ) {
-        Box(
-            modifier = modifier.padding(contentPadding),
-            contentAlignment = Alignment.Center,
-        ) {
-            content()
-        }
-    }
-}
 
 private fun VideoZoom.toContentScale(): ContentScale = when (this) {
     VideoZoom.BEST_FIT -> ContentScale.Fit
