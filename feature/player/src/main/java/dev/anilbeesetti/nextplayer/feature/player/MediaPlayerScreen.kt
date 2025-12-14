@@ -15,35 +15,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -55,8 +41,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.PlayerSurface
@@ -71,15 +55,11 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
-import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
-import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
@@ -88,9 +68,10 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberDoubleTapGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
+import dev.anilbeesetti.nextplayer.feature.player.ui.AudioTrackSelectorView
+import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleSelectorView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import kotlin.time.Duration.Companion.milliseconds
@@ -188,7 +169,6 @@ fun PlayerActivity.MediaPlayerScreen(
                     ControlsTopView(
                         player = player,
                         title = metadataState.title ?: "",
-                        onSelectSubtitleClick = onSelectSubtitleClick,
                         onClickAudioTrackSelector = {
                             controlsVisibilityState.hideControls()
                             overlayView = OverlayView.AUDIO_SELECTOR
@@ -283,167 +263,8 @@ fun PlayerActivity.MediaPlayerScreen(
     }
 }
 
-@Composable
-fun AudioTrackSelectorView(
-    modifier: Modifier = Modifier,
-    player: MediaController,
-    onDismiss: () -> Unit,
-) {
-    val audioTracksState = rememberTracksState(player, C.TRACK_TYPE_AUDIO)
-
-    OverlayView(
-        title = stringResource(coreUiR.string.select_audio_track)
-    ) {
-        Column(modifier = modifier.selectableGroup()) {
-            audioTracksState.tracks.forEachIndexed { index, track ->
-                RadioButtonRow(
-                    selected = track.isSelected,
-                    text = track.mediaTrackGroup.getName(C.TRACK_TYPE_AUDIO, index),
-                    onClick = {
-                        player.switchAudioTrack(index)
-                        onDismiss()
-                    }
-                )
-            }
-            RadioButtonRow(
-                selected = audioTracksState.tracks.none { it.isSelected },
-                text = stringResource(coreUiR.string.disable),
-                onClick = {
-                    player.switchAudioTrack(-1)
-                    onDismiss()
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun SubtitleSelectorView(
-    modifier: Modifier = Modifier,
-    player: MediaController,
-    onSelectSubtitleClick: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
-
-    OverlayView(
-        title = stringResource(coreUiR.string.select_subtitle_track)
-    ) {
-        Column(modifier = modifier.selectableGroup()) {
-            subtitleTracksState.tracks.forEachIndexed { index, track ->
-                RadioButtonRow(
-                    selected = track.isSelected,
-                    text = track.mediaTrackGroup.getName(C.TRACK_TYPE_TEXT, index),
-                    onClick = {
-                        player.switchSubtitleTrack(index)
-                        onDismiss()
-                    }
-                )
-            }
-            RadioButtonRow(
-                selected = subtitleTracksState.tracks.none { it.isSelected },
-                text = stringResource(coreUiR.string.disable),
-                onClick = {
-                    player.switchSubtitleTrack(-1)
-                    onDismiss()
-                }
-            )
-        }
-        Spacer(modifier = Modifier.size(16.dp))
-        FilledTonalButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                onSelectSubtitleClick()
-                onDismiss()
-            }
-        ) {
-            Text(text = stringResource(coreUiR.string.open_subtitle))
-        }
-    }
-}
-
 enum class OverlayView {
     AUDIO_SELECTOR, SUBTITLE_SELECTOR, PLAYBACK_SPEED
-}
-
-@Composable
-fun OverlayView(
-    modifier: Modifier = Modifier,
-    title: String,
-    content: @Composable () -> Unit,
-) {
-    val configuration = LocalConfiguration.current
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        modifier = modifier
-            .then(
-                if (configuration.isPortrait) {
-                    Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.4f)
-                } else {
-                    Modifier
-                        .fillMaxWidth(0.4f)
-                        .fillMaxHeight()
-                },
-            ),
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .padding(top = 16.dp),
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
-                modifier = Modifier.padding(horizontal = 4.dp),
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 16.dp),
-            ) {
-                content()
-            }
-        }
-    }
-}
-
-@Composable
-fun RadioButtonRow(
-    modifier: Modifier = Modifier,
-    selected: Boolean,
-    text: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
-            .selectable(
-                selected = selected,
-                onClick = onClick,
-            )
-            .padding(
-                horizontal = 4.dp,
-                vertical = 8.dp,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = null,
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
 }
 
 val Configuration.isPortrait: Boolean
@@ -455,7 +276,6 @@ fun PlayerActivity.ControlsTopView(
     modifier: Modifier = Modifier,
     player: MediaController,
     title: String,
-    onSelectSubtitleClick: () -> Unit = {},
     onClickAudioTrackSelector: () -> Unit = {},
     onClickSubtitleTrackSelector: () -> Unit = {},
 ) {
