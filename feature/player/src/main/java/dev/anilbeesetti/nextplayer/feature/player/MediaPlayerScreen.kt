@@ -38,8 +38,10 @@ import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
+import androidx.media3.ui.compose.state.rememberNextButtonState
 import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import androidx.media3.ui.compose.state.rememberPresentationState
+import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.trackSelectionDialog
@@ -163,10 +165,12 @@ fun PlayerActivity.MediaPlayerScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    PreviousButton(player = player)
                     PlayPauseButton(player = player)
+                    NextButton(player = player)
                 }
 
 
@@ -268,6 +272,30 @@ internal fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
         Icon(
             painter = icon,
             contentDescription = contentDescription,
+        )
+    }
+}
+
+@Composable
+internal fun PreviousButton(player: Player, modifier: Modifier = Modifier) {
+    val state = rememberPreviousButtonState(player)
+
+    FilledTonalIconButton(modifier = modifier, onClick = state::onClick) {
+        Icon(
+            painter = painterResource(coreUiR.drawable.ic_skip_prev),
+            contentDescription = stringResource(coreUiR.string.player_controls_previous),
+        )
+    }
+}
+
+@Composable
+internal fun NextButton(player: Player, modifier: Modifier = Modifier) {
+    val state = rememberNextButtonState(player)
+
+    FilledTonalIconButton(modifier = modifier, onClick = state::onClick) {
+        Icon(
+            painter = painterResource(coreUiR.drawable.ic_skip_next),
+            contentDescription = stringResource(coreUiR.string.player_controls_next),
         )
     }
 }
