@@ -246,7 +246,7 @@ fun PlayerActivity.MediaPlayerScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+                    PlayerButton(onClick = { }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_lock_open),
                             contentDescription = null,
@@ -278,13 +278,13 @@ fun PlayerActivity.MediaPlayerScreen(
                             contentDescription = null,
                         )
                     }
-                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+                    PlayerButton(onClick = { }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_pip),
                             contentDescription = null,
                         )
                     }
-                    PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+                    PlayerButton(onClick = { }) {
                         Icon(
                             painter = painterResource(coreUiR.drawable.ic_headset),
                             contentDescription = null,
