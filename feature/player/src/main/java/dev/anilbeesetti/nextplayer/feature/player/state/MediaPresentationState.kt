@@ -64,7 +64,7 @@ class MediaPresentationState(
             }
 
             while (true) {
-                delay(300)
+                delay(500)
                 if (player.isPlaying) {
                     updatePosition()
                 }
@@ -86,6 +86,9 @@ val MediaPresentationState.positionFormatted: String
 
 val MediaPresentationState.durationFormatted: String
     get() = duration.milliseconds.formatted()
+
+val MediaPresentationState.pendingPositionFormatted: String
+    get() = (duration - position).milliseconds.formatted()
 
 private fun Duration.formatted(): String = toComponents { hours, minutes, seconds, nanoseconds ->
     if (hours > 0) {

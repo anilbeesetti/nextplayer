@@ -64,6 +64,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
+import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
@@ -199,21 +200,31 @@ fun PlayerActivity.MediaPlayerScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = mediaPresentationState.positionFormatted,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White,
-                    )
-                    Text(
-                        text = " - ",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White,
-                    )
-                    Text(
-                        text = mediaPresentationState.durationFormatted,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White,
-                    )
+                    var showPendingPosition by remember { mutableStateOf(false) }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.noRippleClickable { showPendingPosition = !showPendingPosition }
+                    ) {
+                        Text(
+                            text = when (showPendingPosition) {
+                                true -> "-${mediaPresentationState.pendingPositionFormatted}"
+                                false -> mediaPresentationState.positionFormatted
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = " / ",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = mediaPresentationState.durationFormatted,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White,
+                        )
+                    }
 
                     Spacer(modifier = Modifier.weight(1f))
                     RotationButton()
