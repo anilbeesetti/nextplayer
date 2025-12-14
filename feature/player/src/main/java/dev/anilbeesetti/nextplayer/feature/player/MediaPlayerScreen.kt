@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,8 +24,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,6 +39,7 @@ import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
@@ -61,7 +65,9 @@ import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper.Companion.SEEK_STEP_MS
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
+import kotlin.math.abs
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @Composable
@@ -139,6 +145,48 @@ fun PlayerActivity.MediaPlayerScreen(
                             }
                         }
                     },
+                )
+            }
+            .pointerInput(Unit) {
+                var seekStart = player.currentPosition
+                var seekChange = 0L
+                var position = 0L
+
+                detectHorizontalDragGestures(
+                    onDragStart = {
+                        player.setScrubbingModeEnabled(true)
+                        seekStart = player.currentPosition
+                        seekChange = 0L
+                        position = 0L
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        val changeDiff = change.previousPosition.x - change.position.x
+                        val distanceDiff = abs(changeDiff / 4).coerceIn(0.5f, 10f)
+                        val changeValue = (distanceDiff * SEEK_STEP_MS).toLong()
+
+                        if (changeDiff < 0) {
+                            seekChange = (seekChange + changeValue)
+                                .takeIf { it + seekStart < player.duration } ?: (player.duration - seekStart)
+                            position = (seekStart + seekChange).coerceAtMost(player.duration)
+                            player.seekForward(
+                                positionMs = position,
+                                shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
+                            )
+                        } else {
+                            seekChange = (seekChange - changeValue)
+                                .takeIf { it + seekStart > 0 } ?: (0 - seekStart)
+                            position = seekStart + seekChange
+                            player.seekBack(
+                                positionMs = position,
+                                shouldFastSeek = playerPreferences.shouldFastSeek(player.duration)
+                            )
+                        }
+
+                        change.consume()
+                    },
+                    onDragEnd = {
+                        player.setScrubbingModeEnabled(false)
+                    }
                 )
             },
     ) {

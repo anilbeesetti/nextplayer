@@ -151,8 +151,7 @@ class PlayerGestureHelper(
 
                 playerView.player?.run {
                     if (distanceX < 0L) {
-                        seekChange = (seekChange + change)
-                            .takeIf { it + seekStart < duration } ?: (duration - seekStart)
+                        seekChange = (seekChange + change).takeIf { it + seekStart < duration } ?: (duration - seekStart)
                         position = (seekStart + seekChange).coerceAtMost(duration)
                         seekForward(positionMs = position, shouldFastSeek = shouldFastSeek)
                     } else {
