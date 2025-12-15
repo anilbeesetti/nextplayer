@@ -20,6 +20,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -47,6 +48,9 @@ import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.ffmpeg.ConditionalDataSourceFactory
+import dev.anilbeesetti.nextplayer.feature.player.ffmpeg.WmvAsfDetector
+import dev.anilbeesetti.nextplayer.feature.player.ffmpeg.WmvAwareExtractorsFactory
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import java.io.File
 import javax.inject.Inject
@@ -379,9 +383,18 @@ class PlayerService : MediaSessionService() {
             )
         }
 
+        val mediaSourceFactory = DefaultMediaSourceFactory(
+            ConditionalDataSourceFactory(
+                context = applicationContext,
+                shouldUseNoOpDataSource = { uri -> WmvAsfDetector.isWmvAsf(applicationContext, uri) },
+            ),
+            WmvAwareExtractorsFactory(applicationContext),
+        )
+
         val player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)

@@ -45,8 +45,9 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 
 - **Video**: H.263, H.264 AVC (Baseline Profile; Main Profile on Android 6+), H.265 HEVC, MPEG-4 SP, VP8, VP9, AV1
     - Support depends on Android device
+- **Container**: MP4, Matroska/WebM, MPEG-TS, AVI, FLV, ASF/WMV (WMV/ASF support via FFmpeg demuxer)
 - **Audio**: Vorbis, Opus, FLAC, ALAC, PCM/WAVE (μ-law, A-law), MP1, MP2, MP3, AMR (NB, WB), AAC (LC, ELD, HE; xHE on Android 9+), AC-3, E-AC-3, DTS,
-  DTS-HD, TrueHD
+  DTS-HD, TrueHD, WMA
     - Support provided by ExoPlayer FFmpeg extension
 - **Subtitles**: SRT, SSA, ASS, TTML, VTT, DVB
     - SSA/ASS has limited styling support see [this issue](https://github.com/google/ExoPlayer/issues/8435)
@@ -78,6 +79,12 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 ## Contributing
 
 Contributions are welcome!
+
+### Building (WMV/ASF support)
+
+This repo vendors `third_party/nextlib`, which builds FFmpeg for Android via NDK on first build (this can take a while).
+Make sure your Android SDK + NDK are installed and configured for Gradle/Android Studio.
+See `docs/wmv.md` for details.
 
 ### Translating
 

@@ -80,6 +80,36 @@
                 <data android:mimeType="application/x-matroska" />
             </intent-filter>
 
+            <!-- Support "intent:" URLs (Intent URI scheme) used by some browsers/launchers. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="intent" />
+            </intent-filter>
+
+            <!-- Type-less direct links for WMV/ASF/WMA (many browsers don't provide a MIME type). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+
+                <data android:pathPattern="/.*\\.wmv" />
+                <data android:pathPattern="/.*\\.asf" />
+                <data android:pathPattern="/.*\\.wma" />
+                <data android:pathPattern="/.*\\.WMV" />
+                <data android:pathPattern="/.*\\.ASF" />
+                <data android:pathPattern="/.*\\.WMA" />
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

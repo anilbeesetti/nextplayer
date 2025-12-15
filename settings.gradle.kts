@@ -16,20 +16,20 @@ dependencyResolutionManagement {
 
 
 /**
- * Use a local copy of nextlib, if it exists by uncommenting the below lines
- * Assuming, that nextplayer and nextlib have the same parent directory.
- * If this is not the case, please change the nextLibDirPath.
+ * Use the vendored copy of nextlib.
+ *
+ * This allows us to patch Media3 extensions (ASF/WMV demux + VC-1/WMA decode) without
+ * forking/publishing artifacts.
  */
-
-//val nextLibDirPath = "../nextlib"
-//if (File(nextLibDirPath).exists()) {
-//    includeBuild(nextLibDirPath) {
-//        dependencySubstitution {
-//            substitute(module("com.github.anilbeesetti.nextlib:nextlib-media3ext")).using(project(":media3ext"))
-//            substitute(module("com.github.anilbeesetti.nextlib:nextlib-mediainfo")).using(project(":mediainfo"))
-//        }
-//    }
-//}
+val nextLibDirPath = "third_party/nextlib"
+if (File(nextLibDirPath).exists()) {
+    includeBuild(nextLibDirPath) {
+        dependencySubstitution {
+            substitute(module("io.github.anilbeesetti:nextlib-media3ext")).using(project(":media3ext"))
+            substitute(module("io.github.anilbeesetti:nextlib-mediainfo")).using(project(":mediainfo"))
+        }
+    }
+}
 
 rootProject.name = "NextPlayer"
 include(":app")

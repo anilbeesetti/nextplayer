@@ -73,6 +73,15 @@ android {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
+        jniLibs {
+            // nextlib-media3ext and nextlib-mediainfo both package FFmpeg shared libraries.
+            // When they are built from the same vendored source, it's safe to pick the first copy.
+            pickFirsts.add("**/libavcodec.so")
+            pickFirsts.add("**/libavformat.so")
+            pickFirsts.add("**/libavutil.so")
+            pickFirsts.add("**/libswscale.so")
+            pickFirsts.add("**/libswresample.so")
+        }
     }
 
     dependenciesInfo {
