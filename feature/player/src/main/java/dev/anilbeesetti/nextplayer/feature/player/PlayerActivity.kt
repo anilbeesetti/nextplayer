@@ -610,6 +610,8 @@ class PlayerActivity : AppCompatActivity() {
                             MimeTypes.TEXT_SSA,
                             MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
                             MimeTypes.BASE_TYPE_TEXT + "/*",
+                            // .ass
+                            MimeTypes.BASE_TYPE_AUDIO + "/aac",
                         ),
                     )
                 },
