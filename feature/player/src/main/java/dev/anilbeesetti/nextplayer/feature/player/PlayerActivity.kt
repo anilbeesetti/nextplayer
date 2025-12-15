@@ -52,6 +52,8 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -634,11 +636,22 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         qualityButton.setOnClickListener {
+            val tracks = mediaController?.currentTracks ?: return@setOnClickListener
+            val selection = getCurrentVideoQualitySelection(
+                tracks = tracks,
+                parameters = mediaController?.trackSelectionParameters ?: return@setOnClickListener,
+            )
             VideoQualityDialogFragment(
-                tracks = mediaController?.currentTracks ?: return@setOnClickListener,
-                onAutoSelected = { mediaController?.clearVideoQualityOverride() },
+                tracks = tracks,
+                selectedGroupIndex = selection?.groupIndex,
+                selectedTrackIndexInGroup = selection?.trackIndexInGroup,
+                onAutoSelected = {
+                    mediaController?.clearVideoQualityOverride()
+                    showPlayerInfo(info = getString(coreUiR.string.auto))
+                },
                 onQualitySelected = { groupIndex, trackIndexInGroup ->
                     mediaController?.setVideoQuality(groupIndex, trackIndexInGroup)
+                    showPlayerInfo(info = getVideoQualityLabel(tracks, groupIndex, trackIndexInGroup))
                 },
             ).show(supportFragmentManager, "VideoQualityDialog")
         }
@@ -1213,6 +1226,53 @@ class PlayerActivity : AppCompatActivity() {
     private fun finishAndStopPlayerSession() {
         finish()
         mediaController?.stopPlayerSession()
+    }
+
+    private data class VideoQualitySelection(
+        val groupIndex: Int,
+        val trackIndexInGroup: Int,
+    )
+
+    private fun getCurrentVideoQualitySelection(
+        tracks: Tracks,
+        parameters: TrackSelectionParameters,
+    ): VideoQualitySelection? {
+        val videoGroups = tracks.groups
+            .filter { it.type == C.TRACK_TYPE_VIDEO && it.isSupported }
+
+        val videoOverride = runCatching {
+            parameters.overrides.values.firstOrNull { it.type == C.TRACK_TYPE_VIDEO }
+        }.getOrNull() ?: return null
+
+        val groupIndex = videoGroups.indexOfFirst { it.mediaTrackGroup == videoOverride.mediaTrackGroup }
+        if (groupIndex < 0) return null
+
+        val trackIndex = videoOverride.trackIndices.firstOrNull() ?: return null
+        return VideoQualitySelection(groupIndex = groupIndex, trackIndexInGroup = trackIndex)
+    }
+
+    private fun getVideoQualityLabel(tracks: Tracks, groupIndex: Int, trackIndexInGroup: Int): String {
+        val videoGroups = tracks.groups
+            .filter { it.type == C.TRACK_TYPE_VIDEO && it.isSupported }
+
+        val group = videoGroups.getOrNull(groupIndex) ?: return getString(coreUiR.string.unknown_error)
+        val format = group.mediaTrackGroup.getFormat(trackIndexInGroup)
+        val height = format.height.takeIf { it > 0 }
+        val width = format.width.takeIf { it > 0 }
+        val bitrate = format.bitrate.takeIf { it > 0 }
+
+        val base = when {
+            height != null -> "${height}p"
+            width != null -> "${width}w"
+            else -> getString(coreUiR.string.video_track)
+        }
+
+        val bitrateText = bitrate?.let {
+            val mbps = (it / 1_000_000.0 * 10).toInt() / 10.0
+            " · ${mbps}Mbps"
+        }.orEmpty()
+
+        return base + bitrateText
     }
 
     private fun sniffMimeTypeOverride(uri: Uri): String? {

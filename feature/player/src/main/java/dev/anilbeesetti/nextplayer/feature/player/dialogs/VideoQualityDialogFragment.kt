@@ -14,6 +14,8 @@ import kotlin.math.roundToInt
 @UnstableApi
 class VideoQualityDialogFragment(
     private val tracks: Tracks,
+    private val selectedGroupIndex: Int? = null,
+    private val selectedTrackIndexInGroup: Int? = null,
     private val onAutoSelected: () -> Unit,
     private val onQualitySelected: (groupIndex: Int, trackIndexInGroup: Int) -> Unit,
 ) : DialogFragment() {
@@ -34,7 +36,6 @@ class VideoQualityDialogFragment(
                 }
             }
             .flatten()
-            .distinctBy { it.label }
 
         return activity?.let { activity ->
             MaterialAlertDialogBuilder(activity).apply {
@@ -47,7 +48,11 @@ class VideoQualityDialogFragment(
                 }
 
                 val labels = arrayOf(getString(R.string.auto), *qualityOptions.map { it.label }.toTypedArray())
-                setSingleChoiceItems(labels, 0) { dialog, which ->
+                val checkedItemIndex = qualityOptions.indexOfFirst {
+                    it.groupIndex == selectedGroupIndex && it.trackIndexInGroup == selectedTrackIndexInGroup
+                }.takeIf { it >= 0 }?.plus(1) ?: 0
+
+                setSingleChoiceItems(labels, checkedItemIndex) { dialog, which ->
                     if (which == 0) {
                         onAutoSelected()
                     } else {

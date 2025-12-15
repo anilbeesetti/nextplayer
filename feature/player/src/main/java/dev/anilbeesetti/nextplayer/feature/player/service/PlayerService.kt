@@ -15,6 +15,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
 import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
@@ -160,6 +161,26 @@ class PlayerService : MediaSessionService() {
                     }
                     state.subtitleTrackIndex?.let {
                         mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
+                    }
+                    val groupIndex = state.videoGroupIndex
+                    val trackIndexInGroup = state.videoTrackIndexInGroup
+                    if (groupIndex != null && trackIndexInGroup != null) {
+                        val applied = applyVideoQualityOverride(
+                            player = mediaSession?.player ?: return@let,
+                            groupIndex = groupIndex,
+                            trackIndexInGroup = trackIndexInGroup,
+                        )
+                        if (!applied) {
+                            mediaSession?.player?.currentMediaItem?.mediaId?.let { uri ->
+                                serviceScope.launch {
+                                    mediaRepository.updateMediumVideoQuality(
+                                        uri = uri,
+                                        groupIndex = null,
+                                        trackIndexInGroup = null,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -320,23 +341,16 @@ class PlayerService : MediaSessionService() {
                     }
 
                     mediaSession?.player?.let { player ->
-                        val videoGroups = player.currentTracks.groups
-                            .filter { it.type == C.TRACK_TYPE_VIDEO && it.isSupported }
-                        if (groupIndex >= videoGroups.size) {
-                            return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-                        }
+                        val applied = applyVideoQualityOverride(player, groupIndex, trackIndexInGroup)
+                        if (!applied) return@future SessionResult(SessionError.ERROR_BAD_VALUE)
 
-                        val trackGroup = videoGroups[groupIndex].mediaTrackGroup
-                        if (trackIndexInGroup >= trackGroup.length) {
-                            return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                        if (playerPreferences.rememberSelections) {
+                            mediaRepository.updateMediumVideoQuality(
+                                uri = player.currentMediaItem?.mediaId ?: return@let,
+                                groupIndex = groupIndex,
+                                trackIndexInGroup = trackIndexInGroup,
+                            )
                         }
-
-                        val override = androidx.media3.common.TrackSelectionOverride(trackGroup, trackIndexInGroup)
-                        player.trackSelectionParameters = player.trackSelectionParameters
-                            .buildUpon()
-                            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
-                            .setOverrideForType(override)
-                            .build()
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
@@ -348,6 +362,14 @@ class PlayerService : MediaSessionService() {
                             .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
                             .clearOverridesOfType(C.TRACK_TYPE_VIDEO)
                             .build()
+
+                        if (playerPreferences.rememberSelections) {
+                            mediaRepository.updateMediumVideoQuality(
+                                uri = player.currentMediaItem?.mediaId ?: return@let,
+                                groupIndex = null,
+                                trackIndexInGroup = null,
+                            )
+                        }
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
@@ -585,6 +607,27 @@ class PlayerService : MediaSessionService() {
                 }.build()
             }
         }.awaitAll()
+    }
+
+    private fun applyVideoQualityOverride(
+        player: Player,
+        groupIndex: Int,
+        trackIndexInGroup: Int,
+    ): Boolean {
+        val videoGroups = player.currentTracks.groups
+            .filter { it.type == C.TRACK_TYPE_VIDEO && it.isSupported }
+        if (groupIndex !in videoGroups.indices) return false
+
+        val trackGroup = videoGroups[groupIndex].mediaTrackGroup
+        if (trackIndexInGroup !in 0 until trackGroup.length) return false
+
+        val override = TrackSelectionOverride(trackGroup, trackIndexInGroup)
+        player.trackSelectionParameters = player.trackSelectionParameters
+            .buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
+            .setOverrideForType(override)
+            .build()
+        return true
     }
 }
 

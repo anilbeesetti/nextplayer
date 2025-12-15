@@ -23,7 +23,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         AudioStreamInfoEntity::class,
         SubtitleStreamInfoEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -175,6 +175,13 @@ abstract class MediaDatabase : RoomDatabase() {
                     CREATE INDEX IF NOT EXISTS `index_media_path` ON `media` (`path`)
                     """,
                 )
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `video_group_index` INTEGER")
+                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `video_track_index` INTEGER")
             }
         }
     }

@@ -21,6 +21,10 @@ data class MediumStateEntity(
     val audioTrackIndex: Int? = null,
     @ColumnInfo(name = "subtitle_track_index")
     val subtitleTrackIndex: Int? = null,
+    @ColumnInfo(name = "video_group_index")
+    val videoGroupIndex: Int? = null,
+    @ColumnInfo(name = "video_track_index")
+    val videoTrackIndexInGroup: Int? = null,
     @ColumnInfo(name = "playback_speed")
     val playbackSpeed: Float? = null,
     @ColumnInfo(name = "last_played_time")

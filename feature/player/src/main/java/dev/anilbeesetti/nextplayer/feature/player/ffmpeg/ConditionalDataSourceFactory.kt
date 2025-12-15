@@ -71,6 +71,9 @@ private class ConditionalDataSource(
 
 internal object WmvAsfDetector {
     fun isWmvAsf(context: Context, uri: Uri): Boolean {
+        val scheme = (uri.scheme ?: "").lowercase(Locale.US)
+        if (scheme == "http" || scheme == "https") return false
+
         val mimeType = runCatching { context.contentResolver.getType(uri) }.getOrNull()?.lowercase(Locale.US).orEmpty()
         if (
             mimeType.contains("video/x-ms-wmv") ||

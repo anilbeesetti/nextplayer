@@ -7,6 +7,8 @@ data class VideoState(
     val position: Long?,
     val audioTrackIndex: Int?,
     val subtitleTrackIndex: Int?,
+    val videoGroupIndex: Int?,
+    val videoTrackIndexInGroup: Int?,
     val playbackSpeed: Float?,
     val externalSubs: List<Uri>,
     val videoScale: Float,
