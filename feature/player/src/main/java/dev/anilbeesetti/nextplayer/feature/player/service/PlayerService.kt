@@ -18,6 +18,8 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -45,6 +47,7 @@ import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
+import dev.anilbeesetti.nextplayer.feature.player.datasource.PrefetchingDiskCacheDataSourceFactory
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
@@ -72,6 +75,7 @@ import kotlinx.coroutines.supervisorScope
 class PlayerService : MediaSessionService() {
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
+    private var prefetchingDataSourceFactory: PrefetchingDiskCacheDataSourceFactory? = null
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
@@ -423,18 +427,43 @@ class PlayerService : MediaSessionService() {
             )
         }
 
+        val upstreamFactory = DefaultDataSource.Factory(applicationContext)
+        prefetchingDataSourceFactory = PrefetchingDiskCacheDataSourceFactory(
+            context = applicationContext,
+            upstreamFactory = upstreamFactory,
+            maxCacheBytes = 512L * 1024L * 1024L,
+            prefetchCount = 4,
+            prefetchThreads = 4,
+        )
+
         val mediaSourceFactory = DefaultMediaSourceFactory(
             ConditionalDataSourceFactory(
                 context = applicationContext,
                 shouldUseNoOpDataSource = { uri -> WmvAsfDetector.isWmvAsf(applicationContext, uri) },
+                realFactory = prefetchingDataSourceFactory!!,
             ),
             WmvAwareExtractorsFactory(applicationContext),
         )
+
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                // minBufferMs
+                15_000,
+                // maxBufferMs
+                50_000,
+                // bufferForPlaybackMs
+                500,
+                // bufferForPlaybackAfterRebufferMs
+                1_000,
+            )
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
 
         val player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setMediaSourceFactory(mediaSourceFactory)
+            .setLoadControl(loadControl)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
@@ -493,6 +522,8 @@ class PlayerService : MediaSessionService() {
             release()
             mediaSession = null
         }
+        prefetchingDataSourceFactory?.shutdown()
+        prefetchingDataSourceFactory = null
         subtitleCacheDir.deleteFiles()
         serviceScope.cancel()
     }
