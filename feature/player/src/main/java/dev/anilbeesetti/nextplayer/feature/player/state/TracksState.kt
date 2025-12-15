@@ -11,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 
 @UnstableApi
 @Composable
@@ -29,6 +30,10 @@ class TracksState(
 ) {
     var tracks: List<Tracks.Group> by mutableStateOf(emptyList())
         private set
+
+    fun switchTrack(index: Int) {
+        player.switchTrack(trackType, index)
+    }
 
     suspend fun observe() {
         updateTracks()

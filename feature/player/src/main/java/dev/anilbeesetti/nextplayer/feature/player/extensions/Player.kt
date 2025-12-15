@@ -51,6 +51,18 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
     }
 }
 
+@UnstableApi
+fun Player.getManuallySelectedTrackIndex(trackType: @C.TrackType Int): Int? {
+    val isDisabled = trackSelectionParameters.disabledTrackTypes.contains(trackType)
+    if (isDisabled) return -1
+
+    val trackOverrides = trackSelectionParameters.overrides.values.map { it.mediaTrackGroup }
+    val trackOverride = trackOverrides.firstOrNull { it.type == trackType } ?: return null
+    val tracks = currentTracks.groups.filter { it.type == trackType }
+
+    return tracks.indexOfFirst { it.mediaTrackGroup == trackOverride }.takeIf { it != -1 }
+}
+
 /**
  * Sets the seek parameters for the player.
  *

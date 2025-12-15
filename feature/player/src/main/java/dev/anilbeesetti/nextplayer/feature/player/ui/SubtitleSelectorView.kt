@@ -12,16 +12,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
-import androidx.media3.session.MediaController
+import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
-import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 
 @Composable
 fun SubtitleSelectorView(
     modifier: Modifier = Modifier,
-    player: MediaController,
+    player: Player,
     onSelectSubtitleClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -36,7 +35,7 @@ fun SubtitleSelectorView(
                     selected = track.isSelected,
                     text = track.mediaTrackGroup.getName(C.TRACK_TYPE_TEXT, index),
                     onClick = {
-                        player.switchSubtitleTrack(index)
+                        subtitleTracksState.switchTrack(index)
                         onDismiss()
                     }
                 )
@@ -45,7 +44,7 @@ fun SubtitleSelectorView(
                 selected = subtitleTracksState.tracks.none { it.isSelected },
                 text = stringResource(R.string.disable),
                 onClick = {
-                    player.switchSubtitleTrack(-1)
+                    subtitleTracksState.switchTrack(-1)
                     onDismiss()
                 }
             )

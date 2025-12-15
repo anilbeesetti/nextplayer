@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.feature.player.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
@@ -19,7 +20,7 @@ import dev.anilbeesetti.nextplayer.feature.player.isPortrait
 @Composable
 fun BoxScope.OverlayShowView(
     modifier: Modifier = Modifier,
-    player: MediaController,
+    player: Player,
     overlayView: OverlayView?,
     onDismiss: () -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},

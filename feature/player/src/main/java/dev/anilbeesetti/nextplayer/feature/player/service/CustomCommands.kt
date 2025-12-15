@@ -11,11 +11,8 @@ import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
     ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK"),
-    SWITCH_AUDIO_TRACK(customAction = "SWITCH_AUDIO_TRACK"),
-    SWITCH_SUBTITLE_TRACK(customAction = "SWITCH_SUBTITLE_TRACK"),
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
-    SET_PLAYBACK_SPEED(customAction = "SET_PLAYBACK_SPEED"),
     GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
     ;
@@ -47,20 +44,6 @@ fun MediaController.addSubtitleTrack(uri: Uri) {
     sendCustomCommand(CustomCommands.ADD_SUBTITLE_TRACK.sessionCommand, args)
 }
 
-fun MediaController.switchAudioTrack(trackIndex: Int) {
-    val args = Bundle().apply {
-        putInt(CustomCommands.AUDIO_TRACK_INDEX_KEY, trackIndex)
-    }
-    sendCustomCommand(CustomCommands.SWITCH_AUDIO_TRACK.sessionCommand, args)
-}
-
-fun MediaController.switchSubtitleTrack(trackIndex: Int) {
-    val args = Bundle().apply {
-        putInt(CustomCommands.SUBTITLE_TRACK_INDEX_KEY, trackIndex)
-    }
-    sendCustomCommand(CustomCommands.SWITCH_SUBTITLE_TRACK.sessionCommand, args)
-}
-
 suspend fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
     val args = Bundle().apply {
         putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
@@ -71,13 +54,6 @@ suspend fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
-}
-
-fun MediaController.setSpeed(speed: Float) {
-    val args = Bundle().apply {
-        putFloat(CustomCommands.PLAYBACK_SPEED_KEY, speed)
-    }
-    sendCustomCommand(CustomCommands.SET_PLAYBACK_SPEED.sessionCommand, args)
 }
 
 @OptIn(UnstableApi::class)

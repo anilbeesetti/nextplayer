@@ -6,21 +6,18 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.media3.common.C
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
-import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 
 @OptIn(UnstableApi::class)
 @Composable
 fun AudioTrackSelectorView(
     modifier: Modifier = Modifier,
-    player: MediaController,
+    player: Player,
     onDismiss: () -> Unit,
 ) {
     val audioTracksState = rememberTracksState(player, C.TRACK_TYPE_AUDIO)
@@ -34,7 +31,7 @@ fun AudioTrackSelectorView(
                     selected = track.isSelected,
                     text = track.mediaTrackGroup.getName(C.TRACK_TYPE_AUDIO, index),
                     onClick = {
-                        player.switchAudioTrack(index)
+                        audioTracksState.switchTrack(index)
                         onDismiss()
                     },
                 )
@@ -43,7 +40,7 @@ fun AudioTrackSelectorView(
                 selected = audioTracksState.tracks.none { it.isSelected },
                 text = stringResource(R.string.disable),
                 onClick = {
-                    player.switchAudioTrack(-1)
+                    audioTracksState.switchTrack(-1)
                     onDismiss()
                 },
             )

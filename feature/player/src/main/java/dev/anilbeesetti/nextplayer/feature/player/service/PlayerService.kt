@@ -11,6 +11,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
@@ -45,6 +46,7 @@ import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
@@ -147,6 +149,59 @@ class PlayerService : MediaSessionService() {
                     mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
                 }
             }
+        }
+
+        override fun onTrackSelectionParametersChanged(parameters: TrackSelectionParameters) {
+            super.onTrackSelectionParametersChanged(parameters)
+            val player = mediaSession?.player ?: return
+            val currentMediaItem = player.currentMediaItem ?: return
+
+            val audioTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_AUDIO)
+            val subtitleTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_TEXT)
+
+            if (audioTrackIndex != null) {
+                serviceScope.launch {
+                    mediaRepository.updateMediumAudioTrack(
+                        uri = currentMediaItem.mediaId,
+                        audioTrackIndex = audioTrackIndex,
+                    )
+                }
+            }
+
+            if (subtitleTrackIndex != null) {
+                serviceScope.launch {
+                    mediaRepository.updateMediumSubtitleTrack(
+                        uri = currentMediaItem.mediaId,
+                        subtitleTrackIndex = subtitleTrackIndex,
+                    )
+                }
+            }
+
+            player.replaceMediaItem(
+                player.currentMediaItemIndex,
+                currentMediaItem.copy(
+                    audioTrackIndex = audioTrackIndex,
+                    subtitleTrackIndex = subtitleTrackIndex,
+                ),
+            )
+        }
+
+        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
+            super.onPlaybackParametersChanged(playbackParameters)
+            val player = mediaSession?.player ?: return
+            val currentMediaItem = player.currentMediaItem ?: return
+            val playbackSpeed = playbackParameters.speed
+
+            serviceScope.launch {
+                mediaRepository.updateMediumPlaybackSpeed(
+                    uri = currentMediaItem.mediaId,
+                    playbackSpeed = playbackSpeed,
+                )
+            }
+            player.replaceMediaItem(
+                player.currentMediaItemIndex,
+                currentMediaItem.copy(playbackSpeed = playbackSpeed)
+            )
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -274,36 +329,6 @@ class PlayerService : MediaSessionService() {
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
-                CustomCommands.SWITCH_AUDIO_TRACK -> {
-                    val trackIndex = args.getInt(CustomCommands.AUDIO_TRACK_INDEX_KEY, 0)
-                    mediaSession?.player?.let { player ->
-                        player.switchTrack(C.TRACK_TYPE_AUDIO, trackIndex)
-                        player.currentMediaItem?.let {
-                            player.replaceMediaItem(player.currentMediaItemIndex, it.copy(audioTrackIndex = trackIndex))
-                        }
-                        mediaRepository.updateMediumAudioTrack(
-                            uri = player.currentMediaItem?.mediaId ?: return@let,
-                            audioTrackIndex = trackIndex,
-                        )
-                    }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
-
-                CustomCommands.SWITCH_SUBTITLE_TRACK -> {
-                    val trackIndex = args.getInt(CustomCommands.SUBTITLE_TRACK_INDEX_KEY, 0)
-                    mediaSession?.player?.let { player ->
-                        player.switchTrack(C.TRACK_TYPE_TEXT, trackIndex)
-                        player.currentMediaItem?.let {
-                            player.replaceMediaItem(player.currentMediaItemIndex, it.copy(subtitleTrackIndex = trackIndex))
-                        }
-                        mediaRepository.updateMediumSubtitleTrack(
-                            uri = player.currentMediaItem?.mediaId ?: return@let,
-                            subtitleTrackIndex = trackIndex,
-                        )
-                    }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
-                }
-
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
                     mediaSession?.player?.skipSilenceEnabled = enabled
@@ -321,21 +346,6 @@ class PlayerService : MediaSessionService() {
                             putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
                         },
                     )
-                }
-
-                CustomCommands.SET_PLAYBACK_SPEED -> {
-                    val playbackSpeed = args.getFloat(CustomCommands.PLAYBACK_SPEED_KEY, 1.0f)
-                    mediaSession?.player?.let { player ->
-                        player.setPlaybackSpeed(playbackSpeed)
-                        player.currentMediaItem?.let {
-                            player.replaceMediaItem(player.currentMediaItemIndex, it.copy(playbackSpeed = playbackSpeed))
-                        }
-                        mediaRepository.updateMediumPlaybackSpeed(
-                            uri = player.currentMediaItem?.mediaId ?: return@let,
-                            playbackSpeed = playbackSpeed,
-                        )
-                    }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.GET_AUDIO_SESSION_ID -> {
