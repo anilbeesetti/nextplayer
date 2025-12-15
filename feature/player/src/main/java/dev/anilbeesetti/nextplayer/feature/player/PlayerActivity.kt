@@ -65,6 +65,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
@@ -75,6 +76,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.PlaybackSpeedControlsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.TrackSelectionDialogFragment
+import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoQualityDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.VideoZoomOptionsDialogFragment
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
@@ -90,8 +92,10 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
+import dev.anilbeesetti.nextplayer.feature.player.service.clearVideoQualityOverride
 import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.setVideoQuality
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.service.switchAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.switchSubtitleTrack
@@ -100,6 +104,9 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Locale
 import kotlin.apply
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -180,6 +187,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerCenterControls: LinearLayout
     private lateinit var screenRotateButton: ImageButton
     private lateinit var pipButton: ImageButton
+    private lateinit var qualityButton: ImageButton
     private lateinit var seekBar: TimeBar
     private lateinit var subtitleTrackButton: ImageButton
     private lateinit var unlockControlsButton: ImageButton
@@ -244,6 +252,7 @@ class PlayerActivity : AppCompatActivity() {
         playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
         screenRotateButton = binding.playerView.findViewById(R.id.screen_rotate)
         pipButton = binding.playerView.findViewById(R.id.btn_pip)
+        qualityButton = binding.playerView.findViewById(R.id.btn_quality)
         seekBar = binding.playerView.findViewById(R.id.exo_progress)
         subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
         unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
@@ -624,6 +633,16 @@ class PlayerActivity : AppCompatActivity() {
             ).show(supportFragmentManager, "PlaybackSpeedSelectionDialog")
         }
 
+        qualityButton.setOnClickListener {
+            VideoQualityDialogFragment(
+                tracks = mediaController?.currentTracks ?: return@setOnClickListener,
+                onAutoSelected = { mediaController?.clearVideoQualityOverride() },
+                onQualitySelected = { groupIndex, trackIndexInGroup ->
+                    mediaController?.setVideoQuality(groupIndex, trackIndexInGroup)
+                },
+            ).show(supportFragmentManager, "VideoQualityDialog")
+        }
+
         lockControlsButton.setOnClickListener {
             playerUnlockControls.visibility = View.INVISIBLE
             playerLockControls.visibility = View.VISIBLE
@@ -754,11 +773,17 @@ class PlayerActivity : AppCompatActivity() {
             it == (mediaContentUri ?: uri).toString()
         }.takeIf { it >= 0 } ?: 0
 
+        val initialUri = Uri.parse(playlist[mediaItemIndexToPlay])
+        val initialMimeTypeOverride = sniffMimeTypeOverride(initialUri)
+
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
                 setUri(uri)
                 setMediaId(uri)
                 if (index == mediaItemIndexToPlay) {
+                    if (initialMimeTypeOverride != null) {
+                        setMimeType(initialMimeTypeOverride)
+                    }
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(playerApi.title)
@@ -1188,6 +1213,58 @@ class PlayerActivity : AppCompatActivity() {
     private fun finishAndStopPlayerSession() {
         finish()
         mediaController?.stopPlayerSession()
+    }
+
+    private fun sniffMimeTypeOverride(uri: Uri): String? {
+        return if (isDashMpdUri(uri)) MimeTypes.APPLICATION_MPD else null
+    }
+
+    private fun isDashMpdUri(uri: Uri): Boolean {
+        val uriString = uri.toString()
+        val lowerUriString = uriString.lowercase(Locale.US)
+        if (lowerUriString.endsWith(".mpd") || lowerUriString.contains(".mpd?") || lowerUriString.contains(".mpd#")) return true
+
+        val filename = runCatching { getFilenameFromUri(uri) }.getOrDefault("").lowercase(Locale.US)
+        if (filename.endsWith(".mpd")) return true
+
+        val lastPathSegment = (uri.lastPathSegment ?: "").lowercase(Locale.US)
+        if (lastPathSegment.endsWith(".mpd")) return true
+
+        runCatching { contentResolver.getType(uri) }.getOrNull()?.lowercase(Locale.US)?.let { type ->
+            if (type.contains("application/dash+xml")) return true
+        }
+
+        val scheme = (uri.scheme ?: "").lowercase(Locale.US)
+        if (scheme != "http" && scheme != "https") return false
+
+        val isDashByHead = runCatching {
+            val url = URL(uriString)
+            val connection = url.openConnection() as? HttpURLConnection ?: return@runCatching false
+            connection.instanceFollowRedirects = true
+            connection.requestMethod = "HEAD"
+            connection.connect()
+            val contentType = (connection.getHeaderField("Content-Type") ?: "").lowercase(Locale.US)
+            connection.disconnect()
+            contentType.contains("application/dash+xml")
+        }.getOrDefault(false)
+
+        if (isDashByHead) return true
+
+        return runCatching {
+            val url = URL(uriString)
+            val connection = url.openConnection() as? HttpURLConnection ?: return@runCatching false
+            connection.instanceFollowRedirects = true
+            connection.requestMethod = "GET"
+            connection.setRequestProperty("Range", "bytes=0-2047")
+            connection.connect()
+            val bytes = connection.inputStream.use { it.readBytes() }
+            connection.disconnect()
+
+            val prefix = String(bytes, Charsets.UTF_8).trimStart()
+            prefix.startsWith("<MPD") ||
+                (prefix.startsWith("<?xml") && prefix.contains("<MPD")) ||
+                prefix.contains("urn:mpeg:DASH:schema:MPD:2011")
+        }.getOrDefault(false)
     }
 
     companion object {

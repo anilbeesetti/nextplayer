@@ -13,6 +13,8 @@ enum class CustomCommands(val customAction: String) {
     ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK"),
     SWITCH_AUDIO_TRACK(customAction = "SWITCH_AUDIO_TRACK"),
     SWITCH_SUBTITLE_TRACK(customAction = "SWITCH_SUBTITLE_TRACK"),
+    SET_VIDEO_QUALITY(customAction = "SET_VIDEO_QUALITY"),
+    CLEAR_VIDEO_QUALITY_OVERRIDE(customAction = "CLEAR_VIDEO_QUALITY_OVERRIDE"),
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
     SET_PLAYBACK_SPEED(customAction = "SET_PLAYBACK_SPEED"),
@@ -34,6 +36,8 @@ enum class CustomCommands(val customAction: String) {
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
         const val AUDIO_TRACK_INDEX_KEY = "audio_track_index"
         const val SUBTITLE_TRACK_INDEX_KEY = "subtitle_track_index"
+        const val VIDEO_GROUP_INDEX_KEY = "video_group_index"
+        const val VIDEO_TRACK_INDEX_KEY = "video_track_index"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
         const val PLAYBACK_SPEED_KEY = "playback_speed"
         const val AUDIO_SESSION_ID_KEY = "audio_session_id"
@@ -59,6 +63,18 @@ fun MediaController.switchSubtitleTrack(trackIndex: Int) {
         putInt(CustomCommands.SUBTITLE_TRACK_INDEX_KEY, trackIndex)
     }
     sendCustomCommand(CustomCommands.SWITCH_SUBTITLE_TRACK.sessionCommand, args)
+}
+
+fun MediaController.setVideoQuality(groupIndex: Int, trackIndexInGroup: Int) {
+    val args = Bundle().apply {
+        putInt(CustomCommands.VIDEO_GROUP_INDEX_KEY, groupIndex)
+        putInt(CustomCommands.VIDEO_TRACK_INDEX_KEY, trackIndexInGroup)
+    }
+    sendCustomCommand(CustomCommands.SET_VIDEO_QUALITY.sessionCommand, args)
+}
+
+fun MediaController.clearVideoQualityOverride() {
+    sendCustomCommand(CustomCommands.CLEAR_VIDEO_QUALITY_OVERRIDE.sessionCommand, Bundle.EMPTY)
 }
 
 fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {

@@ -49,6 +49,9 @@
     <string name="seek_gesture_description">Swipe horizontally to seek forwards or backwards</string>
     <string name="select_audio_track">Select audio track</string>
     <string name="select_subtitle_track">Select subtitle track</string>
+    <string name="select_video_quality">Select video quality</string>
+    <string name="video_quality">Video quality</string>
+    <string name="no_video_qualities_found">No quality options available for this video.</string>
     <string name="settings">Settings</string>
     <string name="size">Size</string>
     <string name="sort">Sort</string>

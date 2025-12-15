@@ -132,7 +132,7 @@ internal fun MediaPickerScreen(
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
+        contract = ActivityResultContracts.OpenDocument(),
         onResult = { it?.let(onPlayVideo) },
     )
 
@@ -197,7 +197,17 @@ internal fun MediaPickerScreen(
                         ShortcutChipButton(
                             text = stringResource(id = R.string.open_local_video),
                             icon = NextIcons.FileOpen,
-                            onClick = { selectVideoFileLauncher.launch("video/*") },
+                            onClick = {
+                                selectVideoFileLauncher.launch(
+                                    arrayOf(
+                                        "video/*",
+                                        "application/dash+xml",
+                                        "application/octet-stream",
+                                        "application/xml",
+                                        "text/xml",
+                                    ),
+                                )
+                            },
                         )
                     }
                     item {

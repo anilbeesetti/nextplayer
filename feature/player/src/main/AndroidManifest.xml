@@ -69,6 +69,7 @@
                 <data android:scheme="https" />
 
                 <data android:mimeType="video/*" />
+                <data android:mimeType="application/dash+xml" />
 
                 <data android:mimeType="application/sdp" />
                 <data android:mimeType="application/mp4" />

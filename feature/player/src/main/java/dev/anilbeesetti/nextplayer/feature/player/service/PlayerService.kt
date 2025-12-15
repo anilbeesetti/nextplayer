@@ -308,6 +308,46 @@ class PlayerService : MediaSessionService() {
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
+                CustomCommands.SET_VIDEO_QUALITY -> {
+                    val groupIndex = args.getInt(CustomCommands.VIDEO_GROUP_INDEX_KEY, -1)
+                    val trackIndexInGroup = args.getInt(CustomCommands.VIDEO_TRACK_INDEX_KEY, -1)
+                    if (groupIndex < 0 || trackIndexInGroup < 0) {
+                        return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                    }
+
+                    mediaSession?.player?.let { player ->
+                        val videoGroups = player.currentTracks.groups
+                            .filter { it.type == C.TRACK_TYPE_VIDEO && it.isSupported }
+                        if (groupIndex >= videoGroups.size) {
+                            return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                        }
+
+                        val trackGroup = videoGroups[groupIndex].mediaTrackGroup
+                        if (trackIndexInGroup >= trackGroup.length) {
+                            return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+                        }
+
+                        val override = androidx.media3.common.TrackSelectionOverride(trackGroup, trackIndexInGroup)
+                        player.trackSelectionParameters = player.trackSelectionParameters
+                            .buildUpon()
+                            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
+                            .setOverrideForType(override)
+                            .build()
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.CLEAR_VIDEO_QUALITY_OVERRIDE -> {
+                    mediaSession?.player?.let { player ->
+                        player.trackSelectionParameters = player.trackSelectionParameters
+                            .buildUpon()
+                            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
+                            .clearOverridesOfType(C.TRACK_TYPE_VIDEO)
+                            .build()
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
                     mediaSession?.player?.let { player ->
