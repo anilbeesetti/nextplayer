@@ -7,8 +7,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 
 @Composable
-fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = clickable(
+fun Modifier.noRippleClickable(enabled: Boolean = true, onClick: () -> Unit): Modifier = clickable(
     interactionSource = remember { MutableInteractionSource() },
     indication = null, // to prevent the ripple from the tap,
+    enabled = enabled,
     onClick = onClick
 )

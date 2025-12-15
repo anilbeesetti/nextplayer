@@ -2,11 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.content.res.Configuration
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -33,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -68,9 +62,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
-import dev.anilbeesetti.nextplayer.feature.player.ui.AudioTrackSelectorView
-import dev.anilbeesetti.nextplayer.feature.player.ui.PlaybackSpeedSelectorView
-import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleSelectorView
+import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import kotlin.time.Duration.Companion.milliseconds
@@ -111,11 +103,7 @@ fun PlayerActivity.MediaPlayerScreen(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
-                            if (overlayView != null) {
-                                overlayView = null
-                            } else {
-                                controlsVisibilityState.toggleControlsVisibility()
-                            }
+                            controlsVisibilityState.toggleControlsVisibility()
                         },
                         onDoubleTap = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
@@ -146,6 +134,14 @@ fun PlayerActivity.MediaPlayerScreen(
                 player = player,
                 playerPreferences = playerPreferences,
             )
+
+            if (presentationState.coverSurface) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black),
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -228,43 +224,12 @@ fun PlayerActivity.MediaPlayerScreen(
             }
         }
 
-        val configuration = LocalConfiguration.current
-
-        AnimatedVisibility(
-            modifier = Modifier.align(
-                if (configuration.isPortrait) {
-                    Alignment.BottomCenter
-                } else {
-                    Alignment.CenterEnd
-                },
-            ),
-            visible = overlayView != null,
-            enter = if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
-            exit = if (configuration.isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
-        ) {
-            when (overlayView) {
-                OverlayView.AUDIO_SELECTOR -> {
-                    AudioTrackSelectorView(
-                        player = player,
-                        onDismiss = { overlayView = null },
-                    )
-                }
-
-                OverlayView.SUBTITLE_SELECTOR -> {
-                    SubtitleSelectorView(
-                        player = player,
-                        onSelectSubtitleClick = onSelectSubtitleClick,
-                        onDismiss = { overlayView = null },
-                    )
-                }
-
-                OverlayView.PLAYBACK_SPEED -> {
-                    PlaybackSpeedSelectorView(player = player)
-                }
-
-                null -> {}
-            }
-        }
+        OverlayShowView(
+            player = player,
+            overlayView = overlayView,
+            onDismiss = { overlayView = null },
+            onSelectSubtitleClick = onSelectSubtitleClick,
+        )
     }
 }
 

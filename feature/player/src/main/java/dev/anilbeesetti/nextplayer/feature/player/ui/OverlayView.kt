@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -34,6 +39,11 @@ fun OverlayView(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val configuration = LocalConfiguration.current
+    val layoutDirection = LocalLayoutDirection.current
+    val endPadding = WindowInsets.safeDrawing
+        .asPaddingValues()
+        .calculateEndPadding(layoutDirection)
+
     Surface(
         shape = RoundedCornerShape(16.dp),
         modifier = modifier
@@ -52,11 +62,12 @@ fun OverlayView(
         Column(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
-                .padding(top = 24.dp),
+                .padding(top = 24.dp)
+                .padding(end = endPadding),
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineSmall,
             )
             Spacer(modifier = Modifier.size(8.dp))
             Column(
