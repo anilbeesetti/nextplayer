@@ -40,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.PlayerSurface
@@ -54,7 +53,6 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.playbackSpeedControlsDialog
 import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
@@ -71,6 +69,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.AudioTrackSelectorView
+import dev.anilbeesetti.nextplayer.feature.player.ui.PlaybackSpeedSelectorView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleSelectorView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
@@ -167,7 +166,6 @@ fun PlayerActivity.MediaPlayerScreen(
 
                 if (controlsVisibilityState.controlsVisible) {
                     ControlsTopView(
-                        player = player,
                         title = metadataState.title ?: "",
                         onClickAudioTrackSelector = {
                             controlsVisibilityState.hideControls()
@@ -176,7 +174,11 @@ fun PlayerActivity.MediaPlayerScreen(
                         onClickSubtitleTrackSelector = {
                             controlsVisibilityState.hideControls()
                             overlayView = OverlayView.SUBTITLE_SELECTOR
-                        }
+                        },
+                        onClickPlaybackSpeedSelector = {
+                            controlsVisibilityState.hideControls()
+                            overlayView = OverlayView.PLAYBACK_SPEED
+                        },
                     )
                 }
 
@@ -247,6 +249,7 @@ fun PlayerActivity.MediaPlayerScreen(
                         onDismiss = { overlayView = null },
                     )
                 }
+
                 OverlayView.SUBTITLE_SELECTOR -> {
                     SubtitleSelectorView(
                         player = player,
@@ -254,9 +257,11 @@ fun PlayerActivity.MediaPlayerScreen(
                         onDismiss = { overlayView = null },
                     )
                 }
-                OverlayView.PLAYBACK_SPEED -> {
 
+                OverlayView.PLAYBACK_SPEED -> {
+                    PlaybackSpeedSelectorView(player = player)
                 }
+
                 null -> {}
             }
         }
@@ -270,14 +275,15 @@ enum class OverlayView {
 val Configuration.isPortrait: Boolean
     get() = orientation == Configuration.ORIENTATION_PORTRAIT
 
+
 @OptIn(UnstableApi::class)
 @Composable
 fun PlayerActivity.ControlsTopView(
     modifier: Modifier = Modifier,
-    player: MediaController,
     title: String,
     onClickAudioTrackSelector: () -> Unit = {},
     onClickSubtitleTrackSelector: () -> Unit = {},
+    onClickPlaybackSpeedSelector: () -> Unit = {},
 ) {
     Row(
         modifier = modifier,
@@ -303,14 +309,7 @@ fun PlayerActivity.ControlsTopView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            PlayerButton(
-                onClick = {
-                    playbackSpeedControlsDialog(
-                        mediaController = player,
-                        lifecycleScope = lifecycleScope,
-                    ).show()
-                },
-            ) {
+            PlayerButton(onClick = onClickPlaybackSpeedSelector) {
                 Icon(
                     painter = painterResource(coreUiR.drawable.ic_speed),
                     contentDescription = null,

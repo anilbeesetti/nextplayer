@@ -61,11 +61,11 @@ fun MediaController.switchSubtitleTrack(trackIndex: Int) {
     sendCustomCommand(CustomCommands.SWITCH_SUBTITLE_TRACK.sessionCommand, args)
 }
 
-fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
+suspend fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
     val args = Bundle().apply {
         putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
     }
-    sendCustomCommand(CustomCommands.SET_SKIP_SILENCE_ENABLED.sessionCommand, args)
+    sendCustomCommand(CustomCommands.SET_SKIP_SILENCE_ENABLED.sessionCommand, args).await()
 }
 
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
