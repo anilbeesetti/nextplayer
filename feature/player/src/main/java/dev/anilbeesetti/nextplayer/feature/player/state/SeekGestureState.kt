@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,7 @@ class SeekGestureState(
         player.pause()
     }
 
+    @OptIn(UnstableApi::class)
     fun onDrag(change: PointerInputChange, dragAmount: Float) {
         if (seekStartPosition == null) return
         if (player.duration == C.TIME_UNSET) return

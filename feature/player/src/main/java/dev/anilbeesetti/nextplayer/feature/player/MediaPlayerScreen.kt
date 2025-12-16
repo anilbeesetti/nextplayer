@@ -7,8 +7,10 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
@@ -55,6 +58,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
+import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
@@ -107,7 +111,7 @@ fun PlayerActivity.MediaPlayerScreen(
         autoEnter = playerPreferences.autoPip,
     )
     val videoZoomState = rememberVideoZoomState(
-        initialContentScale = playerPreferences.playerVideoZoom
+        initialContentScale = playerPreferences.playerVideoZoom,
     )
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
@@ -118,7 +122,7 @@ fun PlayerActivity.MediaPlayerScreen(
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
-    Box {
+    BoxWithConstraints {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -146,7 +150,27 @@ fun PlayerActivity.MediaPlayerScreen(
                     detectHorizontalDragGestures(
                         onDragStart = seekGestureState::onDragStart,
                         onHorizontalDrag = seekGestureState::onDrag,
+                        onDragCancel = seekGestureState::onDragEnd,
                         onDragEnd = seekGestureState::onDragEnd,
+                    )
+                }
+                .pointerInput(
+                    controlsVisibilityState.controlsLocked,
+                    pictureInPictureState.isInPictureInPictureMode,
+                ) {
+                    if (controlsVisibilityState.controlsLocked) return@pointerInput
+                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+
+                    detectCustomTransformGestures(
+                        consume = false,
+                        onGesture = { _, panChange, zoomChange, _, _, changes ->
+                            videoZoomState.onZoomPanGesture(
+                                constraints = constraints,
+                                panChange = panChange,
+                                zoomChange = zoomChange,
+                                changes = changes
+                            )
+                        },
                     )
                 },
         ) {
@@ -164,9 +188,15 @@ fun PlayerActivity.MediaPlayerScreen(
                             bounds.left.toInt(),
                             bounds.top.toInt(),
                             bounds.right.toInt(),
-                            bounds.bottom.toInt()
+                            bounds.bottom.toInt(),
                         )
                         pictureInPictureState.setVideoViewRect(rect)
+                    }
+                    .graphicsLayer {
+                        scaleX = videoZoomState.scale
+                        scaleY = videoZoomState.scale
+                        translationX = videoZoomState.offset.x
+                        translationY = videoZoomState.offset.y
                     },
             )
 
@@ -198,7 +228,7 @@ fun PlayerActivity.MediaPlayerScreen(
                         )
                     }
 
-                    return
+                    return@Column
                 }
 
                 if (controlsVisibilityState.controlsVisible) {
