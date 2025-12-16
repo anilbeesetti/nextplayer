@@ -73,10 +73,6 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 @AndroidEntryPoint
 class PlayerService : MediaSessionService() {
 
-    companion object {
-
-    }
-
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
 

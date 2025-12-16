@@ -2,27 +2,17 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
 import android.app.AppOpsManager
-import android.app.PendingIntent
-import android.app.PictureInPictureParams
-import android.app.RemoteAction
-import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.graphics.Rect
-import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
-import android.util.Rational
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -37,8 +27,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
-import androidx.annotation.DrawableRes
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
@@ -58,7 +46,6 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.SubtitleView
 import androidx.media3.ui.TimeBar
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -143,7 +130,6 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
-    private var pipBroadcastReceiver: BroadcastReceiver? = null
 
     /**
      * Listeners
@@ -411,153 +397,6 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("NewApi", "MissingSuperCall")
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.O..<Build.VERSION_CODES.S &&
-            isPipSupported &&
-            playerPreferences.autoPip &&
-            mediaController?.isPlaying == true &&
-            !isControlsLocked
-        ) {
-            try {
-                this.enterPictureInPictureMode(updatePictureInPictureParams())
-            } catch (e: IllegalStateException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        isPipActive = isInPictureInPictureMode
-        if (isInPictureInPictureMode) {
-            binding.playerView.subtitleView?.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
-            playerUnlockControls.visibility = View.INVISIBLE
-            pipBroadcastReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    if (intent == null || intent.action != PIP_INTENT_ACTION) return
-                    when (intent.getIntExtra(PIP_INTENT_ACTION_CODE, 0)) {
-                        PIP_ACTION_PLAY -> mediaController?.play()
-                        PIP_ACTION_PAUSE -> mediaController?.pause()
-                        PIP_ACTION_NEXT -> mediaController?.seekToNext()
-                        PIP_ACTION_PREVIOUS -> mediaController?.seekToPrevious()
-                    }
-                    if (isInPictureInPictureMode && !isFinishing && !isDestroyed) {
-                        updatePictureInPictureParams()
-                    }
-                }
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(pipBroadcastReceiver, IntentFilter(PIP_INTENT_ACTION), RECEIVER_NOT_EXPORTED)
-            } else {
-                registerReceiver(pipBroadcastReceiver, IntentFilter(PIP_INTENT_ACTION))
-            }
-        } else {
-            binding.playerView.subtitleView?.setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
-            if (!isControlsLocked) {
-                playerUnlockControls.visibility = View.VISIBLE
-            }
-            pipBroadcastReceiver?.let {
-                unregisterReceiver(it)
-                pipBroadcastReceiver = null
-            }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun updatePictureInPictureParams(enableAutoEnter: Boolean = mediaController?.isPlaying == true): PictureInPictureParams {
-        val playerViewWidth = binding.playerView.width
-        val playerViewHeight = binding.playerView.height
-
-        // Validate playerView dimensions
-        if (playerViewWidth <= 0 || playerViewHeight <= 0) {
-            Timber.w("Invalid playerView dimensions: $playerViewWidth x $playerViewHeight")
-            return PictureInPictureParams.Builder().build()
-        }
-
-        val displayAspectRatio = Rational(playerViewWidth, playerViewHeight)
-
-        return PictureInPictureParams.Builder().apply {
-            val aspectRatio = calculateVideoAspectRatio()
-            if (aspectRatio != null) {
-                val sourceRectHint = calculateSourceRectHint(displayAspectRatio, aspectRatio)
-                setAspectRatio(aspectRatio)
-                setSourceRectHint(sourceRectHint)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                setSeamlessResizeEnabled(playerPreferences.autoPip && enableAutoEnter)
-                setAutoEnterEnabled(playerPreferences.autoPip && enableAutoEnter)
-            }
-
-            setActions(
-                listOf(
-                    createPipAction(
-                        context = this@PlayerActivity,
-                        title = "skip to previous",
-                        icon = coreUiR.drawable.ic_skip_prev,
-                        actionCode = PIP_ACTION_PREVIOUS,
-                    ),
-                    if (mediaController?.isPlaying == true) {
-                        createPipAction(
-                            context = this@PlayerActivity,
-                            title = "pause",
-                            icon = coreUiR.drawable.ic_pause,
-                            actionCode = PIP_ACTION_PAUSE,
-                        )
-                    } else {
-                        createPipAction(
-                            context = this@PlayerActivity,
-                            title = "play",
-                            icon = coreUiR.drawable.ic_play,
-                            actionCode = PIP_ACTION_PLAY,
-                        )
-                    },
-                    createPipAction(
-                        context = this@PlayerActivity,
-                        title = "skip to next",
-                        icon = coreUiR.drawable.ic_skip_next,
-                        actionCode = PIP_ACTION_NEXT,
-                    ),
-                ),
-            )
-        }.build().also { params ->
-            try {
-                if (!isFinishing && !isDestroyed) {
-                    setPictureInPictureParams(params)
-                }
-            } catch (e: IllegalStateException) {
-                Timber.e(e, "Failed to set picture-in-picture params")
-            }
-        }
-    }
-
-    private fun calculateVideoAspectRatio(): Rational? {
-        return binding.playerView.player?.videoSize?.let { videoSize ->
-            if (videoSize.width == 0 || videoSize.height == 0) return@let null
-
-            Rational(
-                videoSize.width,
-                videoSize.height,
-            ).takeIf { it.toFloat() in 0.5f..2.39f }
-        }
-    }
-
-    private fun calculateSourceRectHint(displayAspectRatio: Rational, aspectRatio: Rational): Rect {
-        val playerWidth = binding.playerView.width.toFloat()
-        val playerHeight = binding.playerView.height.toFloat()
-
-        return if (displayAspectRatio < aspectRatio) {
-            val space = ((playerHeight - (playerWidth / aspectRatio.toFloat())) / 2).toInt()
-            Rect(0, space, playerWidth.toInt(), (playerWidth / aspectRatio.toFloat()).toInt() + space)
-        } else {
-            val space = ((playerWidth - (playerHeight * aspectRatio.toFloat())) / 2).toInt()
-            Rect(space, 0, (playerHeight * aspectRatio.toFloat()).toInt() + space, playerHeight.toInt())
-        }
-    }
-
     private fun setOrientation() {
         requestedOrientation = currentOrientation ?: playerPreferences.playerScreenOrientation.toActivityOrientation(
             videoOrientation = mediaController?.videoSize?.let { videoSize ->
@@ -660,9 +499,6 @@ class PlayerActivity : AppCompatActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             updateKeepScreenOnFlag()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
-                updatePictureInPictureParams()
-            }
         }
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
@@ -681,9 +517,6 @@ class PlayerActivity : AppCompatActivity() {
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             super.onVideoSizeChanged(videoSize)
             if (videoSize.width != 0 && videoSize.height != 0) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
-                    updatePictureInPictureParams()
-                }
                 setOrientation()
             }
             lifecycleScope.launch {
@@ -1053,34 +886,5 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         const val HIDE_DELAY_MILLIS = 1000L
-        const val PIP_INTENT_ACTION = "pip_action"
-        const val PIP_INTENT_ACTION_CODE = "pip_action_code"
-        const val PIP_ACTION_PLAY = 1
-        const val PIP_ACTION_PAUSE = 2
-        const val PIP_ACTION_NEXT = 3
-        const val PIP_ACTION_PREVIOUS = 4
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-private fun createPipAction(
-    context: Context,
-    title: String,
-    @DrawableRes icon: Int,
-    actionCode: Int,
-): RemoteAction {
-    return RemoteAction(
-        Icon.createWithResource(context, icon),
-        title,
-        title,
-        PendingIntent.getBroadcast(
-            context,
-            actionCode,
-            Intent(PlayerActivity.PIP_INTENT_ACTION).apply {
-                putExtra(PlayerActivity.PIP_INTENT_ACTION_CODE, actionCode)
-                setPackage(context.packageName)
-            },
-            PendingIntent.FLAG_IMMUTABLE,
-        ),
-    )
 }

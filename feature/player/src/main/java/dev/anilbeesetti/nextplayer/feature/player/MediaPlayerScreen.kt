@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.content.res.Configuration
+import android.graphics.Rect
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -19,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,8 +29,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toAndroidRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onLayoutRectChanged
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +49,7 @@ import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
+import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.VideoZoom
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
@@ -59,6 +69,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibili
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberDoubleTapGestureHandler
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
@@ -91,6 +102,16 @@ fun PlayerActivity.MediaPlayerScreen(
         player = player,
         shouldFastSeek = { playerPreferences.shouldFastSeek(it) },
     )
+    val pictureInPictureState = rememberPictureInPictureState(
+        player = player,
+        autoEnter = playerPreferences.autoPip,
+    )
+
+    LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
+        if (pictureInPictureState.isInPictureInPictureMode) {
+            controlsVisibilityState.hideControls()
+        }
+    }
 
     var videoZoom by remember { mutableStateOf(playerPreferences.playerVideoZoom) }
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
@@ -100,7 +121,9 @@ fun PlayerActivity.MediaPlayerScreen(
             modifier = modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .pointerInput(Unit) {
+                .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
+                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+
                     detectTapGestures(
                         onTap = {
                             controlsVisibilityState.toggleControlsVisibility()
@@ -111,8 +134,12 @@ fun PlayerActivity.MediaPlayerScreen(
                         },
                     )
                 }
-                .pointerInput(controlsVisibilityState.controlsLocked) {
+                .pointerInput(
+                    controlsVisibilityState.controlsLocked,
+                    pictureInPictureState.isInPictureInPictureMode,
+                ) {
                     if (controlsVisibilityState.controlsLocked) return@pointerInput
+                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectHorizontalDragGestures(
                         onDragStart = seekGestureState::onDragStart,
@@ -124,14 +151,26 @@ fun PlayerActivity.MediaPlayerScreen(
             PlayerSurface(
                 player = player,
                 surfaceType = SURFACE_TYPE_SURFACE_VIEW,
-                modifier = Modifier.resizeWithContentScale(
-                    contentScale = videoZoom.toContentScale(),
-                    sourceSizeDp = presentationState.videoSizeDp,
-                ),
+                modifier = Modifier
+                    .resizeWithContentScale(
+                        contentScale = videoZoom.toContentScale(),
+                        sourceSizeDp = presentationState.videoSizeDp,
+                    )
+                    .onGloballyPositioned {
+                        val bounds = it.boundsInWindow()
+                        val rect = Rect(
+                            bounds.left.toInt(),
+                            bounds.top.toInt(),
+                            bounds.right.toInt(),
+                            bounds.bottom.toInt()
+                        )
+                        pictureInPictureState.setVideoViewRect(rect)
+                    },
             )
 
             SubtitleView(
                 player = player,
+                isInPictureInPictureMode = pictureInPictureState.isInPictureInPictureMode,
                 playerPreferences = playerPreferences,
             )
 
@@ -211,14 +250,28 @@ fun PlayerActivity.MediaPlayerScreen(
                 // BOTTOM
                 Spacer(modifier = Modifier.weight(1f))
                 if (controlsVisibilityState.controlsVisible) {
+                    val context = LocalContext.current
                     ControlsBottomView(
                         player = player,
+                        controlsAlignment = when (playerPreferences.controlButtonsPosition) {
+                            ControlButtonsPosition.LEFT -> Alignment.Start
+                            ControlButtonsPosition.RIGHT -> Alignment.End
+                        },
                         videoZoom = videoZoom,
+                        isPipSupported = pictureInPictureState.isPipSupported,
                         onVideoZoomOptionSelected = {
                             videoZoom = it
                             changeAndSaveVideoZoom(videoZoom)
                         },
                         onLockControlsClick = { controlsVisibilityState.lockControls() },
+                        onPipClick = {
+                            if (!pictureInPictureState.hasPipPermission) {
+                                Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                                pictureInPictureState.openPictureInPictureSettings()
+                            } else {
+                                pictureInPictureState.enterPictureInPictureMode()
+                            }
+                        },
                     )
                 }
             }
@@ -301,9 +354,12 @@ fun PlayerActivity.ControlsTopView(
 fun PlayerActivity.ControlsBottomView(
     modifier: Modifier = Modifier,
     player: MediaController,
+    controlsAlignment: Alignment.Horizontal,
     videoZoom: VideoZoom,
+    isPipSupported: Boolean,
     onVideoZoomOptionSelected: (VideoZoom) -> Unit,
     onLockControlsClick: () -> Unit,
+    onPipClick: () -> Unit = {},
 ) {
     val mediaPresentationState = rememberMediaPresentationState(player)
 
@@ -353,9 +409,11 @@ fun PlayerActivity.ControlsBottomView(
             modifier = Modifier.fillMaxWidth(),
         )
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = controlsAlignment),
         ) {
             PlayerButton(onClick = onLockControlsClick) {
                 Icon(
@@ -382,11 +440,13 @@ fun PlayerActivity.ControlsBottomView(
                     contentDescription = null,
                 )
             }
-            PlayerButton(onClick = { }) {
-                Icon(
-                    painter = painterResource(coreUiR.drawable.ic_pip),
-                    contentDescription = null,
-                )
+            if (isPipSupported) {
+                PlayerButton(onClick = onPipClick) {
+                    Icon(
+                        painter = painterResource(coreUiR.drawable.ic_pip),
+                        contentDescription = null,
+                    )
+                }
             }
             PlayerButton(onClick = { }) {
                 Icon(

@@ -3,22 +3,26 @@ package dev.anilbeesetti.nextplayer.feature.player.ui
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.accessibility.CaptioningManager
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toTypeface
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberCuesState
 
+@OptIn(UnstableApi::class)
 @Composable
 fun SubtitleView(
     modifier: Modifier = Modifier,
     player: Player,
+    isInPictureInPictureMode: Boolean,
     playerPreferences: PlayerPreferences,
 ) {
     val cuesState = rememberCuesState(player)
@@ -51,6 +55,11 @@ fun SubtitleView(
         },
         update = { subtitleView ->
             subtitleView.setCues(cuesState.cues)
+            if (isInPictureInPictureMode) {
+                subtitleView.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
+            } else {
+                subtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, playerPreferences.subtitleTextSize.toFloat())
+            }
         },
     )
 }
