@@ -37,6 +37,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.FastSeek
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -50,6 +51,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
+import kotlin.math.max
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -166,6 +168,11 @@ fun PlayerPreferencesScreen(
                 onClick = {
                     viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
                 },
+            )
+            PreferenceSubtitle(text = stringResource(id = R.string.buffering))
+            StreamingCacheSettingsPreference(
+                preferences = preferences,
+                onClick = { viewModel.showDialog(PlayerPreferenceDialog.StreamingCacheDialog) },
             )
         }
 
@@ -379,9 +386,118 @@ fun PlayerPreferencesScreen(
                         },
                     )
                 }
+
+                PlayerPreferenceDialog.StreamingCacheDialog -> {
+                    var minBufferSec by remember { mutableIntStateOf(preferences.minBufferMs / 1000) }
+                    var maxBufferSec by remember { mutableIntStateOf(preferences.maxBufferMs / 1000) }
+                    var startBufferMs by remember { mutableIntStateOf(preferences.bufferForPlaybackMs) }
+                    var rebufferMs by remember { mutableIntStateOf(preferences.bufferForPlaybackAfterRebufferMs) }
+                    var dashThreads by remember { mutableIntStateOf(preferences.dashPrefetchMaxThreads) }
+                    var cacheLimitMb by remember { mutableIntStateOf((preferences.perVideoCacheMaxBytes / (1024L * 1024L)).toInt()) }
+
+                    NextDialogWithDoneAndCancelButtons(
+                        title = stringResource(R.string.streaming_cache),
+                        onDoneClick = {
+                            val normalizedMinSec = minBufferSec.coerceAtLeast(1)
+                            val normalizedMaxSec = max(maxBufferSec, normalizedMinSec)
+                            viewModel.updateStreamingCacheSettings(
+                                minBufferMs = normalizedMinSec * 1000,
+                                maxBufferMs = normalizedMaxSec * 1000,
+                                bufferForPlaybackMs = startBufferMs.coerceAtLeast(0),
+                                bufferForPlaybackAfterRebufferMs = rebufferMs.coerceAtLeast(0),
+                                dashPrefetchMaxThreads = dashThreads.coerceIn(1, 32),
+                                perVideoCacheMaxBytes = cacheLimitMb.coerceAtLeast(0).toLong() * 1024L * 1024L,
+                            )
+                            viewModel.hideDialog()
+                        },
+                        onDismissClick = viewModel::hideDialog,
+                        content = {
+                            BufferingSliderRow(
+                                title = stringResource(R.string.min_buffer),
+                                valueText = stringResource(R.string.seconds, minBufferSec),
+                                value = minBufferSec.toFloat(),
+                                onValueChange = { minBufferSec = it.toInt() },
+                                range = 1.0f..300.0f,
+                            )
+                            BufferingSliderRow(
+                                title = stringResource(R.string.max_buffer),
+                                valueText = stringResource(R.string.seconds, maxBufferSec),
+                                value = maxBufferSec.toFloat(),
+                                onValueChange = { maxBufferSec = it.toInt() },
+                                range = 1.0f..300.0f,
+                            )
+                            BufferingSliderRow(
+                                title = stringResource(R.string.buffer_for_playback),
+                                valueText = stringResource(R.string.milliseconds, startBufferMs),
+                                value = startBufferMs.toFloat(),
+                                onValueChange = { startBufferMs = it.toInt() },
+                                range = 0.0f..10_000.0f,
+                            )
+                            BufferingSliderRow(
+                                title = stringResource(R.string.buffer_for_playback_after_rebuffer),
+                                valueText = stringResource(R.string.milliseconds, rebufferMs),
+                                value = rebufferMs.toFloat(),
+                                onValueChange = { rebufferMs = it.toInt() },
+                                range = 0.0f..20_000.0f,
+                            )
+                            BufferingSliderRow(
+                                title = stringResource(R.string.dash_prefetch_max_threads),
+                                valueText = dashThreads.toString(),
+                                value = dashThreads.toFloat(),
+                                onValueChange = { dashThreads = it.toInt() },
+                                range = 1.0f..32.0f,
+                            )
+                            BufferingSliderRow(
+                                title = stringResource(R.string.per_video_cache_limit),
+                                valueText = stringResource(R.string.megabytes, cacheLimitMb),
+                                value = cacheLimitMb.toFloat(),
+                                onValueChange = { cacheLimitMb = it.toInt() },
+                                range = 64.0f..2048.0f,
+                            )
+                        },
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun StreamingCacheSettingsPreference(
+    preferences: PlayerPreferences,
+    onClick: () -> Unit,
+) {
+    val minSec = preferences.minBufferMs / 1000
+    val maxSec = preferences.maxBufferMs / 1000
+    val cacheMb = (preferences.perVideoCacheMaxBytes / (1024L * 1024L)).toInt()
+    ClickablePreferenceItem(
+        title = stringResource(R.string.streaming_cache),
+        description = "${minSec}s–${maxSec}s, ${preferences.dashPrefetchMaxThreads} threads, ${cacheMb}MB",
+        icon = NextIcons.Settings,
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun BufferingSliderRow(
+    title: String,
+    valueText: String,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    range: ClosedFloatingPointRange<Float>,
+) {
+    Text(
+        text = "$title: $valueText",
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+        style = MaterialTheme.typography.titleSmall,
+    )
+    Slider(
+        value = value,
+        onValueChange = onValueChange,
+        valueRange = range,
+    )
 }
 
 @Composable

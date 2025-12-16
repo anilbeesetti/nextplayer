@@ -61,6 +61,17 @@
     <string name="title_activity_player">Next Player Activity</string>
     <string name="unknown_error">An unknown error has occurred</string>
     <string name="playback">Playback</string>
+    <string name="buffering">Buffering</string>
+    <string name="streaming_cache">Streaming &amp; cache</string>
+    <string name="streaming_cache_desc">Configure buffering, DASH prefetch and cache limit</string>
+    <string name="milliseconds">%1$s ms</string>
+    <string name="megabytes">%1$s MB</string>
+    <string name="min_buffer">Minimum buffer</string>
+    <string name="max_buffer">Maximum buffer</string>
+    <string name="buffer_for_playback">Start/seek buffer</string>
+    <string name="buffer_for_playback_after_rebuffer">Rebuffer buffer</string>
+    <string name="dash_prefetch_max_threads">DASH prefetch threads</string>
+    <string name="per_video_cache_limit">Per-video cache limit</string>
     <string name="interface_name">Interface</string>
     <string name="a_z">A-Z</string>
     <string name="z_a">Z-A</string>

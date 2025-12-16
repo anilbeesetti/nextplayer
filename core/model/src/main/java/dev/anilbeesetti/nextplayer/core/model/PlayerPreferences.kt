@@ -48,4 +48,12 @@ data class PlayerPreferences(
 
     // Decoder Preferences
     val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE,
+
+    // Network streaming & caching
+    val minBufferMs: Int = 50_000,
+    val maxBufferMs: Int = 50_000,
+    val bufferForPlaybackMs: Int = 1_000,
+    val bufferForPlaybackAfterRebufferMs: Int = 2_000,
+    val dashPrefetchMaxThreads: Int = 16,
+    val perVideoCacheMaxBytes: Long = 512L * 1024L * 1024L,
 )
