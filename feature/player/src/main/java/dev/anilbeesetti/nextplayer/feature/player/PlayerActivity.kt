@@ -1,27 +1,17 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
-import android.app.AppOpsManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Process
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.ViewGroup.LayoutParams
 import android.view.WindowManager
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -44,29 +34,23 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.TimeBar
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
-import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setImageDrawable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
@@ -79,11 +63,9 @@ import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
-import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerGestureHelper
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -126,7 +108,6 @@ class PlayerActivity : AppCompatActivity() {
      */
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
-    private lateinit var playerGestureHelper: PlayerGestureHelper
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
     private lateinit var brightnessManager: BrightnessManager
@@ -138,46 +119,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private val subtitleFileSuspendLauncher = registerForSuspendActivityResult(OpenDocument())
 
-    /**
-     * Player controller views
-     */
-    private lateinit var audioTrackButton: ImageButton
-    private lateinit var backButton: ImageButton
-    private lateinit var exoContentFrameLayout: AspectRatioFrameLayout
-    private lateinit var lockControlsButton: ImageButton
-    private lateinit var playbackSpeedButton: ImageButton
-    private lateinit var playerLockControls: FrameLayout
-    private lateinit var playerUnlockControls: FrameLayout
-    private lateinit var playerCenterControls: LinearLayout
-    private lateinit var screenRotateButton: ImageButton
-    private lateinit var pipButton: ImageButton
-    private lateinit var seekBar: TimeBar
-    private lateinit var subtitleTrackButton: ImageButton
-    private lateinit var unlockControlsButton: ImageButton
-    private lateinit var videoTitleTextView: TextView
-    private lateinit var videoZoomButton: ImageButton
-    private lateinit var playInBackgroundButton: ImageButton
-    private lateinit var loopModeButton: ImageButton
-    private lateinit var extraControls: LinearLayout
-
-    private val isPipSupported: Boolean by lazy {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
-    }
-
-    private val isPipEnabled: Boolean
-        get() {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager?
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    appOps?.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
-                } else {
-                    @Suppress("DEPRECATION")
-                    appOps?.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
-                }
-            } else {
-                false
-            }
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -238,84 +179,8 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        // Initializing views
-        audioTrackButton = binding.playerView.findViewById(R.id.btn_audio_track)
-        backButton = binding.playerView.findViewById(R.id.back_button)
-        exoContentFrameLayout = binding.playerView.findViewById(R.id.exo_content_frame)
-        lockControlsButton = binding.playerView.findViewById(R.id.btn_lock_controls)
-        playbackSpeedButton = binding.playerView.findViewById(R.id.btn_playback_speed)
-        playerLockControls = binding.playerView.findViewById(R.id.player_lock_controls)
-        playerUnlockControls = binding.playerView.findViewById(R.id.player_unlock_controls)
-        playerCenterControls = binding.playerView.findViewById(R.id.player_center_controls)
-        screenRotateButton = binding.playerView.findViewById(R.id.screen_rotate)
-        pipButton = binding.playerView.findViewById(R.id.btn_pip)
-        seekBar = binding.playerView.findViewById(R.id.exo_progress)
-        subtitleTrackButton = binding.playerView.findViewById(R.id.btn_subtitle_track)
-        unlockControlsButton = binding.playerView.findViewById(R.id.btn_unlock_controls)
-        videoTitleTextView = binding.playerView.findViewById(R.id.video_name)
-        videoZoomButton = binding.playerView.findViewById(R.id.btn_video_zoom)
-        playInBackgroundButton = binding.playerView.findViewById(R.id.btn_background)
-        loopModeButton = binding.playerView.findViewById(R.id.btn_loop_mode)
-        extraControls = binding.playerView.findViewById(R.id.extra_controls)
-
-        if (playerPreferences.controlButtonsPosition == ControlButtonsPosition.RIGHT) {
-            extraControls.gravity = Gravity.END
-        }
-
-        if (!isPipSupported) {
-            pipButton.visibility = View.GONE
-        }
-
-        seekBar.addListener(
-            object : TimeBar.OnScrubListener {
-                override fun onScrubStart(timeBar: TimeBar, position: Long) {
-                    mediaController?.run {
-                        if (isPlaying) {
-                            isPlayingOnScrubStart = true
-                            pause()
-                        }
-                        isFrameRendered = true
-                        scrubStartPosition = currentPosition
-                        previousScrubPosition = currentPosition
-                        scrub(position)
-                        showPlayerInfo(
-                            info = Utils.formatDurationMillis(position),
-                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                        )
-                    }
-                }
-
-                override fun onScrubMove(timeBar: TimeBar, position: Long) {
-                    scrub(position)
-                    showPlayerInfo(
-                        info = Utils.formatDurationMillis(position),
-                        subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                    )
-                }
-
-                override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
-                    hidePlayerInfo(0L)
-                    scrubStartPosition = -1L
-                    if (isPlayingOnScrubStart) {
-                        mediaController?.play()
-                    }
-                }
-            },
-        )
-
         volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
         brightnessManager = BrightnessManager(activity = this)
-        playerGestureHelper = PlayerGestureHelper(
-            viewModel = viewModel,
-            activity = this,
-            volumeManager = volumeManager,
-            brightnessManager = brightnessManager,
-            onScaleChanged = { scale ->
-                mediaController?.currentMediaItem?.mediaId?.let {
-                    viewModel.updateMediumZoom(uri = it, zoom = scale)
-                }
-            },
-        )
 
         playerApi = PlayerApi(this)
 
@@ -334,16 +199,14 @@ class PlayerActivity : AppCompatActivity() {
             mediaController = controllerFuture?.await()
 
             setOrientation()
-            applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom)
             mediaController?.currentMediaItem?.mediaId?.let {
-                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 1f)
+//                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 1f)
             }
 
             mediaController?.run {
                 binding.playerView.player = this
                 isMediaItemReady = currentMediaItem != null
                 toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
-                videoTitleTextView.text = currentMediaItem?.mediaMetadata?.title
                 applyLoopMode(playerPreferences.loopMode)
                 if (playerPreferences.shouldUseVolumeBoost) {
                     try {
@@ -493,7 +356,6 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             super.onMediaMetadataChanged(mediaMetadata)
-            videoTitleTextView.text = mediaMetadata.title
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -521,8 +383,8 @@ class PlayerActivity : AppCompatActivity() {
             }
             lifecycleScope.launch {
                 val videoScale = mediaController?.currentMediaItem?.mediaId?.let { viewModel.getVideoState(it)?.videoScale } ?: 1f
-                applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom)
-                applyVideoScale(videoScale = videoScale)
+//                applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom)
+//                applyVideoScale(videoScale = videoScale)
             }
         }
 
@@ -606,7 +468,7 @@ class PlayerActivity : AppCompatActivity() {
                 -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                     volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
-                    showVolumeGestureLayout()
+//                    showVolumeGestureLayout()
                     return true
                 }
             }
@@ -616,7 +478,7 @@ class PlayerActivity : AppCompatActivity() {
                 -> {
                 if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
                     volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
-                    showVolumeGestureLayout()
+//                    showVolumeGestureLayout()
                     return true
                 }
             }
@@ -656,10 +518,10 @@ class PlayerActivity : AppCompatActivity() {
                         }
                         val position = (currentPosition - 10_000).coerceAtLeast(0L)
                         seekBack(position, shouldFastSeek)
-                        showPlayerInfo(
-                            info = Utils.formatDurationMillis(position),
-                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                        )
+//                        showPlayerInfo(
+//                            info = Utils.formatDurationMillis(position),
+//                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
+//                        )
                         return true
                     }
                 }
@@ -677,10 +539,10 @@ class PlayerActivity : AppCompatActivity() {
 
                         val position = (currentPosition + 10_000).coerceAtMost(duration)
                         seekForward(position, shouldFastSeek)
-                        showPlayerInfo(
-                            info = Utils.formatDurationMillis(position),
-                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-                        )
+//                        showPlayerInfo(
+//                            info = Utils.formatDurationMillis(position),
+//                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
+//                        )
                         return true
                     }
                 }
@@ -713,7 +575,7 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_UP,
             KeyEvent.KEYCODE_DPAD_DOWN,
                 -> {
-                hideVolumeGestureLayout()
+//                hideVolumeGestureLayout()
                 return true
             }
 
@@ -724,91 +586,11 @@ class PlayerActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_BUTTON_R2,
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
                 -> {
-                hidePlayerInfo()
+//                hidePlayerInfo()
                 return true
             }
         }
         return super.onKeyUp(keyCode, event)
-    }
-
-    private fun scrub(position: Long) {
-        if (isFrameRendered) {
-            isFrameRendered = false
-            if (position > previousScrubPosition) {
-                mediaController?.seekForward(position, shouldFastSeek)
-            } else {
-                mediaController?.seekBack(position, shouldFastSeek)
-            }
-            previousScrubPosition = position
-        }
-    }
-
-    fun showVolumeGestureLayout() {
-        hideVolumeIndicatorJob?.cancel()
-        with(binding) {
-            volumeGestureLayout.visibility = View.VISIBLE
-            volumeProgressBar.max = volumeManager.maxVolume.times(100)
-            volumeProgressBar.progress = volumeManager.currentVolume.times(100).toInt()
-            volumeProgressText.text = volumeManager.volumePercentage.toString()
-        }
-    }
-
-    fun showBrightnessGestureLayout() {
-        hideBrightnessIndicatorJob?.cancel()
-        with(binding) {
-            brightnessGestureLayout.visibility = View.VISIBLE
-            brightnessProgressBar.max = brightnessManager.maxBrightness.times(100).toInt()
-            brightnessProgressBar.progress = brightnessManager.currentBrightness.times(100).toInt()
-            brightnessProgressText.text = brightnessManager.brightnessPercentage.toString()
-        }
-    }
-
-    fun showPlayerInfo(info: String, subInfo: String? = null) {
-        hideInfoLayoutJob?.cancel()
-        with(binding) {
-            infoLayout.visibility = View.VISIBLE
-            infoText.text = info
-            infoSubtext.visibility = View.GONE.takeIf { subInfo == null } ?: View.VISIBLE
-            infoSubtext.text = subInfo
-        }
-    }
-
-    fun showTopInfo(info: String) {
-        with(binding) {
-            topInfoLayout.visibility = View.VISIBLE
-            topInfoText.text = info
-        }
-    }
-
-    fun hideVolumeGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
-        if (binding.volumeGestureLayout.visibility != View.VISIBLE) return
-        hideVolumeIndicatorJob = lifecycleScope.launch {
-            delay(delayTimeMillis)
-            binding.volumeGestureLayout.visibility = View.GONE
-        }
-    }
-
-    fun hideBrightnessGestureLayout(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
-        if (binding.brightnessGestureLayout.visibility != View.VISIBLE) return
-        hideBrightnessIndicatorJob = lifecycleScope.launch {
-            delay(delayTimeMillis)
-            binding.brightnessGestureLayout.visibility = View.GONE
-        }
-        if (playerPreferences.rememberPlayerBrightness) {
-            viewModel.setPlayerBrightness(window.attributes.screenBrightness)
-        }
-    }
-
-    fun hidePlayerInfo(delayTimeMillis: Long = HIDE_DELAY_MILLIS) {
-        if (binding.infoLayout.visibility != View.VISIBLE) return
-        hideInfoLayoutJob = lifecycleScope.launch {
-            delay(delayTimeMillis)
-            binding.infoLayout.visibility = View.GONE
-        }
-    }
-
-    fun hideTopInfo() {
-        binding.topInfoLayout.visibility = View.GONE
     }
 
     private fun updateKeepScreenOnFlag() {
@@ -819,63 +601,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun applyVideoScale(videoScale: Float) {
-        exoContentFrameLayout.scaleX = videoScale
-        exoContentFrameLayout.scaleY = videoScale
-        exoContentFrameLayout.requestLayout()
-    }
-
-    private fun resetExoContentFrameWidthAndHeight() {
-        exoContentFrameLayout.layoutParams.width = LayoutParams.MATCH_PARENT
-        exoContentFrameLayout.layoutParams.height = LayoutParams.MATCH_PARENT
-        exoContentFrameLayout.scaleX = 1.0f
-        exoContentFrameLayout.scaleY = 1.0f
-        exoContentFrameLayout.requestLayout()
-    }
-
-    private fun applyVideoZoom(videoZoom: VideoZoom) {
-        resetExoContentFrameWidthAndHeight()
-        when (videoZoom) {
-            VideoZoom.BEST_FIT -> {
-                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_fit_screen)
-            }
-
-            VideoZoom.STRETCH -> {
-                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_aspect_ratio)
-            }
-
-            VideoZoom.CROP -> {
-                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_crop_landscape)
-            }
-
-            VideoZoom.HUNDRED_PERCENT -> {
-                mediaController?.videoSize?.let {
-                    exoContentFrameLayout.layoutParams.width = it.width
-                    exoContentFrameLayout.layoutParams.height = it.height
-                    exoContentFrameLayout.requestLayout()
-                }
-                binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                videoZoomButton.setImageDrawable(this, coreUiR.drawable.ic_width_wide)
-            }
-        }
-    }
-
-    fun changeAndSaveVideoZoom(videoZoom: VideoZoom) {
-        applyVideoZoom(videoZoom)
+    fun saveVideoZoom(videoZoom: VideoContentScale) {
         viewModel.setVideoZoom(videoZoom)
 
         mediaController?.currentMediaItem?.mediaId?.let {
             viewModel.updateMediumZoom(uri = it, zoom = 1f)
-        }
-
-        lifecycleScope.launch {
-            binding.infoLayout.visibility = View.VISIBLE
-            binding.infoText.text = getString(videoZoom.nameRes())
-            delay(HIDE_DELAY_MILLIS)
-            binding.infoLayout.visibility = View.GONE
         }
     }
 

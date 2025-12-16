@@ -25,17 +25,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toAndroidRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onLayoutRectChanged
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,18 +48,19 @@ import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
-import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
-import dev.anilbeesetti.nextplayer.feature.player.dialogs.videoZoomOptionsDialog
+import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
@@ -71,6 +70,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentatio
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
@@ -106,6 +106,9 @@ fun PlayerActivity.MediaPlayerScreen(
         player = player,
         autoEnter = playerPreferences.autoPip,
     )
+    val videoZoomState = rememberVideoZoomState(
+        initialContentScale = playerPreferences.playerVideoZoom
+    )
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -113,7 +116,6 @@ fun PlayerActivity.MediaPlayerScreen(
         }
     }
 
-    var videoZoom by remember { mutableStateOf(playerPreferences.playerVideoZoom) }
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
     Box {
@@ -153,7 +155,7 @@ fun PlayerActivity.MediaPlayerScreen(
                 surfaceType = SURFACE_TYPE_SURFACE_VIEW,
                 modifier = Modifier
                     .resizeWithContentScale(
-                        contentScale = videoZoom.toContentScale(),
+                        contentScale = videoZoomState.videoContentScale.toContentScale(),
                         sourceSizeDp = presentationState.videoSizeDp,
                     )
                     .onGloballyPositioned {
@@ -257,22 +259,22 @@ fun PlayerActivity.MediaPlayerScreen(
                             ControlButtonsPosition.LEFT -> Alignment.Start
                             ControlButtonsPosition.RIGHT -> Alignment.End
                         },
-                        videoZoom = videoZoom,
+                        videoContentScale = videoZoomState.videoContentScale,
                         isPipSupported = pictureInPictureState.isPipSupported,
-                        onVideoZoomOptionSelected = {
-                            videoZoom = it
-                            changeAndSaveVideoZoom(videoZoom)
+                        onVideoContentScaleSelected = {
+                            videoZoomState.onVideoContentScaleChanged(it)
+                            saveVideoZoom(it)
                         },
+                        onClickVideoContentScaleSelector = { overlayView = OverlayView.VIDEO_CONTENT_SCALE },
                         onLockControlsClick = { controlsVisibilityState.lockControls() },
-                        onPipClick = {
-                            if (!pictureInPictureState.hasPipPermission) {
-                                Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
-                                pictureInPictureState.openPictureInPictureSettings()
-                            } else {
-                                pictureInPictureState.enterPictureInPictureMode()
-                            }
-                        },
-                    )
+                    ) {
+                        if (!pictureInPictureState.hasPipPermission) {
+                            Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                            pictureInPictureState.openPictureInPictureSettings()
+                        } else {
+                            pictureInPictureState.enterPictureInPictureMode()
+                        }
+                    }
                 }
             }
         }
@@ -280,14 +282,16 @@ fun PlayerActivity.MediaPlayerScreen(
         OverlayShowView(
             player = player,
             overlayView = overlayView,
+            videoContentScale = videoZoomState.videoContentScale,
             onDismiss = { overlayView = null },
             onSelectSubtitleClick = onSelectSubtitleClick,
+            onVideoContentScaleChanged = { videoZoomState.onVideoContentScaleChanged(it) },
         )
     }
 }
 
 enum class OverlayView {
-    AUDIO_SELECTOR, SUBTITLE_SELECTOR, PLAYBACK_SPEED
+    AUDIO_SELECTOR, SUBTITLE_SELECTOR, PLAYBACK_SPEED, VIDEO_CONTENT_SCALE
 }
 
 val Configuration.isPortrait: Boolean
@@ -351,13 +355,14 @@ fun PlayerActivity.ControlsTopView(
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlayerActivity.ControlsBottomView(
+fun ControlsBottomView(
     modifier: Modifier = Modifier,
     player: MediaController,
     controlsAlignment: Alignment.Horizontal,
-    videoZoom: VideoZoom,
+    videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
-    onVideoZoomOptionSelected: (VideoZoom) -> Unit,
+    onVideoContentScaleSelected: (VideoContentScale) -> Unit,
+    onClickVideoContentScaleSelector: () -> Unit,
     onLockControlsClick: () -> Unit,
     onPipClick: () -> Unit = {},
 ) {
@@ -367,7 +372,7 @@ fun PlayerActivity.ControlsBottomView(
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            var showPendingPosition by remember { mutableStateOf(false) }
+            var showPendingPosition by rememberSaveable { mutableStateOf(false) }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -422,21 +427,11 @@ fun PlayerActivity.ControlsBottomView(
                 )
             }
             PlayerButton(
-                onClick = { onVideoZoomOptionSelected(videoZoom.next()) },
-                onLongClick = {
-                    videoZoomOptionsDialog(
-                        currentVideoZoom = videoZoom,
-                        onVideoZoomOptionSelected = onVideoZoomOptionSelected,
-                    ).show()
-                },
+                onClick = { onVideoContentScaleSelected(videoContentScale.next()) },
+                onLongClick = onClickVideoContentScaleSelector,
             ) {
                 Icon(
-                    painter = when (videoZoom) {
-                        VideoZoom.BEST_FIT -> painterResource(coreUiR.drawable.ic_fit_screen)
-                        VideoZoom.STRETCH -> painterResource(coreUiR.drawable.ic_aspect_ratio)
-                        VideoZoom.CROP -> painterResource(coreUiR.drawable.ic_crop_landscape)
-                        VideoZoom.HUNDRED_PERCENT -> painterResource(coreUiR.drawable.ic_width_wide)
-                    },
+                    painter = painterResource(videoContentScale.drawableRes()),
                     contentDescription = null,
                 )
             }
@@ -457,11 +452,4 @@ fun PlayerActivity.ControlsBottomView(
             LoopButton(player = player)
         }
     }
-}
-
-private fun VideoZoom.toContentScale(): ContentScale = when (this) {
-    VideoZoom.BEST_FIT -> ContentScale.Fit
-    VideoZoom.STRETCH -> ContentScale.FillBounds
-    VideoZoom.CROP -> ContentScale.Crop
-    VideoZoom.HUNDRED_PERCENT -> ContentScale.None // TODO: fix this
 }

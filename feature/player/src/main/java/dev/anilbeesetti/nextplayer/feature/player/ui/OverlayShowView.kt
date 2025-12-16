@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.media3.common.Player
-import androidx.media3.session.MediaController
+import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.isPortrait
@@ -22,8 +22,10 @@ fun BoxScope.OverlayShowView(
     modifier: Modifier = Modifier,
     player: Player,
     overlayView: OverlayView?,
+    videoContentScale: VideoContentScale,
     onDismiss: () -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
+    onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
 ) {
     Box(
         modifier = modifier
@@ -66,6 +68,14 @@ fun BoxScope.OverlayShowView(
 
                 OverlayView.PLAYBACK_SPEED -> {
                     PlaybackSpeedSelectorView(player = player)
+                }
+
+                OverlayView.VIDEO_CONTENT_SCALE -> {
+                    VideoContentScaleSelectorView(
+                        videoContentScale = videoContentScale,
+                        onVideoContentScaleChanged = onVideoContentScaleChanged,
+                        onDismiss = onDismiss,
+                    )
                 }
 
                 null -> {}
