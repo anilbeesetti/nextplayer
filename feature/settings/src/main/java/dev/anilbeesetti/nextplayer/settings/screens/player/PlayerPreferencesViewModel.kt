@@ -207,28 +207,6 @@ class PlayerPreferencesViewModel @Inject constructor(
             }
         }
     }
-
-    fun updateStreamingCacheSettings(
-        minBufferMs: Int,
-        maxBufferMs: Int,
-        bufferForPlaybackMs: Int,
-        bufferForPlaybackAfterRebufferMs: Int,
-        dashPrefetchMaxThreads: Int,
-        perVideoCacheMaxBytes: Long,
-    ) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    minBufferMs = minBufferMs,
-                    maxBufferMs = maxBufferMs,
-                    bufferForPlaybackMs = bufferForPlaybackMs,
-                    bufferForPlaybackAfterRebufferMs = bufferForPlaybackAfterRebufferMs,
-                    dashPrefetchMaxThreads = dashPrefetchMaxThreads,
-                    perVideoCacheMaxBytes = perVideoCacheMaxBytes,
-                )
-            }
-        }
-    }
 }
 
 data class PlayerPreferencesUIState(
@@ -245,7 +223,6 @@ sealed interface PlayerPreferenceDialog {
     object LongPressControlsSpeedDialog : PlayerPreferenceDialog
     object ControllerTimeoutDialog : PlayerPreferenceDialog
     object SeekIncrementDialog : PlayerPreferenceDialog
-    object StreamingCacheDialog : PlayerPreferenceDialog
 }
 
 sealed interface PlayerPreferencesEvent {

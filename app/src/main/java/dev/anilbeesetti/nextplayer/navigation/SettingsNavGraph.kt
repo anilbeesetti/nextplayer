@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.navigation.aboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.appearancePreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.audioPreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.cachePreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.decoderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.folderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.librariesScreen
@@ -14,6 +15,7 @@ import dev.anilbeesetti.nextplayer.settings.navigation.mediaLibraryPreferencesSc
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAudioPreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToCachePreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToDecoderPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToLibraries
@@ -41,6 +43,7 @@ fun NavGraphBuilder.settingsNavGraph(
                     Setting.APPEARANCE -> navController.navigateToAppearancePreferences()
                     Setting.MEDIA_LIBRARY -> navController.navigateToMediaLibraryPreferencesScreen()
                     Setting.PLAYER -> navController.navigateToPlayerPreferences()
+                    Setting.CACHE -> navController.navigateToCachePreferences()
                     Setting.DECODER -> navController.navigateToDecoderPreferences()
                     Setting.AUDIO -> navController.navigateToAudioPreferences()
                     Setting.SUBTITLE -> navController.navigateToSubtitlePreferences()
@@ -59,6 +62,9 @@ fun NavGraphBuilder.settingsNavGraph(
             onNavigateUp = navController::navigateUp,
         )
         playerPreferencesScreen(
+            onNavigateUp = navController::navigateUp,
+        )
+        cachePreferencesScreen(
             onNavigateUp = navController::navigateUp,
         )
         decoderPreferencesScreen(

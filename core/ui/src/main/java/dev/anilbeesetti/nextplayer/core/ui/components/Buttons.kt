@@ -36,3 +36,18 @@ fun CancelButton(
         Text(text = stringResource(R.string.cancel))
     }
 }
+
+@Composable
+fun ResetButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    TextButton(
+        enabled = enabled,
+        onClick = onClick,
+        modifier = modifier,
+    ) {
+        Text(text = stringResource(R.string.reset))
+    }
+}

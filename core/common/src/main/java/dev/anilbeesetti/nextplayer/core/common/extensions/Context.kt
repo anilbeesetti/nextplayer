@@ -15,9 +15,9 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
-import android.util.Log
 import android.util.TypedValue
 import androidx.core.text.isDigitsOnly
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
@@ -201,7 +201,7 @@ suspend fun Context.scanPaths(paths: List<String>): Boolean = suspendCoroutine {
             paths.toTypedArray(),
             arrayOf("video/*"),
         ) { path, uri ->
-            Log.d("ScanPath", "scanPaths: path=$path, uri=$uri")
+            NextLogger.d("ScanPath", "scanPaths: path=$path, uri=$uri")
             continuation.resumeWith(Result.success(true))
         }
     } catch (e: Exception) {
@@ -254,7 +254,7 @@ suspend fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri = wit
             }
         }
     } catch (exception: Exception) {
-        exception.printStackTrace()
+        NextLogger.e("ContextExt", "Failed to convert uri to UTF-8: $uri", exception)
         uri
     }
 }
@@ -388,7 +388,7 @@ suspend fun ContentResolver.updateMedia(
             null,
         ) > 0
     } catch (e: Exception) {
-        e.printStackTrace()
+        NextLogger.e("ContentResolver", "Failed to update media: $uri", e)
         false
     }
 }
@@ -399,7 +399,7 @@ suspend fun ContentResolver.deleteMedia(
     return@withContext try {
         delete(uri, null, null) > 0
     } catch (e: Exception) {
-        e.printStackTrace()
+        NextLogger.e("ContentResolver", "Failed to delete media: $uri", e)
         false
     }
 }

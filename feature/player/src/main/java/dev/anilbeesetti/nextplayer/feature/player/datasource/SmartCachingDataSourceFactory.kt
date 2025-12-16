@@ -17,6 +17,10 @@ internal class SmartCachingDataSourceFactory(
     private val shouldUseNoOpDataSource: (Uri) -> Boolean,
     private val noOpFactory: DataSource.Factory,
     private val cacheProvider: () -> Cache?,
+    private val shouldUseRangeSegmentingDataSource: (Uri) -> Boolean = { false },
+    private val rangeChunkSizeBytesProvider: () -> Long = { 1024L * 1024L },
+    private val segmentConcurrentDownloadsProvider: () -> Int = { 1 },
+    private val segmentPrefetcher: SegmentPrefetcher? = null,
     private val cacheKeyFactory: CacheKeyFactory = CacheKeyFactory.DEFAULT,
 ) : DataSource.Factory {
 
@@ -26,6 +30,10 @@ internal class SmartCachingDataSourceFactory(
             shouldUseNoOpDataSource = shouldUseNoOpDataSource,
             noOpFactory = noOpFactory,
             cacheProvider = cacheProvider,
+            shouldUseRangeSegmentingDataSource = shouldUseRangeSegmentingDataSource,
+            rangeChunkSizeBytesProvider = rangeChunkSizeBytesProvider,
+            segmentConcurrentDownloadsProvider = segmentConcurrentDownloadsProvider,
+            segmentPrefetcher = segmentPrefetcher,
             cacheKeyFactory = cacheKeyFactory,
         )
     }
@@ -36,6 +44,10 @@ private class SmartCachingDataSource(
     private val shouldUseNoOpDataSource: (Uri) -> Boolean,
     private val noOpFactory: DataSource.Factory,
     private val cacheProvider: () -> Cache?,
+    private val shouldUseRangeSegmentingDataSource: (Uri) -> Boolean,
+    private val rangeChunkSizeBytesProvider: () -> Long,
+    private val segmentConcurrentDownloadsProvider: () -> Int,
+    private val segmentPrefetcher: SegmentPrefetcher?,
     private val cacheKeyFactory: CacheKeyFactory,
 ) : DataSource {
 
@@ -55,7 +67,13 @@ private class SmartCachingDataSource(
             shouldUseNoOpDataSource(uri) -> noOpFactory
             isHttp(uri) -> {
                 val cache = cacheProvider()
-                if (cache == null) upstreamFactory else cacheDataSourceFactory(cache)
+                if (cache == null) {
+                    upstreamFactory
+                } else if (shouldUseRangeSegmentingDataSource(uri) && segmentPrefetcher != null) {
+                    rangeSegmentingDataSourceFactory(cache)
+                } else {
+                    cacheDataSourceFactory(cache)
+                }
             }
             else -> upstreamFactory
         }
@@ -86,7 +104,21 @@ private class SmartCachingDataSource(
             .setCacheKeyFactory(cacheKeyFactory)
             .setUpstreamDataSourceFactory(upstreamFactory)
             .setCacheWriteDataSinkFactory(writeSinkFactory)
-            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR or CacheDataSource.FLAG_BLOCK_ON_CACHE)
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+    }
+
+    private fun rangeSegmentingDataSourceFactory(cache: Cache): DataSource.Factory {
+        val baseFactory = cacheDataSourceFactory(cache) as CacheDataSource.Factory
+        return DataSource.Factory {
+            RangeSegmentingDataSource(
+                cache = cache,
+                cacheDataSourceFactory = baseFactory,
+                cacheKeyFactory = cacheKeyFactory,
+                rangeChunkSizeBytesProvider = rangeChunkSizeBytesProvider,
+                segmentConcurrentDownloadsProvider = segmentConcurrentDownloadsProvider,
+                segmentPrefetcher = requireNotNull(segmentPrefetcher),
+            )
+        }
     }
 
     private fun isHttp(uri: Uri): Boolean {

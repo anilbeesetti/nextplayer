@@ -11,6 +11,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
 import androidx.media3.common.Player.DISCONTINUITY_REASON_REMOVE
@@ -19,10 +20,7 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.cache.CacheDataSink
-import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -42,18 +40,21 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getLocalSubtitles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
+import dev.anilbeesetti.nextplayer.core.model.StreamCacheClearPolicy
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
-import dev.anilbeesetti.nextplayer.feature.player.cache.DashPrefetcher
 import dev.anilbeesetti.nextplayer.feature.player.cache.PerVideoStreamCache
 import dev.anilbeesetti.nextplayer.feature.player.cache.StreamCacheAnalyticsListener
+import dev.anilbeesetti.nextplayer.feature.player.datasource.DashSegmentPrefetcher
+import dev.anilbeesetti.nextplayer.feature.player.datasource.SegmentPrefetcher
 import dev.anilbeesetti.nextplayer.feature.player.datasource.SmartCachingDataSourceFactory
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
@@ -84,10 +85,15 @@ class PlayerService : MediaSessionService() {
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
     private var streamCache: PerVideoStreamCache? = null
-    private var dashPrefetcher: DashPrefetcher? = null
 
     @Volatile
     private var latestPlayerPreferences: PlayerPreferences = PlayerPreferences()
+
+    @Volatile
+    private var currentMediaItemUri: Uri? = null
+
+    @Volatile
+    private var currentMediaItemMimeType: String? = null
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
@@ -109,10 +115,11 @@ class PlayerService : MediaSessionService() {
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             isMediaItemReady = false
             if (mediaItem != null) {
+                currentMediaItemUri = mediaItem.localConfiguration?.uri
+                currentMediaItemMimeType = mediaItem.localConfiguration?.mimeType
                 serviceScope.launch(Dispatchers.IO) {
                     streamCache?.setActiveMediaId(mediaItem.mediaId)
                 }
-                mediaSession?.player?.let { dashPrefetcher?.onMediaChanged(it) }
                 serviceScope.launch {
                     currentVideoState = mediaRepository.getVideoState(mediaItem.mediaId)
                     mediaSession?.player?.setPlaybackSpeed(
@@ -146,19 +153,6 @@ class PlayerService : MediaSessionService() {
                             mediaRepository.updateMediumPosition(
                                 uri = oldMediaItem.mediaId,
                                 position = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET,
-                            )
-                        }
-                    }
-                    mediaSession?.player?.let { player ->
-                        if (reason == DISCONTINUITY_REASON_SEEK) {
-                            dashPrefetcher?.onSeek(player)
-                        }
-                        val currentPositionMs = player.currentPosition
-                        val forwardWindowMs = playerPreferences.maxBufferMs.toLong()
-                        serviceScope.launch(Dispatchers.IO) {
-                            streamCache?.enforceCacheLimit(
-                                currentPositionMs = currentPositionMs,
-                                forwardWindowMs = forwardWindowMs,
                             )
                         }
                     }
@@ -221,16 +215,9 @@ class PlayerService : MediaSessionService() {
                     streamCache?.setCurrentVideoQualityKey(
                         selectedVideoFormat?.let { "v_${it.height}_${it.bitrate}" },
                     )
-                    val currentPositionMs = player.currentPosition
-                    val forwardWindowMs = playerPreferences.maxBufferMs.toLong()
                     serviceScope.launch(Dispatchers.IO) {
                         streamCache?.deleteOtherVideoQualities()
-                        streamCache?.enforceCacheLimit(
-                            currentPositionMs = currentPositionMs,
-                            forwardWindowMs = forwardWindowMs,
-                        )
                     }
-                    dashPrefetcher?.setPlaying(player, player.isPlaying)
                 }
             }
         }
@@ -277,9 +264,6 @@ class PlayerService : MediaSessionService() {
             mediaSession?.run {
                 saveCurrentMediaPlaybackPosition(player)
             }
-            mediaSession?.player?.let { player ->
-                dashPrefetcher?.setPlaying(player, isPlaying)
-            }
         }
     }
 
@@ -307,6 +291,8 @@ class PlayerService : MediaSessionService() {
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future(Dispatchers.Default) {
             mediaItems.getOrNull(startIndex)?.let { item ->
                 runCatching { streamCache?.setActiveMediaId(item.mediaId) }
+                currentMediaItemUri = item.localConfiguration?.uri
+                currentMediaItemMimeType = item.localConfiguration?.mimeType
             }
             val (updatedMediaItems, time) = measureTimedValue {
                 updatedMediaItemsWithMetadata(mediaItems)
@@ -486,6 +472,7 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        isServiceRunning = true
         latestPlayerPreferences = runBlocking { preferencesRepository.playerPreferences.first() }
         serviceScope.launch(Dispatchers.Default) {
             preferencesRepository.playerPreferences.collect { latestPlayerPreferences = it }
@@ -510,16 +497,35 @@ class PlayerService : MediaSessionService() {
         }
 
         val upstreamFactory = DefaultDataSource.Factory(applicationContext)
-        streamCache = PerVideoStreamCache(
-            context = applicationContext,
-            cacheLimitBytesProvider = { latestPlayerPreferences.perVideoCacheMaxBytes },
+        val segmentPrefetcher = SegmentPrefetcher(
+            upstreamFactory = upstreamFactory,
+            cacheProvider = { streamCache?.getCache() },
+            scope = serviceScope,
         )
+        streamCache = PerVideoStreamCache(context = applicationContext)
 
         val cachingDataSourceFactory = SmartCachingDataSourceFactory(
             upstreamFactory = upstreamFactory,
             shouldUseNoOpDataSource = { uri -> WmvAsfDetector.isWmvAsf(applicationContext, uri) },
             noOpFactory = NoOpDataSource.Factory(),
             cacheProvider = { streamCache?.getCache() },
+            shouldUseRangeSegmentingDataSource = { uri ->
+                val currentUri = currentMediaItemUri
+                val mimeType = currentMediaItemMimeType
+                mimeType != MimeTypes.APPLICATION_MPD && currentUri != null && uri == currentUri
+            },
+            rangeChunkSizeBytesProvider = { latestPlayerPreferences.rangeStreamChunkSizeBytes },
+            segmentConcurrentDownloadsProvider = { latestPlayerPreferences.segmentConcurrentDownloads },
+            segmentPrefetcher = segmentPrefetcher,
+        )
+
+        val dashSegmentPrefetcher = DashSegmentPrefetcher(
+            dataSourceFactory = cachingDataSourceFactory,
+            segmentPrefetcher = segmentPrefetcher,
+            manifestUriProvider = { currentMediaItemUri },
+            isDashProvider = { currentMediaItemMimeType == MimeTypes.APPLICATION_MPD },
+            segmentConcurrentDownloadsProvider = { latestPlayerPreferences.segmentConcurrentDownloads },
+            scope = serviceScope,
         )
 
         val mediaSourceFactory = DefaultMediaSourceFactory(
@@ -565,21 +571,12 @@ class PlayerService : MediaSessionService() {
                 it.addAnalyticsListener(
                     StreamCacheAnalyticsListener(
                         streamCache = streamCache!!,
-                        playerProvider = { it },
-                        maxBufferMsProvider = { latestPlayerPreferences.maxBufferMs },
                         scope = serviceScope,
                     ),
                 )
+                it.addAnalyticsListener(dashSegmentPrefetcher)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
             }
-
-        dashPrefetcher = DashPrefetcher(
-            scope = serviceScope,
-            streamCache = streamCache!!,
-            cacheDataSourceFactoryProvider = { createCacheDataSourceFactory(upstreamFactory) },
-            maxThreadsProvider = { latestPlayerPreferences.dashPrefetchMaxThreads },
-            maxBufferMsProvider = { latestPlayerPreferences.maxBufferMs },
-        )
 
         try {
             mediaSession = MediaSession.Builder(this, player).apply {
@@ -604,7 +601,7 @@ class PlayerService : MediaSessionService() {
                 )
             }.build()
         } catch (e: Exception) {
-            e.printStackTrace()
+            NextLogger.e("PlayerService", "Failed to build MediaSession", e)
         }
     }
 
@@ -625,21 +622,18 @@ class PlayerService : MediaSessionService() {
             release()
             mediaSession = null
         }
-        dashPrefetcher?.shutdown()
-        dashPrefetcher = null
-        runCatching { streamCache?.clearActiveMedia() }
+        val shouldDeleteStreamCache = playerPreferences.streamCacheClearPolicy == StreamCacheClearPolicy.CLEAR_ON_PLAYBACK_SESSION_EXIT
+        runCatching { streamCache?.close(deleteFiles = shouldDeleteStreamCache) }
         streamCache = null
         subtitleCacheDir.deleteFiles()
         serviceScope.cancel()
+        isServiceRunning = false
     }
 
-    private fun createCacheDataSourceFactory(upstreamFactory: DataSource.Factory): CacheDataSource.Factory? {
-        val cache = streamCache?.getCache() ?: return null
-        return CacheDataSource.Factory()
-            .setCache(cache)
-            .setUpstreamDataSourceFactory(upstreamFactory)
-            .setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cache))
-            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR or CacheDataSource.FLAG_BLOCK_ON_CACHE)
+    companion object {
+        @Volatile
+        var isServiceRunning: Boolean = false
+            private set
     }
 
     private fun saveCurrentMediaPlaybackPosition(player: Player) {

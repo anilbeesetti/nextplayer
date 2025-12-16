@@ -3,12 +3,12 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.thumbnailCacheDir
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.SubtitleStreamInfoEntity
@@ -48,8 +48,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             val mediaInfo = runCatching {
                 MediaInfoBuilder().from(context = context, uri = mediumUri).build() ?: throw NullPointerException()
             }.onFailure { e ->
-                e.printStackTrace()
-                Log.d(TAG, "sync: MediaInfoBuilder exception", e)
+                NextLogger.e(TAG, "MediaInfoBuilder exception", e)
             }.getOrNull() ?: return@collect
 
             val thumbnail = runCatching { mediaInfo.getFrame() }.getOrNull()
@@ -136,7 +135,7 @@ suspend fun Bitmap.saveTo(
             compress(Bitmap.CompressFormat.JPEG, quality, fos)
         }
     } catch (e: Exception) {
-        e.printStackTrace()
+        NextLogger.e("MediaInfoSynchronizer", "Failed to save thumbnail", e)
     }
     return@withContext if (thumbFile.exists()) thumbFile.path else null
 }

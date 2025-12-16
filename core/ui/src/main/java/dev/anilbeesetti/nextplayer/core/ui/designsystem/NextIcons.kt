@@ -51,6 +51,7 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Subtitles
@@ -72,6 +73,7 @@ object NextIcons {
     val Bold = Icons.Rounded.FormatBold
     val Brightness = Icons.Rounded.BrightnessHigh
     val Calendar = Icons.Rounded.CalendarMonth
+    val Cache = Icons.Rounded.Storage
     val Caption = Icons.Rounded.ClosedCaption
     val Check = Icons.Rounded.Check
     val CheckBox = Icons.Rounded.CheckCircle

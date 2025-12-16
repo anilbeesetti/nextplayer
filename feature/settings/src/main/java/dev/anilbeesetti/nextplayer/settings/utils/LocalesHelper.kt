@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.utils
 
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import java.util.Locale
 
 object LocalesHelper {
@@ -12,7 +13,7 @@ object LocalesHelper {
                 Pair(language, key)
             }.distinctBy { it.second }.sortedBy { it.first }
         } catch (e: Exception) {
-            e.printStackTrace()
+            NextLogger.e("LocalesHelper", "Failed to list available locales", e)
             listOf()
         }
     }
@@ -21,7 +22,7 @@ object LocalesHelper {
         return try {
             Locale.getAvailableLocales().first { it.isO3Language == key }.displayLanguage
         } catch (e: Exception) {
-            e.printStackTrace()
+            NextLogger.e("LocalesHelper", "Failed to get locale display name for key=$key", e)
             ""
         }
     }

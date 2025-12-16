@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.utils
 
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 
 class VolumeManager(private val audioManager: AudioManager) {
 
@@ -12,7 +13,7 @@ class VolumeManager(private val audioManager: AudioManager) {
                     value?.enabled = true
                     value?.setTargetGain(currentLoudnessGain.toInt())
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    NextLogger.e("VolumeManager", "Failed to configure LoudnessEnhancer", e)
                 }
             }
             field = value
@@ -43,7 +44,7 @@ class VolumeManager(private val audioManager: AudioManager) {
                 loudnessEnhancer?.enabled = true
                 loudnessEnhancer?.setTargetGain(currentLoudnessGain.toInt())
             } catch (e: Exception) {
-                e.printStackTrace()
+                NextLogger.e("VolumeManager", "Failed to configure LoudnessEnhancer", e)
             }
         }
     }

@@ -7,7 +7,7 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
-import timber.log.Timber
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 
 /**
  * Switches to selected track.
@@ -26,7 +26,7 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
     }
 
     if (trackIndex < 0) {
-        Timber.d("Disabling $trackTypeText")
+        NextLogger.d("Player", "Disabling $trackTypeText")
         trackSelectionParameters = trackSelectionParameters
             .buildUpon()
             .setTrackTypeDisabled(trackType, true)
@@ -35,11 +35,11 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
         val tracks = currentTracks.groups.filter { it.type == trackType }
 
         if (tracks.isEmpty() || trackIndex >= tracks.size) {
-            Timber.d("Operation failed: Invalid track index: $trackIndex")
+            NextLogger.d("Player", "Operation failed: Invalid track index: $trackIndex")
             return
         }
 
-        Timber.d("Setting $trackTypeText track: $trackIndex")
+        NextLogger.d("Player", "Setting $trackTypeText track: $trackIndex")
         val trackSelectionOverride = TrackSelectionOverride(tracks[trackIndex].mediaTrackGroup, 0)
 
         // Override the track selection parameters to force the selection of the specified track.

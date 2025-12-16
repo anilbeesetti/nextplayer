@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import androidx.core.net.toUri
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -55,7 +56,7 @@ fun File.deleteFiles() {
             it.delete()
         }
     } catch (e: Exception) {
-        e.printStackTrace()
+        NextLogger.e("FileExt", "Failed to delete files under: ${this.path}", e)
     }
 }
 

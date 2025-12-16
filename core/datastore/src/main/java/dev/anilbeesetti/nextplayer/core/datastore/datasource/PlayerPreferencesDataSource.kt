@@ -1,9 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.datastore.datasource
 
 import androidx.datastore.core.DataStore
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import javax.inject.Inject
-import timber.log.Timber
 
 class PlayerPreferencesDataSource @Inject constructor(
     private val preferencesDataStore: DataStore<PlayerPreferences>,
@@ -15,7 +15,7 @@ class PlayerPreferencesDataSource @Inject constructor(
         try {
             preferencesDataStore.updateData(transform)
         } catch (ioException: Exception) {
-            Timber.tag("NextPlayerPreferences").e("Failed to update app preferences: $ioException")
+            NextLogger.e("NextPlayerPreferences", "Failed to update player preferences", ioException)
         }
     }
 }

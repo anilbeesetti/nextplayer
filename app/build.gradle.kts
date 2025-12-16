@@ -127,8 +127,6 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
-    implementation(libs.timber)
-
     testImplementation(libs.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.ext)

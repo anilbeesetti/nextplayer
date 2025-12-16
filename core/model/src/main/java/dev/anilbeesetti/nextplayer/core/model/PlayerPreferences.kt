@@ -54,6 +54,7 @@ data class PlayerPreferences(
     val maxBufferMs: Int = 50_000,
     val bufferForPlaybackMs: Int = 1_000,
     val bufferForPlaybackAfterRebufferMs: Int = 2_000,
-    val dashPrefetchMaxThreads: Int = 16,
-    val perVideoCacheMaxBytes: Long = 512L * 1024L * 1024L,
+    val streamCacheClearPolicy: StreamCacheClearPolicy = StreamCacheClearPolicy.CLEAR_ON_PLAYBACK_SESSION_EXIT,
+    val rangeStreamChunkSizeBytes: Long = 1024L * 1024L,
+    val segmentConcurrentDownloads: Int = 1,
 )

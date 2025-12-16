@@ -14,6 +14,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
@@ -158,7 +159,7 @@ class LocalMediaSynchronizer @Inject constructor(
             try {
                 file.delete()
             } catch (e: Exception) {
-                e.printStackTrace()
+                NextLogger.e("LocalMediaSynchronizer", "Failed to delete thumbnail: ${file.path}", e)
             }
         }
 
@@ -176,7 +177,7 @@ class LocalMediaSynchronizer @Inject constructor(
                         try {
                             context.contentResolver.releasePersistableUriPermission(sub, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            NextLogger.e("LocalMediaSynchronizer", "Failed to release subtitle uri permission: $sub", e)
                         }
                     }
                 }

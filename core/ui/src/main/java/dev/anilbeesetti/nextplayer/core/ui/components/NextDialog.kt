@@ -1,6 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -46,6 +49,29 @@ fun NextDialogWithDoneAndCancelButtons(
         title = { Text(text = title) },
         confirmButton = { DoneButton(onClick = onDoneClick) },
         dismissButton = { CancelButton(onClick = onDismissClick) },
+        onDismissRequest = onDismissClick,
+        content = content,
+    )
+}
+
+@Composable
+fun NextDialogWithDoneCancelAndResetButtons(
+    title: String,
+    onDoneClick: () -> Unit,
+    onResetClick: () -> Unit,
+    onDismissClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    NextDialog(
+        title = { Text(text = title) },
+        confirmButton = { DoneButton(onClick = onDoneClick) },
+        dismissButton = {
+            Row {
+                ResetButton(onClick = onResetClick)
+                Spacer(modifier = Modifier.width(8.dp))
+                CancelButton(onClick = onDismissClick)
+            }
+        },
         onDismissRequest = onDismissClick,
         content = content,
     )

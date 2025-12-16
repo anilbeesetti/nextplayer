@@ -70,6 +70,7 @@ import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
+import dev.anilbeesetti.nextplayer.core.common.logging.NextLogger
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -116,7 +117,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -355,7 +355,7 @@ class PlayerActivity : AppCompatActivity() {
                     try {
                         volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        NextLogger.e("PlayerActivity", "Failed to create LoudnessEnhancer", e)
                     }
                 }
                 updateKeepScreenOnFlag()
@@ -417,7 +417,7 @@ class PlayerActivity : AppCompatActivity() {
             try {
                 this.enterPictureInPictureMode(updatePictureInPictureParams())
             } catch (e: IllegalStateException) {
-                e.printStackTrace()
+                NextLogger.e("PlayerActivity", "Failed to enter Picture-in-Picture", e)
             }
         }
     }
@@ -468,7 +468,7 @@ class PlayerActivity : AppCompatActivity() {
 
         // Validate playerView dimensions
         if (playerViewWidth <= 0 || playerViewHeight <= 0) {
-            Timber.w("Invalid playerView dimensions: $playerViewWidth x $playerViewHeight")
+            NextLogger.w("PlayerActivity", "Invalid playerView dimensions: $playerViewWidth x $playerViewHeight")
             return PictureInPictureParams.Builder().build()
         }
 
@@ -523,7 +523,7 @@ class PlayerActivity : AppCompatActivity() {
                     setPictureInPictureParams(params)
                 }
             } catch (e: IllegalStateException) {
-                Timber.e(e, "Failed to set picture-in-picture params")
+                NextLogger.e("PlayerActivity", "Failed to set picture-in-picture params", e)
             }
         }
     }
@@ -696,7 +696,7 @@ class PlayerActivity : AppCompatActivity() {
                         startActivity(this@apply)
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    NextLogger.e("PlayerActivity", "Failed to open Picture-in-Picture settings", e)
                 }
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPipSupported) {
@@ -850,7 +850,7 @@ class PlayerActivity : AppCompatActivity() {
                 try {
                     volumeManager.loudnessEnhancer = LoudnessEnhancer(audioSessionId)
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    NextLogger.e("PlayerActivity", "Failed to create LoudnessEnhancer", e)
                 }
             }
         }
@@ -872,7 +872,7 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
-            Timber.e(error)
+            NextLogger.e("PlayerActivity", "Playback error", error)
             val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
                 setTitle(getString(coreUiR.string.error_playing_video))
                 setMessage(error.message ?: getString(coreUiR.string.unknown_error))
