@@ -5,12 +5,8 @@ import android.graphics.Rect
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -57,7 +52,6 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
-import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
@@ -78,6 +72,8 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightn
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
+import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestures
+import dev.anilbeesetti.nextplayer.feature.player.ui.ShutterView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
 import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
 import kotlin.time.Duration.Companion.milliseconds
@@ -125,71 +121,11 @@ fun PlayerActivity.MediaPlayerScreen(
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
-    BoxWithConstraints {
+    Box {
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Color.Black)
-                .pointerInput(pictureInPictureState.isInPictureInPictureMode) {
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
-
-                    detectTapGestures(
-                        onTap = {
-                            controlsVisibilityState.toggleControlsVisibility()
-                        },
-                        onDoubleTap = {
-                            if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            doubleTapGestureHandler.handleDoubleTap(offset = it, size = size)
-                        },
-                    )
-                }
-                .pointerInput(
-                    controlsVisibilityState.controlsLocked,
-                    pictureInPictureState.isInPictureInPictureMode,
-                ) {
-                    if (controlsVisibilityState.controlsLocked) return@pointerInput
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
-
-                    detectHorizontalDragGestures(
-                        onDragStart = seekGestureState::onDragStart,
-                        onHorizontalDrag = seekGestureState::onDrag,
-                        onDragCancel = seekGestureState::onDragEnd,
-                        onDragEnd = seekGestureState::onDragEnd,
-                    )
-                }
-                .pointerInput(
-                    controlsVisibilityState.controlsLocked,
-                    pictureInPictureState.isInPictureInPictureMode,
-                ) {
-                    if (controlsVisibilityState.controlsLocked) return@pointerInput
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
-
-                    detectVerticalDragGestures(
-                        onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
-                        onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
-                        onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
-                        onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
-                    )
-                }
-                .pointerInput(
-                    controlsVisibilityState.controlsLocked,
-                    pictureInPictureState.isInPictureInPictureMode,
-                ) {
-                    if (controlsVisibilityState.controlsLocked) return@pointerInput
-                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
-
-                    detectCustomTransformGestures(
-                        consume = false,
-                        onGesture = { _, panChange, zoomChange, _, _, changes ->
-                            videoZoomState.onZoomPanGesture(
-                                constraints = constraints,
-                                panChange = panChange,
-                                zoomChange = zoomChange,
-                                changes = changes
-                            )
-                        },
-                    )
-                },
+                .background(Color.Black),
         ) {
             PlayerSurface(
                 player = player,
@@ -217,6 +153,15 @@ fun PlayerActivity.MediaPlayerScreen(
                     },
             )
 
+            PlayerGestures(
+                controlsVisibilityState = controlsVisibilityState,
+                doubleTapGestureHandler = doubleTapGestureHandler,
+                pictureInPictureState = pictureInPictureState,
+                seekGestureState = seekGestureState,
+                videoZoomState = videoZoomState,
+                volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
+            )
+
             SubtitleView(
                 player = player,
                 isInPictureInPictureMode = pictureInPictureState.isInPictureInPictureMode,
@@ -224,11 +169,7 @@ fun PlayerActivity.MediaPlayerScreen(
             )
 
             if (presentationState.coverSurface) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(Color.Black),
-                )
+                ShutterView()
             }
 
             Column(

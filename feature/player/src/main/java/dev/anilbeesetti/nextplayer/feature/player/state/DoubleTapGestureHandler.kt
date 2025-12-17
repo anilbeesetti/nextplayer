@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
@@ -29,6 +30,7 @@ fun rememberDoubleTapGestureHandler(
     return doubleTapGestureHandler
 }
 
+@Stable
 class DoubleTapGestureHandler(
     private val player: Player,
     private val doubleTapGesture: DoubleTapGesture,

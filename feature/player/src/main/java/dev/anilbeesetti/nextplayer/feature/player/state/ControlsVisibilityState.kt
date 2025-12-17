@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,7 @@ fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): Contro
 }
 
 @UnstableApi
+@Stable
 class ControlsVisibilityState(
     private val player: Player,
     private val hideAfter: Duration,

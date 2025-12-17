@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +21,7 @@ fun rememberVideoZoomState(initialContentScale: VideoContentScale): VideoZoomSta
     return videoZoomState
 }
 
+@Stable
 class VideoZoomState(
     private val initialContentScale: VideoContentScale
 ) {

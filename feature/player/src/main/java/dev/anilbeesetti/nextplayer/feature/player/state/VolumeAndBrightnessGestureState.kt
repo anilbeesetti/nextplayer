@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +22,7 @@ fun rememberVolumeAndBrightnessGestureState(
     return volumeAndBrightnessGestureState
 }
 
+@Stable
 class VolumeAndBrightnessGestureState(
     private val volumeState: VolumeState,
     private val brightnessState: BrightnessState,

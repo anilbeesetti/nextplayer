@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,7 @@ fun rememberSeekGestureState(
     return seekGestureState
 }
 
+@Stable
 class SeekGestureState(
     private val player: Player,
     private val shouldFastSeek: (Long) -> Boolean,
