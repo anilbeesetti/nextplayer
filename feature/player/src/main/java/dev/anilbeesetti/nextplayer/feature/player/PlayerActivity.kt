@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
@@ -12,17 +13,18 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.core.util.Consumer
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -70,11 +72,12 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.CopyOnWriteArrayList
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
-class PlayerActivity : AppCompatActivity() {
+class PlayerActivity : ComponentActivity() {
 
     lateinit var binding: ActivityPlayerBinding
 
@@ -82,19 +85,14 @@ class PlayerActivity : AppCompatActivity() {
     private val applicationPreferences get() = viewModel.appPrefs.value
     val playerPreferences get() = viewModel.playerPrefs.value
 
+    private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
+
     private var isPlaybackFinished = false
 
     var isMediaItemReady = false
-    var isControlsLocked = false
     private var isFrameRendered = false
-    private var isPlayingOnScrubStart: Boolean = false
-    private var previousScrubPosition = 0L
     private var scrubStartPosition: Long = -1L
     private var currentOrientation: Int? = null
-    private var hideVolumeIndicatorJob: Job? = null
-    private var hideBrightnessIndicatorJob: Job? = null
-    private var hideInfoLayoutJob: Job? = null
-
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
 
@@ -594,7 +592,18 @@ class PlayerActivity : AppCompatActivity() {
         mediaController?.stopPlayerSession()
     }
 
-    companion object {
-        const val HIDE_DELAY_MILLIS = 1000L
+    override fun onWindowAttributesChanged(params: WindowManager.LayoutParams?) {
+        super.onWindowAttributesChanged(params)
+        for (listener in onWindowAttributesChangedListener) {
+            listener.accept(params)
+        }
+    }
+
+    fun addOnWindowAttributesChangedListener(listener: Consumer<WindowManager.LayoutParams?>) {
+        onWindowAttributesChangedListener.add(listener)
+    }
+
+    fun removeOnWindowAttributesChangedListener(listener: Consumer<WindowManager.LayoutParams?>) {
+        onWindowAttributesChangedListener.remove(listener)
     }
 }

@@ -75,7 +75,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPicture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView

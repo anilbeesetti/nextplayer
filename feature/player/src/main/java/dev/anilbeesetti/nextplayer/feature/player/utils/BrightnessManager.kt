@@ -14,9 +14,9 @@ class BrightnessManager(private val activity: PlayerActivity) {
 
     fun setBrightness(brightness: Float) {
         currentBrightness = brightness.coerceIn(0f, maxBrightness)
-        val layoutParams = activity.window.attributes
-        layoutParams.screenBrightness = currentBrightness
-        activity.window.attributes = layoutParams
+        val windowAttributes = activity.window.attributes
+        windowAttributes.screenBrightness = currentBrightness
+        activity.window.attributes = windowAttributes
 
         // fixes a bug which makes the action bar reappear after changing the brightness
         activity.swipeToShowStatusBars()

@@ -11,7 +11,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.DisposableEffectResult
 import androidx.compose.runtime.DisposableEffectScope
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -37,10 +37,10 @@ class VolumeState(
 
     private val audioManager = getSystemService(context, AudioManager::class.java)!!
     val maxVolume: Int = audioManager.maxVolume
-    var currentVolume: Int by mutableStateOf(audioManager.currentVolume)
+    var currentVolume: Int by mutableIntStateOf(audioManager.currentVolume)
         private set
 
-    var volumePercentage: Int by mutableStateOf(audioManager.volumePercentage)
+    var volumePercentage: Int by mutableIntStateOf(audioManager.volumePercentage)
         private set
 
     fun updateVolumePercentage(percentage: Int) {

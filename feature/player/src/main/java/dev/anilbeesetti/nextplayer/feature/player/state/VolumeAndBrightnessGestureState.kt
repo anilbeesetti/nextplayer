@@ -15,20 +15,16 @@ fun rememberVolumeAndBrightnessGestureState(
     showVolumePanelIfHeadsetIsOn: Boolean
 ): VolumeAndBrightnessGestureState {
     val volumeState = rememberVolumeState(showVolumePanelIfHeadsetIsOn)
+    val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = remember {
-        VolumeAndBrightnessGestureState(volumeState)
-    }
-    LaunchedEffect(volumeState.currentVolume) {
-        println("HELLO: Volume ${volumeState.currentVolume}")
-    }
-    LaunchedEffect(volumeState.volumePercentage) {
-        println("HELLO: Percentage ${volumeState.volumePercentage}")
+        VolumeAndBrightnessGestureState(volumeState = volumeState, brightnessState = brightnessState)
     }
     return volumeAndBrightnessGestureState
 }
 
 class VolumeAndBrightnessGestureState(
     private val volumeState: VolumeState,
+    private val brightnessState: BrightnessState,
 ) {
     var activeGesture: VerticalGesture? by mutableStateOf(null)
         private set
@@ -45,6 +41,7 @@ class VolumeAndBrightnessGestureState(
         }
         startingY = offset.y
         startVolumePercentage = volumeState.volumePercentage
+        startBrightnessPercentage = brightnessState.brightnessPercentage
     }
 
     fun onDrag(change: PointerInputChange, dragAmount: Float) {
@@ -57,7 +54,7 @@ class VolumeAndBrightnessGestureState(
             }
             VerticalGesture.BRIGHTNESS -> {
                 val newBrightness = startBrightnessPercentage + ((startingY - change.position.y) * 0.03f).toInt()
-                // TODO update brightness
+                brightnessState.updateBrightnessPercentage(newBrightness)
             }
         }
     }
