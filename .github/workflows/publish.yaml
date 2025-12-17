@@ -44,22 +44,13 @@ jobs:
           fileName: 'keystore.jks'
           encodedString: ${{ secrets.KEYSTORE }}
 
-      - name: Decode Play API credentials file
-        uses: timheuer/base64-to-file@v1
-        id: play_api_credentials
-        with:
-          fileName: 'play-api-credentials.json'
-          encodedString: ${{ secrets.PLAY_API_CREDENTIALS }}
-
-      - name: Build app and publish
-        run: bundle exec fastlane publish
+      - name: Build app
+        run: bundle exec fastlane build
         env:
-          TRACK: "internal"
           KEYSTORE: ${{ steps.keystore.outputs.filePath }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          PLAY_API_CREDENTIALS: ${{ steps.play_api_credentials.outputs.filePath }}
 
       - name: Rename Files
         run: |
