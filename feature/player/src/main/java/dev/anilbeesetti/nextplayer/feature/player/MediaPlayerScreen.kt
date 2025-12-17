@@ -7,7 +7,7 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -75,6 +74,8 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
@@ -112,6 +113,9 @@ fun PlayerActivity.MediaPlayerScreen(
     )
     val videoZoomState = rememberVideoZoomState(
         initialContentScale = playerPreferences.playerVideoZoom,
+    )
+    val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
+        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel
     )
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
@@ -152,6 +156,20 @@ fun PlayerActivity.MediaPlayerScreen(
                         onHorizontalDrag = seekGestureState::onDrag,
                         onDragCancel = seekGestureState::onDragEnd,
                         onDragEnd = seekGestureState::onDragEnd,
+                    )
+                }
+                .pointerInput(
+                    controlsVisibilityState.controlsLocked,
+                    pictureInPictureState.isInPictureInPictureMode,
+                ) {
+                    if (controlsVisibilityState.controlsLocked) return@pointerInput
+                    if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
+
+                    detectVerticalDragGestures(
+                        onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
+                        onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
+                        onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
+                        onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
                     )
                 }
                 .pointerInput(

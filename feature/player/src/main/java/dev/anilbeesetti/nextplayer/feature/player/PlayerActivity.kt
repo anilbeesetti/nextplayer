@@ -463,26 +463,6 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP,
-            KeyEvent.KEYCODE_DPAD_UP,
-                -> {
-                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-                    volumeManager.increaseVolume(playerPreferences.showSystemVolumePanel)
-//                    showVolumeGestureLayout()
-                    return true
-                }
-            }
-
-            KeyEvent.KEYCODE_VOLUME_DOWN,
-            KeyEvent.KEYCODE_DPAD_DOWN,
-                -> {
-                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-                    volumeManager.decreaseVolume(playerPreferences.showSystemVolumePanel)
-//                    showVolumeGestureLayout()
-                    return true
-                }
-            }
-
             KeyEvent.KEYCODE_MEDIA_PLAY,
             KeyEvent.KEYCODE_MEDIA_PAUSE,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
