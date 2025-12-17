@@ -5,10 +5,16 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.IntSize
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun rememberVolumeAndBrightnessGestureState(
@@ -16,8 +22,13 @@ fun rememberVolumeAndBrightnessGestureState(
 ): VolumeAndBrightnessGestureState {
     val volumeState = rememberVolumeState(showVolumePanelIfHeadsetIsOn)
     val brightnessState = rememberBrightnessState()
+    val coroutineScope = rememberCoroutineScope()
     val volumeAndBrightnessGestureState = remember {
-        VolumeAndBrightnessGestureState(volumeState = volumeState, brightnessState = brightnessState)
+        VolumeAndBrightnessGestureState(
+            volumeState = volumeState,
+            brightnessState = brightnessState,
+            coroutineScope = coroutineScope,
+        )
     }
     return volumeAndBrightnessGestureState
 }
@@ -26,6 +37,8 @@ fun rememberVolumeAndBrightnessGestureState(
 class VolumeAndBrightnessGestureState(
     private val volumeState: VolumeState,
     private val brightnessState: BrightnessState,
+    private val coroutineScope: CoroutineScope,
+    private val sensitivity: Float = 0.05f,
 ) {
     var activeGesture: VerticalGesture? by mutableStateOf(null)
         private set
@@ -33,9 +46,11 @@ class VolumeAndBrightnessGestureState(
     private var startingY = 0f
     private var startVolumePercentage = 0
     private var startBrightnessPercentage = 0
+    private var job: Job? = null
 
     fun onDragStart(offset: Offset, size: IntSize) {
         val viewCenterX = size.width / 2
+        job?.cancel()
         activeGesture = when {
             offset.x < viewCenterX -> VerticalGesture.BRIGHTNESS
             else -> VerticalGesture.VOLUME
@@ -50,20 +65,25 @@ class VolumeAndBrightnessGestureState(
 
         when (activeGesture) {
             VerticalGesture.VOLUME -> {
-                val newVolume = startVolumePercentage + ((startingY - change.position.y) * 0.03f).toInt()
+                val newVolume = startVolumePercentage + ((startingY - change.position.y) * sensitivity).toInt()
                 volumeState.updateVolumePercentage(newVolume)
             }
             VerticalGesture.BRIGHTNESS -> {
-                val newBrightness = startBrightnessPercentage + ((startingY - change.position.y) * 0.03f).toInt()
+                val newBrightness = startBrightnessPercentage + ((startingY - change.position.y) * sensitivity).toInt()
                 brightnessState.updateBrightnessPercentage(newBrightness)
             }
         }
     }
 
     fun onDragEnd() {
-        activeGesture = null
         startingY = 0f
         startVolumePercentage = 0
+
+        job?.cancel()
+        job = coroutineScope.launch {
+            delay(1.seconds)
+            activeGesture = null
+        }
     }
 }
 
