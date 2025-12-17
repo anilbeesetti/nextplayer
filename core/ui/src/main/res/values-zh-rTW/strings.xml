@@ -17,7 +17,7 @@
     <string name="double_tap">雙輕觸手勢</string>
     <string name="interface_name">介面</string>
     <string name="remember_selections">記住選擇</string>
-    <string name="remember_selections_description">記住每個檔案的選擇，例如音軌、字幕軌......等等</string>
+    <string name="remember_selections_description">記憶個別檔案設定，例如音軌、字幕軌道等。</string>
     <string name="landscape_reverse">橫向翻轉</string>
     <string name="long_press_gesture_desc">長按以 %.1fx 速度播放</string>
     <string name="network_stream">網路串流</string>
