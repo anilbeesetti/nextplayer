@@ -55,7 +55,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun setPlayerBrightness(value: Float) {
+    fun updatePlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }
         }

@@ -185,17 +185,11 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-//        if (playerPreferences.rememberPlayerBrightness) {
-//            brightnessManager.setBrightness(playerPreferences.playerBrightness)
-//        }
         lifecycleScope.launch {
             maybeInitControllerFuture()
             mediaController = controllerFuture?.await()
 
             setOrientation()
-            mediaController?.currentMediaItem?.mediaId?.let {
-//                applyVideoScale(videoScale = viewModel.getVideoState(it)?.videoScale ?: 1f)
-            }
 
             mediaController?.run {
                 binding.playerView.player = this
@@ -346,10 +340,6 @@ class PlayerActivity : ComponentActivity() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             intent.data = mediaItem?.localConfiguration?.uri
-        }
-
-        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-            super.onMediaMetadataChanged(mediaMetadata)
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {

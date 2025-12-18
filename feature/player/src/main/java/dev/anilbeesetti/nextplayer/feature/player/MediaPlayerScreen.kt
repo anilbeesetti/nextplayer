@@ -57,6 +57,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -147,6 +151,18 @@ fun PlayerActivity.MediaPlayerScreen(
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
             controlsVisibilityState.hideControls()
+        }
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        if (playerPreferences.rememberPlayerBrightness) {
+            brightnessState.setBrightness(playerPreferences.playerBrightness)
+        }
+    }
+
+    LaunchedEffect(brightnessState.currentBrightness) {
+        if (playerPreferences.rememberPlayerBrightness) {
+            viewModel.updatePlayerBrightness(brightnessState.currentBrightness)
         }
     }
 
