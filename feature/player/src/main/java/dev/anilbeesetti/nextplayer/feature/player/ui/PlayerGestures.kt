@@ -14,7 +14,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.DoubleTapGestureHandler
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
-import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomState
+import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.VolumeAndBrightnessGestureState
 
 @Composable
@@ -24,7 +24,7 @@ fun PlayerGestures(
     doubleTapGestureHandler: DoubleTapGestureHandler,
     pictureInPictureState: PictureInPictureState,
     seekGestureState: SeekGestureState,
-    videoZoomState: VideoZoomState,
+    videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
 ) {
     BoxWithConstraints {
@@ -81,14 +81,14 @@ fun PlayerGestures(
 
                     detectCustomTransformGestures(
                         onGesture = { _, panChange, zoomChange, _, ->
-                            videoZoomState.onZoomPanGesture(
+                            videoZoomAndContentScaleState.onZoomPanGesture(
                                 constraints = constraints,
                                 panChange = panChange,
                                 zoomChange = zoomChange,
                             )
                         },
                         onGestureEnd = {
-                            videoZoomState.onZoomPanGestureEnd()
+                            videoZoomAndContentScaleState.onZoomPanGestureEnd()
                         }
                     )
                 }

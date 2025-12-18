@@ -21,23 +21,23 @@ import kotlin.math.abs
 
 @UnstableApi
 @Composable
-fun rememberVideoZoomState(
+fun rememberVideoZoomAndContentScaleState(
     player: Player,
     initialContentScale: VideoContentScale,
     onEvent: (VideoZoomEvent) -> Unit = {}
-): VideoZoomState {
-    val videoZoomState = remember { VideoZoomState(player, initialContentScale, onEvent) }
-    LaunchedEffect(player) { videoZoomState.observe() }
-    return videoZoomState
+): VideoZoomAndContentScaleState {
+    val videoZoomAndContentScaleState = remember { VideoZoomAndContentScaleState(player, initialContentScale, onEvent) }
+    LaunchedEffect(player) { videoZoomAndContentScaleState.observe() }
+    return videoZoomAndContentScaleState
 }
 
 @Stable
-class VideoZoomState(
+class VideoZoomAndContentScaleState(
     private val player: Player,
     initialContentScale: VideoContentScale,
     private val onEvent: (VideoZoomEvent) -> Unit
 ) {
-    companion object {
+    companion object Companion {
         private const val MIN_ZOOM = 0.25f
         private const val MAX_ZOOM = 4f
     }

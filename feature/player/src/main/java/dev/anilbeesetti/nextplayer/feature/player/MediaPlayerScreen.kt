@@ -91,7 +91,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentatio
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
@@ -131,7 +131,7 @@ fun PlayerActivity.MediaPlayerScreen(
         player = player,
         autoEnter = playerPreferences.autoPip,
     )
-    val videoZoomState = rememberVideoZoomState(
+    val videoZoomState = rememberVideoZoomAndContentScaleState(
         player = player,
         initialContentScale = playerPreferences.playerVideoZoom,
         onEvent = viewModel::onVideoZoomEvent
@@ -189,7 +189,7 @@ fun PlayerActivity.MediaPlayerScreen(
                 doubleTapGestureHandler = doubleTapGestureHandler,
                 pictureInPictureState = pictureInPictureState,
                 seekGestureState = seekGestureState,
-                videoZoomState = videoZoomState,
+                videoZoomAndContentScaleState = videoZoomState,
                 volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
             )
 
