@@ -18,7 +18,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,14 +34,11 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerView
-import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
-import dev.anilbeesetti.nextplayer.core.model.LoopMode
-import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
@@ -75,7 +71,6 @@ class PlayerActivity : ComponentActivity() {
     lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
-    private val applicationPreferences get() = viewModel.appPrefs.value
     val playerPreferences get() = viewModel.playerPrefs.value
 
     private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
@@ -109,19 +104,6 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        AppCompatDelegate.setDefaultNightMode(
-            when (applicationPreferences.themeConfig) {
-                ThemeConfig.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                ThemeConfig.OFF -> AppCompatDelegate.MODE_NIGHT_NO
-                ThemeConfig.ON -> AppCompatDelegate.MODE_NIGHT_YES
-            },
-        )
-
-        if (applicationPreferences.useDynamicColors) {
-            DynamicColors.applyToActivityIfAvailable(this)
-        }
-
         enableEdgeToEdge()
 
         binding = ActivityPlayerBinding.inflate(layoutInflater)
@@ -185,8 +167,6 @@ class PlayerActivity : ComponentActivity() {
             mediaController?.run {
                 binding.playerView.player = this
                 isMediaItemReady = currentMediaItem != null
-                toggleSystemBars(showBars = binding.playerView.isControllerFullyVisible)
-                applyLoopMode(playerPreferences.loopMode)
                 if (playerPreferences.shouldUseVolumeBoost) {
                     try {
                         volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
@@ -235,14 +215,6 @@ class PlayerActivity : ComponentActivity() {
         if (controllerFuture == null) {
             val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
             controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
-        }
-    }
-
-    private fun applyLoopMode(loopMode: LoopMode) {
-        mediaController?.repeatMode = when (loopMode) {
-            LoopMode.OFF -> Player.REPEAT_MODE_OFF
-            LoopMode.ONE -> Player.REPEAT_MODE_ONE
-            LoopMode.ALL -> Player.REPEAT_MODE_ALL
         }
     }
 

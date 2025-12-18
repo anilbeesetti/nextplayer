@@ -39,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
+import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
@@ -197,7 +198,7 @@ class PlayerService : MediaSessionService() {
             }
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(playbackSpeed = playbackSpeed)
+                currentMediaItem.copy(playbackSpeed = playbackSpeed),
             )
         }
 
@@ -246,6 +247,22 @@ class PlayerService : MediaSessionService() {
                     mediaItemIndex = player.currentMediaItemIndex,
                     positionMs = player.currentPosition,
                 )
+            }
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            super.onRepeatModeChanged(repeatMode)
+            serviceScope.launch {
+                preferencesRepository.updatePlayerPreferences {
+                    it.copy(
+                        loopMode = when (repeatMode) {
+                            Player.REPEAT_MODE_OFF -> LoopMode.OFF
+                            Player.REPEAT_MODE_ONE -> LoopMode.ONE
+                            Player.REPEAT_MODE_ALL -> LoopMode.ALL
+                            else -> LoopMode.OFF
+                        },
+                    )
+                }
             }
         }
     }
@@ -411,6 +428,11 @@ class PlayerService : MediaSessionService() {
             .also {
                 it.addListener(playbackStateListener)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
+                it.repeatMode = when (playerPreferences.loopMode) {
+                    LoopMode.OFF -> Player.REPEAT_MODE_OFF
+                    LoopMode.ONE -> Player.REPEAT_MODE_ONE
+                    LoopMode.ALL -> Player.REPEAT_MODE_ALL
+                }
             }
 
         try {
