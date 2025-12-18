@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.FixedScale
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
 
@@ -22,5 +23,5 @@ fun VideoContentScale.toContentScale(): ContentScale = when (this) {
     VideoContentScale.BEST_FIT -> ContentScale.Fit
     VideoContentScale.STRETCH -> ContentScale.FillBounds
     VideoContentScale.CROP -> ContentScale.Crop
-    VideoContentScale.HUNDRED_PERCENT -> ContentScale.None // TODO: fix this
+    VideoContentScale.HUNDRED_PERCENT -> FixedScale(1.0f) // TODO: fix this
 }

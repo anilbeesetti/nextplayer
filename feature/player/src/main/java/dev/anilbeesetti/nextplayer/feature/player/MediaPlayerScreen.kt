@@ -1,10 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.widget.Toast
-import androidx.annotation.IntRange
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -19,23 +17,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.displayCutoutPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,25 +37,26 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Modifier.Companion
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.lifecycle.compose.LifecycleStartEffect
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -71,7 +66,6 @@ import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
-import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
@@ -105,6 +99,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestures
 import dev.anilbeesetti.nextplayer.feature.player.ui.ShutterView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
+import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import kotlin.time.Duration.Companion.milliseconds
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
@@ -185,7 +180,12 @@ fun PlayerActivity.MediaPlayerScreen(
                 modifier = Modifier
                     .resizeWithContentScale(
                         contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),
-                        sourceSizeDp = presentationState.videoSizeDp,
+                        sourceSizeDp = presentationState.videoSizeDp?.let { size ->
+                            size.copy(
+                                width = with(LocalDensity.current) { size.width.toDp().value },
+                                height = with(LocalDensity.current) { size.height.toDp().value },
+                            )
+                        }
                     )
                     .onGloballyPositioned {
                         val bounds = it.boundsInWindow()
@@ -256,6 +256,7 @@ fun PlayerActivity.MediaPlayerScreen(
                                 controlsVisibilityState.hideControls()
                                 overlayView = OverlayView.PLAYBACK_SPEED
                             },
+                            onBackClicked = { onBackPressedDispatcher.onBackPressed() }
                         )
                     }
                 },
@@ -389,19 +390,20 @@ val Configuration.isPortrait: Boolean
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlayerActivity.ControlsTopView(
+fun ControlsTopView(
     modifier: Modifier = Modifier,
     title: String,
     onClickAudioTrackSelector: () -> Unit = {},
     onClickSubtitleTrackSelector: () -> Unit = {},
     onClickPlaybackSpeedSelector: () -> Unit = {},
+    onBackClicked: () -> Unit
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        PlayerButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
+        PlayerButton(onClick = onBackClicked) {
             Icon(
                 painter = painterResource(coreUiR.drawable.ic_arrow_left),
                 contentDescription = null,
@@ -551,73 +553,6 @@ fun ControlsBottomView(
             }
             LoopButton(player = player)
         }
-    }
-}
-
-@Composable
-fun VerticalProgressView(
-    modifier: Modifier = Modifier,
-    width: Dp = 32.dp,
-    icon: Painter,
-    @IntRange(from = 0, to = 100) value: Int,
-) {
-    Column(
-        modifier = modifier
-            .heightIn(max = 250.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Box(
-            modifier = Modifier.size(width),
-            contentAlignment = Alignment.Center
-        ) {
-            BasicText(
-                text = value.toString(),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    color = MaterialTheme.colorScheme.onBackground
-                ),
-                autoSize = TextAutoSize.StepBased(maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
-            )
-        }
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .width(width)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.BottomCenter,
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(width)
-                    .fillMaxHeight(value / 100f)
-                    .background(MaterialTheme.colorScheme.primary),
-            )
-        }
-        Box(
-            modifier = Modifier.size(width),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-fun VerticalProgressPreview() {
-    NextPlayerTheme {
-        VerticalProgressView(
-            value = 50,
-            icon = painterResource(coreUiR.drawable.ic_volume)
-        )
     }
 }
 

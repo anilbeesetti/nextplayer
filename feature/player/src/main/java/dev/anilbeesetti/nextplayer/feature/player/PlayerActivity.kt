@@ -76,9 +76,6 @@ class PlayerActivity : ComponentActivity() {
     private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 
     private var isPlaybackFinished = false
-
-    var isMediaItemReady = false
-    private var isFrameRendered = false
     private var scrubStartPosition: Long = -1L
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
@@ -165,8 +162,6 @@ class PlayerActivity : ComponentActivity() {
             mediaController = controllerFuture?.await()
 
             mediaController?.run {
-                binding.playerView.player = this
-                isMediaItemReady = currentMediaItem != null
                 if (playerPreferences.shouldUseVolumeBoost) {
                     try {
                         volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
@@ -182,9 +177,6 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        binding.playerView.player = null
-        binding.volumeGestureLayout.visibility = View.GONE
-        binding.brightnessGestureLayout.visibility = View.GONE
         mediaController?.run {
             viewModel.playWhenReady = playWhenReady
             lifecycleScope.launch {
@@ -337,13 +329,6 @@ class PlayerActivity : ComponentActivity() {
                     isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
                     finishAndStopPlayerSession()
                 }
-
-                Player.STATE_READY -> {
-                    binding.playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
-                    isMediaItemReady = true
-                    isFrameRendered = true
-                }
-
                 else -> {}
             }
         }
