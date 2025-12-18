@@ -80,15 +80,16 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomTransformGestures(
-                        consume = false,
-                        onGesture = { _, panChange, zoomChange, _, _, changes ->
+                        onGesture = { _, panChange, zoomChange, _, ->
                             videoZoomState.onZoomPanGesture(
                                 constraints = constraints,
                                 panChange = panChange,
                                 zoomChange = zoomChange,
-                                changes = changes
                             )
                         },
+                        onGestureEnd = {
+                            videoZoomState.onZoomPanGestureEnd()
+                        }
                     )
                 }
         )

@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
@@ -63,11 +62,9 @@ import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
-import dev.anilbeesetti.nextplayer.feature.player.utils.BrightnessManager
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -108,7 +105,6 @@ class PlayerActivity : ComponentActivity() {
     private var mediaController: MediaController? = null
     private lateinit var playerApi: PlayerApi
     private lateinit var volumeManager: VolumeManager
-    private lateinit var brightnessManager: BrightnessManager
 
     /**
      * Listeners
@@ -155,6 +151,7 @@ class PlayerActivity : ComponentActivity() {
                 player?.let {
                     MediaPlayerScreen(
                         player = it,
+                        viewModel = viewModel,
                         onSelectSubtitleClick = {
                             lifecycleScope.launch {
                                 val uri = subtitleFileSuspendLauncher.launch(
@@ -178,7 +175,6 @@ class PlayerActivity : ComponentActivity() {
         }
 
         volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
-        brightnessManager = BrightnessManager(activity = this)
 
         playerApi = PlayerApi(this)
 
@@ -189,9 +185,9 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (playerPreferences.rememberPlayerBrightness) {
-            brightnessManager.setBrightness(playerPreferences.playerBrightness)
-        }
+//        if (playerPreferences.rememberPlayerBrightness) {
+//            brightnessManager.setBrightness(playerPreferences.playerBrightness)
+//        }
         lifecycleScope.launch {
             maybeInitControllerFuture()
             mediaController = controllerFuture?.await()
@@ -576,14 +572,6 @@ class PlayerActivity : ComponentActivity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
-
-    fun saveVideoZoom(videoZoom: VideoContentScale) {
-        viewModel.setVideoZoom(videoZoom)
-
-        mediaController?.currentMediaItem?.mediaId?.let {
-            viewModel.updateMediumZoom(uri = it, zoom = 1f)
         }
     }
 

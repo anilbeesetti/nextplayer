@@ -3,18 +3,12 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.widget.Toast
-import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,21 +16,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,11 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -95,6 +79,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
+import dev.anilbeesetti.nextplayer.feature.player.extensions.toMillis
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
@@ -115,8 +100,6 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestures
 import dev.anilbeesetti.nextplayer.feature.player.ui.ShutterView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleView
-import dev.anilbeesetti.nextplayer.feature.player.utils.toMillis
-import java.nio.file.WatchEvent
 import kotlin.time.Duration.Companion.milliseconds
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
@@ -124,6 +107,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 @Composable
 fun PlayerActivity.MediaPlayerScreen(
     player: MediaController,
+    viewModel: PlayerViewModel,
     modifier: Modifier = Modifier,
     onSelectSubtitleClick: () -> Unit = {},
 ) {
@@ -148,7 +132,9 @@ fun PlayerActivity.MediaPlayerScreen(
         autoEnter = playerPreferences.autoPip,
     )
     val videoZoomState = rememberVideoZoomState(
+        player = player,
         initialContentScale = playerPreferences.playerVideoZoom,
+        onEvent = viewModel::onVideoZoomEvent
     )
     val volumeState = rememberVolumeState(
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
@@ -191,8 +177,8 @@ fun PlayerActivity.MediaPlayerScreen(
                         pictureInPictureState.setVideoViewRect(rect)
                     }
                     .graphicsLayer {
-                        scaleX = videoZoomState.scale
-                        scaleY = videoZoomState.scale
+                        scaleX = videoZoomState.zoom
+                        scaleY = videoZoomState.zoom
                         translationX = videoZoomState.offset.x
                         translationY = videoZoomState.offset.y
                     },
@@ -297,7 +283,6 @@ fun PlayerActivity.MediaPlayerScreen(
                             isPipSupported = pictureInPictureState.isPipSupported,
                             onVideoContentScaleSelected = {
                                 videoZoomState.onVideoContentScaleChanged(it)
-                                saveVideoZoom(it)
                             },
                             onClickVideoContentScaleSelector = { overlayView = OverlayView.VIDEO_CONTENT_SCALE },
                             onLockControlsClick = { controlsVisibilityState.lockControls() },

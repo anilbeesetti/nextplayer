@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -48,7 +49,7 @@ class PlayerViewModel @Inject constructor(
         return mediaRepository.getVideoState(uri)
     }
 
-    fun updateMediumZoom(uri: String, zoom: Float) {
+    fun updateVideoZoom(uri: String, zoom: Float) {
         viewModelScope.launch {
             mediaRepository.updateMediumZoom(uri, zoom)
         }
@@ -60,15 +61,26 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun setVideoZoom(videoZoom: VideoContentScale) {
+    fun updateVideoContentScale(contentScale: VideoContentScale) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = videoZoom) }
+            preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = contentScale) }
         }
     }
 
     fun setLoopMode(loopMode: LoopMode) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(loopMode = loopMode) }
+        }
+    }
+
+    fun onVideoZoomEvent(event: VideoZoomEvent) {
+        when (event) {
+            is VideoZoomEvent.ContentScaleChanged -> {
+                updateVideoContentScale(event.contentScale)
+            }
+            is VideoZoomEvent.ZoomChanged -> {
+                updateVideoZoom(event.mediaItem.mediaId, event.zoom)
+            }
         }
     }
 }

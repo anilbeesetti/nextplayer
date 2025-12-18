@@ -32,16 +32,14 @@ import kotlin.math.abs
  */
 suspend fun PointerInputScope.detectCustomTransformGestures(
     panZoomLock: Boolean = false,
-    consume: Boolean = true,
     pass: PointerEventPass = PointerEventPass.Main,
+    pointCount: Int = 2,
     onGestureStart: (PointerInputChange) -> Unit = {},
     onGesture: (
         centroid: Offset,
         pan: Offset,
         zoom: Float,
         rotation: Float,
-        mainPointer: PointerInputChange,
-        changes: List<PointerInputChange>,
     ) -> Unit,
     onGestureEnd: (PointerInputChange) -> Unit = {},
 ) {
@@ -52,13 +50,13 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
         var pastTouchSlop = false
         val touchSlop = viewConfiguration.touchSlop
         var lockedToPanZoom = false
+        var gestureStarted = false
 
         // Wait for at least one pointer to press down and set the first contact position
         val down: PointerInputChange = awaitFirstDown(
             requireUnconsumed = false,
             pass = pass,
         )
-        onGestureStart(down)
 
         var pointer = down
         // The main pointer is the one that is down initially
@@ -67,11 +65,20 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
         do {
             val event = awaitPointerEvent(pass = pass)
 
+            // Count the number of pointers currently down
+            val currentPointerCount = event.changes.count { it.pressed }
+
             // If any position change is consumed from another PointerInputChange
             // or pointer count requirement is not fulfilled
-            val canceled = event.changes.any { it.isConsumed }
+            val canceled = event.changes.any { it.isConsumed } || currentPointerCount != pointCount
 
             if (!canceled) {
+                // Trigger onGestureStart only once when pointer count requirement is met
+                if (!gestureStarted) {
+                    gestureStarted = true
+                    onGestureStart(pointer)
+                }
+
                 // Get a pointer that is down if the first pointer is up,
                 // get another and use it if other pointers are also down
                 // event.changes.first() doesn't return same order
@@ -119,21 +126,21 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
                             panChange,
                             zoomChange,
                             effectiveRotation,
-                            pointer,
-                            event.changes,
                         )
                     }
 
-                    if (consume) {
-                        event.changes.forEach {
-                            if (it.positionChanged()) {
-                                it.consume()
-                            }
+                    event.changes.forEach {
+                        if (it.positionChanged()) {
+                            it.consume()
                         }
                     }
                 }
             }
         } while (!canceled && event.changes.any { it.pressed })
-        onGestureEnd(pointer)
+
+        // Only trigger onGestureEnd if gesture was actually started
+        if (gestureStarted) {
+            onGestureEnd(pointer)
+        }
     }
 }
