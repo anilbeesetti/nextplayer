@@ -131,7 +131,7 @@ fun PlayerActivity.MediaPlayerScreen(
         player = player,
         autoEnter = playerPreferences.autoPip,
     )
-    val videoZoomState = rememberVideoZoomAndContentScaleState(
+    val videoZoomAndContentScaleState = rememberVideoZoomAndContentScaleState(
         player = player,
         initialContentScale = playerPreferences.playerVideoZoom,
         onEvent = viewModel::onVideoZoomEvent
@@ -163,7 +163,7 @@ fun PlayerActivity.MediaPlayerScreen(
                 surfaceType = SURFACE_TYPE_SURFACE_VIEW,
                 modifier = Modifier
                     .resizeWithContentScale(
-                        contentScale = videoZoomState.videoContentScale.toContentScale(),
+                        contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),
                         sourceSizeDp = presentationState.videoSizeDp,
                     )
                     .onGloballyPositioned {
@@ -177,10 +177,10 @@ fun PlayerActivity.MediaPlayerScreen(
                         pictureInPictureState.setVideoViewRect(rect)
                     }
                     .graphicsLayer {
-                        scaleX = videoZoomState.zoom
-                        scaleY = videoZoomState.zoom
-                        translationX = videoZoomState.offset.x
-                        translationY = videoZoomState.offset.y
+                        scaleX = videoZoomAndContentScaleState.zoom
+                        scaleY = videoZoomAndContentScaleState.zoom
+                        translationX = videoZoomAndContentScaleState.offset.x
+                        translationY = videoZoomAndContentScaleState.offset.y
                     },
             )
 
@@ -189,7 +189,7 @@ fun PlayerActivity.MediaPlayerScreen(
                 doubleTapGestureHandler = doubleTapGestureHandler,
                 pictureInPictureState = pictureInPictureState,
                 seekGestureState = seekGestureState,
-                videoZoomAndContentScaleState = videoZoomState,
+                videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                 volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
             )
 
@@ -254,6 +254,21 @@ fun PlayerActivity.MediaPlayerScreen(
                                 textAlign = TextAlign.Center,
                             )
                         }
+                    } else if (videoZoomAndContentScaleState.isZooming) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     } else if (controlsVisibilityState.controlsVisible) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -279,10 +294,10 @@ fun PlayerActivity.MediaPlayerScreen(
                                 ControlButtonsPosition.LEFT -> Alignment.Start
                                 ControlButtonsPosition.RIGHT -> Alignment.End
                             },
-                            videoContentScale = videoZoomState.videoContentScale,
+                            videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                             isPipSupported = pictureInPictureState.isPipSupported,
                             onVideoContentScaleSelected = {
-                                videoZoomState.onVideoContentScaleChanged(it)
+                                videoZoomAndContentScaleState.onVideoContentScaleChanged(it)
                             },
                             onClickVideoContentScaleSelector = { overlayView = OverlayView.VIDEO_CONTENT_SCALE },
                             onLockControlsClick = { controlsVisibilityState.lockControls() },
@@ -333,10 +348,10 @@ fun PlayerActivity.MediaPlayerScreen(
         OverlayShowView(
             player = player,
             overlayView = overlayView,
-            videoContentScale = videoZoomState.videoContentScale,
+            videoContentScale = videoZoomAndContentScaleState.videoContentScale,
             onDismiss = { overlayView = null },
             onSelectSubtitleClick = onSelectSubtitleClick,
-            onVideoContentScaleChanged = { videoZoomState.onVideoContentScaleChanged(it) },
+            onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
         )
     }
 }

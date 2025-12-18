@@ -42,7 +42,6 @@ class VideoZoomAndContentScaleState(
         private const val MAX_ZOOM = 4f
     }
 
-
     var videoContentScale: VideoContentScale by mutableStateOf(initialContentScale)
         private set
 
@@ -50,6 +49,9 @@ class VideoZoomAndContentScaleState(
         private set
 
     var offset: Offset by mutableStateOf(Offset.Zero)
+        private set
+
+    var isZooming: Boolean by mutableStateOf(false)
         private set
 
     fun onVideoContentScaleChanged(newContentScale: VideoContentScale) {
@@ -61,6 +63,7 @@ class VideoZoomAndContentScaleState(
     }
 
     fun onZoomPanGesture(constraints: Constraints, panChange: Offset, zoomChange: Float) {
+        isZooming = true
         zoom = (zoom * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
 
         val extraWidth = (zoom - 1) * constraints.maxWidth
@@ -77,6 +80,7 @@ class VideoZoomAndContentScaleState(
     }
 
     fun onZoomPanGestureEnd() {
+        isZooming = false
         updateVideoScaleMetadataAndSendEvent()
     }
 
