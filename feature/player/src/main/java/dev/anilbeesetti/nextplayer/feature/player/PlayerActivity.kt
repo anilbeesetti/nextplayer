@@ -4,10 +4,10 @@ import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -32,7 +32,6 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.VideoSize
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerView
@@ -44,16 +43,13 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
-import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
-import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toActivityOrientation
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
@@ -89,11 +85,8 @@ class PlayerActivity : ComponentActivity() {
     var isMediaItemReady = false
     private var isFrameRendered = false
     private var scrubStartPosition: Long = -1L
-    private var currentOrientation: Int? = null
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
-
-    private var isPipActive: Boolean = false
 
     private val shouldFastSeek: Boolean
         get() = playerPreferences.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET)
@@ -189,8 +182,6 @@ class PlayerActivity : ComponentActivity() {
             maybeInitControllerFuture()
             mediaController = controllerFuture?.await()
 
-            setOrientation()
-
             mediaController?.run {
                 binding.playerView.player = this
                 isMediaItemReady = currentMediaItem != null
@@ -214,7 +205,6 @@ class PlayerActivity : ComponentActivity() {
         binding.playerView.player = null
         binding.volumeGestureLayout.visibility = View.GONE
         binding.brightnessGestureLayout.visibility = View.GONE
-        currentOrientation = requestedOrientation
         mediaController?.run {
             viewModel.playWhenReady = playWhenReady
             lifecycleScope.launch {
@@ -227,7 +217,7 @@ class PlayerActivity : ComponentActivity() {
             mediaController?.pause()
         }
 
-        if (isPipActive) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
             finish()
             if (!shouldPlayInBackground) {
                 mediaController?.stopPlayerSession()
@@ -246,18 +236,6 @@ class PlayerActivity : ComponentActivity() {
             val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
             controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
         }
-    }
-
-    private fun setOrientation() {
-        requestedOrientation = currentOrientation ?: playerPreferences.playerScreenOrientation.toActivityOrientation(
-            videoOrientation = mediaController?.videoSize?.let { videoSize ->
-                when {
-                    videoSize.width == 0 || videoSize.height == 0 -> null
-                    videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                    else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                }
-            },
-        )
     }
 
     private fun applyLoopMode(loopMode: LoopMode) {
@@ -360,18 +338,6 @@ class PlayerActivity : ComponentActivity() {
             }
         }
 
-        override fun onVideoSizeChanged(videoSize: VideoSize) {
-            super.onVideoSizeChanged(videoSize)
-            if (videoSize.width != 0 && videoSize.height != 0) {
-                setOrientation()
-            }
-            lifecycleScope.launch {
-                val videoScale = mediaController?.currentMediaItem?.mediaId?.let { viewModel.getVideoState(it)?.videoScale } ?: 1f
-//                applyVideoZoom(videoZoom = playerPreferences.playerVideoZoom)
-//                applyVideoScale(videoScale = videoScale)
-            }
-        }
-
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
             Timber.e(error)
@@ -436,7 +402,6 @@ class PlayerActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
-            currentOrientation = null
             setIntent(intent)
             isIntentNew = true
             if (mediaController != null) {

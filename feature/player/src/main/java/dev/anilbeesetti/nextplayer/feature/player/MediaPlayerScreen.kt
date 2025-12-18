@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.widget.Toast
@@ -76,7 +77,6 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
-import dev.anilbeesetti.nextplayer.feature.player.buttons.RotationButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
@@ -94,6 +94,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberDoubleTapGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
@@ -146,6 +147,10 @@ fun PlayerActivity.MediaPlayerScreen(
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
+    )
+    val rotationState = rememberRotationState(
+        player = player,
+        screenOrientation = playerPreferences.playerScreenOrientation
     )
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
@@ -317,14 +322,16 @@ fun PlayerActivity.MediaPlayerScreen(
                             },
                             onClickVideoContentScaleSelector = { overlayView = OverlayView.VIDEO_CONTENT_SCALE },
                             onLockControlsClick = { controlsVisibilityState.lockControls() },
-                        ) {
-                            if (!pictureInPictureState.hasPipPermission) {
-                                Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
-                                pictureInPictureState.openPictureInPictureSettings()
-                            } else {
-                                pictureInPictureState.enterPictureInPictureMode()
+                            onRotateClicked = { rotationState.rotate() },
+                            onPipClick = {
+                                if (!pictureInPictureState.hasPipPermission) {
+                                    Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                                    pictureInPictureState.openPictureInPictureSettings()
+                                } else {
+                                    pictureInPictureState.enterPictureInPictureMode()
+                                }
                             }
-                        }
+                        )
                     }
                 },
             )
@@ -447,6 +454,7 @@ fun ControlsBottomView(
     onClickVideoContentScaleSelector: () -> Unit,
     onLockControlsClick: () -> Unit,
     onPipClick: () -> Unit = {},
+    onRotateClicked: () -> Unit = {},
 ) {
     val mediaPresentationState = rememberMediaPresentationState(player)
 
@@ -482,7 +490,16 @@ fun ControlsBottomView(
             }
 
             Spacer(modifier = Modifier.weight(1f))
-            RotationButton()
+            PlayerButton(
+                modifier = modifier,
+                onClick = onRotateClicked,
+            ) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_screen_rotation),
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp),
+                )
+            }
         }
         Slider(
             value = mediaPresentationState.position.toFloat(),
