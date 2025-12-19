@@ -16,6 +16,7 @@ import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import kotlin.math.abs
 
@@ -60,6 +61,10 @@ class VideoZoomAndContentScaleState(
         offset = Offset.Zero
         onEvent(VideoZoomEvent.ContentScaleChanged(videoContentScale))
         updateVideoScaleMetadataAndSendEvent()
+    }
+
+    fun switchToNextVideoContentScale() {
+        onVideoContentScaleChanged(videoContentScale.next())
     }
 
     fun onZoomPanGesture(constraints: Constraints, panChange: Offset, zoomChange: Float) {

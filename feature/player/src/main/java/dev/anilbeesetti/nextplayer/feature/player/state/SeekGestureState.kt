@@ -15,7 +15,7 @@ import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -49,7 +49,31 @@ class SeekGestureState(
         private set
 
     private var seekStartX = 0f
-    private var isPlayingOnDragStart: Boolean = false
+
+    fun onSeek(value: Long) {
+        if (!isSeeking) {
+            isSeeking = true
+            seekStartPosition = player.currentPosition
+            player.setIsScrubbingModeEnabled(true)
+        }
+
+        seekAmount = (value - seekStartPosition!!).coerceIn(0L, player.duration)
+        if (value > player.currentPosition) {
+            player.seekForward(
+                positionMs = value.coerceAtMost(player.duration),
+                shouldFastSeek = shouldFastSeek(player.duration),
+            )
+        } else {
+            player.seekBack(
+                positionMs = value.coerceAtLeast(0L),
+                shouldFastSeek = shouldFastSeek(player.duration),
+            )
+        }
+    }
+
+    fun onSeekEnd() {
+        reset()
+    }
 
     fun onDragStart(offset: Offset) {
         if (player.currentPosition == C.TIME_UNSET) return
@@ -58,10 +82,8 @@ class SeekGestureState(
         isSeeking = true
         seekStartX = offset.x
         seekStartPosition = player.currentPosition
-        isPlayingOnDragStart = player.isPlaying
 
-        player.setScrubbingModeEnabled(true)
-        player.pause()
+        player.setIsScrubbingModeEnabled(true)
     }
 
     @OptIn(UnstableApi::class)
@@ -89,14 +111,16 @@ class SeekGestureState(
     }
 
     fun onDragEnd() {
-        player.setScrubbingModeEnabled(false)
-        if (isPlayingOnDragStart) player.play()
+        reset()
+    }
+
+    private fun reset() {
+        player.setIsScrubbingModeEnabled(false)
         isSeeking = false
         seekStartPosition = null
         seekAmount = null
 
         seekStartX = 0f
-        isPlayingOnDragStart = false
     }
 }
 

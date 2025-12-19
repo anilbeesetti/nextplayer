@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -7,6 +8,8 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
+import androidx.media3.session.MediaController
+import dev.anilbeesetti.nextplayer.feature.player.service.setMediaControllerIsScrubbingModeEnabled
 import timber.log.Timber
 
 /**
@@ -120,8 +123,10 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     removeMediaItem(index)
 }
 
-fun Player.setScrubbingModeEnabled(enabled: Boolean) {
+@OptIn(UnstableApi::class)
+fun Player.setIsScrubbingModeEnabled(enabled: Boolean) {
     when (this) {
+        is MediaController -> this.setMediaControllerIsScrubbingModeEnabled(enabled)
         is ExoPlayer -> this.isScrubbingModeEnabled = enabled
     }
 }

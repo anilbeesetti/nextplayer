@@ -13,6 +13,7 @@ enum class CustomCommands(val customAction: String) {
     ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK"),
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
+    SET_IS_SCRUBBING_MODE_ENABLED(customAction = "SET_IS_SCRUBBING_MODE_ENABLED"),
     GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
     ;
@@ -29,10 +30,8 @@ enum class CustomCommands(val customAction: String) {
         }
 
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
-        const val AUDIO_TRACK_INDEX_KEY = "audio_track_index"
-        const val SUBTITLE_TRACK_INDEX_KEY = "subtitle_track_index"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
-        const val PLAYBACK_SPEED_KEY = "playback_speed"
+        const val IS_SCRUBBING_MODE_ENABLED_KEY = "is_scrubbing_mode_enabled"
         const val AUDIO_SESSION_ID_KEY = "audio_session_id"
     }
 }
@@ -49,6 +48,13 @@ suspend fun MediaController.setSkipSilenceEnabled(enabled: Boolean) {
         putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
     }
     sendCustomCommand(CustomCommands.SET_SKIP_SILENCE_ENABLED.sessionCommand, args).await()
+}
+
+fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
+    val args = Bundle().apply {
+        putBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY, enabled)
+    }
+    sendCustomCommand(CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED.sessionCommand, args)
 }
 
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {

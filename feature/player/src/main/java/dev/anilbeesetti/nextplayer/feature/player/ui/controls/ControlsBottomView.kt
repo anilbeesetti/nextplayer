@@ -30,7 +30,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
@@ -50,6 +50,8 @@ fun ControlsBottomView(
     onPictureInPictureClick: () -> Unit,
     onRotateClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
+    onSeek: (Long) -> Unit,
+    onSeekEnd: () -> Unit,
 ) {
     val mediaPresentationState = rememberMediaPresentationState(player)
 
@@ -101,13 +103,8 @@ fun ControlsBottomView(
         Slider(
             value = mediaPresentationState.position.toFloat(),
             valueRange = 0f..mediaPresentationState.duration.toFloat(),
-            onValueChange = {
-                player.setScrubbingModeEnabled(true)
-                player.seekTo(it.toLong())
-            },
-            onValueChangeFinished = {
-                player.setScrubbingModeEnabled(false)
-            },
+            onValueChange = { onSeek(it.toLong()) },
+            onValueChangeFinished = { onSeekEnd() },
             modifier = Modifier.fillMaxWidth(),
         )
         Row(

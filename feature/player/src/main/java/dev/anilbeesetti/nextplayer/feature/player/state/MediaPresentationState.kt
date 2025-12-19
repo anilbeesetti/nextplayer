@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import androidx.annotation.IntRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -27,11 +29,12 @@ fun rememberMediaPresentationState(player: Player): MediaPresentationState {
 
 class MediaPresentationState(
     private val player: Player,
+    @param:IntRange(from = 0) private val tickIntervalMs: Long = 500,
 ) {
-    var position: Long by mutableStateOf(0L)
+    var position: Long by mutableLongStateOf(0L)
         private set
 
-    var duration: Long by mutableStateOf(0L)
+    var duration: Long by mutableLongStateOf(0L)
         private set
 
     var isPlaying: Boolean by mutableStateOf(false)
@@ -65,7 +68,7 @@ class MediaPresentationState(
             }
 
             while (true) {
-                delay(500)
+                delay(tickIntervalMs)
                 if (player.isPlaying) {
                     updatePosition()
                 }

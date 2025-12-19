@@ -51,6 +51,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelected
 import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
+import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
@@ -362,6 +363,12 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
+                CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED -> {
+                    val enabled = args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY)
+                    mediaSession?.player?.setIsScrubbingModeEnabled(enabled)
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
                 CustomCommands.GET_AUDIO_SESSION_ID -> {
                     val audioSessionId = mediaSession?.player?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
                     return@future SessionResult(
@@ -574,3 +581,10 @@ private var Player.skipSilenceEnabled: Boolean
             is ExoPlayer -> this.skipSilenceEnabled = value
         }
     }
+
+@OptIn(UnstableApi::class)
+private fun Player.setScrubbingModeEnabled(enabled: Boolean) {
+    when (this) {
+        is ExoPlayer -> this.isScrubbingModeEnabled = enabled
+    }
+}

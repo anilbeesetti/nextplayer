@@ -258,9 +258,7 @@ fun MediaPlayerScreen(
                             },
                             videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                             isPipSupported = pictureInPictureState.isPipSupported,
-                            onVideoContentScaleClick = {
-                                videoZoomAndContentScaleState.onVideoContentScaleChanged(videoZoomAndContentScaleState.videoContentScale.next())
-                            },
+                            onVideoContentScaleClick = { videoZoomAndContentScaleState.switchToNextVideoContentScale() },
                             onVideoContentScaleLongClick = { overlayView = OverlayView.VIDEO_CONTENT_SCALE },
                             onLockControlsClick = { controlsVisibilityState.lockControls() },
                             onRotateClick = { rotationState.rotate() },
@@ -272,7 +270,9 @@ fun MediaPlayerScreen(
                                     pictureInPictureState.enterPictureInPictureMode()
                                 }
                             },
-                            onPlayInBackgroundClick = onPlayInBackgroundClick
+                            onPlayInBackgroundClick = onPlayInBackgroundClick,
+                            onSeek = seekGestureState::onSeek,
+                            onSeekEnd = seekGestureState::onSeekEnd,
                         )
                     }
                 },
