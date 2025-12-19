@@ -14,7 +14,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 fun LoopButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberRepeatButtonState(player)
 
-    PlayerButton(modifier = modifier, onClick = state::onClick) {
+    PlayerButton(modifier = modifier, isEnabled = state.isEnabled,  onClick = state::onClick) {
         Icon(
             painter = repeatModeIconPainter(state.repeatModeState),
             contentDescription = repeatModeContentDescription(state.repeatModeState),

@@ -23,6 +23,8 @@ fun PlayerButton(
     contentPadding: PaddingValues = PaddingValues(8.dp),
     containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    disabledContainerColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+    disabledContentColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
     isEnabled: Boolean = true,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
@@ -38,8 +40,8 @@ fun PlayerButton(
                 onLongClick = onLongClick,
             ),
         shape = shape,
-        color = containerColor,
-        contentColor = contentColor,
+        color = if (isEnabled) containerColor else disabledContainerColor,
+        contentColor = if (isEnabled) contentColor else disabledContentColor,
     ) {
         Box(
             modifier = modifier.padding(contentPadding),

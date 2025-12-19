@@ -13,7 +13,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 internal fun NextButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberNextButtonState(player)
 
-    PlayerButton(modifier = modifier, onClick = state::onClick) {
+    PlayerButton(modifier = modifier, isEnabled = state.isEnabled, onClick = state::onClick) {
         Icon(
             painter = painterResource(coreUiR.drawable.ic_skip_next),
             contentDescription = stringResource(coreUiR.string.player_controls_next),
