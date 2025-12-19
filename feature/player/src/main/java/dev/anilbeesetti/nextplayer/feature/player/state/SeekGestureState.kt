@@ -57,7 +57,11 @@ class SeekGestureState(
             player.setIsScrubbingModeEnabled(true)
         }
 
-        seekAmount = (value - seekStartPosition!!).coerceIn(0L, player.duration)
+        seekAmount = (value - seekStartPosition!!).coerceIn(
+            minimumValue = 0 - seekStartPosition!!,
+            maximumValue = player.duration - seekStartPosition!!,
+        )
+
         if (value > player.currentPosition) {
             player.seekForward(
                 positionMs = value.coerceAtMost(player.duration),
