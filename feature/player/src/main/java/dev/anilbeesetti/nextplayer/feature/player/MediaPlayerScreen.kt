@@ -3,12 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,14 +17,12 @@ import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,10 +48,8 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
-import dev.anilbeesetti.nextplayer.feature.player.extensions.next
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toMillis
-import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
@@ -233,10 +226,13 @@ fun MediaPlayerScreen(
                                 },
                                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                 isPipSupported = pictureInPictureState.isPipSupported,
-                                onVideoContentScaleClick = { videoZoomAndContentScaleState.switchToNextVideoContentScale() },
+                                onVideoContentScaleClick = videoZoomAndContentScaleState::switchToNextVideoContentScale,
                                 onVideoContentScaleLongClick = { overlayView = OverlayView.VIDEO_CONTENT_SCALE },
-                                onLockControlsClick = { controlsVisibilityState.lockControls() },
-                                onRotateClick = { rotationState.rotate() },
+                                onLockControlsClick = controlsVisibilityState::lockControls,
+                                onRotateClick = rotationState::rotate,
+                                onPlayInBackgroundClick = onPlayInBackgroundClick,
+                                onSeek = seekGestureState::onSeek,
+                                onSeekEnd = seekGestureState::onSeekEnd,
                                 onPictureInPictureClick = {
                                     if (!pictureInPictureState.hasPipPermission) {
                                         Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
@@ -245,9 +241,6 @@ fun MediaPlayerScreen(
                                         pictureInPictureState.enterPictureInPictureMode()
                                     }
                                 },
-                                onPlayInBackgroundClick = onPlayInBackgroundClick,
-                                onSeek = seekGestureState::onSeek,
-                                onSeekEnd = seekGestureState::onSeekEnd,
                             )
                         }
                     },
@@ -299,10 +292,6 @@ fun MediaPlayerScreen(
     BackHandler {
         onBackClick()
     }
-}
-
-enum class MiddleInfo {
-    SEEK, ZOOM, CONTROLS
 }
 
 @Composable

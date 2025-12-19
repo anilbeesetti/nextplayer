@@ -82,7 +82,6 @@ class PlayerActivity : ComponentActivity() {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private lateinit var playerApi: PlayerApi
-    private lateinit var volumeManager: VolumeManager
 
     /**
      * Listeners
@@ -144,8 +143,6 @@ class PlayerActivity : ComponentActivity() {
             }
         }
 
-        volumeManager = VolumeManager(audioManager = getSystemService(AUDIO_SERVICE) as AudioManager)
-
         playerApi = PlayerApi(this)
     }
 
@@ -156,13 +153,6 @@ class PlayerActivity : ComponentActivity() {
             mediaController = controllerFuture?.await()
 
             mediaController?.run {
-//                if (playerPreferences.shouldUseVolumeBoost) {
-//                    try {
-//                        volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
-//                    } catch (e: Exception) {
-//                        e.printStackTrace()
-//                    }
-//                }
                 updateKeepScreenOnFlag()
                 addListener(playbackStateListener)
                 startPlayback()
@@ -278,19 +268,6 @@ class PlayerActivity : ComponentActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             updateKeepScreenOnFlag()
-        }
-
-        override fun onAudioSessionIdChanged(audioSessionId: Int) {
-            super.onAudioSessionIdChanged(audioSessionId)
-            volumeManager.loudnessEnhancer?.release()
-
-//            if (playerPreferences.shouldUseVolumeBoost) {
-//                try {
-//                    volumeManager.loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-//                } catch (e: Exception) {
-//                    e.printStackTrace()
-//                }
-//            }
         }
 
         override fun onPlayerError(error: PlaybackException) {

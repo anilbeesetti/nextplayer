@@ -36,7 +36,7 @@ fun rememberVideoZoomAndContentScaleState(
 class VideoZoomAndContentScaleState(
     private val player: Player,
     initialContentScale: VideoContentScale,
-    private val onEvent: (VideoZoomEvent) -> Unit
+    private val onEvent: (VideoZoomEvent) -> Unit,
 ) {
     companion object Companion {
         private const val MIN_ZOOM = 0.25f
