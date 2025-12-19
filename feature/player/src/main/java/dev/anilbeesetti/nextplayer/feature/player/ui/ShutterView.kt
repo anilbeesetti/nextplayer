@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun ShutterView(modifier: Modifier = Modifier.Companion) {
+fun ShutterView(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()

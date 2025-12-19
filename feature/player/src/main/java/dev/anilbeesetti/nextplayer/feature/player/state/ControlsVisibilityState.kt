@@ -19,7 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
-@UnstableApi
 @Composable
 fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): ControlsVisibilityState {
     val activity = LocalActivity.current
@@ -40,7 +39,6 @@ fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): Contro
     return controlsVisibilityState
 }
 
-@UnstableApi
 @Stable
 class ControlsVisibilityState(
     private val player: Player,

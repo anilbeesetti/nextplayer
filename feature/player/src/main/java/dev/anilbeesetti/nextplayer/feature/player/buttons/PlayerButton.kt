@@ -23,6 +23,7 @@ fun PlayerButton(
     contentPadding: PaddingValues = PaddingValues(8.dp),
     containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    isEnabled: Boolean = true,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
@@ -32,6 +33,7 @@ fun PlayerButton(
             .clip(shape)
             .combinedClickable(
                 role = Role.Button,
+                enabled = isEnabled,
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),

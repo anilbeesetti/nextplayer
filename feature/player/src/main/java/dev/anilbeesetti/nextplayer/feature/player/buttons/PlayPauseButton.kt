@@ -28,6 +28,7 @@ fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
     PlayerButton(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
+        isEnabled = state.isEnabled,
         onClick = state::onClick,
     ) {
         Icon(

@@ -2,18 +2,14 @@ package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
-import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
-import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
@@ -24,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.util.Consumer
 import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -33,7 +30,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import androidx.media3.ui.PlayerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,12 +43,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
-import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
-import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
@@ -71,7 +64,7 @@ class PlayerActivity : ComponentActivity() {
     lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
-    val playerPreferences get() = viewModel.playerPrefs.value
+    val playerPreferences get() = viewModel.uiState.value.playerPreferences
 
     private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 
@@ -81,7 +74,7 @@ class PlayerActivity : ComponentActivity() {
     private var isIntentNew: Boolean = true
 
     private val shouldFastSeek: Boolean
-        get() = playerPreferences.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET)
+        get() = playerPreferences?.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET) == true
 
     /**
      * Player
@@ -106,6 +99,7 @@ class PlayerActivity : ComponentActivity() {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
 
         setContent {
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             var player by remember { mutableStateOf<MediaController?>(null) }
 
             LifecycleStartEffect(Unit) {
@@ -120,39 +114,39 @@ class PlayerActivity : ComponentActivity() {
             }
 
             NextPlayerTheme(darkTheme = true) {
-                player?.let {
-                    MediaPlayerScreen(
-                        player = it,
-                        viewModel = viewModel,
-                        onSelectSubtitleClick = {
-                            lifecycleScope.launch {
-                                val uri = subtitleFileSuspendLauncher.launch(
-                                    arrayOf(
-                                        MimeTypes.APPLICATION_SUBRIP,
-                                        MimeTypes.APPLICATION_TTML,
-                                        MimeTypes.TEXT_VTT,
-                                        MimeTypes.TEXT_SSA,
-                                        MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                                        MimeTypes.BASE_TYPE_TEXT + "/*",
-                                    ),
-                                ) ?: return@launch
-                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                maybeInitControllerFuture()
-                                controllerFuture?.await()?.addSubtitleTrack(uri)
-                            }
+                MediaPlayerScreen(
+                    player = player ?: return@NextPlayerTheme,
+                    viewModel = viewModel,
+                    playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
+                    onSelectSubtitleClick = {
+                        lifecycleScope.launch {
+                            val uri = subtitleFileSuspendLauncher.launch(
+                                arrayOf(
+                                    MimeTypes.APPLICATION_SUBRIP,
+                                    MimeTypes.APPLICATION_TTML,
+                                    MimeTypes.TEXT_VTT,
+                                    MimeTypes.TEXT_SSA,
+                                    MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                    MimeTypes.BASE_TYPE_TEXT + "/*",
+                                ),
+                            ) ?: return@launch
+                            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            maybeInitControllerFuture()
+                            controllerFuture?.await()?.addSubtitleTrack(uri)
                         }
-                    )
-                }
+                    },
+                    onBackClick = { finishAndStopPlayerSession() },
+                    onPlayInBackgroundClick = {
+                        playInBackground = true
+                        finish()
+                    }
+                )
             }
         }
 
-        volumeManager = VolumeManager(audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+        volumeManager = VolumeManager(audioManager = getSystemService(AUDIO_SERVICE) as AudioManager)
 
         playerApi = PlayerApi(this)
-
-        onBackPressedDispatcher.addCallback {
-            finishAndStopPlayerSession()
-        }
     }
 
     override fun onStart() {
@@ -162,13 +156,13 @@ class PlayerActivity : ComponentActivity() {
             mediaController = controllerFuture?.await()
 
             mediaController?.run {
-                if (playerPreferences.shouldUseVolumeBoost) {
-                    try {
-                        volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
+//                if (playerPreferences.shouldUseVolumeBoost) {
+//                    try {
+//                        volumeManager.loudnessEnhancer = LoudnessEnhancer(getAudioSessionId())
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+//                }
                 updateKeepScreenOnFlag()
                 addListener(playbackStateListener)
                 startPlayback()
@@ -179,12 +173,9 @@ class PlayerActivity : ComponentActivity() {
     override fun onStop() {
         mediaController?.run {
             viewModel.playWhenReady = playWhenReady
-            lifecycleScope.launch {
-                viewModel.skipSilenceEnabled = getSkipSilenceEnabled()
-            }
             removeListener(playbackStateListener)
         }
-        val shouldPlayInBackground = playInBackground || playerPreferences.autoBackgroundPlay
+        val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
         if (subtitleFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
             mediaController?.pause()
         }
@@ -260,7 +251,7 @@ class PlayerActivity : ComponentActivity() {
                     val apiSubs = playerApi.getSubs().map { subtitle ->
                         uriToSubtitleConfiguration(
                             uri = subtitle.uri,
-                            subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                            subtitleEncoding = playerPreferences?.subtitleTextEncoding ?: "",
                             isSelected = subtitle.isSelected,
                         )
                     }
@@ -293,13 +284,13 @@ class PlayerActivity : ComponentActivity() {
             super.onAudioSessionIdChanged(audioSessionId)
             volumeManager.loudnessEnhancer?.release()
 
-            if (playerPreferences.shouldUseVolumeBoost) {
-                try {
-                    volumeManager.loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
+//            if (playerPreferences.shouldUseVolumeBoost) {
+//                try {
+//                    volumeManager.loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+//                } catch (e: Exception) {
+//                    e.printStackTrace()
+//                }
+//            }
         }
 
         override fun onPlayerError(error: PlaybackException) {
