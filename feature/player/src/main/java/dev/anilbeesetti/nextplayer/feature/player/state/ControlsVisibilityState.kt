@@ -78,6 +78,7 @@ class ControlsVisibilityState(
 
     fun unlockControls() {
         controlsLocked = false
+        showControls()
     }
 
     suspend fun observe() {
