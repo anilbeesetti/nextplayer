@@ -189,8 +189,8 @@ fun MediaPlayerScreen(
                     topView = {
                         AnimatedVisibility(
                             visible = controlsVisibilityState.controlsVisible,
-                            enter = slideInVertically { -it },
-                            exit = slideOutVertically { -it },
+                            enter = fadeIn(),
+                            exit = fadeOut(),
                         ) {
                             ControlsTopView(
                                 title = metadataState.title ?: "",
@@ -221,8 +221,8 @@ fun MediaPlayerScreen(
                     bottomView = {
                         AnimatedVisibility(
                             visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
-                            enter = slideInVertically { it },
-                            exit = slideOutVertically { it },
+                            enter = fadeIn(),
+                            exit = fadeOut(),
                         ) {
                             val context = LocalContext.current
                             ControlsBottomView(
