@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
@@ -79,6 +80,10 @@ fun BoxScope.OverlayShowView(
             }
 
             null -> {}
+        }
+
+        BackHandler {
+            onDismiss()
         }
     }
 }
