@@ -116,22 +116,33 @@ class PlayerService : MediaSessionService() {
             super.onPositionDiscontinuity(oldPosition, newPosition, reason)
             val oldMediaItem = oldPosition.mediaItem ?: return
 
-            val shouldSave = when (reason) {
+            when (reason) {
                 DISCONTINUITY_REASON_SEEK,
-                DISCONTINUITY_REASON_AUTO_TRANSITION,
-                    -> newPosition.mediaItem != null && oldMediaItem != newPosition.mediaItem
+                DISCONTINUITY_REASON_AUTO_TRANSITION -> {
+                    if (newPosition.mediaItem == null || oldMediaItem == newPosition.mediaItem)  return
 
-                DISCONTINUITY_REASON_REMOVE -> true
-                else -> false
-            }
+                    val updatedPosition = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET
+                    mediaSession?.player?.replaceMediaItem(
+                        oldPosition.mediaItemIndex,
+                        oldMediaItem.copy(positionMs = updatedPosition)
+                    )
+                    serviceScope.launch {
+                        mediaRepository.updateMediumPosition(
+                            uri = oldMediaItem.mediaId,
+                            position = updatedPosition,
+                        )
+                    }
+                }
 
-            if (shouldSave) {
-                savePlaybackPosition(
-                    mediaItem = oldMediaItem,
-                    mediaItemIndex = oldPosition.mediaItemIndex,
-                    positionMs = oldPosition.positionMs
-                        .takeIf { reason != DISCONTINUITY_REASON_AUTO_TRANSITION } ?: C.TIME_UNSET,
-                )
+                DISCONTINUITY_REASON_REMOVE -> {
+                    serviceScope.launch {
+                        mediaRepository.updateMediumPosition(
+                            uri = oldMediaItem.mediaId,
+                            position = oldPosition.positionMs,
+                        )
+                    }
+                }
+                else -> return
             }
         }
 
@@ -243,11 +254,12 @@ class PlayerService : MediaSessionService() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             mediaSession?.run {
-                savePlaybackPosition(
-                    mediaItem = player.currentMediaItem ?: return@run,
-                    mediaItemIndex = player.currentMediaItemIndex,
-                    positionMs = player.currentPosition,
-                )
+                serviceScope.launch {
+                    mediaRepository.updateMediumPosition(
+                        uri = player.currentMediaItem?.mediaId ?: return@launch,
+                        position = player.currentPosition,
+                    )
+                }
             }
         }
 
@@ -381,11 +393,12 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
                     mediaSession?.run {
-                        savePlaybackPosition(
-                            mediaItem = player.currentMediaItem ?: return@run,
-                            mediaItemIndex = player.currentMediaItemIndex,
-                            positionMs = player.currentPosition,
-                        )
+                        serviceScope.launch {
+                            mediaRepository.updateMediumPosition(
+                                uri = player.currentMediaItem?.mediaId ?: return@launch,
+                                position = player.currentPosition,
+                            )
+                        }
                     }
                     mediaSession?.run {
                         player.clearMediaItems()
@@ -549,16 +562,6 @@ class PlayerService : MediaSessionService() {
             }
         }.awaitAll()
     }
-
-    private fun savePlaybackPosition(mediaItem: MediaItem, mediaItemIndex: Int, positionMs: Long) {
-        mediaSession?.player?.replaceMediaItem(mediaItemIndex, mediaItem.copy(positionMs = positionMs))
-        serviceScope.launch {
-            mediaRepository.updateMediumPosition(
-                uri = mediaItem.mediaId,
-                position = positionMs,
-            )
-        }
-    }
 }
 
 @get:UnstableApi
@@ -581,10 +584,3 @@ private var Player.skipSilenceEnabled: Boolean
             is ExoPlayer -> this.skipSilenceEnabled = value
         }
     }
-
-@OptIn(UnstableApi::class)
-private fun Player.setScrubbingModeEnabled(enabled: Boolean) {
-    when (this) {
-        is ExoPlayer -> this.isScrubbingModeEnabled = enabled
-    }
-}
