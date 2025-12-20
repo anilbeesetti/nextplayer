@@ -1,12 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
-import androidx.compose.foundation.gestures.PressGestureScope
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,8 +113,7 @@ class TapGestureState(
         resetDoubleTapSeekState()
     }
 
-    suspend fun handlePress(scope: PressGestureScope) {
-        scope.tryAwaitRelease()
+    fun handleOnLongPressRelease() {
         if (isLongPressGestureInAction) {
             isLongPressGestureInAction = false
             player.setPlaybackSpeed(currentSpeed)

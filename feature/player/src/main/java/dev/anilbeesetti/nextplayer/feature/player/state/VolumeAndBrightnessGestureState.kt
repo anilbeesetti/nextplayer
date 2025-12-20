@@ -3,6 +3,8 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,6 +45,12 @@ class VolumeAndBrightnessGestureState(
     var activeGesture: VerticalGesture? by mutableStateOf(null)
         private set
 
+    var volumeChangePercentage: Int by mutableIntStateOf(0)
+        private set
+
+    var brightnessChangePercentage: Int by mutableIntStateOf(0)
+        private set
+
     private var startingY = 0f
     private var startVolumePercentage = 0
     private var startBrightnessPercentage = 0
@@ -62,14 +70,25 @@ class VolumeAndBrightnessGestureState(
 
     fun onDrag(change: PointerInputChange, dragAmount: Float) {
         val activeGesture = activeGesture ?: return
+        if (change.isConsumed) return
 
         when (activeGesture) {
             VerticalGesture.VOLUME -> {
                 val newVolume = startVolumePercentage + ((startingY - change.position.y) * sensitivity).toInt()
+                volumeChangePercentage = (newVolume - startVolumePercentage).coerceIn(
+                    minimumValue = 0 - startVolumePercentage,
+                    maximumValue = 100 - startVolumePercentage,
+                )
+                brightnessChangePercentage = 0
                 volumeState.updateVolumePercentage(newVolume)
             }
             VerticalGesture.BRIGHTNESS -> {
                 val newBrightness = startBrightnessPercentage + ((startingY - change.position.y) * sensitivity).toInt()
+                brightnessChangePercentage = (newBrightness - startBrightnessPercentage).coerceIn(
+                    minimumValue = 0 - startBrightnessPercentage,
+                    maximumValue = 100 - startBrightnessPercentage,
+                )
+                volumeChangePercentage = 0
                 brightnessState.updateBrightnessPercentage(newBrightness)
             }
         }
@@ -78,11 +97,14 @@ class VolumeAndBrightnessGestureState(
     fun onDragEnd() {
         startingY = 0f
         startVolumePercentage = 0
+        startBrightnessPercentage = 0
 
         job?.cancel()
         job = coroutineScope.launch {
             delay(1.seconds)
             activeGesture = null
+            volumeChangePercentage = 0
+            brightnessChangePercentage = 0
         }
     }
 }

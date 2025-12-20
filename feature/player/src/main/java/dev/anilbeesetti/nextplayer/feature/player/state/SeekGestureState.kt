@@ -79,6 +79,7 @@ class SeekGestureState(
     fun onDrag(change: PointerInputChange, dragAmount: Float) {
         if (seekStartPosition == null) return
         if (player.duration == C.TIME_UNSET) return
+        if (change.isConsumed) return
 
         val newPosition = seekStartPosition!! + ((change.position.x - seekStartX) * 150f).toInt()
         seekAmount = (newPosition - seekStartPosition!!).coerceIn(

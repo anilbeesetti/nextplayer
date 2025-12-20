@@ -71,7 +71,6 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
@@ -237,7 +236,7 @@ fun MediaPlayerScreen(
                     },
                     middleView = {
                         when {
-                            seekGestureState.isSeeking -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
+                            seekGestureState.seekAmount != null -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
                             videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
                             controlsVisibilityState.controlsVisible -> ControlsMiddleView(player = player)
                             else -> Unit
@@ -290,7 +289,7 @@ fun MediaPlayerScreen(
             ) {
                 AnimatedVisibility(
                     modifier = Modifier.align(Alignment.CenterStart),
-                    visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.VOLUME,
+                    visible = volumeAndBrightnessGestureState.volumeChangePercentage != 0,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
@@ -302,7 +301,7 @@ fun MediaPlayerScreen(
 
                 AnimatedVisibility(
                     modifier = Modifier.align(Alignment.CenterEnd),
-                    visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.BRIGHTNESS,
+                    visible = volumeAndBrightnessGestureState.brightnessChangePercentage != 0,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {

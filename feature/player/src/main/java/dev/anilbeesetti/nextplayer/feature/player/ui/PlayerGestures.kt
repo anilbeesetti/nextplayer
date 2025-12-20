@@ -43,7 +43,8 @@ fun PlayerGestures(
                             tapGestureState.handleDoubleTap(offset = it, size = size)
                         },
                         onPress = {
-                            tapGestureState.handlePress(this)
+                            tryAwaitRelease()
+                            tapGestureState.handleOnLongPressRelease()
                         },
                         onLongPress = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
@@ -88,6 +89,7 @@ fun PlayerGestures(
 
                     detectCustomTransformGestures(
                         onGesture = { _, panChange, zoomChange, _, ->
+                            if (tapGestureState.isLongPressGestureInAction) return@detectCustomTransformGestures
                             videoZoomAndContentScaleState.onZoomPanGesture(
                                 constraints = this@BoxWithConstraints.constraints,
                                 panChange = panChange,
