@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Constraints
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.listen
@@ -68,6 +69,8 @@ class VideoZoomAndContentScaleState(
     }
 
     fun onZoomPanGesture(constraints: Constraints, panChange: Offset, zoomChange: Float) {
+        if (player.duration == C.TIME_UNSET) return
+
         isZooming = true
         zoom = (zoom * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
 

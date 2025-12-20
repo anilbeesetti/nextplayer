@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
@@ -61,6 +62,8 @@ class TapGestureState(
     private var currentSpeed: Float = player.playbackParameters.speed
 
     fun handleDoubleTap(offset: Offset, size: IntSize) {
+        if (!player.isCurrentMediaItemSeekable) return
+
         val action = when (doubleTapGesture) {
             DoubleTapGesture.FAST_FORWARD_AND_REWIND -> {
                 val viewCenterX = size.width / 2

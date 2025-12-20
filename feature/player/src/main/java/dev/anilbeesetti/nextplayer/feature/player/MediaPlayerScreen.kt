@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -51,9 +53,9 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
-import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGesureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
@@ -86,6 +88,7 @@ fun MediaPlayerScreen(
     onPlayInBackgroundClick: () -> Unit,
 ) {
     val metadataState = rememberMetadataState(player)
+    val mediaPresentationState = rememberMediaPresentationState(player)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
@@ -169,6 +172,14 @@ fun MediaPlayerScreen(
                 ),
             )
 
+            if (mediaPresentationState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(72.dp)
+                )
+            }
+
             DoubleTapIndicator(tapGestureState = tapGestureState)
 
             AnimatedVisibility(
@@ -187,7 +198,7 @@ fun MediaPlayerScreen(
                         ),
                     ) {
                         Text(
-                            text = "${tapGestureState.longPressSpeed}x Speed",
+                            text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -251,6 +262,7 @@ fun MediaPlayerScreen(
                             val context = LocalContext.current
                             ControlsBottomView(
                                 player = player,
+                                mediaPresentationState = mediaPresentationState,
                                 controlsAlignment = when (playerPreferences.controlButtonsPosition) {
                                     ControlButtonsPosition.LEFT -> Alignment.Start
                                     ControlButtonsPosition.RIGHT -> Alignment.End

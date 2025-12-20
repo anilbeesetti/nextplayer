@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 import androidx.annotation.IntRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +27,7 @@ fun rememberMediaPresentationState(player: Player): MediaPresentationState {
     return mediaPresentationState
 }
 
-
+@Stable
 class MediaPresentationState(
     private val player: Player,
     @param:IntRange(from = 0) private val tickIntervalMs: Long = 500,
@@ -40,10 +41,14 @@ class MediaPresentationState(
     var isPlaying: Boolean by mutableStateOf(false)
         private set
 
+    var isLoading: Boolean by mutableStateOf(true)
+        private set
+
     suspend fun observe() {
         position = player.currentPosition
         duration = player.duration.coerceAtLeast(0L)
         isPlaying = player.isPlaying
+        isLoading = player.isLoading
 
         coroutineScope {
             launch {
@@ -63,6 +68,10 @@ class MediaPresentationState(
 
                     if (events.containsAny(Player.EVENT_POSITION_DISCONTINUITY)) {
                         updatePosition()
+                    }
+
+                    if (events.containsAny(Player.EVENT_IS_LOADING_CHANGED)) {
+                        this@MediaPresentationState.isLoading = player.isLoading
                     }
                 }
             }

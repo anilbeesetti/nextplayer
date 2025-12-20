@@ -31,6 +31,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.state.MediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
@@ -41,6 +42,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentatio
 fun ControlsBottomView(
     modifier: Modifier = Modifier,
     player: Player,
+    mediaPresentationState: MediaPresentationState,
     controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
@@ -53,8 +55,6 @@ fun ControlsBottomView(
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
 ) {
-    val mediaPresentationState = rememberMediaPresentationState(player)
-
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp),
