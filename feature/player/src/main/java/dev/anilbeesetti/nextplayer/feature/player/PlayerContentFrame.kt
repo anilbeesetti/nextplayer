@@ -16,7 +16,7 @@ import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.state.DoubleTapGestureHandler
+import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
@@ -33,7 +33,7 @@ fun PlayerContentFrame(
     player: Player,
     pictureInPictureState: PictureInPictureState,
     controlsVisibilityState: ControlsVisibilityState,
-    doubleTapGestureHandler: DoubleTapGestureHandler,
+    tapGestureState: TapGestureState,
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
@@ -73,7 +73,7 @@ fun PlayerContentFrame(
 
     PlayerGestures(
         controlsVisibilityState = controlsVisibilityState,
-        doubleTapGestureHandler = doubleTapGestureHandler,
+        tapGestureState = tapGestureState,
         pictureInPictureState = pictureInPictureState,
         seekGestureState = seekGestureState,
         videoZoomAndContentScaleState = videoZoomAndContentScaleState,

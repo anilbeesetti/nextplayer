@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.state.DoubleTapGestureHandler
+import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
@@ -21,7 +21,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.VolumeAndBrightnessGestu
 fun PlayerGestures(
     modifier: Modifier = Modifier,
     controlsVisibilityState: ControlsVisibilityState,
-    doubleTapGestureHandler: DoubleTapGestureHandler,
+    tapGestureState: TapGestureState,
     pictureInPictureState: PictureInPictureState,
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
@@ -40,7 +40,7 @@ fun PlayerGestures(
                         },
                         onDoubleTap = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
-                            doubleTapGestureHandler.handleDoubleTap(offset = it, size = size)
+                            tapGestureState.handleDoubleTap(offset = it, size = size)
                         },
                     )
                 }

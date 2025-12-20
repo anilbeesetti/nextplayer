@@ -3,11 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
-import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,21 +32,16 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
-import dev.anilbeesetti.nextplayer.core.common.extensions.isDeviceTvBox
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.extensions.togglePlayPause
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
-import dev.anilbeesetti.nextplayer.feature.player.utils.VolumeManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
@@ -333,118 +326,6 @@ class PlayerActivity : ComponentActivity() {
                 startPlayback()
             }
         }
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_MEDIA_PLAY,
-            KeyEvent.KEYCODE_MEDIA_PAUSE,
-            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
-            KeyEvent.KEYCODE_BUTTON_SELECT,
-                -> {
-                when {
-                    keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE -> mediaController?.pause()
-                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY -> mediaController?.play()
-                    mediaController?.isPlaying == true -> mediaController?.pause()
-                    else -> mediaController?.play()
-                }
-                return true
-            }
-
-            KeyEvent.KEYCODE_BUTTON_START,
-            KeyEvent.KEYCODE_BUTTON_A,
-            KeyEvent.KEYCODE_SPACE,
-                -> {
-                if (!binding.playerView.isControllerFullyVisible) {
-                    binding.playerView.togglePlayPause()
-                    return true
-                }
-            }
-
-            KeyEvent.KEYCODE_DPAD_LEFT,
-            KeyEvent.KEYCODE_BUTTON_L2,
-            KeyEvent.KEYCODE_MEDIA_REWIND,
-                -> {
-                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
-                    mediaController?.run {
-                        if (scrubStartPosition == -1L) {
-                            scrubStartPosition = currentPosition
-                        }
-                        val position = (currentPosition - 10_000).coerceAtLeast(0L)
-                        seekBack(position, shouldFastSeek)
-//                        showPlayerInfo(
-//                            info = Utils.formatDurationMillis(position),
-//                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-//                        )
-                        return true
-                    }
-                }
-            }
-
-            KeyEvent.KEYCODE_DPAD_RIGHT,
-            KeyEvent.KEYCODE_BUTTON_R2,
-            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-                -> {
-                if (!binding.playerView.isControllerFullyVisible || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                    mediaController?.run {
-                        if (scrubStartPosition == -1L) {
-                            scrubStartPosition = currentPosition
-                        }
-
-                        val position = (currentPosition + 10_000).coerceAtMost(duration)
-                        seekForward(position, shouldFastSeek)
-//                        showPlayerInfo(
-//                            info = Utils.formatDurationMillis(position),
-//                            subInfo = "[${Utils.formatDurationMillisSign(position - scrubStartPosition)}]",
-//                        )
-                        return true
-                    }
-                }
-            }
-
-            KeyEvent.KEYCODE_ENTER,
-            KeyEvent.KEYCODE_DPAD_CENTER,
-            KeyEvent.KEYCODE_NUMPAD_ENTER,
-                -> {
-                if (!binding.playerView.isControllerFullyVisible) {
-                    binding.playerView.showController()
-                    return true
-                }
-            }
-
-            KeyEvent.KEYCODE_BACK -> {
-                if (binding.playerView.isControllerFullyVisible && mediaController?.isPlaying == true && isDeviceTvBox()) {
-                    binding.playerView.hideController()
-                    return true
-                }
-            }
-        }
-        return super.onKeyDown(keyCode, event)
-    }
-
-    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP,
-            KeyEvent.KEYCODE_VOLUME_DOWN,
-            KeyEvent.KEYCODE_DPAD_UP,
-            KeyEvent.KEYCODE_DPAD_DOWN,
-                -> {
-//                hideVolumeGestureLayout()
-                return true
-            }
-
-            KeyEvent.KEYCODE_DPAD_LEFT,
-            KeyEvent.KEYCODE_BUTTON_L2,
-            KeyEvent.KEYCODE_MEDIA_REWIND,
-            KeyEvent.KEYCODE_DPAD_RIGHT,
-            KeyEvent.KEYCODE_BUTTON_R2,
-            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
-                -> {
-//                hidePlayerInfo()
-                return true
-            }
-        }
-        return super.onKeyUp(keyCode, event)
     }
 
     private fun updateKeepScreenOnFlag() {

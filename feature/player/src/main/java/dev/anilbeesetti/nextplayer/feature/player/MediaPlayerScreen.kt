@@ -54,7 +54,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.toMillis
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberDoubleTapGestureHandler
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGesureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
@@ -64,6 +64,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightn
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
+import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
@@ -89,7 +90,7 @@ fun MediaPlayerScreen(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.toMillis.milliseconds,
     )
-    val doubleTapGestureHandler = rememberDoubleTapGestureHandler(
+    val tapGestureState = rememberTapGesureState(
         player = player,
         doubleTapGesture = playerPreferences.doubleTapGesture,
         seekIncrementMillis = playerPreferences.seekIncrement.toMillis.toLong(),
@@ -150,7 +151,7 @@ fun MediaPlayerScreen(
                 player = player,
                 pictureInPictureState = pictureInPictureState,
                 controlsVisibilityState = controlsVisibilityState,
-                doubleTapGestureHandler = doubleTapGestureHandler,
+                tapGestureState = tapGestureState,
                 seekGestureState = seekGestureState,
                 videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                 volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
@@ -163,6 +164,8 @@ fun MediaPlayerScreen(
                     applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
                 ),
             )
+
+            DoubleTapIndicator(tapGestureState = tapGestureState)
 
             if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
                 Column(
