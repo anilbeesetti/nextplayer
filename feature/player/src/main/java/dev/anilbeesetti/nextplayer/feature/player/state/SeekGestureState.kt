@@ -13,23 +13,15 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @Composable
-fun rememberSeekGestureState(
-    player: Player,
-    shouldFastSeek: (Long) -> Boolean,
-): SeekGestureState {
+fun rememberSeekGestureState(player: Player): SeekGestureState {
     val seekGestureState = remember {
-        SeekGestureState(
-            player = player,
-            shouldFastSeek = shouldFastSeek,
-        )
+        SeekGestureState(player = player)
     }
     return seekGestureState
 }
@@ -37,7 +29,6 @@ fun rememberSeekGestureState(
 @Stable
 class SeekGestureState(
     private val player: Player,
-    private val shouldFastSeek: (Long) -> Boolean,
 ) {
     var isSeeking: Boolean by mutableStateOf(false)
         private set
@@ -63,15 +54,9 @@ class SeekGestureState(
         )
 
         if (value > player.currentPosition) {
-            player.seekForward(
-                positionMs = value.coerceAtMost(player.duration),
-                shouldFastSeek = shouldFastSeek(player.duration),
-            )
+            player.seekTo(value.coerceAtMost(player.duration))
         } else {
-            player.seekBack(
-                positionMs = value.coerceAtLeast(0L),
-                shouldFastSeek = shouldFastSeek(player.duration),
-            )
+            player.seekTo(value.coerceAtLeast(0L))
         }
     }
 
@@ -102,15 +87,9 @@ class SeekGestureState(
         )
 
         if (dragAmount > 0) {
-            player.seekForward(
-                positionMs = newPosition.coerceAtMost(player.duration),
-                shouldFastSeek = shouldFastSeek(player.duration),
-            )
+            player.seekTo(newPosition.coerceAtMost(player.duration))
         } else {
-            player.seekBack(
-                positionMs = newPosition.coerceAtLeast(0L),
-                shouldFastSeek = shouldFastSeek(player.duration),
-            )
+            player.seekTo(newPosition.coerceAtLeast(0L))
         }
     }
 

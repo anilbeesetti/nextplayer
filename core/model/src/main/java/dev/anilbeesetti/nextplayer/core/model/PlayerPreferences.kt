@@ -7,7 +7,6 @@ data class PlayerPreferences(
     val resume: Resume = Resume.YES,
     val rememberPlayerBrightness: Boolean = false,
     val playerBrightness: Float = 0.5f,
-    val fastSeek: FastSeek = FastSeek.AUTO,
     val minDurationForFastSeek: Long = 120000L,
     val rememberSelections: Boolean = true,
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,

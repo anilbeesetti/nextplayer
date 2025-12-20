@@ -51,7 +51,6 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
-import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
@@ -98,12 +97,8 @@ fun MediaPlayerScreen(
         seekIncrementMillis = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
         useLongPressGesture = playerPreferences.useLongPressControls,
         longPressSpeed = playerPreferences.longPressControlsSpeed,
-        shouldFastSeek = { playerPreferences.shouldFastSeek(it) },
     )
-    val seekGestureState = rememberSeekGestureState(
-        player = player,
-        shouldFastSeek = { playerPreferences.shouldFastSeek(it) },
-    )
+    val seekGestureState = rememberSeekGestureState(player = player)
     val pictureInPictureState = rememberPictureInPictureState(
         player = player,
         autoEnter = playerPreferences.autoPip,

@@ -66,44 +66,6 @@ fun Player.getManuallySelectedTrackIndex(trackType: @C.TrackType Int): Int? {
     return tracks.indexOfFirst { it.mediaTrackGroup == trackOverride }.takeIf { it != -1 }
 }
 
-/**
- * Sets the seek parameters for the player.
- *
- * @param seekParameters The seek parameters to set.
- */
-@UnstableApi
-fun Player.setSeekParameters(seekParameters: SeekParameters) {
-    when (this) {
-        is ExoPlayer -> this.setSeekParameters(seekParameters)
-    }
-}
-
-/**
- * Seeks to the specified position.
- *
- * @param positionMs The position to seek to, in milliseconds.
- * @param shouldFastSeek Whether to seek to the nearest keyframe.
- */
-@UnstableApi
-fun Player.seekBack(positionMs: Long, shouldFastSeek: Boolean = false) {
-    if (currentMediaItem == null) return
-    setSeekParameters(if (shouldFastSeek) SeekParameters.PREVIOUS_SYNC else SeekParameters.DEFAULT)
-    this.seekTo(positionMs)
-}
-
-/**
- * Seeks to the specified position.
- *
- * @param positionMs The position to seek to, in milliseconds.
- * @param shouldFastSeek Whether to seek to the nearest keyframe.
- */
-@UnstableApi
-fun Player.seekForward(positionMs: Long, shouldFastSeek: Boolean = false) {
-    if (currentMediaItem == null) return
-    setSeekParameters(if (shouldFastSeek) SeekParameters.NEXT_SYNC else SeekParameters.DEFAULT)
-    this.seekTo(positionMs)
-}
-
 fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfiguration) {
     val currentMediaItemLocal = currentMediaItem ?: return
     val existingSubConfigurations = currentMediaItemLocal.localConfiguration?.subtitleConfigurations ?: emptyList()

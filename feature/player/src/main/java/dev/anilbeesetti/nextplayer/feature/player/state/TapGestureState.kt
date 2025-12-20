@@ -17,8 +17,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekBack
-import dev.anilbeesetti.nextplayer.feature.player.extensions.seekForward
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -33,7 +31,6 @@ fun rememberTapGesureState(
     seekIncrementMillis: Long,
     useLongPressGesture: Boolean,
     longPressSpeed: Float,
-    shouldFastSeek: (Long) -> Boolean,
 ): TapGestureState {
     val coroutineScope = rememberCoroutineScope()
     val tapGestureState = remember {
@@ -44,7 +41,6 @@ fun rememberTapGesureState(
             useLongPressGesture = useLongPressGesture,
             longPressSpeed = longPressSpeed,
             coroutineScope = coroutineScope,
-            shouldFastSeek = shouldFastSeek,
         )
     }
     return tapGestureState
@@ -54,7 +50,6 @@ fun rememberTapGesureState(
 class TapGestureState(
     private val player: Player,
     private val seekIncrementMillis: Long,
-    private val shouldFastSeek: (Long) -> Boolean,
     private val useLongPressGesture: Boolean = true,
     private val coroutineScope: CoroutineScope,
     val longPressSpeed: Float = 2.0f,
@@ -93,10 +88,7 @@ class TapGestureState(
 
         when (action) {
             DoubleTapAction.SEEK_BACKWARD -> {
-                player.seekBack(
-                    positionMs = player.currentPosition - seekIncrementMillis,
-                    shouldFastSeek = shouldFastSeek(player.duration),
-                )
+                player.seekTo(player.currentPosition - seekIncrementMillis)
                 if (seekMillis > 0L) {
                     seekMillis = 0L
                 }
@@ -105,10 +97,7 @@ class TapGestureState(
             }
 
             DoubleTapAction.SEEK_FORWARD -> {
-                player.seekForward(
-                    positionMs = player.currentPosition + seekIncrementMillis,
-                    shouldFastSeek = shouldFastSeek(player.duration),
-                )
+                player.seekTo(player.currentPosition + seekIncrementMillis)
                 if (seekMillis < 0L) {
                     seekMillis = 0L
                 }

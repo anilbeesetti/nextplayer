@@ -156,11 +156,6 @@ fun PlayerPreferencesScreen(
                 isChecked = preferences.rememberSelections,
                 onClick = viewModel::toggleRememberSelections,
             )
-            FastSeekSetting(
-                isChecked = (preferences.fastSeek != FastSeek.DISABLE),
-                onChecked = viewModel::toggleFastSeek,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.FastSeekDialog) },
-            )
             ScreenOrientationSetting(
                 currentOrientationPreference = preferences.playerScreenOrientation,
                 onClick = {
@@ -200,24 +195,6 @@ fun PlayerPreferencesScreen(
                                 selected = (it == preferences.doubleTapGesture),
                                 onClick = {
                                     viewModel.updateDoubleTapGesture(it)
-                                    viewModel.hideDialog()
-                                },
-                            )
-                        }
-                    }
-                }
-
-                PlayerPreferenceDialog.FastSeekDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.fast_seek),
-                        onDismissClick = viewModel::hideDialog,
-                    ) {
-                        items(FastSeek.entries.toTypedArray()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == preferences.fastSeek),
-                                onClick = {
-                                    viewModel.updateFastSeek(it)
                                     viewModel.hideDialog()
                                 },
                             )
@@ -584,22 +561,6 @@ fun RememberSelectionsSetting(
         description = stringResource(id = R.string.remember_selections_description),
         icon = NextIcons.Selection,
         isChecked = isChecked,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun FastSeekSetting(
-    isChecked: Boolean,
-    onChecked: () -> Unit,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitchWithDivider(
-        title = stringResource(id = R.string.fast_seek),
-        description = stringResource(id = R.string.fast_seek_description),
-        isChecked = isChecked,
-        onChecked = onChecked,
-        icon = NextIcons.Fast,
         onClick = onClick,
     )
 }

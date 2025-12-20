@@ -58,14 +58,6 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateFastSeek(fastSeek: FastSeek) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(fastSeek = fastSeek)
-            }
-        }
-    }
-
     fun toggleUseLongPressControls() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -83,16 +75,6 @@ class PlayerPreferencesViewModel @Inject constructor(
                     } else {
                         DoubleTapGesture.NONE
                     },
-                )
-            }
-        }
-    }
-
-    fun toggleFastSeek() {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    fastSeek = if (it.fastSeek == FastSeek.DISABLE) FastSeek.AUTO else FastSeek.DISABLE,
                 )
             }
         }
@@ -216,7 +198,6 @@ data class PlayerPreferencesUIState(
 sealed interface PlayerPreferenceDialog {
     object ResumeDialog : PlayerPreferenceDialog
     object DoubleTapDialog : PlayerPreferenceDialog
-    object FastSeekDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object ControlButtonsDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog

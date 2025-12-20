@@ -36,7 +36,6 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
-import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
@@ -62,12 +61,8 @@ class PlayerActivity : ComponentActivity() {
     private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 
     private var isPlaybackFinished = false
-    private var scrubStartPosition: Long = -1L
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
-
-    private val shouldFastSeek: Boolean
-        get() = playerPreferences?.shouldFastSeek(mediaController?.duration ?: C.TIME_UNSET) == true
 
     /**
      * Player
