@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -226,13 +227,16 @@ fun MediaPlayerScreen(
                                 },
                                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                 isPipSupported = pictureInPictureState.isPipSupported,
-                                onVideoContentScaleClick = videoZoomAndContentScaleState::switchToNextVideoContentScale,
-                                onVideoContentScaleLongClick = { overlayView = OverlayView.VIDEO_CONTENT_SCALE },
-                                onLockControlsClick = controlsVisibilityState::lockControls,
-                                onRotateClick = rotationState::rotate,
-                                onPlayInBackgroundClick = onPlayInBackgroundClick,
                                 onSeek = seekGestureState::onSeek,
                                 onSeekEnd = seekGestureState::onSeekEnd,
+                                onRotateClick = rotationState::rotate,
+                                onPlayInBackgroundClick = onPlayInBackgroundClick,
+                                onLockControlsClick = controlsVisibilityState::lockControls,
+                                onVideoContentScaleClick = videoZoomAndContentScaleState::switchToNextVideoContentScale,
+                                onVideoContentScaleLongClick = {
+                                    controlsVisibilityState.hideControls()
+                                    overlayView = OverlayView.VIDEO_CONTENT_SCALE
+                                },
                                 onPictureInPictureClick = {
                                     if (!pictureInPictureState.hasPipPermission) {
                                         Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
@@ -341,7 +345,8 @@ fun PlayerControlsView(
     ) {
         Column(
             modifier = Modifier
-                .safeDrawingPadding()
+                .systemBarsPadding()
+                .displayCutoutPadding()
                 .padding(horizontal = 8.dp),
         ) {
             topView()
