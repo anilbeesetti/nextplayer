@@ -1,10 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.player.state
 
+import androidx.compose.foundation.gestures.PressGestureScope
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,7 +24,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @UnstableApi
 @Composable
@@ -30,6 +31,8 @@ fun rememberTapGesureState(
     player: Player,
     doubleTapGesture: DoubleTapGesture,
     seekIncrementMillis: Long,
+    useLongPressGesture: Boolean,
+    longPressSpeed: Float,
     shouldFastSeek: (Long) -> Boolean,
 ): TapGestureState {
     val coroutineScope = rememberCoroutineScope()
@@ -38,6 +41,8 @@ fun rememberTapGesureState(
             player = player,
             doubleTapGesture = doubleTapGesture,
             seekIncrementMillis = seekIncrementMillis,
+            useLongPressGesture = useLongPressGesture,
+            longPressSpeed = longPressSpeed,
             coroutineScope = coroutineScope,
             shouldFastSeek = shouldFastSeek,
         )
@@ -49,14 +54,18 @@ fun rememberTapGesureState(
 class TapGestureState(
     private val player: Player,
     private val seekIncrementMillis: Long,
-    private val coroutineScope: CoroutineScope,
     private val shouldFastSeek: (Long) -> Boolean,
+    private val useLongPressGesture: Boolean = true,
+    private val coroutineScope: CoroutineScope,
+    val longPressSpeed: Float = 2.0f,
     val doubleTapGesture: DoubleTapGesture,
     val interactionSource: MutableInteractionSource = MutableInteractionSource(),
 ) {
     var seekMillis by mutableLongStateOf(0L)
+    var isLongPressGestureInAction by mutableStateOf(false)
 
     private var resetJob: Job? = null
+    private var currentSpeed: Float = player.playbackParameters.speed
 
     fun handleDoubleTap(offset: Offset, size: IntSize) {
         val action = when (doubleTapGesture) {
@@ -114,10 +123,27 @@ class TapGestureState(
                 }
             }
         }
-        reset()
+        resetDoubleTapSeekState()
     }
 
-    private fun reset() {
+    suspend fun handlePress(scope: PressGestureScope) {
+        scope.tryAwaitRelease()
+        if (isLongPressGestureInAction) {
+            isLongPressGestureInAction = false
+            player.setPlaybackSpeed(currentSpeed)
+        }
+    }
+
+    fun handleLongPress(offset: Offset) {
+        if (!useLongPressGesture) return
+        if (!player.isPlaying) return
+
+        isLongPressGestureInAction = true
+        currentSpeed = player.playbackParameters.speed
+        player.setPlaybackSpeed(longPressSpeed)
+    }
+
+    private fun resetDoubleTapSeekState() {
         resetJob?.cancel()
         resetJob = coroutineScope.launch {
             delay(750.milliseconds)

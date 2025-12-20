@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +52,6 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.shouldFastSeek
-import dev.anilbeesetti.nextplayer.feature.player.extensions.toMillis
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
@@ -72,6 +73,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @OptIn(UnstableApi::class)
@@ -88,12 +90,14 @@ fun MediaPlayerScreen(
     val metadataState = rememberMetadataState(player)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
-        hideAfter = playerPreferences.controllerAutoHideTimeout.toMillis.milliseconds,
+        hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
     )
     val tapGestureState = rememberTapGesureState(
         player = player,
         doubleTapGesture = playerPreferences.doubleTapGesture,
-        seekIncrementMillis = playerPreferences.seekIncrement.toMillis.toLong(),
+        seekIncrementMillis = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
+        useLongPressGesture = playerPreferences.useLongPressControls,
+        longPressSpeed = playerPreferences.longPressControlsSpeed,
         shouldFastSeek = { playerPreferences.shouldFastSeek(it) },
     )
     val seekGestureState = rememberSeekGestureState(
@@ -123,6 +127,12 @@ fun MediaPlayerScreen(
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
+            controlsVisibilityState.hideControls()
+        }
+    }
+
+    LaunchedEffect(tapGestureState.isLongPressGestureInAction) {
+        if (tapGestureState.isLongPressGestureInAction) {
             controlsVisibilityState.hideControls()
         }
     }
@@ -166,6 +176,29 @@ fun MediaPlayerScreen(
             )
 
             DoubleTapIndicator(tapGestureState = tapGestureState)
+
+            AnimatedVisibility(
+                modifier = Modifier.padding(top = 24.dp).align(Alignment.TopCenter),
+                visible = tapGestureState.isLongPressGestureInAction,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Surface(
+                    shape = CircleShape,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(
+                            horizontal = 16.dp,
+                            vertical = 8.dp,
+                        ),
+                    ) {
+                        Text(
+                            text = "${tapGestureState.longPressSpeed}x Speed",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+            }
 
             if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
                 Column(
