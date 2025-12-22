@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
 import androidx.annotation.OptIn
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
@@ -15,17 +16,20 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 
 @OptIn(UnstableApi::class)
 @Composable
-fun AudioTrackSelectorView(
+fun BoxScope.AudioTrackSelectorView(
     modifier: Modifier = Modifier,
+    show: Boolean,
     player: Player,
     onDismiss: () -> Unit,
 ) {
     val audioTracksState = rememberTracksState(player, C.TRACK_TYPE_AUDIO)
 
     OverlayView(
+        modifier = modifier,
+        show = show,
         title = stringResource(R.string.select_audio_track),
     ) {
-        Column(modifier = modifier.selectableGroup()) {
+        Column(modifier = Modifier.selectableGroup()) {
             audioTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(
                     selected = track.isSelected,

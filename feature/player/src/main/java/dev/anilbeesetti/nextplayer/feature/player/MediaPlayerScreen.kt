@@ -336,7 +336,11 @@ fun MediaPlayerScreen(
     }
 
     BackHandler {
-        onBackClick()
+        if (overlayView != null) {
+            overlayView = null
+        } else {
+            onBackClick()
+        }
     }
 }
 

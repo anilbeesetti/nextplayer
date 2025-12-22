@@ -1,7 +1,13 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
@@ -31,8 +37,9 @@ import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
-fun OverlayView(
+fun BoxScope.OverlayView(
     modifier: Modifier = Modifier,
+    show: Boolean,
     title: String,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
@@ -44,40 +51,53 @@ fun OverlayView(
         .asPaddingValues()
         .calculateEndPadding(layoutDirection)
 
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        modifier = modifier
-            .then(
-                if (configuration.isPortrait) {
-                    Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.45f)
-                } else {
-                    Modifier
-                        .fillMaxWidth(0.45f)
-                        .fillMaxHeight()
-                },
-            ),
+    AnimatedVisibility(
+        modifier = Modifier.align(
+            if (configuration.isPortrait) {
+                Alignment.BottomCenter
+            } else {
+                Alignment.CenterEnd
+            },
+        ),
+        visible = show,
+        enter = if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
+        exit = if (configuration.isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
     ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .padding(top = 24.dp)
-                .padding(end = endPadding),
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            modifier = modifier
+                .then(
+                    if (configuration.isPortrait) {
+                        Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.45f)
+                    } else {
+                        Modifier
+                            .fillMaxWidth(0.45f)
+                            .fillMaxHeight()
+                    },
+                ),
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Spacer(modifier = Modifier.size(8.dp))
             Column(
                 modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 24.dp),
-                verticalArrangement = verticalArrangement,
-                horizontalAlignment = horizontalAlignment,
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 24.dp)
+                    .padding(end = endPadding),
             ) {
-                content()
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 24.dp),
+                    verticalArrangement = verticalArrangement,
+                    horizontalAlignment = horizontalAlignment,
+                ) {
+                    content()
+                }
             }
         }
     }
@@ -88,7 +108,7 @@ fun OverlayView(
 private fun PreviewOverlayView() {
     NextPlayerTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-            OverlayView(modifier = Modifier.align(Alignment.BottomCenter), title = "Selector view") {
+            OverlayView(modifier = Modifier.align(Alignment.BottomCenter), title = "Selector view", show = true) {
                 Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum")
             }
         }

@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,8 +19,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 
 @Composable
-fun SubtitleSelectorView(
+fun BoxScope.SubtitleSelectorView(
     modifier: Modifier = Modifier,
+    show: Boolean,
     player: Player,
     onSelectSubtitleClick: () -> Unit,
     onDismiss: () -> Unit
@@ -27,9 +29,11 @@ fun SubtitleSelectorView(
     val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
 
     OverlayView(
+        modifier = modifier,
+        show = show,
         title = stringResource(R.string.select_subtitle_track)
     ) {
-        Column(modifier = modifier.selectableGroup()) {
+        Column(modifier = Modifier.selectableGroup()) {
             subtitleTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(
                     selected = track.isSelected,

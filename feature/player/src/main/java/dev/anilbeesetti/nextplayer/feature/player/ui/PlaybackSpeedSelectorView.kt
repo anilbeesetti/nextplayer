@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,14 +40,17 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParamete
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlaybackSpeedSelectorView(
+fun BoxScope.PlaybackSpeedSelectorView(
     modifier: Modifier = Modifier,
+    show: Boolean,
     player: Player,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val playbackParametersState = rememberPlaybackParametersState(player)
 
     OverlayView(
+        modifier = modifier,
+        show = show,
         title = stringResource(R.string.select_playback_speed),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -100,7 +104,7 @@ fun PlaybackSpeedSelectorView(
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     playbackParametersState.setPlaybackSpeed(it)
                 },
-                modifier = modifier.weight(1f),
+                modifier = Modifier.weight(1f),
             )
             IconButton(onClick = { playbackParametersState.setPlaybackSpeed(1f) }) {
                 Icon(

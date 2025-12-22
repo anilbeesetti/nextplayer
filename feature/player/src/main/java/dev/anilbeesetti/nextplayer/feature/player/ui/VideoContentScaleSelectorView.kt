@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
@@ -10,14 +11,16 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 
 @Composable
-fun VideoContentScaleSelectorView(
+fun BoxScope.VideoContentScaleSelectorView(
     modifier: Modifier = Modifier,
+    show: Boolean,
     videoContentScale: VideoContentScale,
     onVideoContentScaleChanged: (VideoContentScale) -> Unit,
     onDismiss: () -> Unit,
 ) {
     OverlayView(
         modifier = modifier,
+        show = show,
         title = stringResource(R.string.video_zoom),
     ) {
         Column(modifier = modifier.selectableGroup()) {

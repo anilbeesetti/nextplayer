@@ -1,18 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
 import android.content.res.Configuration
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
@@ -37,55 +29,30 @@ fun BoxScope.OverlayShowView(
             ),
     )
 
-    val configuration = LocalConfiguration.current
+    AudioTrackSelectorView(
+        show = overlayView == OverlayView.AUDIO_SELECTOR,
+        player = player,
+        onDismiss = onDismiss,
+    )
 
-    AnimatedVisibility(
-        modifier = Modifier.align(
-            if (configuration.isPortrait) {
-                Alignment.BottomCenter
-            } else {
-                Alignment.CenterEnd
-            },
-        ),
-        visible = overlayView != null,
-        enter = if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
-        exit = if (configuration.isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
-    ) {
-        when (overlayView) {
-            OverlayView.AUDIO_SELECTOR -> {
-                AudioTrackSelectorView(
-                    player = player,
-                    onDismiss = onDismiss,
-                )
-            }
+    SubtitleSelectorView(
+        show = overlayView == OverlayView.SUBTITLE_SELECTOR,
+        player = player,
+        onSelectSubtitleClick = onSelectSubtitleClick,
+        onDismiss = onDismiss,
+    )
 
-            OverlayView.SUBTITLE_SELECTOR -> {
-                SubtitleSelectorView(
-                    player = player,
-                    onSelectSubtitleClick = onSelectSubtitleClick,
-                    onDismiss = onDismiss,
-                )
-            }
+    PlaybackSpeedSelectorView(
+        show = overlayView == OverlayView.PLAYBACK_SPEED,
+        player = player,
+    )
 
-            OverlayView.PLAYBACK_SPEED -> {
-                PlaybackSpeedSelectorView(player = player)
-            }
-
-            OverlayView.VIDEO_CONTENT_SCALE -> {
-                VideoContentScaleSelectorView(
-                    videoContentScale = videoContentScale,
-                    onVideoContentScaleChanged = onVideoContentScaleChanged,
-                    onDismiss = onDismiss,
-                )
-            }
-
-            null -> {}
-        }
-
-        BackHandler {
-            onDismiss()
-        }
-    }
+    VideoContentScaleSelectorView(
+        show = overlayView == OverlayView.VIDEO_CONTENT_SCALE,
+        videoContentScale = videoContentScale,
+        onVideoContentScaleChanged = onVideoContentScaleChanged,
+        onDismiss = onDismiss,
+    )
 }
 
 val Configuration.isPortrait: Boolean
