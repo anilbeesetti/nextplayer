@@ -32,3 +32,6 @@ val Activity.currentBrightness: Float
         in WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF..WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL -> brightness
         else -> Settings.System.getFloat(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255
     }
+
+val Activity.brightnessPercentage: Int
+    get() = (currentBrightness / WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL * 100).toInt()
