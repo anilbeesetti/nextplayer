@@ -34,7 +34,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.player.databinding.ActivityPlayerBinding
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
@@ -52,8 +51,6 @@ import timber.log.Timber
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
-
-    lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
     val playerPreferences get() = viewModel.uiState.value.playerPreferences
@@ -81,8 +78,6 @@ class PlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        binding = ActivityPlayerBinding.inflate(layoutInflater)
 
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
