@@ -36,6 +36,7 @@ fun PlayerGestures(
 
                     detectTapGestures(
                         onTap = {
+                            if (tapGestureState.seekMillis != 0L) return@detectTapGestures
                             controlsVisibilityState.toggleControlsVisibility()
                         },
                         onDoubleTap = {

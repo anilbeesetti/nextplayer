@@ -45,8 +45,8 @@ class MediaPresentationState(
         private set
 
     suspend fun observe() {
-        position = player.currentPosition
-        duration = player.duration.coerceAtLeast(0L)
+        updatePosition()
+        updateDuration()
         isPlaying = player.isPlaying
         isLoading = player.isLoading
 
