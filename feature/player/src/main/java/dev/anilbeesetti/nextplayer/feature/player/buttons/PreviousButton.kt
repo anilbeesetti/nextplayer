@@ -13,7 +13,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 internal fun PreviousButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberPreviousButtonState(player)
 
-    PlayerButton(modifier = modifier, isEnabled = state.isEnabled,  onClick = state::onClick) {
+    PlayerButton(modifier = modifier, isEnabled = state.isEnabled, onClick = state::onClick) {
         Icon(
             painter = painterResource(coreUiR.drawable.ic_skip_prev),
             contentDescription = stringResource(coreUiR.string.player_controls_previous),

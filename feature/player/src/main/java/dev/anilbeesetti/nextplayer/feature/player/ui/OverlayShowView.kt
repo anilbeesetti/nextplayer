@@ -25,7 +25,9 @@ fun BoxScope.OverlayShowView(
             .then(
                 if (overlayView != null) {
                     Modifier.noRippleClickable(onClick = onDismiss)
-                } else Modifier,
+                } else {
+                    Modifier
+                },
             ),
     )
 
@@ -59,5 +61,8 @@ val Configuration.isPortrait: Boolean
     get() = orientation == Configuration.ORIENTATION_PORTRAIT
 
 enum class OverlayView {
-    AUDIO_SELECTOR, SUBTITLE_SELECTOR, PLAYBACK_SPEED, VIDEO_CONTENT_SCALE
+    AUDIO_SELECTOR,
+    SUBTITLE_SELECTOR,
+    PLAYBACK_SPEED,
+    VIDEO_CONTENT_SCALE,
 }

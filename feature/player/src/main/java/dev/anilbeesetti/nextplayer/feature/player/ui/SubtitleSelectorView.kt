@@ -24,14 +24,14 @@ fun BoxScope.SubtitleSelectorView(
     show: Boolean,
     player: Player,
     onSelectSubtitleClick: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
 
     OverlayView(
         modifier = modifier,
         show = show,
-        title = stringResource(R.string.select_subtitle_track)
+        title = stringResource(R.string.select_subtitle_track),
     ) {
         Column(modifier = Modifier.selectableGroup()) {
             subtitleTracksState.tracks.forEachIndexed { index, track ->
@@ -41,7 +41,7 @@ fun BoxScope.SubtitleSelectorView(
                     onClick = {
                         subtitleTracksState.switchTrack(index)
                         onDismiss()
-                    }
+                    },
                 )
             }
             RadioButtonRow(
@@ -50,7 +50,7 @@ fun BoxScope.SubtitleSelectorView(
                 onClick = {
                     subtitleTracksState.switchTrack(-1)
                     onDismiss()
-                }
+                },
             )
         }
         Spacer(modifier = Modifier.size(16.dp))
@@ -59,7 +59,7 @@ fun BoxScope.SubtitleSelectorView(
             onClick = {
                 onSelectSubtitleClick()
                 onDismiss()
-            }
+            },
         ) {
             Text(text = stringResource(R.string.open_subtitle))
         }

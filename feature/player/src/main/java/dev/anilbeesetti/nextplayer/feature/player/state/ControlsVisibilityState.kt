@@ -11,13 +11,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.media3.common.Player
 import androidx.media3.common.listen
-import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toggleSystemBars
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
 
 @Composable
 fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): ControlsVisibilityState {
@@ -52,7 +51,6 @@ class ControlsVisibilityState(
 
     var controlsLocked: Boolean by mutableStateOf(false)
         private set
-
 
     fun showControls(duration: Duration = hideAfter) {
         controlsVisible = true

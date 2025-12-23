@@ -49,6 +49,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
@@ -56,11 +57,11 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGesureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGesureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
@@ -74,7 +75,6 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.time.Duration.Companion.seconds
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -176,7 +176,7 @@ fun MediaPlayerScreen(
                 CircularProgressIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(72.dp)
+                        .size(72.dp),
                 )
             }
 
@@ -186,7 +186,7 @@ fun MediaPlayerScreen(
                 modifier = Modifier.padding(top = 24.dp).align(Alignment.TopCenter),
                 visible = tapGestureState.isLongPressGestureInAction,
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
             ) {
                 Surface(
                     shape = CircleShape,
@@ -199,7 +199,7 @@ fun MediaPlayerScreen(
                     ) {
                         Text(
                             text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
                         )
                     }
                 }
@@ -376,7 +376,6 @@ fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player) {
         NextButton(player = player)
     }
 }
-
 
 @Composable
 fun PlayerControlsView(

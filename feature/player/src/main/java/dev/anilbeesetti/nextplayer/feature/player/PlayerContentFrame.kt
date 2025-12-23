@@ -16,9 +16,9 @@ import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.VolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestures

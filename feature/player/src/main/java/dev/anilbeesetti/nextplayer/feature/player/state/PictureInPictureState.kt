@@ -37,7 +37,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.listen
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
-
 @Composable
 fun rememberPictureInPictureState(
     player: Player,
@@ -72,7 +71,7 @@ class PictureInPictureState(
     }
 
     val isPipSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-            activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+        activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
     val hasPipPermission: Boolean
         get() = if (isPipSupported) {

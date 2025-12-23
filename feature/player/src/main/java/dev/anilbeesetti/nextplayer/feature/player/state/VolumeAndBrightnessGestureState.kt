@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -12,15 +11,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.IntSize
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun rememberVolumeAndBrightnessGestureState(
-    showVolumePanelIfHeadsetIsOn: Boolean
+    showVolumePanelIfHeadsetIsOn: Boolean,
 ): VolumeAndBrightnessGestureState {
     val volumeState = rememberVolumeState(showVolumePanelIfHeadsetIsOn)
     val brightnessState = rememberBrightnessState()
@@ -110,5 +109,6 @@ class VolumeAndBrightnessGestureState(
 }
 
 enum class VerticalGesture {
-    VOLUME, BRIGHTNESS
+    VOLUME,
+    BRIGHTNESS,
 }

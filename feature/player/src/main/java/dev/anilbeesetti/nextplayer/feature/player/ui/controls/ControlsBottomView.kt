@@ -30,12 +30,10 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.extensions.drawableRes
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
-import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
 import dev.anilbeesetti.nextplayer.feature.player.state.MediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.durationFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.pendingPositionFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.positionFormatted
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 
 @OptIn(UnstableApi::class)
 @Composable

@@ -27,9 +27,9 @@ fun rememberBrightnessState(): BrightnessState {
 
 @Stable
 class BrightnessState(
-    private val activity: PlayerActivity
+    private val activity: PlayerActivity,
 ) {
-    val maxBrightness: Float =  WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
+    val maxBrightness: Float = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
     var currentBrightness: Float by mutableFloatStateOf(activity.currentBrightness)
         private set
 

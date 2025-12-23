@@ -45,12 +45,12 @@ fun VerticalProgressView(
     ) {
         Box(
             modifier = Modifier.size(width),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             BasicText(
                 text = value.toString(),
                 style = MaterialTheme.typography.labelLarge.copy(
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
                 ),
                 autoSize = TextAutoSize.StepBased(maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
             )
@@ -72,7 +72,7 @@ fun VerticalProgressView(
         }
         Box(
             modifier = Modifier.size(width),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = icon,
@@ -89,7 +89,7 @@ fun VerticalProgressPreview() {
     NextPlayerTheme {
         VerticalProgressView(
             value = 50,
-            icon = painterResource(R.drawable.ic_volume)
+            icon = painterResource(R.drawable.ic_volume),
         )
     }
 }

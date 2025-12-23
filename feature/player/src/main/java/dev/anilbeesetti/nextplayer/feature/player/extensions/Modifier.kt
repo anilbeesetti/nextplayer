@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun Modifier.noRippleClickable(enabled: Boolean = true, onClick: () -> Unit): Modifier = clickable(
     interactionSource = remember { MutableInteractionSource() },
-    indication = null, // to prevent the ripple from the tap,
+    indication = null,
     enabled = enabled,
-    onClick = onClick
+    onClick = onClick,
 )

@@ -19,7 +19,7 @@ import androidx.core.content.ContextCompat.getSystemService
 
 @Composable
 fun rememberVolumeState(
-    showVolumePanelIfHeadsetIsOn: Boolean
+    showVolumePanelIfHeadsetIsOn: Boolean,
 ): VolumeState {
     val context = LocalContext.current
     val volumeState = remember { VolumeState(context, showVolumePanelIfHeadsetIsOn) }
@@ -93,9 +93,9 @@ class VolumeState(
     private val AudioManager.isHeadsetOn
         get() = getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
             device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
-                    device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
-                    device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                    device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
-                    device.type == AudioDeviceInfo.TYPE_USB_HEADSET
+                device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                device.type == AudioDeviceInfo.TYPE_USB_HEADSET
         }
 }

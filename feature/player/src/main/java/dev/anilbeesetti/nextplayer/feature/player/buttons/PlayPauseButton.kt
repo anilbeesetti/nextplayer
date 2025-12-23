@@ -12,7 +12,6 @@ import androidx.media3.common.Player
 import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
-
 @Composable
 fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberPlayPauseButtonState(player)

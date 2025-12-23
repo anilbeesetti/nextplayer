@@ -14,7 +14,6 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.positionChanged
 import kotlin.math.abs
 
-
 /**
  * Detects custom transform gestures including pan, zoom, and rotation gestures.
  * This function allows customization of gesture handling and locks gestures to pan and zoom if specified.

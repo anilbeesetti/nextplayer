@@ -20,7 +20,7 @@ fun rememberCuesState(player: Player): CuesState {
 }
 
 class CuesState(
-    private val player: Player
+    private val player: Player,
 ) {
     var cues: List<Cue> by mutableStateOf(emptyList())
         private set

@@ -26,7 +26,7 @@ import kotlin.math.abs
 fun rememberVideoZoomAndContentScaleState(
     player: Player,
     initialContentScale: VideoContentScale,
-    onEvent: (VideoZoomEvent) -> Unit = {}
+    onEvent: (VideoZoomEvent) -> Unit = {},
 ): VideoZoomAndContentScaleState {
     val videoZoomAndContentScaleState = remember { VideoZoomAndContentScaleState(player, initialContentScale, onEvent) }
     LaunchedEffect(player) { videoZoomAndContentScaleState.observe() }

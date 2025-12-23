@@ -162,7 +162,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
             Text(
                 text = stringResource(R.string.skip_silence),
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             NextSwitch(
                 checked = playbackParametersState.skipSilenceEnabled,

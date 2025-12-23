@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
-import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.TapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.VolumeAndBrightnessGestureState
 
@@ -50,7 +50,7 @@ fun PlayerGestures(
                         onLongPress = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
                             tapGestureState.handleLongPress(offset = it)
-                        }
+                        },
                     )
                 }
                 .pointerInput(
@@ -89,7 +89,7 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomTransformGestures(
-                        onGesture = { _, panChange, zoomChange, _, ->
+                        onGesture = { _, panChange, zoomChange, _ ->
                             if (tapGestureState.isLongPressGestureInAction) return@detectCustomTransformGestures
                             videoZoomAndContentScaleState.onZoomPanGesture(
                                 constraints = this@BoxWithConstraints.constraints,
@@ -99,9 +99,9 @@ fun PlayerGestures(
                         },
                         onGestureEnd = {
                             videoZoomAndContentScaleState.onZoomPanGestureEnd()
-                        }
+                        },
                     )
-                }
+                },
         )
     }
 }

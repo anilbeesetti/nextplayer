@@ -91,7 +91,7 @@ class RotationState(
 
     private fun setOrientation() {
         if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
-            activity.requestedOrientation = when(screenOrientation) {
+            activity.requestedOrientation = when (screenOrientation) {
                 ScreenOrientation.AUTOMATIC -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
                 ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE

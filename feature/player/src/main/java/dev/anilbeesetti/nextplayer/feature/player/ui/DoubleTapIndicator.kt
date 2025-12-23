@@ -79,7 +79,7 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
 @Composable
 private fun DoubleTapSeekTriangles(
     isForward: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val animationDuration = 750L
 
@@ -113,7 +113,7 @@ private class RightSideOvalShape : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
+        density: Density,
     ): Outline {
         val path = Path().apply {
             moveTo(size.width, size.height)
@@ -125,7 +125,7 @@ private class RightSideOvalShape : Shape {
                 -size.width * 0.1f,
                 size.height / 2,
                 size.width * 0.1f,
-                size.height
+                size.height,
             )
             close()
         }
@@ -137,7 +137,7 @@ private class LeftSideOvalShape : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
+        density: Density,
     ): Outline {
         val path = Path().apply {
             moveTo(0f, 0f)
@@ -148,7 +148,7 @@ private class LeftSideOvalShape : Shape {
                 size.width * 1.1f,
                 size.height / 2,
                 size.width * 0.9f,
-                size.height
+                size.height,
             )
             lineTo(0f, size.height)
             close()
@@ -179,14 +179,14 @@ private fun OvalShapePreview() {
                     .fillMaxHeight()
                     .weight(1f)
                     .clip(LeftSideOvalShape())
-                    .background(Color.Blue)
+                    .background(Color.Blue),
             ) {}
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
                     .clip(RightSideOvalShape())
-                    .background(Color.Blue)
+                    .background(Color.Blue),
             ) {}
         }
     }

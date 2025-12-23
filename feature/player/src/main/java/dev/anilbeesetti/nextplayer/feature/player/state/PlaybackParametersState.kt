@@ -53,7 +53,6 @@ class PlaybackParametersState(
         }
     }
 
-
     suspend fun observe() {
         updateSpeed()
         updateSkipSilenceEnabled()
