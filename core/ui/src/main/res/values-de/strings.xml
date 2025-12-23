@@ -15,7 +15,7 @@
     <string name="player_controls_next">Nächster Player</string>
     <string name="player_controls_play_pause">Player: Wiedergabe/Pause</string>
     <string name="remember_brightness_level_description">Helligkeitsstufe zwischen Wiedergabesitzungen merken</string>
-    <string name="remember_selections_description">Merke Auswahl für jede Datei, wie z.B. Audiospur, Untertitelspur usw.</string>
+    <string name="remember_selections_description">Merke Auswahl für jede Datei, wie z.B. Audiospur, Untertitelspur, usw.</string>
     <string name="resume">Fortsetzen</string>
     <string name="resume_description">Wähle, ob wiedergegebene Videos an der Stelle fortgesetzt werden sollen, wo du aufgehört hast</string>
     <string name="seek_gesture">Such-Geste</string>
@@ -45,7 +45,7 @@
     <string name="about_name">Über</string>
     <string name="ascending">Aufsteigend</string>
     <string name="disable">Deaktivieren</string>
-    <string name="about_description">Version, Credits</string>
+    <string name="about_description">Version, Unterstützung, Mitwirkende</string>
     <string name="appearance_description">Passe die App deinen Bedürfnissen an</string>
     <string name="appearance_name">Aussehen</string>
     <string name="cancel">Abbrechen</string>
@@ -85,7 +85,7 @@
     <string name="media_library_description">Medienbibliothek scannen und verwalten</string>
     <string name="scanning_storage">Scanne Speicher…</string>
     <string name="video">Video</string>
-    <string name="videos">Videos</string>
+    <string name="videos">Die videos</string>
     <string name="manage_folders">Ordner verwalten</string>
     <string name="manage_folders_desc">Wähle in der Medienbibliothek zu ignorierende Ordner aus</string>
     <string name="force_rescan_storage_desc">Vorsicht: Ein vollständiger Speicherscan kann zu einer erhöhten Ressourcennutzung auf dem Gerät führen</string>

@@ -75,7 +75,7 @@
     <string name="controls_lock">Uzamknout ovládání</string>
     <string name="autoplay_settings">Automatické přehrávání</string>
     <string name="remember_brightness_level">Pamatovat úrovni jasu</string>
-    <string name="remember_selections_description">Pamatovat výběry pro každý soubor, jako je zvuková stopa, stopa titulků atd</string>
+    <string name="remember_selections_description">Pamatovat výběry pro každý soubor, jako je zvuková stopa, stopa titulků atd.</string>
     <string name="longest">Nejdélší</string>
     <string name="unknown_error">Stala se neznámá chyba</string>
     <string name="video">Video</string>

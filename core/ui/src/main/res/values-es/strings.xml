@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_description">Versión, créditos</string>
+    <string name="about_description">Versión, soporte, créditos</string>
     <string name="about_name">Acerca de</string>
     <string name="appearance_description">Configura la aplicación a tu gusto</string>
     <string name="appearance_name">Apariencia</string>
@@ -35,7 +35,7 @@
     <string name="quick_settings">Configuraciones rápidas</string>
     <string name="remember_brightness_level">Recordar el nivel de brillo</string>
     <string name="remember_brightness_level_description">Recordar el nivel de brillo entre las sesiones de reproducción</string>
-    <string name="remember_selections_description">Recordar elecciones para cada archivo como la pista de audio, la pista de subtitulo, etc</string>
+    <string name="remember_selections_description">Recordar las selecciones para cada archivo, como pista de audio, pista de subtítulos, etc.</string>
     <string name="resume">Resumir</string>
     <string name="resume_description">Selecciona si deseas reanudar los vídeos reproducidos desde el punto en que se detuvieron</string>
     <string name="seek_gesture">Gesto de búsqueda</string>
@@ -210,4 +210,20 @@
     <string name="enable_pip_from_settings">La función Imagen en imagen está deshabilitada. Habilítela en Configuración para usar esta función.</string>
     <string name="background_play">Reproducción en segundo plano</string>
     <string name="background_play_description">Reproducir en segundo plano cuando se toca en el inicio o la pantalla está bloqueada.</string>
+    <string name="loop_mode">Modo de bucle</string>
+    <string name="loop_mode_off">Bucle: Apagado</string>
+    <string name="loop_mode_one">Bucle: Uno</string>
+    <string name="loop_mode_all">Bucle: Todo</string>
+    <string name="by">por %1$s</string>
+    <string name="libraries">Librerías</string>
+    <string name="github">Github</string>
+    <string name="donate">Donar</string>
+    <string name="error_opening_link">No se encontró aplicación para abrir este enlace</string>
+    <string name="support_the_developer_on">Apoya al desarrollador en %1$s</string>
+    <string name="kofi">Ko-fi</string>
+    <string name="paypal">PayPal</string>
+    <string name="upi">UPI</string>
+    <string name="list">Lista</string>
+    <string name="grid">Cuadricula</string>
+    <string name="media_layout">Diseño</string>
 </resources>
