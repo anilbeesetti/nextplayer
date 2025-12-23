@@ -27,7 +27,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +56,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
@@ -75,6 +78,8 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.time.Duration.Companion.seconds
+
+val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -148,191 +153,199 @@ fun MediaPlayerScreen(
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
-    Box {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(Color.Black),
-        ) {
-            PlayerContentFrame(
-                player = player,
-                pictureInPictureState = pictureInPictureState,
-                controlsVisibilityState = controlsVisibilityState,
-                tapGestureState = tapGestureState,
-                seekGestureState = seekGestureState,
-                videoZoomAndContentScaleState = videoZoomAndContentScaleState,
-                volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
-                subtitleConfiguration = SubtitleConfiguration(
-                    useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
-                    showBackground = playerPreferences.subtitleBackground,
-                    font = playerPreferences.subtitleFont,
-                    textSize = playerPreferences.subtitleTextSize,
-                    textBold = playerPreferences.subtitleTextBold,
-                    applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
-                ),
-            )
-
-            if (mediaPresentationState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(72.dp),
-                )
-            }
-
-            DoubleTapIndicator(tapGestureState = tapGestureState)
-
-            AnimatedVisibility(
-                modifier = Modifier.padding(top = 24.dp).align(Alignment.TopCenter),
-                visible = tapGestureState.isLongPressGestureInAction,
-                enter = fadeIn(),
-                exit = fadeOut(),
+    CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
+        Box {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
             ) {
-                Surface(
-                    shape = CircleShape,
+                PlayerContentFrame(
+                    player = player,
+                    pictureInPictureState = pictureInPictureState,
+                    controlsVisibilityState = controlsVisibilityState,
+                    tapGestureState = tapGestureState,
+                    seekGestureState = seekGestureState,
+                    videoZoomAndContentScaleState = videoZoomAndContentScaleState,
+                    volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
+                    subtitleConfiguration = SubtitleConfiguration(
+                        useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
+                        showBackground = playerPreferences.subtitleBackground,
+                        font = playerPreferences.subtitleFont,
+                        textSize = playerPreferences.subtitleTextSize,
+                        textBold = playerPreferences.subtitleTextBold,
+                        applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
+                    ),
+                )
+
+                if (mediaPresentationState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(72.dp),
+                    )
+                }
+
+                DoubleTapIndicator(tapGestureState = tapGestureState)
+
+                AnimatedVisibility(
+                    modifier = Modifier.padding(top = 24.dp).align(Alignment.TopCenter),
+                    visible = tapGestureState.isLongPressGestureInAction,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
                 ) {
-                    Row(
-                        modifier = Modifier.padding(
-                            horizontal = 16.dp,
-                            vertical = 8.dp,
-                        ),
+                    Surface(
+                        shape = CircleShape,
                     ) {
-                        Text(
-                            text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
+                        Row(
+                            modifier = Modifier.padding(
+                                horizontal = 16.dp,
+                                vertical = 8.dp,
+                            ),
+                        ) {
+                            Text(
+                                text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
                     }
                 }
-            }
 
-            if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
-                Column(
+                if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .safeDrawingPadding()
+                            .padding(top = 24.dp),
+                    ) {
+                        PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
+                            Icon(
+                                painter = painterResource(coreUiR.drawable.ic_lock),
+                                contentDescription = stringResource(coreUiR.string.controls_unlock),
+                            )
+                        }
+                    }
+                } else {
+                    PlayerControlsView(
+                        topView = {
+                            AnimatedVisibility(
+                                visible = controlsVisibilityState.controlsVisible,
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                            ) {
+                                ControlsTopView(
+                                    title = metadataState.title ?: "",
+                                    onAudioClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.AUDIO_SELECTOR
+                                    },
+                                    onSubtitleClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.SUBTITLE_SELECTOR
+                                    },
+                                    onPlaybackSpeedClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.PLAYBACK_SPEED
+                                    },
+                                    onBackClick = onBackClick,
+                                )
+                            }
+                        },
+                        middleView = {
+                            when {
+                                seekGestureState.seekAmount != null -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
+                                videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
+                                controlsVisibilityState.controlsVisible -> ControlsMiddleView(player = player)
+                                else -> Unit
+                            }
+                        },
+                        bottomView = {
+                            AnimatedVisibility(
+                                visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                            ) {
+                                val context = LocalContext.current
+                                ControlsBottomView(
+                                    player = player,
+                                    mediaPresentationState = mediaPresentationState,
+                                    controlsAlignment = when (playerPreferences.controlButtonsPosition) {
+                                        ControlButtonsPosition.LEFT -> Alignment.Start
+                                        ControlButtonsPosition.RIGHT -> Alignment.End
+                                    },
+                                    videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+                                    isPipSupported = pictureInPictureState.isPipSupported,
+                                    onSeek = seekGestureState::onSeek,
+                                    onSeekEnd = seekGestureState::onSeekEnd,
+                                    onRotateClick = rotationState::rotate,
+                                    onPlayInBackgroundClick = onPlayInBackgroundClick,
+                                    onLockControlsClick = {
+                                        controlsVisibilityState.showControls()
+                                        controlsVisibilityState.lockControls()
+                                    },
+                                    onVideoContentScaleClick = {
+                                        controlsVisibilityState.showControls()
+                                        videoZoomAndContentScaleState.switchToNextVideoContentScale()
+                                    },
+                                    onVideoContentScaleLongClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.VIDEO_CONTENT_SCALE
+                                    },
+                                    onPictureInPictureClick = {
+                                        if (!pictureInPictureState.hasPipPermission) {
+                                            Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                                            pictureInPictureState.openPictureInPictureSettings()
+                                        } else {
+                                            pictureInPictureState.enterPictureInPictureMode()
+                                        }
+                                    },
+                                )
+                            }
+                        },
+                    )
+                }
+
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .safeDrawingPadding()
-                        .padding(top = 24.dp),
+                        .displayCutoutPadding()
+                        .padding(24.dp),
                 ) {
-                    PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
-                        Icon(
-                            painter = painterResource(coreUiR.drawable.ic_lock),
-                            contentDescription = stringResource(coreUiR.string.controls_unlock),
+                    AnimatedVisibility(
+                        modifier = Modifier.align(Alignment.CenterStart),
+                        visible = volumeAndBrightnessGestureState.volumeChangePercentage != 0,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                    ) {
+                        VerticalProgressView(
+                            value = volumeState.volumePercentage,
+                            icon = painterResource(coreUiR.drawable.ic_volume),
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                        visible = volumeAndBrightnessGestureState.brightnessChangePercentage != 0,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                    ) {
+                        VerticalProgressView(
+                            value = brightnessState.brightnessPercentage,
+                            icon = painterResource(coreUiR.drawable.ic_brightness),
                         )
                     }
                 }
-            } else {
-                PlayerControlsView(
-                    topView = {
-                        AnimatedVisibility(
-                            visible = controlsVisibilityState.controlsVisible,
-                            enter = fadeIn(),
-                            exit = fadeOut(),
-                        ) {
-                            ControlsTopView(
-                                title = metadataState.title ?: "",
-                                onAudioClick = {
-                                    controlsVisibilityState.hideControls()
-                                    overlayView = OverlayView.AUDIO_SELECTOR
-                                },
-                                onSubtitleClick = {
-                                    controlsVisibilityState.hideControls()
-                                    overlayView = OverlayView.SUBTITLE_SELECTOR
-                                },
-                                onPlaybackSpeedClick = {
-                                    controlsVisibilityState.hideControls()
-                                    overlayView = OverlayView.PLAYBACK_SPEED
-                                },
-                                onBackClick = onBackClick,
-                            )
-                        }
-                    },
-                    middleView = {
-                        when {
-                            seekGestureState.seekAmount != null -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
-                            videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
-                            controlsVisibilityState.controlsVisible -> ControlsMiddleView(player = player)
-                            else -> Unit
-                        }
-                    },
-                    bottomView = {
-                        AnimatedVisibility(
-                            visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
-                            enter = fadeIn(),
-                            exit = fadeOut(),
-                        ) {
-                            val context = LocalContext.current
-                            ControlsBottomView(
-                                player = player,
-                                mediaPresentationState = mediaPresentationState,
-                                controlsAlignment = when (playerPreferences.controlButtonsPosition) {
-                                    ControlButtonsPosition.LEFT -> Alignment.Start
-                                    ControlButtonsPosition.RIGHT -> Alignment.End
-                                },
-                                videoContentScale = videoZoomAndContentScaleState.videoContentScale,
-                                isPipSupported = pictureInPictureState.isPipSupported,
-                                onSeek = seekGestureState::onSeek,
-                                onSeekEnd = seekGestureState::onSeekEnd,
-                                onRotateClick = rotationState::rotate,
-                                onPlayInBackgroundClick = onPlayInBackgroundClick,
-                                onLockControlsClick = controlsVisibilityState::lockControls,
-                                onVideoContentScaleClick = videoZoomAndContentScaleState::switchToNextVideoContentScale,
-                                onVideoContentScaleLongClick = {
-                                    controlsVisibilityState.hideControls()
-                                    overlayView = OverlayView.VIDEO_CONTENT_SCALE
-                                },
-                                onPictureInPictureClick = {
-                                    if (!pictureInPictureState.hasPipPermission) {
-                                        Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
-                                        pictureInPictureState.openPictureInPictureSettings()
-                                    } else {
-                                        pictureInPictureState.enterPictureInPictureMode()
-                                    }
-                                },
-                            )
-                        }
-                    },
-                )
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .displayCutoutPadding()
-                    .padding(24.dp),
-            ) {
-                AnimatedVisibility(
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    visible = volumeAndBrightnessGestureState.volumeChangePercentage != 0,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    VerticalProgressView(
-                        value = volumeState.volumePercentage,
-                        icon = painterResource(coreUiR.drawable.ic_volume),
-                    )
-                }
-
-                AnimatedVisibility(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    visible = volumeAndBrightnessGestureState.brightnessChangePercentage != 0,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    VerticalProgressView(
-                        value = brightnessState.brightnessPercentage,
-                        icon = painterResource(coreUiR.drawable.ic_brightness),
-                    )
-                }
-            }
+            OverlayShowView(
+                player = player,
+                overlayView = overlayView,
+                videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+                onDismiss = { overlayView = null },
+                onSelectSubtitleClick = onSelectSubtitleClick,
+                onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
+            )
         }
-
-        OverlayShowView(
-            player = player,
-            overlayView = overlayView,
-            videoContentScale = videoZoomAndContentScaleState.videoContentScale,
-            onDismiss = { overlayView = null },
-            onSelectSubtitleClick = onSelectSubtitleClick,
-            onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
-        )
     }
 
     BackHandler {
