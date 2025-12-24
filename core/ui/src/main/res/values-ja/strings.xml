@@ -36,7 +36,7 @@
     <string name="title">タイトル</string>
     <string name="interface_name">インターフェース</string>
     <string name="remember_selections">選択内容を記憶する</string>
-    <string name="remember_selections_description">オーディオトラック、字幕トラックなどの各ファイルの選択内容を記憶します</string>
+    <string name="remember_selections_description">オーディオトラック、字幕トラックなどの各ファイルの選択内容を記憶します。</string>
     <string name="landscape_reverse">横向き反転</string>
     <string name="oldest">最古</string>
     <string name="play_pause">再生/一時停止</string>
