@@ -41,7 +41,7 @@
     <string name="remember_brightness_level">Parlaklık seviyesini hatırla</string>
     <string name="remember_brightness_level_description">Oynatma oturumları arasında parlaklık seviyesini hatırla</string>
     <string name="remember_selections">Seçimleri hatırla</string>
-    <string name="remember_selections_description">Her dosya için ses parçası, altyazı parçası gibi seçimleri hatırla</string>
+    <string name="remember_selections_description">Her dosya için ses parçası, altyazı parçası gibi seçimleri hatırla.</string>
     <string name="resume">Kaldığı Yerden Devam Et</string>
     <string name="resume_description">Oynatılan videoların durduğunuz yerden devam edip etmeyeceğini seçin</string>
     <string name="seek_gesture">Arama hareketi</string>
