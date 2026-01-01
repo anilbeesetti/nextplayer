@@ -93,9 +93,10 @@ class VideoZoomAndContentScaleState(
     }
 
     suspend fun observe() {
+        zoom = player.currentMediaItem?.mediaMetadata?.videoZoom ?: 1f
         player.listen { events ->
             if (events.contains(Player.EVENT_MEDIA_METADATA_CHANGED)) {
-                zoom = player.mediaMetadata.videoZoom ?: 1f
+                zoom = player.currentMediaItem?.mediaMetadata?.videoZoom ?: 1f
             }
         }
     }
