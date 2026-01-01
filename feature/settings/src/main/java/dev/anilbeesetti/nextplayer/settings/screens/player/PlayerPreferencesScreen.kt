@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.player
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -13,8 +14,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -50,7 +54,7 @@ import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerPreferencesScreen(
     onNavigateUp: () -> Unit,
@@ -59,20 +63,12 @@ fun PlayerPreferencesScreen(
     val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
-
     Scaffold(
-        modifier = Modifier
-            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.player_name),
-                scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
-                    ) {
+                    FilledTonalIconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -81,86 +77,177 @@ fun PlayerPreferencesScreen(
                 },
             )
         },
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.interface_name))
-            SeekGestureSetting(
-                isChecked = preferences.useSeekControls,
-                onClick = viewModel::toggleUseSeekControls,
-            )
-            SwipeGestureSetting(
-                isChecked = preferences.useSwipeControls,
-                onClick = viewModel::toggleUseSwipeControls,
-            )
-            ZoomGestureSetting(
-                isChecked = preferences.useZoomControls,
-                onClick = viewModel::toggleUseZoomControls,
-            )
-            DoubleTapGestureSetting(
-                isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
-                onChecked = viewModel::toggleDoubleTapGesture,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) },
-            )
-            LongPressGesture(
-                isChecked = preferences.useLongPressControls,
-                onChecked = viewModel::toggleUseLongPressControls,
-                playbackSpeed = preferences.longPressControlsSpeed,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) },
-            )
-            SeekIncrementPreference(
-                currentValue = preferences.seekIncrement,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) },
-            )
-            ControllerTimeoutPreference(
-                currentValue = preferences.controllerAutoHideTimeout,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) },
-            )
-            ControlButtonsPositionSetting(
-                currentControlButtonPosition = preferences.controlButtonsPosition,
-                onClick = {
-                    viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog)
-                },
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                val totalRows = 8
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.seek_gesture),
+                    description = stringResource(id = R.string.seek_gesture_description),
+                    icon = NextIcons.SwipeHorizontal,
+                    isChecked = preferences.useSeekControls,
+                    onClick = viewModel::toggleUseSeekControls,
+                    index = 0,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.swipe_gesture),
+                    description = stringResource(id = R.string.swipe_gesture_description),
+                    icon = NextIcons.SwipeVertical,
+                    isChecked = preferences.useSwipeControls,
+                    onClick = viewModel::toggleUseSwipeControls,
+                    index = 1,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.zoom_gesture),
+                    description = stringResource(id = R.string.zoom_gesture_description),
+                    icon = NextIcons.Pinch,
+                    isChecked = preferences.useZoomControls,
+                    onClick = viewModel::toggleUseZoomControls,
+                    index = 2,
+                    count = totalRows,
+                )
+                PreferenceSwitchWithDivider(
+                    title = stringResource(id = R.string.double_tap),
+                    description = stringResource(id = R.string.double_tap_description),
+                    icon = NextIcons.DoubleTap,
+                    isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
+                    onChecked = viewModel::toggleDoubleTapGesture,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) },
+                    index = 3,
+                    count = totalRows,
+                )
+                PreferenceSwitchWithDivider(
+                    title = stringResource(id = R.string.long_press_gesture),
+                    description = stringResource(id = R.string.long_press_gesture_desc, preferences.longPressControlsSpeed),
+                    icon = NextIcons.Tap,
+                    isChecked = preferences.useLongPressControls,
+                    onChecked = viewModel::toggleUseLongPressControls,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) },
+                    index = 4,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.seek_increment),
+                    description = stringResource(R.string.seconds, preferences.seekIncrement),
+                    icon = NextIcons.Replay,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) },
+                    index = 5,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.controller_timeout),
+                    description = stringResource(R.string.seconds, preferences.controllerAutoHideTimeout),
+                    icon = NextIcons.Timer,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) },
+                    index = 6,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.control_buttons_alignment),
+                    description = preferences.controlButtonsPosition.name(),
+                    icon = NextIcons.ButtonsPosition,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog) },
+                    index = 7,
+                    count = totalRows,
+                )
+            }
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
-            ResumeSetting(
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) },
-            )
-            DefaultPlaybackSpeedSetting(
-                currentDefaultPlaybackSpeed = preferences.defaultPlaybackSpeed,
-                onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) },
-            )
-            AutoplaySetting(
-                isChecked = preferences.autoplay,
-                onClick = viewModel::toggleAutoplay,
-            )
-            PipSetting(
-                isChecked = preferences.autoPip,
-                onClick = viewModel::toggleAutoPip,
-            )
-            BackgroundPlaybackSetting(
-                isChecked = preferences.autoBackgroundPlay,
-                onClick = viewModel::toggleAutoBackgroundPlay,
-            )
-            RememberBrightnessSetting(
-                isChecked = preferences.rememberPlayerBrightness,
-                onClick = viewModel::toggleRememberBrightnessLevel,
-            )
-            RememberSelectionsSetting(
-                isChecked = preferences.rememberSelections,
-                onClick = viewModel::toggleRememberSelections,
-            )
-            ScreenOrientationSetting(
-                currentOrientationPreference = preferences.playerScreenOrientation,
-                onClick = {
-                    viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
-                },
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                val totalRows = 8
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.resume),
+                    description = stringResource(id = R.string.resume_description),
+                    icon = NextIcons.Resume,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ResumeDialog) },
+                    index = 0,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.default_playback_speed),
+                    description = preferences.defaultPlaybackSpeed.toString(),
+                    icon = NextIcons.Speed,
+                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) },
+                    index = 1,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.autoplay_settings),
+                    description = stringResource(
+                        id = R.string.autoplay_settings_description,
+                    ),
+                    icon = NextIcons.Player,
+                    isChecked = preferences.autoplay,
+                    onClick = viewModel::toggleAutoplay,
+                    index = 2,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.pip_settings),
+                    description = stringResource(
+                        id = R.string.pip_settings_description,
+                    ),
+                    icon = NextIcons.Pip,
+                    isChecked = preferences.autoPip,
+                    onClick = viewModel::toggleAutoPip,
+                    index = 3,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.background_play),
+                    description = stringResource(
+                        id = R.string.background_play_description,
+                    ),
+                    icon = NextIcons.Headset,
+                    isChecked = preferences.autoBackgroundPlay,
+                    onClick = viewModel::toggleAutoBackgroundPlay,
+                    index = 4,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.remember_brightness_level),
+                    description = stringResource(
+                        id = R.string.remember_brightness_level_description,
+                    ),
+                    icon = NextIcons.Brightness,
+                    isChecked = preferences.rememberPlayerBrightness,
+                    onClick = viewModel::toggleRememberBrightnessLevel,
+                    index = 5,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.remember_selections),
+                    description = stringResource(id = R.string.remember_selections_description),
+                    icon = NextIcons.Selection,
+                    isChecked = preferences.rememberSelections,
+                    onClick = viewModel::toggleRememberSelections,
+                    index = 6,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.player_screen_orientation),
+                    description = preferences.playerScreenOrientation.name(),
+                    icon = NextIcons.Rotation,
+                    onClick = {
+                        viewModel.showDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog)
+                    },
+                    index = 7,
+                    count = totalRows,
+                )
+            }
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -358,107 +445,6 @@ fun PlayerPreferencesScreen(
             }
         }
     }
-}
-
-@Composable
-fun SeekGestureSetting(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitch(
-        title = stringResource(id = R.string.seek_gesture),
-        description = stringResource(id = R.string.seek_gesture_description),
-        icon = NextIcons.SwipeHorizontal,
-        isChecked = isChecked,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun SwipeGestureSetting(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitch(
-        title = stringResource(id = R.string.swipe_gesture),
-        description = stringResource(id = R.string.swipe_gesture_description),
-        icon = NextIcons.SwipeVertical,
-        isChecked = isChecked,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun ZoomGestureSetting(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitch(
-        title = stringResource(id = R.string.zoom_gesture),
-        description = stringResource(id = R.string.zoom_gesture_description),
-        icon = NextIcons.Pinch,
-        isChecked = isChecked,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun DoubleTapGestureSetting(
-    isChecked: Boolean,
-    onChecked: () -> Unit,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitchWithDivider(
-        title = stringResource(id = R.string.double_tap),
-        description = stringResource(id = R.string.double_tap_description),
-        isChecked = isChecked,
-        onChecked = onChecked,
-        icon = NextIcons.DoubleTap,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun LongPressGesture(
-    isChecked: Boolean,
-    onChecked: () -> Unit,
-    playbackSpeed: Float,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitchWithDivider(
-        title = stringResource(id = R.string.long_press_gesture),
-        description = stringResource(id = R.string.long_press_gesture_desc, playbackSpeed),
-        isChecked = isChecked,
-        onChecked = onChecked,
-        icon = NextIcons.Tap,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun SeekIncrementPreference(
-    currentValue: Int,
-    onClick: () -> Unit,
-) {
-    ClickablePreferenceItem(
-        title = stringResource(R.string.seek_increment),
-        description = stringResource(R.string.seconds, currentValue),
-        icon = NextIcons.Replay,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun ControllerTimeoutPreference(
-    currentValue: Int,
-    onClick: () -> Unit,
-) {
-    ClickablePreferenceItem(
-        title = stringResource(R.string.controller_timeout),
-        description = stringResource(R.string.seconds, currentValue),
-        icon = NextIcons.Timer,
-        onClick = onClick,
-    )
 }
 
 @Composable
