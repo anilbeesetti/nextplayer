@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -15,8 +16,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -54,7 +58,7 @@ import dev.anilbeesetti.nextplayer.settings.extensions.name
 import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
 import java.nio.charset.Charset
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SubtitlePreferencesScreen(
     onNavigateUp: () -> Unit,
@@ -66,20 +70,12 @@ fun SubtitlePreferencesScreen(
     val charsetResource = stringArrayResource(id = R.array.charsets_list)
     val context = LocalContext.current
 
-    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
-
     Scaffold(
-        modifier = Modifier
-            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.subtitle),
-                scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
-                    ) {
+                    FilledTonalIconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -88,53 +84,101 @@ fun SubtitlePreferencesScreen(
                 },
             )
         },
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .verticalScroll(state = rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.playback))
-            PreferredSubtitleLanguageSetting(
-                currentLanguage = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredSubtitleLanguage),
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) },
-            )
-            SubtitleTextEncodingPreference(
-                currentEncoding = charsetResource.first { it.contains(preferences.subtitleTextEncoding) },
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) },
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                val totalRows = 2
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.preferred_subtitle_lang),
+                    description = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredSubtitleLanguage)
+                        .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_subtitle_lang_description,),
+                    icon = NextIcons.Language,
+                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) },
+                    index = 0,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.subtitle_text_encoding),
+                    description = charsetResource.first { it.contains(preferences.subtitleTextEncoding) },
+                    icon = NextIcons.Subtitle,
+                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) },
+                    index = 1,
+                    count = totalRows,
+                )
+            }
             PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
-            UseSystemCaptionStyle(
-                isChecked = preferences.useSystemCaptionStyle,
-                onChecked = viewModel::toggleUseSystemCaptionStyle,
-                onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) },
-            )
-            SubtitleFontPreference(
-                currentFont = preferences.subtitleFont,
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) },
-                enabled = preferences.useSystemCaptionStyle.not(),
-            )
-            SubtitleTextBoldPreference(
-                isChecked = preferences.subtitleTextBold,
-                onClick = viewModel::toggleSubtitleTextBold,
-                enabled = preferences.useSystemCaptionStyle.not(),
-            )
-            SubtitleTextSizePreference(
-                currentSize = preferences.subtitleTextSize,
-                onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) },
-                enabled = preferences.useSystemCaptionStyle.not(),
-            )
-            SubtitleBackgroundPreference(
-                isChecked = preferences.subtitleBackground,
-                onClick = viewModel::toggleSubtitleBackground,
-                enabled = preferences.useSystemCaptionStyle.not(),
-            )
-            SubtitleEmbeddedStylesPreference(
-                isChecked = preferences.applyEmbeddedStyles,
-                onClick = viewModel::toggleApplyEmbeddedStyles,
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                val totalRows = 6
+                PreferenceSwitchWithDivider(
+                    title = stringResource(R.string.system_caption_style),
+                    description = stringResource(R.string.system_caption_style_desc),
+                    icon = NextIcons.Caption,
+                    isChecked = preferences.useSystemCaptionStyle,
+                    onChecked = viewModel::toggleUseSystemCaptionStyle,
+                    onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) },
+                    index = 0,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.subtitle_font),
+                    description = preferences.subtitleFont.name(),
+                    icon = NextIcons.Font,
+                    enabled = preferences.useSystemCaptionStyle.not(),
+                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) },
+                    index = 1,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.subtitle_text_bold),
+                    description = stringResource(id = R.string.subtitle_text_bold_desc),
+                    icon = NextIcons.Bold,
+                    enabled = preferences.useSystemCaptionStyle.not(),
+                    isChecked = preferences.subtitleTextBold,
+                    onClick = viewModel::toggleSubtitleTextBold,
+                    index = 2,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.subtitle_text_size),
+                    description = preferences.subtitleTextSize.toString(),
+                    icon = NextIcons.FontSize,
+                    enabled = preferences.useSystemCaptionStyle.not(),
+                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) },
+                    index = 3,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.subtitle_background),
+                    description = stringResource(id = R.string.subtitle_background_desc),
+                    icon = NextIcons.Background,
+                    enabled = preferences.useSystemCaptionStyle.not(),
+                    isChecked = preferences.subtitleBackground,
+                    onClick = viewModel::toggleSubtitleBackground,
+                    index = 4,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.embedded_styles),
+                    description = stringResource(R.string.embedded_styles_desc),
+                    icon = NextIcons.Style,
+                    isChecked = preferences.applyEmbeddedStyles,
+                    onClick = viewModel::toggleApplyEmbeddedStyles,
+                    index = 5,
+                    count = totalRows,
+                )
+            }
         }
 
         uiState.showDialog?.let { showDialog ->
@@ -230,124 +274,4 @@ fun SubtitlePreferencesScreen(
             }
         }
     }
-}
-
-@Composable
-fun PreferredSubtitleLanguageSetting(
-    currentLanguage: String,
-    onClick: () -> Unit,
-) {
-    ClickablePreferenceItem(
-        title = stringResource(id = R.string.preferred_subtitle_lang),
-        description = currentLanguage.takeIf { it.isNotBlank() } ?: stringResource(
-            id = R.string.preferred_subtitle_lang_description,
-        ),
-        icon = NextIcons.Language,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun SubtitleTextEncodingPreference(
-    currentEncoding: String,
-    onClick: () -> Unit,
-) {
-    ClickablePreferenceItem(
-        title = stringResource(R.string.subtitle_text_encoding),
-        description = currentEncoding,
-        icon = NextIcons.Subtitle,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun UseSystemCaptionStyle(
-    isChecked: Boolean,
-    onChecked: () -> Unit,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitchWithDivider(
-        title = stringResource(R.string.system_caption_style),
-        description = stringResource(R.string.system_caption_style_desc),
-        isChecked = isChecked,
-        onChecked = onChecked,
-        icon = NextIcons.Caption,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun SubtitleFontPreference(
-    currentFont: Font,
-    onClick: () -> Unit,
-    enabled: Boolean,
-) {
-    ClickablePreferenceItem(
-        title = stringResource(id = R.string.subtitle_font),
-        description = currentFont.name(),
-        icon = NextIcons.Font,
-        onClick = onClick,
-        enabled = enabled,
-    )
-}
-
-@Composable
-fun SubtitleTextBoldPreference(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-    enabled: Boolean,
-) {
-    PreferenceSwitch(
-        title = stringResource(id = R.string.subtitle_text_bold),
-        description = stringResource(id = R.string.subtitle_text_bold_desc),
-        icon = NextIcons.Bold,
-        isChecked = isChecked,
-        onClick = onClick,
-        enabled = enabled,
-    )
-}
-
-@Composable
-fun SubtitleTextSizePreference(
-    currentSize: Int,
-    onClick: () -> Unit,
-    enabled: Boolean,
-) {
-    ClickablePreferenceItem(
-        title = stringResource(id = R.string.subtitle_text_size),
-        description = currentSize.toString(),
-        icon = NextIcons.FontSize,
-        onClick = onClick,
-        enabled = enabled,
-    )
-}
-
-@Composable
-fun SubtitleBackgroundPreference(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-    enabled: Boolean,
-) {
-    PreferenceSwitch(
-        title = stringResource(id = R.string.subtitle_background),
-        description = stringResource(id = R.string.subtitle_background_desc),
-        icon = NextIcons.Background,
-        isChecked = isChecked,
-        onClick = onClick,
-        enabled = enabled,
-    )
-}
-
-@Composable
-fun SubtitleEmbeddedStylesPreference(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitch(
-        title = stringResource(R.string.embedded_styles),
-        description = stringResource(R.string.embedded_styles_desc),
-        icon = NextIcons.Style,
-        isChecked = isChecked,
-        onClick = onClick,
-    )
 }

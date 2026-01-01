@@ -32,8 +32,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -76,30 +79,23 @@ private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
 private const val UPI_ID = "anilbeesetti10@oksbi"
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AboutPreferencesScreen(
     onLibrariesClick: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        modifier = Modifier
-            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
-                scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
-                    ) {
+                    FilledTonalIconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -108,13 +104,14 @@ fun AboutPreferencesScreen(
                 },
             )
         },
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 16.dp)
         ) {
             AboutApp(
                 onGithubClick = {
@@ -126,41 +123,50 @@ fun AboutPreferencesScreen(
                 onLibrariesClick = onLibrariesClick,
             )
             PreferenceSubtitle(text = stringResource(id = R.string.donate))
-            ClickablePreferenceItem(
-                title = stringResource(R.string.kofi),
-                description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
-                icon = ImageVector.vectorResource(R.drawable.ic_kofi),
-                onClick = {
-                    uriHandler.openUriOrShowToast(
-                        uri = KOFI_URL,
-                        context = context,
-                    )
-                },
-            )
-
-            ClickablePreferenceItem(
-                title = stringResource(R.string.paypal),
-                description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
-                icon = ImageVector.vectorResource(R.drawable.ic_paypal),
-                onClick = {
-                    uriHandler.openUriOrShowToast(
-                        uri = PAYPAL_URL,
-                        context = context,
-                    )
-                },
-            )
-
-            ClickablePreferenceItem(
-                title = stringResource(R.string.upi),
-                description = UPI_ID,
-                icon = ImageVector.vectorResource(R.drawable.ic_upi),
-                onClick = {
-                    scope.launch {
-                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                        Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
-                    }
-                },
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                val totalRows = 3
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.kofi),
+                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
+                    icon = ImageVector.vectorResource(R.drawable.ic_kofi),
+                    onClick = {
+                        uriHandler.openUriOrShowToast(
+                            uri = KOFI_URL,
+                            context = context,
+                        )
+                    },
+                    index = 0,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.paypal),
+                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
+                    icon = ImageVector.vectorResource(R.drawable.ic_paypal),
+                    onClick = {
+                        uriHandler.openUriOrShowToast(
+                            uri = PAYPAL_URL,
+                            context = context,
+                        )
+                    },
+                    index = 1,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.upi),
+                    description = UPI_ID,
+                    icon = ImageVector.vectorResource(R.drawable.ic_upi),
+                    onClick = {
+                        scope.launch {
+                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
+                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    index = 2,
+                    count = totalRows,
+                )
+            }
         }
     }
 }
@@ -191,7 +197,10 @@ fun AboutApp(
 
     Column(
         modifier = modifier
-            .padding(all = 16.dp)
+            .padding(
+                vertical = 16.dp,
+                horizontal = 8.dp
+            )
             .drawWithCache {
                 val cx = size.width - size.width * fraction
                 val cy = size.height * fraction
