@@ -65,7 +65,7 @@ fun PreferenceItem(
         content = {
             Text(text = title)
         },
-        trailingContent = trailingContent
+        trailingContent = trailingContent,
     )
 }
 

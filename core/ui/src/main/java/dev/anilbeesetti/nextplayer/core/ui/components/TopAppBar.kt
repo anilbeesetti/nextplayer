@@ -55,7 +55,7 @@ fun NextTopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
-        containerColor = MaterialTheme.colorScheme.surfaceContainer
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ),
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
@@ -71,7 +71,7 @@ fun NextTopAppBar(
         actions = actions,
         colors = colors,
         modifier = modifier,
-        contentPadding = PaddingValues(start = 16.dp)
+        contentPadding = PaddingValues(start = 16.dp),
     )
 }
 

@@ -2,28 +2,20 @@ package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -58,14 +50,14 @@ fun MediaLibraryPreferencesScreen(
                 },
             )
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
         ) {
             PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
             Column(
@@ -80,7 +72,7 @@ fun MediaLibraryPreferencesScreen(
                     isChecked = preferences.markLastPlayedMedia,
                     onClick = viewModel::toggleMarkLastPlayedMedia,
                     index = 0,
-                    count = 2
+                    count = 2,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.floating_play_button),
@@ -91,7 +83,7 @@ fun MediaLibraryPreferencesScreen(
                     isChecked = preferences.showFloatingPlayButton,
                     onClick = viewModel::toggleShowFloatingPlayButton,
                     index = 1,
-                    count = 2
+                    count = 2,
                 )
             }
 

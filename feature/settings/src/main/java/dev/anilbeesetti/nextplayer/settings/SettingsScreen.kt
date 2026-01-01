@@ -44,7 +44,7 @@ fun SettingsScreen(
                 },
             )
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         val settingRows = remember { SettingRow.entries }
         Column(
@@ -62,7 +62,7 @@ fun SettingsScreen(
                     icon = row.icon,
                     onClick = { onItemClick(row.setting) },
                     index = index,
-                    count = settingRows.size
+                    count = settingRows.size,
                 )
             }
         }
@@ -83,48 +83,48 @@ private enum class SettingRow(
     val titleResId: Int,
     val descriptionResId: Int,
     val icon: ImageVector,
-    val setting: Setting
+    val setting: Setting,
 ) {
     APPEARANCE(
         titleResId = R.string.appearance_name,
         descriptionResId = R.string.appearance_description,
         icon = NextIcons.Appearance,
-        setting = Setting.APPEARANCE
+        setting = Setting.APPEARANCE,
     ),
     MEDIA_LIBRARY(
         titleResId = R.string.media_library,
         descriptionResId = R.string.media_library_description,
         icon = NextIcons.Movie,
-        setting = Setting.MEDIA_LIBRARY
+        setting = Setting.MEDIA_LIBRARY,
     ),
     PLAYER(
         titleResId = R.string.player_name,
         descriptionResId = R.string.player_description,
         icon = NextIcons.Player,
-        setting = Setting.PLAYER
+        setting = Setting.PLAYER,
     ),
     DECODER(
         titleResId = R.string.decoder,
         descriptionResId = R.string.decoder_desc,
         icon = NextIcons.Decoder,
-        setting = Setting.DECODER
+        setting = Setting.DECODER,
     ),
     AUDIO(
         titleResId = R.string.audio,
         descriptionResId = R.string.audio_desc,
         icon = NextIcons.Audio,
-        setting = Setting.AUDIO
+        setting = Setting.AUDIO,
     ),
     SUBTITLE(
         titleResId = R.string.subtitle,
         descriptionResId = R.string.subtitle_desc,
         icon = NextIcons.Subtitle,
-        setting = Setting.SUBTITLE
+        setting = Setting.SUBTITLE,
     ),
     ABOUT(
         titleResId = R.string.about_name,
         descriptionResId = R.string.about_description,
         icon = NextIcons.Info,
         setting = Setting.ABOUT,
-    )
+    ),
 }

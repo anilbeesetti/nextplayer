@@ -13,8 +13,8 @@ fun PreferenceSwitch(
     enabled: Boolean = true,
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
-    index: Int= 0,
-    count: Int= 1,
+    index: Int = 0,
+    count: Int = 1,
 ) {
     PreferenceItem(
         title = title,

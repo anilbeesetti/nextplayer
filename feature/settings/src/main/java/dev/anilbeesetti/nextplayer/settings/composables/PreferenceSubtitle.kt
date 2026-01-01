@@ -17,7 +17,7 @@ fun PreferenceSubtitle(
     contentPadding: PaddingValues = PaddingValues(
         start = 12.dp,
         top = 24.dp,
-        bottom = 12.dp
+        bottom = 12.dp,
     ),
     color: Color = MaterialTheme.colorScheme.primary,
 ) {

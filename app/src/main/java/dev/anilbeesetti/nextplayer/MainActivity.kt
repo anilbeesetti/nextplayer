@@ -138,7 +138,7 @@ class MainActivity : ComponentActivity() {
                                     easing = LinearEasing,
                                 ),
                             )
-                        }
+                        },
                     ) {
                         mediaNavGraph(
                             context = this@MainActivity,

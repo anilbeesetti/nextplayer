@@ -4,8 +4,8 @@ import android.net.Uri
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.navOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerRoute
 
 const val mediaPickerNavigationRoute = "media_picker_screen"
