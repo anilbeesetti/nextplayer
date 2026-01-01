@@ -1,13 +1,21 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
 import androidx.annotation.OptIn
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -15,11 +23,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -98,12 +114,11 @@ fun ControlsBottomView(
                 )
             }
         }
-        Slider(
-            value = mediaPresentationState.position.toFloat(),
-            valueRange = 0f..mediaPresentationState.duration.toFloat(),
-            onValueChange = { onSeek(it.toLong()) },
-            onValueChangeFinished = { onSeekEnd() },
-            modifier = Modifier.fillMaxWidth(),
+        PlayerSeekbar(
+            position = mediaPresentationState.position.toFloat(),
+            duration = mediaPresentationState.duration.toFloat(),
+            onSeek = { onSeek(it.toLong()) },
+            onSeekFinished = { onSeekEnd() },
         )
         Row(
             modifier = Modifier
@@ -144,4 +159,115 @@ fun ControlsBottomView(
             LoopButton(player = player)
         }
     }
+}
+
+@kotlin.OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlayerSeekbar(
+    modifier: Modifier = Modifier,
+    position: Float,
+    duration: Float,
+    onSeek: (Float) -> Unit,
+    onSeekFinished: () -> Unit,
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val interactionSource = remember { MutableInteractionSource() }
+    val trackHeight = 10.dp
+    val thumbWidth = 4.dp
+    val trackThumbGapWidth = 12.dp
+
+    Slider(
+        value = position,
+        valueRange = 0f..duration,
+        onValueChange = onSeek,
+        onValueChangeFinished = onSeekFinished,
+        interactionSource = interactionSource,
+        modifier = modifier.fillMaxWidth(),
+        track = { sliderState ->
+            val disabledAlpha = 0.4f
+
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(trackHeight),
+            ) {
+                val min = sliderState.valueRange.start
+                val max = sliderState.valueRange.endInclusive
+                val range = (max - min).takeIf { it > 0f } ?: 1f
+                val playedFraction = ((sliderState.value - min) / range).coerceIn(0f, 1f)
+                val playedPixels = size.width * playedFraction
+
+                val endCornerRadius = size.height / 2f
+                val insideCornerRadius = 2.dp.toPx()
+                val gapHalf = trackThumbGapWidth.toPx() / 2f
+                val leftEnd = (playedPixels - gapHalf).coerceIn(0f, size.width)
+                val rightStart = (playedPixels + gapHalf).coerceIn(0f, size.width)
+
+                // Inactive track left side
+                if (leftEnd > 0f) {
+                    drawRoundedRect(
+                        offset = Offset(0f, 0f),
+                        size = Size(leftEnd, size.height),
+                        color = primaryColor.copy(alpha = disabledAlpha),
+                        startCornerRadius = endCornerRadius,
+                        endCornerRadius = insideCornerRadius,
+                    )
+                }
+
+                // Inactive track right side
+                if (rightStart < size.width) {
+                    drawRoundedRect(
+                        offset = Offset(rightStart, 0f),
+                        size = Size(size.width - rightStart, size.height),
+                        color = primaryColor.copy(alpha = disabledAlpha),
+                        startCornerRadius = insideCornerRadius,
+                        endCornerRadius = endCornerRadius
+                    )
+                }
+
+                // Active track
+                if (leftEnd > 0f) {
+                    drawRoundedRect(
+                        offset = Offset(0f, 0f),
+                        size = Size(leftEnd, size.height),
+                        color = primaryColor,
+                        startCornerRadius = endCornerRadius,
+                        endCornerRadius = insideCornerRadius,
+                    )
+                }
+            }
+        },
+        thumb = {
+            Box(
+                modifier = Modifier
+                    .width(thumbWidth)
+                    .height(24.dp)
+                    .background(primaryColor, CircleShape),
+            )
+        },
+    )
+}
+
+private fun DrawScope.drawRoundedRect(
+    offset: Offset,
+    size: Size,
+    color: Color,
+    startCornerRadius: Float,
+    endCornerRadius: Float,
+) {
+    val startCorner = CornerRadius(startCornerRadius, startCornerRadius)
+    val endCorner = CornerRadius(endCornerRadius, endCornerRadius)
+    val track = RoundRect(
+        rect = Rect(Offset(offset.x, 0f), size = Size(size.width, size.height)),
+        topLeft = startCorner,
+        topRight = endCorner,
+        bottomRight = endCorner,
+        bottomLeft = startCorner,
+    )
+    drawPath(
+        path = Path().apply {
+            addRoundRect(track)
+        },
+        color = color
+    )
 }
