@@ -9,7 +9,8 @@ androidGradlePlugin = "8.10.1"
 androidMaterial = "1.12.0"
 androidxActivity = "1.10.1"
 androidxAppCompat = "1.7.1"
-androidxComposeBom = "2025.07.00"
+androidxComposeBom = "2025.12.01"
+androidxMaterial3 = "1.5.0-alpha11"
 androidxConstraintLayout = "2.2.1"
 androidxCore = "1.16.0"
 androidxCoreSplashscreen = "1.0.1"
@@ -42,8 +43,9 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-icons = { module = "androidx.compose.material:material-icons-core" }
 androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidxMaterial3" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
