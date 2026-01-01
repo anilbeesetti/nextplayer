@@ -221,7 +221,7 @@ private fun PlayerSeekbar(
                         size = Size(size.width - rightStart, size.height),
                         color = primaryColor.copy(alpha = disabledAlpha),
                         startCornerRadius = insideCornerRadius,
-                        endCornerRadius = endCornerRadius
+                        endCornerRadius = endCornerRadius,
                     )
                 }
 
@@ -268,6 +268,6 @@ private fun DrawScope.drawRoundedRect(
         path = Path().apply {
             addRoundRect(track)
         },
-        color = color
+        color = color,
     )
 }
