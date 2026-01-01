@@ -29,36 +29,20 @@ fun ClickablePreferenceItem(
     enabled: Boolean = true,
     icon: ImageVector? = null,
     onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
     index: Int = 0,
-    count: Int = 0,
+    count: Int = 1,
 ) {
-    ListItem(
+    PreferenceItem(
+        title = title,
+        description = description,
+        icon = icon,
         modifier = modifier,
+        enabled = enabled,
         onClick = onClick,
         onLongClick = onLongClick,
-        enabled = enabled,
-        verticalAlignment = Alignment.CenterVertically,
-        shapes = ListItemDefaults.segmentedShapes(index, count),
-        colors = ListItemDefaults.segmentedColors(),
-        contentPadding = PaddingValues(16.dp),
-        leadingContent = icon?.let {
-            {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-        },
-        supportingContent = description?.let {
-            {
-                Text(text = description)
-            }
-        },
-        content = {
-            Text(text = title)
-        },
+        index = index,
+        count = count,
     )
 }
 
