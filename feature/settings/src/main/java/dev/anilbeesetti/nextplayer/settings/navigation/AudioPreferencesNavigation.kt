@@ -4,7 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.navOptions
-import dev.anilbeesetti.nextplayer.core.ui.designsystem.animatedComposable
+import androidx.navigation.compose.composable
 import dev.anilbeesetti.nextplayer.settings.screens.audio.AudioPreferencesScreen
 
 const val audioPreferencesNavigationRoute = "audio_preferences_route"
@@ -14,7 +14,7 @@ fun NavController.navigateToAudioPreferences(navOptions: NavOptions? = navOption
 }
 
 fun NavGraphBuilder.audioPreferencesScreen(onNavigateUp: () -> Unit) {
-    animatedComposable(route = audioPreferencesNavigationRoute) {
+    composable(route = audioPreferencesNavigationRoute) {
         AudioPreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }
