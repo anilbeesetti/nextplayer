@@ -179,7 +179,7 @@ fun MediaPlayerScreen(
                     ),
                 )
 
-                if (mediaPresentationState.isLoading) {
+                if (mediaPresentationState.isBuffering) {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .align(Alignment.Center)

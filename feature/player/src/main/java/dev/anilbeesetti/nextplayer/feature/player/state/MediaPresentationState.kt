@@ -43,11 +43,15 @@ class MediaPresentationState(
     var isLoading: Boolean by mutableStateOf(true)
         private set
 
+    var isBuffering: Boolean by mutableStateOf(false)
+        private set
+
     suspend fun observe() {
         updatePosition()
         updateDuration()
         isPlaying = player.isPlaying
         isLoading = player.isLoading
+        isBuffering = player.playbackState == Player.STATE_BUFFERING
 
         coroutineScope {
             launch {
@@ -61,11 +65,15 @@ class MediaPresentationState(
                         updateDuration()
                     }
 
-                    if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
+                    if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
+                        this@MediaPresentationState.isBuffering = player.playbackState == Player.STATE_BUFFERING
+                    }
+
+                    if (events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
                         this@MediaPresentationState.isPlaying = player.isPlaying
                     }
 
-                    if (events.containsAny(Player.EVENT_POSITION_DISCONTINUITY)) {
+                    if (events.contains(Player.EVENT_POSITION_DISCONTINUITY)) {
                         updatePosition()
                     }
 
