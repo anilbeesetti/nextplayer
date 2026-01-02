@@ -1,19 +1,13 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -39,15 +33,13 @@ fun PreferenceItem(
     count: Int = 1,
     trailingContent: @Composable () -> Unit = {},
 ) {
-    ListItem(
+    NextSegmentedListItem(
         modifier = modifier,
         onClick = onClick,
         onLongClick = onLongClick,
         enabled = enabled,
-        verticalAlignment = Alignment.CenterVertically,
-        shapes = ListItemDefaults.segmentedShapes(index, count),
-        colors = ListItemDefaults.segmentedColors(),
-        contentPadding = PaddingValues(16.dp),
+        index = index,
+        count = count,
         leadingContent = icon?.let {
             {
                 Icon(
@@ -78,9 +70,16 @@ fun SelectablePreference(
     selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
+    index: Int = 0,
+    count: Int = 1,
 ) {
-    ListItemComponent(
-        headlineContent = {
+    NextSegmentedListItem(
+        modifier = modifier,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        index = index,
+        count = count,
+        content = {
             Text(
                 text = title,
                 maxLines = 1,
@@ -108,13 +107,6 @@ fun SelectablePreference(
                 onCheckedChange = null,
             )
         },
-        modifier = modifier
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
-            )
-            .padding(start = 10.dp)
-            .padding(vertical = 2.dp),
     )
 }
 
