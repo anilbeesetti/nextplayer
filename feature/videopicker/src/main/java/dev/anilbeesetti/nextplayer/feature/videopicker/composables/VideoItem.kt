@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -76,6 +77,10 @@ fun VideoItem(
             isRecentlyPlayedVideo = isRecentlyPlayedVideo,
             preferences = preferences,
             modifier = modifier,
+            index = index,
+            count = count,
+            onClick = onClick,
+            onLongClick = onLongClick,
         )
     }
 }
@@ -146,36 +151,61 @@ private fun VideoListItem(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VideoGridItem(
     video: Video,
     isRecentlyPlayedVideo: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
-    Column(
-        modifier = modifier
-            .width(IntrinsicSize.Min),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        ThumbnailView(
-            video = video,
-            preferences = preferences,
-        )
-        Text(
-            text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
-            maxLines = 2,
-            style = MaterialTheme.typography.titleMedium,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            color = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+    NextSegmentedListItem(
+        modifier = modifier.width(IntrinsicSize.Min),
+        contentPadding = PaddingValues(8.dp),
+        colors = ListItemDefaults.segmentedColors(
+            contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
-                ListItemDefaults.colors().headlineColor
+                ListItemDefaults.segmentedColors().contentColor
             },
-        )
-    }
+            supportingContentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().supportingContentColor
+            },
+        ),
+        index = index,
+        count = count,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        content = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                ThumbnailView(
+                    video = video,
+                    preferences = preferences,
+                )
+                Text(
+                    text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
+                    maxLines = 2,
+                    style = MaterialTheme.typography.titleMedium,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    color = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        ListItemDefaults.colors().headlineColor
+                    },
+                )
+            }
+        }
+    )
 }
 
 @Composable

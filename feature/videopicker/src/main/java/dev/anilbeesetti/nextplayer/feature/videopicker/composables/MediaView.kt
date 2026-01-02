@@ -103,7 +103,7 @@ fun MediaView(
         }
         val itemSpacing = when (preferences.mediaLayoutMode) {
             MediaLayoutMode.LIST -> 2.dp
-            MediaLayoutMode.GRID -> 16.dp
+            MediaLayoutMode.GRID -> 2.dp
         }
         val maxWidth = this.maxWidth - (contentHorizontalPadding * 2) - itemSpacing
         val maxFolders = (maxWidth / folderMinWidth).toInt()
@@ -128,7 +128,7 @@ fun MediaView(
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
             columns = GridCells.Fixed(spans),
-            contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding) + PaddingValues(bottom = 16.dp),
+            contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding) + PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {

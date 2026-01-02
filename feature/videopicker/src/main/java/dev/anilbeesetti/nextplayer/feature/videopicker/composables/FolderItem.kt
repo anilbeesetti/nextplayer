@@ -67,6 +67,10 @@ fun FolderItem(
             isRecentlyPlayedFolder = isRecentlyPlayedFolder,
             preferences = preferences,
             modifier = modifier,
+            index = index,
+            count = count,
+            onClick = onClick,
+            onLongClick = onLongClick,
         )
     }
 }
@@ -174,88 +178,115 @@ private fun FolderListItem(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FolderGridItem(
     folder: Folder,
     isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
-    Column(
+    NextSegmentedListItem(
         modifier = modifier.width(IntrinsicSize.Min),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier
-                    .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                    .aspectRatio(20 / 17f),
-            )
+        contentPadding = PaddingValues(8.dp),
+        colors = ListItemDefaults.segmentedColors(
+            contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.segmentedColors().contentColor
+            },
+            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                ListItemDefaults.colors().supportingContentColor
+            },
+        ),
+        index = index,
+        count = count,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        content = {
+            Column(
+                modifier = modifier.width(IntrinsicSize.Min),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier
+                            .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
+                            .aspectRatio(20 / 17f),
+                    )
 
-            if (preferences.showDurationField) {
-                InfoChip(
-                    text = Utils.formatDurationMillis(folder.mediaDuration),
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .padding(bottom = 3.dp)
-                        .align(Alignment.BottomEnd),
-                    backgroundColor = Color.Black.copy(alpha = 0.6f),
-                    contentColor = Color.White,
-                    shape = MaterialTheme.shapes.extraSmall,
-                )
+                    if (preferences.showDurationField) {
+                        InfoChip(
+                            text = Utils.formatDurationMillis(folder.mediaDuration),
+                            modifier = Modifier
+                                .padding(5.dp)
+                                .padding(bottom = 3.dp)
+                                .align(Alignment.BottomEnd),
+                            backgroundColor = Color.Black.copy(alpha = 0.6f),
+                            contentColor = Color.White,
+                            shape = MaterialTheme.shapes.extraSmall,
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = folder.name,
+                        maxLines = 2,
+                        style = MaterialTheme.typography.titleMedium,
+                        overflow = TextOverflow.Ellipsis,
+                        color = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            ListItemDefaults.colors().headlineColor
+                        },
+                        textAlign = TextAlign.Center,
+                    )
+                    val mediaCount = if (folder.mediaList.isNotEmpty()) {
+                        "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
+                    } else {
+                        null
+                    }
+                    val folderCount = if (folder.folderList.isNotEmpty()) {
+                        "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
+                    } else {
+                        null
+                    }
+
+                    Text(
+                        text = buildString {
+                            mediaCount?.let {
+                                append(it)
+                                folderCount?.let {
+                                    append(", ")
+                                    append("\u00A0")
+                                }
+                            }
+                            folderCount?.let {
+                                append(it)
+                            }
+                        },
+                        maxLines = 2,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = folder.name,
-                maxLines = 2,
-                style = MaterialTheme.typography.titleMedium,
-                overflow = TextOverflow.Ellipsis,
-                color = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    ListItemDefaults.colors().headlineColor
-                },
-                textAlign = TextAlign.Center,
-            )
-            val mediaCount = if (folder.mediaList.isNotEmpty()) {
-                "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
-            } else {
-                null
-            }
-            val folderCount = if (folder.folderList.isNotEmpty()) {
-                "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
-            } else {
-                null
-            }
-
-            Text(
-                text = buildString {
-                    mediaCount?.let {
-                        append(it)
-                        folderCount?.let {
-                            append(", ")
-                            append("\u00A0")
-                        }
-                    }
-                    folderCount?.let {
-                        append(it)
-                    }
-                },
-                maxLines = 2,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
+    )
 }
 
 @PreviewLightDark
