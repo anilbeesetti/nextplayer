@@ -103,7 +103,7 @@ private fun FolderListItem(
         onClick = onClick,
         onLongClick = onLongClick,
         leadingContent = {
-            Box(modifier = Modifier.padding(8.dp)) {
+            Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                     contentDescription = "",

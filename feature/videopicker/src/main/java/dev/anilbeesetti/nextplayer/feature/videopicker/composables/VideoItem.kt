@@ -94,7 +94,7 @@ private fun VideoListItem(
 ) {
     NextSegmentedListItem(
         modifier = modifier,
-        contentPadding = PaddingValues(12.dp),
+        contentPadding = PaddingValues(8.dp),
         colors = ListItemDefaults.segmentedColors(
             contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
