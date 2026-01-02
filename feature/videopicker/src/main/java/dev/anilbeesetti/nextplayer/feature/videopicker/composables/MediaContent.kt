@@ -41,25 +41,9 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.CIRCULAR_PROGRESS_INDICATOR_TEST_TAG
 
 @Composable
-fun MediaLazyList(
-    modifier: Modifier = Modifier,
-    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
-    content: LazyListScope.() -> Unit,
-) {
-    LazyColumn(
-        contentPadding = PaddingValues(vertical = 10.dp),
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = horizontalAlignment,
-        verticalArrangement = verticalArrangement,
-        content = content,
-    )
-}
-
-@Composable
-fun CenterCircularProgressBar() {
+fun CenterCircularProgressBar(modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

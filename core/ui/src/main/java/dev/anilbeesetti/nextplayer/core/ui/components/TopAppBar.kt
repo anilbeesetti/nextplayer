@@ -70,7 +70,7 @@ fun NextTopAppBar(
         actions = actions,
         colors = colors,
         modifier = modifier,
-        contentPadding = PaddingValues(start = 16.dp),
+        contentPadding = PaddingValues(start = 8.dp),
     )
 }
 

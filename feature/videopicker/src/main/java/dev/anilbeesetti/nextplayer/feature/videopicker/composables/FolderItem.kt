@@ -6,13 +6,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +37,7 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
+import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
@@ -42,6 +46,10 @@ fun FolderItem(
     isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
     when (preferences.mediaLayoutMode) {
         MediaLayoutMode.LIST -> FolderListItem(
@@ -49,6 +57,10 @@ fun FolderItem(
             isRecentlyPlayedFolder = isRecentlyPlayedFolder,
             preferences = preferences,
             modifier = modifier,
+            index = index,
+            count = count,
+            onClick = onClick,
+            onLongClick = onLongClick,
         )
         MediaLayoutMode.GRID -> FolderGridItem(
             folder = folder,
@@ -59,29 +71,39 @@ fun FolderItem(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FolderListItem(
     folder: Folder,
     isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
-    ListItemComponent(
-        colors = ListItemDefaults.colors(
-            headlineColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+    NextSegmentedListItem(
+        modifier = modifier,
+        contentPadding = PaddingValues(8.dp),
+        colors = ListItemDefaults.segmentedColors(
+            contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
-                ListItemDefaults.colors().headlineColor
+                ListItemDefaults.colors().contentColor
             },
-            supportingColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
-                ListItemDefaults.colors().supportingTextColor
+                ListItemDefaults.colors().supportingContentColor
             },
         ),
+        index = index,
+        count = count,
+        onClick = onClick,
+        onLongClick = onLongClick,
         leadingContent = {
-            Box {
+            Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                     contentDescription = "",
@@ -105,7 +127,7 @@ private fun FolderListItem(
                 }
             }
         },
-        headlineContent = {
+        content = {
             Text(
                 text = folder.name,
                 maxLines = 2,
@@ -114,40 +136,41 @@ private fun FolderListItem(
             )
         },
         supportingContent = {
-            if (preferences.showPathField) {
-                Text(
-                    text = folder.path.substringBeforeLast("/"),
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-            }
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                if (folder.mediaList.isNotEmpty()) {
-                    InfoChip(
-                        text = "${folder.mediaList.size} " +
-                            stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+            Column {
+                if (preferences.showPathField) {
+                    Text(
+                        text = folder.path.substringBeforeLast("/"),
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(vertical = 2.dp),
                     )
                 }
-                if (folder.folderList.isNotEmpty()) {
-                    InfoChip(
-                        text = "${folder.folderList.size} " +
-                            stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
-                    )
-                }
-                if (preferences.showSizeField) {
-                    InfoChip(text = Utils.formatFileSize(folder.mediaSize))
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    if (folder.mediaList.isNotEmpty()) {
+                        InfoChip(
+                            text = "${folder.mediaList.size} " +
+                                    stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+                        )
+                    }
+                    if (folder.folderList.isNotEmpty()) {
+                        InfoChip(
+                            text = "${folder.folderList.size} " +
+                                    stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
+                        )
+                    }
+                    if (preferences.showSizeField) {
+                        InfoChip(text = Utils.formatFileSize(folder.mediaSize))
+                    }
                 }
             }
         },
-        modifier = modifier,
     )
 }
 

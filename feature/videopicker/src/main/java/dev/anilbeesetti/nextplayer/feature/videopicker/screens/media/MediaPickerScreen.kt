@@ -215,7 +215,6 @@ internal fun MediaPickerScreen(
                     launchPermissionRequest = { permissionState.launchPermissionRequest() },
                 ) {
                     MediaView(
-                        isLoading = mediaState is MediaState.Loading,
                         rootFolder = (mediaState as? MediaState.Success)?.data,
                         preferences = preferences,
                         onFolderClick = onFolderClick,

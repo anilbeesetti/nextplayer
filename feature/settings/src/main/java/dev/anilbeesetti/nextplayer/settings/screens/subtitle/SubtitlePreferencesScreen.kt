@@ -38,6 +38,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
@@ -45,7 +46,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivide
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
-import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
 import java.nio.charset.Charset
@@ -85,7 +85,7 @@ fun SubtitlePreferencesScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
-            PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            ListSectionTitle(text = stringResource(id = R.string.playback))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
@@ -108,7 +108,7 @@ fun SubtitlePreferencesScreen(
                     count = totalRows,
                 )
             }
-            PreferenceSubtitle(text = stringResource(id = R.string.appearance_name))
+            ListSectionTitle(text = stringResource(id = R.string.appearance_name))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {

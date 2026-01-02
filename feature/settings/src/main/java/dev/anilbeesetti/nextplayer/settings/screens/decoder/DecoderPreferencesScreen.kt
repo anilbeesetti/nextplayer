@@ -24,11 +24,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
+import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
-import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -63,7 +63,7 @@ fun DecoderPreferencesScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
-            PreferenceSubtitle(text = stringResource(id = R.string.playback))
+            ListSectionTitle(text = stringResource(id = R.string.playback))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {

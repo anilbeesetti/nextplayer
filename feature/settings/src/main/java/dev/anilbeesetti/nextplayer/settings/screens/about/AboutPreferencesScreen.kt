@@ -61,9 +61,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmapOrNull
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
+import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import kotlinx.coroutines.launch
 
 private const val GITHUB_URL = "https://github.com/anilbeesetti/nextplayer"
@@ -114,7 +114,7 @@ fun AboutPreferencesScreen(
                 },
                 onLibrariesClick = onLibrariesClick,
             )
-            PreferenceSubtitle(text = stringResource(id = R.string.donate))
+            ListSectionTitle(text = stringResource(id = R.string.donate))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {

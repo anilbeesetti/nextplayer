@@ -57,27 +57,27 @@ fun LibrariesScreen(
                 },
             )
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         val libs = remember { Libs.Builder().withContext(context).build() }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
             itemsIndexed(libs.libraries, key = { _, library -> library.uniqueId }) { index, library ->
                 NextSegmentedListItem(
                     content = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Text(
                                 text = library.name,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
                             )
                             library.artifactVersion?.let {
                                 Text(text = it)
@@ -90,7 +90,7 @@ fun LibrariesScreen(
                             FlowRow {
                                 library.licenses.forEach {
                                     Badge(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                     ) {
                                         Text(text = it.name)
                                     }
@@ -104,7 +104,7 @@ fun LibrariesScreen(
                         library.website?.takeIf { it.isNotBlank() }?.let {
                             uriHandler.openUriOrShowToast(uri = it, context = context)
                         }
-                    }
+                    },
                 )
             }
         }

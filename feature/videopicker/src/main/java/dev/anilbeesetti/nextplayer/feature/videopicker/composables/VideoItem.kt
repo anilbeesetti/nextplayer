@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,8 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,6 +44,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
+import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
@@ -49,6 +54,10 @@ fun VideoItem(
     isRecentlyPlayedVideo: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
     when (preferences.mediaLayoutMode) {
         MediaLayoutMode.LIST -> VideoListItem(
@@ -56,6 +65,10 @@ fun VideoItem(
             isRecentlyPlayedVideo = isRecentlyPlayedVideo,
             preferences = preferences,
             modifier = modifier,
+            index = index,
+            count = count,
+            onClick = onClick,
+            onLongClick = onLongClick,
         )
         MediaLayoutMode.GRID -> VideoGridItem(
             video = video,
@@ -66,27 +79,37 @@ fun VideoItem(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VideoListItem(
     video: Video,
     isRecentlyPlayedVideo: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
-    ListItemComponent(
-        colors = ListItemDefaults.colors(
-            headlineColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+    NextSegmentedListItem(
+        modifier = modifier,
+        contentPadding = PaddingValues(8.dp),
+        colors = ListItemDefaults.segmentedColors(
+            contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
-                ListItemDefaults.colors().headlineColor
+                ListItemDefaults.segmentedColors().contentColor
             },
-            supportingColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
+            supportingContentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
-                ListItemDefaults.colors().supportingTextColor
+                ListItemDefaults.colors().supportingContentColor
             },
         ),
+        index = index,
+        count = count,
+        onClick = onClick,
+        onLongClick = onLongClick,
         leadingContent = {
             ThumbnailView(
                 video = video,
@@ -95,7 +118,7 @@ private fun VideoListItem(
                     .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f)),
             )
         },
-        headlineContent = {
+        content = {
             Text(
                 text = if (preferences.showExtensionField) video.nameWithExtension else video.displayName,
                 maxLines = 2,
@@ -104,31 +127,32 @@ private fun VideoListItem(
             )
         },
         supportingContent = {
-            if (preferences.showPathField) {
-                Text(
-                    text = video.path.substringBeforeLast("/"),
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-            }
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                if (preferences.showSizeField) {
-                    InfoChip(text = video.formattedFileSize)
+            Column {
+                if (preferences.showPathField) {
+                    Text(
+                        text = video.path.substringBeforeLast("/"),
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(vertical = 2.dp),
+                    )
                 }
-                if (preferences.showResolutionField && video.height > 0) {
-                    InfoChip(text = "${video.height}p")
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    if (preferences.showSizeField) {
+                        InfoChip(text = video.formattedFileSize)
+                    }
+                    if (preferences.showResolutionField && video.height > 0) {
+                        InfoChip(text = "${video.height}p")
+                    }
                 }
             }
         },
-        modifier = modifier,
     )
 }
 
