@@ -35,6 +35,7 @@ import androidx.core.net.toUri
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.media.MediaPickerUiEvent
 
 @Composable
 fun MediaPickerFolderRoute(
@@ -99,21 +100,15 @@ internal fun MediaPickerFolderScreen(
 
             }
 
-            DataState.Loading -> {
+            is DataState.Loading -> {
                 CenterCircularProgressBar(modifier = Modifier.padding(scaffoldPadding))
             }
 
             is DataState.Success -> {
-                val state = rememberPullToRefreshState()
-                Box(
-                    modifier = Modifier
-                        .padding(top = scaffoldPadding.calculateTopPadding())
-                        .pullToRefresh(
-                            state = state,
-                            isRefreshing = uiState.refreshing,
-                            onRefresh = { onEvent(MediaPickerFolderUiEvent.Refresh) },
-                        ),
-                    contentAlignment = Alignment.TopCenter,
+                PullToRefreshBox(
+                    modifier = Modifier.padding(top = scaffoldPadding.calculateTopPadding()),
+                    isRefreshing = uiState.refreshing,
+                    onRefresh = { onEvent(MediaPickerFolderUiEvent.Refresh) },
                 ) {
                     MediaView(
                         rootFolder = uiState.mediaDataState.value,
@@ -126,7 +121,6 @@ internal fun MediaPickerFolderScreen(
                         onVideoLoaded = { onEvent(MediaPickerFolderUiEvent.AddToSync(it)) },
                         onRenameVideoClick = { uri, to -> onEvent(MediaPickerFolderUiEvent.RenameVideo(uri, to)) },
                     )
-                    PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = uiState.refreshing)
                 }
             }
         }

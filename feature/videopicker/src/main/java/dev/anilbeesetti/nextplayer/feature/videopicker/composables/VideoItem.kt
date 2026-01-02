@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -93,7 +94,7 @@ private fun VideoListItem(
 ) {
     NextSegmentedListItem(
         modifier = modifier,
-        contentPadding = PaddingValues(8.dp),
+        contentPadding = PaddingValues(12.dp),
         colors = ListItemDefaults.segmentedColors(
             contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
@@ -127,29 +128,18 @@ private fun VideoListItem(
             )
         },
         supportingContent = {
-            Column {
-                if (preferences.showPathField) {
-                    Text(
-                        text = video.path.substringBeforeLast("/"),
-                        maxLines = 2,
-                        style = MaterialTheme.typography.bodySmall,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(vertical = 2.dp),
-                    )
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                if (preferences.showSizeField) {
+                    InfoChip(text = video.formattedFileSize)
                 }
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    if (preferences.showSizeField) {
-                        InfoChip(text = video.formattedFileSize)
-                    }
-                    if (preferences.showResolutionField && video.height > 0) {
-                        InfoChip(text = "${video.height}p")
-                    }
+                if (preferences.showResolutionField && video.height > 0) {
+                    InfoChip(text = "${video.height}p")
                 }
             }
         },

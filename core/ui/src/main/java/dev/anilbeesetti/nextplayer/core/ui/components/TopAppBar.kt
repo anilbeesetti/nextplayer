@@ -29,7 +29,9 @@ fun NextCenterAlignedTopAppBar(
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
-    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    ),
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     CenterAlignedTopAppBar(
@@ -44,6 +46,7 @@ fun NextCenterAlignedTopAppBar(
         colors = colors,
         modifier = modifier,
         scrollBehavior = scrollBehavior,
+        contentPadding = PaddingValues(horizontal = 8.dp)
     )
 }
 
@@ -70,7 +73,7 @@ fun NextTopAppBar(
         actions = actions,
         colors = colors,
         modifier = modifier,
-        contentPadding = PaddingValues(start = 8.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp),
     )
 }
 
