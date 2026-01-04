@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
 
 import android.net.Uri
 import androidx.compose.runtime.Stable
+import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,20 +15,14 @@ import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import androidx.core.net.toUri
-import dev.anilbeesetti.nextplayer.core.ui.base.DataState
-import dev.anilbeesetti.nextplayer.core.ui.base.ScreenState
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class MediaPickerFolderViewModel @Inject constructor(
@@ -45,7 +40,7 @@ class MediaPickerFolderViewModel @Inject constructor(
 
     private val uiStateInternal = MutableStateFlow(
         MediaPickerFolderUiState(
-            folderName = File(folderPath).prettyName
+            folderName = File(folderPath).prettyName,
         ),
     )
     val uiState = uiStateInternal.asStateFlow()

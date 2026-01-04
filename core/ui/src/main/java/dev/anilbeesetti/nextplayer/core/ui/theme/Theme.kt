@@ -244,7 +244,6 @@ private val highContrastDarkColorScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDarkHighContrast,
 )
 
-
 @Composable
 fun NextPlayerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

@@ -46,7 +46,7 @@ fun NextCenterAlignedTopAppBar(
         colors = colors,
         modifier = modifier,
         scrollBehavior = scrollBehavior,
-        contentPadding = PaddingValues(horizontal = 8.dp)
+        contentPadding = PaddingValues(horizontal = 8.dp),
     )
 }
 
