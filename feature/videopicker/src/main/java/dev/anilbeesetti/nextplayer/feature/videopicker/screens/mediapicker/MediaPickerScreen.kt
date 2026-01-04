@@ -12,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -21,27 +20,34 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -78,7 +84,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
-import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -121,93 +126,71 @@ internal fun MediaPickerScreen(
     onEvent: (MediaPickerUiEvent) -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
-
     val permissionState = rememberPermissionState(permission = storagePermission)
-    var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
-    var showUrlDialog by rememberSaveable { mutableStateOf(false) }
+    val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { it?.let { onPlayVideos(listOf(it)) } },
     )
+
+    var isFabExpanded by rememberSaveable { mutableStateOf(false) }
+    var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
+    var showUrlDialog by rememberSaveable { mutableStateOf(false) }
 
     var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showInfoActionFor: Video? by rememberSaveable { mutableStateOf(null) }
 
     Scaffold(
         topBar = {
-            Column {
-                NextTopAppBar(
-                    title = (uiState.folderName ?: stringResource(R.string.app_name)).takeIf { !selectionManager.isInSelectionMode } ?: "",
-                    fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
-                    navigationIcon = {
-                        if (selectionManager.isInSelectionMode) {
-                            Row(
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                                    .clickable { selectionManager.clearSelection() }
-                                    .padding(8.dp)
-                                    .padding(end = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = NextIcons.Close,
-                                    contentDescription = stringResource(id = R.string.navigate_up),
-                                )
-                                Text(
-                                    text = selectionManager.selectedVideos.size.toString(),
-                                    style = MaterialTheme.typography.bodyMediumEmphasized
-                                )
-                            }
-                        } else if (uiState.folderName != null) {
-                            FilledTonalIconButton(onClick = onNavigateUp) {
-                                Icon(
-                                    imageVector = NextIcons.ArrowBack,
-                                    contentDescription = stringResource(id = R.string.navigate_up),
-                                )
-                            }
-                        }
-                    },
-                    actions = {
-                        if (selectionManager.isInSelectionMode) return@NextTopAppBar
-                        IconButton(onClick = { showQuickSettingsDialog = true }) {
+            NextTopAppBar(
+                title = (uiState.folderName ?: stringResource(R.string.app_name)).takeIf { !selectionManager.isInSelectionMode } ?: "",
+                fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
+                navigationIcon = {
+                    if (selectionManager.isInSelectionMode) {
+                        Row(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.secondaryContainer)
+                                .clickable { selectionManager.clearSelection() }
+                                .padding(8.dp)
+                                .padding(end = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             Icon(
-                                imageVector = NextIcons.DashBoard,
-                                contentDescription = stringResource(id = R.string.menu),
+                                imageVector = NextIcons.Close,
+                                contentDescription = stringResource(id = R.string.navigate_up),
+                            )
+                            Text(
+                                text = selectionManager.selectedVideos.size.toString(),
+                                style = MaterialTheme.typography.bodyMediumEmphasized
                             )
                         }
-                        IconButton(onClick = onSettingsClick) {
+                    } else if (uiState.folderName != null) {
+                        FilledTonalIconButton(onClick = onNavigateUp) {
                             Icon(
-                                imageVector = NextIcons.Settings,
-                                contentDescription = stringResource(id = R.string.settings),
-                            )
-                        }
-                    },
-                )
-
-                if (uiState.folderName == null) {
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp) + PaddingValues(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        item {
-                            ShortcutChipButton(
-                                text = stringResource(id = R.string.open_local_video),
-                                icon = NextIcons.FileOpen,
-                                onClick = { selectVideoFileLauncher.launch("video/*") },
-                            )
-                        }
-                        item {
-                            ShortcutChipButton(
-                                text = stringResource(id = R.string.open_network_stream),
-                                icon = NextIcons.Link,
-                                onClick = { showUrlDialog = true },
+                                imageVector = NextIcons.ArrowBack,
+                                contentDescription = stringResource(id = R.string.navigate_up),
                             )
                         }
                     }
-                }
-            }
+                },
+                actions = {
+                    if (selectionManager.isInSelectionMode) return@NextTopAppBar
+                    IconButton(onClick = { showQuickSettingsDialog = true }) {
+                        Icon(
+                            imageVector = NextIcons.DashBoard,
+                            contentDescription = stringResource(id = R.string.menu),
+                        )
+                    }
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            imageVector = NextIcons.Settings,
+                            contentDescription = stringResource(id = R.string.settings),
+                        )
+                    }
+                },
+            )
         },
         bottomBar = {
             SelectionActionsSheet(
@@ -243,16 +226,73 @@ internal fun MediaPickerScreen(
         floatingActionButton = {
             if (!uiState.preferences.showFloatingPlayButton) return@Scaffold
             if (selectionManager.isInSelectionMode) return@Scaffold
-            FloatingActionButton(
-                onClick = {
-                    val folder = (uiState.mediaDataState as? DataState.Success)?.value ?: return@FloatingActionButton
-                    val videoToPlay = folder.recentlyPlayedVideo ?: folder.firstVideo ?: return@FloatingActionButton
-                    onPlayVideos(listOf(videoToPlay.uriString.toUri()))
+
+            FloatingActionButtonMenu(
+                expanded = isFabExpanded,
+                button = {
+                    ToggleFloatingActionButton(
+                        checked = isFabExpanded,
+                        onCheckedChange = { isFabExpanded = !isFabExpanded },
+                    ) {
+                        val icon by remember {
+                            derivedStateOf {
+                                if (checkedProgress > 0.5f) NextIcons.Close else NextIcons.Play
+                            }
+                        }
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier.animateIcon(checkedProgress = { checkedProgress }),
+                        )
+                    }
                 },
             ) {
-                Icon(
-                    imageVector = NextIcons.Play,
-                    contentDescription = null,
+                FloatingActionButtonMenuItem(
+                    onClick = {
+                        isFabExpanded = false
+                        showUrlDialog = true
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = NextIcons.Link,
+                            contentDescription = null,
+                        )
+                    },
+                    text = {
+                        Text(text = stringResource(id = R.string.open_network_stream))
+                    }
+                )
+                FloatingActionButtonMenuItem(
+                    onClick = {
+                        isFabExpanded = false
+                        selectVideoFileLauncher.launch("video/*")
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = NextIcons.FileOpen,
+                            contentDescription = null,
+                        )
+                    },
+                    text = {
+                        Text(text = stringResource(id = R.string.open_local_video))
+                    }
+                )
+                FloatingActionButtonMenuItem(
+                    onClick = {
+                        isFabExpanded = false
+                        val folder = (uiState.mediaDataState as? DataState.Success)?.value ?: return@FloatingActionButtonMenuItem
+                        val videoToPlay = folder.recentlyPlayedVideo ?: folder.firstVideo ?: return@FloatingActionButtonMenuItem
+                        onPlayVideos(listOf(videoToPlay.uriString.toUri()))
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = NextIcons.History,
+                            contentDescription = null,
+                        )
+                    },
+                    text = {
+                        Text(text = stringResource(id = R.string.recently_played))
+                    }
                 )
             }
         },
@@ -285,6 +325,7 @@ internal fun MediaPickerScreen(
                             onFolderClick = onFolderClick,
                             onVideoClick = { onPlayVideos(listOf(it)) },
                             selectionManager = selectionManager,
+                            lazyGridState = lazyGridState,
                             contentPadding = scaffoldPadding.copy(top = 0.dp),
                             onDeleteFolderClick = { onEvent(MediaPickerUiEvent.DeleteFolders(listOf(it))) },
                             onDeleteVideoClick = { onEvent(MediaPickerUiEvent.DeleteVideos(listOf(it))) },
@@ -297,7 +338,23 @@ internal fun MediaPickerScreen(
         }
     }
 
-    BackHandler(selectionManager.isInSelectionMode) {
+    LaunchedEffect(lazyGridState.isScrollInProgress) {
+        if (isFabExpanded && lazyGridState.isScrollInProgress) {
+            isFabExpanded = false
+        }
+    }
+
+    LaunchedEffect(selectionManager.isInSelectionMode) {
+        if (selectionManager.isInSelectionMode) {
+            isFabExpanded = false
+        }
+    }
+
+    BackHandler(enabled = isFabExpanded) {
+        isFabExpanded = false
+    }
+
+    BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.clearSelection()
     }
 

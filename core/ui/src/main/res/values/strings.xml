@@ -231,4 +231,5 @@
     <string name="grid">Grid</string>
     <string name="info">Info</string>
     <string name="play">Play</string>
+    <string name="recently_played">Recently played</string>
 </resources>

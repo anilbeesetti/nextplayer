@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -83,6 +84,7 @@ fun MediaView(
     preferences: ApplicationPreferences,
     contentPadding: PaddingValues = PaddingValues(),
     selectionManager: SelectionManager = rememberSelectionManager(),
+    lazyGridState: LazyGridState = rememberLazyGridState(),
     onFolderClick: (String) -> Unit,
     onDeleteFolderClick: (Folder) -> Unit,
     onVideoClick: (Uri) -> Unit,
@@ -136,6 +138,7 @@ fun MediaView(
                 .fillMaxSize()
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
+            state = lazyGridState,
             columns = GridCells.Fixed(spans),
             contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding) + PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
