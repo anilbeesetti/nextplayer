@@ -45,7 +45,6 @@
     <string name="double_tap_description">Wybierz działanie podwójnego dotknięcia</string>
     <string name="oldest">Najstarszy</string>
     <string name="play_file">Otwórz plik wideo, który chcesz odtworzyć</string>
-    <string name="delete_folder">Wszystkie pliki wideo w następującym katalogu zostaną trwale usunięte.</string>
     <string name="portrait">Pionowo</string>
     <string name="no_videos_found">Nie znaleziono żadnego wideo</string>
     <string name="date">Data</string>

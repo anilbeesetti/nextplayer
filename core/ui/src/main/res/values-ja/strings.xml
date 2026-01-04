@@ -117,7 +117,6 @@
     <string name="long_press_gesture_desc">長押しすると %.1f 倍速で再生されます</string>
     <string name="network_stream">ネットワークストリーム</string>
     <string name="play_file">再生する動画ファイルを開いてください</string>
-    <string name="delete_folder">以下のフォルダー内の全ての動画ファイルは完全に削除されます。</string>
     <string name="long_press_gesture">長押しジェスチャー</string>
     <string name="require_audio_focus">音声フォーカスが必要です</string>
     <string name="controller_timeout">コントローラーのタイムアウト</string>

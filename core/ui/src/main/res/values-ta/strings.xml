@@ -185,7 +185,6 @@
     <string name="share">பங்கு</string>
     <string name="delete">நீக்கு</string>
     <string name="delete_file">பின்வரும் கோப்பு நிரந்தரமாக நீக்கப்படும்</string>
-    <string name="delete_folder">பின்வரும் கோப்புறையில் உள்ள அனைத்து வீடியோ கோப்புகளும் நிரந்தரமாக நீக்கப்படும்.</string>
     <string name="fast_playback_speed">%.1fx விரைவு</string>
     <string name="long_press_gesture">நீண்ட செய்தித் தாள் சைகை</string>
     <string name="long_press_gesture_desc">%.1fx வேகத்தில் விளையாட நீண்ட அழுத்தவும்</string>

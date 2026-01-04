@@ -121,7 +121,6 @@
     <string name="high_contrast_dark_theme_desc">Использовать чисто чёрный фон для тёмной темы</string>
     <string name="zoom_gesture_description">Ущипните для масштабирования видео</string>
     <string name="landscape_reverse">Альбомная (перевернутая)</string>
-    <string name="delete_folder">Все медиафайлы в этой папке будут удалены навсегда.</string>
     <string name="autoplay_settings_description">Автоматически воспроизводить следующее видео в текущей папке</string>
     <string name="controller_timeout">Автоскрытие интерфейса</string>
     <string name="pause_on_headset_disconnect_desc">Пауза при отключении наушников</string>

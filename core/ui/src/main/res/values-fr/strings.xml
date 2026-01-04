@@ -155,7 +155,6 @@
     <string name="best_fit">Ajustement optimal</string>
     <string name="stretch">Étirer</string>
     <string name="audio_desc">Options de lecture audio</string>
-    <string name="delete_folder">Tous les fichiers vidéo de ce dossier seront supprimés définitivement.</string>
     <string name="fast_playback_speed">Vitesse x%.1f</string>
     <string name="long_press_gesture">Appui long</string>
     <string name="long_press_gesture_desc">Appuyez longuement pour lire en vitesse x%.1f</string>

@@ -138,7 +138,6 @@
     <string name="share">Κοινοποίηση</string>
     <string name="delete">Διαγραφή</string>
     <string name="delete_file">Το παρακάτω αρχείο θα διαγραφεί οριστικά</string>
-    <string name="delete_folder">Όλα τα αρχεία βίντεο στον παρακάτω φάκελο θα διαγραφούν οριστικά.</string>
     <string name="stretch">Τέντωμα</string>
     <string name="crop">Περικοπή</string>
     <string name="hundred_percent">100%</string>

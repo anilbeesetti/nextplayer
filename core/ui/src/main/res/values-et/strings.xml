@@ -154,7 +154,6 @@
     <string name="seconds">%1$s sekundit</string>
     <string name="share">Jaga</string>
     <string name="delete">Kustuta</string>
-    <string name="delete_folder">Kõik siin kaustas leiduvad videod kustutatakse jäädavalt.</string>
     <string name="fast_playback_speed">%.1fx kiirus</string>
     <string name="long_press_gesture">Pikk puudutus</string>
     <string name="long_press_gesture_desc">Pikal puudutusel esita videot %.1f-kordse kiirusega</string>

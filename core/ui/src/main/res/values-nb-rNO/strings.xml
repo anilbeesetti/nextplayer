@@ -142,7 +142,6 @@
     <string name="best_fit">Beste passform</string>
     <string name="stretch">Strekk</string>
     <string name="subtitle_text_encoding">Tegnkoding for undertekster</string>
-    <string name="delete_folder">Alle videofiler i følgende mappe vil bli slettet for godt.</string>
     <string name="crop">Beskjær</string>
     <string name="zoom_gesture">Forstørrelseshåndvending</string>
     <string name="zoom_gesture_description">Klyp for å forstørre videoen</string>

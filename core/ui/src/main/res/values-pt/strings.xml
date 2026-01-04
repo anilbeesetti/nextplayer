@@ -127,7 +127,6 @@
     <string name="zoom_gesture_description">Pinçar para ampliar o vídeo</string>
     <string name="codec">Codec</string>
     <string name="long_press_gesture_desc">Pressione e segure para reproduzir na velocidade %.1fx</string>
-    <string name="delete_folder">Todos os ficheiros de vídeo na pasta a seguir serão excluídos permanentemente.</string>
     <string name="long_press_gesture">Gesto de toque longo</string>
     <string name="require_audio_focus">Requerir foco de áudio</string>
     <string name="autoplay_settings_description">Reproduzir automaticamente o próximo vídeo da pasta atual</string>

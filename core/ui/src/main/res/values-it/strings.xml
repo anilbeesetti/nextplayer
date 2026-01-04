@@ -142,7 +142,6 @@
     <string name="force_rescan_storage_desc">Attenzione: L\'avvio di una ri-scansione completa dell\'archiviazione può causare un aumento dell\'utilizzo delle risorse sul tuo dispositivo</string>
     <string name="media_library_description">Scansiona e gestisci libreria media</string>
     <string name="video_orientation">Orientamento Video</string>
-    <string name="delete_folder">Tutti i file video nella cartella seguente saranno eliminati permanentemente.</string>
     <string name="volume_boost">Aumenta volume</string>
     <string name="no_audio_tracks_found">Tracce audio per questo video non sono disponibili o non sono supportate.</string>
     <string name="autoplay_settings">Autoplay</string>

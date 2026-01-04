@@ -138,7 +138,6 @@
     <string name="delete">मिटाएं</string>
     <string name="delete_file">निम्न फ़ाइल स्थायी रूप से हटा दी जाएगी</string>
     <string name="prefer_device_decoders">डिवाइस डिकोडर्स को प्राथमिकता दें</string>
-    <string name="delete_folder">निम्नलिखित फ़ोल्डर की सभी वीडियो फ़ाइलें स्थायी रूप से हटा दी जाएंगी।</string>
     <string name="stretch">फैलाएं</string>
     <string name="crop">क्रोप</string>
     <string name="hundred_percent">१००%</string>

@@ -108,7 +108,6 @@
     <string name="seconds">%1$s sekund</string>
     <string name="mark_last_played_media">Označit poslední přehráté video</string>
     <string name="exit">Ukončit</string>
-    <string name="delete_folder">Všechna videa ve vybrané složce budou trvale odstraněná.</string>
     <string name="long_press_gesture">Gesto dlouhého klepnutí</string>
     <string name="folder">Složka</string>
     <string name="play_next_video">Přehrát další video</string>

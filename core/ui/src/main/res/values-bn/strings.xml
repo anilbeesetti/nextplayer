@@ -151,7 +151,6 @@
     <string name="landscape_auto">ল্যান্ডস্কেপ (সেন্সর)</string>
     <string name="portrait">পোট্রেট</string>
     <string name="network_stream">নেটওয়ার্ক স্ট্রিম</string>
-    <string name="delete_folder">এই ফোল্ডারে থাকা সকল ভিডিও ফাইল স্থায়ীভাবে মুছে যাবে</string>
     <string name="hundred_percent">১০০%</string>
     <string name="high_contrast_dark_theme">উচ্চ বৈসাদৃশ্যের অন্ধকার থিম</string>
     <string name="high_contrast_dark_theme_desc">অন্ধকার থিমের জন্য বিশুদ্ধ কালো ব্যাকগ্রাউন্ড ব্যবহার করুন</string>

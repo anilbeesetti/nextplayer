@@ -143,7 +143,6 @@
     <string name="zoom_gesture_description">افتح اصبعيك لتكبير الفيديو</string>
     <string name="codec">التشفير</string>
     <string name="long_press_gesture_desc">اضغط مطولاً للتشغيل بسرعة %.1fx</string>
-    <string name="delete_folder">كل الفيديوهات في هذا المجلد ستحذف نهائيًا.</string>
     <string name="long_press_gesture">ايماءة الضغط المطول</string>
     <string name="require_audio_focus">التركيز الصوتي المطلوب</string>
     <string name="pause_on_headset_disconnect_desc">الإيقاف مؤقتًا عند فصل سماعة الرأس عن الجهاز</string>

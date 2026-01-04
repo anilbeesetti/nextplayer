@@ -138,7 +138,6 @@
     <string name="share">分享</string>
     <string name="delete_file">下列文件会被永久删除</string>
     <string name="delete">删除</string>
-    <string name="delete_folder">下列文件夹中所有视频文件会被永久删除</string>
     <string name="autoplay_settings">自动播放</string>
     <string name="autoplay_settings_description">自动播放当前文件夹中的下一个视频</string>
     <string name="best_fit">最合适</string>
