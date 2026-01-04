@@ -225,4 +225,14 @@
     <string name="media_layout">Διάταξη μέσων</string>
     <string name="grid">Πλέγμα</string>
     <string name="by">από τον %1$s</string>
+    <string name="recently_played">Πρόσφατα</string>
+    <string name="delete_one_video">Διαγραφή 1 βίντεο;</string>
+    <string name="delete_videos">Διαγραφή %1$d βίντεο;</string>
+    <string name="delete_one_folder">Διαγραφή 1 φακέλου;</string>
+    <string name="delete_folders">Διαγραφή %1$d φακέλων;</string>
+    <string name="delete_items">Διαγραφή %1$d αντικειμένων;</string>
+    <string name="delete_items_info">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Τα επιλεγμένα στοιχεία θα διαγραφούν οριστικά</string>
+    <string name="info">Πληροφορίες</string>
+    <string name="play">Αναπαραγωγή</string>
+    <string name="delete_item_info">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Το επιλεγμένο στοιχείο θα διαγραφεί οριστικά</string>
 </resources>
