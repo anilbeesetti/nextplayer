@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.model
 
-enum class VideoZoom {
+enum class VideoContentScale {
     BEST_FIT,
     STRETCH,
     CROP,

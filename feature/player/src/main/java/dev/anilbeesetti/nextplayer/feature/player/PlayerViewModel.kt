@@ -1,22 +1,23 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.net.Uri
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
-import dev.anilbeesetti.nextplayer.core.model.VideoZoom
+import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import javax.inject.Inject
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
@@ -26,43 +27,37 @@ class PlayerViewModel @Inject constructor(
 ) : ViewModel() {
 
     var playWhenReady: Boolean = true
-    var skipSilenceEnabled: Boolean = false
 
-    val playerPrefs = preferencesRepository.playerPreferences.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = runBlocking { preferencesRepository.playerPreferences.first() },
-    )
+    private val internalUiState = MutableStateFlow(PlayerUiState())
+    val uiState = internalUiState.asStateFlow()
 
-    val appPrefs = preferencesRepository.applicationPreferences.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = runBlocking { preferencesRepository.applicationPreferences.first() },
-    )
+    init {
+        viewModelScope.launch {
+            preferencesRepository.playerPreferences.collect { prefs ->
+                internalUiState.update { it.copy(playerPreferences = prefs) }
+            }
+        }
+    }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> {
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    suspend fun getVideoState(uri: String): VideoState? {
-        return mediaRepository.getVideoState(uri)
-    }
-
-    fun updateMediumZoom(uri: String, zoom: Float) {
+    fun updateVideoZoom(uri: String, zoom: Float) {
         viewModelScope.launch {
             mediaRepository.updateMediumZoom(uri, zoom)
         }
     }
 
-    fun setPlayerBrightness(value: Float) {
+    fun updatePlayerBrightness(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(playerBrightness = value) }
         }
     }
 
-    fun setVideoZoom(videoZoom: VideoZoom) {
+    fun updateVideoContentScale(contentScale: VideoContentScale) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = videoZoom) }
+            preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = contentScale) }
         }
     }
 
@@ -71,4 +66,22 @@ class PlayerViewModel @Inject constructor(
             preferencesRepository.updatePlayerPreferences { it.copy(loopMode = loopMode) }
         }
     }
+
+    fun onVideoZoomEvent(event: VideoZoomEvent) {
+        when (event) {
+            is VideoZoomEvent.ContentScaleChanged -> {
+                updateVideoContentScale(event.contentScale)
+            }
+            is VideoZoomEvent.ZoomChanged -> {
+                updateVideoZoom(event.mediaItem.mediaId, event.zoom)
+            }
+        }
+    }
 }
+
+@Stable
+data class PlayerUiState(
+    val playerPreferences: PlayerPreferences? = null,
+)
+
+sealed interface PlayerEvent

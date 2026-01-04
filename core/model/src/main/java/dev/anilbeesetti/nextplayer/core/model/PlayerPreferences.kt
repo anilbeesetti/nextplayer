@@ -7,12 +7,11 @@ data class PlayerPreferences(
     val resume: Resume = Resume.YES,
     val rememberPlayerBrightness: Boolean = false,
     val playerBrightness: Float = 0.5f,
-    val fastSeek: FastSeek = FastSeek.AUTO,
     val minDurationForFastSeek: Long = 120000L,
     val rememberSelections: Boolean = true,
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
-    val playerVideoZoom: VideoZoom = VideoZoom.BEST_FIT,
+    val playerVideoZoom: VideoContentScale = VideoContentScale.BEST_FIT,
     val defaultPlaybackSpeed: Float = 1.0f,
     val controllerAutoHideTimeout: Int = 2,
     val seekIncrement: Int = 10,
@@ -34,7 +33,6 @@ data class PlayerPreferences(
     val pauseOnHeadsetDisconnect: Boolean = true,
     val requireAudioFocus: Boolean = true,
     val showSystemVolumePanel: Boolean = true,
-    val shouldUseVolumeBoost: Boolean = false,
 
     // Subtitle Preferences
     val useSystemCaptionStyle: Boolean = false,

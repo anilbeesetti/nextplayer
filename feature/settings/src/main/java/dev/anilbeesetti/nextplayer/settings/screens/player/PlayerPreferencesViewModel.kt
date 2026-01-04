@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
-import dev.anilbeesetti.nextplayer.core.model.FastSeek
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
@@ -58,14 +57,6 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateFastSeek(fastSeek: FastSeek) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(fastSeek = fastSeek)
-            }
-        }
-    }
-
     fun toggleUseLongPressControls() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -83,16 +74,6 @@ class PlayerPreferencesViewModel @Inject constructor(
                     } else {
                         DoubleTapGesture.NONE
                     },
-                )
-            }
-        }
-    }
-
-    fun toggleFastSeek() {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(
-                    fastSeek = if (it.fastSeek == FastSeek.DISABLE) FastSeek.AUTO else FastSeek.DISABLE,
                 )
             }
         }
@@ -216,7 +197,6 @@ data class PlayerPreferencesUIState(
 sealed interface PlayerPreferenceDialog {
     object ResumeDialog : PlayerPreferenceDialog
     object DoubleTapDialog : PlayerPreferenceDialog
-    object FastSeekDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object ControlButtonsDialog : PlayerPreferenceDialog
     object PlaybackSpeedDialog : PlayerPreferenceDialog
