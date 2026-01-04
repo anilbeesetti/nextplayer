@@ -53,6 +53,7 @@ fun VideoItem(
     modifier: Modifier = Modifier,
     index: Int = 0,
     count: Int = 1,
+    selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
 ) {
@@ -64,6 +65,7 @@ fun VideoItem(
             modifier = modifier,
             index = index,
             count = count,
+            selected = selected,
             onClick = onClick,
             onLongClick = onLongClick,
         )
@@ -89,11 +91,13 @@ private fun VideoListItem(
     modifier: Modifier = Modifier,
     index: Int = 0,
     count: Int = 1,
+    selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
 ) {
     NextSegmentedListItem(
         modifier = modifier,
+        selected = selected,
         contentPadding = PaddingValues(8.dp),
         colors = ListItemDefaults.segmentedColors(
             contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
@@ -106,6 +110,7 @@ private fun VideoListItem(
             } else {
                 ListItemDefaults.colors().supportingContentColor
             },
+            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
         ),
         index = index,
         count = count,

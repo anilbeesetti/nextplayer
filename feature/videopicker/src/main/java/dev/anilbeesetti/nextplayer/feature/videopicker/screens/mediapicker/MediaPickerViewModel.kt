@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediaFolder
+package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
 import android.net.Uri
 import androidx.compose.runtime.Stable
@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class MediaPickerFolderViewModel @Inject constructor(
+class MediaPickerViewModel @Inject constructor(
     getSortedMediaUseCase: GetSortedMediaUseCase,
     savedStateHandle: SavedStateHandle,
     private val mediaService: MediaService,
@@ -39,8 +39,8 @@ class MediaPickerFolderViewModel @Inject constructor(
     val folderPath = folderArgs.folderId
 
     private val uiStateInternal = MutableStateFlow(
-        MediaPickerFolderUiState(
-            folderName = File(folderPath).prettyName,
+        MediaPickerUiState(
+            folderName = folderPath?.let { File(folderPath).prettyName },
         ),
     )
     val uiState = uiStateInternal.asStateFlow()
@@ -67,19 +67,38 @@ class MediaPickerFolderViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: MediaPickerFolderUiEvent) {
+    fun onEvent(event: MediaPickerUiEvent) {
         when (event) {
-            is MediaPickerFolderUiEvent.DeleteFolders -> deleteFolders(event.folders)
-            is MediaPickerFolderUiEvent.DeleteVideos -> deleteVideos(event.videos)
-            is MediaPickerFolderUiEvent.Refresh -> refresh()
-            is MediaPickerFolderUiEvent.RenameVideo -> renameVideo(event.uri, event.to)
-            is MediaPickerFolderUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
+            is MediaPickerUiEvent.DeleteFolders -> deleteFolders(event.folders)
+            is MediaPickerUiEvent.DeleteVideos -> deleteVideos(event.videos)
+            is MediaPickerUiEvent.ShareVideos -> shareVideos(event.videos)
+            is MediaPickerUiEvent.Refresh -> refresh()
+            is MediaPickerUiEvent.RenameVideo -> renameVideo(event.uri, event.to)
+            is MediaPickerUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
+            is MediaPickerUiEvent.UpdateMenu -> updateMenu(event.preferences)
+        }
+    }
+
+    private fun deleteFolders(folders: List<Folder>) {
+        viewModelScope.launch {
+            val uris = folders.flatMap { folder ->
+                folder.allMediaList.map { video ->
+                    video.uriString.toUri()
+                }
+            }
+            mediaService.deleteMedia(uris)
         }
     }
 
     private fun deleteVideos(uris: List<String>) {
         viewModelScope.launch {
             mediaService.deleteMedia(uris.map { it.toUri() })
+        }
+    }
+
+    private fun shareVideos(uris: List<String>) {
+        viewModelScope.launch {
+            mediaService.shareMedia(uris.map { it.toUri() })
         }
     }
 
@@ -95,17 +114,6 @@ class MediaPickerFolderViewModel @Inject constructor(
         }
     }
 
-    private fun deleteFolders(folders: List<Folder>) {
-        viewModelScope.launch {
-            val uris = folders.flatMap { folder ->
-                folder.allMediaList.map { video ->
-                    video.uriString.toUri()
-                }
-            }
-            mediaService.deleteMedia(uris)
-        }
-    }
-
     private fun refresh() {
         viewModelScope.launch {
             uiStateInternal.update { it.copy(refreshing = true) }
@@ -113,20 +121,28 @@ class MediaPickerFolderViewModel @Inject constructor(
             uiStateInternal.update { it.copy(refreshing = false) }
         }
     }
+
+    private fun updateMenu(preferences: ApplicationPreferences) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences { preferences }
+        }
+    }
 }
 
 @Stable
-data class MediaPickerFolderUiState(
-    val folderName: String,
+data class MediaPickerUiState(
+    val folderName: String?,
     val mediaDataState: DataState<Folder?> = DataState.Loading,
     val refreshing: Boolean = false,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
 )
 
-sealed interface MediaPickerFolderUiEvent {
-    data object Refresh : MediaPickerFolderUiEvent
-    data class DeleteVideos(val videos: List<String>) : MediaPickerFolderUiEvent
-    data class RenameVideo(val uri: Uri, val to: String) : MediaPickerFolderUiEvent
-    data class DeleteFolders(val folders: List<Folder>) : MediaPickerFolderUiEvent
-    data class AddToSync(val uri: Uri) : MediaPickerFolderUiEvent
+sealed interface MediaPickerUiEvent {
+    data class DeleteVideos(val videos: List<String>) : MediaPickerUiEvent
+    data class DeleteFolders(val folders: List<Folder>) : MediaPickerUiEvent
+    data class ShareVideos(val videos: List<String>) : MediaPickerUiEvent
+    data object Refresh : MediaPickerUiEvent
+    data class RenameVideo(val uri: Uri, val to: String) : MediaPickerUiEvent
+    data class AddToSync(val uri: Uri) : MediaPickerUiEvent
+    data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerUiEvent
 }

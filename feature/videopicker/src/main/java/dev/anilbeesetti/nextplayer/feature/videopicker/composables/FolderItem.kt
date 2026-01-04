@@ -46,6 +46,7 @@ fun FolderItem(
     modifier: Modifier = Modifier,
     index: Int = 0,
     count: Int = 1,
+    selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
 ) {
@@ -55,6 +56,7 @@ fun FolderItem(
             isRecentlyPlayedFolder = isRecentlyPlayedFolder,
             preferences = preferences,
             modifier = modifier,
+            selected = selected,
             index = index,
             count = count,
             onClick = onClick,
@@ -82,11 +84,13 @@ private fun FolderListItem(
     modifier: Modifier = Modifier,
     index: Int = 0,
     count: Int = 1,
+    selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
 ) {
     NextSegmentedListItem(
         modifier = modifier,
+        selected = selected,
         contentPadding = PaddingValues(8.dp),
         colors = ListItemDefaults.segmentedColors(
             contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
@@ -99,6 +103,7 @@ private fun FolderListItem(
             } else {
                 ListItemDefaults.colors().supportingContentColor
             },
+            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
         ),
         index = index,
         count = count,
@@ -109,7 +114,7 @@ private fun FolderListItem(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                     contentDescription = "",
-                    tint = MaterialTheme.colorScheme.secondaryContainer,
+                    tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                     modifier = Modifier
                         .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
                         .aspectRatio(20 / 17f),

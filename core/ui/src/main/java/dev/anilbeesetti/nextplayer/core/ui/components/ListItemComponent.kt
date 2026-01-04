@@ -67,6 +67,7 @@ fun ListItemComponent(
 @Composable
 fun NextSegmentedListItem(
     modifier: Modifier = Modifier,
+    selected: Boolean = false,
     enabled: Boolean = true,
     index: Int = 0,
     count: Int = 1,
@@ -83,6 +84,7 @@ fun NextSegmentedListItem(
 ) {
     SegmentedListItem(
         modifier = modifier,
+        selected = selected,
         onClick = onClick,
         onLongClick = onLongClick,
         enabled = enabled,
