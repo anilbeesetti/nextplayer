@@ -54,6 +54,7 @@ fun NextCenterAlignedTopAppBar(
 @Composable
 fun NextTopAppBar(
     title: String,
+    fontWeight: FontWeight? = null,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
@@ -67,6 +68,7 @@ fun NextTopAppBar(
                 text = title,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                fontWeight = fontWeight
             )
         },
         navigationIcon = navigationIcon,

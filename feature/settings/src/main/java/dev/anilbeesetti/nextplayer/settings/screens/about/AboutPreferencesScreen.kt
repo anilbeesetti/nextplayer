@@ -45,7 +45,6 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipEntry
@@ -58,7 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmapOrNull
+import dev.anilbeesetti.nextplayer.core.common.extensions.appIcon
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
@@ -171,7 +170,7 @@ fun AboutApp(
 ) {
     val context = LocalContext.current
     val appVersion = remember { context.appVersion() }
-    val appIcon = remember { context.appIcon() }
+    val appIcon = remember { context.appIcon()?.asImageBitmap() }
 
     val colorPrimary = MaterialTheme.colorScheme.primaryContainer
     val colorTertiary = MaterialTheme.colorScheme.tertiaryContainer
@@ -312,10 +311,6 @@ private fun Context.appVersion(): String {
     }
 
     return "${packageInfo.versionName} ($versionCode)"
-}
-
-private fun Context.appIcon(): ImageBitmap? {
-    return packageManager.getApplicationInfo(packageName, 0).loadIcon(packageManager)?.toBitmapOrNull()?.asImageBitmap()
 }
 
 internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {
