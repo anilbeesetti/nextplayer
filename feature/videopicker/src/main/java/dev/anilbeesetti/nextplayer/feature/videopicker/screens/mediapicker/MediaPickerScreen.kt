@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -136,14 +137,27 @@ internal fun MediaPickerScreen(
         topBar = {
             Column {
                 NextTopAppBar(
-                    title = uiState.folderName ?: stringResource(R.string.app_name),
+                    title = (uiState.folderName ?: stringResource(R.string.app_name)).takeIf { !selectionManager.isInSelectionMode } ?: "",
                     fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
                     navigationIcon = {
                         if (selectionManager.isInSelectionMode) {
-                            FilledTonalIconButton(onClick = { selectionManager.clearSelection() }) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                                    .clickable { selectionManager.clearSelection() }
+                                    .padding(8.dp)
+                                    .padding(end = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                                 Icon(
                                     imageVector = NextIcons.Close,
                                     contentDescription = stringResource(id = R.string.navigate_up),
+                                )
+                                Text(
+                                    text = selectionManager.selectedVideos.size.toString(),
+                                    style = MaterialTheme.typography.bodyMediumEmphasized
                                 )
                             }
                         } else if (uiState.folderName != null) {
@@ -156,6 +170,7 @@ internal fun MediaPickerScreen(
                         }
                     },
                     actions = {
+                        if (selectionManager.isInSelectionMode) return@NextTopAppBar
                         IconButton(onClick = { showQuickSettingsDialog = true }) {
                             Icon(
                                 imageVector = NextIcons.DashBoard,
