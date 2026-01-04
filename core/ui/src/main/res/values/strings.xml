@@ -144,7 +144,6 @@
     <string name="delete">Delete</string>
     <string name="delete_file">The following file will be deleted permanently</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
-    <string name="delete_folder">All video files in the following folder will be deleted permanently.</string>
     <string name="fast_playback_speed">%.1fx speed</string>
     <string name="long_press_gesture">Long press gesture</string>
     <string name="long_press_gesture_desc">Long press to play at %.1fx speed</string>
@@ -232,4 +231,11 @@
     <string name="info">Info</string>
     <string name="play">Play</string>
     <string name="recently_played">Recently played</string>
+    <string name="delete_one_video">Delete 1 video?</string>
+    <string name="delete_videos">Delete %1$d videos?</string>
+    <string name="delete_one_folder">Delete 1 folder?</string>
+    <string name="delete_folders">Delete %1$d folders?</string>
+    <string name="delete_items">Delete %1$d items?</string>
+    <string name="delete_item_info">This action cannot be undone. The selected item will be permanently deleted</string>
+    <string name="delete_items_info">This action cannot be undone. The selected items will be permanently deleted</string>
 </resources>

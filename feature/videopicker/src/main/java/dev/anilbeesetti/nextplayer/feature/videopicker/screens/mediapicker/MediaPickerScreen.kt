@@ -36,10 +36,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -68,6 +68,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
+import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -88,10 +89,12 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.ShowRenameDialog
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.ShowVideoInfoDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.rememberSelectionManager
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoInfoDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectedFolder
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectedVideo
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
 @Composable
 fun MediaPickerRoute(
@@ -137,6 +140,7 @@ internal fun MediaPickerScreen(
 
     var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showInfoActionFor: Video? by rememberSaveable { mutableStateOf(null) }
+    var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -160,7 +164,7 @@ internal fun MediaPickerScreen(
                                 contentDescription = stringResource(id = R.string.navigate_up),
                             )
                             Text(
-                                text = selectionManager.selectedVideos.size.toString(),
+                                text = (selectionManager.selectedFolders.size + selectionManager.selectedVideos.size).toString(),
                                 style = MaterialTheme.typography.bodyMediumEmphasized,
                             )
                         }
@@ -196,28 +200,32 @@ internal fun MediaPickerScreen(
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
                 onPlayAction = {
-                    val videoUris = selectionManager.selectedVideos.map { it.toUri() }
+                    val videoUris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
                     onPlayVideos(videoUris)
                     selectionManager.clearSelection()
                 },
                 onRenameAction = {
-                    val videoUri = selectionManager.selectedVideos.firstOrNull() ?: return@SelectionActionsSheet
+                    val selectedVideo = selectionManager.selectedVideos.firstOrNull() ?: return@SelectionActionsSheet
                     val video = (uiState.mediaDataState as? DataState.Success)?.value?.mediaList
-                        ?.find { it.uriString == videoUri } ?: return@SelectionActionsSheet
+                        ?.find { it.uriString == selectedVideo.uriString } ?: return@SelectionActionsSheet
                     showRenameActionFor = video
                 },
                 onInfoAction = {
-                    val videoUri = selectionManager.selectedVideos.firstOrNull() ?: return@SelectionActionsSheet
+                    val selectedVideo = selectionManager.selectedVideos.firstOrNull() ?: return@SelectionActionsSheet
                     val video = (uiState.mediaDataState as? DataState.Success)?.value?.mediaList
-                        ?.find { it.uriString == videoUri } ?: return@SelectionActionsSheet
+                        ?.find { it.uriString == selectedVideo.uriString } ?: return@SelectionActionsSheet
                     showInfoActionFor = video
                     selectionManager.clearSelection()
                 },
                 onShareAction = {
-                    onEvent(MediaPickerUiEvent.ShareVideos(selectionManager.selectedVideos.toList()))
+                    onEvent(MediaPickerUiEvent.ShareVideos(selectionManager.allSelectedVideos.map { it.uriString }))
                 },
                 onDeleteAction = {
-                    onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.selectedVideos.toList()))
+                    if (MediaService.willSystemAsksForDeleteConfirmation()) {
+                        onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
+                    } else {
+                        showDeleteVideosConfirmation = true
+                    }
                 },
             )
         },
@@ -324,10 +332,7 @@ internal fun MediaPickerScreen(
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
                             contentPadding = scaffoldPadding.copy(top = 0.dp),
-                            onDeleteFolderClick = { onEvent(MediaPickerUiEvent.DeleteFolders(listOf(it))) },
-                            onDeleteVideoClick = { onEvent(MediaPickerUiEvent.DeleteVideos(listOf(it))) },
                             onVideoLoaded = { onEvent(MediaPickerUiEvent.AddToSync(it)) },
-                            onRenameVideoClick = { uri, to -> onEvent(MediaPickerUiEvent.RenameVideo(uri, to)) },
                         )
                     }
                 }
@@ -371,7 +376,7 @@ internal fun MediaPickerScreen(
     }
 
     showRenameActionFor?.let { video ->
-        ShowRenameDialog(
+        RenameDialog(
             name = video.displayName,
             onDismiss = { showRenameActionFor = null },
             onDone = {
@@ -383,11 +388,73 @@ internal fun MediaPickerScreen(
     }
 
     showInfoActionFor?.let { video ->
-        ShowVideoInfoDialog(
+        VideoInfoDialog(
             video = video,
             onDismiss = { showInfoActionFor = null },
         )
     }
+
+    if (showDeleteVideosConfirmation) {
+        DeleteConfirmationDialog(
+            selectedVideos = selectionManager.selectedVideos,
+            selectedFolders = selectionManager.selectedFolders,
+            onConfirm = {
+                onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
+                selectionManager.clearSelection()
+                showDeleteVideosConfirmation = false
+            },
+            onCancel = { showDeleteVideosConfirmation = false },
+        )
+    }
+}
+
+@Composable
+private fun DeleteConfirmationDialog(
+    modifier: Modifier = Modifier,
+    selectedVideos: Set<SelectedVideo>,
+    selectedFolders: Set<SelectedFolder>,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    NextDialog(
+        onDismissRequest = onCancel,
+        title = {
+            Text(
+                text = when {
+                    selectedVideos.isEmpty() -> when (selectedFolders.size) {
+                        1 -> stringResource(R.string.delete_one_folder)
+                        else -> stringResource(R.string.delete_folders, selectedFolders.size)
+                    }
+                    selectedFolders.isEmpty() -> when (selectedVideos.size) {
+                        1 -> stringResource(R.string.delete_one_video)
+                        else -> stringResource(R.string.delete_videos, selectedVideos.size)
+                    }
+                    else -> stringResource(R.string.delete_items, selectedFolders.size + selectedVideos.size)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                modifier = modifier,
+            ) {
+                Text(text = stringResource(R.string.delete))
+            }
+        },
+        dismissButton = { CancelButton(onClick = onCancel) },
+        modifier = modifier,
+        content = {
+            Text(
+                text = if ((selectedFolders.size + selectedVideos.size) == 1) {
+                    stringResource(R.string.delete_item_info)
+                } else {
+                    stringResource(R.string.delete_items_info)
+                },
+                style = MaterialTheme.typography.titleSmall,
+            )
+        },
+    )
 }
 
 @Composable
@@ -417,33 +484,6 @@ private fun NetworkUrlDialog(
         },
         dismissButton = { CancelButton(onClick = onDismiss) },
     )
-}
-
-@Composable
-private fun ShortcutChipButton(
-    text: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-            .clip(CircleShape)
-            .clickable { onClick() }
-            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.secondary,
-        )
-        Text(text = text, style = MaterialTheme.typography.labelLarge)
-    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

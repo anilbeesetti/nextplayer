@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,13 +27,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
-import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
@@ -69,50 +63,6 @@ fun NoVideosFound() {
             style = MaterialTheme.typography.titleLarge,
         )
     }
-}
-
-@Composable
-fun DeleteConfirmationDialog(
-    subText: String,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
-    fileNames: List<String>,
-    modifier: Modifier = Modifier,
-) {
-    NextDialog(
-        onDismissRequest = onCancel,
-        title = { Text(text = stringResource(R.string.delete), modifier = Modifier.fillMaxWidth()) },
-        confirmButton = { DoneButton(onClick = onConfirm) },
-        dismissButton = { CancelButton(onClick = onCancel) },
-        modifier = modifier,
-        content = {
-            Text(
-                text = subText,
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            LazyColumn {
-                items(fileNames) {
-                    Text(
-                        text = it,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
-            }
-        },
-    )
-}
-
-@Preview
-@Composable
-fun DeleteDialogPreview() {
-    DeleteConfirmationDialog(
-        subText = "The following files will be deleted permanently",
-        onConfirm = { /*TODO*/ },
-        onCancel = { /*TODO*/ },
-        fileNames = listOf("Harry potter 1", "Harry potter 2", "Harry potter 3", "Harry potter 4"),
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
