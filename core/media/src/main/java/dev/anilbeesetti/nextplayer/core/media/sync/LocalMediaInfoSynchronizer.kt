@@ -37,39 +37,35 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher,
 ) : MediaInfoSynchronizer {
 
-    private val media = MutableSharedFlow<Uri>()
-
-    override suspend fun addMedia(uri: Uri) = media.emit(uri)
-
-    private suspend fun sync(): Unit = withContext(dispatcher) {
-        media.collect { mediumUri ->
-            val medium = mediumDao.getWithInfo(mediumUri.toString()) ?: return@collect
+    override fun sync(uri: Uri){
+        applicationScope.launch(dispatcher) {
+            val medium = mediumDao.getWithInfo(uri.toString()) ?: return@launch
             if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
-                return@collect
+                return@launch
             }
 
             val mediaInfo = runCatching {
-                MediaInfoBuilder().from(context = context, uri = mediumUri).build() ?: throw NullPointerException()
+                MediaInfoBuilder().from(context = context, uri = uri).build() ?: throw NullPointerException()
             }.onFailure { e ->
                 e.printStackTrace()
                 Log.d(TAG, "sync: MediaInfoBuilder exception", e)
-            }.getOrNull() ?: return@collect
+            }.getOrNull() ?: return@launch
 
             val mediaMetadataRetriever = MediaMetadataRetriever().apply {
-                setDataSource(context, mediumUri)
+                setDataSource(context, uri)
             }
 
             val thumbnail = runCatching {
-                    listOf(
-                        ".jpg",
-                        ".jpeg",
-                        ".png",
-                    ).firstOrNull { imageExtension ->
-                        File(medium.mediumEntity.path.substringBeforeLast(".") + ".${imageExtension}").exists()
-                    }?.let {
-                        BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".${it}")
-                    }
-                }.getOrNull()
+                listOf(
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                ).firstOrNull { imageExtension ->
+                    File(medium.mediumEntity.path.substringBeforeLast(".") + ".${imageExtension}").exists()
+                }?.let {
+                    BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".${it}")
+                }
+            }.getOrNull()
                 ?: runCatching { mediaMetadataRetriever.embeddedPicture?.toBitmap() }.getOrNull()
                 ?: runCatching { mediaMetadataRetriever.getFrameAtTime(0) }.getOrNull()
                 ?: runCatching { mediaInfo.getFrame() }.getOrNull()
@@ -99,10 +95,6 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
             subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }
         }
-    }
-
-    init {
-        applicationScope.launch { sync() }
     }
 
     companion object {
