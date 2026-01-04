@@ -12,7 +12,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteMedia
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath

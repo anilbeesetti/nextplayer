@@ -46,7 +46,7 @@ fun NextCenterAlignedTopAppBar(
         colors = colors,
         modifier = modifier,
         scrollBehavior = scrollBehavior,
-        contentPadding = PaddingValues(horizontal = 8.dp)
+        contentPadding = PaddingValues(horizontal = 8.dp),
     )
 }
 
@@ -68,7 +68,7 @@ fun NextTopAppBar(
                 text = title,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = fontWeight
+                fontWeight = fontWeight,
             )
         },
         navigationIcon = navigationIcon,

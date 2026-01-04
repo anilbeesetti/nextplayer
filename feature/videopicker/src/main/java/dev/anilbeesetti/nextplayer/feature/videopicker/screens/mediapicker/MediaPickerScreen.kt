@@ -27,12 +27,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -155,7 +153,7 @@ internal fun MediaPickerScreen(
                                 .padding(8.dp)
                                 .padding(end = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Icon(
                                 imageVector = NextIcons.Close,
@@ -163,7 +161,7 @@ internal fun MediaPickerScreen(
                             )
                             Text(
                                 text = selectionManager.selectedVideos.size.toString(),
-                                style = MaterialTheme.typography.bodyMediumEmphasized
+                                style = MaterialTheme.typography.bodyMediumEmphasized,
                             )
                         }
                     } else if (uiState.folderName != null) {
@@ -260,7 +258,7 @@ internal fun MediaPickerScreen(
                     },
                     text = {
                         Text(text = stringResource(id = R.string.open_network_stream))
-                    }
+                    },
                 )
                 FloatingActionButtonMenuItem(
                     onClick = {
@@ -275,7 +273,7 @@ internal fun MediaPickerScreen(
                     },
                     text = {
                         Text(text = stringResource(id = R.string.open_local_video))
-                    }
+                    },
                 )
                 FloatingActionButtonMenuItem(
                     onClick = {
@@ -292,7 +290,7 @@ internal fun MediaPickerScreen(
                     },
                     text = {
                         Text(text = stringResource(id = R.string.recently_played))
-                    }
+                    },
                 )
             }
         },
@@ -300,7 +298,6 @@ internal fun MediaPickerScreen(
     ) { scaffoldPadding ->
         when (uiState.mediaDataState) {
             is DataState.Error -> {
-
             }
 
             is DataState.Loading -> {
@@ -438,7 +435,7 @@ private fun ShortcutChipButton(
             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp),
 
-        ) {
+    ) {
         Icon(
             imageVector = icon,
             contentDescription = null,

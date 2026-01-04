@@ -32,7 +32,7 @@ fun NavGraphBuilder.mediaNavGraph(
                 context.startActivity(intent)
             },
             onFolderClick = navController::navigateToMediaPickerScreen,
-            onSettingsClick = navController::navigateToSettings
+            onSettingsClick = navController::navigateToSettings,
         )
     }
 }
