@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +35,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.ListItemComponent
+import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
@@ -42,6 +44,10 @@ fun FolderItem(
     isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
     when (preferences.mediaLayoutMode) {
         MediaLayoutMode.LIST -> FolderListItem(
@@ -49,39 +55,57 @@ fun FolderItem(
             isRecentlyPlayedFolder = isRecentlyPlayedFolder,
             preferences = preferences,
             modifier = modifier,
+            index = index,
+            count = count,
+            onClick = onClick,
+            onLongClick = onLongClick,
         )
         MediaLayoutMode.GRID -> FolderGridItem(
             folder = folder,
             isRecentlyPlayedFolder = isRecentlyPlayedFolder,
             preferences = preferences,
             modifier = modifier,
+            index = index,
+            count = count,
+            onClick = onClick,
+            onLongClick = onLongClick,
         )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FolderListItem(
     folder: Folder,
     isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
-    ListItemComponent(
-        colors = ListItemDefaults.colors(
-            headlineColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+    NextSegmentedListItem(
+        modifier = modifier,
+        contentPadding = PaddingValues(8.dp),
+        colors = ListItemDefaults.segmentedColors(
+            contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
-                ListItemDefaults.colors().headlineColor
+                ListItemDefaults.colors().contentColor
             },
-            supportingColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
-                ListItemDefaults.colors().supportingTextColor
+                ListItemDefaults.colors().supportingContentColor
             },
         ),
+        index = index,
+        count = count,
+        onClick = onClick,
+        onLongClick = onLongClick,
         leadingContent = {
-            Box {
+            Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                     contentDescription = "",
@@ -105,7 +129,7 @@ private fun FolderListItem(
                 }
             }
         },
-        headlineContent = {
+        content = {
             Text(
                 text = folder.name,
                 maxLines = 2,
@@ -114,125 +138,153 @@ private fun FolderListItem(
             )
         },
         supportingContent = {
-            if (preferences.showPathField) {
-                Text(
-                    text = folder.path.substringBeforeLast("/"),
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-            }
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                if (folder.mediaList.isNotEmpty()) {
-                    InfoChip(
-                        text = "${folder.mediaList.size} " +
-                            stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+            Column {
+                if (preferences.showPathField) {
+                    Text(
+                        text = folder.path.substringBeforeLast("/"),
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(vertical = 2.dp),
                     )
                 }
-                if (folder.folderList.isNotEmpty()) {
-                    InfoChip(
-                        text = "${folder.folderList.size} " +
-                            stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
-                    )
-                }
-                if (preferences.showSizeField) {
-                    InfoChip(text = Utils.formatFileSize(folder.mediaSize))
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    if (folder.mediaList.isNotEmpty()) {
+                        InfoChip(
+                            text = "${folder.mediaList.size} " +
+                                stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+                        )
+                    }
+                    if (folder.folderList.isNotEmpty()) {
+                        InfoChip(
+                            text = "${folder.folderList.size} " +
+                                stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
+                        )
+                    }
+                    if (preferences.showSizeField) {
+                        InfoChip(text = Utils.formatFileSize(folder.mediaSize))
+                    }
                 }
             }
         },
-        modifier = modifier,
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FolderGridItem(
     folder: Folder,
     isRecentlyPlayedFolder: Boolean,
     preferences: ApplicationPreferences,
     modifier: Modifier = Modifier,
+    index: Int = 0,
+    count: Int = 1,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
-    Column(
+    NextSegmentedListItem(
         modifier = modifier.width(IntrinsicSize.Min),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier
-                    .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
-                    .aspectRatio(20 / 17f),
-            )
-
-            if (preferences.showDurationField) {
-                InfoChip(
-                    text = Utils.formatDurationMillis(folder.mediaDuration),
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .padding(bottom = 3.dp)
-                        .align(Alignment.BottomEnd),
-                    backgroundColor = Color.Black.copy(alpha = 0.6f),
-                    contentColor = Color.White,
-                    shape = MaterialTheme.shapes.extraSmall,
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = folder.name,
-                maxLines = 2,
-                style = MaterialTheme.typography.titleMedium,
-                overflow = TextOverflow.Ellipsis,
-                color = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    ListItemDefaults.colors().headlineColor
-                },
-                textAlign = TextAlign.Center,
-            )
-            val mediaCount = if (folder.mediaList.isNotEmpty()) {
-                "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
+        contentPadding = PaddingValues(8.dp),
+        colors = ListItemDefaults.segmentedColors(
+            contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
             } else {
-                null
-            }
-            val folderCount = if (folder.folderList.isNotEmpty()) {
-                "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
+                ListItemDefaults.segmentedColors().contentColor
+            },
+            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                MaterialTheme.colorScheme.primary
             } else {
-                null
-            }
+                ListItemDefaults.colors().supportingContentColor
+            },
+        ),
+        index = index,
+        count = count,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        content = {
+            Column(
+                modifier = modifier.width(IntrinsicSize.Min),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier
+                            .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
+                            .aspectRatio(20 / 17f),
+                    )
 
-            Text(
-                text = buildString {
-                    mediaCount?.let {
-                        append(it)
-                        folderCount?.let {
-                            append(", ")
-                            append("\u00A0")
-                        }
+                    if (preferences.showDurationField) {
+                        InfoChip(
+                            text = Utils.formatDurationMillis(folder.mediaDuration),
+                            modifier = Modifier
+                                .padding(5.dp)
+                                .padding(bottom = 3.dp)
+                                .align(Alignment.BottomEnd),
+                            backgroundColor = Color.Black.copy(alpha = 0.6f),
+                            contentColor = Color.White,
+                            shape = MaterialTheme.shapes.extraSmall,
+                        )
                     }
-                    folderCount?.let {
-                        append(it)
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = folder.name,
+                        maxLines = 2,
+                        style = MaterialTheme.typography.titleMedium,
+                        overflow = TextOverflow.Ellipsis,
+                        color = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            ListItemDefaults.colors().headlineColor
+                        },
+                        textAlign = TextAlign.Center,
+                    )
+                    val mediaCount = if (folder.mediaList.isNotEmpty()) {
+                        "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
+                    } else {
+                        null
                     }
-                },
-                maxLines = 2,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
+                    val folderCount = if (folder.folderList.isNotEmpty()) {
+                        "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
+                    } else {
+                        null
+                    }
+
+                    Text(
+                        text = buildString {
+                            mediaCount?.let {
+                                append(it)
+                                folderCount?.let {
+                                    append(", ")
+                                    append("\u00A0")
+                                }
+                            }
+                            folderCount?.let {
+                                append(it)
+                            }
+                        },
+                        maxLines = 2,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        },
+    )
 }
 
 @PreviewLightDark

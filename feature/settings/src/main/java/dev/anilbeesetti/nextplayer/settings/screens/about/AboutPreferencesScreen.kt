@@ -14,17 +14,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,12 +27,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,7 +48,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
@@ -66,9 +61,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmapOrNull
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
+import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.settings.composables.PreferenceSubtitle
 import kotlinx.coroutines.launch
 
 private const val GITHUB_URL = "https://github.com/anilbeesetti/nextplayer"
@@ -76,30 +71,23 @@ private const val KOFI_URL = "https://ko-fi.com/anilbeesetti"
 private const val PAYPAL_URL = "https://paypal.me/AnilBeesetti"
 private const val UPI_ID = "anilbeesetti10@oksbi"
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AboutPreferencesScreen(
     onLibrariesClick: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    val scrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        modifier = Modifier
-            .nestedScroll(scrollBehaviour.nestedScrollConnection),
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.about_name),
-                scrollBehavior = scrollBehaviour,
                 navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateUp,
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start)),
-                    ) {
+                    FilledTonalIconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -108,13 +96,14 @@ fun AboutPreferencesScreen(
                 },
             )
         },
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 16.dp),
         ) {
             AboutApp(
                 onGithubClick = {
@@ -125,42 +114,51 @@ fun AboutPreferencesScreen(
                 },
                 onLibrariesClick = onLibrariesClick,
             )
-            PreferenceSubtitle(text = stringResource(id = R.string.donate))
-            ClickablePreferenceItem(
-                title = stringResource(R.string.kofi),
-                description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
-                icon = ImageVector.vectorResource(R.drawable.ic_kofi),
-                onClick = {
-                    uriHandler.openUriOrShowToast(
-                        uri = KOFI_URL,
-                        context = context,
-                    )
-                },
-            )
-
-            ClickablePreferenceItem(
-                title = stringResource(R.string.paypal),
-                description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
-                icon = ImageVector.vectorResource(R.drawable.ic_paypal),
-                onClick = {
-                    uriHandler.openUriOrShowToast(
-                        uri = PAYPAL_URL,
-                        context = context,
-                    )
-                },
-            )
-
-            ClickablePreferenceItem(
-                title = stringResource(R.string.upi),
-                description = UPI_ID,
-                icon = ImageVector.vectorResource(R.drawable.ic_upi),
-                onClick = {
-                    scope.launch {
-                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                        Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
-                    }
-                },
-            )
+            ListSectionTitle(text = stringResource(id = R.string.donate))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                val totalRows = 3
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.kofi),
+                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
+                    icon = ImageVector.vectorResource(R.drawable.ic_kofi),
+                    onClick = {
+                        uriHandler.openUriOrShowToast(
+                            uri = KOFI_URL,
+                            context = context,
+                        )
+                    },
+                    index = 0,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.paypal),
+                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
+                    icon = ImageVector.vectorResource(R.drawable.ic_paypal),
+                    onClick = {
+                        uriHandler.openUriOrShowToast(
+                            uri = PAYPAL_URL,
+                            context = context,
+                        )
+                    },
+                    index = 1,
+                    count = totalRows,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.upi),
+                    description = UPI_ID,
+                    icon = ImageVector.vectorResource(R.drawable.ic_upi),
+                    onClick = {
+                        scope.launch {
+                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
+                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    index = 2,
+                    count = totalRows,
+                )
+            }
         }
     }
 }
@@ -191,7 +189,10 @@ fun AboutApp(
 
     Column(
         modifier = modifier
-            .padding(all = 16.dp)
+            .padding(
+                vertical = 16.dp,
+                horizontal = 8.dp,
+            )
             .drawWithCache {
                 val cx = size.width - size.width * fraction
                 val cy = size.height * fraction

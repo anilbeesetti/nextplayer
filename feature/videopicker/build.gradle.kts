@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
@@ -19,8 +21,10 @@ android {
         targetCompatibility = JavaVersion.toVersion(libs.versions.android.jvm.get().toInt())
     }
 
-    kotlinOptions {
-        jvmTarget = libs.versions.android.jvm.get()
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))
+        }
     }
 
     buildFeatures {
@@ -46,6 +50,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.icons)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -56,6 +61,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    ksp(libs.kotlin.metadata.jvm)
     kspAndroidTest(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 

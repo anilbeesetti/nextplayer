@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -27,18 +26,18 @@ fun PreferenceSwitchWithDivider(
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
     onChecked: () -> Unit = {},
+    index: Int = 0,
+    count: Int = 1,
 ) {
     PreferenceItem(
         title = title,
         description = description,
         icon = icon,
-        modifier = Modifier
-            .clickable(
-                enabled = enabled,
-                onClick = onClick,
-            ),
+        onClick = onClick,
         enabled = enabled,
-        content = {
+        index = index,
+        count = count,
+        trailingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -96,7 +95,7 @@ fun PreferenceCheckbox(
                 onLongClick = onLongClick,
             ),
         enabled = enabled,
-        content = {
+        trailingContent = {
             Checkbox(
                 checked = isChecked,
                 onCheckedChange = null,

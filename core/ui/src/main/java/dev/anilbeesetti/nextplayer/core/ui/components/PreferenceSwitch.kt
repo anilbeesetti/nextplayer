@@ -1,8 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -15,18 +13,18 @@ fun PreferenceSwitch(
     enabled: Boolean = true,
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
+    index: Int = 0,
+    count: Int = 1,
 ) {
     PreferenceItem(
         title = title,
         description = description,
         icon = icon,
-        modifier = Modifier.toggleable(
-            value = isChecked,
-            enabled = enabled,
-            onValueChange = { onClick() },
-        ),
         enabled = enabled,
-        content = {
+        onClick = onClick,
+        index = index,
+        count = count,
+        trailingContent = {
             NextSwitch(
                 checked = isChecked,
                 onCheckedChange = null,

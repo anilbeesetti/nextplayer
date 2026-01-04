@@ -12,29 +12,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,6 +45,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -66,19 +61,22 @@ import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextCenterAlignedTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.MediaState
 
 const val CIRCULAR_PROGRESS_INDICATOR_TEST_TAG = "circularProgressIndicator"
 
@@ -89,46 +87,27 @@ fun MediaPickerRoute(
     onFolderClick: (folderPath: String) -> Unit,
     viewModel: MediaPickerViewModel = hiltViewModel(),
 ) {
-    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val mediaState by viewModel.mediaState.collectAsStateWithLifecycle()
-
-    val permissionState = rememberPermissionState(permission = storagePermission)
 
     MediaPickerScreen(
-        mediaState = mediaState,
-        preferences = preferences,
-        isRefreshing = uiState.refreshing,
-        permissionState = permissionState,
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
         onPlayVideo = onPlayVideo,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
-        updatePreferences = viewModel::updateMenu,
-        onDeleteVideoClick = { viewModel.deleteVideos(listOf(it)) },
-        onDeleteFolderClick = { viewModel.deleteFolders(listOf(it)) },
-        onAddToSync = viewModel::addToMediaInfoSynchronizer,
-        onRenameVideoClick = viewModel::renameVideo,
-        onRefreshClicked = viewModel::onRefreshClicked,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MediaPickerScreen(
-    mediaState: MediaState,
-    preferences: ApplicationPreferences,
-    isRefreshing: Boolean = false,
-    permissionState: PermissionState = GrantedPermissionState,
+    uiState: MediaPickerUiState,
+    onEvent: (MediaPickerUiEvent) -> Unit = {},
     onPlayVideo: (uri: Uri) -> Unit = {},
     onFolderClick: (folderPath: String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    updatePreferences: (ApplicationPreferences) -> Unit = {},
-    onDeleteVideoClick: (String) -> Unit,
-    onRenameVideoClick: (Uri, String) -> Unit = { _, _ -> },
-    onDeleteFolderClick: (Folder) -> Unit,
-    onAddToSync: (Uri) -> Unit = {},
-    onRefreshClicked: () -> Unit = {},
 ) {
+    val permissionState = rememberPermissionState(permission = storagePermission)
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
@@ -136,15 +115,12 @@ internal fun MediaPickerScreen(
         onResult = { it?.let(onPlayVideo) },
     )
 
-    val pullToRefreshState = rememberPullToRefreshState()
-
     Scaffold(
-        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         topBar = {
             NextCenterAlignedTopAppBar(
                 title = stringResource(id = R.string.app_name),
                 navigationIcon = {
-                    IconButton(onClick = onSettingsClick) {
+                    FilledTonalIconButton(onClick = onSettingsClick) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(id = R.string.settings),
@@ -152,7 +128,7 @@ internal fun MediaPickerScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showQuickSettingsDialog = true }) {
+                    FilledTonalIconButton(onClick = { showQuickSettingsDialog = true }) {
                         Icon(
                             imageVector = NextIcons.DashBoard,
                             contentDescription = stringResource(id = R.string.menu),
@@ -162,15 +138,13 @@ internal fun MediaPickerScreen(
             )
         },
         floatingActionButton = {
-            if (!preferences.showFloatingPlayButton) return@Scaffold
+            if (!uiState.preferences.showFloatingPlayButton) return@Scaffold
             if (!permissionState.status.isGranted) return@Scaffold
             FloatingActionButton(
                 onClick = {
-                    val state = mediaState as? MediaState.Success
-                    val videoToPlay = state?.data?.recentlyPlayedVideo ?: state?.data?.firstVideo
-                    if (videoToPlay != null) {
-                        onPlayVideo(Uri.parse(videoToPlay.uriString))
-                    }
+                    val folder = (uiState.mediaDataState as? DataState.Success)?.value ?: return@FloatingActionButton
+                    val videoToPlay = folder.recentlyPlayedVideo ?: folder.firstVideo ?: return@FloatingActionButton
+                    onPlayVideo(videoToPlay.uriString.toUri())
                 },
             ) {
                 Icon(
@@ -179,52 +153,60 @@ internal fun MediaPickerScreen(
                 )
             }
         },
-    ) { paddingValues ->
-        PullToRefreshBox(
-            modifier = Modifier.padding(paddingValues),
-            state = pullToRefreshState,
-            isRefreshing = isRefreshing,
-            onRefresh = onRefreshClicked,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    ) { scaffoldPadding ->
+        when (uiState.mediaDataState) {
+            is DataState.Error -> {}
+            is DataState.Loading -> {
+                CenterCircularProgressBar(modifier = Modifier.padding(scaffoldPadding))
+            }
+            is DataState.Success -> {
+                PullToRefreshBox(
+                    modifier = Modifier.padding(top = scaffoldPadding.calculateTopPadding()),
+                    isRefreshing = uiState.refreshing,
+                    onRefresh = { onEvent(MediaPickerUiEvent.Refresh) },
                 ) {
-                    item {
-                        ShortcutChipButton(
-                            text = stringResource(id = R.string.open_local_video),
-                            icon = NextIcons.FileOpen,
-                            onClick = { selectVideoFileLauncher.launch("video/*") },
-                        )
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp) + scaffoldPadding.copy(top = 0.dp, bottom = 0.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            item {
+                                ShortcutChipButton(
+                                    text = stringResource(id = R.string.open_local_video),
+                                    icon = NextIcons.FileOpen,
+                                    onClick = { selectVideoFileLauncher.launch("video/*") },
+                                )
+                            }
+                            item {
+                                ShortcutChipButton(
+                                    text = stringResource(id = R.string.open_network_stream),
+                                    icon = NextIcons.Link,
+                                    onClick = { showUrlDialog = true },
+                                )
+                            }
+                        }
+                        PermissionMissingView(
+                            isGranted = permissionState.status.isGranted,
+                            showRationale = permissionState.status.shouldShowRationale,
+                            permission = permissionState.permission,
+                            launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                        ) {
+                            MediaView(
+                                rootFolder = uiState.mediaDataState.value,
+                                preferences = uiState.preferences,
+                                onFolderClick = onFolderClick,
+                                onVideoClick = onPlayVideo,
+                                contentPadding = scaffoldPadding.copy(top = 0.dp),
+                                onDeleteFolderClick = { onEvent(MediaPickerUiEvent.DeleteFolders(listOf(it))) },
+                                onDeleteVideoClick = { onEvent(MediaPickerUiEvent.DeleteVideos(listOf(it))) },
+                                onRenameVideoClick = { uri, to -> onEvent(MediaPickerUiEvent.RenameVideo(uri, to)) },
+                                onVideoLoaded = { onEvent(MediaPickerUiEvent.AddToSync(it)) },
+                            )
+                        }
                     }
-                    item {
-                        ShortcutChipButton(
-                            text = stringResource(id = R.string.open_network_stream),
-                            icon = NextIcons.Link,
-                            onClick = { showUrlDialog = true },
-                        )
-                    }
-                }
-                PermissionMissingView(
-                    isGranted = permissionState.status.isGranted,
-                    showRationale = permissionState.status.shouldShowRationale,
-                    permission = permissionState.permission,
-                    launchPermissionRequest = { permissionState.launchPermissionRequest() },
-                ) {
-                    MediaView(
-                        isLoading = mediaState is MediaState.Loading,
-                        rootFolder = (mediaState as? MediaState.Success)?.data,
-                        preferences = preferences,
-                        onFolderClick = onFolderClick,
-                        onDeleteFolderClick = onDeleteFolderClick,
-                        onVideoClick = onPlayVideo,
-                        onRenameVideoClick = onRenameVideoClick,
-                        onDeleteVideoClick = onDeleteVideoClick,
-                        onVideoLoaded = onAddToSync,
-                    )
                 }
             }
         }
@@ -232,9 +214,9 @@ internal fun MediaPickerScreen(
 
     if (showQuickSettingsDialog) {
         QuickSettingsDialog(
-            applicationPreferences = preferences,
+            applicationPreferences = uiState.preferences,
             onDismiss = { showQuickSettingsDialog = false },
-            updatePreferences = updatePreferences,
+            updatePreferences = { onEvent(MediaPickerUiEvent.UpdateMenu(it)) },
         )
     }
 
@@ -312,26 +294,25 @@ fun MediaPickerScreenPreview(
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                mediaState = MediaState.Success(
-                    data = Folder(
-                        name = "Root Folder",
-                        path = "/root",
-                        dateModified = System.currentTimeMillis(),
-                        folderList = listOf(
-                            Folder(name = "Folder 1", path = "/root/folder1", dateModified = System.currentTimeMillis()),
-                            Folder(name = "Folder 2", path = "/root/folder2", dateModified = System.currentTimeMillis()),
+                uiState = MediaPickerUiState(
+                    mediaDataState = DataState.Success(
+                        value = Folder(
+                            name = "Root Folder",
+                            path = "/root",
+                            dateModified = System.currentTimeMillis(),
+                            folderList = listOf(
+                                Folder(name = "Folder 1", path = "/root/folder1", dateModified = System.currentTimeMillis()),
+                                Folder(name = "Folder 2", path = "/root/folder2", dateModified = System.currentTimeMillis()),
+                            ),
+                            mediaList = videos,
                         ),
-                        mediaList = videos,
+                    ),
+                    preferences = ApplicationPreferences().copy(
+                        mediaViewMode = MediaViewMode.FOLDER_TREE,
+                        mediaLayoutMode = MediaLayoutMode.GRID,
                     ),
                 ),
-                preferences = ApplicationPreferences().copy(
-                    mediaViewMode = MediaViewMode.FOLDER_TREE,
-                    mediaLayoutMode = MediaLayoutMode.GRID,
-                ),
-                onPlayVideo = {},
-                onFolderClick = {},
-                onDeleteVideoClick = {},
-                onDeleteFolderClick = {},
+
             )
         }
     }
@@ -355,12 +336,10 @@ fun MediaPickerNoVideosFoundPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                mediaState = MediaState.Loading,
-                preferences = ApplicationPreferences(),
-                onPlayVideo = {},
-                onFolderClick = {},
-                onDeleteVideoClick = {},
-                onDeleteFolderClick = {},
+                uiState = MediaPickerUiState(
+                    mediaDataState = DataState.Success(null),
+                    preferences = ApplicationPreferences(),
+                ),
             )
         }
     }
@@ -372,12 +351,10 @@ fun MediaPickerLoadingPreview() {
     NextPlayerTheme {
         Surface {
             MediaPickerScreen(
-                mediaState = MediaState.Loading,
-                preferences = ApplicationPreferences(),
-                onPlayVideo = {},
-                onFolderClick = {},
-                onDeleteVideoClick = {},
-                onDeleteFolderClick = {},
+                uiState = MediaPickerUiState(
+                    mediaDataState = DataState.Loading,
+                    preferences = ApplicationPreferences(),
+                ),
             )
         }
     }
