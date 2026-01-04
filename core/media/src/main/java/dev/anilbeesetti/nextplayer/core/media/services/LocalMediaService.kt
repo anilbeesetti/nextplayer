@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.media.services
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -11,6 +12,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteMedia
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
@@ -31,10 +33,51 @@ class LocalMediaService @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : MediaService {
 
+    private lateinit var activity: Activity
     private val contentResolver = context.contentResolver
     private var resultOkCallback: () -> Unit = {}
     private var resultCancelledCallback: () -> Unit = {}
     private var mediaRequestLauncher: ActivityResultLauncher<IntentSenderRequest>? = null
+
+    override fun initialize(activity: ComponentActivity) {
+        this.activity = activity
+        mediaRequestLauncher = activity.registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult(),
+        ) { result ->
+            when (result.resultCode) {
+                Activity.RESULT_OK -> resultOkCallback()
+                Activity.RESULT_CANCELED -> resultCancelledCallback()
+            }
+        }
+    }
+
+    override suspend fun deleteMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            deleteMediaR(uris)
+        } else {
+            deleteMediaBelowR(uris)
+        }
+    }
+
+    override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            renameMediaR(uri, to)
+        } else {
+            renameMediaBelowR(uri, to)
+        }
+    }
+
+    override suspend fun shareMedia(uris: List<Uri>) {
+        val intent = Intent.createChooser(
+            Intent().apply {
+                type = "video/*"
+                action = Intent.ACTION_SEND_MULTIPLE
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            },
+            null,
+        )
+        activity.startActivity(intent)
+    }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun launchWriteRequest(
@@ -59,33 +102,6 @@ class LocalMediaService @Inject constructor(
         resultCancelledCallback = onResultCanceled
         MediaStore.createDeleteRequest(contentResolver, uris).also { intent ->
             mediaRequestLauncher?.launch(IntentSenderRequest.Builder(intent).build())
-        }
-    }
-
-    override fun initialize(activity: ComponentActivity) {
-        mediaRequestLauncher = activity.registerForActivityResult(
-            ActivityResultContracts.StartIntentSenderForResult(),
-        ) { result ->
-            when (result.resultCode) {
-                Activity.RESULT_OK -> resultOkCallback()
-                Activity.RESULT_CANCELED -> resultCancelledCallback()
-            }
-        }
-    }
-
-    override suspend fun deleteMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
-        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            deleteMediaR(uris)
-        } else {
-            deleteMediaBelowR(uris)
-        }
-    }
-
-    override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
-        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            renameMediaR(uri, to)
-        } else {
-            renameMediaBelowR(uri, to)
         }
     }
 

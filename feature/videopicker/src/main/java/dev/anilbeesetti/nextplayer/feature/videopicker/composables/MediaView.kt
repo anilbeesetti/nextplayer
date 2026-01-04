@@ -4,7 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -32,23 +33,30 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onFirstVisible
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
+import androidx.compose.ui.unit.toIntRect
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -74,6 +82,7 @@ fun MediaView(
     rootFolder: Folder?,
     preferences: ApplicationPreferences,
     contentPadding: PaddingValues = PaddingValues(),
+    selectionManager: SelectionManager = rememberSelectionManager(),
     onFolderClick: (String) -> Unit,
     onDeleteFolderClick: (Folder) -> Unit,
     onVideoClick: (Uri) -> Unit,
@@ -149,16 +158,24 @@ fun MediaView(
                 key = { _, folder -> folder.path },
                 span = { _, _ -> GridItemSpan(singleFolderSpan) },
             ) { index, folder ->
+                val selected by remember { derivedStateOf { selectionManager.selectedFolders.contains(folder.path) } }
                 FolderItem(
                     folder = folder,
                     isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
                     preferences = preferences,
                     index = index,
+                    selected = selected,
                     count = rootFolder.folderList.size,
-                    onClick = { onFolderClick(folder.path) },
+                    onClick = {
+                        if (selectionManager.isInSelectionMode) {
+                            selectionManager.toggleFolderSelection(folder)
+                        } else {
+                            onFolderClick(folder.path)
+                        }
+                    },
                     onLongClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        showFolderActionsFor = folder
+                        selectionManager.toggleFolderSelection(folder)
                     },
                 )
             }
@@ -180,16 +197,24 @@ fun MediaView(
                 key = { _, video -> video.uriString },
                 span = { _, _ -> GridItemSpan(singleVideoSpan) },
             ) { index, video ->
+                val selected by remember { derivedStateOf { selectionManager.selectedVideos.contains(video.uriString) } }
                 VideoItem(
                     video = video,
                     preferences = preferences,
                     isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
                     index = index,
                     count = rootFolder.mediaList.size,
-                    onClick = { onVideoClick(video.uriString.toUri()) },
+                    selected = selected,
+                    onClick = {
+                        if (selectionManager.isInSelectionMode) {
+                            selectionManager.toggleVideoSelection(video)
+                        } else {
+                            onVideoClick(video.uriString.toUri())
+                        }
+                    },
                     onLongClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        showMediaActionsFor = video
+                        selectionManager.toggleVideoSelection(video)
                     },
                     modifier = Modifier.onFirstVisible { onVideoLoaded(video.uriString.toUri()) },
                 )
@@ -316,17 +341,6 @@ fun MediaView(
             },
         )
     }
-}
-
-@Composable
-private fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 4.dp),
-        color = MaterialTheme.colorScheme.primary,
-    )
 }
 
 @Composable
@@ -526,4 +540,69 @@ fun lcm(a: Int, b: Int): Int {
 
 fun gcd(a: Int, b: Int): Int {
     return if (b == 0) a else gcd(b, a % b)
+}
+
+@Composable
+fun rememberSelectionManager(): SelectionManager {
+    return rememberSaveable(saver = SelectionManager.Saver) {
+        SelectionManager()
+    }
+}
+
+
+@Stable
+class SelectionManager(
+    initialSelectedVideos: Set<String> = emptySet(),
+    initialSelectedFolders: Set<String> = emptySet(),
+) {
+
+    var selectedVideos: Set<String> by mutableStateOf(initialSelectedVideos)
+        private set
+
+    var selectedFolders: Set<String> by mutableStateOf(initialSelectedFolders)
+        private set
+
+    val isInSelectionMode: Boolean by derivedStateOf { selectedVideos.isNotEmpty() || selectedFolders.isNotEmpty() }
+
+    val isSingleVideoSelected: Boolean by derivedStateOf { selectedVideos.size == 1 && selectedFolders.isEmpty() }
+
+    fun toggleFolderSelection(folder: Folder) {
+        if (folder.path in selectedFolders) {
+            selectedFolders = selectedFolders - folder.path
+            selectedVideos = selectedVideos - folder.allMediaList.map { it.uriString }.toSet()
+        } else {
+            selectedFolders = selectedFolders + folder.path
+            selectedVideos = selectedVideos + folder.allMediaList.map { it.uriString }.toSet()
+        }
+    }
+
+    fun toggleVideoSelection(video: Video) {
+        if (video.uriString in selectedVideos) {
+            selectedVideos = selectedVideos - video.uriString
+        } else {
+            selectedVideos = selectedVideos + video.uriString
+        }
+    }
+
+    fun clearSelection() {
+        selectedVideos = emptySet()
+        selectedFolders = emptySet()
+    }
+
+    companion object {
+        val Saver = Saver<SelectionManager, Map<String, Set<String>>>(
+            save = {
+                mapOf(
+                    "selectedVideos" to it.selectedVideos,
+                    "selectedFolders" to it.selectedFolders,
+                )
+            },
+            restore = {
+                SelectionManager(
+                    initialSelectedVideos = it["selectedVideos"] ?: emptySet(),
+                    initialSelectedFolders = it["selectedFolders"] ?: emptySet(),
+                )
+            },
+        )
+    }
 }

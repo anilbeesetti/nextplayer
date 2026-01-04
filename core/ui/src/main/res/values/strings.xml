@@ -229,4 +229,6 @@
     <string name="media_layout">Media Layout</string>
     <string name="list">List</string>
     <string name="grid">Grid</string>
+    <string name="info">Info</string>
+    <string name="play">Play</string>
 </resources>

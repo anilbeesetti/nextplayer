@@ -59,6 +59,8 @@ class PlayerApi(val activity: PlayerActivity) {
         const val API_SUBS = "subs"
         const val API_SUBS_ENABLE = "subs.enable"
         const val API_SUBS_NAME = "subs.name"
+        const val API_PLAYLIST = "video_list"
+
         const val API_RESULT_INTENT = "com.mxtech.intent.result.VIEW"
 
         private const val API_END_BY_USER = "user"

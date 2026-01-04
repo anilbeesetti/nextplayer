@@ -76,15 +76,33 @@ class MediaPickerFolderViewModel @Inject constructor(
         when (event) {
             is MediaPickerFolderUiEvent.DeleteFolders -> deleteFolders(event.folders)
             is MediaPickerFolderUiEvent.DeleteVideos -> deleteVideos(event.videos)
+            is MediaPickerFolderUiEvent.ShareVideos -> shareVideos(event.videos)
             is MediaPickerFolderUiEvent.Refresh -> refresh()
             is MediaPickerFolderUiEvent.RenameVideo -> renameVideo(event.uri, event.to)
             is MediaPickerFolderUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
         }
     }
 
+    private fun deleteFolders(folders: List<Folder>) {
+        viewModelScope.launch {
+            val uris = folders.flatMap { folder ->
+                folder.allMediaList.map { video ->
+                    video.uriString.toUri()
+                }
+            }
+            mediaService.deleteMedia(uris)
+        }
+    }
+
     private fun deleteVideos(uris: List<String>) {
         viewModelScope.launch {
             mediaService.deleteMedia(uris.map { it.toUri() })
+        }
+    }
+
+    private fun shareVideos(uris: List<String>) {
+        viewModelScope.launch {
+            mediaService.shareMedia(uris.map { it.toUri() })
         }
     }
 
@@ -97,17 +115,6 @@ class MediaPickerFolderViewModel @Inject constructor(
     private fun renameVideo(uri: Uri, to: String) {
         viewModelScope.launch {
             mediaService.renameMedia(uri, to)
-        }
-    }
-
-    private fun deleteFolders(folders: List<Folder>) {
-        viewModelScope.launch {
-            val uris = folders.flatMap { folder ->
-                folder.allMediaList.map { video ->
-                    video.uriString.toUri()
-                }
-            }
-            mediaService.deleteMedia(uris)
         }
     }
 
@@ -129,9 +136,10 @@ data class MediaPickerFolderUiState(
 )
 
 sealed interface MediaPickerFolderUiEvent {
-    data object Refresh : MediaPickerFolderUiEvent
     data class DeleteVideos(val videos: List<String>) : MediaPickerFolderUiEvent
-    data class RenameVideo(val uri: Uri, val to: String) : MediaPickerFolderUiEvent
     data class DeleteFolders(val folders: List<Folder>) : MediaPickerFolderUiEvent
+    data class ShareVideos(val videos: List<String>) : MediaPickerFolderUiEvent
+    data object Refresh : MediaPickerFolderUiEvent
+    data class RenameVideo(val uri: Uri, val to: String) : MediaPickerFolderUiEvent
     data class AddToSync(val uri: Uri) : MediaPickerFolderUiEvent
 }

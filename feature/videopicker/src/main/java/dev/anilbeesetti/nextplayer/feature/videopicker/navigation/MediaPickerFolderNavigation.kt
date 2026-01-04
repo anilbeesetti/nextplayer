@@ -29,7 +29,7 @@ fun NavController.navigateToMediaPickerFolderScreen(
 
 fun NavGraphBuilder.mediaPickerFolderScreen(
     onNavigateUp: () -> Unit,
-    onVideoClick: (uri: Uri) -> Unit,
+    onPlayVideos: (uris: List<Uri>) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
 ) {
     composable(
@@ -39,7 +39,7 @@ fun NavGraphBuilder.mediaPickerFolderScreen(
         ),
     ) {
         MediaPickerFolderRoute(
-            onVideoClick = onVideoClick,
+            onPlayVideos = onPlayVideos,
             onNavigateUp = onNavigateUp,
             onFolderClick = onFolderClick,
         )

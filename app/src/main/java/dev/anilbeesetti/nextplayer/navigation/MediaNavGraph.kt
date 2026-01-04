@@ -7,6 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.navigation
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerFolderScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerNavigationRoute
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
@@ -30,7 +31,14 @@ fun NavGraphBuilder.mediaNavGraph(
         )
         mediaPickerFolderScreen(
             onNavigateUp = navController::navigateUp,
-            onVideoClick = context::startPlayerActivity,
+            onPlayVideos = { uris ->
+                val intent = Intent(context, PlayerActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = uris.first()
+                    putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
+                }
+                context.startActivity(intent)
+            },
             onFolderClick = navController::navigateToMediaPickerFolderScreen,
         )
     }
