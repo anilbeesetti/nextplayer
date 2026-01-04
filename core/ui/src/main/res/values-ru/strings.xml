@@ -61,7 +61,7 @@
     <string name="quick_settings">Быстрые настройки</string>
     <string name="remember_brightness_level">Запоминать уровень яркости</string>
     <string name="settings">Настройки</string>
-    <string name="remember_selections_description">Сохранять настройки для каждого файла, такие как звуковая дорожка, субтитры и так далее</string>
+    <string name="remember_selections_description">Сохранять настройки для каждого файла, такие как звуковая дорожка, субтитры и так далее.</string>
     <string name="swipe_gesture_description">Проведите по вертикали для регулировки яркости и громкости</string>
     <string name="interface_name">Интерфейс</string>
     <string name="a_z">А-Я</string>

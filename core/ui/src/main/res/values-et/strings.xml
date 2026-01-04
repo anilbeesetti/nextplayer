@@ -78,7 +78,7 @@
     <string name="pip_settings_description">Lülita pilt-pildis vaade avalehe nupu klõpsimisel sisse automaatselt</string>
     <string name="remember_brightness_level">Mäleta eredust</string>
     <string name="remember_selections">Jäta valikud meelde</string>
-    <string name="remember_selections_description">Jäta iga faili valikud meelde, sh kasutatav heliriba, subtiitrite keel jne</string>
+    <string name="remember_selections_description">Jäta iga faili valikud meelde, sh kasutatav heliriba, subtiitrite keel jne.</string>
     <string name="resume_description">Vali, kas soovid jätkata videote esitust sealt, kus see viimati peatus</string>
     <string name="seek_gesture">Kerimisviibe</string>
     <string name="seek_gesture_description">Rõhtse viipamisega keri videot edasi või tagasi</string>

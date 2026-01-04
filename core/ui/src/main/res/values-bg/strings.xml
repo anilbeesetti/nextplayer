@@ -184,7 +184,7 @@
     <string name="pip_settings_description">Автоматично превключване към миниатюрен плейър при докосване на бутона Начало</string>
     <string name="player_name">Плейър</string>
     <string name="remember_brightness_level_description">Запомняне на нивото на яркост между сесиите на възпроизвеждане</string>
-    <string name="remember_selections_description">Запомняне на избора за всеки файл като аудио запис, запис на субтитри и т.н</string>
+    <string name="remember_selections_description">Запомнете избора за всеки файл, като аудио запис, запис със субтитри и др.</string>
     <string name="select_subtitle_track">Избери запис със субтитри</string>
     <string name="swipe_gesture_description">Плъзни вертикално, за да регулирате яркостта и силата на звука</string>
     <string name="unknown_error">Възникна неизвестна грешка</string>

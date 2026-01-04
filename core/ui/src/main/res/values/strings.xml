@@ -42,7 +42,7 @@
     <string name="remember_brightness_level">Remember brightness level</string>
     <string name="remember_brightness_level_description">Remember brightness level between playback sessions</string>
     <string name="remember_selections">Remember selections</string>
-    <string name="remember_selections_description">Remember selections for each file like audio track, subtitle track, etc</string>
+    <string name="remember_selections_description">Remember selections for each file like audio track, subtitle track, etc.</string>
     <string name="resume">Resume</string>
     <string name="resume_description">Select whether to resume played videos from the point where you stopped</string>
     <string name="seek_gesture">Seek gesture</string>

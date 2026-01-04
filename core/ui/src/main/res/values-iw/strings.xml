@@ -19,7 +19,7 @@
     <string name="player_controls_play_pause">נגן ניגון השהייה</string>
     <string name="player_controls_previous">נגן הקודם</string>
     <string name="player_controls_progress">נגן סרגל התקדמות</string>
-    <string name="about_description">גרסה, זכויות</string>
+    <string name="about_description">גרסה, תמיכה, זכויות</string>
     <string name="ascending">עולה</string>
     <string name="descending">יורד</string>
     <string name="cancel">בטל</string>
@@ -95,4 +95,15 @@
     <string name="media_library_description">סרוק ונהל את ספריית המדיה</string>
     <string name="scanning_storage">סורק אחסון…</string>
     <string name="manage_folders">נהל תיקיות</string>
+    <string name="autoplay_settings">הפעלה אוטומטית</string>
+    <string name="autoplay_settings_description">הפעל באופן אוטומטי את הסרטון הבא בתיקייה הנוכחית</string>
+    <string name="pip_settings">מצב תמונה בתוך תמונה</string>
+    <string name="pip_settings_description">החלפה אוטומטית לנגן מוקטן בעת לחיצה על כפתור הבית</string>
+    <string name="automatic">אוטומטי (חיישן)</string>
+    <string name="landscape">אופקי</string>
+    <string name="landscape_reverse">אופקי הפוך</string>
+    <string name="landscape_auto">אופקי (חיישן)</string>
+    <string name="portrait">אנכי</string>
+    <string name="video_orientation">סיבוב וידאו</string>
+    <string name="date">תאריך</string>
 </resources>
