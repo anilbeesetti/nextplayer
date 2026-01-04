@@ -22,13 +22,12 @@ import io.github.anilbeesetti.nextlib.mediainfo.VideoStream
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
+import kotlin.text.substringBeforeLast
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.text.substringBeforeLast
 
 class LocalMediaInfoSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
@@ -37,7 +36,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher,
 ) : MediaInfoSynchronizer {
 
-    override fun sync(uri: Uri){
+    override fun sync(uri: Uri) {
         applicationScope.launch(dispatcher) {
             val medium = mediumDao.getWithInfo(uri.toString()) ?: return@launch
             if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
@@ -61,9 +60,9 @@ class LocalMediaInfoSynchronizer @Inject constructor(
                     ".jpeg",
                     ".png",
                 ).firstOrNull { imageExtension ->
-                    File(medium.mediumEntity.path.substringBeforeLast(".") + ".${imageExtension}").exists()
+                    File(medium.mediumEntity.path.substringBeforeLast(".") + ".$imageExtension").exists()
                 }?.let {
-                    BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".${it}")
+                    BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".$it")
                 }
             }.getOrNull()
                 ?: runCatching { mediaMetadataRetriever.embeddedPicture?.toBitmap() }.getOrNull()
