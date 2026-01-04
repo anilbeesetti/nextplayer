@@ -225,4 +225,14 @@
     <string name="media_layout">Układ multimediów</string>
     <string name="list">Lista</string>
     <string name="grid">Siatka</string>
+    <string name="info">Informacje</string>
+    <string name="play">Odtwórz</string>
+    <string name="recently_played">Ostatnio odtworzone</string>
+    <string name="delete_one_video">Usunąć 1 wideo?</string>
+    <string name="delete_videos">Usunąć %1$d wideo?</string>
+    <string name="delete_one_folder">Usunąć 1 katalog?</string>
+    <string name="delete_folders">Usunąć %1$d katalogów?</string>
+    <string name="delete_items">Usunąć %1$d elementów?</string>
+    <string name="delete_item_info">Czynności tej nie można cofnąć. Wybrany element zostanie trwale usunięty.</string>
+    <string name="delete_items_info">Czynności tej nie można cofnąć. Wybrane elementy zostaną trwale usunięte.</string>
 </resources>
