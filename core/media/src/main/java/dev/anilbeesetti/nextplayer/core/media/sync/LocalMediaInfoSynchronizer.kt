@@ -2,6 +2,8 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.text.substringBeforeLast
 
 class LocalMediaInfoSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
@@ -52,8 +55,26 @@ class LocalMediaInfoSynchronizer @Inject constructor(
                 Log.d(TAG, "sync: MediaInfoBuilder exception", e)
             }.getOrNull() ?: return@collect
 
-            val thumbnail = runCatching { mediaInfo.getFrame() }.getOrNull()
+            val mediaMetadataRetriever = MediaMetadataRetriever().apply {
+                setDataSource(context, mediumUri)
+            }
+
+            val thumbnail = runCatching {
+                    listOf(
+                        ".jpg",
+                        ".jpeg",
+                        ".png",
+                    ).firstOrNull { imageExtension ->
+                        File(medium.mediumEntity.path.substringBeforeLast(".") + ".${imageExtension}").exists()
+                    }?.let {
+                        BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".${it}")
+                    }
+                }.getOrNull()
+                ?: runCatching { mediaMetadataRetriever.embeddedPicture?.toBitmap() }.getOrNull()
+                ?: runCatching { mediaMetadataRetriever.getFrameAtTime(0) }.getOrNull()
+                ?: runCatching { mediaInfo.getFrame() }.getOrNull()
             mediaInfo.release()
+            mediaMetadataRetriever.release()
 
             val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.uriString)
             val audioStreamsInfo = mediaInfo.audioStreams.map {
@@ -139,4 +160,8 @@ suspend fun Bitmap.saveTo(
         e.printStackTrace()
     }
     return@withContext if (thumbFile.exists()) thumbFile.path else null
+}
+
+fun ByteArray.toBitmap(): Bitmap? {
+    return BitmapFactory.decodeByteArray(this, 0, this.size)
 }
