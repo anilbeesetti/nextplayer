@@ -89,7 +89,7 @@ class MediaPickerViewModel @Inject constructor(
 
     private fun addToMediaInfoSynchronizer(uri: Uri) {
         viewModelScope.launch {
-            mediaInfoSynchronizer.addMedia(uri)
+            mediaInfoSynchronizer.sync(uri)
         }
     }
 
