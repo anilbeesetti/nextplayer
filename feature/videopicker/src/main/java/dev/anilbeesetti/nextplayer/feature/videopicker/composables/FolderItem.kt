@@ -56,9 +56,9 @@ fun FolderItem(
             isRecentlyPlayedFolder = isRecentlyPlayedFolder,
             preferences = preferences,
             modifier = modifier,
-            selected = selected,
             index = index,
             count = count,
+            selected = selected,
             onClick = onClick,
             onLongClick = onLongClick,
         )
@@ -69,6 +69,7 @@ fun FolderItem(
             modifier = modifier,
             index = index,
             count = count,
+            selected = selected,
             onClick = onClick,
             onLongClick = onLongClick,
         )
@@ -190,11 +191,13 @@ private fun FolderGridItem(
     modifier: Modifier = Modifier,
     index: Int = 0,
     count: Int = 1,
+    selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
 ) {
     NextSegmentedListItem(
         modifier = modifier.width(IntrinsicSize.Min),
+        selected = selected,
         contentPadding = PaddingValues(8.dp),
         colors = ListItemDefaults.segmentedColors(
             contentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
@@ -207,6 +210,7 @@ private fun FolderGridItem(
             } else {
                 ListItemDefaults.colors().supportingContentColor
             },
+            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
         ),
         index = index,
         count = count,
