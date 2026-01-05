@@ -78,7 +78,7 @@ fun PlayerPreferencesScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
-            ListSectionTitle(text = stringResource(id = R.string.interface_name))
+            ListSectionTitle(text = stringResource(id = R.string.gestures))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
@@ -93,12 +93,21 @@ fun PlayerPreferencesScreen(
                     count = totalRows,
                 )
                 PreferenceSwitch(
-                    title = stringResource(id = R.string.swipe_gesture),
-                    description = stringResource(id = R.string.swipe_gesture_description),
+                    title = stringResource(id = R.string.brightness_gesture),
+                    description = stringResource(id = R.string.brightness_gesture_description),
                     icon = NextIcons.SwipeVertical,
-                    isChecked = preferences.useSwipeControls,
-                    onClick = viewModel::toggleUseSwipeControls,
+                    isChecked = preferences.enableBrightnessSwipeGesture,
+                    onClick = viewModel::toggleEnableBrightnessSwipeGesture,
                     index = 1,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.volume_gesture),
+                    description = stringResource(id = R.string.volume_gesture_description),
+                    icon = NextIcons.SwipeVertical,
+                    isChecked = preferences.enableVolumeSwipeGesture,
+                    onClick = viewModel::toggleEnableVolumeSwipeGesture,
+                    index = 2,
                     count = totalRows,
                 )
                 PreferenceSwitch(
@@ -107,7 +116,17 @@ fun PlayerPreferencesScreen(
                     icon = NextIcons.Pinch,
                     isChecked = preferences.useZoomControls,
                     onClick = viewModel::toggleUseZoomControls,
-                    index = 2,
+                    index = 3,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.pan_gesture),
+                    description = stringResource(id = R.string.pan_gesture_description),
+                    icon = NextIcons.Pan,
+                    enabled = preferences.useZoomControls,
+                    isChecked = preferences.enablePanGesture,
+                    onClick = viewModel::toggleEnablePanGesture,
+                    index = 4,
                     count = totalRows,
                 )
                 PreferenceSwitchWithDivider(
@@ -117,7 +136,7 @@ fun PlayerPreferencesScreen(
                     isChecked = (preferences.doubleTapGesture != DoubleTapGesture.NONE),
                     onChecked = viewModel::toggleDoubleTapGesture,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.DoubleTapDialog) },
-                    index = 3,
+                    index = 5,
                     count = totalRows,
                 )
                 PreferenceSwitchWithDivider(
@@ -127,7 +146,7 @@ fun PlayerPreferencesScreen(
                     isChecked = preferences.useLongPressControls,
                     onChecked = viewModel::toggleUseLongPressControls,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog) },
-                    index = 4,
+                    index = 6,
                     count = totalRows,
                 )
                 ClickablePreferenceItem(
@@ -135,15 +154,21 @@ fun PlayerPreferencesScreen(
                     description = stringResource(R.string.seconds, preferences.seekIncrement),
                     icon = NextIcons.Replay,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) },
-                    index = 5,
+                    index = 7,
                     count = totalRows,
                 )
+            }
+            ListSectionTitle(text = stringResource(id = R.string.interface_name))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                val totalRows = 2
                 ClickablePreferenceItem(
                     title = stringResource(R.string.controller_timeout),
                     description = stringResource(R.string.seconds, preferences.controllerAutoHideTimeout),
                     icon = NextIcons.Timer,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) },
-                    index = 6,
+                    index = 0,
                     count = totalRows,
                 )
                 ClickablePreferenceItem(
@@ -151,10 +176,11 @@ fun PlayerPreferencesScreen(
                     description = preferences.controlButtonsPosition.name(),
                     icon = NextIcons.ButtonsPosition,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog) },
-                    index = 7,
+                    index = 1,
                     count = totalRows,
                 )
             }
+
             ListSectionTitle(text = stringResource(id = R.string.playback))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),

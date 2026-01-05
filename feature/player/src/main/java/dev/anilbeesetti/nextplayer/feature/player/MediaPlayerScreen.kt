@@ -63,7 +63,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGesureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
@@ -97,7 +97,7 @@ fun MediaPlayerScreen(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
     )
-    val tapGestureState = rememberTapGesureState(
+    val tapGestureState = rememberTapGestureState(
         player = player,
         doubleTapGesture = playerPreferences.doubleTapGesture,
         seekIncrementMillis = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
@@ -112,6 +112,8 @@ fun MediaPlayerScreen(
     val videoZoomAndContentScaleState = rememberVideoZoomAndContentScaleState(
         player = player,
         initialContentScale = playerPreferences.playerVideoZoom,
+        enableZoomGesture = playerPreferences.useZoomControls,
+        enablePanGesture = playerPreferences.enablePanGesture,
         onEvent = viewModel::onVideoZoomEvent,
     )
     val volumeState = rememberVolumeState(
@@ -119,6 +121,8 @@ fun MediaPlayerScreen(
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
+        enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
+        enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
     )
     val rotationState = rememberRotationState(

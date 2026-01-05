@@ -52,8 +52,6 @@
     <string name="settings">Settings</string>
     <string name="size">Size</string>
     <string name="sort">Sort</string>
-    <string name="swipe_gesture">Swipe gesture</string>
-    <string name="swipe_gesture_description">Swipe vertically to adjust the brightness and volume</string>
     <string name="title">Title</string>
     <string name="title_activity_player">Next Player Activity</string>
     <string name="unknown_error">An unknown error has occurred</string>
@@ -238,4 +236,11 @@
     <string name="delete_items">Delete %1$d items?</string>
     <string name="delete_item_info">This action cannot be undone. The selected item will be permanently deleted</string>
     <string name="delete_items_info">This action cannot be undone. The selected items will be permanently deleted</string>
+    <string name="gestures">Gestures</string>
+    <string name="volume_gesture">Volume gesture</string>
+    <string name="volume_gesture_description">Adjust volume by swiping vertically</string>
+    <string name="brightness_gesture">Brightness gesture</string>
+    <string name="brightness_gesture_description">Adjust brightness by swiping vertically</string>
+    <string name="pan_gesture">Pan gesture</string>
+    <string name="pan_gesture_description">Zoom and pan the video</string>
 </resources>

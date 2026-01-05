@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.PanToolAlt
 import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.Pinch
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -127,4 +128,5 @@ object NextIcons {
     val ButtonsPosition = Icons.Rounded.AppSettingsAlt
     val Close = Icons.Rounded.Close
     val History = Icons.Rounded.History
+    val Pan = Icons.Rounded.PanToolAlt
 }

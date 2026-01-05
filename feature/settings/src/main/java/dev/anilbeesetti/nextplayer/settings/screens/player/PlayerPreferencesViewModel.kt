@@ -111,10 +111,18 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleUseSwipeControls() {
+    fun toggleEnableBrightnessSwipeGesture() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(useSwipeControls = !it.useSwipeControls)
+                it.copy(enableBrightnessSwipeGesture = !it.enableBrightnessSwipeGesture)
+            }
+        }
+    }
+
+    fun toggleEnableVolumeSwipeGesture() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(enableVolumeSwipeGesture = !it.enableVolumeSwipeGesture)
             }
         }
     }
@@ -131,6 +139,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(useZoomControls = !it.useZoomControls)
+            }
+        }
+    }
+
+    fun toggleEnablePanGesture() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(enablePanGesture = !it.enablePanGesture)
             }
         }
     }

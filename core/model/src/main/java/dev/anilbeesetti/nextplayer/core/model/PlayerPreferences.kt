@@ -13,7 +13,7 @@ data class PlayerPreferences(
     val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
     val playerVideoZoom: VideoContentScale = VideoContentScale.BEST_FIT,
     val defaultPlaybackSpeed: Float = 1.0f,
-    val controllerAutoHideTimeout: Int = 2,
+    val controllerAutoHideTimeout: Int = 4,
     val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
     val autoPip: Boolean = true,
@@ -21,9 +21,13 @@ data class PlayerPreferences(
     val loopMode: LoopMode = LoopMode.OFF,
 
     // Controls (Gestures)
+    @Deprecated(message = "Use individual enableVolumeSwipeGesture and enableBrightnessSwipeGesture instead")
     val useSwipeControls: Boolean = true,
+    val enableVolumeSwipeGesture: Boolean = true,
+    val enableBrightnessSwipeGesture: Boolean = true,
     val useSeekControls: Boolean = true,
     val useZoomControls: Boolean = true,
+    val enablePanGesture: Boolean = false,
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.BOTH,
     val useLongPressControls: Boolean = false,
     val longPressControlsSpeed: Float = 2.0f,

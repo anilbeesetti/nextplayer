@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun rememberVolumeAndBrightnessGestureState(
+    enableVolumeGesture: Boolean,
+    enableBrightnessGesture: Boolean,
     showVolumePanelIfHeadsetIsOn: Boolean,
 ): VolumeAndBrightnessGestureState {
     val volumeState = rememberVolumeState(showVolumePanelIfHeadsetIsOn)
@@ -26,6 +28,8 @@ fun rememberVolumeAndBrightnessGestureState(
     val coroutineScope = rememberCoroutineScope()
     val volumeAndBrightnessGestureState = remember {
         VolumeAndBrightnessGestureState(
+            enableVolumeGesture = enableVolumeGesture,
+            enableBrightnessGesture = enableBrightnessGesture,
             volumeState = volumeState,
             brightnessState = brightnessState,
             coroutineScope = coroutineScope,
@@ -36,6 +40,8 @@ fun rememberVolumeAndBrightnessGestureState(
 
 @Stable
 class VolumeAndBrightnessGestureState(
+    private val enableVolumeGesture: Boolean = true,
+    private val enableBrightnessGesture: Boolean = true,
     private val volumeState: VolumeState,
     private val brightnessState: BrightnessState,
     private val coroutineScope: CoroutineScope,
@@ -59,8 +65,8 @@ class VolumeAndBrightnessGestureState(
         val viewCenterX = size.width / 2
         job?.cancel()
         activeGesture = when {
-            offset.x < viewCenterX -> VerticalGesture.BRIGHTNESS
-            else -> VerticalGesture.VOLUME
+            offset.x < viewCenterX -> VerticalGesture.BRIGHTNESS.takeIf { enableBrightnessGesture }
+            else -> VerticalGesture.VOLUME.takeIf { enableVolumeGesture }
         }
         startingY = offset.y
         startVolumePercentage = volumeState.volumePercentage
