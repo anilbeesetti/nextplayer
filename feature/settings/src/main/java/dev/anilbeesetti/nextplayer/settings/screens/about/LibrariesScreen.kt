@@ -90,7 +90,7 @@ fun LibrariesScreen(
                             Text(text = library.author)
                             FlowRow(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
                                 library.licenses.forEach {
                                     Badge(

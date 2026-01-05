@@ -72,18 +72,7 @@ fun MediaLibraryPreferencesScreen(
                     isChecked = preferences.markLastPlayedMedia,
                     onClick = viewModel::toggleMarkLastPlayedMedia,
                     index = 0,
-                    count = 2,
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.floating_play_button),
-                    description = stringResource(
-                        id = R.string.floating_play_button_desc,
-                    ),
-                    icon = NextIcons.SmartButton,
-                    isChecked = preferences.showFloatingPlayButton,
-                    onClick = viewModel::toggleShowFloatingPlayButton,
-                    index = 1,
-                    count = 2,
+                    count = 1,
                 )
             }
 
@@ -100,48 +89,4 @@ fun MediaLibraryPreferencesScreen(
             }
         }
     }
-}
-
-@Composable
-fun HideFoldersSettings(
-    onClick: () -> Unit,
-) {
-    ClickablePreferenceItem(
-        title = stringResource(id = R.string.manage_folders),
-        description = stringResource(id = R.string.manage_folders_desc),
-        icon = NextIcons.FolderOff,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun MarkLastPlayedMediaSetting(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitch(
-        title = stringResource(id = R.string.mark_last_played_media),
-        description = stringResource(
-            id = R.string.mark_last_played_media_desc,
-        ),
-        icon = NextIcons.Check,
-        isChecked = isChecked,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun FloatingPlayButtonSetting(
-    isChecked: Boolean,
-    onClick: () -> Unit,
-) {
-    PreferenceSwitch(
-        title = stringResource(id = R.string.floating_play_button),
-        description = stringResource(
-            id = R.string.floating_play_button_desc,
-        ),
-        icon = NextIcons.SmartButton,
-        isChecked = isChecked,
-        onClick = onClick,
-    )
 }

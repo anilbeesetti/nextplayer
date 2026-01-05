@@ -144,20 +144,19 @@ private fun FolderListItem(
             )
         },
         supportingContent = {
-            Column {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 if (preferences.showPathField) {
                     Text(
                         text = folder.path.substringBeforeLast("/"),
                         maxLines = 2,
                         style = MaterialTheme.typography.bodySmall,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(vertical = 2.dp),
                     )
                 }
                 FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {

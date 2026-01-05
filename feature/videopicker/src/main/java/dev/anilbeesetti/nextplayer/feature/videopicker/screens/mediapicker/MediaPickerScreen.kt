@@ -233,7 +233,6 @@ internal fun MediaPickerScreen(
             )
         },
         floatingActionButton = {
-            if (!uiState.preferences.showFloatingPlayButton) return@Scaffold
             if (selectionManager.isInSelectionMode) return@Scaffold
 
             FloatingActionButtonMenu(

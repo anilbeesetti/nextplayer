@@ -83,12 +83,12 @@ class MainActivity : ComponentActivity() {
                     statusBarStyle = SystemBarStyle.auto(
                         lightScrim = Color.TRANSPARENT,
                         darkScrim = Color.TRANSPARENT,
-                        detectDarkMode = { shouldUseDarkTheme }
+                        detectDarkMode = { shouldUseDarkTheme },
                     ),
                     navigationBarStyle = SystemBarStyle.auto(
                         lightScrim = Color.TRANSPARENT,
                         darkScrim = Color.TRANSPARENT,
-                        detectDarkMode = { shouldUseDarkTheme }
+                        detectDarkMode = { shouldUseDarkTheme },
                     ),
                 )
             }

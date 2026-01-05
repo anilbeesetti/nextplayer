@@ -26,7 +26,7 @@ import kotlin.math.abs
 fun rememberVideoZoomAndContentScaleState(
     player: Player,
     initialContentScale: VideoContentScale,
-    enableZoomGesture: Boolean ,
+    enableZoomGesture: Boolean,
     enablePanGesture: Boolean,
     onEvent: (VideoZoomEvent) -> Unit = {},
 ): VideoZoomAndContentScaleState {

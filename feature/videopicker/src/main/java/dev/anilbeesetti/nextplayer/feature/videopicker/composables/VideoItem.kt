@@ -134,18 +134,28 @@ private fun VideoListItem(
             )
         },
         supportingContent = {
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                if (preferences.showSizeField) {
-                    InfoChip(text = video.formattedFileSize)
+                if (preferences.showPathField) {
+                    Text(
+                        text = video.path.substringBeforeLast("/"),
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodySmall,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
-                if (preferences.showResolutionField && video.height > 0) {
-                    InfoChip(text = "${video.height}p")
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    if (preferences.showSizeField) {
+                        InfoChip(text = video.formattedFileSize)
+                    }
+                    if (preferences.showResolutionField && video.height > 0) {
+                        InfoChip(text = "${video.height}p")
+                    }
                 }
             }
         },
