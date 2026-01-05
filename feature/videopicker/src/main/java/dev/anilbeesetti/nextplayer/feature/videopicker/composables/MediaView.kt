@@ -126,6 +126,7 @@ fun MediaView(
                     count = rootFolder.folderList.size,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             selectionManager.toggleFolderSelection(folder)
                         } else {
                             onFolderClick(folder.path)
@@ -165,6 +166,7 @@ fun MediaView(
                     selected = selected,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             selectionManager.toggleVideoSelection(video)
                         } else {
                             onVideoClick(video.uriString.toUri())
