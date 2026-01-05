@@ -19,6 +19,7 @@ import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Deselect
 import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
@@ -51,6 +52,7 @@ import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.ScreenRotationAlt
+import androidx.compose.material.icons.rounded.SelectAll
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SmartButton
@@ -131,4 +133,6 @@ object NextIcons {
     val History = Icons.Rounded.History
     val Pan = Icons.Rounded.PanToolAlt
     val HideSource = Icons.Rounded.HideSource
+    val SelectAll = Icons.Rounded.SelectAll
+    val DeselectAll = Icons.Rounded.Deselect
 }

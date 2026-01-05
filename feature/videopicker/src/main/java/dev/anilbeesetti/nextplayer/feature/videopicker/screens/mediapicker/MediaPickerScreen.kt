@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
@@ -144,6 +145,9 @@ internal fun MediaPickerScreen(
     var showInfoActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
 
+    val selectedItemsSize = selectionManager.selectedFolders.size + selectionManager.selectedVideos.size
+    val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folderList.size + mediaList.size } ?: 0
+
     Scaffold(
         topBar = {
             NextTopAppBar(
@@ -165,8 +169,6 @@ internal fun MediaPickerScreen(
                                 imageVector = NextIcons.Close,
                                 contentDescription = stringResource(id = R.string.navigate_up),
                             )
-                            val selectedItemsSize = selectionManager.selectedFolders.size + selectionManager.selectedVideos.size
-                            val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folderList.size + mediaList.size } ?: 0
                             Text(
                                 text = stringResource(R.string.m_n_selected, selectedItemsSize, totalItemsSize),
                                 style = MaterialTheme.typography.labelLarge,
@@ -182,18 +184,45 @@ internal fun MediaPickerScreen(
                     }
                 },
                 actions = {
-                    if (selectionManager.isInSelectionMode) return@NextTopAppBar
-                    IconButton(onClick = { showQuickSettingsDialog = true }) {
-                        Icon(
-                            imageVector = NextIcons.DashBoard,
-                            contentDescription = stringResource(id = R.string.menu),
-                        )
-                    }
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(id = R.string.settings),
-                        )
+                    if (selectionManager.isInSelectionMode) {
+                        FilledTonalIconButton(
+                            onClick = {
+                                if (selectedItemsSize != totalItemsSize) {
+                                    (uiState.mediaDataState as? DataState.Success)?.value?.let { folder ->
+                                        folder.folderList.forEach { selectionManager.selectFolder(it) }
+                                        folder.mediaList.forEach { selectionManager.selectVideo(it) }
+                                    }
+                                } else {
+                                    selectionManager.clearSelection()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (selectedItemsSize != totalItemsSize) {
+                                    NextIcons.SelectAll
+                                } else {
+                                    NextIcons.DeselectAll
+                                },
+                                contentDescription = if (selectedItemsSize != totalItemsSize) {
+                                    stringResource(R.string.select_all)
+                                } else {
+                                    stringResource(R.string.deselect_all)
+                                },
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { showQuickSettingsDialog = true }) {
+                            Icon(
+                                imageVector = NextIcons.DashBoard,
+                                contentDescription = stringResource(id = R.string.menu),
+                            )
+                        }
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                imageVector = NextIcons.Settings,
+                                contentDescription = stringResource(id = R.string.settings),
+                            )
+                        }
                     }
                 },
             )

@@ -244,4 +244,6 @@
     <string name="hide_player_buttons_background">Hide player buttons background</string>
     <string name="hide_player_buttons_background_description">Hide the background of all player control buttons</string>
     <string name="m_n_selected">%1$d / %2$d Selected</string>
+    <string name="select_all">Select all</string>
+    <string name="deselect_all">Deselect all</string>
 </resources>
