@@ -163,9 +163,11 @@ internal fun MediaPickerScreen(
                                 imageVector = NextIcons.Close,
                                 contentDescription = stringResource(id = R.string.navigate_up),
                             )
+                            val selectedItemsSize = selectionManager.selectedFolders.size + selectionManager.selectedVideos.size
+                            val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folderList.size + mediaList.size } ?: 0
                             Text(
-                                text = (selectionManager.selectedFolders.size + selectionManager.selectedVideos.size).toString(),
-                                style = MaterialTheme.typography.bodyMediumEmphasized,
+                                text = stringResource(R.string.m_n_selected, selectedItemsSize, totalItemsSize),
+                                style = MaterialTheme.typography.labelLarge,
                             )
                         }
                     } else if (uiState.folderName != null) {
