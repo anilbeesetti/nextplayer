@@ -223,6 +223,7 @@ internal fun MediaPickerScreen(
                 onDeleteAction = {
                     if (MediaService.willSystemAsksForDeleteConfirmation()) {
                         onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
+                        selectionManager.clearSelection()
                     } else {
                         showDeleteVideosConfirmation = true
                     }
