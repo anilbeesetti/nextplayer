@@ -243,4 +243,6 @@
     <string name="brightness_gesture_description">Adjust brightness by swiping vertically</string>
     <string name="pan_gesture">Pan gesture</string>
     <string name="pan_gesture_description">Zoom and pan the video</string>
+    <string name="hide_player_buttons_background">Hide player buttons background</string>
+    <string name="hide_player_buttons_background_description">Hide the background of all player control buttons</string>
 </resources>

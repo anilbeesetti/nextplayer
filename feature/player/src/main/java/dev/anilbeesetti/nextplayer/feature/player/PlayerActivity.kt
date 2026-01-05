@@ -14,6 +14,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +51,8 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+
+val LocalHidePlayerButtonsBackground = compositionLocalOf { false }
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -99,34 +103,36 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
 
-            NextPlayerTheme(darkTheme = true) {
-                MediaPlayerScreen(
-                    player = player ?: return@NextPlayerTheme,
-                    viewModel = viewModel,
-                    playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
-                    onSelectSubtitleClick = {
-                        lifecycleScope.launch {
-                            val uri = subtitleFileSuspendLauncher.launch(
-                                arrayOf(
-                                    MimeTypes.APPLICATION_SUBRIP,
-                                    MimeTypes.APPLICATION_TTML,
-                                    MimeTypes.TEXT_VTT,
-                                    MimeTypes.TEXT_SSA,
-                                    MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                                    MimeTypes.BASE_TYPE_TEXT + "/*",
-                                ),
-                            ) ?: return@launch
-                            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            maybeInitControllerFuture()
-                            controllerFuture?.await()?.addSubtitleTrack(uri)
-                        }
-                    },
-                    onBackClick = { finishAndStopPlayerSession() },
-                    onPlayInBackgroundClick = {
-                        playInBackground = true
-                        finish()
-                    },
-                )
+            CompositionLocalProvider(LocalHidePlayerButtonsBackground provides (uiState.playerPreferences?.hidePlayerButtonsBackground == true)) {
+                NextPlayerTheme(darkTheme = true) {
+                    MediaPlayerScreen(
+                        player = player ?: return@NextPlayerTheme,
+                        viewModel = viewModel,
+                        playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
+                        onSelectSubtitleClick = {
+                            lifecycleScope.launch {
+                                val uri = subtitleFileSuspendLauncher.launch(
+                                    arrayOf(
+                                        MimeTypes.APPLICATION_SUBRIP,
+                                        MimeTypes.APPLICATION_TTML,
+                                        MimeTypes.TEXT_VTT,
+                                        MimeTypes.TEXT_SSA,
+                                        MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                        MimeTypes.BASE_TYPE_TEXT + "/*",
+                                    ),
+                                ) ?: return@launch
+                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                maybeInitControllerFuture()
+                                controllerFuture?.await()?.addSubtitleTrack(uri)
+                            }
+                        },
+                        onBackClick = { finishAndStopPlayerSession() },
+                        onPlayInBackgroundClick = {
+                            playInBackground = true
+                            finish()
+                        },
+                    )
+                }
             }
         }
 

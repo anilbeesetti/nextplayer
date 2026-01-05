@@ -10,11 +10,8 @@ data class PlayerPreferences(
     val minDurationForFastSeek: Long = 120000L,
     val rememberSelections: Boolean = true,
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
-    val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
     val playerVideoZoom: VideoContentScale = VideoContentScale.BEST_FIT,
     val defaultPlaybackSpeed: Float = 1.0f,
-    val controllerAutoHideTimeout: Int = 4,
-    val seekIncrement: Int = 10,
     val autoplay: Boolean = true,
     val autoPip: Boolean = true,
     val autoBackgroundPlay: Boolean = false,
@@ -31,6 +28,12 @@ data class PlayerPreferences(
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.BOTH,
     val useLongPressControls: Boolean = false,
     val longPressControlsSpeed: Float = 2.0f,
+    val seekIncrement: Int = 10,
+
+    // Player Interface
+    val controllerAutoHideTimeout: Int = 4,
+    val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
+    val hidePlayerButtonsBackground: Boolean = false,
 
     // Audio Preferences
     val preferredAudioLanguage: String = "",

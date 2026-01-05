@@ -33,6 +33,7 @@ import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material.icons.rounded.HeadsetOff
+import androidx.compose.material.icons.rounded.HideSource
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
@@ -129,4 +130,5 @@ object NextIcons {
     val Close = Icons.Rounded.Close
     val History = Icons.Rounded.History
     val Pan = Icons.Rounded.PanToolAlt
+    val HideSource = Icons.Rounded.HideSource
 }

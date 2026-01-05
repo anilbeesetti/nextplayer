@@ -162,7 +162,7 @@ fun PlayerPreferencesScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 2
+                val totalRows = 3
                 ClickablePreferenceItem(
                     title = stringResource(R.string.controller_timeout),
                     description = stringResource(R.string.seconds, preferences.controllerAutoHideTimeout),
@@ -177,6 +177,15 @@ fun PlayerPreferencesScreen(
                     icon = NextIcons.ButtonsPosition,
                     onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog) },
                     index = 1,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.hide_player_buttons_background),
+                    description = stringResource(id = R.string.hide_player_buttons_background_description),
+                    icon = NextIcons.HideSource,
+                    isChecked = preferences.hidePlayerButtonsBackground,
+                    onClick = viewModel::toggleHidePlayerButtonsBackground,
+                    index = 2,
                     count = totalRows,
                 )
             }

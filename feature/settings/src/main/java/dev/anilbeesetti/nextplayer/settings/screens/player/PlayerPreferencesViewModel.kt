@@ -204,6 +204,14 @@ class PlayerPreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleHidePlayerButtonsBackground() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(hidePlayerButtonsBackground = !it.hidePlayerButtonsBackground)
+            }
+        }
+    }
 }
 
 data class PlayerPreferencesUIState(
