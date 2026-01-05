@@ -7,5 +7,5 @@
         <item name="postSplashScreenTheme">@style/Theme.NextPlayer</item>
     </style>
 
-    <style name="Theme.NextPlayer" parent="android:Theme.Material.NoActionBar" />
+    <style name="Theme.NextPlayer" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar" />
 </resources>

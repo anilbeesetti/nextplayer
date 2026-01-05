@@ -244,6 +244,7 @@ private val highContrastDarkColorScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDarkHighContrast,
 )
 
+
 @Composable
 fun NextPlayerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -255,13 +256,33 @@ fun NextPlayerTheme(
         dynamicColor && supportsDynamicTheming() -> {
             val context = LocalContext.current
             when {
-                darkTheme && highContrastDarkTheme -> dynamicDarkColorScheme(context).copy(background = Color.Black, surface = Color.Black)
+                darkTheme && highContrastDarkTheme -> dynamicDarkColorScheme(context).copy(
+                    background = backgroundPureBlack,
+                    surface = surfacePureBlack,
+                    surfaceDim = surfaceDimPureBlack,
+                    surfaceBright = surfaceBrightPureBlack,
+                    surfaceContainerLowest = surfaceContainerLowestPureBlack,
+                    surfaceContainerLow = surfaceContainerLowPureBlack,
+                    surfaceContainer = surfaceContainerPureBlack,
+                    surfaceContainerHigh = surfaceContainerHighPureBlack,
+                    surfaceContainerHighest = surfaceContainerHighestPureBlack,
+                )
                 darkTheme -> dynamicDarkColorScheme(context)
                 else -> dynamicLightColorScheme(context)
             }
         }
 
-        darkTheme && highContrastDarkTheme -> darkScheme.copy(background = Color.Black, surface = Color.Black)
+        darkTheme && highContrastDarkTheme -> darkScheme.copy(
+            background = backgroundPureBlack,
+            surface = surfacePureBlack,
+            surfaceDim = surfaceDimPureBlack,
+            surfaceBright = surfaceBrightPureBlack,
+            surfaceContainerLowest = surfaceContainerLowestPureBlack,
+            surfaceContainerLow = surfaceContainerLowPureBlack,
+            surfaceContainer = surfaceContainerPureBlack,
+            surfaceContainerHigh = surfaceContainerHighPureBlack,
+            surfaceContainerHighest = surfaceContainerHighestPureBlack,
+        )
         darkTheme -> darkScheme
         else -> lightScheme
     }
