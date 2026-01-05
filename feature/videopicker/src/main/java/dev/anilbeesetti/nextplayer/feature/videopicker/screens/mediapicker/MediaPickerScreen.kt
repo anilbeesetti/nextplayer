@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -502,12 +504,15 @@ private fun SelectionActionsSheet(
     onDeleteAction: () -> Unit,
 ) {
     AnimatedVisibility(
-        modifier = modifier,
+        modifier = modifier.displayCutoutPadding(),
         visible = show,
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
     ) {
-        val shape = MaterialTheme.shapes.largeIncreased
+        val shape = MaterialTheme.shapes.largeIncreased.copy(
+            bottomStart = ZeroCornerSize,
+            bottomEnd = ZeroCornerSize,
+        )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
