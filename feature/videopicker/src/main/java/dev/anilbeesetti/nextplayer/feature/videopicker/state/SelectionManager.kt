@@ -105,7 +105,7 @@ data class SelectedVideo(
 private fun Folder.toSelectedFolder() = SelectedFolder(
     name = name,
     path = path,
-    mediaList = mediaList.map { it.toSelectedVideo() },
+    mediaList = allMediaList.map { it.toSelectedVideo() },
 )
 
 private fun Video.toSelectedVideo() = SelectedVideo(
