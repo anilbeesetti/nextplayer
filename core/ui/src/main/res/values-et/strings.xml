@@ -225,4 +225,14 @@
     <string name="list">Loend</string>
     <string name="grid">Ruudustik</string>
     <string name="by">autorilt %1$s</string>
+    <string name="info">Teave</string>
+    <string name="play">Esita</string>
+    <string name="recently_played">Hiljuti esitatud</string>
+    <string name="delete_one_video">Kas kustutad 1 video?</string>
+    <string name="delete_videos">Kas kustutad %1$d videot?</string>
+    <string name="delete_one_folder">Kas kustutad 1 kausta?</string>
+    <string name="delete_folders">Kas kustutad %1$d kausta?</string>
+    <string name="delete_items">Kas kustutad %1$d objekti?</string>
+    <string name="delete_item_info">Seda tegevust ei saa tagasi pöörata. Antud objekt kustutatakse jäädavalt</string>
+    <string name="delete_items_info">Seda tegevust ei saa tagasi pöörata. Need objektid kustutatakse jäädavalt</string>
 </resources>
