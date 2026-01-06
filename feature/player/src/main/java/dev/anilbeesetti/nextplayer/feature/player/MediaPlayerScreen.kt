@@ -56,6 +56,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
@@ -316,7 +317,7 @@ fun MediaPlayerScreen(
                 ) {
                     AnimatedVisibility(
                         modifier = Modifier.align(Alignment.CenterStart),
-                        visible = volumeAndBrightnessGestureState.volumeChangePercentage != 0,
+                        visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.VOLUME,
                         enter = fadeIn(),
                         exit = fadeOut(),
                     ) {
@@ -328,7 +329,7 @@ fun MediaPlayerScreen(
 
                     AnimatedVisibility(
                         modifier = Modifier.align(Alignment.CenterEnd),
-                        visible = volumeAndBrightnessGestureState.brightnessChangePercentage != 0,
+                        visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.BRIGHTNESS,
                         enter = fadeIn(),
                         exit = fadeOut(),
                     ) {

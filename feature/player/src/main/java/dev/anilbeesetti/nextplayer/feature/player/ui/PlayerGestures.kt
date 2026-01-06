@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -9,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomHorizontalDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomTransformGestures
+import dev.anilbeesetti.nextplayer.feature.player.extensions.detectCustomVerticalDragGestures
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
@@ -60,7 +61,7 @@ fun PlayerGestures(
                     if (controlsVisibilityState.controlsLocked) return@pointerInput
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
-                    detectHorizontalDragGestures(
+                    detectCustomHorizontalDragGestures(
                         onDragStart = seekGestureState::onDragStart,
                         onHorizontalDrag = seekGestureState::onDrag,
                         onDragCancel = seekGestureState::onDragEnd,
@@ -74,7 +75,7 @@ fun PlayerGestures(
                     if (controlsVisibilityState.controlsLocked) return@pointerInput
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
-                    detectVerticalDragGestures(
+                    detectCustomVerticalDragGestures(
                         onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
                         onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
                         onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
