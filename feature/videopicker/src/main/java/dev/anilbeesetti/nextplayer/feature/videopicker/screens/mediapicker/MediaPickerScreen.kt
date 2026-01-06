@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -28,7 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
@@ -55,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -195,7 +198,7 @@ internal fun MediaPickerScreen(
                                 } else {
                                     selectionManager.clearSelection()
                                 }
-                            }
+                            },
                         ) {
                             Icon(
                                 imageVector = if (selectedItemsSize != totalItemsSize) {
@@ -458,10 +461,12 @@ private fun DeleteConfirmationDialog(
                         1 -> stringResource(R.string.delete_one_folder)
                         else -> stringResource(R.string.delete_folders, selectedFolders.size)
                     }
+
                     selectedFolders.isEmpty() -> when (selectedVideos.size) {
                         1 -> stringResource(R.string.delete_one_video)
                         else -> stringResource(R.string.delete_videos, selectedVideos.size)
                     }
+
                     else -> stringResource(R.string.delete_items, selectedFolders.size + selectedVideos.size)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -533,7 +538,10 @@ private fun SelectionActionsSheet(
     onDeleteAction: () -> Unit,
 ) {
     AnimatedVisibility(
-        modifier = modifier.displayCutoutPadding(),
+        modifier = modifier.padding(
+            start = WindowInsets.displayCutout.asPaddingValues()
+                .calculateStartPadding(LocalLayoutDirection.current),
+        ),
         visible = show,
         enter = slideInVertically { it },
         exit = slideOutVertically { it },

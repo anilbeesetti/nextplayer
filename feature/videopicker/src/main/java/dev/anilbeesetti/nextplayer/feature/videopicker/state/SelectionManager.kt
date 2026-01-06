@@ -62,7 +62,6 @@ class SelectionManager(
         selectedVideos = selectedVideos + video.toSelectedVideo()
     }
 
-
     fun clearSelection() {
         selectedVideos = emptySet()
         selectedFolders = emptySet()
