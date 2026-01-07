@@ -6,7 +6,7 @@ import kotlin.system.exitProcess
 
 class GlobalExceptionHandler(
     private val context: Context,
-    private val activity: Class<*>
+    private val activity: Class<*>,
 ) : Thread.UncaughtExceptionHandler {
 
     override fun uncaughtException(t: Thread, e: Throwable) {
