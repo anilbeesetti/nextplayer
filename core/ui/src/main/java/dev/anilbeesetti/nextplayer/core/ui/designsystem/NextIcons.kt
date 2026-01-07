@@ -9,12 +9,14 @@ import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.BrightnessHigh
+import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.CenterFocusStrong
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ClosedCaption
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
@@ -136,4 +138,6 @@ object NextIcons {
     val SelectAll = Icons.Rounded.SelectAll
     val DeselectAll = Icons.Rounded.Deselect
     val FastForward = Icons.Rounded.FastForward
+    val BugReport = Icons.Rounded.BugReport
+    val Copy = Icons.Rounded.ContentCopy
 }
