@@ -257,7 +257,7 @@ private fun FolderGridItem(
                         color = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
                             MaterialTheme.colorScheme.primary
                         } else {
-                            ListItemDefaults.colors().headlineColor
+                            ListItemDefaults.colors().contentColor
                         },
                         textAlign = TextAlign.Center,
                     )

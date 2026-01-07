@@ -214,7 +214,7 @@ private fun VideoGridItem(
                     color = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                         MaterialTheme.colorScheme.primary
                     } else {
-                        ListItemDefaults.colors().headlineColor
+                        ListItemDefaults.colors().contentColor
                     },
                 )
             }

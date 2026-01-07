@@ -62,12 +62,6 @@ suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
 }
 
-@OptIn(UnstableApi::class)
-suspend fun MediaController.getAudioSessionId(): Int {
-    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
-    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
-}
-
 fun MediaController.stopPlayerSession() {
     sendCustomCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
 }
