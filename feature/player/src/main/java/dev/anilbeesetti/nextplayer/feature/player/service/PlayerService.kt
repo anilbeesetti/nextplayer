@@ -549,7 +549,7 @@ class PlayerService : MediaSessionService() {
                 // bufferForPlaybackAfterRebufferMs
                 bufferForPlaybackAfterRebufferMs,
             )
-            .setPrioritizeTimeOverSizeThresholds(true)
+            .setPrioritizeTimeOverSizeThresholds(false)
             .build()
 
         val player = ExoPlayer.Builder(applicationContext)
