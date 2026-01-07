@@ -21,12 +21,12 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun rememberSeekGestureState(
     player: Player,
-    sensitivity: Float = 0.5f
+    sensitivity: Float = 0.5f,
 ): SeekGestureState {
     val seekGestureState = remember {
         SeekGestureState(
             player = player,
-            sensitivity = sensitivity
+            sensitivity = sensitivity,
         )
     }
     return seekGestureState

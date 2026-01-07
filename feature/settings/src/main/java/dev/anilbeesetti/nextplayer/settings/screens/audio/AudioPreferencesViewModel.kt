@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.audio
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -7,9 +8,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -18,24 +17,40 @@ class AudioPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
-    val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = PlayerPreferences(),
+    private val uiStateInternal = MutableStateFlow(
+        AudioPreferencesUiState(
+            preferences = preferencesRepository.playerPreferences.value,
+        ),
     )
+    val uiState = uiStateInternal.asStateFlow()
 
-    private val _uiState = MutableStateFlow(AudioPreferencesUIState())
-    val uiState = _uiState.asStateFlow()
-
-    fun onEvent(event: AudioPreferencesEvent) {
-        if (event is AudioPreferencesEvent.ShowDialog) {
-            _uiState.update {
-                it.copy(showDialog = event.value)
+    init {
+        viewModelScope.launch {
+            preferencesRepository.playerPreferences.collect { preferences ->
+                uiStateInternal.update { currentState ->
+                    currentState.copy(preferences = preferences)
+                }
             }
         }
     }
 
-    fun updateAudioLanguage(value: String) {
+    fun onEvent(event: AudioPreferencesUiEvent) {
+        when (event) {
+            is AudioPreferencesUiEvent.ShowDialog -> showDialog(event.value)
+            is AudioPreferencesUiEvent.UpdateAudioLanguage -> updateAudioLanguage(event.value)
+            AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect -> togglePauseOnHeadsetDisconnect()
+            AudioPreferencesUiEvent.ToggleShowSystemVolumePanel -> toggleShowSystemVolumePanel()
+            AudioPreferencesUiEvent.ToggleRequireAudioFocus -> toggleRequireAudioFocus()
+        }
+    }
+
+    private fun showDialog(value: AudioPreferenceDialog?) {
+        uiStateInternal.update {
+            it.copy(showDialog = value)
+        }
+    }
+
+    private fun updateAudioLanguage(value: String) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(preferredAudioLanguage = value)
@@ -43,7 +58,7 @@ class AudioPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun togglePauseOnHeadsetDisconnect() {
+    private fun togglePauseOnHeadsetDisconnect() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(pauseOnHeadsetDisconnect = !it.pauseOnHeadsetDisconnect)
@@ -51,7 +66,7 @@ class AudioPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleShowSystemVolumePanel() {
+    private fun toggleShowSystemVolumePanel() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(showSystemVolumePanel = !it.showSystemVolumePanel)
@@ -59,7 +74,7 @@ class AudioPreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleRequireAudioFocus() {
+    private fun toggleRequireAudioFocus() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(requireAudioFocus = !it.requireAudioFocus)
@@ -68,22 +83,20 @@ class AudioPreferencesViewModel @Inject constructor(
     }
 }
 
-data class AudioPreferencesUIState(
+@Stable
+data class AudioPreferencesUiState(
     val showDialog: AudioPreferenceDialog? = null,
+    val preferences: PlayerPreferences = PlayerPreferences(),
 )
 
 sealed interface AudioPreferenceDialog {
-    object AudioLanguageDialog : AudioPreferenceDialog
+    data object AudioLanguageDialog : AudioPreferenceDialog
 }
 
-sealed interface AudioPreferencesEvent {
-    data class ShowDialog(val value: AudioPreferenceDialog?) : AudioPreferencesEvent
-}
-
-fun AudioPreferencesViewModel.showDialog(dialog: AudioPreferenceDialog) {
-    onEvent(AudioPreferencesEvent.ShowDialog(dialog))
-}
-
-fun AudioPreferencesViewModel.hideDialog() {
-    onEvent(AudioPreferencesEvent.ShowDialog(null))
+sealed interface AudioPreferencesUiEvent {
+    data class ShowDialog(val value: AudioPreferenceDialog?) : AudioPreferencesUiEvent
+    data class UpdateAudioLanguage(val value: String) : AudioPreferencesUiEvent
+    data object TogglePauseOnHeadsetDisconnect : AudioPreferencesUiEvent
+    data object ToggleShowSystemVolumePanel : AudioPreferencesUiEvent
+    data object ToggleRequireAudioFocus : AudioPreferencesUiEvent
 }

@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -45,19 +46,33 @@ import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 import dev.anilbeesetti.nextplayer.settings.utils.LocalesHelper
 import java.nio.charset.Charset
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SubtitlePreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: SubtitlePreferencesViewModel = hiltViewModel(),
 ) {
-    val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    SubtitlePreferencesContent(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        onNavigateUp = onNavigateUp,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun SubtitlePreferencesContent(
+    uiState: SubtitlePreferencesUiState,
+    onEvent: (SubtitlePreferencesUiEvent) -> Unit,
+    onNavigateUp: () -> Unit,
+) {
     val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
     val charsetResource = stringArrayResource(id = R.array.charsets_list)
     val context = LocalContext.current
@@ -92,18 +107,18 @@ fun SubtitlePreferencesScreen(
                 val totalRows = 2
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_subtitle_lang),
-                    description = LocalesHelper.getLocaleDisplayLanguage(preferences.preferredSubtitleLanguage)
+                    description = LocalesHelper.getLocaleDisplayLanguage(uiState.preferences.preferredSubtitleLanguage)
                         .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_subtitle_lang_description),
                     icon = NextIcons.Language,
-                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog) },
+                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog)) },
                     index = 0,
                     count = totalRows,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.subtitle_text_encoding),
-                    description = charsetResource.first { it.contains(preferences.subtitleTextEncoding) },
+                    description = charsetResource.first { it.contains(uiState.preferences.subtitleTextEncoding) },
                     icon = NextIcons.Subtitle,
-                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog) },
+                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog)) },
                     index = 1,
                     count = totalRows,
                 )
@@ -117,18 +132,18 @@ fun SubtitlePreferencesScreen(
                     title = stringResource(R.string.system_caption_style),
                     description = stringResource(R.string.system_caption_style_desc),
                     icon = NextIcons.Caption,
-                    isChecked = preferences.useSystemCaptionStyle,
-                    onChecked = viewModel::toggleUseSystemCaptionStyle,
+                    isChecked = uiState.preferences.useSystemCaptionStyle,
+                    onChecked = { onEvent(SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle) },
                     onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) },
                     index = 0,
                     count = totalRows,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.subtitle_font),
-                    description = preferences.subtitleFont.name(),
+                    description = uiState.preferences.subtitleFont.name(),
                     icon = NextIcons.Font,
-                    enabled = preferences.useSystemCaptionStyle.not(),
-                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleFontDialog) },
+                    enabled = uiState.preferences.useSystemCaptionStyle.not(),
+                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleFontDialog)) },
                     index = 1,
                     count = totalRows,
                 )
@@ -136,18 +151,18 @@ fun SubtitlePreferencesScreen(
                     title = stringResource(id = R.string.subtitle_text_bold),
                     description = stringResource(id = R.string.subtitle_text_bold_desc),
                     icon = NextIcons.Bold,
-                    enabled = preferences.useSystemCaptionStyle.not(),
-                    isChecked = preferences.subtitleTextBold,
-                    onClick = viewModel::toggleSubtitleTextBold,
+                    enabled = uiState.preferences.useSystemCaptionStyle.not(),
+                    isChecked = uiState.preferences.subtitleTextBold,
+                    onClick = { onEvent(SubtitlePreferencesUiEvent.ToggleSubtitleTextBold) },
                     index = 2,
                     count = totalRows,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.subtitle_text_size),
-                    description = preferences.subtitleTextSize.toString(),
+                    description = uiState.preferences.subtitleTextSize.toString(),
                     icon = NextIcons.FontSize,
-                    enabled = preferences.useSystemCaptionStyle.not(),
-                    onClick = { viewModel.showDialog(SubtitlePreferenceDialog.SubtitleSizeDialog) },
+                    enabled = uiState.preferences.useSystemCaptionStyle.not(),
+                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleSizeDialog)) },
                     index = 3,
                     count = totalRows,
                 )
@@ -155,9 +170,9 @@ fun SubtitlePreferencesScreen(
                     title = stringResource(id = R.string.subtitle_background),
                     description = stringResource(id = R.string.subtitle_background_desc),
                     icon = NextIcons.Background,
-                    enabled = preferences.useSystemCaptionStyle.not(),
-                    isChecked = preferences.subtitleBackground,
-                    onClick = viewModel::toggleSubtitleBackground,
+                    enabled = uiState.preferences.useSystemCaptionStyle.not(),
+                    isChecked = uiState.preferences.subtitleBackground,
+                    onClick = { onEvent(SubtitlePreferencesUiEvent.ToggleSubtitleBackground) },
                     index = 4,
                     count = totalRows,
                 )
@@ -165,8 +180,8 @@ fun SubtitlePreferencesScreen(
                     title = stringResource(R.string.embedded_styles),
                     description = stringResource(R.string.embedded_styles_desc),
                     icon = NextIcons.Style,
-                    isChecked = preferences.applyEmbeddedStyles,
-                    onClick = viewModel::toggleApplyEmbeddedStyles,
+                    isChecked = uiState.preferences.applyEmbeddedStyles,
+                    onClick = { onEvent(SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles) },
                     index = 5,
                     count = totalRows,
                 )
@@ -178,15 +193,15 @@ fun SubtitlePreferencesScreen(
                 SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.preferred_subtitle_lang),
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(null)) },
                     ) {
                         items(languages) {
                             RadioTextButton(
                                 text = it.first,
-                                selected = it.second == preferences.preferredSubtitleLanguage,
+                                selected = it.second == uiState.preferences.preferredSubtitleLanguage,
                                 onClick = {
-                                    viewModel.updateSubtitleLanguage(it.second)
-                                    viewModel.hideDialog()
+                                    onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleLanguage(it.second))
+                                    onEvent(SubtitlePreferencesUiEvent.ShowDialog(null))
                                 },
                             )
                         }
@@ -196,15 +211,15 @@ fun SubtitlePreferencesScreen(
                 SubtitlePreferenceDialog.SubtitleFontDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.subtitle_font),
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(null)) },
                     ) {
                         items(Font.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
-                                selected = it == preferences.subtitleFont,
+                                selected = it == uiState.preferences.subtitleFont,
                                 onClick = {
-                                    viewModel.updateSubtitleFont(it)
-                                    viewModel.hideDialog()
+                                    onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFont(it))
+                                    onEvent(SubtitlePreferencesUiEvent.ShowDialog(null))
                                 },
                             )
                         }
@@ -212,10 +227,10 @@ fun SubtitlePreferencesScreen(
                 }
 
                 SubtitlePreferenceDialog.SubtitleSizeDialog -> {
-                    var size by remember { mutableIntStateOf(preferences.subtitleTextSize) }
+                    var size by remember { mutableIntStateOf(uiState.preferences.subtitleTextSize) }
 
                     NextDialog(
-                        onDismissRequest = viewModel::hideDialog,
+                        onDismissRequest = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(null)) },
                         title = { Text(text = stringResource(id = R.string.subtitle_text_size)) },
                         content = {
                             Text(
@@ -235,28 +250,28 @@ fun SubtitlePreferencesScreen(
                         },
                         confirmButton = {
                             DoneButton(onClick = {
-                                viewModel.updateSubtitleFontSize(size)
-                                viewModel.hideDialog()
+                                onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(size))
+                                onEvent(SubtitlePreferencesUiEvent.ShowDialog(null))
                             })
                         },
-                        dismissButton = { CancelButton(onClick = viewModel::hideDialog) },
+                        dismissButton = { CancelButton(onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(null)) }) },
                     )
                 }
 
                 SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.subtitle_text_encoding),
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(null)) },
                     ) {
                         items(charsetResource) {
                             val currentCharset = it.substringAfterLast("(", "").removeSuffix(")")
                             if (currentCharset.isEmpty() || Charset.isSupported(currentCharset)) {
                                 RadioTextButton(
                                     text = it,
-                                    selected = currentCharset == preferences.subtitleTextEncoding,
+                                    selected = currentCharset == uiState.preferences.subtitleTextEncoding,
                                     onClick = {
-                                        viewModel.updateSubtitleEncoding(currentCharset)
-                                        viewModel.hideDialog()
+                                        onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleEncoding(currentCharset))
+                                        onEvent(SubtitlePreferencesUiEvent.ShowDialog(null))
                                     },
                                 )
                             }
@@ -265,5 +280,17 @@ fun SubtitlePreferencesScreen(
                 }
             }
         }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SubtitlePreferencesScreenPreview() {
+    NextPlayerTheme {
+        SubtitlePreferencesContent(
+            uiState = SubtitlePreferencesUiState(),
+            onEvent = {},
+            onNavigateUp = {},
+        )
     }
 }

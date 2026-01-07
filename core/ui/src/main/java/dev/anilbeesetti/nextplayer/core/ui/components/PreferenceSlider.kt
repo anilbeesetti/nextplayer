@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -53,7 +52,7 @@ fun PreferenceSlider(
                     modifier = Modifier.fillMaxWidth(),
                     value = value,
                     valueRange = valueRange,
-                    onValueChange = onValueChange
+                    onValueChange = onValueChange,
                 )
             }
         },

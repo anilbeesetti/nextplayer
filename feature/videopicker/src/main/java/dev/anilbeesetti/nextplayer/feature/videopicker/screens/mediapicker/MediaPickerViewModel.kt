@@ -41,7 +41,7 @@ class MediaPickerViewModel @Inject constructor(
     private val uiStateInternal = MutableStateFlow(
         MediaPickerUiState(
             folderName = folderPath?.let { File(folderPath).prettyName },
-            preferences = preferencesRepository.applicationPreferences.value
+            preferences = preferencesRepository.applicationPreferences.value,
         ),
     )
     val uiState = uiStateInternal.asStateFlow()

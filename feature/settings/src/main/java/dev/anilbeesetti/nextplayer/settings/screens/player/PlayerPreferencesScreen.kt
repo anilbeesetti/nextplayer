@@ -181,7 +181,7 @@ private fun PlayerPreferencesContent(
                                 contentDescription = stringResource(id = R.string.reset_seek_increment),
                             )
                         }
-                    }
+                    },
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.seek_sensitivity),
@@ -199,7 +199,7 @@ private fun PlayerPreferencesContent(
                                 contentDescription = stringResource(id = R.string.reset_seek_sentivity),
                             )
                         }
-                    }
+                    },
                 )
             }
             ListSectionTitle(text = stringResource(id = R.string.interface_name))
@@ -223,7 +223,7 @@ private fun PlayerPreferencesContent(
                                 contentDescription = stringResource(id = R.string.reset_controller_timeout),
                             )
                         }
-                    }
+                    },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.hide_player_buttons_background),
@@ -265,7 +265,7 @@ private fun PlayerPreferencesContent(
                                 contentDescription = stringResource(id = R.string.reset_default_playback_speed),
                             )
                         }
-                    }
+                    },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.autoplay_settings),
@@ -447,7 +447,7 @@ private fun PlayerPreferencesScreenPreview() {
     NextPlayerTheme {
         PlayerPreferencesContent(
             uiState = PlayerPreferencesUiState(),
-            onEvent = {}
+            onEvent = {},
         )
     }
 }

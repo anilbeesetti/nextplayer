@@ -5,8 +5,8 @@ import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataS
 import dev.anilbeesetti.nextplayer.core.datastore.datasource.PlayerPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
-import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -21,14 +21,14 @@ class LocalPreferencesRepository @Inject constructor(
         get() = appPreferencesDataSource.preferences.stateIn(
             scope = applicationScope,
             started = SharingStarted.Eagerly,
-            initialValue = ApplicationPreferences()
+            initialValue = ApplicationPreferences(),
         )
 
     override val playerPreferences: StateFlow<PlayerPreferences>
         get() = playerPreferencesDataSource.preferences.stateIn(
             scope = applicationScope,
             started = SharingStarted.Eagerly,
-            initialValue = PlayerPreferences()
+            initialValue = PlayerPreferences(),
         )
 
     override suspend fun updateApplicationPreferences(

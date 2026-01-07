@@ -24,8 +24,8 @@ class PlayerPreferencesViewModel @Inject constructor(
 
     private val uiStateInternal = MutableStateFlow(
         PlayerPreferencesUiState(
-            preferences = preferencesRepository.playerPreferences.value
-        )
+            preferences = preferencesRepository.playerPreferences.value,
+        ),
     )
     val uiState = uiStateInternal.asStateFlow()
 

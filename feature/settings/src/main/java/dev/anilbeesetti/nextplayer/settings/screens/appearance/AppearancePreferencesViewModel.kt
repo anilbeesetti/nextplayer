@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.appearance
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,9 +9,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -18,25 +17,39 @@ import kotlinx.coroutines.launch
 class AppearancePreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
-    val preferencesFlow = preferencesRepository.applicationPreferences
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = ApplicationPreferences(),
-        )
 
-    private val _uiState = MutableStateFlow(AppearancePreferencesUiState())
-    val uiState = _uiState.asStateFlow()
+    private val uiStateInternal = MutableStateFlow(
+        AppearancePreferencesUiState(
+            preferences = preferencesRepository.applicationPreferences.value,
+        ),
+    )
+    val uiState = uiStateInternal.asStateFlow()
 
-    fun onEvent(event: AppearancePreferencesEvent) {
-        if (event is AppearancePreferencesEvent.ShowDialog) {
-            _uiState.update {
-                it.copy(showDialog = event.value)
+    init {
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { preferences ->
+                uiStateInternal.update { it.copy(preferences = preferences) }
             }
         }
     }
 
-    fun toggleDarkTheme() {
+    fun onEvent(event: AppearancePreferencesEvent) {
+        when (event) {
+            is AppearancePreferencesEvent.ShowDialog -> showDialog(event.value)
+            AppearancePreferencesEvent.ToggleDarkTheme -> toggleDarkTheme()
+            is AppearancePreferencesEvent.UpdateThemeConfig -> updateThemeConfig(event.themeConfig)
+            AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
+            AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
+        }
+    }
+
+    private fun showDialog(value: AppearancePreferenceDialog?) {
+        uiStateInternal.update {
+            it.copy(showDialog = value)
+        }
+    }
+
+    private fun toggleDarkTheme() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(
@@ -46,7 +59,7 @@ class AppearancePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateThemeConfig(themeConfig: ThemeConfig) {
+    private fun updateThemeConfig(themeConfig: ThemeConfig) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(themeConfig = themeConfig)
@@ -54,7 +67,7 @@ class AppearancePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleUseDynamicColors() {
+    private fun toggleUseDynamicColors() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(useDynamicColors = !it.useDynamicColors)
@@ -62,7 +75,7 @@ class AppearancePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleUseHighContrastDarkTheme() {
+    private fun toggleUseHighContrastDarkTheme() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(useHighContrastDarkTheme = !it.useHighContrastDarkTheme)
@@ -71,22 +84,20 @@ class AppearancePreferencesViewModel @Inject constructor(
     }
 }
 
+@Stable
 data class AppearancePreferencesUiState(
     val showDialog: AppearancePreferenceDialog? = null,
+    val preferences: ApplicationPreferences = ApplicationPreferences(),
 )
 
 sealed interface AppearancePreferencesEvent {
     data class ShowDialog(val value: AppearancePreferenceDialog?) : AppearancePreferencesEvent
+    data object ToggleDarkTheme : AppearancePreferencesEvent
+    data class UpdateThemeConfig(val themeConfig: ThemeConfig) : AppearancePreferencesEvent
+    data object ToggleUseDynamicColors : AppearancePreferencesEvent
+    data object ToggleUseHighContrastDarkTheme : AppearancePreferencesEvent
 }
 
 sealed interface AppearancePreferenceDialog {
-    object Theme : AppearancePreferenceDialog
-}
-
-fun AppearancePreferencesViewModel.showDialog(dialog: AppearancePreferenceDialog) {
-    onEvent(AppearancePreferencesEvent.ShowDialog(dialog))
-}
-
-fun AppearancePreferencesViewModel.hideDialog() {
-    onEvent(AppearancePreferencesEvent.ShowDialog(null))
+    data object Theme : AppearancePreferenceDialog
 }
