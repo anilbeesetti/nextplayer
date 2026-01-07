@@ -2,9 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.net.Uri
 import android.os.Bundle
-import androidx.annotation.OptIn
-import androidx.media3.common.C
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import kotlinx.coroutines.guava.await

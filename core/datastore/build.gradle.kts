@@ -37,7 +37,6 @@ dependencies {
 
     implementation(libs.androidx.datastore.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.timber)
 
     // Hilt
     implementation(libs.hilt.android)
