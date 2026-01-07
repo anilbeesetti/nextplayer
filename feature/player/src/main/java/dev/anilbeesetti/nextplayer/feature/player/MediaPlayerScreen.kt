@@ -20,11 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
@@ -59,6 +62,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
@@ -84,7 +88,7 @@ val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> 
 @OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerScreen(
-    player: MediaController,
+    player: Player,
     viewModel: PlayerViewModel,
     playerPreferences: PlayerPreferences,
     modifier: Modifier = Modifier,
@@ -133,6 +137,7 @@ fun MediaPlayerScreen(
         player = player,
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
+    val errorState = rememberErrorState(player = player)
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -353,6 +358,41 @@ fun MediaPlayerScreen(
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
         }
+    }
+
+    errorState.error?.let { error ->
+        AlertDialog(
+            onDismissRequest = { },
+            title = {
+                Text(text = stringResource(coreUiR.string.error_playing_video))
+            },
+            text = {
+                Text(text = error.message ?: stringResource(coreUiR.string.unknown_error))
+            },
+            confirmButton = {
+                if (player.hasNextMediaItem()) {
+                    TextButton(
+                        onClick = {
+                            errorState.dismiss()
+                            player.seekToNext()
+                            player.play()
+                        },
+                    ) {
+                        Text(text = stringResource(coreUiR.string.play_next_video))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        errorState.dismiss()
+                        onBackClick()
+                    },
+                ) {
+                    Text(text = stringResource(coreUiR.string.exit))
+                }
+            },
+        )
     }
 
     BackHandler {

@@ -263,26 +263,6 @@ class PlayerActivity : ComponentActivity() {
             updateKeepScreenOnFlag()
         }
 
-        override fun onPlayerError(error: PlaybackException) {
-            super.onPlayerError(error)
-            Timber.e(error)
-            val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
-                setTitle(getString(coreUiR.string.error_playing_video))
-                setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
-                    finish()
-                }
-                if (mediaController?.hasNextMediaItem() == true) {
-                    setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
-                        dialog.dismiss()
-                        mediaController?.seekToNext()
-                    }
-                }
-            }.create()
-
-            alertDialog.show()
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
             when (playbackState) {
