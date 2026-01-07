@@ -105,7 +105,10 @@ fun MediaPlayerScreen(
         useLongPressGesture = playerPreferences.useLongPressControls,
         longPressSpeed = playerPreferences.longPressControlsSpeed,
     )
-    val seekGestureState = rememberSeekGestureState(player = player)
+    val seekGestureState = rememberSeekGestureState(
+        player = player,
+        sensitivity = playerPreferences.seekSensitivity,
+    )
     val pictureInPictureState = rememberPictureInPictureState(
         player = player,
         autoEnter = playerPreferences.autoPip,

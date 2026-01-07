@@ -10,8 +10,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -20,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -32,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.model.ScreenOrientation
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -39,6 +41,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogWithDoneAndCancelButtons
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSlider
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
@@ -82,7 +85,7 @@ fun PlayerPreferencesScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 8
+                val totalRows = 9
                 PreferenceSwitch(
                     title = stringResource(id = R.string.seek_gesture),
                     description = stringResource(id = R.string.seek_gesture_description),
@@ -149,13 +152,41 @@ fun PlayerPreferencesScreen(
                     index = 6,
                     count = totalRows,
                 )
-                ClickablePreferenceItem(
+                PreferenceSlider(
                     title = stringResource(R.string.seek_increment),
                     description = stringResource(R.string.seconds, preferences.seekIncrement),
                     icon = NextIcons.Replay,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.SeekIncrementDialog) },
+                    value = preferences.seekIncrement.toFloat(),
+                    valueRange = 1.0f..60.0f,
+                    onValueChange = { viewModel.updateSeekIncrement(it.toInt()) },
                     index = 7,
                     count = totalRows,
+                    trailingContent = {
+                        FilledIconButton(onClick = { viewModel.updateSeekIncrement(PlayerPreferences.DEFAULT_SEEK_INCREMENT) }) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_seek_increment),
+                            )
+                        }
+                    }
+                )
+                PreferenceSlider(
+                    title = stringResource(R.string.seek_sensitivity),
+                    description = preferences.seekSensitivity.toString(),
+                    icon = NextIcons.FastForward,
+                    value = preferences.seekSensitivity,
+                    valueRange = 0.1f..2.0f,
+                    onValueChange = { viewModel.updateSeekSensitivity(it) },
+                    index = 8,
+                    count = totalRows,
+                    trailingContent = {
+                        FilledIconButton(onClick = { viewModel.updateSeekIncrement(PlayerPreferences.DEFAULT_SEEK_INCREMENT) }) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_seek_sentivity),
+                            )
+                        }
+                    }
                 )
             }
             ListSectionTitle(text = stringResource(id = R.string.interface_name))
@@ -163,21 +194,23 @@ fun PlayerPreferencesScreen(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 val totalRows = 3
-                ClickablePreferenceItem(
+                PreferenceSlider(
                     title = stringResource(R.string.controller_timeout),
                     description = stringResource(R.string.seconds, preferences.controllerAutoHideTimeout),
                     icon = NextIcons.Timer,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControllerTimeoutDialog) },
+                    value = preferences.controllerAutoHideTimeout.toFloat(),
+                    valueRange = 1.0f..60.0f,
+                    onValueChange = { viewModel.updateControlAutoHideTimeout(it.toInt()) },
                     index = 0,
                     count = totalRows,
-                )
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.control_buttons_alignment),
-                    description = preferences.controlButtonsPosition.name(),
-                    icon = NextIcons.ButtonsPosition,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.ControlButtonsDialog) },
-                    index = 1,
-                    count = totalRows,
+                    trailingContent = {
+                        FilledIconButton(onClick = { viewModel.updateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT) }) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_controller_timeout),
+                            )
+                        }
+                    }
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.hide_player_buttons_background),
@@ -203,13 +236,23 @@ fun PlayerPreferencesScreen(
                     index = 0,
                     count = totalRows,
                 )
-                ClickablePreferenceItem(
+                PreferenceSlider(
                     title = stringResource(id = R.string.default_playback_speed),
                     description = preferences.defaultPlaybackSpeed.toString(),
                     icon = NextIcons.Speed,
-                    onClick = { viewModel.showDialog(PlayerPreferenceDialog.PlaybackSpeedDialog) },
+                    value = preferences.defaultPlaybackSpeed,
+                    valueRange = 0.2f..4.0f,
+                    onValueChange = { viewModel.updateDefaultPlaybackSpeed(it) },
                     index = 1,
                     count = totalRows,
+                    trailingContent = {
+                        FilledIconButton(onClick = { viewModel.updateDefaultPlaybackSpeed(1f) }) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_default_playback_speed),
+                            )
+                        }
+                    }
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.autoplay_settings),
@@ -351,36 +394,6 @@ fun PlayerPreferencesScreen(
                     }
                 }
 
-                PlayerPreferenceDialog.PlaybackSpeedDialog -> {
-                    var defaultPlaybackSpeed by remember {
-                        mutableFloatStateOf(preferences.defaultPlaybackSpeed)
-                    }
-
-                    NextDialogWithDoneAndCancelButtons(
-                        title = stringResource(R.string.default_playback_speed),
-                        onDoneClick = {
-                            viewModel.updateDefaultPlaybackSpeed(defaultPlaybackSpeed)
-                            viewModel.hideDialog()
-                        },
-                        onDismissClick = viewModel::hideDialog,
-                        content = {
-                            Text(
-                                text = "$defaultPlaybackSpeed",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Slider(
-                                value = defaultPlaybackSpeed,
-                                onValueChange = { defaultPlaybackSpeed = it.round(1) },
-                                valueRange = 0.2f..4.0f,
-                            )
-                        },
-                    )
-                }
-
                 PlayerPreferenceDialog.LongPressControlsSpeedDialog -> {
                     var longPressControlsSpeed by remember {
                         mutableFloatStateOf(preferences.longPressControlsSpeed)
@@ -406,65 +419,6 @@ fun PlayerPreferencesScreen(
                                 value = longPressControlsSpeed,
                                 onValueChange = { longPressControlsSpeed = it.round(1) },
                                 valueRange = 0.2f..4.0f,
-                            )
-                        },
-                    )
-                }
-                PlayerPreferenceDialog.ControllerTimeoutDialog -> {
-                    var controllerAutoHideSec by remember {
-                        mutableIntStateOf(preferences.controllerAutoHideTimeout)
-                    }
-
-                    NextDialogWithDoneAndCancelButtons(
-                        title = stringResource(R.string.controller_timeout),
-                        onDoneClick = {
-                            viewModel.updateControlAutoHideTimeout(controllerAutoHideSec)
-                            viewModel.hideDialog()
-                        },
-                        onDismissClick = viewModel::hideDialog,
-                        content = {
-                            Text(
-                                text = stringResource(R.string.seconds, controllerAutoHideSec),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Slider(
-                                value = controllerAutoHideSec.toFloat(),
-                                onValueChange = { controllerAutoHideSec = it.toInt() },
-                                valueRange = 1.0f..60.0f,
-                            )
-                        },
-                    )
-                }
-
-                PlayerPreferenceDialog.SeekIncrementDialog -> {
-                    var seekIncrement by remember {
-                        mutableIntStateOf(preferences.seekIncrement)
-                    }
-
-                    NextDialogWithDoneAndCancelButtons(
-                        title = stringResource(R.string.seek_increment),
-                        onDoneClick = {
-                            viewModel.updateSeekIncrement(seekIncrement)
-                            viewModel.hideDialog()
-                        },
-                        onDismissClick = viewModel::hideDialog,
-                        content = {
-                            Text(
-                                text = stringResource(R.string.seconds, seekIncrement),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Slider(
-                                value = seekIncrement.toFloat(),
-                                onValueChange = { seekIncrement = it.toInt() },
-                                valueRange = 1.0f..60.0f,
                             )
                         },
                     )

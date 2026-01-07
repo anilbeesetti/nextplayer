@@ -28,10 +28,11 @@ data class PlayerPreferences(
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.BOTH,
     val useLongPressControls: Boolean = false,
     val longPressControlsSpeed: Float = 2.0f,
-    val seekIncrement: Int = 10,
+    val seekIncrement: Int = DEFAULT_SEEK_INCREMENT,
+    val seekSensitivity: Float = DEFAULT_SEEK_SENSITIVITY,
 
     // Player Interface
-    val controllerAutoHideTimeout: Int = 4,
+    val controllerAutoHideTimeout: Int = DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
     val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
     val hidePlayerButtonsBackground: Boolean = false,
 
@@ -53,4 +54,11 @@ data class PlayerPreferences(
 
     // Decoder Preferences
     val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE,
-)
+) {
+
+    companion object {
+        const val DEFAULT_SEEK_INCREMENT = 10
+        const val DEFAULT_SEEK_SENSITIVITY = 0.5f
+        const val DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT = 4
+    }
+}

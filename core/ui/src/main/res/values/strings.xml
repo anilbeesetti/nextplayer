@@ -246,4 +246,9 @@
     <string name="m_n_selected">%1$d / %2$d Selected</string>
     <string name="select_all">Select all</string>
     <string name="deselect_all">Deselect all</string>
+    <string name="reset_seek_increment">Reset seek increment</string>
+    <string name="reset_controller_timeout">Reset controller timeout</string>
+    <string name="reset_default_playback_speed">Reset default playback speed</string>
+    <string name="seek_sensitivity">Seek sensitivity</string>
+    <string name="reset_seek_sentivity">Reset seek sensitivity</string>
 </resources>

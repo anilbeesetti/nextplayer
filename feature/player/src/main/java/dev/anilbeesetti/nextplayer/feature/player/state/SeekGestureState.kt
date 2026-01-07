@@ -19,9 +19,15 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @Composable
-fun rememberSeekGestureState(player: Player): SeekGestureState {
+fun rememberSeekGestureState(
+    player: Player,
+    sensitivity: Float = 0.5f
+): SeekGestureState {
     val seekGestureState = remember {
-        SeekGestureState(player = player)
+        SeekGestureState(
+            player = player,
+            sensitivity = sensitivity
+        )
     }
     return seekGestureState
 }
@@ -86,7 +92,7 @@ class SeekGestureState(
         if (player.currentPosition >= player.duration && dragAmount > 0) return
         if (change.isConsumed) return
 
-        val newPosition = seekStartPosition!! + ((change.position.x - seekStartX) * sensitivity * 10).toInt()
+        val newPosition = seekStartPosition!! + ((change.position.x - seekStartX) * (sensitivity * 100)).toInt()
         seekAmount = (newPosition - seekStartPosition!!).coerceIn(
             minimumValue = 0 - seekStartPosition!!,
             maximumValue = player.duration - seekStartPosition!!,

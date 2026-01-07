@@ -135,4 +135,5 @@ object NextIcons {
     val HideSource = Icons.Rounded.HideSource
     val SelectAll = Icons.Rounded.SelectAll
     val DeselectAll = Icons.Rounded.Deselect
+    val FastForward = Icons.Rounded.FastForward
 }

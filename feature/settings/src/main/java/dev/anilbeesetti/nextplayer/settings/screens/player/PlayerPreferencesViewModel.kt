@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.settings.screens.player
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
@@ -178,7 +179,7 @@ class PlayerPreferencesViewModel @Inject constructor(
     fun updateDefaultPlaybackSpeed(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(defaultPlaybackSpeed = value)
+                it.copy(defaultPlaybackSpeed = value.round(1))
             }
         }
     }
@@ -205,6 +206,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    fun updateSeekSensitivity(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(seekSensitivity = value.round(1))
+            }
+        }
+    }
+
     fun toggleHidePlayerButtonsBackground() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -223,10 +232,7 @@ sealed interface PlayerPreferenceDialog {
     object DoubleTapDialog : PlayerPreferenceDialog
     object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     object ControlButtonsDialog : PlayerPreferenceDialog
-    object PlaybackSpeedDialog : PlayerPreferenceDialog
     object LongPressControlsSpeedDialog : PlayerPreferenceDialog
-    object ControllerTimeoutDialog : PlayerPreferenceDialog
-    object SeekIncrementDialog : PlayerPreferenceDialog
 }
 
 sealed interface PlayerPreferencesEvent {
