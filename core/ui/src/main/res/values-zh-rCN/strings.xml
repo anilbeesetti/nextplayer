@@ -239,4 +239,21 @@
     <string name="hide_player_buttons_background">隐藏播放器按钮背景</string>
     <string name="hide_player_buttons_background_description">隐藏所有播放器控制按钮的背景</string>
     <string name="m_n_selected">已选择 %1$d/%2$d</string>
+    <string name="select_all">全选</string>
+    <string name="deselect_all">取消全选</string>
+    <string name="reset_default_playback_speed">重置默认播放速度</string>
+    <string name="crash_screen_title">糟糕</string>
+    <string name="crash_screen_subtitle">%s 似乎发生意外错误。建议在 GitHub 问题中提交崩溃日志。</string>
+    <string name="crash_screen_logs_title">崩溃日志：</string>
+    <string name="crash_screen_share">分享崩溃日志</string>
+    <string name="crash_screen_restart">重启应用</string>
+    <string name="crash_screen_logcat">Logcat:</string>
+    <string name="shuffle_on">随机播放已打开</string>
+    <string name="shuffle_off">随机播放已关闭</string>
+    <string name="reset_seek_increment">重置跳转增量</string>
+    <string name="seek_sensitivity">跳转灵敏度</string>
+    <string name="reset_seek_sentivity">重置跳转灵敏度</string>
+    <string name="reset_controller_timeout">重置控制器超时</string>
+    <string name="pan_gesture">平移手势</string>
+    <string name="pan_gesture_description">缩放和平移视频</string>
 </resources>
