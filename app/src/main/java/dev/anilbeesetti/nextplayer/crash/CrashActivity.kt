@@ -161,16 +161,27 @@ class CrashActivity : ComponentActivity() {
         exceptionString: String,
         logcat: String,
     ) = withContext(Dispatchers.IO) {
-        val file = File(cacheDir, "next_player_logs.txt")
-        if (file.exists()) file.delete()
-        file.createNewFile()
-        file.appendText(concatLogs(deviceInfo, exceptionString, logcat))
-        val uri = FileProvider.getUriForFile(this@CrashActivity, BuildConfig.APPLICATION_ID + ".provider", file)
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.putExtra(Intent.EXTRA_STREAM, uri)
-        intent.clipData = ClipData.newRawUri(null, uri)
-        intent.type = "text/plain"
-        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        val file = File(cacheDir, "next_player_logs.txt").also {
+            if (it.exists()) it.delete()
+            it.createNewFile()
+        }
+        val logs = concatLogs(
+            deviceInfo = deviceInfo,
+            crashLogs = exceptionString,
+            logcat = logcat,
+        )
+        file.writeText(text = logs)
+        val uri = FileProvider.getUriForFile(
+            this@CrashActivity,
+            "${packageName}.fileprovider",
+            file
+        )
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            clipData = ClipData.newRawUri(null, uri)
+            putExtra(Intent.EXTRA_STREAM, uri)
+        }
         startActivity(
             Intent.createChooser(intent, getString(R.string.crash_screen_share)),
         )
