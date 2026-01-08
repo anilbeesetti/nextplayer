@@ -26,9 +26,19 @@ import kotlin.math.abs
 fun rememberVideoZoomAndContentScaleState(
     player: Player,
     initialContentScale: VideoContentScale,
+    enableZoomGesture: Boolean,
+    enablePanGesture: Boolean,
     onEvent: (VideoZoomEvent) -> Unit = {},
 ): VideoZoomAndContentScaleState {
-    val videoZoomAndContentScaleState = remember { VideoZoomAndContentScaleState(player, initialContentScale, onEvent) }
+    val videoZoomAndContentScaleState = remember {
+        VideoZoomAndContentScaleState(
+            player = player,
+            initialContentScale = initialContentScale,
+            enableZoomGesture = enableZoomGesture,
+            enablePanGesture = enablePanGesture,
+            onEvent = onEvent,
+        )
+    }
     LaunchedEffect(player) { videoZoomAndContentScaleState.observe() }
     return videoZoomAndContentScaleState
 }
@@ -37,6 +47,8 @@ fun rememberVideoZoomAndContentScaleState(
 class VideoZoomAndContentScaleState(
     private val player: Player,
     initialContentScale: VideoContentScale,
+    private val enableZoomGesture: Boolean = true,
+    private val enablePanGesture: Boolean = true,
     private val onEvent: (VideoZoomEvent) -> Unit,
 ) {
     companion object Companion {
@@ -70,6 +82,7 @@ class VideoZoomAndContentScaleState(
 
     fun onZoomPanGesture(constraints: Constraints, panChange: Offset, zoomChange: Float) {
         if (player.duration == C.TIME_UNSET) return
+        if (!enableZoomGesture) return
 
         isZooming = true
         zoom = (zoom * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
@@ -80,11 +93,12 @@ class VideoZoomAndContentScaleState(
         val maxX = abs(extraWidth / 2)
         val maxY = abs(extraHeight / 2)
 
-        // TODO: Add pan back
-//        offset = Offset(
-//            x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
-//            y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY),
-//        )
+        if (enablePanGesture) {
+            offset = Offset(
+                x = (offset.x + zoom * panChange.x).coerceIn(-maxX, maxX),
+                y = (offset.y + zoom * panChange.y).coerceIn(-maxY, maxY),
+            )
+        }
     }
 
     fun onZoomPanGestureEnd() {

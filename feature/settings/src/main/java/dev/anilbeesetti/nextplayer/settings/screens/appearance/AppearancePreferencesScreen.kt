@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,22 +30,34 @@ import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.ui.theme.supportsDynamicTheming
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppearancePreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: AppearancePreferencesViewModel = hiltViewModel(),
 ) {
-    val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    AppearancePreferencesContent(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        onNavigateUp = onNavigateUp,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun AppearancePreferencesContent(
+    uiState: AppearancePreferencesUiState,
+    onEvent: (AppearancePreferencesEvent) -> Unit,
+    onNavigateUp: () -> Unit = {},
+) {
     Scaffold(
         topBar = {
-            // TODO: Check why the appbar flickers when changing the theme with small appbar and not with large appbar
             NextTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 navigationIcon = {
@@ -73,11 +86,11 @@ fun AppearancePreferencesScreen(
                 val totalRows = if (supportsDynamicTheming()) 3 else 2
                 PreferenceSwitchWithDivider(
                     title = stringResource(id = R.string.dark_theme),
-                    description = preferences.themeConfig.name(),
-                    isChecked = preferences.themeConfig == ThemeConfig.ON,
-                    onChecked = viewModel::toggleDarkTheme,
+                    description = uiState.preferences.themeConfig.name(),
+                    isChecked = uiState.preferences.themeConfig == ThemeConfig.ON,
+                    onChecked = { onEvent(AppearancePreferencesEvent.ToggleDarkTheme) },
                     icon = NextIcons.DarkMode,
-                    onClick = { viewModel.showDialog(AppearancePreferenceDialog.Theme) },
+                    onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
                     index = 0,
                     count = totalRows,
                 )
@@ -85,8 +98,8 @@ fun AppearancePreferencesScreen(
                     title = stringResource(R.string.high_contrast_dark_theme),
                     description = stringResource(R.string.high_contrast_dark_theme_desc),
                     icon = NextIcons.Contrast,
-                    isChecked = preferences.useHighContrastDarkTheme,
-                    onClick = viewModel::toggleUseHighContrastDarkTheme,
+                    isChecked = uiState.preferences.useHighContrastDarkTheme,
+                    onClick = { onEvent(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
                     index = 1,
                     count = totalRows,
                 )
@@ -95,8 +108,8 @@ fun AppearancePreferencesScreen(
                         title = stringResource(id = R.string.dynamic_theme),
                         description = stringResource(id = R.string.dynamic_theme_description),
                         icon = NextIcons.Appearance,
-                        isChecked = preferences.useDynamicColors,
-                        onClick = viewModel::toggleUseDynamicColors,
+                        isChecked = uiState.preferences.useDynamicColors,
+                        onClick = { onEvent(AppearancePreferencesEvent.ToggleUseDynamicColors) },
                         index = 2,
                         count = totalRows,
                     )
@@ -109,15 +122,15 @@ fun AppearancePreferencesScreen(
                 AppearancePreferenceDialog.Theme -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.dark_theme),
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = { onEvent(AppearancePreferencesEvent.ShowDialog(null)) },
                     ) {
                         items(ThemeConfig.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
-                                selected = (it == preferences.themeConfig),
+                                selected = (it == uiState.preferences.themeConfig),
                                 onClick = {
-                                    viewModel.updateThemeConfig(it)
-                                    viewModel.hideDialog()
+                                    onEvent(AppearancePreferencesEvent.UpdateThemeConfig(it))
+                                    onEvent(AppearancePreferencesEvent.ShowDialog(null))
                                 },
                             )
                         }
@@ -125,5 +138,16 @@ fun AppearancePreferencesScreen(
                 }
             }
         }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AppearancePreferencesScreenPreview() {
+    NextPlayerTheme {
+        AppearancePreferencesContent(
+            uiState = AppearancePreferencesUiState(),
+            onEvent = {},
+        )
     }
 }

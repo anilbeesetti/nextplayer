@@ -15,8 +15,8 @@ plugins {
 }
 
 subprojects {
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
-    apply(plugin = "com.mikepenz.aboutlibraries.plugin")
+    apply(plugin = rootProject.libs.plugins.ktlint.get().pluginId)
+    apply(plugin = rootProject.libs.plugins.aboutLibraries.get().pluginId)
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         android.set(true)

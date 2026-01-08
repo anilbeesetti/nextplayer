@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 @Composable
-fun rememberTapGesureState(
+fun rememberTapGestureState(
     player: Player,
     doubleTapGesture: DoubleTapGesture,
     seekIncrementMillis: Long,
@@ -115,13 +115,6 @@ class TapGestureState(
         resetDoubleTapSeekState()
     }
 
-    fun handleOnLongPressRelease() {
-        if (isLongPressGestureInAction) {
-            isLongPressGestureInAction = false
-            player.setPlaybackSpeed(currentSpeed)
-        }
-    }
-
     fun handleLongPress(offset: Offset) {
         if (!useLongPressGesture) return
         if (!player.isPlaying) return
@@ -129,6 +122,13 @@ class TapGestureState(
         isLongPressGestureInAction = true
         currentSpeed = player.playbackParameters.speed
         player.setPlaybackSpeed(longPressSpeed)
+    }
+
+    fun handleOnLongPressRelease() {
+        if (isLongPressGestureInAction) {
+            isLongPressGestureInAction = false
+            player.setPlaybackSpeed(currentSpeed)
+        }
     }
 
     private fun resetDoubleTapSeekState() {

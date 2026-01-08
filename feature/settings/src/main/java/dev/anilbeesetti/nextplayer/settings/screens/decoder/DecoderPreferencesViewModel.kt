@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.decoder
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,9 +9,7 @@ import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,25 +18,37 @@ class DecoderPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
-    val preferencesFlow = preferencesRepository.playerPreferences
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = PlayerPreferences(),
-        )
+    private val uiStateInternal = MutableStateFlow(
+        DecoderPreferencesUiState(
+            preferences = preferencesRepository.playerPreferences.value,
+        ),
+    )
+    val uiState = uiStateInternal.asStateFlow()
 
-    private val _uiState = MutableStateFlow(DecoderPreferencesUIState())
-    val uiState = _uiState.asStateFlow()
-
-    fun onEvent(event: DecoderPreferencesEvent) {
-        if (event is DecoderPreferencesEvent.ShowDialog) {
-            _uiState.update {
-                it.copy(showDialog = event.value)
+    init {
+        viewModelScope.launch {
+            preferencesRepository.playerPreferences.collect { preferences ->
+                uiStateInternal.update { currentState ->
+                    currentState.copy(preferences = preferences)
+                }
             }
         }
     }
 
-    fun updateDecoderPriority(value: DecoderPriority) {
+    fun onEvent(event: DecoderPreferencesUiEvent) {
+        when (event) {
+            is DecoderPreferencesUiEvent.ShowDialog -> showDialog(event.value)
+            is DecoderPreferencesUiEvent.UpdateDecoderPriority -> updateDecoderPriority(event.value)
+        }
+    }
+
+    private fun showDialog(value: DecoderPreferenceDialog?) {
+        uiStateInternal.update {
+            it.copy(showDialog = value)
+        }
+    }
+
+    private fun updateDecoderPriority(value: DecoderPriority) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(decoderPriority = value)
@@ -46,22 +57,17 @@ class DecoderPreferencesViewModel @Inject constructor(
     }
 }
 
-data class DecoderPreferencesUIState(
+@Stable
+data class DecoderPreferencesUiState(
     val showDialog: DecoderPreferenceDialog? = null,
+    val preferences: PlayerPreferences = PlayerPreferences(),
 )
 
 sealed interface DecoderPreferenceDialog {
-    object DecoderPriorityDialog : DecoderPreferenceDialog
+    data object DecoderPriorityDialog : DecoderPreferenceDialog
 }
 
-sealed interface DecoderPreferencesEvent {
-    data class ShowDialog(val value: DecoderPreferenceDialog?) : DecoderPreferencesEvent
-}
-
-fun DecoderPreferencesViewModel.showDialog(dialog: DecoderPreferenceDialog) {
-    onEvent(DecoderPreferencesEvent.ShowDialog(dialog))
-}
-
-fun DecoderPreferencesViewModel.hideDialog() {
-    onEvent(DecoderPreferencesEvent.ShowDialog(null))
+sealed interface DecoderPreferencesUiEvent {
+    data class ShowDialog(val value: DecoderPreferenceDialog?) : DecoderPreferencesUiEvent
+    data class UpdateDecoderPriority(val value: DecoderPriority) : DecoderPreferencesUiEvent
 }

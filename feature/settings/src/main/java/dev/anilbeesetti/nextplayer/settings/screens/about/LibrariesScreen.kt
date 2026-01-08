@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Badge
@@ -85,14 +86,17 @@ fun LibrariesScreen(
                         }
                     },
                     supportingContent = {
-                        Column {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(text = library.author)
-                            FlowRow {
+                            FlowRow(
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
                                 library.licenses.forEach {
                                     Badge(
                                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                     ) {
-                                        Text(text = it.name)
+                                        Text(text = it.name, modifier = Modifier.padding(horizontal = 2.dp))
                                     }
                                 }
                             }

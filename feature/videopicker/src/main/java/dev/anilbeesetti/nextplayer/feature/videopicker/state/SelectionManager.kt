@@ -54,6 +54,14 @@ class SelectionManager(
         }
     }
 
+    fun selectFolder(folder: Folder) {
+        selectedFolders = selectedFolders + folder.toSelectedFolder()
+    }
+
+    fun selectVideo(video: Video) {
+        selectedVideos = selectedVideos + video.toSelectedVideo()
+    }
+
     fun clearSelection() {
         selectedVideos = emptySet()
         selectedFolders = emptySet()
@@ -105,7 +113,7 @@ data class SelectedVideo(
 private fun Folder.toSelectedFolder() = SelectedFolder(
     name = name,
     path = path,
-    mediaList = mediaList.map { it.toSelectedVideo() },
+    mediaList = allMediaList.map { it.toSelectedVideo() },
 )
 
 private fun Video.toSelectedVideo() = SelectedVideo(

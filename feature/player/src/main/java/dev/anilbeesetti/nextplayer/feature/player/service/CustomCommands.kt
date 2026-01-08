@@ -2,9 +2,6 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.net.Uri
 import android.os.Bundle
-import androidx.annotation.OptIn
-import androidx.media3.common.C
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import kotlinx.coroutines.guava.await
@@ -60,12 +57,6 @@ fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
-}
-
-@OptIn(UnstableApi::class)
-suspend fun MediaController.getAudioSessionId(): Int {
-    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
-    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
 }
 
 fun MediaController.stopPlayerSession() {

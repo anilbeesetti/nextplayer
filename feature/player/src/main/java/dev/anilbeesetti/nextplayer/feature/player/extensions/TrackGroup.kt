@@ -23,7 +23,7 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {
         }
         if (language != null && language != "und") {
             append(" - ")
-            append(Locale(language).displayLanguage)
+            append(Locale.of(language).displayLanguage)
         }
     }
 }

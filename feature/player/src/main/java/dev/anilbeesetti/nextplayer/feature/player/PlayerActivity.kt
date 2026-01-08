@@ -3,15 +3,19 @@ package dev.anilbeesetti.nextplayer.feature.player
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,15 +28,12 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
-import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
@@ -46,7 +47,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
+
+val LocalHidePlayerButtonsBackground = compositionLocalOf { false }
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -77,7 +79,10 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
 
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,34 +99,36 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
 
-            NextPlayerTheme(darkTheme = true) {
-                MediaPlayerScreen(
-                    player = player ?: return@NextPlayerTheme,
-                    viewModel = viewModel,
-                    playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
-                    onSelectSubtitleClick = {
-                        lifecycleScope.launch {
-                            val uri = subtitleFileSuspendLauncher.launch(
-                                arrayOf(
-                                    MimeTypes.APPLICATION_SUBRIP,
-                                    MimeTypes.APPLICATION_TTML,
-                                    MimeTypes.TEXT_VTT,
-                                    MimeTypes.TEXT_SSA,
-                                    MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                                    MimeTypes.BASE_TYPE_TEXT + "/*",
-                                ),
-                            ) ?: return@launch
-                            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            maybeInitControllerFuture()
-                            controllerFuture?.await()?.addSubtitleTrack(uri)
-                        }
-                    },
-                    onBackClick = { finishAndStopPlayerSession() },
-                    onPlayInBackgroundClick = {
-                        playInBackground = true
-                        finish()
-                    },
-                )
+            CompositionLocalProvider(LocalHidePlayerButtonsBackground provides (uiState.playerPreferences?.hidePlayerButtonsBackground == true)) {
+                NextPlayerTheme(darkTheme = true) {
+                    MediaPlayerScreen(
+                        player = player ?: return@NextPlayerTheme,
+                        viewModel = viewModel,
+                        playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
+                        onSelectSubtitleClick = {
+                            lifecycleScope.launch {
+                                val uri = subtitleFileSuspendLauncher.launch(
+                                    arrayOf(
+                                        MimeTypes.APPLICATION_SUBRIP,
+                                        MimeTypes.APPLICATION_TTML,
+                                        MimeTypes.TEXT_VTT,
+                                        MimeTypes.TEXT_SSA,
+                                        MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                        MimeTypes.BASE_TYPE_TEXT + "/*",
+                                    ),
+                                ) ?: return@launch
+                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                maybeInitControllerFuture()
+                                controllerFuture?.await()?.addSubtitleTrack(uri)
+                            }
+                        },
+                        onBackClick = { finishAndStopPlayerSession() },
+                        onPlayInBackgroundClick = {
+                            playInBackground = true
+                            finish()
+                        },
+                    )
+                }
             }
         }
 
@@ -250,26 +257,6 @@ class PlayerActivity : ComponentActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             updateKeepScreenOnFlag()
-        }
-
-        override fun onPlayerError(error: PlaybackException) {
-            super.onPlayerError(error)
-            Timber.e(error)
-            val alertDialog = MaterialAlertDialogBuilder(this@PlayerActivity).apply {
-                setTitle(getString(coreUiR.string.error_playing_video))
-                setMessage(error.message ?: getString(coreUiR.string.unknown_error))
-                setNegativeButton(getString(coreUiR.string.exit)) { _, _ ->
-                    finish()
-                }
-                if (mediaController?.hasNextMediaItem() == true) {
-                    setPositiveButton(getString(coreUiR.string.play_next_video)) { dialog, _ ->
-                        dialog.dismiss()
-                        mediaController?.seekToNext()
-                    }
-                }
-            }.create()
-
-            alertDialog.show()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {

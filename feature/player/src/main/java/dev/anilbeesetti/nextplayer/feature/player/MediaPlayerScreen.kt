@@ -20,11 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +49,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -56,14 +57,16 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
-import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGesureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
@@ -83,7 +86,7 @@ val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> 
 @OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerScreen(
-    player: MediaController,
+    player: Player,
     viewModel: PlayerViewModel,
     playerPreferences: PlayerPreferences,
     modifier: Modifier = Modifier,
@@ -97,14 +100,17 @@ fun MediaPlayerScreen(
         player = player,
         hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
     )
-    val tapGestureState = rememberTapGesureState(
+    val tapGestureState = rememberTapGestureState(
         player = player,
         doubleTapGesture = playerPreferences.doubleTapGesture,
         seekIncrementMillis = playerPreferences.seekIncrement.seconds.inWholeMilliseconds,
         useLongPressGesture = playerPreferences.useLongPressControls,
         longPressSpeed = playerPreferences.longPressControlsSpeed,
     )
-    val seekGestureState = rememberSeekGestureState(player = player)
+    val seekGestureState = rememberSeekGestureState(
+        player = player,
+        sensitivity = playerPreferences.seekSensitivity,
+    )
     val pictureInPictureState = rememberPictureInPictureState(
         player = player,
         autoEnter = playerPreferences.autoPip,
@@ -112,6 +118,8 @@ fun MediaPlayerScreen(
     val videoZoomAndContentScaleState = rememberVideoZoomAndContentScaleState(
         player = player,
         initialContentScale = playerPreferences.playerVideoZoom,
+        enableZoomGesture = playerPreferences.useZoomControls,
+        enablePanGesture = playerPreferences.enablePanGesture,
         onEvent = viewModel::onVideoZoomEvent,
     )
     val volumeState = rememberVolumeState(
@@ -119,12 +127,15 @@ fun MediaPlayerScreen(
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
+        enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
+        enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
     )
     val rotationState = rememberRotationState(
         player = player,
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
+    val errorState = rememberErrorState(player = player)
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -312,7 +323,7 @@ fun MediaPlayerScreen(
                 ) {
                     AnimatedVisibility(
                         modifier = Modifier.align(Alignment.CenterStart),
-                        visible = volumeAndBrightnessGestureState.volumeChangePercentage != 0,
+                        visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.VOLUME,
                         enter = fadeIn(),
                         exit = fadeOut(),
                     ) {
@@ -324,7 +335,7 @@ fun MediaPlayerScreen(
 
                     AnimatedVisibility(
                         modifier = Modifier.align(Alignment.CenterEnd),
-                        visible = volumeAndBrightnessGestureState.brightnessChangePercentage != 0,
+                        visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.BRIGHTNESS,
                         enter = fadeIn(),
                         exit = fadeOut(),
                     ) {
@@ -345,6 +356,41 @@ fun MediaPlayerScreen(
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
         }
+    }
+
+    errorState.error?.let { error ->
+        AlertDialog(
+            onDismissRequest = { },
+            title = {
+                Text(text = stringResource(coreUiR.string.error_playing_video))
+            },
+            text = {
+                Text(text = error.message ?: stringResource(coreUiR.string.unknown_error))
+            },
+            confirmButton = {
+                if (player.hasNextMediaItem()) {
+                    TextButton(
+                        onClick = {
+                            errorState.dismiss()
+                            player.seekToNext()
+                            player.play()
+                        },
+                    ) {
+                        Text(text = stringResource(coreUiR.string.play_next_video))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        errorState.dismiss()
+                        onBackClick()
+                    },
+                ) {
+                    Text(text = stringResource(coreUiR.string.exit))
+                }
+            },
+        )
     }
 
     BackHandler {

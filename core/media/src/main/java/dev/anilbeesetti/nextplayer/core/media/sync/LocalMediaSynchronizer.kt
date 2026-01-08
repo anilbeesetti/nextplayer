@@ -88,8 +88,7 @@ class LocalMediaSynchronizer @Inject constructor(
         currentFolder: File,
         media: List<MediaVideo>,
     ): List<DirectoryEntity> {
-        val hasMediaInCurrentFolder = media.any { it.data.startsWith(currentFolder.path) }
-
+        val hasMediaInCurrentFolder = media.any { it.data.startsWith("${currentFolder.path}/") }
         if (!hasMediaInCurrentFolder) return emptyList()
 
         val currentDirectoryEntity = DirectoryEntity(
