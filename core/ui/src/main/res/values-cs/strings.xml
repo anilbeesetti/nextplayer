@@ -122,8 +122,6 @@
     <string name="open_local_video">Otevřít místní video</string>
     <string name="open_network_stream">Otevřít video na síti</string>
     <string name="grant_permission">Poskytnout oprávění</string>
-    <string name="swipe_gesture">Gesto na jas/hlasitost</string>
-    <string name="swipe_gesture_description">Přejeďte prstem narohu/dolů od prava/leva pro změnu jasu a hlasitosti</string>
     <string name="seek_gesture_description">Přejeďte prstem doleva/doprava pro posun ve videí</string>
     <string name="media_library">Knihovna videí</string>
     <string name="scan">Prohledat</string>
@@ -162,7 +160,6 @@
     <string name="ff_rewind">Rychlý posun vpřed/vzad</string>
     <string name="monospace">Neproporcionální</string>
     <string name="hundred_percent">100%</string>
-    <string name="floating_play_button">Plovoucí tlačítko přehrávání</string>
     <string name="control_buttons_alignment_right">Vpravo</string>
     <string name="permission_settings">Aplikace Next Player potřebuje k přístupu k médiím a jejich přehrávání oprávnění „%1$s“. Bez něj nebude přístup k médiím a jejich přehrávání fungovat. Chcete-li aplikaci plně používat, povolte toto oprávnění v nastavení, protože bylo trvale odepřeno.</string>
     <string name="enable_pip_from_settings">Režim Obraz v obraze je vypnutý. Chcete-li tuto funkci používat, povolte ji v Nastavení.</string>
@@ -175,7 +172,6 @@
     <string name="media_view_mode">Režim zobrazení médií</string>
     <string name="play_pause_ff_rewind">Přehrát/Pozastavit a Rychlý posun vpřed/vzad</string>
     <string name="sample_format">Formát vzorku</string>
-    <string name="floating_play_button_desc">Zobrazí plovoucí tlačítko pro přehrávání naposledy přehrávaných médií.</string>
     <string name="screen_rotation">Otáčení obrazovky</string>
     <string name="title_activity_player">Next Player Aktivita</string>
     <string name="landscape_reverse">Na šířku (opačně)</string>

@@ -39,12 +39,10 @@
     <string name="force_rescan_storage_desc">Cauză: Inițializarea rescanării complete poate cauza utilizarea crescută a resurselor în dispozitivul tău</string>
     <string name="videos">videoclipuri</string>
     <string name="newest">Cel mai nou</string>
-    <string name="swipe_gesture_description">Glisați vertical pentru a ajusta volumul și luminozitatea</string>
     <string name="scanning_storage">Se scanează stocarea…</string>
     <string name="sans_serif">Sans Serif</string>
     <string name="group_videos">Grupați videoclipurile în funcție de dosar</string>
     <string name="controls_unlock">Deblocați controlurile</string>
-    <string name="swipe_gesture">Gest glisare</string>
     <string name="subtitle_background">Fundalul subtitrării</string>
     <string name="on">Pornit</string>
     <string name="subtitle_text_bold_desc">Folosiți textul îngroșat pentru subtitrări</string>

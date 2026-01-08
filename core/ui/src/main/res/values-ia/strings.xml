@@ -109,7 +109,6 @@
     <string name="autoplay_settings_description">Reproducer automaticamente le sequente video in le dossier actual</string>
     <string name="video_software_decoders">Decodificatores de video per software</string>
     <string name="sans_serif">Sans Serif</string>
-    <string name="swipe_gesture">Gesto de glissamento</string>
     <string name="on">Activate</string>
     <string name="grant_permission">Conceder permission</string>
     <string name="smallest">Le plus parve</string>
@@ -140,7 +139,6 @@
     <string name="group_videos">Assemblar le videos per dossier</string>
     <string name="navigate_up">Navigar in alto</string>
     <string name="player_controls_exit">Navigar in alto</string>
-    <string name="swipe_gesture_description">Glissa verticalmente pro adjustar le luminositate e volumine</string>
     <string name="dynamic_theme_description">Applicar colores ab le fundo de schermo de systema al thema de application</string>
     <string name="ff_rewind">Avantiar rapidemente/Rebobinar</string>
     <string name="play_pause_ff_rewind">Reproducer/Pausar e Avantiar rapidemente/Rebobinar</string>
@@ -191,11 +189,9 @@
     <string name="open_local_video">Aperir fluxo de rete</string>
     <string name="exit">Sortir</string>
     <string name="play_next_video">Reproducer le sequente video</string>
-    <string name="floating_play_button">Button de reproduction emergente</string>
     <string name="mark_last_played_media">Marcar le ultime medio reproducite</string>
     <string name="open_network_stream">Aperir fluxos in le rete</string>
     <string name="mark_last_played_media_desc">Marcar le ultime medio reproducite in le initio e in cata dossier</string>
-    <string name="floating_play_button_desc">Monstrar button emergente pro reproducer le ultime medio reproducite.</string>
     <string name="skip_silence">Saltar le silentio</string>
     <string name="folder">Dossier</string>
     <string name="folders">Dossieres</string>

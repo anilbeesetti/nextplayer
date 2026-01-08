@@ -40,8 +40,6 @@
     <string name="settings">Configurações</string>
     <string name="size">Tamanho</string>
     <string name="sort">Organizar</string>
-    <string name="swipe_gesture">Gesto ao deslizar</string>
-    <string name="swipe_gesture_description">Deslize verticalmente para ajustar o brilho e o volume</string>
     <string name="title">Título</string>
     <string name="title_activity_player">Atividade do Next Player</string>
     <string name="unknown_error">Um erro desconhecido ocorreu</string>
@@ -191,8 +189,6 @@
     <string name="mark_last_played_media">Marcar a última mídia reproduzida</string>
     <string name="mark_last_played_media_desc">Marque a última mídia reproduzida na página inicial e em cada pasta</string>
     <string name="open_local_video">Abrir vídeo local</string>
-    <string name="floating_play_button">Botão de reprodução flutuante</string>
-    <string name="floating_play_button_desc">Mostrar botão flutuante para reproduzir a última mídia reproduzida.</string>
     <string name="open_network_stream">Abrir streaming</string>
     <string name="exit">Sair</string>
     <string name="play_next_video">Reproduzir próximo vídeo</string>

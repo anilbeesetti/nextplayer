@@ -15,7 +15,6 @@
     <string name="resume_description">حدد ما إذا كنت تريد استئناف تشغيل مقاطع الفيديو التي شُغلت من النقطة التي توقفت عندها</string>
     <string name="seek_gesture_description">اسحب أفقيًا للتقدم للأمام أو للخلف</string>
     <string name="select_audio_track">حدد مسار الصوت</string>
-    <string name="swipe_gesture">ايماء السحب</string>
     <string name="title_activity_player">نشاط Next Player</string>
     <string name="interface_name">الواجهة</string>
     <string name="z_a">Z-A</string>
@@ -92,7 +91,6 @@
     <string name="controls_lock">قفل أزرار التحكم</string>
     <string name="controls_unlock">فتح أزرار التحكم</string>
     <string name="select_subtitle_track">حدد مسار الترجمة</string>
-    <string name="swipe_gesture_description">اسحب عموديًا لضبط السطوع والصوت</string>
     <string name="scanning_storage">فحص التخزين…</string>
     <string name="player_screen_orientation">اتجاه شاشة المشغل</string>
     <string name="automatic">تلقائي (مستشعر)</string>
@@ -186,7 +184,6 @@
     <string name="rename">إعادة تسمية</string>
     <string name="rename_to">إعادة تسمية إلى</string>
     <string name="open_subtitle">فتح ترجمة محلية</string>
-    <string name="floating_play_button">زر تشغيل عائم</string>
     <string name="mark_last_played_media">تعليم آخر فيديو شُغِل</string>
     <string name="mark_last_played_media_desc">تعليم آخر فيديو شُغِل في شاشة البداية وفي كل مجلد</string>
     <string name="open_local_video">فتح فيديو محلي</string>
@@ -194,7 +191,6 @@
     <string name="exit">خروج</string>
     <string name="play_next_video">تشغيل الفيديو التالي</string>
     <string name="no_audio_tracks_found">مسار الصوت لهذا الفيديو إما غير متوفرة أو غير مدعومة.</string>
-    <string name="floating_play_button_desc">إظهار زر عائم لتشغيل آخر فيديو شُغِل.</string>
     <string name="no_subtitle_tracks_found">مسار الترجمة لهذا الفيديو إما غير متوفرة أو غير مدعومة.</string>
     <string name="skip_silence">تخطي الصمت</string>
     <string name="folder">مجلد</string>

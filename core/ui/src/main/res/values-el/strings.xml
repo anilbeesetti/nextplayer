@@ -34,8 +34,6 @@
     <string name="settings">Ρυθμίσεις</string>
     <string name="size">Μέγεθος</string>
     <string name="sort">Ταξινόμηση κατά</string>
-    <string name="swipe_gesture">Κάθετη χειρονομία</string>
-    <string name="swipe_gesture_description">Για προσαρμογή φωτεινότητας και έντασης</string>
     <string name="title">Τίτλο</string>
     <string name="title_activity_player">Δραστηριότητα Next Player</string>
     <string name="unknown_error">Προέκυψε ένα άγνωστο σφάλμα</string>
@@ -193,8 +191,6 @@
     <string name="mark_last_played_media">Επισήμανση αναπαραγωγής</string>
     <string name="open_local_video">Τοπικό βίντεο</string>
     <string name="open_network_stream">Δικτυακή ροή</string>
-    <string name="floating_play_button">Αιωρούμενο κουμπί</string>
-    <string name="floating_play_button_desc">Εμφάνιση κουμπιού αναπαραγωγής πρόσφατου βίντεο.</string>
     <string name="mark_last_played_media_desc">Επισήμανση τελευταίας αναπαραγωγής σε κάθε φάκελο</string>
     <string name="skip_silence">Παράκαμψη σίγασης</string>
     <string name="folders">Φάκελοι</string>

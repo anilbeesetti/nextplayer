@@ -41,7 +41,6 @@
     <string name="force_rescan_storage_desc">Thận trọng: Bắt đầu quét lại trên toàn bộ nhớ có thể làm tăng mức sử dụng tài nguyên trên thiết bị của bạn</string>
     <string name="videos">Các video</string>
     <string name="newest">Mới nhất</string>
-    <string name="swipe_gesture_description">Vuốt dọc để điều chỉnh độ sáng và âm lượng</string>
     <string name="pause_on_headset_disconnect_desc">Tạm dừng phát lại khi tai nghe bị ngắt kết nối với thiết bị</string>
     <string name="video_software_decoders">Phần mềm giải mã video</string>
     <string name="scanning_storage">Đang quét bộ lưu trữ…</string>
@@ -49,7 +48,6 @@
     <string name="group_videos">Nhóm các video theo thư mục</string>
     <string name="audio_desc">Tùy chọn phát lại âm thanh</string>
     <string name="controls_unlock">Mở khóa điều khiển</string>
-    <string name="swipe_gesture">Cử chỉ vuốt</string>
     <string name="subtitle_background">Nền phụ đề</string>
     <string name="on">Bật</string>
     <string name="subtitle_text_bold_desc">Sử dụng văn bản in đậm cho phụ đề</string>
@@ -191,10 +189,8 @@
     <string name="open_network_stream">Mở luồng mạng</string>
     <string name="open_local_video">Mở video cục bộ</string>
     <string name="play_next_video">Phát video tiếp theo</string>
-    <string name="floating_play_button">Nút phát nổi</string>
     <string name="mark_last_played_media">Đánh dấu phương tiện đã phát lần cuối</string>
     <string name="exit">Thoát</string>
-    <string name="floating_play_button_desc">Hiển thị nút nổi để phát phương tiện đã phát lần cuối.</string>
     <string name="mark_last_played_media_desc">Đánh dấu phương tiện được phát lần cuối ở trang chủ và trong mỗi thư mục</string>
     <string name="skip_silence">Bỏ qua im lặng</string>
     <string name="folder">Tệp tin</string>

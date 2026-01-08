@@ -41,7 +41,6 @@
     <string name="force_rescan_storage_desc">警告：啟用完整儲存區掃描可能會導致您的裝置資源使用率增加</string>
     <string name="videos">影片</string>
     <string name="newest">最新</string>
-    <string name="swipe_gesture_description">垂直滑動以調整亮度與音量</string>
     <string name="pause_on_headset_disconnect_desc">耳機與裝置中斷連接時暫停播放</string>
     <string name="video_software_decoders">軟體影片解碼器</string>
     <string name="scanning_storage">正在掃描儲存區…</string>
@@ -49,7 +48,6 @@
     <string name="group_videos">由資料夾分組影片</string>
     <string name="audio_desc">音訊播放選項</string>
     <string name="controls_unlock">解鎖控制元件</string>
-    <string name="swipe_gesture">滑動手勢</string>
     <string name="subtitle_background">字幕背景</string>
     <string name="on">開啟</string>
     <string name="subtitle_text_bold_desc">使用粗體文字於字幕</string>
@@ -189,10 +187,8 @@
     <string name="rename">重新命名</string>
     <string name="rename_to">重新命名為</string>
     <string name="exit">退出</string>
-    <string name="floating_play_button">浮動播放按鈕</string>
     <string name="open_network_stream">開啟網路視訊串流</string>
     <string name="play_next_video">播放下一個影片</string>
-    <string name="floating_play_button_desc">顯示浮動按鈕以播放上次播放的媒體。</string>
     <string name="mark_last_played_media">標記上次播放的媒體</string>
     <string name="mark_last_played_media_desc">標記首頁和每個資料夾中最後播放的媒體</string>
     <string name="open_local_video">開啟本機影片</string>

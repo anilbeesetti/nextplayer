@@ -50,8 +50,6 @@
     <string name="settings">ಸೆಟ್ಟಿಂಗ್ಗಳು</string>
     <string name="size">ಗಾತ್ರ</string>
     <string name="sort">ವಿಂಗಡಿಸಿ</string>
-    <string name="swipe_gesture">ಎಳೆಯುವ ಸನ್ನೆ</string>
-    <string name="swipe_gesture_description">ಹೊಳಪು ಮತ್ತು ದ್ವನಿ ಹೊಂದಿಸಲು ಲಂಬವಾಗಿ ಎಳೆಯಿರಿ</string>
     <string name="title">ಶೀರ್ಷಿಕೆ</string>
     <string name="title_activity_player">ನೆಕ್ಸ್ಟ್ ಪ್ಲೇಯರ್ ಚಟುವಟಿಕೆ</string>
     <string name="unknown_error">ಅಜ್ಞಾತ ದೋಷವೊಂದು ಸಂಭವಿಸಿದೆ</string>

@@ -22,7 +22,6 @@
     <string name="seek_gesture_description">Horizontal wischen, um vor- oder zurückzuspulen</string>
     <string name="select_audio_track">Audiospur wählen</string>
     <string name="settings">Einstellungen</string>
-    <string name="swipe_gesture_description">Vertikal wischen, um Helligkeit und Lautstärke anzupassen</string>
     <string name="title">Titel</string>
     <string name="title_activity_player">Next Player-Aktivität</string>
     <string name="unknown_error">Ein unbekannter Fehler ist aufgetreten</string>
@@ -60,7 +59,6 @@
     <string name="player_name">Player</string>
     <string name="quick_settings">Schnelleinstellungen</string>
     <string name="select_subtitle_track">Untertitelspur wählen</string>
-    <string name="swipe_gesture">Wisch-Geste</string>
     <string name="size">Größe</string>
     <string name="sort">Sortieren</string>
     <string name="largest">Größtes</string>
@@ -188,8 +186,6 @@
     <string name="no_audio_tracks_found">Die Tonspuren für dieses Video sind entweder nicht verfügbar oder werden nicht unterstützt.</string>
     <string name="open_subtitle">Lokale Untertitel öffnen</string>
     <string name="no_subtitle_tracks_found">Die Untertitelspuren für dieses Video sind entweder nicht verfügbar oder werden nicht unterstützt.</string>
-    <string name="floating_play_button">Schwebende Wiedergabe-Taste</string>
-    <string name="floating_play_button_desc">Schwebende Wiedergabe-Taste zum Abspielen der zuletzt abgespielten Medien anzeigen.</string>
     <string name="mark_last_played_media_desc">Markiere die zuletzt wiedergegebenen Medien auf der Startseite und in jedem Ordner</string>
     <string name="mark_last_played_media">Markiere die zuletzt wiedergegebenen Medien</string>
     <string name="play_next_video">Nächstes Video abspielen</string>

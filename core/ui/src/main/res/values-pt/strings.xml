@@ -84,8 +84,6 @@
     <string name="seek_gesture_description">Deslize horizontalmente para navegar para frente ou para trás</string>
     <string name="settings">Configurações</string>
     <string name="size">Tamanho</string>
-    <string name="swipe_gesture">Gesto de deslizar</string>
-    <string name="swipe_gesture_description">Deslize verticalmente para ajustar o brilho e o volume</string>
     <string name="title">Título</string>
     <string name="fast_seek_description">Procurar o quadro-chave mais próximo em vez de um exato.</string>
     <string name="enter_a_network_url">Digite uma URL de conexão:</string>
@@ -188,8 +186,6 @@
     <string name="no_audio_tracks_found">As faixas de áudio para este vídeo não estão disponíveis ou não são compatíveis.</string>
     <string name="rename">Renomear</string>
     <string name="rename_to">Renomear para</string>
-    <string name="floating_play_button">Botão de reprodução flutuante</string>
-    <string name="floating_play_button_desc">Mostrar botão flutuante para reproduzir a última média reproduzida.</string>
     <string name="mark_last_played_media">Marcar a última média reproduzida</string>
     <string name="mark_last_played_media_desc">Marque a última média reproduzida na página inicial e em cada pasta</string>
     <string name="open_local_video">Abrir vídeo local</string>

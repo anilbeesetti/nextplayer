@@ -67,8 +67,6 @@
     <string name="pip_settings">Modalità Picture in Picture</string>
     <string name="dynamic_theme">Tema colore dinamico</string>
     <string name="seek_gesture_description">Scorri orizzontalmente per cercare avanti o indietro</string>
-    <string name="swipe_gesture">Gesto scorri</string>
-    <string name="swipe_gesture_description">Scorri verticalmente per aggiustare la luminosità e il volume</string>
     <string name="controls_lock">Blocca controlli</string>
     <string name="controls_unlock">Sblocca controlli</string>
     <string name="preferred_audio_lang">Lingua audio preferita</string>
@@ -183,8 +181,6 @@
     <string name="decoder">Decodificatore</string>
     <string name="permission_settings">L\'app Next Player ha bisogno dell\'autorizzazione \"%1$s\" per accedere e eseguire i media. Senza di questo, l\'accesso ai media e l\'esecuzione non funzionerà. Per usare a pieno l\'app, permetti l\'autorizzazione dalle impostazioni dato che è stato negato permanentemente.</string>
     <string name="device_decoders_only">Solo decodificatori del dispositivo</string>
-    <string name="floating_play_button">Pulsante play fluttuante</string>
-    <string name="floating_play_button_desc">Mostra pulsante fluttuante per eseguire l\'ultimo media riprodotto.</string>
     <string name="open_network_stream">Apri flusso di rete</string>
     <string name="controller_timeout">Controllo Timeout</string>
     <string name="long_press_gesture">Gesture lunga pressione</string>

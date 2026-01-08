@@ -105,7 +105,6 @@
     <string name="bitrate">பிட்ரேட்</string>
     <string name="open_subtitle">உள்ளக வசனத் திறந்த</string>
     <string name="no_subtitle_tracks_found">இந்த வீடியோவிற்கான வசனத் தடங்கள் கிடைக்கவில்லை அல்லது ஆதரிக்கப்படவில்லை.</string>
-    <string name="floating_play_button">மிதக்கும் விளையாட்டு பொத்தான்</string>
     <string name="mark_last_played_media">மார்க் கடைசியாக ஊடகங்களில் நடித்தார்</string>
     <string name="open_local_video">உள்ளக வீடியோவைத் திறக்கவும்</string>
     <string name="exit">வெளியேறு</string>
@@ -148,8 +147,6 @@
     <string name="seek_gesture_description">முன்னோக்கி அல்லது பின்னோக்கி தேட கிடைமட்டமாக ச்வைப் செய்யவும்</string>
     <string name="select_audio_track">ஆடியோ டிராக்கைத் தேர்ந்தெடுக்கவும்</string>
     <string name="select_subtitle_track">வசனத் தடத்தைத் தேர்ந்தெடுக்கவும்</string>
-    <string name="swipe_gesture">சைகை ச்வைப்</string>
-    <string name="swipe_gesture_description">பிரகாசத்தையும் அளவையும் சரிசெய்ய செங்குத்தாக ச்வைப் செய்யவும்</string>
     <string name="unknown_error">தெரியாத பிழை ஏற்பட்டது</string>
     <string name="playback">பின்னணி</string>
     <string name="interface_name">இடைமுகம்</string>
@@ -205,7 +202,6 @@
     <string name="volume_boost">தொகுதி ஊக்க</string>
     <string name="volume_boost_desc">ஆடியோ அளவை 200% வரை அதிகரிக்கும்</string>
     <string name="no_audio_tracks_found">இந்த வீடியோவுக்கான ஆடியோ தடங்கள் கிடைக்கவில்லை அல்லது ஆதரிக்கப்படவில்லை.</string>
-    <string name="floating_play_button_desc">கடைசியாக விளையாடிய மீடியாவை விளையாட மிதக்கும் பொத்தானைக் காட்டு.</string>
     <string name="mark_last_played_media_desc">மார்க் கடைசியாக வீட்டிலும் ஒவ்வொரு கோப்புறையிலும் ஊடகங்களில் விளையாடினார்</string>
     <string name="open_network_stream">பிணையம் ச்ட்ரீம் திறந்த</string>
     <string name="skip_silence">ம .னத்தைத் தவிர்க்கவும்</string>

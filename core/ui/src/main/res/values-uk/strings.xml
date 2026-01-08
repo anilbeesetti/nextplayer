@@ -53,12 +53,10 @@
     <string name="largest">Найбільший</string>
     <string name="select_audio_track">Виберіть звукову доріжку</string>
     <string name="seek_gesture_description">Проведіть по горизонталі, щоб перейти вперед або назад</string>
-    <string name="swipe_gesture_description">Проведіть по вертикалі, щоб відрегулювати яскравість і гучність</string>
     <string name="interface_name">Інтерфейс</string>
     <string name="shortest">Найкоротший</string>
     <string name="select_subtitle_track">Виберіть доріжку субтитрів</string>
     <string name="settings">Налаштування</string>
-    <string name="swipe_gesture">Вертикальний жест</string>
     <string name="title">Назва</string>
     <string name="z_a">Я-А</string>
     <string name="longest">Найдовший</string>
@@ -188,8 +186,6 @@
     <string name="no_subtitle_tracks_found">Доріжки субтитрів для цього відео недоступні або не підтримуються.</string>
     <string name="rename">Перейменувати</string>
     <string name="rename_to">Перейменувати на</string>
-    <string name="floating_play_button">Плавуча кнопка відтворення</string>
-    <string name="floating_play_button_desc">Показати плавучу кнопку для відтворення останнього відтвореного медіафайлу.</string>
     <string name="mark_last_played_media">Позначити останній відтворений медіафайл</string>
     <string name="mark_last_played_media_desc">Позначити останній відтворений медіафайл на домашньому екрані та в кожній теці</string>
     <string name="open_local_video">Відкрити локальне відео</string>
