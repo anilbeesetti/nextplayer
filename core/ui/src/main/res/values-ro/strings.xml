@@ -130,7 +130,6 @@
     <string name="zoom_gesture_description">Ciupiți pentru a mări videoclipul</string>
     <string name="codec">Codec</string>
     <string name="long_press_gesture_desc">Țineți apăsat pentru a reda la viteza %.1fx</string>
-    <string name="delete_folder">Toate fișierele video din dosarul următor vor fi șterse permanent.</string>
     <string name="long_press_gesture">Gest apăsare lungă</string>
     <string name="require_audio_focus">Necesită focalizare audio</string>
     <string name="controller_timeout">Control timeout</string>

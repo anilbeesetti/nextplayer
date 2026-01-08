@@ -25,7 +25,6 @@
     <string name="oldest">最舊</string>
     <string name="play_file">開啟影片檔案進行播放</string>
     <string name="play_pause">播放/暫停</string>
-    <string name="delete_folder">所有在以下資料夾中的檔案將會被永久地刪除。</string>
     <string name="long_press_gesture">長按手勢</string>
     <string name="player_controls_exit">向上巡覽</string>
     <string name="shortest">最短</string>

@@ -138,7 +138,6 @@
     <string name="subtitle_text_encoding">자막 텍스트 인코딩</string>
     <string name="high_contrast_dark_theme_desc">다크 테마 배경에 검정색 사용</string>
     <string name="zoom_gesture_description">두 손가락으로 동영상 확대</string>
-    <string name="delete_folder">다음 폴더의 모든 동영상 파일을 영구적으로 삭제합니다.</string>
     <string name="autoplay_settings_description">현재 폴더에 있는 다음 동영상을 자동으로 재생</string>
     <string name="controller_timeout">제어 버튼 시간 제한</string>
     <string name="pause_on_headset_disconnect_desc">기기에서 헤드셋 연결이 끊기면 재생 중인 항목 일시정지</string>

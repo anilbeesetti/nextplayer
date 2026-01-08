@@ -18,7 +18,7 @@
     <string name="open_settings">Abrir configurações</string>
     <string name="permission_not_granted">Permissão não concedida</string>
     <string name="fast_seek">Busca rápida</string>
-    <string name="fast_seek_description">Procura o quadro-chave mais próximo em vez de um exato</string>
+    <string name="fast_seek_description">Buscar o quadro-chave mais próximo em vez de um quadro exato.</string>
     <string name="error_playing_video">Erro: não foi possível reproduzir o vídeo</string>
     <string name="permission_request">Solicitação de permissão</string>
     <string name="player_controls_exit">Navegar para cima</string>
@@ -32,7 +32,7 @@
     <string name="remember_brightness_level">Lembrar nível de brilho</string>
     <string name="remember_brightness_level_description">Lembrar o nível de brilho entre as sessões de reprodução</string>
     <string name="remember_selections">Lembrar ajustes</string>
-    <string name="remember_selections_description">Lembrar ajustes para cada arquivo, como faixa de áudio, faixa de legenda, etc</string>
+    <string name="remember_selections_description">Lembrar seleções para cada arquivo, como faixa de áudio, faixa de legenda, etc.</string>
     <string name="resume">Continuar</string>
     <string name="resume_description">Selecione se deseja continuar a reprodução de vídeos a partir do ponto em que você parou</string>
     <string name="select_audio_track">Selecionar faixa de áudio</string>
@@ -138,7 +138,6 @@
     <string name="share">Compartilhar</string>
     <string name="delete">Excluir</string>
     <string name="delete_file">O seguinte arquivo será excluído permanentemente</string>
-    <string name="delete_folder">Todos os arquivos de vídeo na pasta a seguir serão excluídos permanentemente.</string>
     <string name="autoplay_settings">Reprodução automática</string>
     <string name="best_fit">Melhor ajuste</string>
     <string name="stretch">Esticar</string>
@@ -213,7 +212,7 @@
     <string name="loop_mode_off">Repetir: desligado</string>
     <string name="loop_mode_all">Repetir: tudo</string>
     <string name="loop_mode_one">Repetir: um</string>
-    <string name="loop_mode">Repetição</string>
+    <string name="loop_mode">Modo de repetição</string>
     <string name="by">por %1$s</string>
     <string name="libraries">Bibliotecas</string>
     <string name="github">Github</string>

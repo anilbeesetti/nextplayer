@@ -138,7 +138,6 @@
     <string name="share">اشتراک</string>
     <string name="delete">پاک‌کردن</string>
     <string name="delete_file">پرونده زیر برای همیشه پاک خواهد شد</string>
-    <string name="delete_folder">تمامی پرونده‌های ویدیویی موجود در پوشه زیر برای همیشه پاک خواهند شد.</string>
     <string name="best_fit">بهترین تناسب</string>
     <string name="stretch">کشیده</string>
     <string name="crop">بُرش</string>

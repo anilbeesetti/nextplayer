@@ -25,7 +25,6 @@
     <string name="oldest">Cũ nhất</string>
     <string name="play_file">Mở tệp video để phát</string>
     <string name="play_pause">Phát/Tạm dừng</string>
-    <string name="delete_folder">Tất cả các tập tin video trong thư mục sau sẽ bị xóa vĩnh viễn.</string>
     <string name="long_press_gesture">Cử chỉ nhấn lâu</string>
     <string name="player_controls_exit">Điều hướng lên</string>
     <string name="shortest">Ngắn nhất</string>

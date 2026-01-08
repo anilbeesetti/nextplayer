@@ -121,7 +121,6 @@
     <string name="high_contrast_dark_theme_desc">Использовать чисто чёрный фон для тёмной темы</string>
     <string name="zoom_gesture_description">Ущипните для масштабирования видео</string>
     <string name="landscape_reverse">Альбомная (перевернутая)</string>
-    <string name="delete_folder">Все медиафайлы в этой папке будут удалены навсегда.</string>
     <string name="autoplay_settings_description">Автоматически воспроизводить следующее видео в текущей папке</string>
     <string name="controller_timeout">Автоскрытие интерфейса</string>
     <string name="pause_on_headset_disconnect_desc">Пауза при отключении наушников</string>
@@ -226,4 +225,14 @@
     <string name="list">Список</string>
     <string name="grid">Сетка</string>
     <string name="by">от %1$s</string>
+    <string name="delete_one_video">Удалить одно видео?</string>
+    <string name="delete_videos">Удалить %1$d видео?</string>
+    <string name="delete_one_folder">Удалить одну папку?</string>
+    <string name="delete_items">Удаление элементов: %1$d. Подтвердить?</string>
+    <string name="delete_folders">Удаление папок: %1$d. Подтвердить?</string>
+    <string name="play">Воспроизвести</string>
+    <string name="recently_played">Недавно просмотренные</string>
+    <string name="info">Информация</string>
+    <string name="delete_item_info">Это действие необратимо. Выбранный элемент будет удалён безвозвратно</string>
+    <string name="delete_items_info">Это действие необратимо. Выбранные элементы будут удалены безвозвратно</string>
 </resources>

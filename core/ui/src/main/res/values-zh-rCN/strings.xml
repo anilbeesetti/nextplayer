@@ -138,7 +138,6 @@
     <string name="share">分享</string>
     <string name="delete_file">下列文件会被永久删除</string>
     <string name="delete">删除</string>
-    <string name="delete_folder">下列文件夹中所有视频文件会被永久删除</string>
     <string name="autoplay_settings">自动播放</string>
     <string name="autoplay_settings_description">自动播放当前文件夹中的下一个视频</string>
     <string name="best_fit">最合适</string>
@@ -215,7 +214,7 @@
     <string name="loop_mode_off">循环：关</string>
     <string name="loop_mode">循环模式</string>
     <string name="donate">捐助</string>
-    <string name="libraries">库</string>
+    <string name="libraries">程序库</string>
     <string name="by">由 %1$s 开发</string>
     <string name="support_the_developer_on">通过 %1$s 支持开发者</string>
     <string name="kofi">Ko-fi</string>
@@ -226,4 +225,14 @@
     <string name="list">列表</string>
     <string name="media_layout">媒体布局</string>
     <string name="grid">网格</string>
+    <string name="info">信息</string>
+    <string name="play">播放</string>
+    <string name="recently_played">最近播放</string>
+    <string name="delete_one_video">删除 1 个视频？</string>
+    <string name="delete_videos">删除 %1$d 个视频？</string>
+    <string name="delete_one_folder">删除 1 个文件夹？</string>
+    <string name="delete_folders">删除 %1$d 个文件夹？</string>
+    <string name="delete_items">删除 %1$d 个项目？</string>
+    <string name="delete_item_info">此操作无法撤销。所选项目将被永久删除</string>
+    <string name="delete_items_info">此操作无法撤销。所选项目将被永久删除</string>
 </resources>

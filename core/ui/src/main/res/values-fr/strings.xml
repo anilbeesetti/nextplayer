@@ -99,7 +99,7 @@
     <string name="select_playback_speed">Vitesse de lecture</string>
     <string name="autoplay_settings">Lecture automatique</string>
     <string name="autoplay_settings_description">Lire automatiquement la vidéo suivante dans le dossier actuel</string>
-    <string name="remember_selections_description">Mémoriser la sélection des pistes (audio, sous-titres, etc.) pour chaque fichier</string>
+    <string name="remember_selections_description">Mémoriser la sélection des pistes pour chaque fichier (audio, sous-titres, etc.)</string>
     <string name="controls_unlock">Déverrouiller les contrôles</string>
     <string name="audio">Audio</string>
     <string name="automatic">Automatique (capteur)</string>
@@ -155,7 +155,6 @@
     <string name="best_fit">Ajustement optimal</string>
     <string name="stretch">Étirer</string>
     <string name="audio_desc">Options de lecture audio</string>
-    <string name="delete_folder">Tous les fichiers vidéo de ce dossier seront supprimés définitivement.</string>
     <string name="fast_playback_speed">Vitesse x%.1f</string>
     <string name="long_press_gesture">Appui long</string>
     <string name="long_press_gesture_desc">Appuyez longuement pour lire en vitesse x%.1f</string>
@@ -226,4 +225,14 @@
     <string name="list">Liste</string>
     <string name="grid">Grille</string>
     <string name="media_layout">Affichage des médias</string>
+    <string name="delete_one_video">Supprimer 1 vidéo ?</string>
+    <string name="delete_videos">Supprimer %1$d vidéos ?</string>
+    <string name="delete_one_folder">Supprimer 1 dossier ?</string>
+    <string name="delete_folders">Supprimer %1$d dossiers ?</string>
+    <string name="delete_items">Supprimer %1$d objets ?</string>
+    <string name="delete_item_info">Cette action ne peut être annulée. L\'objet sélectionné sera supprimé définitivement.</string>
+    <string name="delete_items_info">Cette action ne peut être annulée. Les objets sélectionnés seront supprimés définitivement.</string>
+    <string name="info">Informations</string>
+    <string name="play">Lire</string>
+    <string name="recently_played">Lues récemment</string>
 </resources>

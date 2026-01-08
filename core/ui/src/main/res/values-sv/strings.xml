@@ -141,7 +141,6 @@
     <string name="delete">Ta bort</string>
     <string name="delete_file">Följande file kommer permanent tas bort</string>
     <string name="seconds">%1$s sekunder</string>
-    <string name="delete_folder">Alla videofiler i den följande mappen kommer permanent tas bort.</string>
     <string name="hundred_percent">100%</string>
     <string name="high_contrast_dark_theme_desc">Använd helt svart bakgrund i mörkt tema</string>
     <string name="player_screen_orientation">Orientering på videospelaren</string>

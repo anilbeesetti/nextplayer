@@ -194,7 +194,6 @@
     <string name="video_software_decoders_desc">Използвай софтуерни видео декодери (експериментално)</string>
     <string name="embedded_styles_desc">Приложи вградените стилове, които присъстват във файловете със субтитри, като ASS и т.н</string>
     <string name="seconds">%1$s секунди</string>
-    <string name="delete_folder">Всички видео файлове в следната папка ще бъдат изтрити за постоянно.</string>
     <string name="floating_play_button_desc">Покажи плаващ бутон изпълни на последно изпълнявана медия.</string>
     <string name="preferred_subtitle_lang">Предпочитан език за субтитри</string>
     <string name="subtitle_text_bold">Удебелен текст на субтитрите</string>

@@ -124,7 +124,6 @@
     <string name="high_contrast_dark_theme_desc">Verwenden Sie einen rein schwarzen Hintergrund für das dunkles Thema</string>
     <string name="fields">Felder</string>
     <string name="zoom_gesture_description">Zum Zoomen des Videos Finger auseinanderziehen</string>
-    <string name="delete_folder">Alle Videodateien im folgenden Ordner werden dauerhaft gelöscht.</string>
     <string name="controller_timeout">Controller-Zeitüberschreitung</string>
     <string name="pause_on_headset_disconnect_desc">Wiedergabe unterbrechen, wenn der Kopfhörer vom Gerät getrennt wird</string>
     <string name="video_software_decoders">Software-Videodecoder</string>

@@ -19,9 +19,11 @@
     <string name="ascending">Nouseva</string>
     <string name="location">Sijainti</string>
     <string name="done">Valmis</string>
-    <string name="about_description">Versio, kiitettävää</string>
+    <string name="about_description">Versio, tuki, kiitettävää</string>
     <string name="descending">Laskeva</string>
     <string name="open_settings">Avaa asetukset</string>
     <string name="about_name">Tietoja</string>
     <string name="permission_info">Next player sovellus vaatii \"%1$s\" oikeudet videon toistamista varten. Ilman sitä videon toistaminen ei toimi. Sovelluksen käyttämistä varten, anna oikeudet.</string>
+    <string name="settings">Asetukset</string>
+    <string name="size">Koko</string>
 </resources>

@@ -41,7 +41,7 @@
     <string name="remember_brightness_level">Parlaklık seviyesini hatırla</string>
     <string name="remember_brightness_level_description">Oynatma oturumları arasında parlaklık seviyesini hatırla</string>
     <string name="remember_selections">Seçimleri hatırla</string>
-    <string name="remember_selections_description">Her dosya için ses parçası, altyazı parçası gibi seçimleri hatırla</string>
+    <string name="remember_selections_description">Her dosya için ses parçası, altyazı parçası gibi seçimleri hatırla.</string>
     <string name="resume">Kaldığı Yerden Devam Et</string>
     <string name="resume_description">Oynatılan videoların durduğunuz yerden devam edip etmeyeceğini seçin</string>
     <string name="seek_gesture">Arama hareketi</string>
@@ -142,7 +142,6 @@
     <string name="delete">Sil</string>
     <string name="delete_file">Aşağıdaki dosya kalıcı olarak silinecek</string>
     <string name="subtitle_text_encoding">Altyazı metin kodlaması</string>
-    <string name="delete_folder">Aşağıdaki klasördeki tüm video dosyaları kalıcı olarak silinecek.</string>
     <string name="fast_playback_speed">%.1fx hız</string>
     <string name="long_press_gesture">Uzun basma hareketi</string>
     <string name="long_press_gesture_desc">%.1fx hızda oynatmak için uzun basın</string>
