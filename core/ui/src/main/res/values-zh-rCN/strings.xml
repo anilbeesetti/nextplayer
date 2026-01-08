@@ -231,4 +231,12 @@
     <string name="delete_items">删除 %1$d 个项目？</string>
     <string name="delete_item_info">此操作无法撤销。所选项目将被永久删除</string>
     <string name="delete_items_info">此操作无法撤销。所选项目将被永久删除</string>
+    <string name="gestures">手势</string>
+    <string name="volume_gesture">音量手势</string>
+    <string name="volume_gesture_description">通过垂直滑动调节音量</string>
+    <string name="brightness_gesture">亮度手势</string>
+    <string name="brightness_gesture_description">通过垂直滑动调节亮度</string>
+    <string name="hide_player_buttons_background">隐藏播放器按钮背景</string>
+    <string name="hide_player_buttons_background_description">隐藏所有播放器控制按钮的背景</string>
+    <string name="m_n_selected">已选择 %1$d/%2$d</string>
 </resources>
