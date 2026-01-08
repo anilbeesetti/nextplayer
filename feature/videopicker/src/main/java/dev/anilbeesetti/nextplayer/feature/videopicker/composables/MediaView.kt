@@ -33,6 +33,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
+import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -45,7 +48,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
 @Composable
 fun MediaView(
     rootFolder: Folder?,
@@ -88,14 +91,10 @@ fun MediaView(
         }
 
         LazyVerticalGrid(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = contentPadding.calculateStartPadding(LocalLayoutDirection.current))
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(MaterialTheme.colorScheme.background),
+            modifier = Modifier.fillMaxSize(),
             state = lazyGridState,
             columns = GridCells.Fixed(spans),
-            contentPadding = contentPadding.copy(start = 0.dp) + PaddingValues(horizontal = contentHorizontalPadding) + PaddingValues(vertical = 8.dp),
+            contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {

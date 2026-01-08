@@ -350,7 +350,11 @@ internal fun MediaPickerScreen(
 
             is DataState.Success -> {
                 PullToRefreshBox(
-                    modifier = Modifier.padding(top = scaffoldPadding.calculateTopPadding()),
+                    modifier = Modifier
+                        .padding(top = scaffoldPadding.calculateTopPadding())
+                        .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current))
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                        .background(MaterialTheme.colorScheme.background),
                     isRefreshing = uiState.refreshing,
                     onRefresh = { onEvent(MediaPickerUiEvent.Refresh) },
                 ) {
@@ -367,7 +371,7 @@ internal fun MediaPickerScreen(
                             onVideoClick = { onPlayVideos(listOf(it)) },
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
-                            contentPadding = scaffoldPadding.copy(top = 0.dp),
+                            contentPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp),
                             onVideoLoaded = { onEvent(MediaPickerUiEvent.AddToSync(it)) },
                         )
                     }
