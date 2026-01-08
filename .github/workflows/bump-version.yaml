@@ -33,7 +33,7 @@ jobs:
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${{ env.VERSION_NAME }}\"/g" app/build.gradle.kts
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "Bump Android version to ${{ env.VERSION_NAME }} (code: ${{ env.VERSION_CODE }})"
           branch: "${{ github.ref_name }}"
