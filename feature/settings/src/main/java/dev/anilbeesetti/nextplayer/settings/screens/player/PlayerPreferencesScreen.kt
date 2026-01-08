@@ -193,7 +193,7 @@ private fun PlayerPreferencesContent(
                     index = 8,
                     count = totalRows,
                     trailingContent = {
-                        FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateSeekIncrement(PlayerPreferences.DEFAULT_SEEK_INCREMENT)) }) {
+                        FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateSeekSensitivity(PlayerPreferences.DEFAULT_SEEK_SENSITIVITY)) }) {
                             Icon(
                                 imageVector = NextIcons.History,
                                 contentDescription = stringResource(id = R.string.reset_seek_sentivity),
