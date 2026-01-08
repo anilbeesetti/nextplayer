@@ -238,4 +238,6 @@
     <string name="delete_items">Delete %1$d items?</string>
     <string name="delete_item_info">This action cannot be undone. The selected item will be permanently deleted</string>
     <string name="delete_items_info">This action cannot be undone. The selected items will be permanently deleted</string>
+    <string name="shuffle_on">Shuffle on</string>
+    <string name="shuffle_off">Shuffle off</string>
 </resources>
