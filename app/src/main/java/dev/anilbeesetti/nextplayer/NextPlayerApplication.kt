@@ -4,6 +4,8 @@ import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.crash.CrashActivity
+import dev.anilbeesetti.nextplayer.crash.GlobalExceptionHandler
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 
@@ -19,5 +21,6 @@ class NextPlayerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler(applicationContext, CrashActivity::class.java))
     }
 }
