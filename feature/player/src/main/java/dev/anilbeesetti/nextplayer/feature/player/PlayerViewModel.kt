@@ -28,7 +28,11 @@ class PlayerViewModel @Inject constructor(
 
     var playWhenReady: Boolean = true
 
-    private val internalUiState = MutableStateFlow(PlayerUiState())
+    private val internalUiState = MutableStateFlow(
+        PlayerUiState(
+            playerPreferences = preferencesRepository.playerPreferences.value,
+        ),
+    )
     val uiState = internalUiState.asStateFlow()
 
     init {

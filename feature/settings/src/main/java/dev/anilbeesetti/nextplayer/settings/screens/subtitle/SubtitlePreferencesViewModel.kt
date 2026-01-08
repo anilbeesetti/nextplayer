@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings.screens.subtitle
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,9 +9,7 @@ import dev.anilbeesetti.nextplayer.core.model.Font
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,24 +18,44 @@ class SubtitlePreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
-    val preferencesFlow = preferencesRepository.playerPreferences.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = PlayerPreferences(),
+    private val uiStateInternal = MutableStateFlow(
+        SubtitlePreferencesUiState(
+            preferences = preferencesRepository.playerPreferences.value,
+        ),
     )
+    val uiState = uiStateInternal.asStateFlow()
 
-    private val _uiState = MutableStateFlow(SubtitlePreferencesUIState())
-    val uiState = _uiState.asStateFlow()
-
-    fun onEvent(event: SubtitlePreferencesEvent) {
-        if (event is SubtitlePreferencesEvent.ShowDialog) {
-            _uiState.update {
-                it.copy(showDialog = event.value)
+    init {
+        viewModelScope.launch {
+            preferencesRepository.playerPreferences.collect { preferences ->
+                uiStateInternal.update { currentState ->
+                    currentState.copy(preferences = preferences)
+                }
             }
         }
     }
 
-    fun updateSubtitleLanguage(value: String) {
+    fun onEvent(event: SubtitlePreferencesUiEvent) {
+        when (event) {
+            is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(event.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(event.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(event.value)
+            SubtitlePreferencesUiEvent.ToggleSubtitleTextBold -> toggleSubtitleTextBold()
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(event.value)
+            SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
+            SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
+            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(event.value)
+            SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle -> toggleUseSystemCaptionStyle()
+        }
+    }
+
+    private fun showDialog(value: SubtitlePreferenceDialog?) {
+        uiStateInternal.update {
+            it.copy(showDialog = value)
+        }
+    }
+
+    private fun updateSubtitleLanguage(value: String) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(preferredSubtitleLanguage = value)
@@ -44,7 +63,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateSubtitleFont(value: Font) {
+    private fun updateSubtitleFont(value: Font) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(subtitleFont = value)
@@ -52,7 +71,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleSubtitleTextBold() {
+    private fun toggleSubtitleTextBold() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(subtitleTextBold = !it.subtitleTextBold)
@@ -60,7 +79,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateSubtitleFontSize(value: Int) {
+    private fun updateSubtitleFontSize(value: Int) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(subtitleTextSize = value)
@@ -68,7 +87,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleSubtitleBackground() {
+    private fun toggleSubtitleBackground() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(subtitleBackground = !it.subtitleBackground)
@@ -76,7 +95,7 @@ class SubtitlePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun toggleApplyEmbeddedStyles() {
+    private fun toggleApplyEmbeddedStyles() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
                 it.copy(applyEmbeddedStyles = !it.applyEmbeddedStyles)
@@ -84,38 +103,39 @@ class SubtitlePreferencesViewModel @Inject constructor(
         }
     }
 
-    fun updateSubtitleEncoding(value: String) {
+    private fun updateSubtitleEncoding(value: String) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextEncoding = value) }
         }
     }
 
-    fun toggleUseSystemCaptionStyle() {
+    private fun toggleUseSystemCaptionStyle() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle) }
         }
     }
 }
 
-data class SubtitlePreferencesUIState(
+@Stable
+data class SubtitlePreferencesUiState(
     val showDialog: SubtitlePreferenceDialog? = null,
+    val preferences: PlayerPreferences = PlayerPreferences(),
 )
 
 sealed interface SubtitlePreferenceDialog {
-    object SubtitleLanguageDialog : SubtitlePreferenceDialog
-    object SubtitleFontDialog : SubtitlePreferenceDialog
-    object SubtitleSizeDialog : SubtitlePreferenceDialog
-    object SubtitleEncodingDialog : SubtitlePreferenceDialog
+    data object SubtitleLanguageDialog : SubtitlePreferenceDialog
+    data object SubtitleFontDialog : SubtitlePreferenceDialog
+    data object SubtitleEncodingDialog : SubtitlePreferenceDialog
 }
 
-sealed interface SubtitlePreferencesEvent {
-    data class ShowDialog(val value: SubtitlePreferenceDialog?) : SubtitlePreferencesEvent
-}
-
-fun SubtitlePreferencesViewModel.showDialog(dialog: SubtitlePreferenceDialog) {
-    onEvent(SubtitlePreferencesEvent.ShowDialog(dialog))
-}
-
-fun SubtitlePreferencesViewModel.hideDialog() {
-    onEvent(SubtitlePreferencesEvent.ShowDialog(null))
+sealed interface SubtitlePreferencesUiEvent {
+    data class ShowDialog(val value: SubtitlePreferenceDialog?) : SubtitlePreferencesUiEvent
+    data class UpdateSubtitleLanguage(val value: String) : SubtitlePreferencesUiEvent
+    data class UpdateSubtitleFont(val value: Font) : SubtitlePreferencesUiEvent
+    data object ToggleSubtitleTextBold : SubtitlePreferencesUiEvent
+    data class UpdateSubtitleFontSize(val value: Int) : SubtitlePreferencesUiEvent
+    data object ToggleSubtitleBackground : SubtitlePreferencesUiEvent
+    data object ToggleApplyEmbeddedStyles : SubtitlePreferencesUiEvent
+    data class UpdateSubtitleEncoding(val value: String) : SubtitlePreferencesUiEvent
+    data object ToggleUseSystemCaptionStyle : SubtitlePreferencesUiEvent
 }

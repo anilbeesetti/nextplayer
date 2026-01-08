@@ -52,8 +52,6 @@
     <string name="settings">Settings</string>
     <string name="size">Size</string>
     <string name="sort">Sort</string>
-    <string name="swipe_gesture">Swipe gesture</string>
-    <string name="swipe_gesture_description">Swipe vertically to adjust the brightness and volume</string>
     <string name="title">Title</string>
     <string name="title_activity_player">Next Player Activity</string>
     <string name="unknown_error">An unknown error has occurred</string>
@@ -190,8 +188,6 @@
     <string name="no_audio_tracks_found">Audio tracks for this video are either unavailable or not supported.</string>
     <string name="rename">Rename</string>
     <string name="rename_to">Rename to</string>
-    <string name="floating_play_button">Floating play button</string>
-    <string name="floating_play_button_desc">Show floating button to play last played media.</string>
     <string name="mark_last_played_media">Mark last played media</string>
     <string name="mark_last_played_media_desc">Mark last played media in home and in each folder</string>
     <string name="open_local_video">Open local video</string>
@@ -238,4 +234,21 @@
     <string name="delete_items">Delete %1$d items?</string>
     <string name="delete_item_info">This action cannot be undone. The selected item will be permanently deleted</string>
     <string name="delete_items_info">This action cannot be undone. The selected items will be permanently deleted</string>
+    <string name="gestures">Gestures</string>
+    <string name="volume_gesture">Volume gesture</string>
+    <string name="volume_gesture_description">Adjust volume by swiping vertically</string>
+    <string name="brightness_gesture">Brightness gesture</string>
+    <string name="brightness_gesture_description">Adjust brightness by swiping vertically</string>
+    <string name="pan_gesture">Pan gesture</string>
+    <string name="pan_gesture_description">Zoom and pan the video</string>
+    <string name="hide_player_buttons_background">Hide player buttons background</string>
+    <string name="hide_player_buttons_background_description">Hide the background of all player control buttons</string>
+    <string name="m_n_selected">%1$d / %2$d Selected</string>
+    <string name="select_all">Select all</string>
+    <string name="deselect_all">Deselect all</string>
+    <string name="reset_seek_increment">Reset seek increment</string>
+    <string name="reset_controller_timeout">Reset controller timeout</string>
+    <string name="reset_default_playback_speed">Reset default playback speed</string>
+    <string name="seek_sensitivity">Seek sensitivity</string>
+    <string name="reset_seek_sentivity">Reset seek sensitivity</string>
 </resources>

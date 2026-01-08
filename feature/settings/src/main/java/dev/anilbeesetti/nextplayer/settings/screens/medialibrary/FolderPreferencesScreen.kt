@@ -20,25 +20,40 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.SelectablePreference
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FolderPreferencesScreen(
     onNavigateUp: () -> Unit,
-    viewModel: MediaLibraryPreferencesViewModel = hiltViewModel(),
+    viewModel: FolderPreferencesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
-    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
+    FolderPreferencesContent(
+        uiState = uiState,
+        onNavigateUp = onNavigateUp,
+        onEvent = viewModel::onEvent,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun FolderPreferencesContent(
+    uiState: FolderPreferencesUiState,
+    onNavigateUp: () -> Unit,
+    onEvent: (FolderPreferencesUiEvent) -> Unit,
+) {
     Scaffold(
         topBar = {
             NextTopAppBar(
@@ -55,8 +70,8 @@ fun FolderPreferencesScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
-        when (uiState) {
-            FolderPreferencesUiState.Loading -> {
+        when (uiState.foldersDataState) {
+            is DataState.Loading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -66,24 +81,38 @@ fun FolderPreferencesScreen(
                 }
             }
 
-            is FolderPreferencesUiState.Success -> {
+            is DataState.Success -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                 ) {
-                    itemsIndexed((uiState as FolderPreferencesUiState.Success).directories) { index, folder ->
+                    itemsIndexed(uiState.foldersDataState.value) { index, folder ->
                         SelectablePreference(
                             title = folder.name,
                             description = folder.path,
-                            selected = folder.path in preferences.excludeFolders,
-                            onClick = { viewModel.updateExcludeList(folder.path) },
+                            selected = folder.path in uiState.preferences.excludeFolders,
+                            onClick = { onEvent(FolderPreferencesUiEvent.UpdateExcludeList(folder.path)) },
                             index = index,
-                            count = (uiState as FolderPreferencesUiState.Success).directories.size,
+                            count = uiState.foldersDataState.value.size,
                         )
                     }
                 }
             }
+
+            is DataState.Error -> Unit
         }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun FolderPreferencesScreenPreview() {
+    NextPlayerTheme {
+        FolderPreferencesContent(
+            uiState = FolderPreferencesUiState(),
+            onNavigateUp = {},
+            onEvent = {},
+        )
     }
 }

@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -27,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onFirstVisible
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -36,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
@@ -86,11 +90,12 @@ fun MediaView(
         LazyVerticalGrid(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(start = contentPadding.calculateStartPadding(LocalLayoutDirection.current))
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(MaterialTheme.colorScheme.background),
             state = lazyGridState,
             columns = GridCells.Fixed(spans),
-            contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding) + PaddingValues(vertical = 8.dp),
+            contentPadding = contentPadding.copy(start = 0.dp) + PaddingValues(horizontal = contentHorizontalPadding) + PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {
@@ -121,6 +126,7 @@ fun MediaView(
                     count = rootFolder.folderList.size,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             selectionManager.toggleFolderSelection(folder)
                         } else {
                             onFolderClick(folder.path)
@@ -160,6 +166,7 @@ fun MediaView(
                     selected = selected,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             selectionManager.toggleVideoSelection(video)
                         } else {
                             onVideoClick(video.uriString.toUri())

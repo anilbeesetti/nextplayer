@@ -8,6 +8,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.LocalMediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalPreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -19,6 +20,7 @@ interface DataModule {
     ): MediaRepository
 
     @Binds
+    @Singleton
     fun bindsPreferencesRepository(
         preferencesRepository: LocalPreferencesRepository,
     ): PreferencesRepository

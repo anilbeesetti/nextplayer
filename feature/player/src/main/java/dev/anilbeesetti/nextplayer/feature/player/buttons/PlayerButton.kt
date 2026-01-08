@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.feature.player.LocalHidePlayerButtonsBackground
 
 @Composable
 fun PlayerButton(
@@ -30,6 +31,7 @@ fun PlayerButton(
     onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    val hidePlayerButtonsBackground = LocalHidePlayerButtonsBackground.current
     Surface(
         modifier = modifier
             .clip(shape)
@@ -40,8 +42,18 @@ fun PlayerButton(
                 onLongClick = onLongClick,
             ),
         shape = shape,
-        color = if (isEnabled) containerColor else disabledContainerColor,
-        contentColor = if (isEnabled) contentColor else disabledContentColor,
+        color = when {
+            isEnabled && hidePlayerButtonsBackground -> Color.Transparent
+            !isEnabled && hidePlayerButtonsBackground -> Color.Transparent
+            isEnabled -> containerColor
+            else -> disabledContainerColor
+        },
+        contentColor = when {
+            isEnabled && hidePlayerButtonsBackground -> Color.White
+            !isEnabled && hidePlayerButtonsBackground -> Color.White.copy(0.5f)
+            isEnabled -> contentColor
+            else -> disabledContentColor
+        },
     ) {
         Box(
             modifier = modifier.padding(contentPadding),

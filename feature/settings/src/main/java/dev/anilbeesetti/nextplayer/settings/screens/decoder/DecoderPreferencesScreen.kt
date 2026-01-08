@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,17 +29,32 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DecoderPreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: DecoderPreferencesViewModel = hiltViewModel(),
 ) {
-    val preferences by viewModel.preferencesFlow.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    DecoderPreferencesContent(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        onNavigateUp = onNavigateUp,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun DecoderPreferencesContent(
+    uiState: DecoderPreferencesUiState,
+    onEvent: (DecoderPreferencesUiEvent) -> Unit,
+    onNavigateUp: () -> Unit,
+) {
+    val preferences = uiState.preferences
 
     Scaffold(
         topBar = {
@@ -71,7 +87,7 @@ fun DecoderPreferencesScreen(
                     title = stringResource(R.string.decoder_priority),
                     description = preferences.decoderPriority.name(),
                     icon = NextIcons.Priority,
-                    onClick = { viewModel.showDialog(DecoderPreferenceDialog.DecoderPriorityDialog) },
+                    onClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(DecoderPreferenceDialog.DecoderPriorityDialog)) },
                 )
             }
         }
@@ -81,15 +97,15 @@ fun DecoderPreferencesScreen(
                 DecoderPreferenceDialog.DecoderPriorityDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.decoder_priority),
-                        onDismissClick = viewModel::hideDialog,
+                        onDismissClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(null)) },
                     ) {
                         items(DecoderPriority.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
                                 selected = it == preferences.decoderPriority,
                                 onClick = {
-                                    viewModel.updateDecoderPriority(it)
-                                    viewModel.hideDialog()
+                                    onEvent(DecoderPreferencesUiEvent.UpdateDecoderPriority(it))
+                                    onEvent(DecoderPreferencesUiEvent.ShowDialog(null))
                                 },
                             )
                         }
@@ -97,5 +113,17 @@ fun DecoderPreferencesScreen(
                 }
             }
         }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun DecoderPreferencesScreenPreview() {
+    NextPlayerTheme {
+        DecoderPreferencesContent(
+            uiState = DecoderPreferencesUiState(),
+            onEvent = {},
+            onNavigateUp = {},
+        )
     }
 }

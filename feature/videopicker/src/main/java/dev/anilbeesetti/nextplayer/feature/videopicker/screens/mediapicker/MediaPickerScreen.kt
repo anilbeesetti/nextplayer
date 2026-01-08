@@ -14,7 +14,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -24,6 +28,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -52,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -142,6 +148,9 @@ internal fun MediaPickerScreen(
     var showInfoActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
 
+    val selectedItemsSize = selectionManager.selectedFolders.size + selectionManager.selectedVideos.size
+    val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folderList.size + mediaList.size } ?: 0
+
     Scaffold(
         topBar = {
             NextTopAppBar(
@@ -164,8 +173,8 @@ internal fun MediaPickerScreen(
                                 contentDescription = stringResource(id = R.string.navigate_up),
                             )
                             Text(
-                                text = (selectionManager.selectedFolders.size + selectionManager.selectedVideos.size).toString(),
-                                style = MaterialTheme.typography.bodyMediumEmphasized,
+                                text = stringResource(R.string.m_n_selected, selectedItemsSize, totalItemsSize),
+                                style = MaterialTheme.typography.labelLarge,
                             )
                         }
                     } else if (uiState.folderName != null) {
@@ -178,18 +187,45 @@ internal fun MediaPickerScreen(
                     }
                 },
                 actions = {
-                    if (selectionManager.isInSelectionMode) return@NextTopAppBar
-                    IconButton(onClick = { showQuickSettingsDialog = true }) {
-                        Icon(
-                            imageVector = NextIcons.DashBoard,
-                            contentDescription = stringResource(id = R.string.menu),
-                        )
-                    }
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(id = R.string.settings),
-                        )
+                    if (selectionManager.isInSelectionMode) {
+                        FilledTonalIconButton(
+                            onClick = {
+                                if (selectedItemsSize != totalItemsSize) {
+                                    (uiState.mediaDataState as? DataState.Success)?.value?.let { folder ->
+                                        folder.folderList.forEach { selectionManager.selectFolder(it) }
+                                        folder.mediaList.forEach { selectionManager.selectVideo(it) }
+                                    }
+                                } else {
+                                    selectionManager.clearSelection()
+                                }
+                            },
+                        ) {
+                            Icon(
+                                imageVector = if (selectedItemsSize != totalItemsSize) {
+                                    NextIcons.SelectAll
+                                } else {
+                                    NextIcons.DeselectAll
+                                },
+                                contentDescription = if (selectedItemsSize != totalItemsSize) {
+                                    stringResource(R.string.select_all)
+                                } else {
+                                    stringResource(R.string.deselect_all)
+                                },
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { showQuickSettingsDialog = true }) {
+                            Icon(
+                                imageVector = NextIcons.DashBoard,
+                                contentDescription = stringResource(id = R.string.menu),
+                            )
+                        }
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                imageVector = NextIcons.Settings,
+                                contentDescription = stringResource(id = R.string.settings),
+                            )
+                        }
                     }
                 },
             )
@@ -223,6 +259,7 @@ internal fun MediaPickerScreen(
                 onDeleteAction = {
                     if (MediaService.willSystemAsksForDeleteConfirmation()) {
                         onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
+                        selectionManager.clearSelection()
                     } else {
                         showDeleteVideosConfirmation = true
                     }
@@ -230,7 +267,6 @@ internal fun MediaPickerScreen(
             )
         },
         floatingActionButton = {
-            if (!uiState.preferences.showFloatingPlayButton) return@Scaffold
             if (selectionManager.isInSelectionMode) return@Scaffold
 
             FloatingActionButtonMenu(
@@ -425,10 +461,12 @@ private fun DeleteConfirmationDialog(
                         1 -> stringResource(R.string.delete_one_folder)
                         else -> stringResource(R.string.delete_folders, selectedFolders.size)
                     }
+
                     selectedFolders.isEmpty() -> when (selectedVideos.size) {
                         1 -> stringResource(R.string.delete_one_video)
                         else -> stringResource(R.string.delete_videos, selectedVideos.size)
                     }
+
                     else -> stringResource(R.string.delete_items, selectedFolders.size + selectedVideos.size)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -500,12 +538,18 @@ private fun SelectionActionsSheet(
     onDeleteAction: () -> Unit,
 ) {
     AnimatedVisibility(
-        modifier = modifier,
+        modifier = modifier.padding(
+            start = WindowInsets.displayCutout.asPaddingValues()
+                .calculateStartPadding(LocalLayoutDirection.current),
+        ),
         visible = show,
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
     ) {
-        val shape = MaterialTheme.shapes.largeIncreased
+        val shape = MaterialTheme.shapes.largeIncreased.copy(
+            bottomStart = ZeroCornerSize,
+            bottomEnd = ZeroCornerSize,
+        )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
