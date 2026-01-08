@@ -173,8 +173,8 @@ class CrashActivity : ComponentActivity() {
         file.writeText(text = logs)
         val uri = FileProvider.getUriForFile(
             this@CrashActivity,
-            "${packageName}.fileprovider",
-            file
+            "$packageName.fileprovider",
+            file,
         )
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
