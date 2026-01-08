@@ -28,7 +28,6 @@
     <string name="seek_gesture">Жест перемотки</string>
     <string name="seek_gesture_description">Проведите по горизонтали, чтобы перемотать вперед или назад</string>
     <string name="sort">Сортировать</string>
-    <string name="swipe_gesture">Жест управления яркостью и громкостью</string>
     <string name="title">Название</string>
     <string name="unknown_error">Произошла неизвестная ошибка</string>
     <string name="playback">Воспроизведение</string>
@@ -62,7 +61,6 @@
     <string name="remember_brightness_level">Запоминать уровень яркости</string>
     <string name="settings">Настройки</string>
     <string name="remember_selections_description">Сохранять настройки для каждого файла, такие как звуковая дорожка, субтитры и так далее.</string>
-    <string name="swipe_gesture_description">Проведите по вертикали для регулировки яркости и громкости</string>
     <string name="interface_name">Интерфейс</string>
     <string name="a_z">А-Я</string>
     <string name="dynamic_theme">Динамическая тема</string>
@@ -192,8 +190,6 @@
     <string name="play_next_video">Воспроизвести следующее видео</string>
     <string name="mark_last_played_media">Отмечать последнее просмотренное видео</string>
     <string name="open_network_stream">Открыть сетевой поток</string>
-    <string name="floating_play_button">Плавающая кнопка воспроизведения</string>
-    <string name="floating_play_button_desc">Показать плавающую кнопку для продолжения воспроизведения.</string>
     <string name="open_local_video">Открыть локальное видео</string>
     <string name="mark_last_played_media_desc">Отмечать последнее просмотренное видео на домашнем экране и в папке</string>
     <string name="skip_silence">Пропуск тишины</string>

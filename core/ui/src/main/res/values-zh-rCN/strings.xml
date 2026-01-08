@@ -41,8 +41,6 @@
     <string name="dark_theme">深色主题</string>
     <string name="dynamic_theme">动态颜色主题</string>
     <string name="sort">排序</string>
-    <string name="swipe_gesture">滑动手势</string>
-    <string name="swipe_gesture_description">纵向滑动可调整亮度和音量</string>
     <string name="title_activity_player">Next Player 活动</string>
     <string name="unknown_error">发生未知错误</string>
     <string name="playback">播放</string>
@@ -191,8 +189,6 @@
     <string name="play_next_video">播放下一个视频</string>
     <string name="open_local_video">打开本地视频</string>
     <string name="open_network_stream">打开网络串流</string>
-    <string name="floating_play_button">悬浮播放按钮</string>
-    <string name="floating_play_button_desc">显示悬浮按钮以播放上次播放的媒体</string>
     <string name="mark_last_played_media">标记上次播放的媒体</string>
     <string name="mark_last_played_media_desc">标记主页和每个文件夹中上次播放的媒体</string>
     <string name="exit">退出</string>
@@ -235,4 +231,12 @@
     <string name="delete_items">删除 %1$d 个项目？</string>
     <string name="delete_item_info">此操作无法撤销。所选项目将被永久删除</string>
     <string name="delete_items_info">此操作无法撤销。所选项目将被永久删除</string>
+    <string name="gestures">手势</string>
+    <string name="volume_gesture">音量手势</string>
+    <string name="volume_gesture_description">通过垂直滑动调节音量</string>
+    <string name="brightness_gesture">亮度手势</string>
+    <string name="brightness_gesture_description">通过垂直滑动调节亮度</string>
+    <string name="hide_player_buttons_background">隐藏播放器按钮背景</string>
+    <string name="hide_player_buttons_background_description">隐藏所有播放器控制按钮的背景</string>
+    <string name="m_n_selected">已选择 %1$d/%2$d</string>
 </resources>

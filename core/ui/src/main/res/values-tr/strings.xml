@@ -51,8 +51,6 @@
     <string name="settings">Ayarlar</string>
     <string name="size">Boyut</string>
     <string name="sort">Sırala</string>
-    <string name="swipe_gesture">Kaydırma hareketi</string>
-    <string name="swipe_gesture_description">Parlaklığı ve sesi ayarlamak için dikey olarak kaydırın</string>
     <string name="title">Başlık</string>
     <string name="title_activity_player">Next Player Etkinliği</string>
     <string name="unknown_error">Bilinmeyen bir hata oluştu</string>
@@ -188,8 +186,6 @@
     <string name="no_audio_tracks_found">Bu video için ses parçaları ya mevcut değil ya da desteklenmiyor.</string>
     <string name="rename">Yeniden adlandır</string>
     <string name="rename_to">Şuna isimlendir</string>
-    <string name="floating_play_button">Yüzen oynatma düğmesi</string>
-    <string name="floating_play_button_desc">Son oynatılan medyayı oynatmak için yüzen düğmeyi göster.</string>
     <string name="mark_last_played_media">Son oynatılan medyayı işaretle</string>
     <string name="mark_last_played_media_desc">Son oynatılan medyayı ana ekranda ve her klasörde işaretle</string>
     <string name="open_local_video">Yerel video aç</string>

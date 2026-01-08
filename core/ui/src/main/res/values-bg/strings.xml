@@ -46,7 +46,6 @@
     <string name="settings">Настройки</string>
     <string name="size">Размер</string>
     <string name="sort">Сортирай</string>
-    <string name="swipe_gesture">Жест с плъзгане</string>
     <string name="title">Заглавие</string>
     <string name="title_activity_player">Next Player активност</string>
     <string name="playback">Възпроизвеждане</string>
@@ -158,7 +157,6 @@
     <string name="no_audio_tracks_found">Аудио записите за това видео са или недостъпни, или не се поддържат.</string>
     <string name="rename">Преименувай</string>
     <string name="rename_to">Преименувай на</string>
-    <string name="floating_play_button">Плаващ бутон изпълни</string>
     <string name="mark_last_played_media">Маркирай последно изпълнявана медия</string>
     <string name="mark_last_played_media_desc">Маркирай последно изпълнявана медия в началната страница и във всяка папка</string>
     <string name="exit">Изход</string>
@@ -186,7 +184,6 @@
     <string name="remember_brightness_level_description">Запомняне на нивото на яркост между сесиите на възпроизвеждане</string>
     <string name="remember_selections_description">Запомнете избора за всеки файл, като аудио запис, запис със субтитри и др.</string>
     <string name="select_subtitle_track">Избери запис със субтитри</string>
-    <string name="swipe_gesture_description">Плъзни вертикално, за да регулирате яркостта и силата на звука</string>
     <string name="unknown_error">Възникна неизвестна грешка</string>
     <string name="system_volume_panel_desc">Покажи системния панел за сила на звука, докато регулирате силата на звука с включени слушалки</string>
     <string name="play_url">Въведи URL адреса на видео за изпълнение</string>
@@ -194,7 +191,6 @@
     <string name="video_software_decoders_desc">Използвай софтуерни видео декодери (експериментално)</string>
     <string name="embedded_styles_desc">Приложи вградените стилове, които присъстват във файловете със субтитри, като ASS и т.н</string>
     <string name="seconds">%1$s секунди</string>
-    <string name="floating_play_button_desc">Покажи плаващ бутон изпълни на последно изпълнявана медия.</string>
     <string name="preferred_subtitle_lang">Предпочитан език за субтитри</string>
     <string name="subtitle_text_bold">Удебелен текст на субтитрите</string>
     <string name="subtitle_text_bold_desc">Използвай получер текст за субтитри</string>

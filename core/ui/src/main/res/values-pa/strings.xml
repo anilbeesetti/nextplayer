@@ -46,7 +46,6 @@
     <string name="settings">ਸੈਟਿੰਗਜ਼</string>
     <string name="size">ਆਕਾਰ</string>
     <string name="sort">ਲੜੀਬੱਧ</string>
-    <string name="swipe_gesture">ਸਵਾਈਪ ਸੰਕੇਤ</string>
     <string name="title_activity_player">ਨੈਕਸਟ ਪਲੇਅਰ ਐਕਟੀਵਿਟੀ</string>
     <string name="unknown_error">ਇੱਕ ਅਗਿਆਤ ਤਰੁੱਟੀ ਹੋਈ ਹੈ</string>
     <string name="playback">ਪਲੇਬੈਕ</string>
@@ -110,7 +109,6 @@
     <string name="seconds">%1$s ਸਕਿੰਟ</string>
     <string name="remember_selections">ਚੋਣ ਯਾਦ ਰੱਖੋ</string>
     <string name="title">ਸਿਰਲੇਖ</string>
-    <string name="swipe_gesture_description">ਚਮਕ ਅਤੇ ਆਵਾਜ਼ ਨੂੰ ਅਨੁਕੂਲ ਕਰਨ ਲਈ ਵਰਟੀਕਲ ਰੂਪ ਵਿੱਚ ਸਵਾਈਪ ਕਰੋ</string>
     <string name="subtitle">ਸਬਟਾਈਟਲ</string>
     <string name="interface_name">ਇੰਟਰਫੇਸ</string>
     <string name="a_z">A-Z</string>
@@ -188,8 +186,6 @@
     <string name="no_audio_tracks_found">ਇਸ ਵੀਡੀਓ ਲਈ ਆਡੀਓ ਟਰੈਕ ਜਾਂ ਤਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ ਜਾਂ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।</string>
     <string name="rename">ਨਾਮ ਬਦਲੋ</string>
     <string name="rename_to">ਇਹਦੇ ਵਿੱਚ ਨਾਮ ਬਦਲੀ ਕਰੋ</string>
-    <string name="floating_play_button_desc">ਆਖਰੀ ਵਾਰ ਚਲਾਏ ਗਏ ਮੀਡੀਆ ਨੂੰ ਚਲਾਉਣ ਲਈ ਫਲੋਟਿੰਗ ਬਟਨ ਵਿਖਾਓ।</string>
-    <string name="floating_play_button">ਫਲੋਟਿੰਗ ਪਲੇਅ ਬਟਨ</string>
     <string name="mark_last_played_media">ਆਖਰੀ ਵਾਰ ਚਲਾਏ ਮੀਡੀਆ ਨੂੰ ਮਾਰਕ ਕਰੋ</string>
     <string name="open_network_stream">ਨੈੱਟਵਰਕ ਸਟ੍ਰੀਮ ਖੋਲ੍ਹੋ</string>
     <string name="play_next_video">ਅਗਲਾ ਵੀਡੀਓ ਚਲਾਓ</string>

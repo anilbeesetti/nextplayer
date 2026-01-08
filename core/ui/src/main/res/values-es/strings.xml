@@ -44,7 +44,6 @@
     <string name="settings">Ajustes</string>
     <string name="size">Tamaño</string>
     <string name="sort">Ordenar</string>
-    <string name="swipe_gesture_description">Desliza el dedo verticalmente para ajustar el brillo y el volumen</string>
     <string name="title">Título</string>
     <string name="unknown_error">Ha ocurrido un error desconocido</string>
     <string name="playback">Reproducción</string>
@@ -58,7 +57,6 @@
     <string name="permission_settings">La aplicación Next Player necesita el permiso \"%1$s\" para acceder y reproducir archivos multimedia. Sin él, el acceso y la reproducción multimedia no funcionarán. Para utilizar la aplicación correctamente, concede el permiso desde la configuración, ya que está denegado permanentemente.</string>
     <string name="remember_selections">Recordar elecciones</string>
     <string name="select_audio_track">Seleccionar pista de audio</string>
-    <string name="swipe_gesture">Gesto de deslizamiento</string>
     <string name="title_activity_player">Actividad de Next Player</string>
     <string name="longest">El más largo</string>
     <string name="largest">El más pesado</string>
@@ -191,8 +189,6 @@
     <string name="mark_last_played_media">Marcar el último medio reproducido</string>
     <string name="open_local_video">Abrir un video local</string>
     <string name="open_network_stream">Abrir videos en la red</string>
-    <string name="floating_play_button">Botón de reproducción flotante</string>
-    <string name="floating_play_button_desc">Mostrar el botón flotante para reproducir el último medio reproducido.</string>
     <string name="mark_last_played_media_desc">Marcar el último medio reproducido al inicio y en cada carpeta</string>
     <string name="exit">Salir</string>
     <string name="play_next_video">Reproducir el siguiente vídeo</string>
@@ -225,4 +221,14 @@
     <string name="list">Lista</string>
     <string name="grid">Cuadricula</string>
     <string name="media_layout">Diseño</string>
+    <string name="info">Información</string>
+    <string name="play">Reproducir</string>
+    <string name="recently_played">Reproducido recientemente</string>
+    <string name="delete_one_video">¿Eliminar 1 vídeo?</string>
+    <string name="delete_videos">¿Eliminar %1$d vídeos?</string>
+    <string name="delete_one_folder">¿Eliminar carpeta?</string>
+    <string name="delete_folders">¿Eliminar %1$d carpetas?</string>
+    <string name="delete_items">¿Eliminar %1$d elemento?</string>
+    <string name="delete_item_info">Esta acción no puede deshacerse. El elemento seleccionado se eliminará permanentemente</string>
+    <string name="delete_items_info">Esta acción no puede deshacerse. Los elementos seleccionados se eliminarán permanentemente</string>
 </resources>

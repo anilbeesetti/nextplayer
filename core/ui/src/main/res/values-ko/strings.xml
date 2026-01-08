@@ -38,7 +38,6 @@
     <string name="seek_gesture_description">좌우로 화면을 쓸어 앞뒤로 동영상 탐색</string>
     <string name="resume_description">지난 번에 멈췄던 곳에서부터 동영상 재생</string>
     <string name="size">크기</string>
-    <string name="swipe_gesture">스와이프 제스처</string>
     <string name="title_activity_player">Next Player 액티비티</string>
     <string name="playback">재생</string>
     <string name="a_z">A-Z</string>
@@ -91,7 +90,6 @@
     <string name="audio">오디오</string>
     <string name="subtitle">자막</string>
     <string name="videos">동영상</string>
-    <string name="swipe_gesture_description">위아래로 화면을 쓸어 밝기 및 볼륨 조절</string>
     <string name="dynamic_theme_description">애플리케이션 테마에 시스템 배경화면 색상 사용</string>
     <string name="player_description">플레이어 모양, 재생 제어</string>
     <string name="controls_lock">재생 제어 잠금</string>
@@ -188,13 +186,11 @@
     <string name="open_subtitle">로컬 자막 열기</string>
     <string name="no_subtitle_tracks_found">이 동영상의 자막 트랙을 사용할 수 없습니다.</string>
     <string name="no_audio_tracks_found">이 동영상의 오디오 트랙을 사용할 수 없습니다.</string>
-    <string name="floating_play_button">플로팅 재생 버튼</string>
     <string name="mark_last_played_media">마지막으로 재생했던 미디어 표시</string>
     <string name="mark_last_played_media_desc">홈 및 각 폴더에서 마지막으로 재생했던 미디어 표시</string>
     <string name="open_network_stream">네트워크 스트림 열기</string>
     <string name="exit">종료</string>
     <string name="play_next_video">다음 동영상 재생</string>
-    <string name="floating_play_button_desc">마지막으로 시청했던 미디어를 재생하는 플로팅 버튼을 표시합니다.</string>
     <string name="open_local_video">로컬 동영상 열기</string>
     <string name="skip_silence">무음 건너뛰기</string>
     <string name="folder">폴더</string>

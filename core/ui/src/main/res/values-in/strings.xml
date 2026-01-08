@@ -51,7 +51,6 @@
     <string name="size">Ukuran</string>
     <string name="select_subtitle_track">Pilih trek subtitle</string>
     <string name="sort">Urutkan</string>
-    <string name="swipe_gesture_description">Geser secara vertikal untuk menyesuaikan kecerahan dan volume</string>
     <string name="title">Judul</string>
     <string name="title_activity_player">Aktivitas Next Player</string>
     <string name="playback">Pemutaran</string>
@@ -182,8 +181,6 @@
     <string name="no_audio_tracks_found">Trek audio untuk video ini tidak tersedia atau tidak didukung.</string>
     <string name="rename">Ganti nama</string>
     <string name="rename_to">Ganti nama menjadi</string>
-    <string name="floating_play_button">Tombol putar mengambang</string>
-    <string name="floating_play_button_desc">Tampilkan tombol mengambang untuk memutar media terakhir.</string>
     <string name="mark_last_played_media">Tandai media yang terakhir diputar</string>
     <string name="mark_last_played_media_desc">Tandai media terakhir yang diputar di beranda dan di setiap folder</string>
     <string name="open_local_video">Buka video lokal</string>
@@ -207,7 +204,6 @@
     <string name="pause_on_headset_disconnect">Jeda saat terputus</string>
     <string name="system_volume_panel">Panel volume sistem</string>
     <string name="system_caption_style_desc">Klik untuk membuka preferensi teks sistem</string>
-    <string name="swipe_gesture">Gestur Usap</string>
     <string name="unknown_error">Terjadi kesalahan yang tidak diketahui</string>
     <string name="loop_mode">Putar berulang</string>
     <string name="loop_mode_off">Pengulangan: Mati</string>

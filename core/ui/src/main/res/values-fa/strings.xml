@@ -59,8 +59,6 @@
     <string name="settings">تنظیمات</string>
     <string name="sort">چیدمان</string>
     <string name="title">عنوان</string>
-    <string name="swipe_gesture">کنش حرکتی کشیدن</string>
-    <string name="swipe_gesture_description">برای تنظیم روشنایی و صدا، انگشت خود را به صورت عمودی بکشید</string>
     <string name="title_activity_player">فعالیت‌های Next Player</string>
     <string name="unknown_error">خطایی ناشناخته اتفاق افتاده است</string>
     <string name="interface_name">رابط کاربری</string>
@@ -187,8 +185,6 @@
     <string name="rename_to">تغییر نام به</string>
     <string name="skip_silence">پرش از سکوت</string>
     <string name="exit">خروج</string>
-    <string name="floating_play_button">دکمه پخش شناور</string>
-    <string name="floating_play_button_desc">دکمه شناور را برای پخش آخرین رسانه پخش شده نمایش دهید.</string>
     <string name="mark_last_played_media">آخرین رسانه پخش شده را مشخص کنید</string>
     <string name="mark_last_played_media_desc">آخرین رسانه پخش شده را در خانه و در هر پوشه مشخص کنید</string>
     <string name="open_local_video">بازکردن ویدیو محلی</string>

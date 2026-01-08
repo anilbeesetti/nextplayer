@@ -51,8 +51,6 @@
     <string name="unknown_error">En ukjent feil oppstod</string>
     <string name="dynamic_theme_description">Bruk farger fra systembakgrunnen i programdrakten</string>
     <string name="sort">Sorter</string>
-    <string name="swipe_gesture">Dragningshåndvending</string>
-    <string name="swipe_gesture_description">Dra loddrett for å justere lys- og lydstyrke</string>
     <string name="title_activity_player">Avspilleraktivitet</string>
     <string name="about_description">Versjon, bidragsytere</string>
     <string name="error_playing_video">Feil: Kan ikke spille video</string>

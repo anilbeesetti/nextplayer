@@ -35,7 +35,6 @@
     <string name="permission_info">নেক্সট প্লেয়ার অ্যাপের মিডিয়া অ্যাক্সেস এবং চালানোর জন্য \"%1$s\" অনুমতি প্রয়োজন। এটি ছাড়া, মিডিয়া অ্যাক্সেস এবং প্লেব্যাক কাজ করবে না। অ্যাপটি সম্পূর্ণরূপে ব্যবহার করার জন্য অনুমতি দিন।</string>
     <string name="autoplay_settings_description">বর্তমান ফোল্ডারের পরবর্তী ভিডিওগুলো সয়ংক্রিয়ভাবে প্লে করুন</string>
     <string name="size">আকার</string>
-    <string name="swipe_gesture_description">আওয়াজ ও উজ্জলতা ঠিক করার উলম্ব ভাবে সোয়াইপ করুন</string>
     <string name="smallest">ক্ষুদ্রতম</string>
     <string name="playback">প্লেব্যাক</string>
     <string name="controls_lock">নিয়ন্ত্রণ লক করুন</string>
@@ -51,7 +50,6 @@
     <string name="title">শিরোনাম</string>
     <string name="subtitle_track">সাবটাইটেল ট্র্যাক</string>
     <string name="play_next_video">পরবর্তী ভিডিও প্লে করুন</string>
-    <string name="floating_play_button">ভাসমান প্লে বাটন</string>
     <string name="oldest">সবচেয়ে পুরোনো</string>
     <string name="default_playback_speed">স্বয়ংক্রিয় প্লেব্যাক গতি</string>
     <string name="largest">বৃহত্তম</string>
@@ -134,7 +132,6 @@
     <string name="mark_last_played_media">সর্বশেষ চালানো মিডিয়া চিহ্নিত করুন</string>
     <string name="volume_boost_desc">অডিও আওয়াজ ২০০% পর্যন্ত বাড়ান</string>
     <string name="open_local_video">স্থানীয় ভিডিও খুলুন</string>
-    <string name="floating_play_button_desc">সর্বশেষ চালানো মিডিয়া চালানোর জন্য ভাসমান বোতাম দেখান।</string>
     <string name="no_audio_tracks_found">এই ভিডিওটির জন্য হয় অডিও ট্র্যাক নেই অথবা সমর্থন করে না।</string>
     <string name="sample_rate">নমুনা রেট</string>
     <string name="rename_to">নতুন নাম</string>
@@ -178,7 +175,6 @@
     <string name="control_buttons_alignment">নিয়ন্ত্রণ বোতামগুলোর দিকবিন্যাস</string>
     <string name="stop_player_session">প্লেয়ার সেশন বন্ধ করুন</string>
     <string name="title_activity_player">নেক্সট প্লেয়ার কার্যকলাপ</string>
-    <string name="swipe_gesture">সোয়াইপ ইশারা</string>
     <string name="dynamic_theme_description">সিস্টেম ওয়ালপেপার থেকে অ্যাপ্লিকেশন থিমে রঙ প্রয়োগ করুন</string>
     <string name="force_rescan_storage">স্টোরেজ পুনঃস্ক্যান করতে বাধ্য করুন</string>
     <string name="seconds">%1$s সেকেন্ড</string>

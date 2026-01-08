@@ -50,10 +50,8 @@
     <string name="force_rescan_storage_desc">警告: ストレージ全体の再スキャンを開始すると、デバイスのリソース使用量が増加する可能性があります</string>
     <string name="videos">ビデオ</string>
     <string name="newest">最新</string>
-    <string name="swipe_gesture_description">垂直にスワイプして明るさと音量を調整します</string>
     <string name="scanning_storage">ストレージをスキャンしています…</string>
     <string name="controls_unlock">コントロールのロックを解除</string>
-    <string name="swipe_gesture">スワイプジェスチャー</string>
     <string name="on">オン</string>
     <string name="none">なし</string>
     <string name="autoplay_settings">自動再生</string>
@@ -188,8 +186,6 @@
     <string name="no_audio_tracks_found">このビデオのオーディオトラックは利用できないか、サポートされていません。</string>
     <string name="rename">名前を変更</string>
     <string name="rename_to">に名前を変更</string>
-    <string name="floating_play_button">フローティング再生ボタン</string>
-    <string name="floating_play_button_desc">最後に再生したメディアを再生するためのフローティングボタンを表示します。</string>
     <string name="mark_last_played_media">最後に再生したメディアをマークする</string>
     <string name="mark_last_played_media_desc">ホームと各フォルダに最後に再生したメディアをマークします</string>
     <string name="open_local_video">ローカルビデオを開く</string>

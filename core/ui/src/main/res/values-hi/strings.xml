@@ -64,8 +64,6 @@
     <string name="settings">सेटिंग्स</string>
     <string name="size">आकार</string>
     <string name="sort">सॉर्ट करें</string>
-    <string name="swipe_gesture">स्वाइप जेस्चर</string>
-    <string name="swipe_gesture_description">चमक और आवाज़ एडजस्ट करने के लिए वर्टिकल स्वाइप करें</string>
     <string name="title">शीर्षक</string>
     <string name="title_activity_player">नेक्स्ट प्लेयर एक्टिविटी</string>
     <string name="unknown_error">एक अज्ञात त्रुटि उत्पन्न हुई</string>
@@ -190,8 +188,6 @@
     <string name="rename_to">इसमें नाम बदलें</string>
     <string name="exit">बाहर निकलें</string>
     <string name="open_network_stream">नेटवर्क स्ट्रीम खोलें</string>
-    <string name="floating_play_button">फ़्लोटिंग प्ले बटन</string>
-    <string name="floating_play_button_desc">अंतिम बार चलाए गए मीडिया को चलाने के लिए फ़्लोटिंग बटन दिखाएं।</string>
     <string name="mark_last_played_media">आखिरी बार चलाए गए मीडिया को चिह्नित करें</string>
     <string name="mark_last_played_media_desc">होम और प्रत्येक फ़ोल्डर में अंतिम बार चलाए गए मीडिया को चिह्नित करें</string>
     <string name="open_local_video">स्थानीय वीडियो खोलें</string>

@@ -87,9 +87,7 @@
     <string name="remember_selections">Mémoriser la sélection</string>
     <string name="select_audio_track">Piste audio</string>
     <string name="seek_gesture_description">Glisser horizontalement pour avancer ou reculer dans la vidéo</string>
-    <string name="swipe_gesture">Glissement vertical</string>
     <string name="sort">Trier</string>
-    <string name="swipe_gesture_description">Glisser verticalement pour régler la luminosité et le volume</string>
     <string name="title_activity_player">Activité de Next Player</string>
     <string name="title">Titre</string>
     <string name="dark_theme">Thème sombre</string>
@@ -183,8 +181,6 @@
     <string name="rename">Renommer</string>
     <string name="rename_to">Renommer en</string>
     <string name="skip_silence">Ignorer les silences</string>
-    <string name="floating_play_button">Bouton de lecture flottant</string>
-    <string name="floating_play_button_desc">Afficher un bouton de lecture flottant pour reprendre le dernier média lu</string>
     <string name="open_network_stream">Ouvrir un flux réseau</string>
     <string name="exit">Quitter</string>
     <string name="mark_last_played_media">Marquer le dernier média lu</string>
