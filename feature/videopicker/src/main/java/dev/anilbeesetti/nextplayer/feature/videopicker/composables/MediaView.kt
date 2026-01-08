@@ -51,7 +51,7 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
 @Composable
 fun MediaView(
-    rootFolder: Folder?,
+    rootFolder: Folder,
     preferences: ApplicationPreferences,
     contentPadding: PaddingValues = PaddingValues(),
     selectionManager: SelectionManager = rememberSelectionManager(),
@@ -98,13 +98,6 @@ fun MediaView(
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {
-            if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    NoVideosFound()
-                }
-                return@LazyVerticalGrid
-            }
-
             if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     ListSectionTitle(text = stringResource(id = R.string.folders))

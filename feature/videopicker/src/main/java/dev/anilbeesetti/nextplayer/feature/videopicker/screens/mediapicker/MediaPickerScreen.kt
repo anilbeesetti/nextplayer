@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -94,6 +95,7 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterPr
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NoVideosFound
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
@@ -351,6 +353,7 @@ internal fun MediaPickerScreen(
             is DataState.Success -> {
                 PullToRefreshBox(
                     modifier = Modifier
+                        .fillMaxSize()
                         .padding(top = scaffoldPadding.calculateTopPadding())
                         .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current))
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
@@ -358,20 +361,27 @@ internal fun MediaPickerScreen(
                     isRefreshing = uiState.refreshing,
                     onRefresh = { onEvent(MediaPickerUiEvent.Refresh) },
                 ) {
+                    val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
                     PermissionMissingView(
                         isGranted = permissionState.status.isGranted,
                         showRationale = permissionState.status.shouldShowRationale,
                         permission = permissionState.permission,
                         launchPermissionRequest = { permissionState.launchPermissionRequest() },
                     ) {
+                        val rootFolder = uiState.mediaDataState.value
+                        if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
+                            NoVideosFound(contentPadding = updatedScaffoldPadding)
+                            return@PermissionMissingView
+                        }
+
                         MediaView(
-                            rootFolder = uiState.mediaDataState.value,
+                            rootFolder = rootFolder,
                             preferences = uiState.preferences,
                             onFolderClick = onFolderClick,
                             onVideoClick = { onPlayVideos(listOf(it)) },
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
-                            contentPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp),
+                            contentPadding = updatedScaffoldPadding,
                             onVideoLoaded = { onEvent(MediaPickerUiEvent.AddToSync(it)) },
                         )
                     }
