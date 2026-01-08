@@ -253,4 +253,10 @@
     <string name="reset_seek_sentivity">Reset seek sensitivity</string>
     <string name="shuffle_on">Shuffle on</string>
     <string name="shuffle_off">Shuffle off</string>
+    <string name="crash_screen_title">Oops</string>
+    <string name="crash_screen_subtitle">Looks like %s experienced an unexpected error. Consider sharing the crash logs in a GitHub issue.</string>
+    <string name="crash_screen_logs_title">Crash logs:</string>
+    <string name="crash_screen_share">Share crash logs</string>
+    <string name="crash_screen_restart">Restart the app</string>
+    <string name="crash_screen_logcat">Logcat:</string>
 </resources>
