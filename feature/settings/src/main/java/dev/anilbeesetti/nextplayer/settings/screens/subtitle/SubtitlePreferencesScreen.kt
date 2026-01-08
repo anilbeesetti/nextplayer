@@ -5,43 +5,37 @@ import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.Font
+import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
-import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSlider
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
@@ -157,12 +151,27 @@ private fun SubtitlePreferencesContent(
                     index = 2,
                     count = totalRows,
                 )
-                ClickablePreferenceItem(
+                PreferenceSlider(
                     title = stringResource(id = R.string.subtitle_text_size),
                     description = uiState.preferences.subtitleTextSize.toString(),
                     icon = NextIcons.FontSize,
                     enabled = uiState.preferences.useSystemCaptionStyle.not(),
-                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleSizeDialog)) },
+                    value = uiState.preferences.subtitleTextSize.toFloat(),
+                    valueRange = 10f..60f,
+                    onValueChange = { onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(it.toInt())) },
+                    trailingContent = {
+                        FilledIconButton(
+                            enabled = uiState.preferences.useSystemCaptionStyle.not(),
+                            onClick = {
+                                onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(PlayerPreferences.DEFAULT_SUBTITLE_TEXT_SIZE))
+                            },
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_seek_increment),
+                            )
+                        }
+                    },
                     index = 3,
                     count = totalRows,
                 )
@@ -224,38 +233,6 @@ private fun SubtitlePreferencesContent(
                             )
                         }
                     }
-                }
-
-                SubtitlePreferenceDialog.SubtitleSizeDialog -> {
-                    var size by remember { mutableIntStateOf(uiState.preferences.subtitleTextSize) }
-
-                    NextDialog(
-                        onDismissRequest = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(null)) },
-                        title = { Text(text = stringResource(id = R.string.subtitle_text_size)) },
-                        content = {
-                            Text(
-                                text = size.toString(),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                fontSize = size.sp,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Slider(
-                                value = size.toFloat(),
-                                onValueChange = { size = it.toInt() },
-                                valueRange = 15f..60f,
-                            )
-                        },
-                        confirmButton = {
-                            DoneButton(onClick = {
-                                onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(size))
-                                onEvent(SubtitlePreferencesUiEvent.ShowDialog(null))
-                            })
-                        },
-                        dismissButton = { CancelButton(onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(null)) }) },
-                    )
                 }
 
                 SubtitlePreferenceDialog.SubtitleEncodingDialog -> {

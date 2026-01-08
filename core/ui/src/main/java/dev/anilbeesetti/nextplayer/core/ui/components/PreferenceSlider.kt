@@ -50,6 +50,7 @@ fun PreferenceSlider(
                 }
                 Slider(
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = enabled,
                     value = value,
                     valueRange = valueRange,
                     onValueChange = onValueChange,

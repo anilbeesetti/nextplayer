@@ -125,7 +125,6 @@ data class SubtitlePreferencesUiState(
 sealed interface SubtitlePreferenceDialog {
     data object SubtitleLanguageDialog : SubtitlePreferenceDialog
     data object SubtitleFontDialog : SubtitlePreferenceDialog
-    data object SubtitleSizeDialog : SubtitlePreferenceDialog
     data object SubtitleEncodingDialog : SubtitlePreferenceDialog
 }
 
