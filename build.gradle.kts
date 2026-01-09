@@ -25,9 +25,9 @@ subprojects {
     }
 
     configure<com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension> {
-        // Remove the "generated" timestamp to allow for reproducible builds
-        excludeFields = arrayOf("generated")
-        duplicationMode = DuplicateMode.MERGE
+        export {
+            excludeFields.addAll("generated")
+        }
     }
 }
 

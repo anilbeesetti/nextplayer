@@ -51,7 +51,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
 
-    implementation(libs.aboutlibraries.compose)
+    implementation(libs.aboutlibraries.core)
 
     // Hilt
     implementation(libs.hilt.android)
