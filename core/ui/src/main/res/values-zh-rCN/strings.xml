@@ -247,7 +247,7 @@
     <string name="crash_screen_logs_title">崩溃日志：</string>
     <string name="crash_screen_share">分享崩溃日志</string>
     <string name="crash_screen_restart">重启应用</string>
-    <string name="crash_screen_logcat">应用日志：</string>
+    <string name="crash_screen_logcat">日志：</string>
     <string name="shuffle_on">已开启随机播放</string>
     <string name="shuffle_off">已关闭随机播放</string>
     <string name="reset_seek_increment">重置跳转增量</string>
