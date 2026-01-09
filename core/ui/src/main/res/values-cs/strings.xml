@@ -213,4 +213,16 @@
     <string name="embedded_styles">Vložené styly</string>
     <string name="embedded_styles_desc">Použít vložené styly, které jsou obsažené v souborech s titulky, jako například ASS a podobné</string>
     <string name="best_fit">Nejlepší zvětšení</string>
+    <string name="delete_items_info">Tuto akci nelze vrátit zpět. Vybrané položky budou nenávratně odstraněny</string>
+    <string name="gestures">Gesta</string>
+    <string name="volume_gesture">Gesto hlasitosti</string>
+    <string name="volume_gesture_description">Měňte hlasitost posouváním nahoru a dolů</string>
+    <string name="brightness_gesture">Gesto jasu</string>
+    <string name="brightness_gesture_description">Měňte jas posouváním nahoru a dolů</string>
+    <string name="delete_one_video">Odstranit 1 video?</string>
+    <string name="delete_videos">Odstranit %1$d videa/jí?</string>
+    <string name="delete_one_folder">Odstranit 1 složku?</string>
+    <string name="delete_folders">Odstranit %1$d složky/ek?</string>
+    <string name="delete_items">Odstranit %1$d položky/ek?</string>
+    <string name="delete_item_info">Tuto akci nelze vrátit zpět. Vybraná položka bude nenávratně odstraněna</string>
 </resources>
