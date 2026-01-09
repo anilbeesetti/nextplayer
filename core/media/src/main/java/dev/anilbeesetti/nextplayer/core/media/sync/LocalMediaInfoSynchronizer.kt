@@ -26,7 +26,10 @@ import kotlin.text.substringBeforeLast
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class LocalMediaInfoSynchronizer @Inject constructor(
@@ -36,64 +39,89 @@ class LocalMediaInfoSynchronizer @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher,
 ) : MediaInfoSynchronizer {
 
+    private val activeSyncJobs = mutableMapOf<String, Job>()
+    private val mutex = Mutex()
+
     override fun sync(uri: Uri) {
         applicationScope.launch(dispatcher) {
-            val medium = mediumDao.getWithInfo(uri.toString()) ?: return@launch
-            if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
-                return@launch
-            }
+            val uriString = uri.toString()
 
-            val mediaInfo = runCatching {
-                MediaInfoBuilder().from(context = context, uri = uri).build() ?: throw NullPointerException()
-            }.onFailure { e ->
-                e.printStackTrace()
-                Log.d(TAG, "sync: MediaInfoBuilder exception", e)
-            }.getOrNull() ?: return@launch
+            mutex.withLock {
+                activeSyncJobs[uriString]
+            }?.join()
 
-            val mediaMetadataRetriever = MediaMetadataRetriever().apply {
-                setDataSource(context, uri)
-            }
-
-            val thumbnail = runCatching {
-                listOf(
-                    ".jpg",
-                    ".jpeg",
-                    ".png",
-                ).firstOrNull { imageExtension ->
-                    File(medium.mediumEntity.path.substringBeforeLast(".") + ".$imageExtension").exists()
-                }?.let {
-                    BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".$it")
+            val job = applicationScope.launch(dispatcher) {
+                try {
+                    performSync(uri)
+                } finally {
+                    mutex.withLock {
+                        activeSyncJobs.remove(uriString)
+                    }
                 }
-            }.getOrNull()
-                ?: runCatching { mediaMetadataRetriever.embeddedPicture?.toBitmap() }.getOrNull()
-                ?: runCatching { mediaMetadataRetriever.getFrameAtTime(0) }.getOrNull()
-                ?: runCatching { mediaInfo.getFrame() }.getOrNull()
-            mediaInfo.release()
-            mediaMetadataRetriever.release()
-
-            val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.uriString)
-            val audioStreamsInfo = mediaInfo.audioStreams.map {
-                it.toAudioStreamInfoEntity(medium.mediumEntity.uriString)
             }
-            val subtitleStreamsInfo = mediaInfo.subtitleStreams.map {
-                it.toSubtitleStreamInfoEntity(medium.mediumEntity.uriString)
-            }
-            val thumbnailPath = thumbnail?.saveTo(
-                storageDir = context.thumbnailCacheDir,
-                quality = 40,
-                fileName = medium.mediumEntity.mediaStoreId.toString(),
-            )
 
-            mediumDao.upsert(
-                medium.mediumEntity.copy(
-                    format = mediaInfo.format,
-                    thumbnailPath = thumbnailPath,
-                ),
-            )
-            videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
-            audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
-            subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }
+            mutex.withLock {
+                activeSyncJobs[uriString] = job
+            }
         }
+    }
+
+    private suspend fun performSync(uri: Uri) {
+        val medium = mediumDao.getWithInfo(uri.toString()) ?: return
+        if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
+            return
+        }
+
+        val mediaInfo = runCatching {
+            MediaInfoBuilder().from(context = context, uri = uri).build() ?: throw NullPointerException()
+        }.onFailure { e ->
+            e.printStackTrace()
+            Log.d(TAG, "sync: MediaInfoBuilder exception", e)
+        }.getOrNull() ?: return
+
+        val mediaMetadataRetriever = MediaMetadataRetriever().apply {
+            setDataSource(context, uri)
+        }
+
+        val thumbnail = runCatching {
+            listOf(
+                ".jpg",
+                ".jpeg",
+                ".png",
+            ).firstOrNull { imageExtension ->
+                File(medium.mediumEntity.path.substringBeforeLast(".") + ".$imageExtension").exists()
+            }?.let {
+                BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".$it")
+            }
+        }.getOrNull()
+            ?: runCatching { mediaMetadataRetriever.embeddedPicture?.toBitmap() }.getOrNull()
+            ?: runCatching { mediaMetadataRetriever.getFrameAtTime(0) }.getOrNull()
+            ?: runCatching { mediaInfo.getFrame() }.getOrNull()
+        mediaInfo.release()
+        mediaMetadataRetriever.release()
+
+        val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.uriString)
+        val audioStreamsInfo = mediaInfo.audioStreams.map {
+            it.toAudioStreamInfoEntity(medium.mediumEntity.uriString)
+        }
+        val subtitleStreamsInfo = mediaInfo.subtitleStreams.map {
+            it.toSubtitleStreamInfoEntity(medium.mediumEntity.uriString)
+        }
+        val thumbnailPath = thumbnail?.saveTo(
+            storageDir = context.thumbnailCacheDir,
+            quality = 40,
+            fileName = medium.mediumEntity.mediaStoreId.toString(),
+        )
+
+        mediumDao.upsert(
+            medium.mediumEntity.copy(
+                format = mediaInfo.format,
+                thumbnailPath = thumbnailPath,
+            ),
+        )
+        videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
+        audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
+        subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }
     }
 
     companion object {
