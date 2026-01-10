@@ -239,4 +239,21 @@
     <string name="pan_gesture">Жест панорамирования</string>
     <string name="pan_gesture_description">Масштабирование и панорамирование видео</string>
     <string name="hide_player_buttons_background">Скрыть фон кнопок плеера</string>
+    <string name="hide_player_buttons_background_description">Скрыть фон всех кнопок управления плеером</string>
+    <string name="m_n_selected">Выбрано %1$d / %2$d</string>
+    <string name="select_all">Выбрать всё</string>
+    <string name="deselect_all">Снять выделение</string>
+    <string name="reset_seek_increment">Сбросить шаг перемотки</string>
+    <string name="reset_controller_timeout">Сбросить время скрытия интерфейса</string>
+    <string name="reset_default_playback_speed">Сбросить скорость по умолчанию</string>
+    <string name="seek_sensitivity">Чувствительность перемотки</string>
+    <string name="reset_seek_sentivity">Сбросить чувствительность перемотки</string>
+    <string name="shuffle_on">Перемешивание включено</string>
+    <string name="shuffle_off">Перемешивание выключено</string>
+    <string name="crash_screen_title">Ой</string>
+    <string name="crash_screen_subtitle">Похоже, в %s произошла непредвиденная ошибка. Пожалуйста, поделитесь логами сбоя в GitHub issue.</string>
+    <string name="crash_screen_logs_title">Логи сбоя:</string>
+    <string name="crash_screen_share">Поделиться логами сбоя</string>
+    <string name="crash_screen_logcat">Logcat:</string>
+    <string name="crash_screen_restart">Перезапустить приложение</string>
 </resources>
