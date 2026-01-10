@@ -231,4 +231,12 @@
     <string name="info">Информация</string>
     <string name="delete_item_info">Это действие необратимо. Выбранный элемент будет удалён безвозвратно</string>
     <string name="delete_items_info">Это действие необратимо. Выбранные элементы будут удалены безвозвратно</string>
+    <string name="gestures">Жесты</string>
+    <string name="volume_gesture">Жест регулировки громкости</string>
+    <string name="volume_gesture_description">Регулируйте громкость вертикальным свайпом</string>
+    <string name="brightness_gesture">Жест регулировки яркости</string>
+    <string name="brightness_gesture_description">Регулируйте яркость вертикальным свайпом</string>
+    <string name="pan_gesture">Жест панорамирования</string>
+    <string name="pan_gesture_description">Масштабирование и панорамирование видео</string>
+    <string name="hide_player_buttons_background">Скрыть фон кнопок плеера</string>
 </resources>
