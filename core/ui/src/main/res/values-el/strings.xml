@@ -256,4 +256,14 @@
     <string name="crash_screen_restart">Επανεκκίνηση εφαρμογής</string>
     <string name="crash_screen_logcat">Καταγραφή:</string>
     <string name="gestures">Χειρονομίες</string>
+    <string name="general_name">Γενικά</string>
+    <string name="general_description">Επιλογές δεδομένων χρήστη</string>
+    <string name="user_data">Δεδομένα χρήστη</string>
+    <string name="delete_thumbnail_cache">Διαγραφή μνήμης μικρογραφιών</string>
+    <string name="delete_thumbnail_cache_description">Διαγραφή όλων των μικρογραφιών που είναι αποθηκευμένες στην προσωρινή μνήμη. Οι μικρογραφίες θα δημιουργηθούν ξανά όταν ανοίξει η λίστα πολυμέσων</string>
+    <string name="delete_thumbnail_cache_confirmation">Είστε σίγουροι ότι θέλετε να διαγράψετε όλες τις μικρογραφίες;</string>
+    <string name="reset_settings">Επαναφορά ρυθμίσεων</string>
+    <string name="reset_settings_description">Επαναφορά όλων των ρυθμίσεων στην προεπιλεγμένη κατάσταση τους</string>
+    <string name="reset_settings_confirmation">Είστε βέβαιοι ότι θέλετε να επαναφέρετε όλες τις ρυθμίσεις στην προεπιλεγμένη κατάσταση τους;</string>
+    <string name="reset">Επαναφορά</string>
 </resources>
