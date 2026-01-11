@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Deselect
 import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.DoneAll
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.MiscellaneousServices
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PanToolAlt
@@ -140,4 +142,6 @@ object NextIcons {
     val FastForward = Icons.Rounded.FastForward
     val BugReport = Icons.Rounded.BugReport
     val Copy = Icons.Rounded.ContentCopy
+    val ExtraSettings = Icons.Rounded.MiscellaneousServices
+    val DeleteSweep = Icons.Rounded.DeleteSweep
 }

@@ -28,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mikepenz.aboutlibraries.Libs
-import com.mikepenz.aboutlibraries.ui.compose.util.author
 import com.mikepenz.aboutlibraries.util.withContext
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
@@ -87,7 +86,12 @@ fun LibrariesScreen(
                     },
                     supportingContent = {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(text = library.author)
+                            Text(
+                                text = library.developers.takeIf { it.isNotEmpty() }
+                                    ?.mapNotNull { it.name }
+                                    ?.joinToString(", ")
+                                    ?: library.organization?.name ?: "",
+                            )
                             FlowRow(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),

@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:model"))
     implementation(project(":core:common"))
+    implementation(project(":core:media"))
 
     implementation(libs.androidx.core.ktx)
 
@@ -51,7 +52,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
 
-    implementation(libs.aboutlibraries.compose)
+    implementation(libs.aboutlibraries.core)
 
     // Hilt
     implementation(libs.hilt.android)

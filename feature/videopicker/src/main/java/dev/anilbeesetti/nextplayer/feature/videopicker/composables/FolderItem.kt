@@ -225,7 +225,7 @@ private fun FolderGridItem(
                     Icon(
                         imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                         contentDescription = "",
-                        tint = MaterialTheme.colorScheme.secondaryContainer,
+                        tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                         modifier = Modifier
                             .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
                             .aspectRatio(20 / 17f),

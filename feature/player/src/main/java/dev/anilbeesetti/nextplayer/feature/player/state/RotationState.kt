@@ -51,10 +51,6 @@ class RotationState(
     var currentRequestedOrientation: Int by mutableIntStateOf(activity.requestedOrientation)
         private set
 
-    init {
-        setOrientation()
-    }
-
     fun rotate() {
         activity.requestedOrientation = when (activity.resources.configuration.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
@@ -75,15 +71,11 @@ class RotationState(
     }
 
     suspend fun observe() {
+        setOrientation()
         player.listen { events ->
             if (events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)) {
                 if (screenOrientation == ScreenOrientation.VIDEO_ORIENTATION) {
-                    val videoOrientation = when {
-                        player.videoSize.width == 0 || player.videoSize.height == 0 -> null
-                        player.videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                        else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                    }
-                    activity.requestedOrientation = videoOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    activity.requestedOrientation = getVideoBasedOrientation()
                 }
             }
         }
@@ -97,8 +89,14 @@ class RotationState(
                 ScreenOrientation.LANDSCAPE_REVERSE -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
                 ScreenOrientation.LANDSCAPE_AUTO -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                ScreenOrientation.VIDEO_ORIENTATION -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                ScreenOrientation.VIDEO_ORIENTATION -> getVideoBasedOrientation()
             }
         }
+    }
+
+    private fun getVideoBasedOrientation() = when {
+        player.videoSize.width == 0 || player.videoSize.height == 0 -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        player.videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
     }
 }
