@@ -260,10 +260,10 @@
     <string name="general_description">用户数据选项</string>
     <string name="user_data">用户数据</string>
     <string name="delete_thumbnail_cache">删除缩略图缓存</string>
-    <string name="delete_thumbnail_cache_description">删除存储中缓存的所有缩略图。打开媒体列表时将重新生成缩略图</string>
-    <string name="delete_thumbnail_cache_confirmation">确定要删除所有缩略图吗？</string>
+    <string name="delete_thumbnail_cache_description">删除存储空间中缓存的所有缩略图。打开媒体列表时会重新生成缩略图。</string>
+    <string name="delete_thumbnail_cache_confirmation">您确定想要删除所有缩略图吗？</string>
     <string name="reset_settings">重置设置</string>
-    <string name="reset_settings_description">将所有设置重置为默认状态</string>
-    <string name="reset_settings_confirmation">确定要将所有设置重置为默认状态吗？</string>
+    <string name="reset_settings_description">重置所有设置为默认状态</string>
+    <string name="reset_settings_confirmation">您确定想要重置所有设置为默认状态吗？</string>
     <string name="reset">重置</string>
 </resources>
