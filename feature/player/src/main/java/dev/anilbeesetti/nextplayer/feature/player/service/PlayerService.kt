@@ -58,6 +58,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.subtitleDelayMilliseconds
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -119,7 +120,7 @@ class PlayerService : MediaSessionService() {
             when (reason) {
                 DISCONTINUITY_REASON_SEEK,
                 DISCONTINUITY_REASON_AUTO_TRANSITION,
-                -> {
+                    -> {
                     if (newPosition.mediaItem == null || oldMediaItem == newPosition.mediaItem) return
 
                     val updatedPosition = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET
@@ -143,6 +144,7 @@ class PlayerService : MediaSessionService() {
                         )
                     }
                 }
+
                 else -> return
             }
         }
@@ -392,6 +394,22 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
+                CustomCommands.GET_SUBTITLE_DELAY -> {
+                    val subtitleDelay = mediaSession?.player?.subtitleDelay ?: 0
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putLong(CustomCommands.SUBTITLE_DELAY_KEY, subtitleDelay)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_SUBTITLE_DELAY -> {
+                    val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
+                    mediaSession?.player?.subtitleDelay = subtitleDelay
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
                 CustomCommands.STOP_PLAYER_SESSION -> {
                     mediaSession?.run {
                         serviceScope.launch {
@@ -583,5 +601,19 @@ private var Player.skipSilenceEnabled: Boolean
     set(value) {
         when (this) {
             is ExoPlayer -> this.skipSilenceEnabled = value
+        }
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.subtitleDelay: Long
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.subtitleDelayMilliseconds
+        else -> 0L
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.subtitleDelayMilliseconds = value
         }
     }

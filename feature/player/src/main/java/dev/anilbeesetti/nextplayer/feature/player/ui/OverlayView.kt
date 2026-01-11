@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -90,6 +91,7 @@ fun BoxScope.OverlayView(
                 Spacer(modifier = Modifier.size(8.dp))
                 Column(
                     modifier = Modifier
+                        .imePadding()
                         .verticalScroll(rememberScrollState())
                         .padding(bottom = 24.dp),
                     verticalArrangement = verticalArrangement,

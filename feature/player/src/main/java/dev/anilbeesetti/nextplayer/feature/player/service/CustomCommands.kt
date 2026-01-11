@@ -12,8 +12,9 @@ enum class CustomCommands(val customAction: String) {
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
     SET_IS_SCRUBBING_MODE_ENABLED(customAction = "SET_IS_SCRUBBING_MODE_ENABLED"),
     GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
-    STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
-    ;
+    GET_SUBTITLE_DELAY(customAction = "GET_SUBTITLE_DELAY"),
+    SET_SUBTITLE_DELAY(customAction = "SET_SUBTITLE_DELAY"),
+    STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION");
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
 
@@ -30,6 +31,7 @@ enum class CustomCommands(val customAction: String) {
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
         const val IS_SCRUBBING_MODE_ENABLED_KEY = "is_scrubbing_mode_enabled"
         const val AUDIO_SESSION_ID_KEY = "audio_session_id"
+        const val SUBTITLE_DELAY_KEY = "subtitle_delay"
     }
 }
 
@@ -57,6 +59,18 @@ fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
+}
+
+fun MediaController.setSubtitleDelayMilliseconds(delayMillis: Long) {
+    val args = Bundle().apply {
+        putLong(CustomCommands.SUBTITLE_DELAY_KEY, delayMillis)
+    }
+    sendCustomCommand(CustomCommands.SET_SUBTITLE_DELAY.sessionCommand, args)
+}
+
+suspend fun MediaController.getSubtitleDelayMilliseconds(): Long {
+    val result = sendCustomCommand(CustomCommands.GET_SUBTITLE_DELAY.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getLong(CustomCommands.SUBTITLE_DELAY_KEY, 0L)
 }
 
 fun MediaController.stopPlayerSession() {
