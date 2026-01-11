@@ -270,4 +270,5 @@
     <string name="reset_settings_confirmation">Are you sure you want to reset all settings to their default state?</string>
     <string name="reset">Reset</string>
     <string name="delay">Delay</string>
+    <string name="speed">Speed</string>
 </resources>

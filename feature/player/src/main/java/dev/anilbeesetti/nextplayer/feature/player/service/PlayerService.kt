@@ -59,6 +59,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfig
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.subtitleDelayMilliseconds
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.subtitleSpeed
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -361,7 +362,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
-                    mediaSession?.player?.skipSilenceEnabled = enabled
+                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
                     mediaSession?.sessionExtras = Bundle().apply {
                         putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
                     }
@@ -369,7 +370,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = mediaSession?.player?.skipSilenceEnabled ?: false
+                    val enabled = mediaSession?.player?.playerSpecificSkipSilenceEnabled ?: false
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -395,7 +396,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.GET_SUBTITLE_DELAY -> {
-                    val subtitleDelay = mediaSession?.player?.subtitleDelay ?: 0
+                    val subtitleDelay = mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -406,7 +407,23 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SUBTITLE_DELAY -> {
                     val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
-                    mediaSession?.player?.subtitleDelay = subtitleDelay
+                    mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds = subtitleDelay
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_SUBTITLE_SPEED -> {
+                    val subtitleSpeed = mediaSession?.player?.playerSpecificSubtitleSpeed ?: 0f
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putFloat(CustomCommands.SUBTITLE_SPEED_KEY, subtitleSpeed)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_SUBTITLE_SPEED -> {
+                    val subtitleSpeed = args.getFloat(CustomCommands.SUBTITLE_SPEED_KEY)
+                    mediaSession?.player?.playerSpecificSubtitleSpeed = subtitleSpeed
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
@@ -584,15 +601,8 @@ class PlayerService : MediaSessionService() {
 }
 
 @get:UnstableApi
-private val Player.audioSessionId: Int
-    get() = when (this) {
-        is ExoPlayer -> this.audioSessionId
-        else -> C.AUDIO_SESSION_ID_UNSET
-    }
-
-@get:UnstableApi
 @set:UnstableApi
-private var Player.skipSilenceEnabled: Boolean
+private var Player.playerSpecificSkipSilenceEnabled: Boolean
     @OptIn(UnstableApi::class)
     get() = when (this) {
         is ExoPlayer -> this.skipSilenceEnabled
@@ -606,7 +616,7 @@ private var Player.skipSilenceEnabled: Boolean
 
 @get:UnstableApi
 @set:UnstableApi
-private var Player.subtitleDelay: Long
+private var Player.playerSpecificSubtitleDelayMilliseconds: Long
     @OptIn(UnstableApi::class)
     get() = when (this) {
         is ExoPlayer -> this.subtitleDelayMilliseconds
@@ -615,5 +625,19 @@ private var Player.subtitleDelay: Long
     set(value) {
         when (this) {
             is ExoPlayer -> this.subtitleDelayMilliseconds = value
+        }
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.playerSpecificSubtitleSpeed: Float
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.subtitleSpeed
+        else -> 0f
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.subtitleSpeed = value
         }
     }
