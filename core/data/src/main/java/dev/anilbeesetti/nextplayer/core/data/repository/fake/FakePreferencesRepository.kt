@@ -28,4 +28,9 @@ class FakePreferencesRepository : PreferencesRepository {
     ) {
         playerPreferencesStateFlow.update { transform.invoke(it) }
     }
+
+    override suspend fun resetPreferences() {
+        applicationPreferencesStateFlow.update { ApplicationPreferences() }
+        playerPreferencesStateFlow.update { PlayerPreferences() }
+    }
 }

@@ -42,4 +42,9 @@ class LocalPreferencesRepository @Inject constructor(
     ) {
         playerPreferencesDataSource.update(transform)
     }
+
+    override suspend fun resetPreferences() {
+        appPreferencesDataSource.update { ApplicationPreferences() }
+        playerPreferencesDataSource.update { PlayerPreferences() }
+    }
 }

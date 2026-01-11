@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
+import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.thumbnailCacheDir
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
@@ -64,6 +65,11 @@ class LocalMediaInfoSynchronizer @Inject constructor(
                 activeSyncJobs[uriString] = job
             }
         }
+    }
+
+    override suspend fun clearThumbnailsCache() = withContext(Dispatchers.IO) {
+        activeSyncJobs.forEach { it.value.cancel() }
+        context.thumbnailCacheDir.deleteFiles()
     }
 
     private suspend fun performSync(uri: Uri) {

@@ -21,4 +21,6 @@ interface PreferencesRepository {
     )
 
     suspend fun updatePlayerPreferences(transform: suspend (PlayerPreferences) -> PlayerPreferences)
+
+    suspend fun resetPreferences()
 }
