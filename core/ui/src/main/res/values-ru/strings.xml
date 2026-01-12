@@ -265,4 +265,5 @@
     <string name="reset">Сбросить</string>
     <string name="user_data">Данные пользователя</string>
     <string name="general_description">Параметры данных пользователя</string>
+    <string name="general_name">Основные</string>
 </resources>
