@@ -256,4 +256,14 @@
     <string name="crash_screen_share">Jaga kokkujooksmise logisid</string>
     <string name="crash_screen_restart">Käivita rakendus uuesti</string>
     <string name="crash_screen_logcat">Logcat:</string>
+    <string name="general_name">Üldised</string>
+    <string name="general_description">Kasutajaandmete valikud</string>
+    <string name="user_data">Kasutajaandmed</string>
+    <string name="delete_thumbnail_cache">Kustuta puhverdatud pisipildid</string>
+    <string name="delete_thumbnail_cache_description">Kõik selle rakenduse andmeruumis puhverdatud pisipildid kustutatakse. Meediafailide loendi avamisel luuakse vajalikud pisipildid uuesti</string>
+    <string name="delete_thumbnail_cache_confirmation">Kas sa oled kindel, et soovid kõik pidipildid kustutada?</string>
+    <string name="reset_settings">Lähtesta seadistused</string>
+    <string name="reset_settings_description">Lähtesta kõik seadistused nende vaikimisi väärtusteks</string>
+    <string name="reset_settings_confirmation">Kas oled kindel, et soovid kõik seadistused muuta algväärtusteks?</string>
+    <string name="reset">Lähtesta</string>
 </resources>
