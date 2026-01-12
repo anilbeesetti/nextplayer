@@ -58,8 +58,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.subtitleDelayMilliseconds
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.subtitleSpeed
+import io.github.anilbeesetti.nextlib.media3ext.rendrer.subtitleDelayMilliseconds
+import io.github.anilbeesetti.nextlib.media3ext.rendrer.subtitleSpeed
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope

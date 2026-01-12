@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSubtitleOptionsState
@@ -44,6 +46,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 
+@OptIn(UnstableApi::class)
 @Composable
 fun BoxScope.SubtitleSelectorView(
     modifier: Modifier = Modifier,
@@ -113,15 +116,13 @@ private fun DelayInput(
         mutableStateOf(if (value == 0L) "0" else "%.2f".format(value / 1000.0))
     }
 
-    var isFocused by remember { mutableStateOf(false) }
-
-    LaunchedEffect(value, isFocused) {
-        if (isFocused) return@LaunchedEffect
+    LaunchedEffect(value) {
+        val currentValue = valueString.toDoubleOrNull() ?: 0.0
+        if (currentValue == (value / 1000.0)) return@LaunchedEffect
         valueString = if (value == 0L) "0" else "%.2f".format(value / 1000.0)
     }
 
     NumberChooserInput(
-        modifier = Modifier.onFocusChanged { isFocused = it.isFocused },
         title = stringResource(R.string.delay),
         value = valueString,
         suffix = { Text(text = "sec") },
@@ -139,7 +140,7 @@ private fun DelayInput(
                 return@NumberChooserInput
             }
 
-            val decimalPattern = "^\\d*\\.?\\d{0,2}$".toRegex()
+            val decimalPattern = "^-?\\d*\\.?\\d{0,2}$".toRegex()
             if (!cleanedValue.matches(decimalPattern)) {
                 return@NumberChooserInput
             }
@@ -166,15 +167,13 @@ private fun SpeedInput(
         mutableStateOf(if (value == 1f) "1" else "%.2f".format(value))
     }
 
-    var isFocused by remember { mutableStateOf(false) }
-
-    LaunchedEffect(value, isFocused) {
-        if (isFocused) return@LaunchedEffect
+    LaunchedEffect(value) {
+        val currentValue = valueString.toFloatOrNull() ?: 0.0
+        if (currentValue == value) return@LaunchedEffect
         valueString = if (value == 1f) "1" else "%.2f".format(value)
     }
 
     NumberChooserInput(
-        modifier = Modifier.onFocusChanged { isFocused = it.isFocused },
         title = stringResource(R.string.speed),
         value = valueString,
         suffix = { Text(text = "x") },
