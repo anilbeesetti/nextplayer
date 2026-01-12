@@ -153,7 +153,7 @@ private fun DelayInput(
             }
         },
         onIncrement = { onValueChange(value + 100) },
-        onDecrement = { onValueChange((value - 100).coerceAtLeast(0)) },
+        onDecrement = { onValueChange(value - 100) },
     )
 }
 
@@ -205,7 +205,7 @@ private fun SpeedInput(
             }
         },
         onIncrement = { onValueChange(value + 0.1f) },
-        onDecrement = { onValueChange((value - 0.1f).coerceAtLeast(0f)) },
+        onDecrement = { onValueChange(value - 0.1f) },
     )
 }
 
