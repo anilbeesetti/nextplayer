@@ -35,7 +35,7 @@ fun rememberSubtitleOptionsState(player: Player): SubtitleOptionsState {
 @Stable
 class SubtitleOptionsState(
     val player: Player,
-    val scope: CoroutineScope
+    val scope: CoroutineScope,
 ) {
 
     var delayMilliseconds: Long by mutableLongStateOf(0L)
@@ -43,7 +43,6 @@ class SubtitleOptionsState(
 
     var speedMultiplier: Float by mutableFloatStateOf(1f)
         private set
-
 
     fun setDelay(delayMillis: Long) {
         scope.launch {
@@ -66,7 +65,6 @@ class SubtitleOptionsState(
             updateSubtitleSpeed()
         }
     }
-
 
     suspend fun observe() {
         updateSubtitleDelayMilliseconds()

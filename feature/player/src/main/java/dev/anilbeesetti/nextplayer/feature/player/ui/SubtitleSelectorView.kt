@@ -28,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,10 +40,10 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSubtitleOptionsState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
+import kotlin.math.roundToLong
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.roundToLong
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -57,7 +56,6 @@ fun BoxScope.SubtitleSelectorView(
 ) {
     val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
     val subtitleOptionsState = rememberSubtitleOptionsState(player)
-
 
     OverlayView(
         modifier = modifier,

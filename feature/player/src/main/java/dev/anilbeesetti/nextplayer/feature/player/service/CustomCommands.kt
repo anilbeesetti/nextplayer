@@ -16,7 +16,8 @@ enum class CustomCommands(val customAction: String) {
     SET_SUBTITLE_DELAY(customAction = "SET_SUBTITLE_DELAY"),
     GET_SUBTITLE_SPEED(customAction = "GET_SUBTITLE_SPEED"),
     SET_SUBTITLE_SPEED(customAction = "SET_SUBTITLE_SPEED"),
-    STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION");
+    STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
+    ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
 

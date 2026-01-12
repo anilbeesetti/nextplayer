@@ -121,7 +121,7 @@ class PlayerService : MediaSessionService() {
             when (reason) {
                 DISCONTINUITY_REASON_SEEK,
                 DISCONTINUITY_REASON_AUTO_TRANSITION,
-                    -> {
+                -> {
                     if (newPosition.mediaItem == null || oldMediaItem == newPosition.mediaItem) return
 
                     val updatedPosition = oldPosition.positionMs.takeIf { reason == DISCONTINUITY_REASON_SEEK } ?: C.TIME_UNSET
