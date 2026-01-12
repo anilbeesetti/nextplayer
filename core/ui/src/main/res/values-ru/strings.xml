@@ -256,4 +256,13 @@
     <string name="crash_screen_share">Поделиться логами сбоя</string>
     <string name="crash_screen_logcat">Logcat:</string>
     <string name="crash_screen_restart">Перезапустить приложение</string>
+    <string name="delete_thumbnail_cache">Удалить кэш миниатюр</string>
+    <string name="delete_thumbnail_cache_description">Удалите все миниатюры, кэшированные в хранилище. Миниатюры будут созданы снова при открытии списка мультимедиа</string>
+    <string name="delete_thumbnail_cache_confirmation">Вы уверены, что хотите удалить все миниатюры?</string>
+    <string name="reset_settings">Сбросить настройки</string>
+    <string name="reset_settings_description">Сбросьте все настройки в состояние по умолчанию</string>
+    <string name="reset_settings_confirmation">Вы уверены, что хотите сбросить все настройки к состоянию по умолчанию?</string>
+    <string name="reset">Сбросить</string>
+    <string name="user_data">Данные пользователя</string>
+    <string name="general_description">Параметры данных пользователя</string>
 </resources>
