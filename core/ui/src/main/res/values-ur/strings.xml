@@ -11,4 +11,27 @@
     <string name="duration">دورانیہ</string>
     <string name="location">مقام</string>
     <string name="menu">مینو</string>
+    <string name="appearance_description">ایپ کو اپنی پسند کے مطابق ترتیب دیں</string>
+    <string name="about_name">بارے میں</string>
+    <string name="appearance_name">ظاہری شکل</string>
+    <string name="ascending">صعودی ترتیب</string>
+    <string name="no_videos_found">کوئی ویڈیوز نہیں ملیں</string>
+    <string name="permission_info">Next Player ایپ کو میڈیا تک رسائی اور پلے کرنے کے لیے \"%1$s\" کی اجازت درکار ہے۔ اس کے بغیر میڈیا تک رسائی اور پلے بیک کام نہیں کرے گا۔ ایپ کو مکمل طور پر استعمال کرنے کے لیے اجازت فراہم کریں۔</string>
+    <string name="permission_not_granted">اجازت فراہم نہیں کی گئی</string>
+    <string name="permission_request">اجازت کی درخواست</string>
+    <string name="permission_settings">Next Player ایپ کو میڈیا تک رسائی اور پلے کرنے کے لیے \"%1$s\" کی اجازت درکار ہے۔ اس کے بغیر میڈیا تک رسائی اور پلے بیک کام نہیں کرے گا۔ چونکہ اجازت مستقل طور پر مسترد کر دی گئی ہے، اس لیے ایپ کو مکمل طور پر استعمال کرنے کے لیے سیٹنگز سے اجازت فراہم کریں۔</string>
+    <string name="autoplay_settings_description">موجودہ فولڈر میں اگلی ویڈیو خود بخود چلائیں</string>
+    <string name="pip_settings">تصویر میں تصویر وضع</string>
+    <string name="pip_settings_description">ہوم بٹن دبانے پر خودکار طور پر چھوٹے پلیئر پر منتقل ہوں</string>
+    <string name="remember_brightness_level">چمک کی سطح یاد رکھیں</string>
+    <string name="remember_brightness_level_description">پلے بیک کے دوران چمک کی سطح یاد رکھیں</string>
+    <string name="remember_selections">انتخاب یاد رکھیں</string>
+    <string name="remember_selections_description">ہر فائل کے انتخاب یاد رکھیں جیسے آڈیو ٹریک، سب ٹائٹل ٹریک وغیرہ.</string>
+    <string name="resume_description">منتخب کریں کہ ویڈیو کو جہاں چھوڑا تھا وہاں سے دوبارہ شروع کریں</string>
+    <string name="resume">دوبارہ شروع کریں</string>
+    <string name="seek_gesture">تلاش کے اشارے</string>
+    <string name="seek_gesture_description">آگے یا پیچھے تلاش کے لیے افقی سوائپ کریں</string>
+    <string name="select_audio_track">آڈیو ٹریک منتخب کریں</string>
+    <string name="select_subtitle_track">سب ٹائٹل ٹریک منتخب کریں</string>
+    <string name="settings">ترتیبات</string>
 </resources>

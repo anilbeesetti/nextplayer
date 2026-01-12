@@ -256,4 +256,14 @@
     <string name="crash_screen_share">Udostępnij dzienniki awarii</string>
     <string name="crash_screen_restart">Zrestartuj aplikację</string>
     <string name="crash_screen_logcat">Logcat:</string>
+    <string name="general_name">Ogólne</string>
+    <string name="general_description">Opcje danych użytkownika</string>
+    <string name="user_data">Dane użytkownika</string>
+    <string name="delete_thumbnail_cache">Usuń pamięć podręczną miniatur</string>
+    <string name="delete_thumbnail_cache_description">Usuń wszystkie miniatury zapisane w pamięci podręcznej. Miniatury zostaną wygenerowane ponownie po otwarciu listy multimediów.</string>
+    <string name="delete_thumbnail_cache_confirmation">Czy na pewno chcesz usunąć wszystkie miniatury?</string>
+    <string name="reset_settings">Zresetuj ustawienia</string>
+    <string name="reset_settings_description">Przywróć wszystkie ustawienia do stanu domyślnego</string>
+    <string name="reset_settings_confirmation">Czy na pewno chcesz przywrócić wszystkie ustawienia do wartości domyślnych?</string>
+    <string name="reset">Zresetuj</string>
 </resources>
