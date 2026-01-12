@@ -1,11 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.player.service
-
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.annotation.OptIn
+import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -71,6 +74,9 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+
+private const val PLAYER_NOTIFICATION_CHANNEL_ID = "player_channel"
+private const val PLAYER_NOTIFICATION_ID = 1
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
@@ -416,6 +422,28 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                PLAYER_NOTIFICATION_CHANNEL_ID,
+                "Next Player",
+                NotificationManager.IMPORTANCE_LOW,
+            ).apply {
+                description = "Media playback notifications"
+            }
+            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+                .createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(this, PLAYER_NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("Next Player")
+            .setContentText("Playing media")
+            .setSmallIcon(R.drawable.artwork_default)
+            .setOngoing(true)
+            .build()
+
+        startForeground(PLAYER_NOTIFICATION_ID, notification)
+
         val renderersFactory = NextRenderersFactory(applicationContext)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(
