@@ -58,10 +58,10 @@ suspend fun Context.uriToSubtitleConfiguration(
 }
 
 @Suppress("DEPRECATION")
-fun Bundle.getParcelableUriArray(key: String): Array<out Parcelable>? {
+fun Bundle.getParcelableUriArray(key: String): ArrayList<out Parcelable>? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelableArray(key, Uri::class.java)
+        getParcelableArrayList(key, Uri::class.java)
     } else {
-        getParcelableArray(key)
+        getParcelableArrayList(key)
     }
 }
