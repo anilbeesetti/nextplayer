@@ -231,4 +231,10 @@
     <string name="delete_items">¿Eliminar %1$d elemento?</string>
     <string name="delete_item_info">Esta acción no puede deshacerse. El elemento seleccionado se eliminará permanentemente</string>
     <string name="delete_items_info">Esta acción no puede deshacerse. Los elementos seleccionados se eliminarán permanentemente</string>
+    <string name="gestures">Gestos</string>
+    <string name="volume_gesture">Gesto de volumen</string>
+    <string name="volume_gesture_description">Ajuste el volumen deslizando verticalmente</string>
+    <string name="brightness_gesture">Gesto de brillo</string>
+    <string name="brightness_gesture_description">Ajuste el brillo deslizando verticalmente</string>
+    <string name="pan_gesture">Gesto panorámico</string>
 </resources>
