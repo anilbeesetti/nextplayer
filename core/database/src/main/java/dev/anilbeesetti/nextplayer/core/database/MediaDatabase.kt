@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.database
 
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration

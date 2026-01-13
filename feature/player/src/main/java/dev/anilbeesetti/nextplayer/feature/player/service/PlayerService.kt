@@ -60,8 +60,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
-import io.github.anilbeesetti.nextlib.media3ext.rendrer.subtitleDelayMilliseconds
-import io.github.anilbeesetti.nextlib.media3ext.rendrer.subtitleSpeed
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -103,7 +103,7 @@ class PlayerService : MediaSessionService() {
             isMediaItemReady = false
             mediaItem?.mediaMetadata?.let { metadata ->
                 mediaSession?.player?.run {
-                    setPlaybackSpeed(metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,)
+                    setPlaybackSpeed(metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed)
                     playerSpecificSubtitleDelayMilliseconds = metadata.subtitleDelayMilliseconds ?: 0L
                     playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
                 }

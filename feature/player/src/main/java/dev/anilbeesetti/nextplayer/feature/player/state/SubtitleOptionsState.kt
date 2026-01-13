@@ -20,8 +20,8 @@ import dev.anilbeesetti.nextplayer.feature.player.service.getSubtitleDelayMillis
 import dev.anilbeesetti.nextplayer.feature.player.service.getSubtitleSpeed
 import dev.anilbeesetti.nextplayer.feature.player.service.setSubtitleDelayMilliseconds
 import dev.anilbeesetti.nextplayer.feature.player.service.setSubtitleSpeed
-import io.github.anilbeesetti.nextlib.media3ext.rendrer.subtitleDelayMilliseconds
-import io.github.anilbeesetti.nextlib.media3ext.rendrer.subtitleSpeed
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
