@@ -53,6 +53,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleDelayMilliseconds
+import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
@@ -100,9 +102,11 @@ class PlayerService : MediaSessionService() {
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             isMediaItemReady = false
             mediaItem?.mediaMetadata?.let { metadata ->
-                mediaSession?.player?.setPlaybackSpeed(
-                    metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,
-                )
+                mediaSession?.player?.run {
+                    setPlaybackSpeed(metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,)
+                    playerSpecificSubtitleDelayMilliseconds = metadata.subtitleDelayMilliseconds ?: 0L
+                    playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
+                }
 
                 metadata.positionMs?.takeIf { playerPreferences.resume == Resume.YES }?.let {
                     mediaSession?.player?.seekTo(it)
@@ -578,6 +582,8 @@ class PlayerService : MediaSessionService() {
                 val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
                 val audioTrackIndex = mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
                 val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
+                val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
+                val subtitleSpeed = mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
 
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
@@ -591,6 +597,8 @@ class PlayerService : MediaSessionService() {
                                 playbackSpeed = playbackSpeed,
                                 audioTrackIndex = audioTrackIndex,
                                 subtitleTrackIndex = subtitleTrackIndex,
+                                subtitleDelayMilliseconds = subtitleDelay,
+                                subtitleSpeed = subtitleSpeed,
                             )
                         }.build(),
                     )

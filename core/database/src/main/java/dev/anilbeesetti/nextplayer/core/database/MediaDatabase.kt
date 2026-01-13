@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
@@ -23,7 +24,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         AudioStreamInfoEntity::class,
         SubtitleStreamInfoEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -175,6 +176,13 @@ abstract class MediaDatabase : RoomDatabase() {
                     CREATE INDEX IF NOT EXISTS `index_media_path` ON `media` (`path`)
                     """,
                 )
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `subtitle_delay` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `media_state` ADD COLUMN `subtitle_speed` REAL NOT NULL DEFAULT 1")
             }
         }
     }

@@ -12,6 +12,7 @@ import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,6 +80,29 @@ class PlayerViewModel @Inject constructor(
             is VideoZoomEvent.ZoomChanged -> {
                 updateVideoZoom(event.mediaItem.mediaId, event.zoom)
             }
+        }
+    }
+
+    fun onSubtitleOptionEvent(event: SubtitleOptionsEvent) {
+        when (event) {
+            is SubtitleOptionsEvent.DelayChanged -> {
+                updateSubtitleDelay(event.mediaItem.mediaId, event.delay)
+            }
+            is SubtitleOptionsEvent.SpeedChanged -> {
+                updateSubtitleSpeed(event.mediaItem.mediaId, event.speed)
+            }
+        }
+    }
+
+    private fun updateSubtitleDelay(uri: String, delay: Long) {
+        viewModelScope.launch {
+            mediaRepository.updateSubtitleDelay(uri, delay)
+        }
+    }
+
+    private fun updateSubtitleSpeed(uri: String, speed: Float) {
+        viewModelScope.launch {
+            mediaRepository.updateSubtitleSpeed(uri, speed)
         }
     }
 }

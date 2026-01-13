@@ -126,4 +126,26 @@ class LocalMediaRepository @Inject constructor(
             ),
         )
     }
+
+    override suspend fun updateSubtitleDelay(uri: String, delay: Long) {
+        val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+        mediumStateDao.upsert(
+            mediumState = stateEntity.copy(
+                subtitleDelayMilliseconds = delay,
+                lastPlayedTime = System.currentTimeMillis(),
+            ),
+        )
+    }
+
+    override suspend fun updateSubtitleSpeed(uri: String, speed: Float) {
+        val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+        mediumStateDao.upsert(
+            mediumState = stateEntity.copy(
+                subtitleSpeed = speed,
+                lastPlayedTime = System.currentTimeMillis(),
+            ),
+        )
+    }
 }

@@ -38,6 +38,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
+import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSubtitleOptionsState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 import kotlin.math.roundToLong
@@ -52,10 +53,11 @@ fun BoxScope.SubtitleSelectorView(
     show: Boolean,
     player: Player,
     onSelectSubtitleClick: () -> Unit,
+    onEvent: (SubtitleOptionsEvent) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
-    val subtitleOptionsState = rememberSubtitleOptionsState(player)
+    val subtitleOptionsState = rememberSubtitleOptionsState(player, onEvent)
 
     OverlayView(
         modifier = modifier,
