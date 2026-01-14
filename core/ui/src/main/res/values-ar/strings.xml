@@ -54,7 +54,7 @@
     <string name="remember_brightness_level_description">تذكر مستوى السطوع بين جلسات التشغيل</string>
     <string name="player_controls_previous">تشغيل السابق</string>
     <string name="remember_brightness_level">تذكر مستوى السطوع</string>
-    <string name="remember_selections_description">تذكر التخصيصات لكل ملف مثل المسار الصوتي، الترجمة، إلخ</string>
+    <string name="remember_selections_description">تذكر التخصيصات لكل ملف مثل المسار الصوتي، الترجمة، إلخ.</string>
     <string name="remember_selections">تذكر الاختيارات</string>
     <string name="resume">استمرار</string>
     <string name="dark_theme">الوضع الليلي</string>
@@ -221,4 +221,26 @@
     <string name="grid">شبكة</string>
     <string name="kofi">Ko-fi</string>
     <string name="support_the_developer_on">ادعم المطور على %1$s</string>
+    <string name="info">المعلومات</string>
+    <string name="play">تشغيل</string>
+    <string name="recently_played">مشغل حديثا</string>
+    <string name="delete_one_video">حذف فيديو 1؟</string>
+    <string name="delete_videos">حذف %1$d فيديو؟</string>
+    <string name="delete_one_folder">حذف مجلد 1؟</string>
+    <string name="delete_folders">حذف %1$d مجلد؟</string>
+    <string name="delete_items">حذف %1$d عنصر؟</string>
+    <string name="delete_item_info">لا يمكن التراجع عن هذا الإجراء. سيُحذف العنصر المحدد نهائياً</string>
+    <string name="delete_items_info">لا يمكن التراجع عن هذا الإجراء. ستُحذف العناصر المحددة نهائياً</string>
+    <string name="gestures">الايماءات</string>
+    <string name="volume_gesture">ايماءة الصوت</string>
+    <string name="volume_gesture_description">عدل الصوت عبر السحب عموديًا</string>
+    <string name="brightness_gesture">ايماءة الإضاءة</string>
+    <string name="brightness_gesture_description">عدل الإضاءة عبر السحب عموديًا</string>
+    <string name="pan_gesture">ايماءة التحريك</string>
+    <string name="pan_gesture_description">تكبير وتحريك الفيديو</string>
+    <string name="hide_player_buttons_background">إخفاء خلفية أزرار المشغل</string>
+    <string name="hide_player_buttons_background_description">إخفاء خلفية كل أزرار تحكم المشغل</string>
+    <string name="m_n_selected">%1$d / %2$d محددة</string>
+    <string name="select_all">تحديد الكل</string>
+    <string name="deselect_all">إلغاء تحديد الكل</string>
 </resources>
