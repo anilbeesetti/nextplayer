@@ -22,7 +22,7 @@
     <string name="player_controls_exit">向上导航</string>
     <string name="player_controls_next">下一个</string>
     <string name="player_controls_play_pause">播放/暂停</string>
-    <string name="player_description">播放器外观、播放控件</string>
+    <string name="player_description">播放器外观、播放控制</string>
     <string name="quick_settings">快捷设置</string>
     <string name="remember_brightness_level">记住亮度</string>
     <string name="remember_brightness_level_description">记住播放时设置的亮度</string>
