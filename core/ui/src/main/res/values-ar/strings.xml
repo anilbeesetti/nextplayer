@@ -243,4 +243,27 @@
     <string name="m_n_selected">%1$d / %2$d محددة</string>
     <string name="select_all">تحديد الكل</string>
     <string name="deselect_all">إلغاء تحديد الكل</string>
+    <string name="reset_seek_increment">إعادة ضبط القفز الزمني</string>
+    <string name="reset_controller_timeout">إعادة ضبط مهلة وحدة التحكم</string>
+    <string name="reset_default_playback_speed">إعادة ضبط سرعة التشغيل الافتراضية</string>
+    <string name="seek_sensitivity">حساسية التمرير</string>
+    <string name="reset_seek_sentivity">إعادة ضبط حساسية التمرير</string>
+    <string name="shuffle_on">الخلط مفعل</string>
+    <string name="shuffle_off">الخلط موقف</string>
+    <string name="crash_screen_title">اوبس</string>
+    <string name="crash_screen_subtitle">يبدو أن %s تعرض لخطأ غير متوقع. يرجى مراعاة مشاركة سجلات الانهيار عبر فتح مشكلة في GitHub.</string>
+    <string name="crash_screen_logs_title">سجلات الانهيار:</string>
+    <string name="crash_screen_share">مشاركة سجلات الانهيار</string>
+    <string name="crash_screen_restart">إعادة تشغيل التطبيق</string>
+    <string name="crash_screen_logcat">السجل:</string>
+    <string name="general_name">عام</string>
+    <string name="general_description">خيارات بيانات المستخدم</string>
+    <string name="user_data">بيانات المستخدم</string>
+    <string name="delete_thumbnail_cache">حذف الذاكرة المؤقتة للمصغرات</string>
+    <string name="delete_thumbnail_cache_description">حذف كل المصغرات المخزنة في الذاكرة. ستُنشأ المصغرات مرة أخرى عند فتح قائمة الوسائط</string>
+    <string name="delete_thumbnail_cache_confirmation">أمتأكد بأنك تريد حذف كل المصغرات؟</string>
+    <string name="reset_settings">إعادة ضبط الإعدادات</string>
+    <string name="reset_settings_description">إعادة ضبط كل الإعدادات إلى حالتها الافتراضية</string>
+    <string name="reset_settings_confirmation">أمتأكد أنك تريد إعادة ضبط كل الإعدادات إلى حالتها الافتراضية؟</string>
+    <string name="reset">إعادة ضبط</string>
 </resources>
