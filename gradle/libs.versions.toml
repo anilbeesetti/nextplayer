@@ -34,7 +34,7 @@ room = "2.8.4"
 nextlib = "1.9.0-0.10.0"
 timber = "5.0.1"
 universalChardet = "2.5.0"
-ui = "1.10.0"
+ui = "1.10.1"
 foundationLayout = "1.10.0"
 
 
