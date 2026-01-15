@@ -66,10 +66,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 
 @OptIn(UnstableApi::class)
@@ -86,7 +84,7 @@ class PlayerService : MediaSessionService() {
     lateinit var mediaRepository: MediaRepository
 
     private val playerPreferences: PlayerPreferences
-        get() = runBlocking { preferencesRepository.playerPreferences.first() }
+        get() = preferencesRepository.playerPreferences.value
 
     private val customCommands = CustomCommands.asSessionCommands()
 
