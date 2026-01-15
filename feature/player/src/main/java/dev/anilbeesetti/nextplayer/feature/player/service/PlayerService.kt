@@ -86,7 +86,7 @@ class PlayerService : MediaSessionService() {
     lateinit var mediaRepository: MediaRepository
 
     private val playerPreferences: PlayerPreferences
-        get() = runBlocking { preferencesRepository.playerPreferences.first() }
+        get() = preferencesRepository.playerPreferences.value
 
     private val customCommands = CustomCommands.asSessionCommands()
 
