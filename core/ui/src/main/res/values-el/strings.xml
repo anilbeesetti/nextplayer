@@ -221,7 +221,7 @@
     <string name="media_layout">Διάταξη μέσων</string>
     <string name="grid">Πλέγμα</string>
     <string name="by">από τον %1$s</string>
-    <string name="recently_played">Πρόσφατα</string>
+    <string name="recently_played">Πρόσφατο</string>
     <string name="delete_one_video">Διαγραφή 1 βίντεο;</string>
     <string name="delete_videos">Διαγραφή %1$d βίντεο;</string>
     <string name="delete_one_folder">Διαγραφή 1 φακέλου;</string>
@@ -235,8 +235,8 @@
     <string name="volume_gesture_description">Ρύθμιση ήχου με οριζόντιο σύρσιμο</string>
     <string name="brightness_gesture">Χειρονομία φωτεινότητας</string>
     <string name="brightness_gesture_description">Ρύθμιση φωτεινότητας με κάθετο σύρσιμο</string>
-    <string name="pan_gesture">Χειρονομία ζουμ</string>
-    <string name="pan_gesture_description">Ζουμ του βίντεο</string>
+    <string name="pan_gesture">Χειρονομία μετατόπισης</string>
+    <string name="pan_gesture_description">Μεγέθυνση και μετατόπιση του βίντεο</string>
     <string name="hide_player_buttons_background">Απόκρυψη φόντου κουμπιών αναπαραγωγής</string>
     <string name="hide_player_buttons_background_description">Απόκρυψη του φόντου όλων των κουμπιών ελέγχου</string>
     <string name="m_n_selected">%1$d / %2$d επιλέχθηκαν</string>
