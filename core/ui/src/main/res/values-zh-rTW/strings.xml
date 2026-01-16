@@ -256,4 +256,14 @@
     <string name="crash_screen_share">分享錯誤報告</string>
     <string name="crash_screen_restart">重新啟動應用程式</string>
     <string name="crash_screen_logcat">Logcat：</string>
+    <string name="general_name">一般</string>
+    <string name="general_description">使用者資料選項</string>
+    <string name="user_data">使用者資料</string>
+    <string name="delete_thumbnail_cache">清除縮圖快取</string>
+    <string name="delete_thumbnail_cache_description">刪除儲存空間中所有已快取的縮圖，開啟媒體清單時將會重新產生</string>
+    <string name="delete_thumbnail_cache_confirmation">您確定要刪除所有縮圖嗎？</string>
+    <string name="reset_settings">重設設定</string>
+    <string name="reset_settings_description">將所有設定還原至預設值</string>
+    <string name="reset_settings_confirmation">您確定要將所有設定還原為預設值嗎？</string>
+    <string name="reset">重設</string>
 </resources>
