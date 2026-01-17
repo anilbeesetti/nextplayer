@@ -57,6 +57,7 @@ class PlayerPreferencesViewModel @Inject constructor(
             is PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation -> updatePreferredPlayerOrientation(event.value)
             is PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition -> updatePreferredControlButtonsPosition(event.value)
             is PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed -> updateDefaultPlaybackSpeed(event.value)
+            PlayerPreferencesUiEvent.TogglePersistentPlaybackSpeed -> togglePersistentPlaybackSpeed()
             is PlayerPreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(event.value)
             is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(event.value)
             is PlayerPreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(event.value)
@@ -215,6 +216,14 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
+    private fun togglePersistentPlaybackSpeed() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(persistentPlaybackSpeed = !it.persistentPlaybackSpeed)
+            }
+        }
+    }
+
     private fun updateLongPressControlsSpeed(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(longPressControlsSpeed = value) }
@@ -274,6 +283,7 @@ sealed interface PlayerPreferencesUiEvent {
     data class UpdateDoubleTapGesture(val gesture: DoubleTapGesture) : PlayerPreferencesUiEvent
     data object ToggleUseLongPressControls : PlayerPreferencesUiEvent
     data object ToggleDoubleTapGesture : PlayerPreferencesUiEvent
+    data object TogglePersistentPlaybackSpeed : PlayerPreferencesUiEvent
     data object ToggleAutoplay : PlayerPreferencesUiEvent
     data object ToggleAutoPip : PlayerPreferencesUiEvent
     data object ToggleAutoBackgroundPlay : PlayerPreferencesUiEvent
