@@ -349,6 +349,7 @@ fun MediaPlayerScreen(
 
             OverlayShowView(
                 player = player,
+                preferencesRepository = viewModel.preferencesRepository,
                 overlayView = overlayView,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 onDismiss = { overlayView = null },

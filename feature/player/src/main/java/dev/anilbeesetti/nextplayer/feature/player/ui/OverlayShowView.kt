@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 
@@ -13,6 +14,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 fun BoxScope.OverlayShowView(
     modifier: Modifier = Modifier,
     player: Player,
+    preferencesRepository: PreferencesRepository,
     overlayView: OverlayView?,
     videoContentScale: VideoContentScale,
     onDismiss: () -> Unit = {},
@@ -47,6 +49,7 @@ fun BoxScope.OverlayShowView(
     PlaybackSpeedSelectorView(
         show = overlayView == OverlayView.PLAYBACK_SPEED,
         player = player,
+        preferencesRepository = preferencesRepository,
     )
 
     VideoContentScaleSelectorView(
