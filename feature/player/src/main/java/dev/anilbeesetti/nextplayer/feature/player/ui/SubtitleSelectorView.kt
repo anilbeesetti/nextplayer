@@ -1,11 +1,15 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,10 +18,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getName
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 
+@OptIn(UnstableApi::class)
 @Composable
 fun BoxScope.SubtitleSelectorView(
     modifier: Modifier = Modifier,
@@ -33,7 +39,13 @@ fun BoxScope.SubtitleSelectorView(
         show = show,
         title = stringResource(R.string.select_subtitle_track),
     ) {
-        Column(modifier = Modifier.selectableGroup()) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp)
+                .padding(horizontal = 24.dp)
+                .selectableGroup(),
+        ) {
             subtitleTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(
                     selected = track.isSelected,

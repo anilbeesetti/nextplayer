@@ -30,6 +30,7 @@ fun ControlsTopView(
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaybackSpeedClick: () -> Unit = {},
+    onPlaylistClick: () -> Unit = {},
     onBackClick: () -> Unit,
 ) {
     Row(
@@ -68,6 +69,12 @@ fun ControlsTopView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            PlayerButton(onClick = onPlaylistClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_playlist),
+                    contentDescription = null,
+                )
+            }
             PlayerButton(onClick = onPlaybackSpeedClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_speed),

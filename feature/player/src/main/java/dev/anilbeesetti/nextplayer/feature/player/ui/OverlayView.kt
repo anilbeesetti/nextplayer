@@ -40,8 +40,6 @@ fun BoxScope.OverlayView(
     modifier: Modifier = Modifier,
     show: Boolean,
     title: String,
-    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val configuration = LocalConfiguration.current
@@ -79,24 +77,16 @@ fun BoxScope.OverlayView(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp)
                     .padding(top = 24.dp)
                     .padding(end = endPadding),
             ) {
                 Text(
+                    modifier = Modifier.padding(horizontal = 24.dp),
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(bottom = 24.dp),
-                    verticalArrangement = verticalArrangement,
-                    horizontalAlignment = horizontalAlignment,
-                ) {
-                    content()
-                }
+                content()
             }
         }
     }
