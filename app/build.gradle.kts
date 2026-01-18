@@ -122,6 +122,8 @@ dependencies {
     implementation(libs.google.android.material)
     implementation(libs.androidx.core.splashscreen)
 
+    implementation(libs.coil.compose)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

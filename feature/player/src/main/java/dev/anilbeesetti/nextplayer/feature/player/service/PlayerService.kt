@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
@@ -29,6 +30,10 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import coil3.ImageLoader
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.toBitmap
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
@@ -69,6 +74,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import java.io.ByteArrayOutputStream
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
@@ -82,6 +88,9 @@ class PlayerService : MediaSessionService() {
 
     @Inject
     lateinit var mediaRepository: MediaRepository
+
+    @Inject
+    lateinit var imageLoader: ImageLoader
 
     private val playerPreferences: PlayerPreferences
         get() = preferencesRepository.playerPreferences.value
@@ -527,8 +536,16 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
-                val artwork = video?.thumbnailPath?.toUri() ?: Uri.Builder().apply {
+                val artworkData = run {
+                    val result = imageLoader.execute(
+                        ImageRequest.Builder(this@PlayerService)
+                            .data(uri)
+                            .build()
+                    )
+                    (result as? SuccessResult)?.image?.toBitmap()?.toByteArray()
+                }
+
+                val artworkUri = Uri.Builder().apply {
                     val defaultArtwork = R.drawable.artwork_default
                     scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
                     authority(resources.getResourcePackageName(defaultArtwork))
@@ -536,6 +553,7 @@ class PlayerService : MediaSessionService() {
                     appendPath(resources.getResourceEntryName(defaultArtwork))
                 }.build()
 
+                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
                 val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
                 val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
@@ -547,7 +565,11 @@ class PlayerService : MediaSessionService() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(title)
-                            setArtworkUri(artwork)
+                            if (artworkData != null) {
+                                setArtworkData(artworkData, null)
+                            } else {
+                                setArtworkUri(artworkUri)
+                            }
                             setExtras(
                                 positionMs = positionMs,
                                 videoScale = videoScale,
@@ -561,14 +583,13 @@ class PlayerService : MediaSessionService() {
             }
         }.awaitAll()
     }
-}
 
-@get:UnstableApi
-private val Player.audioSessionId: Int
-    get() = when (this) {
-        is ExoPlayer -> this.audioSessionId
-        else -> C.AUDIO_SESSION_ID_UNSET
+    private fun Bitmap.toByteArray(): ByteArray {
+        val stream = ByteArrayOutputStream()
+        compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        return stream.toByteArray()
     }
+}
 
 @get:UnstableApi
 @set:UnstableApi

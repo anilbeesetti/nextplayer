@@ -34,6 +34,7 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.github.anilbeesetti.nextlib.mediainfo)
+    implementation(libs.coil.compose)
 
     // Hilt
     implementation(libs.hilt.android)

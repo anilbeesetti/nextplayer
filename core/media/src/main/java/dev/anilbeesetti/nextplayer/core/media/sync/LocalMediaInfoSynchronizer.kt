@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
+import coil3.ImageLoader
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
@@ -35,6 +36,7 @@ import kotlinx.coroutines.withContext
 
 class LocalMediaInfoSynchronizer @Inject constructor(
     private val mediumDao: MediumDao,
+    private val imageLoader: ImageLoader,
     @ApplicationScope private val applicationScope: CoroutineScope,
     @ApplicationContext private val context: Context,
     @Dispatcher(NextDispatchers.Default) private val dispatcher: CoroutineDispatcher,
@@ -67,16 +69,14 @@ class LocalMediaInfoSynchronizer @Inject constructor(
         }
     }
 
-    override suspend fun clearThumbnailsCache() = withContext(Dispatchers.IO) {
-        activeSyncJobs.forEach { it.value.cancel() }
-        context.thumbnailCacheDir.deleteFiles()
+    override suspend fun clearThumbnailsCache() {
+        imageLoader.diskCache?.clear()
+        imageLoader.memoryCache?.clear()
     }
 
     private suspend fun performSync(uri: Uri) {
         val medium = mediumDao.getWithInfo(uri.toString()) ?: return
-        if (medium.mediumEntity.thumbnailPath?.let { File(it) }?.exists() == true) {
-            return
-        }
+        if (medium.videoStreamInfo != null) return
 
         val mediaInfo = runCatching {
             MediaInfoBuilder().from(context = context, uri = uri).build() ?: throw NullPointerException()
@@ -84,27 +84,7 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             e.printStackTrace()
             Log.d(TAG, "sync: MediaInfoBuilder exception", e)
         }.getOrNull() ?: return
-
-        val mediaMetadataRetriever = MediaMetadataRetriever().apply {
-            setDataSource(context, uri)
-        }
-
-        val thumbnail = runCatching {
-            listOf(
-                ".jpg",
-                ".jpeg",
-                ".png",
-            ).firstOrNull { imageExtension ->
-                File(medium.mediumEntity.path.substringBeforeLast(".") + ".$imageExtension").exists()
-            }?.let {
-                BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".$it")
-            }
-        }.getOrNull()
-            ?: runCatching { mediaMetadataRetriever.embeddedPicture?.toBitmap() }.getOrNull()
-            ?: runCatching { mediaMetadataRetriever.getFrameAtTime(0) }.getOrNull()
-            ?: runCatching { mediaInfo.getFrame() }.getOrNull()
         mediaInfo.release()
-        mediaMetadataRetriever.release()
 
         val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.uriString)
         val audioStreamsInfo = mediaInfo.audioStreams.map {
@@ -113,18 +93,8 @@ class LocalMediaInfoSynchronizer @Inject constructor(
         val subtitleStreamsInfo = mediaInfo.subtitleStreams.map {
             it.toSubtitleStreamInfoEntity(medium.mediumEntity.uriString)
         }
-        val thumbnailPath = thumbnail?.saveTo(
-            storageDir = context.thumbnailCacheDir,
-            quality = 40,
-            fileName = medium.mediumEntity.mediaStoreId.toString(),
-        )
 
-        mediumDao.upsert(
-            medium.mediumEntity.copy(
-                format = mediaInfo.format,
-                thumbnailPath = thumbnailPath,
-            ),
-        )
+        mediumDao.upsert(medium.mediumEntity.copy(format = mediaInfo.format))
         videoStreamInfo?.let { mediumDao.upsertVideoStreamInfo(it) }
         audioStreamsInfo.onEach { mediumDao.upsertAudioStreamInfo(it) }
         subtitleStreamsInfo.onEach { mediumDao.upsertSubtitleStreamInfo(it) }
@@ -170,23 +140,3 @@ private fun SubtitleStream.toSubtitleStreamInfoEntity(mediumUri: String) = Subti
     disposition = disposition,
     mediumUri = mediumUri,
 )
-
-suspend fun Bitmap.saveTo(
-    storageDir: File,
-    quality: Int = 100,
-    fileName: String,
-): String? = withContext(Dispatchers.IO) {
-    val thumbFile = File(storageDir, fileName)
-    try {
-        FileOutputStream(thumbFile).use { fos ->
-            compress(Bitmap.CompressFormat.JPEG, quality, fos)
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-    return@withContext if (thumbFile.exists()) thumbFile.path else null
-}
-
-fun ByteArray.toBitmap(): Bitmap? {
-    return BitmapFactory.decodeByteArray(this, 0, this.size)
-}

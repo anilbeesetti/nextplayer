@@ -19,7 +19,6 @@ fun MediumWithInfo.toVideo() = Video(
     size = mediumEntity.size,
     dateModified = mediumEntity.modified,
     format = mediumEntity.format,
-    thumbnailPath = mediumEntity.thumbnailPath,
     playbackPosition = mediumStateEntity?.playbackPosition ?: 0L,
     lastPlayedAt = mediumStateEntity?.lastPlayedTime?.let { Date(it) },
     formattedDuration = Utils.formatDurationMillis(mediumEntity.duration),
