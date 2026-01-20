@@ -268,6 +268,17 @@ private fun PlayerPreferencesContent(
                     },
                 )
                 PreferenceSwitch(
+                    title = stringResource(id = R.string.persistent_playback_speed),
+                    description = stringResource(
+                        id = R.string.persistent_playback_speed_description,
+                    ),
+                    icon = NextIcons.Speed,
+                    isChecked = uiState.preferences.persistentPlaybackSpeed,
+                    onClick = { onEvent(PlayerPreferencesUiEvent.TogglePersistentPlaybackSpeed) },
+                    index = 2,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
                     title = stringResource(id = R.string.autoplay_settings),
                     description = stringResource(
                         id = R.string.autoplay_settings_description,
@@ -275,7 +286,7 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Player,
                     isChecked = uiState.preferences.autoplay,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoplay) },
-                    index = 2,
+                    index = 3,
                     count = totalRows,
                 )
                 PreferenceSwitch(
@@ -286,7 +297,7 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Pip,
                     isChecked = uiState.preferences.autoPip,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoPip) },
-                    index = 3,
+                    index = 4,
                     count = totalRows,
                 )
                 PreferenceSwitch(
@@ -297,7 +308,7 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Headset,
                     isChecked = uiState.preferences.autoBackgroundPlay,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay) },
-                    index = 4,
+                    index = 5,
                     count = totalRows,
                 )
                 PreferenceSwitch(
@@ -308,7 +319,7 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Brightness,
                     isChecked = uiState.preferences.rememberPlayerBrightness,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel) },
-                    index = 5,
+                    index = 6,
                     count = totalRows,
                 )
                 PreferenceSwitch(
@@ -317,7 +328,7 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Selection,
                     isChecked = uiState.preferences.rememberSelections,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleRememberSelections) },
-                    index = 6,
+                    index = 7,
                     count = totalRows,
                 )
                 ClickablePreferenceItem(
@@ -327,7 +338,7 @@ private fun PlayerPreferencesContent(
                     onClick = {
                         onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog))
                     },
-                    index = 7,
+                    index = 8,
                     count = totalRows,
                 )
             }
