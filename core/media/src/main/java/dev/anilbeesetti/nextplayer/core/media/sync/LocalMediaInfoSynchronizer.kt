@@ -78,16 +78,16 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             return
         }
 
+        val mediaMetadataRetriever = runCatching {
+            MediaMetadataRetriever().apply { setDataSource(context, uri) }
+        }.getOrNull()
+
         val mediaInfo = runCatching {
             MediaInfoBuilder().from(context = context, uri = uri).build() ?: throw NullPointerException()
         }.onFailure { e ->
             e.printStackTrace()
             Log.d(TAG, "sync: MediaInfoBuilder exception", e)
-        }.getOrNull() ?: return
-
-        val mediaMetadataRetriever = MediaMetadataRetriever().apply {
-            setDataSource(context, uri)
-        }
+        }.getOrNull()
 
         val thumbnail = runCatching {
             listOf(
@@ -100,11 +100,11 @@ class LocalMediaInfoSynchronizer @Inject constructor(
                 BitmapFactory.decodeFile(medium.mediumEntity.path.substringBeforeLast(".") + ".$it")
             }
         }.getOrNull()
-            ?: runCatching { mediaMetadataRetriever.embeddedPicture?.toBitmap() }.getOrNull()
-            ?: runCatching { mediaMetadataRetriever.getFrameAtTime(0) }.getOrNull()
-            ?: runCatching { mediaInfo.getFrame() }.getOrNull()
-        mediaInfo.release()
-        mediaMetadataRetriever.release()
+            ?: runCatching { mediaMetadataRetriever?.embeddedPicture?.toBitmap() }.getOrNull()
+            ?: runCatching { mediaMetadataRetriever?.getFrameAtTime(0) }.getOrNull()
+            ?: runCatching { mediaInfo?.getFrame() }.getOrNull()
+        mediaMetadataRetriever?.release()
+        mediaInfo?.release() ?: return
 
         val videoStreamInfo = mediaInfo.videoStream?.toVideoStreamInfoEntity(medium.mediumEntity.uriString)
         val audioStreamsInfo = mediaInfo.audioStreams.map {
