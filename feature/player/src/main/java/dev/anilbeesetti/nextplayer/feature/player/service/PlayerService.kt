@@ -74,6 +74,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 @OptIn(UnstableApi::class)
@@ -311,6 +312,7 @@ class PlayerService : MediaSessionService() {
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future(Dispatchers.Default) {
             val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+            loadArtworkInBackground(updatedMediaItems)
             return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
         }
 
@@ -320,6 +322,7 @@ class PlayerService : MediaSessionService() {
             mediaItems: MutableList<MediaItem>,
         ): ListenableFuture<MutableList<MediaItem>> = serviceScope.future(Dispatchers.Default) {
             val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+            loadArtworkInBackground(updatedMediaItems)
             return@future updatedMediaItems.toMutableList()
         }
 
@@ -536,22 +539,8 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                val artworkData = run {
-                    val result = imageLoader.execute(
-                        ImageRequest.Builder(this@PlayerService)
-                            .data(uri)
-                            .build()
-                    )
-                    (result as? SuccessResult)?.image?.toBitmap()?.toByteArray()
-                }
-
-                val artworkUri = Uri.Builder().apply {
-                    val defaultArtwork = R.drawable.artwork_default
-                    scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                    authority(resources.getResourcePackageName(defaultArtwork))
-                    appendPath(resources.getResourceTypeName(defaultArtwork))
-                    appendPath(resources.getResourceEntryName(defaultArtwork))
-                }.build()
+                // Use placeholder artwork initially - actual artwork will be loaded in background
+                val artworkUri = getDefaultArtworkUri()
 
                 val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
@@ -565,11 +554,7 @@ class PlayerService : MediaSessionService() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(title)
-                            if (artworkData != null) {
-                                setArtworkData(artworkData, null)
-                            } else {
-                                setArtworkUri(artworkUri)
-                            }
+                            setArtworkUri(artworkUri)
                             setExtras(
                                 positionMs = positionMs,
                                 videoScale = videoScale,
@@ -582,6 +567,57 @@ class PlayerService : MediaSessionService() {
                 }.build()
             }
         }.awaitAll()
+    }
+
+    private fun getDefaultArtworkUri(): Uri = Uri.Builder().apply {
+        val defaultArtwork = R.drawable.artwork_default
+        scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+        authority(resources.getResourcePackageName(defaultArtwork))
+        appendPath(resources.getResourceTypeName(defaultArtwork))
+        appendPath(resources.getResourceEntryName(defaultArtwork))
+    }.build()
+
+    private suspend fun loadArtworkForUri(uri: Uri): ByteArray? {
+        return try {
+            val result = imageLoader.execute(
+                ImageRequest.Builder(this@PlayerService)
+                    .data(uri)
+                    .build()
+            )
+            (result as? SuccessResult)?.image?.toBitmap()?.toByteArray()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun loadArtworkInBackground(mediaItems: List<MediaItem>) {
+        serviceScope.launch(Dispatchers.Default) {
+            mediaItems.forEach { mediaItem ->
+                launch {
+                    val uri = mediaItem.mediaId.toUri()
+                    val artworkData = loadArtworkForUri(uri) ?: return@launch
+
+                    withContext(Dispatchers.Main) {
+                        val player = mediaSession?.player ?: return@withContext
+                        val currentIndex = (0 until player.mediaItemCount).firstOrNull {
+                            player.getMediaItemAt(it).mediaId == mediaItem.mediaId
+                        } ?: return@withContext
+
+                        val currentMediaItem = player.getMediaItemAt(currentIndex)
+                        val updatedMediaItem = currentMediaItem.buildUpon()
+                            .setMediaMetadata(
+                                currentMediaItem.mediaMetadata.buildUpon()
+                                    .setArtworkUri(null)
+                                    .setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                                    .build()
+                            )
+                            .build()
+
+                        player.replaceMediaItem(currentIndex, updatedMediaItem)
+                    }
+                }
+            }
+        }
     }
 
     private fun Bitmap.toByteArray(): ByteArray {
