@@ -64,7 +64,7 @@
     <string name="permission_settings">Ο Next Player χρειάζεται άδεια \"%1$s\" για πρόσβαση και αναπαραγωγή πολυμέσων. Χωρίς αυτό, η πρόσβαση και η αναπαραγωγή πολυμέσων δε θα λειτουργήσουν. Για να χρησιμοποιήσετε την εφαρμογή πλήρως, παραχωρήστε την άδεια από τις ρυθμίσεις, καθώς απορρίφθηκε οριστικά.</string>
     <string name="remember_selections_description">Απομνημόνευση για κάθε αρχείο (ήχο, υπότιτλους κλπ).</string>
     <string name="seek_gesture_description">Οριζόντια για αναζήτηση εμπρός ή πίσω</string>
-    <string name="seek_gesture">Χειρονομία</string>
+    <string name="seek_gesture">Αναζήτησης</string>
     <string name="preferred_audio_lang_description">Γλώσσα ήχου που θέλετε να χρησιμοποιείτε από προεπιλογή</string>
     <string name="system_default">Προεπιλογή συστήματος</string>
     <string name="off">Ανενεργό</string>
@@ -142,7 +142,7 @@
     <string name="best_fit">Ταίριασμα</string>
     <string name="autoplay_settings">Αυτόματη αναπαραγωγή</string>
     <string name="autoplay_settings_description">Αυτόματη αναπαραγωγή του επόμενου βίντεο στον φάκελο</string>
-    <string name="zoom_gesture">Μεγέθυνση</string>
+    <string name="zoom_gesture">Μεγέθυνσης</string>
     <string name="zoom_gesture_description">Χειρονομία μεγέθυνσης βίντεο</string>
     <string name="high_contrast_dark_theme">Μαύρο θέμα</string>
     <string name="high_contrast_dark_theme_desc">Χρήση μαύρου φόντου στο σκοτεινό θέμα</string>
@@ -221,7 +221,7 @@
     <string name="media_layout">Διάταξη μέσων</string>
     <string name="grid">Πλέγμα</string>
     <string name="by">από τον %1$s</string>
-    <string name="recently_played">Πρόσφατα</string>
+    <string name="recently_played">Πρόσφατο</string>
     <string name="delete_one_video">Διαγραφή 1 βίντεο;</string>
     <string name="delete_videos">Διαγραφή %1$d βίντεο;</string>
     <string name="delete_one_folder">Διαγραφή 1 φακέλου;</string>
@@ -231,12 +231,12 @@
     <string name="info">Πληροφορίες</string>
     <string name="play">Αναπαραγωγή</string>
     <string name="delete_item_info">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Το επιλεγμένο στοιχείο θα διαγραφεί οριστικά</string>
-    <string name="volume_gesture">Χειρονομία έντασης</string>
-    <string name="volume_gesture_description">Ρύθμιση ήχου με οριζόντιο σύρσιμο</string>
-    <string name="brightness_gesture">Χειρονομία φωτεινότητας</string>
+    <string name="volume_gesture">Έντασης ήχου</string>
+    <string name="volume_gesture_description">Ρύθμιση ήχου με κάθετο σύρσιμο</string>
+    <string name="brightness_gesture">Φωτεινότητας</string>
     <string name="brightness_gesture_description">Ρύθμιση φωτεινότητας με κάθετο σύρσιμο</string>
-    <string name="pan_gesture">Χειρονομία ζουμ</string>
-    <string name="pan_gesture_description">Ζουμ του βίντεο</string>
+    <string name="pan_gesture">Μετατόπισης</string>
+    <string name="pan_gesture_description">Μεγέθυνση και μετατόπιση του βίντεο</string>
     <string name="hide_player_buttons_background">Απόκρυψη φόντου κουμπιών αναπαραγωγής</string>
     <string name="hide_player_buttons_background_description">Απόκρυψη του φόντου όλων των κουμπιών ελέγχου</string>
     <string name="m_n_selected">%1$d / %2$d επιλέχθηκαν</string>
@@ -256,4 +256,14 @@
     <string name="crash_screen_restart">Επανεκκίνηση εφαρμογής</string>
     <string name="crash_screen_logcat">Καταγραφή:</string>
     <string name="gestures">Χειρονομίες</string>
+    <string name="general_name">Γενικά</string>
+    <string name="general_description">Επιλογές δεδομένων χρήστη</string>
+    <string name="user_data">Δεδομένα χρήστη</string>
+    <string name="delete_thumbnail_cache">Διαγραφή μνήμης μικρογραφιών</string>
+    <string name="delete_thumbnail_cache_description">Διαγραφή όλων των μικρογραφιών που είναι αποθηκευμένες στην προσωρινή μνήμη. Οι μικρογραφίες θα δημιουργηθούν ξανά όταν ανοίξει η λίστα πολυμέσων</string>
+    <string name="delete_thumbnail_cache_confirmation">Είστε σίγουροι ότι θέλετε να διαγράψετε όλες τις μικρογραφίες;</string>
+    <string name="reset_settings">Επαναφορά ρυθμίσεων</string>
+    <string name="reset_settings_description">Επαναφορά όλων των ρυθμίσεων στην προεπιλεγμένη κατάσταση τους</string>
+    <string name="reset_settings_confirmation">Είστε βέβαιοι ότι θέλετε να επαναφέρετε όλες τις ρυθμίσεις στην προεπιλεγμένη κατάσταση τους;</string>
+    <string name="reset">Επαναφορά</string>
 </resources>

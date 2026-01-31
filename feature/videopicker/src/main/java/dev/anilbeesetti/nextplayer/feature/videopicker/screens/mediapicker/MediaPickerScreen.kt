@@ -107,6 +107,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionMa
 @Composable
 fun MediaPickerRoute(
     viewModel: MediaPickerViewModel = hiltViewModel(),
+    onPlayVideo: (uri: Uri) -> Unit,
     onPlayVideos: (uris: List<Uri>) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit,
@@ -116,6 +117,7 @@ fun MediaPickerRoute(
 
     MediaPickerScreen(
         uiState = uiState,
+        onPlayVideo = onPlayVideo,
         onPlayVideos = onPlayVideos,
         onNavigateUp = onNavigateUp,
         onFolderClick = onFolderClick,
@@ -129,6 +131,7 @@ fun MediaPickerRoute(
 internal fun MediaPickerScreen(
     uiState: MediaPickerUiState,
     onNavigateUp: () -> Unit = {},
+    onPlayVideo: (Uri) -> Unit = {},
     onPlayVideos: (List<Uri>) -> Unit = {},
     onFolderClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -139,7 +142,7 @@ internal fun MediaPickerScreen(
     val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { it?.let { onPlayVideos(listOf(it)) } },
+        onResult = { it?.let { onPlayVideo(it) } },
     )
 
     var isFabExpanded by rememberSaveable { mutableStateOf(false) }
@@ -326,7 +329,7 @@ internal fun MediaPickerScreen(
                         isFabExpanded = false
                         val folder = (uiState.mediaDataState as? DataState.Success)?.value ?: return@FloatingActionButtonMenuItem
                         val videoToPlay = folder.recentlyPlayedVideo ?: folder.firstVideo ?: return@FloatingActionButtonMenuItem
-                        onPlayVideos(listOf(videoToPlay.uriString.toUri()))
+                        onPlayVideo(videoToPlay.uriString.toUri())
                     },
                     icon = {
                         Icon(
@@ -378,7 +381,7 @@ internal fun MediaPickerScreen(
                             rootFolder = rootFolder,
                             preferences = uiState.preferences,
                             onFolderClick = onFolderClick,
-                            onVideoClick = { onPlayVideos(listOf(it)) },
+                            onVideoClick = { onPlayVideo(it) },
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
                             contentPadding = updatedScaffoldPadding,
@@ -421,7 +424,7 @@ internal fun MediaPickerScreen(
     if (showUrlDialog) {
         NetworkUrlDialog(
             onDismiss = { showUrlDialog = false },
-            onDone = { onPlayVideos(listOf(it.toUri())) },
+            onDone = { onPlayVideo(it.toUri()) },
         )
     }
 

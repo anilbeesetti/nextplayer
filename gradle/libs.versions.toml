@@ -9,8 +9,8 @@ androidGradlePlugin = "8.13.2"
 androidMaterial = "1.13.0"
 androidxActivity = "1.12.2"
 androidxAppCompat = "1.7.1"
-androidxComposeBom = "2025.12.01"
-androidxMaterial3 = "1.5.0-alpha11"
+androidxComposeBom = "2026.01.00"
+androidxMaterial3 = "1.5.0-alpha12"
 androidxConstraintLayout = "2.2.1"
 androidxCore = "1.17.0"
 androidxCoreSplashscreen = "1.2.0"
@@ -18,9 +18,8 @@ androidxDataStore = "1.2.0"
 androidxEspresso = "3.6.1"
 androidxHiltNavigationCompose = "1.3.0"
 androidxLifecycle = "2.10.0"
-androidxMedia3 = "1.9.0"
+androidxMedia3 = "1.9.1"
 androidxNavigation = "2.9.6"
-androidxTestCore = "1.5.0"
 androidxTestExt = "1.3.0"
 coil = "2.7.0"
 hilt = "2.57.2"
@@ -32,11 +31,7 @@ ksp = "2.3.4"
 ktlint = "12.3.0"
 room = "2.8.4"
 nextlib = "1.9.0-0.10.0"
-timber = "5.0.1"
 universalChardet = "2.5.0"
-ui = "1.10.0"
-foundationLayout = "1.10.0"
-espressoCore = "3.7.0"
 
 
 [libraries]
@@ -90,9 +85,6 @@ kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
-androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
-androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
 [plugins]
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }

@@ -201,16 +201,17 @@ class PlayerActivity : ComponentActivity() {
 
     private suspend fun playVideo(uri: Uri) = withContext(Dispatchers.Default) {
         val mediaContentUri = getMediaContentUri(uri)
-        val playlist = mediaContentUri?.let { mediaUri ->
-            viewModel.getPlaylistFromUri(mediaUri)
-                .map { it.uriString }
-                .toMutableList()
-                .apply {
-                    if (!contains(mediaUri.toString())) {
-                        add(index = 0, element = mediaUri.toString())
+        val playlist = playerApi.getPlaylist().takeIf { it.isNotEmpty() }
+            ?: mediaContentUri?.let { mediaUri ->
+                viewModel.getPlaylistFromUri(mediaUri)
+                    .map { it.uriString }
+                    .toMutableList()
+                    .apply {
+                        if (!contains(mediaUri.toString())) {
+                            add(index = 0, element = mediaUri.toString())
+                        }
                     }
-                }
-        } ?: listOf(uri.toString())
+            } ?: listOf(uri.toString())
 
         val mediaItemIndexToPlay = playlist.indexOfFirst {
             it == (mediaContentUri ?: uri).toString()
@@ -266,6 +267,7 @@ class PlayerActivity : ComponentActivity() {
                     isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
                     finishAndStopPlayerSession()
                 }
+
                 else -> {}
             }
         }
