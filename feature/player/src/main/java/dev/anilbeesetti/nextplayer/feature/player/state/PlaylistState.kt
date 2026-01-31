@@ -45,7 +45,7 @@ class PlaylistState(
     fun moveItem(fromIndex: Int, toIndex: Int) {
         if (fromIndex == toIndex) return
         if (fromIndex !in playlist.indices || toIndex !in playlist.indices) return
-        
+
         player.moveMediaItem(fromIndex, toIndex)
         updatePlaylist()
         updateCurrentIndex()
@@ -54,7 +54,7 @@ class PlaylistState(
     fun removeItem(index: Int) {
         if (index !in playlist.indices) return
         if (playlist.size <= 1) return // Don't remove the last item
-        
+
         player.removeMediaItem(index)
         updatePlaylist()
         updateCurrentIndex()

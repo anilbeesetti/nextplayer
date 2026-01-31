@@ -63,6 +63,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -75,7 +76,6 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
@@ -582,7 +582,7 @@ class PlayerService : MediaSessionService() {
             val result = imageLoader.execute(
                 ImageRequest.Builder(this@PlayerService)
                     .data(uri)
-                    .build()
+                    .build(),
             )
             (result as? SuccessResult)?.image?.toBitmap()?.toByteArray()
         } catch (e: Exception) {
@@ -609,7 +609,7 @@ class PlayerService : MediaSessionService() {
                                 currentMediaItem.mediaMetadata.buildUpon()
                                     .setArtworkUri(null)
                                     .setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-                                    .build()
+                                    .build(),
                             )
                             .build()
 

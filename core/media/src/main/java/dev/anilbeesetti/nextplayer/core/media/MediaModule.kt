@@ -6,7 +6,6 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
-import coil3.util.DebugLogger
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -19,8 +18,8 @@ import dev.anilbeesetti.nextplayer.core.media.sync.LocalMediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.LocalMediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
-import okio.FileSystem
 import javax.inject.Singleton
+import okio.FileSystem
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -52,7 +51,7 @@ object ImageLoaderModule {
     @Provides
     @Singleton
     fun provideImageLoader(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
@@ -64,7 +63,7 @@ object ImageLoaderModule {
                     .fileSystem(FileSystem.SYSTEM)
                     .directory(context.filesDir.resolve("thumbnails"))
                     .maxSizePercent(1.0)
-                    .build()
+                    .build(),
             )
             .crossfade(true)
             .build()

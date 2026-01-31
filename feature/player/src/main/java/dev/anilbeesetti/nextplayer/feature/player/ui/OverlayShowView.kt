@@ -69,5 +69,5 @@ enum class OverlayView {
     SUBTITLE_SELECTOR,
     PLAYBACK_SPEED,
     VIDEO_CONTENT_SCALE,
-    PLAYLIST
+    PLAYLIST,
 }

@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui
 
 import androidx.annotation.OptIn
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -39,7 +38,7 @@ fun BoxScope.AudioTrackSelectorView(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp)
-                .selectableGroup()
+                .selectableGroup(),
         ) {
             audioTracksState.tracks.forEachIndexed { index, track ->
                 RadioButtonRow(

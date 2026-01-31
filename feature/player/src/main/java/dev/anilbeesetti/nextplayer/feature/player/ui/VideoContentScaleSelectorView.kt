@@ -32,7 +32,7 @@ fun BoxScope.VideoContentScaleSelectorView(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp)
-                .selectableGroup()
+                .selectableGroup(),
         ) {
             VideoContentScale.entries.forEach { contentScale ->
                 RadioButtonRow(
