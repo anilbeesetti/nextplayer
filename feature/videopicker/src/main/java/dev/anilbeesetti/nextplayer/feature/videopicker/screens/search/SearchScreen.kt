@@ -403,6 +403,7 @@ private fun SearchResultsContent(
                 onFolderClick = onFolderClick,
                 onVideoClick = onVideoClick,
                 onVideoLoaded = onVideoLoaded,
+                showHeaders = true,
             )
         }
     }
@@ -460,8 +461,8 @@ private fun SearchScreenWithResultsPreview() {
                         ),
                     ),
                     videos = listOf(
-                        Video.sample.copy(nameWithExtension = "Movie_Clip.mp4"),
-                        Video.sample.copy(nameWithExtension = "My_Movie.mp4"),
+                        Video.sample.copy(nameWithExtension = "Movie_Clip.mp4", uriString = "content://sample/movie_clip.mp4"),
+                        Video.sample.copy(nameWithExtension = "My_Movie.mp4", uriString = "content://sample/my_movie.mp4"),
                     ),
                 ),
             ),

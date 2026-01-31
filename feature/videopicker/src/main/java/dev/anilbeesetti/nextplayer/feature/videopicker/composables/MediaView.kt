@@ -43,6 +43,7 @@ import kotlin.math.abs
 fun MediaView(
     rootFolder: Folder,
     preferences: ApplicationPreferences,
+    showHeaders: Boolean = preferences.mediaViewMode == MediaViewMode.FOLDER_TREE,
     contentPadding: PaddingValues = PaddingValues(),
     selectionManager: SelectionManager = rememberSelectionManager(),
     lazyGridState: LazyGridState = rememberLazyGridState(),
@@ -88,7 +89,7 @@ fun MediaView(
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+            if (showHeaders && rootFolder.folderList.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     ListSectionTitle(text = stringResource(id = R.string.folders) + " (${rootFolder.folderList.size})")
                 }
@@ -127,7 +128,7 @@ fun MediaView(
                 }
             }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.mediaList.isNotEmpty()) {
+            if (showHeaders && rootFolder.mediaList.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     ListSectionTitle(text = stringResource(id = R.string.videos) + " (${rootFolder.mediaList.size})")
                 }
