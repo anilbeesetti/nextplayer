@@ -66,7 +66,6 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.MediaPickerUiEvent
 
 @Composable
 fun SearchRoute(
@@ -118,7 +117,7 @@ internal fun SearchScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             )
                         },
                         textStyle = MaterialTheme.typography.bodyLarge,
@@ -150,7 +149,7 @@ internal fun SearchScreen(
                             unfocusedBorderColor = Color.Transparent,
                             focusedBorderColor = Color.Transparent,
                             errorBorderColor = Color.Transparent,
-                            disabledBorderColor = Color.Transparent
+                            disabledBorderColor = Color.Transparent,
                         ),
                     )
                 },
@@ -178,7 +177,6 @@ internal fun SearchScreen(
                     .background(MaterialTheme.colorScheme.background),
             ) {
                 if (uiState.query.isBlank()) {
-                    // Show history and suggestions
                     SuggestionsContent(
                         searchHistory = uiState.searchHistory,
                         popularFolders = uiState.popularFolders,
@@ -189,7 +187,6 @@ internal fun SearchScreen(
                         onFolderClick = onFolderClick,
                     )
                 } else {
-                    // Show search results
                     SearchResultsContent(
                         searchResults = uiState.searchResults,
                         preferences = uiState.preferences,
@@ -218,7 +215,6 @@ private fun SuggestionsContent(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
-        // Recent Searches Section
         if (searchHistory.isNotEmpty()) {
             item {
                 Row(
@@ -250,7 +246,6 @@ private fun SuggestionsContent(
             }
         }
 
-        // Popular Folders Section
         if (popularFolders.isNotEmpty()) {
             item {
                 ListSectionTitle(
@@ -279,7 +274,6 @@ private fun SuggestionsContent(
             }
         }
 
-        // Empty state
         if (searchHistory.isEmpty() && popularFolders.isEmpty()) {
             item {
                 Box(
@@ -368,8 +362,8 @@ private fun SearchResultsContent(
         exit = fadeOut(),
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize().padding(top = 100.dp),
+            contentAlignment = Alignment.TopCenter,
         ) {
             CircularProgressIndicator()
         }
@@ -381,7 +375,6 @@ private fun SearchResultsContent(
         exit = fadeOut(),
     ) {
         if (searchResults.isEmpty) {
-            // No results
             Box(
                 modifier = Modifier.fillMaxSize().padding(top = 100.dp),
                 contentAlignment = Alignment.TopCenter,

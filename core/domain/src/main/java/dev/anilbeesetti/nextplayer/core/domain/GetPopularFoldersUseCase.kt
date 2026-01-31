@@ -6,8 +6,8 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 class GetPopularFoldersUseCase @Inject constructor(
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,

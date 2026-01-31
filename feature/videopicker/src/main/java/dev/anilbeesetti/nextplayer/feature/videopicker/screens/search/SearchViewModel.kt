@@ -32,8 +32,8 @@ class SearchViewModel @Inject constructor(
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SearchUiState())
-    val uiState = _uiState.asStateFlow()
+    private val uiStateInternal = MutableStateFlow(SearchUiState())
+    val uiState = uiStateInternal.asStateFlow()
 
     private val searchQuery = MutableStateFlow("")
 
@@ -47,7 +47,7 @@ class SearchViewModel @Inject constructor(
     private fun collectSearchHistory() {
         viewModelScope.launch {
             searchHistoryRepository.searchHistory.collect { history ->
-                _uiState.update { it.copy(searchHistory = history) }
+                uiStateInternal.update { it.copy(searchHistory = history) }
             }
         }
     }
@@ -55,7 +55,7 @@ class SearchViewModel @Inject constructor(
     private fun collectPopularFolders() {
         viewModelScope.launch {
             getPopularFoldersUseCase(limit = 5).collect { folders ->
-                _uiState.update { it.copy(popularFolders = folders) }
+                uiStateInternal.update { it.copy(popularFolders = folders) }
             }
         }
     }
@@ -63,7 +63,7 @@ class SearchViewModel @Inject constructor(
     private fun collectPreferences() {
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { prefs ->
-                _uiState.update { it.copy(preferences = prefs) }
+                uiStateInternal.update { it.copy(preferences = prefs) }
             }
         }
     }
@@ -74,11 +74,10 @@ class SearchViewModel @Inject constructor(
             searchQuery
                 .debounce(SEARCH_DEBOUNCE_MS)
                 .flatMapLatest { query ->
-                    _uiState.update { it.copy(isSearching = query.isNotBlank()) }
                     searchMediaUseCase(query)
                 }
                 .collect { results ->
-                    _uiState.update {
+                    uiStateInternal.update {
                         it.copy(
                             searchResults = results,
                             isSearching = false,
@@ -100,7 +99,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun onQueryChange(query: String) {
-        _uiState.update { it.copy(query = query) }
+        uiStateInternal.update { it.copy(query = query, isSearching = query.isNotBlank()) }
         searchQuery.value = query
     }
 
@@ -112,7 +111,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun onHistoryItemClick(query: String) {
-        _uiState.update { it.copy(query = query) }
+        uiStateInternal.update { it.copy(query = query) }
         searchQuery.value = query
         onSearch(query)
     }
@@ -156,5 +155,5 @@ sealed interface SearchUiEvent {
     data class OnHistoryItemClick(val query: String) : SearchUiEvent
     data class OnRemoveHistoryItem(val query: String) : SearchUiEvent
     data object OnClearHistory : SearchUiEvent
-    data class AddToSync(val uri: Uri): SearchUiEvent
+    data class AddToSync(val uri: Uri) : SearchUiEvent
 }
