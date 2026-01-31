@@ -111,7 +111,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun onHistoryItemClick(query: String) {
-        uiStateInternal.update { it.copy(query = query) }
+        uiStateInternal.update { it.copy(query = query, isSearching = true) }
         searchQuery.value = query
         onSearch(query)
     }

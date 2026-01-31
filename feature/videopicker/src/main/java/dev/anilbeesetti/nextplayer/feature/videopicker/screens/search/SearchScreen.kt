@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -63,6 +65,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.FolderItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
@@ -168,7 +172,8 @@ internal fun SearchScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = scaffoldPadding.calculateTopPadding()),
+                .padding(top = scaffoldPadding.calculateTopPadding())
+                .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current)),
         ) {
             Box(
                 modifier = Modifier
@@ -176,11 +181,13 @@ internal fun SearchScreen(
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .background(MaterialTheme.colorScheme.background),
             ) {
+                val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
                 if (uiState.query.isBlank()) {
                     SuggestionsContent(
                         searchHistory = uiState.searchHistory,
                         popularFolders = uiState.popularFolders,
                         preferences = uiState.preferences,
+                        contentPadding = updatedScaffoldPadding,
                         onHistoryItemClick = { onEvent(SearchUiEvent.OnHistoryItemClick(it)) },
                         onRemoveHistoryItem = { onEvent(SearchUiEvent.OnRemoveHistoryItem(it)) },
                         onClearHistory = { onEvent(SearchUiEvent.OnClearHistory) },
@@ -191,6 +198,7 @@ internal fun SearchScreen(
                         searchResults = uiState.searchResults,
                         preferences = uiState.preferences,
                         isSearching = uiState.isSearching,
+                        contentPadding = updatedScaffoldPadding,
                         onFolderClick = onFolderClick,
                         onVideoClick = onVideoClick,
                         onVideoLoaded = { onEvent(SearchUiEvent.AddToSync(it)) },
@@ -206,6 +214,7 @@ private fun SuggestionsContent(
     searchHistory: List<String>,
     popularFolders: List<Folder>,
     preferences: ApplicationPreferences,
+    contentPadding: PaddingValues = PaddingValues(),
     onHistoryItemClick: (String) -> Unit,
     onRemoveHistoryItem: (String) -> Unit,
     onClearHistory: () -> Unit,
@@ -213,7 +222,7 @@ private fun SuggestionsContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding = PaddingValues(vertical = 8.dp) + contentPadding,
     ) {
         if (searchHistory.isNotEmpty()) {
             item {
@@ -352,6 +361,7 @@ private fun SearchResultsContent(
     searchResults: SearchResults,
     preferences: ApplicationPreferences,
     isSearching: Boolean,
+    contentPadding: PaddingValues = PaddingValues(),
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
     onVideoLoaded: (Uri) -> Unit,
@@ -404,6 +414,7 @@ private fun SearchResultsContent(
                 onVideoClick = onVideoClick,
                 onVideoLoaded = onVideoLoaded,
                 showHeaders = true,
+                contentPadding = contentPadding,
             )
         }
     }
