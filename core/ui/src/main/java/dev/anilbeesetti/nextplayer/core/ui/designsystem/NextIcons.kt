@@ -70,6 +70,7 @@ import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Update
 
 object NextIcons {
@@ -116,6 +117,7 @@ object NextIcons {
     val Replay = Icons.Rounded.Replay10
     val Resume = Icons.Rounded.ResetTv
     val Rotation = Icons.Rounded.ScreenRotationAlt
+    val Search = Icons.Rounded.Search
     val Selection = Icons.Rounded.DoneAll
     val Settings = Icons.Rounded.Settings
     val Share = Icons.Rounded.Share

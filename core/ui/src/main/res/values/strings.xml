@@ -269,4 +269,11 @@
     <string name="reset_settings_description">Reset all settings to their default state</string>
     <string name="reset_settings_confirmation">Are you sure you want to reset all settings to their default state?</string>
     <string name="reset">Reset</string>
+    <string name="search">Search</string>
+    <string name="search_videos_and_folders">Search videos and folders</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="popular_folders">Popular folders</string>
+    <string name="clear_history">Clear history</string>
+    <string name="no_results_found">No results found</string>
+    <string name="search_results">Search results</string>
 </resources>
