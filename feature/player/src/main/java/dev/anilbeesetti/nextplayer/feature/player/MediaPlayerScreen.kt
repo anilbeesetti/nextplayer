@@ -110,6 +110,7 @@ fun MediaPlayerScreen(
     val seekGestureState = rememberSeekGestureState(
         player = player,
         sensitivity = playerPreferences.seekSensitivity,
+        enableSeekGesture = playerPreferences.useSeekControls,
     )
     val pictureInPictureState = rememberPictureInPictureState(
         player = player,
