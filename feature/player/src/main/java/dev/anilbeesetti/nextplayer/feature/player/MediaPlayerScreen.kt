@@ -49,6 +49,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -56,6 +57,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.service.getAudioSessionId
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
@@ -123,19 +125,28 @@ fun MediaPlayerScreen(
         onEvent = viewModel::onVideoZoomEvent,
     )
     val volumeState = rememberVolumeState(
+        volumeBoostEnabled = playerPreferences.enableVolumeBoost,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
+        volumeState = volumeState,
+        brightnessState = brightnessState,
         enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
         enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
-        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
     )
     val rotationState = rememberRotationState(
         player = player,
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
+
+    LaunchedEffect(player, playerPreferences.enableVolumeBoost) {
+        if (playerPreferences.enableVolumeBoost && player is MediaController) {
+            val audioSessionId = player.getAudioSessionId()
+            volumeState.setAudioSessionId(audioSessionId)
+        }
+    }
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -329,6 +340,7 @@ fun MediaPlayerScreen(
                     ) {
                         VerticalProgressView(
                             value = volumeState.volumePercentage,
+                            maxValue = volumeState.maxVolumePercentage,
                             icon = painterResource(coreUiR.drawable.ic_volume),
                         )
                     }
