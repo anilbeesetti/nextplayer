@@ -46,6 +46,9 @@ class VolumeState(
 
     private val systemMaxVolume: Int = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
+    private var loudnessEnhancer: LoudnessEnhancer? = null
+
+
     /**
      * Maximum volume level. When volume boost is enabled and LoudnessEnhancer is available,
      * this is double the system max volume (allowing 0-200% range).
@@ -71,8 +74,6 @@ class VolumeState(
      */
     var volumePercentage: Int by mutableIntStateOf(calculateVolumePercentage())
         private set
-
-    private var loudnessEnhancer: LoudnessEnhancer? = null
 
     /**
      * Initializes the LoudnessEnhancer for volume boost.
@@ -114,8 +115,6 @@ class VolumeState(
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
                     if (intent.action == VOLUME_CHANGED_ACTION) {
-                        // Only update from system if we're at or below system max
-                        // (boost volume is managed internally)
                         if (currentVolume <= systemMaxVolume) {
                             currentVolume = audioManager.currentStreamVolume
                             volumePercentage = calculateVolumePercentage()
@@ -139,11 +138,9 @@ class VolumeState(
         volumePercentage = calculateVolumePercentage()
 
         if (clampedVolume <= systemMaxVolume) {
-            // Normal volume range: use system volume
             loudnessEnhancer?.enabled = false
             setSystemVolume(clampedVolume, showVolumePanel)
         } else {
-            // Boost range: max out system volume, use LoudnessEnhancer for extra gain
             setSystemVolume(systemMaxVolume, showVolumePanel)
             applyVolumeBoost(clampedVolume)
         }
@@ -161,9 +158,6 @@ class VolumeState(
     private fun applyVolumeBoost(volume: Int) {
         val enhancer = loudnessEnhancer ?: return
 
-        // Calculate gain in millibels for the boost portion
-        // volume range: systemMaxVolume to systemMaxVolume*2
-        // gain range: 0 to MAX_BOOST_GAIN_MB
         val boostPortion = volume - systemMaxVolume
         val gainMillibels = (boostPortion.toFloat() / systemMaxVolume * MAX_BOOST_GAIN_MB).toInt()
 
@@ -195,11 +189,6 @@ class VolumeState(
         private const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
         private const val MAX_VOLUME_PERCENTAGE_NORMAL = 100
         private const val MAX_VOLUME_PERCENTAGE_BOOST = 200
-
-        /**
-         * Maximum boost gain in millibels (mB).
-         * 2000 mB ≈ 6 dB ≈ 100% volume increase (so 200% total).
-         */
         private const val MAX_BOOST_GAIN_MB = 2000
     }
 }
