@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
+import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
@@ -125,8 +126,9 @@ fun MediaPlayerScreen(
         onEvent = viewModel::onVideoZoomEvent,
     )
     val volumeState = rememberVolumeState(
-        volumeBoostEnabled = playerPreferences.enableVolumeBoost,
+        player = player,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
+        volumeBoostEnabled = playerPreferences.enableVolumeBoost,
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
@@ -140,13 +142,6 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
-
-    LaunchedEffect(player, playerPreferences.enableVolumeBoost) {
-        if (playerPreferences.enableVolumeBoost && player is MediaController) {
-            val audioSessionId = player.getAudioSessionId()
-            volumeState.setAudioSessionId(audioSessionId)
-        }
-    }
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {

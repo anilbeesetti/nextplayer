@@ -7,10 +7,12 @@ import android.content.IntentFilter
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
+import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.DisposableEffectResult
 import androidx.compose.runtime.DisposableEffectScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -18,9 +20,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.media3.common.Player
+import androidx.media3.common.listen
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 
+@OptIn(UnstableApi::class)
 @Composable
 fun rememberVolumeState(
+    player: Player,
     showVolumePanelIfHeadsetIsOn: Boolean,
     volumeBoostEnabled: Boolean = false,
 ): VolumeState {
@@ -33,6 +41,24 @@ fun rememberVolumeState(
         )
     }
     DisposableEffect(context, volumeBoostEnabled) { volumeState.handleLifecycle(this) }
+
+    LaunchedEffect(player, volumeBoostEnabled) {
+        if (volumeBoostEnabled && player is MediaController) {
+            val initialAudioSessionId = player.getAudioSessionId()
+            if (initialAudioSessionId != 0) {
+                volumeState.setAudioSessionId(initialAudioSessionId)
+            }
+
+            player.listen { events ->
+                if (events.contains(Player.EVENT_AUDIO_SESSION_ID)) {
+                    val newAudioSessionId = player.getAudioSessionId()
+                    if (newAudioSessionId != 0) {
+                        volumeState.setAudioSessionId(newAudioSessionId)
+                    }
+                }
+            }
+        }
+    }
     return volumeState
 }
 
@@ -47,7 +73,6 @@ class VolumeState(
     private val systemMaxVolume: Int = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
-
 
     /**
      * Maximum volume level. When volume boost is enabled and LoudnessEnhancer is available,
