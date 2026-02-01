@@ -86,7 +86,7 @@ val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> 
 @OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerScreen(
-    player: Player,
+    player: Player?,
     viewModel: PlayerViewModel,
     playerPreferences: PlayerPreferences,
     modifier: Modifier = Modifier,
@@ -94,6 +94,12 @@ fun MediaPlayerScreen(
     onBackClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
 ) {
+    val volumeState = rememberVolumeState(
+        player = player,
+        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
+        volumeBoostEnabled = playerPreferences.enableVolumeBoost,
+    )
+    player ?: return
     val metadataState = rememberMetadataState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
     val controlsVisibilityState = rememberControlsVisibilityState(
@@ -121,11 +127,6 @@ fun MediaPlayerScreen(
         enableZoomGesture = playerPreferences.useZoomControls,
         enablePanGesture = playerPreferences.enablePanGesture,
         onEvent = viewModel::onVideoZoomEvent,
-    )
-    val volumeState = rememberVolumeState(
-        player = player,
-        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
-        volumeBoostEnabled = playerPreferences.enableVolumeBoost,
     )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(

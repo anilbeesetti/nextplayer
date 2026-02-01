@@ -16,7 +16,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
@@ -28,12 +29,27 @@ import androidx.media3.session.MediaController
 @OptIn(UnstableApi::class)
 @Composable
 fun rememberVolumeState(
-    player: Player,
+    player: Player?,
     showVolumePanelIfHeadsetIsOn: Boolean,
     volumeBoostEnabled: Boolean = false,
 ): VolumeState {
     val context = LocalContext.current
-    val volumeState = remember(volumeBoostEnabled) {
+    val volumeState = rememberSaveable(
+        volumeBoostEnabled,
+        saver = Saver<VolumeState, Map<String, Any>>(
+            save = {
+                mapOf("initialVolume" to it.currentVolume)
+            },
+            restore = {
+                VolumeState(
+                    context = context,
+                    showVolumePanelIfHeadsetIsOn = showVolumePanelIfHeadsetIsOn,
+                    volumeBoostEnabled = volumeBoostEnabled,
+                    initialVolume = it["initialVolume"] as Int,
+                )
+            },
+        ),
+    ) {
         VolumeState(
             context = context,
             showVolumePanelIfHeadsetIsOn = showVolumePanelIfHeadsetIsOn,
@@ -67,6 +83,7 @@ class VolumeState(
     private val context: Context,
     private val showVolumePanelIfHeadsetIsOn: Boolean,
     private val volumeBoostEnabled: Boolean = false,
+    private val initialVolume: Int? = null,
 ) {
     private val audioManager = getSystemService(context, AudioManager::class.java)!!
 
@@ -91,7 +108,7 @@ class VolumeState(
      * Current volume level (0 to maxVolume).
      * When boost is active, values above systemMaxVolume represent boosted volume.
      */
-    var currentVolume: Int by mutableIntStateOf(audioManager.currentStreamVolume)
+    var currentVolume: Int by mutableIntStateOf(initialVolume ?: audioManager.currentStreamVolume)
         private set
 
     /**
@@ -110,6 +127,10 @@ class VolumeState(
         try {
             loudnessEnhancer?.release()
             loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+
+            if (currentVolume > systemMaxVolume) {
+                setVolume(currentVolume)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             loudnessEnhancer = null
