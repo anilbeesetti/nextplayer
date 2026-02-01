@@ -101,6 +101,12 @@ class LocalMediaInfoSynchronizer @Inject constructor(
             }
         }.getOrNull()
             ?: runCatching { mediaMetadataRetriever?.embeddedPicture?.toBitmap() }.getOrNull()
+            ?: runCatching {
+                val videoDuration = mediaInfo?.duration
+                    ?: mediaMetadataRetriever?.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
+                    ?: return@runCatching null
+                mediaMetadataRetriever?.getFrameAtTime((videoDuration * 1000) / 3)
+            }.getOrNull()
             ?: runCatching { mediaMetadataRetriever?.getFrameAtTime(0) }.getOrNull()
             ?: runCatching { mediaInfo?.getFrame() }.getOrNull()
         mediaMetadataRetriever?.release()
