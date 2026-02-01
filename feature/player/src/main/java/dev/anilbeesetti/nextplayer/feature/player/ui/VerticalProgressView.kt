@@ -45,7 +45,7 @@ fun VerticalProgressView(
     icon: Painter,
     @IntRange(from = 0, to = 200) value: Int,
     maxValue: Int = NORMAL_MAX_PERCENTAGE,
-    boostColor: Color = MaterialTheme.colorScheme.tertiary,
+    boostColor: Color = Color(0xFFFC6E6E),
 ) {
     val normalizedValue = value.coerceIn(0, maxValue)
     val fillFraction = normalizedValue.toFloat() / maxValue.toFloat()
