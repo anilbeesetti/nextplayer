@@ -30,7 +30,7 @@ kotlinxSerializationJson = "1.10.0"
 ksp = "2.3.4"
 ktlint = "12.3.0"
 room = "2.8.4"
-nextlib = "1.9.0-0.10.0"
+nextlib = "1.9.1-0.11.0"
 universalChardet = "2.5.0"
 
 
