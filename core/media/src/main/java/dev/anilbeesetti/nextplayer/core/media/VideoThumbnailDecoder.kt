@@ -59,9 +59,11 @@ class VideoThumbnailDecoder(
                     0,
                     embeddedPicture.size,
                 )
-            } ?: retriever.getFrameAtTime(0)
-                ?: getThumbnailFromMediaInfo()
-                ?: throw IllegalStateException("Failed to get video thumbnail.")
+            } ?: run {
+                val videoDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    ?.toLongOrNull() ?: return@run null
+                retriever.getFrameAtTime((videoDuration * 1000) / 3)
+            } ?: getThumbnailFromMediaInfo() ?: throw IllegalStateException("Failed to get video thumbnail.")
 
             val bitmap = writeToDiskCache(rawBitmap)
 
