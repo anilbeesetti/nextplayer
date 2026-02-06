@@ -12,6 +12,7 @@ data class PlayerPreferences(
     val playerScreenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     val playerVideoZoom: VideoContentScale = VideoContentScale.BEST_FIT,
     val defaultPlaybackSpeed: Float = 1.0f,
+    val persistentPlaybackSpeed: Boolean = false,
     val autoplay: Boolean = true,
     val autoPip: Boolean = true,
     val autoBackgroundPlay: Boolean = false,

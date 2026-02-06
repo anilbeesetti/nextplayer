@@ -34,9 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
+import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSwitch
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
+import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesUiEvent
+import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesViewModel
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -44,6 +47,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
     modifier: Modifier = Modifier,
     show: Boolean,
     player: Player,
+    preferencesRepository: PreferencesRepository,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val playbackParametersState = rememberPlaybackParametersState(player)
@@ -66,6 +70,11 @@ fun BoxScope.PlaybackSpeedSelectorView(
                     val newSpeed =
                         (playbackParametersState.speed - stepSize).coerceAtLeast(minValue)
                     playbackParametersState.setPlaybackSpeed(newSpeed)
+
+                    if (preferencesRepository.playerPreferences.value.persistentPlaybackSpeed) {
+                        val viewModel = PlayerPreferencesViewModel(preferencesRepository)
+                        viewModel.onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(newSpeed))
+                    }
                 },
             ) {
                 Icon(
@@ -85,6 +94,11 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 onClick = {
                     val newSpeed = (playbackParametersState.speed + stepSize).coerceAtMost(maxValue)
                     playbackParametersState.setPlaybackSpeed(newSpeed)
+
+                    if (preferencesRepository.playerPreferences.value.persistentPlaybackSpeed) {
+                        val viewModel = PlayerPreferencesViewModel(preferencesRepository)
+                        viewModel.onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(newSpeed))
+                    }
                 },
             ) {
                 Icon(
@@ -103,10 +117,22 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 onValueChange = {
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     playbackParametersState.setPlaybackSpeed(it)
+
+                    if (preferencesRepository.playerPreferences.value.persistentPlaybackSpeed) {
+                        val viewModel = PlayerPreferencesViewModel(preferencesRepository)
+                        viewModel.onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(it))
+                    }
                 },
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = { playbackParametersState.setPlaybackSpeed(1f) }) {
+            IconButton(onClick = {
+                playbackParametersState.setPlaybackSpeed(1f)
+
+                if (preferencesRepository.playerPreferences.value.persistentPlaybackSpeed) {
+                    val viewModel = PlayerPreferencesViewModel(preferencesRepository)
+                    viewModel.onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f))
+                }
+            }) {
                 Icon(
                     painter = painterResource(R.drawable.ic_reset),
                     contentDescription = null,
@@ -129,7 +155,14 @@ fun BoxScope.PlaybackSpeedSelectorView(
                             color = LocalContentColor.current,
                             shape = CircleShape,
                         )
-                        .clickable { playbackParametersState.setPlaybackSpeed(speed) }
+                        .clickable {
+                            playbackParametersState.setPlaybackSpeed(speed)
+
+                            if (preferencesRepository.playerPreferences.value.persistentPlaybackSpeed) {
+                                val viewModel = PlayerPreferencesViewModel(preferencesRepository)
+                                viewModel.onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(speed))
+                            }
+                        }
                         .padding(
                             horizontal = 8.dp,
                             vertical = 8.dp,
