@@ -95,7 +95,7 @@
     <string name="manage_folders">Klasörleri yönet</string>
     <string name="manage_folders_desc">Medya kütüphanesinden hariç tutulacak klasörleri seçin</string>
     <string name="video">Video</string>
-    <string name="videos">Videolar</string>
+    <string name="videos">Video</string>
     <string name="screen_rotation">Ekran Döndürme</string>
     <string name="player_screen_orientation">Oynatıcı ekran yönü</string>
     <string name="automatic">Otomatik (sensör)</string>
