@@ -266,4 +266,18 @@
     <string name="reset_settings_description">Επαναφορά όλων των ρυθμίσεων στην προεπιλεγμένη κατάσταση τους</string>
     <string name="reset_settings_confirmation">Είστε βέβαιοι ότι θέλετε να επαναφέρετε όλες τις ρυθμίσεις στην προεπιλεγμένη κατάσταση τους;</string>
     <string name="reset">Επαναφορά</string>
+    <string name="no_videos_in_queue">Κανένα βίντεο στην ουρά</string>
+    <string name="reorder">Αναδιάταξη</string>
+    <string name="remove">Αφαίρεση</string>
+    <string name="unknown">Άγνωστο</string>
+    <string name="delay">Καθυστέρηση</string>
+    <string name="speed">Ταχύτητα</string>
+    <string name="search">Αναζήτηση</string>
+    <string name="search_videos_and_folders">Αναζήτηση βίντεο και φακέλων</string>
+    <string name="recent_searches">Πρόσφατες αναζητήσεις</string>
+    <string name="popular_folders">Δημοφιλείς φάκελοι</string>
+    <string name="clear_history">Εκκαθάριση ιστορικού</string>
+    <string name="no_results_found">Κανένα αποτέλεσμα</string>
+    <string name="search_results">Αποτελέσματα αναζήτησης</string>
+    <string name="now_playing">Τρέχουσα αναπαραγωγή</string>
 </resources>
