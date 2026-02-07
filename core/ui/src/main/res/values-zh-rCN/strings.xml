@@ -271,4 +271,13 @@
     <string name="no_results_found">未找到结果</string>
     <string name="unknown">未知</string>
     <string name="remove">移除</string>
+    <string name="speed">速度</string>
+    <string name="delay">延迟</string>
+    <string name="search_results">搜索结果</string>
+    <string name="clear_history">清除历史</string>
+    <string name="popular_folders">常用文件夹</string>
+    <string name="recent_searches">近期搜索</string>
+    <string name="reorder">重新排序</string>
+    <string name="no_videos_in_queue">队列中无视频</string>
+    <string name="now_playing">正在播放</string>
 </resources>
