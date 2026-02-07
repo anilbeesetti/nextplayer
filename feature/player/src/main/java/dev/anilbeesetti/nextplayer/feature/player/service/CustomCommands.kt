@@ -12,6 +12,10 @@ enum class CustomCommands(val customAction: String) {
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
     SET_IS_SCRUBBING_MODE_ENABLED(customAction = "SET_IS_SCRUBBING_MODE_ENABLED"),
     GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
+    GET_SUBTITLE_DELAY(customAction = "GET_SUBTITLE_DELAY"),
+    SET_SUBTITLE_DELAY(customAction = "SET_SUBTITLE_DELAY"),
+    GET_SUBTITLE_SPEED(customAction = "GET_SUBTITLE_SPEED"),
+    SET_SUBTITLE_SPEED(customAction = "SET_SUBTITLE_SPEED"),
     STOP_PLAYER_SESSION(customAction = "STOP_PLAYER_SESSION"),
     ;
 
@@ -30,6 +34,8 @@ enum class CustomCommands(val customAction: String) {
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
         const val IS_SCRUBBING_MODE_ENABLED_KEY = "is_scrubbing_mode_enabled"
         const val AUDIO_SESSION_ID_KEY = "audio_session_id"
+        const val SUBTITLE_DELAY_KEY = "subtitle_delay"
+        const val SUBTITLE_SPEED_KEY = "subtitle_speed"
     }
 }
 
@@ -57,6 +63,30 @@ fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
+}
+
+fun MediaController.setSubtitleDelayMilliseconds(delayMillis: Long) {
+    val args = Bundle().apply {
+        putLong(CustomCommands.SUBTITLE_DELAY_KEY, delayMillis)
+    }
+    sendCustomCommand(CustomCommands.SET_SUBTITLE_DELAY.sessionCommand, args)
+}
+
+suspend fun MediaController.getSubtitleDelayMilliseconds(): Long {
+    val result = sendCustomCommand(CustomCommands.GET_SUBTITLE_DELAY.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getLong(CustomCommands.SUBTITLE_DELAY_KEY, 0L)
+}
+
+fun MediaController.setSubtitleSpeed(speed: Float) {
+    val args = Bundle().apply {
+        putFloat(CustomCommands.SUBTITLE_SPEED_KEY, speed)
+    }
+    sendCustomCommand(CustomCommands.SET_SUBTITLE_SPEED.sessionCommand, args)
+}
+
+suspend fun MediaController.getSubtitleSpeed(): Float {
+    val result = sendCustomCommand(CustomCommands.GET_SUBTITLE_SPEED.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getFloat(CustomCommands.SUBTITLE_SPEED_KEY, 1f)
 }
 
 fun MediaController.stopPlayerSession() {

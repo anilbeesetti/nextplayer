@@ -58,11 +58,15 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleDelayMilliseconds
+import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
@@ -106,9 +110,11 @@ class PlayerService : MediaSessionService() {
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             isMediaItemReady = false
             mediaItem?.mediaMetadata?.let { metadata ->
-                mediaSession?.player?.setPlaybackSpeed(
-                    metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,
-                )
+                mediaSession?.player?.run {
+                    setPlaybackSpeed(metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed)
+                    playerSpecificSubtitleDelayMilliseconds = metadata.subtitleDelayMilliseconds ?: 0L
+                    playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
+                }
 
                 metadata.positionMs?.takeIf { playerPreferences.resume == Resume.YES }?.let {
                     mediaSession?.player?.seekTo(it)
@@ -151,6 +157,7 @@ class PlayerService : MediaSessionService() {
                         )
                     }
                 }
+
                 else -> return
             }
         }
@@ -369,7 +376,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
-                    mediaSession?.player?.skipSilenceEnabled = enabled
+                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
                     mediaSession?.sessionExtras = Bundle().apply {
                         putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
                     }
@@ -377,7 +384,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = mediaSession?.player?.skipSilenceEnabled ?: false
+                    val enabled = mediaSession?.player?.playerSpecificSkipSilenceEnabled ?: false
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -400,6 +407,38 @@ class PlayerService : MediaSessionService() {
                             putInt(CustomCommands.AUDIO_SESSION_ID_KEY, audioSessionId)
                         },
                     )
+                }
+
+                CustomCommands.GET_SUBTITLE_DELAY -> {
+                    val subtitleDelay = mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putLong(CustomCommands.SUBTITLE_DELAY_KEY, subtitleDelay)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_SUBTITLE_DELAY -> {
+                    val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
+                    mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds = subtitleDelay
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_SUBTITLE_SPEED -> {
+                    val subtitleSpeed = mediaSession?.player?.playerSpecificSubtitleSpeed ?: 0f
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putFloat(CustomCommands.SUBTITLE_SPEED_KEY, subtitleSpeed)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_SUBTITLE_SPEED -> {
+                    val subtitleSpeed = args.getFloat(CustomCommands.SUBTITLE_SPEED_KEY)
+                    mediaSession?.player?.playerSpecificSubtitleSpeed = subtitleSpeed
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
@@ -548,6 +587,8 @@ class PlayerService : MediaSessionService() {
                 val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
                 val audioTrackIndex = mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
                 val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
+                val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
+                val subtitleSpeed = mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
 
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
@@ -561,6 +602,8 @@ class PlayerService : MediaSessionService() {
                                 playbackSpeed = playbackSpeed,
                                 audioTrackIndex = audioTrackIndex,
                                 subtitleTrackIndex = subtitleTrackIndex,
+                                subtitleDelayMilliseconds = subtitleDelay,
+                                subtitleSpeed = subtitleSpeed,
                             )
                         }.build(),
                     )
@@ -568,7 +611,7 @@ class PlayerService : MediaSessionService() {
             }
         }.awaitAll()
     }
-
+    
     private fun getDefaultArtworkUri(): Uri = Uri.Builder().apply {
         val defaultArtwork = R.drawable.artwork_default
         scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
@@ -626,10 +669,10 @@ class PlayerService : MediaSessionService() {
         return stream.toByteArray()
     }
 }
-
+        
 @get:UnstableApi
 @set:UnstableApi
-private var Player.skipSilenceEnabled: Boolean
+private var Player.playerSpecificSkipSilenceEnabled: Boolean
     @OptIn(UnstableApi::class)
     get() = when (this) {
         is ExoPlayer -> this.skipSilenceEnabled
@@ -638,5 +681,33 @@ private var Player.skipSilenceEnabled: Boolean
     set(value) {
         when (this) {
             is ExoPlayer -> this.skipSilenceEnabled = value
+        }
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.playerSpecificSubtitleDelayMilliseconds: Long
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.subtitleDelayMilliseconds
+        else -> 0L
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.subtitleDelayMilliseconds = value
+        }
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.playerSpecificSubtitleSpeed: Float
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.subtitleSpeed
+        else -> 0f
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.subtitleSpeed = value
         }
     }

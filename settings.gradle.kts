@@ -25,8 +25,8 @@ dependencyResolutionManagement {
 //if (File(nextLibDirPath).exists()) {
 //    includeBuild(nextLibDirPath) {
 //        dependencySubstitution {
-//            substitute(module("com.github.anilbeesetti.nextlib:nextlib-media3ext")).using(project(":media3ext"))
-//            substitute(module("com.github.anilbeesetti.nextlib:nextlib-mediainfo")).using(project(":mediainfo"))
+//            substitute(module("io.github.anilbeesetti:nextlib-media3ext")).using(project(":media3ext"))
+//            substitute(module("io.github.anilbeesetti:nextlib-mediainfo")).using(project(":mediainfo"))
 //        }
 //    }
 //}
