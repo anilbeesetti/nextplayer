@@ -84,14 +84,18 @@ class PictureInPictureState(
     var isInPictureInPictureMode: Boolean by mutableStateOf(false)
         private set
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private val pictureInPictureParamsBuilder = PictureInPictureParams.Builder().apply {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            setSeamlessResizeEnabled(true)
+    private val pictureInPictureParamsBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        PictureInPictureParams.Builder().apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setSeamlessResizeEnabled(true)
+            }
         }
+    } else {
+        null
     }
 
     fun setVideoViewRect(rect: Rect) {
+        if (pictureInPictureParamsBuilder == null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         if (rect.width() <= 0 || rect.height() <= 0) return
 
@@ -103,6 +107,7 @@ class PictureInPictureState(
     }
 
     fun enterPictureInPictureMode(): Boolean {
+        if (pictureInPictureParamsBuilder == null) return false
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
         if (isInPictureInPictureMode) return false
 
@@ -171,6 +176,7 @@ class PictureInPictureState(
     }
 
     private fun updateAutoEnterEnabled() {
+        if (pictureInPictureParamsBuilder == null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
 
         pictureInPictureParamsBuilder.setAutoEnterEnabled(autoEnter && player.isPlaying)
@@ -178,6 +184,7 @@ class PictureInPictureState(
     }
 
     private fun updatePictureInPictureActions() {
+        if (pictureInPictureParamsBuilder == null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
         val actions = listOf(
