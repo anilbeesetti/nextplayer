@@ -92,3 +92,8 @@ suspend fun MediaController.getSubtitleSpeed(): Float {
 fun MediaController.stopPlayerSession() {
     sendCustomCommand(CustomCommands.STOP_PLAYER_SESSION.sessionCommand, Bundle.EMPTY)
 }
+
+suspend fun MediaController.getAudioSessionId(): Int {
+    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, 0)
+}

@@ -22,11 +22,13 @@ import kotlin.time.Duration.Companion.milliseconds
 fun rememberSeekGestureState(
     player: Player,
     sensitivity: Float = 0.5f,
+    enableSeekGesture: Boolean,
 ): SeekGestureState {
     val seekGestureState = remember {
         SeekGestureState(
             player = player,
             sensitivity = sensitivity,
+            enableSeekGesture = enableSeekGesture,
         )
     }
     return seekGestureState
@@ -35,6 +37,7 @@ fun rememberSeekGestureState(
 @Stable
 class SeekGestureState(
     private val player: Player,
+    private val enableSeekGesture: Boolean = true,
     private val sensitivity: Float = 0.5f,
 ) {
     var isSeeking: Boolean by mutableStateOf(false)
@@ -72,6 +75,7 @@ class SeekGestureState(
     }
 
     fun onDragStart(offset: Offset) {
+        if (!enableSeekGesture) return
         if (player.currentPosition == C.TIME_UNSET) return
         if (player.duration == C.TIME_UNSET) return
         if (!player.isCurrentMediaItemSeekable) return

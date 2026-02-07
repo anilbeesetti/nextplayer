@@ -155,7 +155,7 @@
     <string name="permission_request">Žádost o oprávnění</string>
     <string name="player_controls_exit">Navigovat nahoru</string>
     <string name="pip_settings">Režim obraz v obraze</string>
-    <string name="pip_settings_description">Automaticky přepne na miniaturní přehrávač po klepnutí na tlačítko Domů</string>
+    <string name="pip_settings_description">Automaticky přepne na miniaturní přehrávač po klepnutím na tlačítko Domů</string>
     <string name="a_z">A-Z</string>
     <string name="ff_rewind">Rychlý posun vpřed/vzad</string>
     <string name="monospace">Neproporcionální</string>
@@ -253,4 +253,6 @@
     <string name="reset">Resetovat</string>
     <string name="info">Info</string>
     <string name="play">Přehrát</string>
+    <string name="hide_player_buttons_background">Nezobrazovat pozadí tlačítek v přehrávači</string>
+    <string name="hide_player_buttons_background_description">Nezobrazovat pozadí všech tlačítek pro ovládání přehrávače</string>
 </resources>

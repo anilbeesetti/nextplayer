@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.os.Build
 import androidx.media3.common.C
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.util.UnstableApi
@@ -21,9 +22,15 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {
                 append("Audio Track #${index + 1}")
             }
         }
+
+        @Suppress("DEPRECATION")
         if (language != null && language != "und") {
             append(" - ")
-            append(Locale.of(language).displayLanguage)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                append(Locale.of(language).displayLanguage)
+            } else {
+                append(Locale(language))
+            }
         }
     }
 }
