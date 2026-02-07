@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.hilt)
@@ -121,6 +120,8 @@ dependencies {
 
     implementation(libs.google.android.material)
     implementation(libs.androidx.core.splashscreen)
+
+    implementation(libs.coil.compose)
 
     // Hilt
     implementation(libs.hilt.android)

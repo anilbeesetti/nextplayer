@@ -2,8 +2,8 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.awaitHorizontalPointerSlopOrCancellation
-import androidx.compose.foundation.gestures.awaitVerticalPointerSlopOrCancellation
+import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.awaitVerticalTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculateCentroidSize
 import androidx.compose.foundation.gestures.calculatePan
@@ -157,11 +157,10 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
         var overSlop = 0f
-        val drag =
-            awaitHorizontalPointerSlopOrCancellation(down.id, down.type) { change, over ->
-                change.consume()
-                overSlop = over
-            }
+        val drag = awaitHorizontalTouchSlopOrCancellation(down.id) { change, over ->
+            change.consume()
+            overSlop = over
+        }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
             onDragStart.invoke(drag.position)
             onHorizontalDrag(drag, overSlop)
@@ -188,11 +187,10 @@ suspend fun PointerInputScope.detectCustomVerticalDragGestures(
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
         var overSlop = 0f
-        val drag =
-            awaitVerticalPointerSlopOrCancellation(down.id, down.type) { change, over ->
-                change.consume()
-                overSlop = over
-            }
+        val drag = awaitVerticalTouchSlopOrCancellation(down.id) { change, over ->
+            change.consume()
+            overSlop = over
+        }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
             onDragStart.invoke(drag.position)
             onVerticalDrag.invoke(drag, overSlop)

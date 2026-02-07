@@ -12,7 +12,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 
 @Composable
 fun BoxScope.OverlayShowView(
-    modifier: Modifier = Modifier,
     player: Player,
     overlayView: OverlayView?,
     videoContentScale: VideoContentScale,
@@ -22,7 +21,7 @@ fun BoxScope.OverlayShowView(
     onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .matchParentSize()
             .then(
                 if (overlayView != null) {
@@ -58,6 +57,11 @@ fun BoxScope.OverlayShowView(
         onVideoContentScaleChanged = onVideoContentScaleChanged,
         onDismiss = onDismiss,
     )
+
+    PlaylistView(
+        show = overlayView == OverlayView.PLAYLIST,
+        player = player,
+    )
 }
 
 val Configuration.isPortrait: Boolean
@@ -68,4 +72,5 @@ enum class OverlayView {
     SUBTITLE_SELECTOR,
     PLAYBACK_SPEED,
     VIDEO_CONTENT_SCALE,
+    PLAYLIST,
 }
