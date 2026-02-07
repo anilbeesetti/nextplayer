@@ -18,6 +18,8 @@ import dev.anilbeesetti.nextplayer.core.media.sync.LocalMediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.LocalMediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
+import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import javax.inject.Singleton
 import okio.FileSystem
 
@@ -42,30 +44,4 @@ interface MediaModule {
     fun bindMediaService(
         mediaService: LocalMediaService,
     ): MediaService
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-object ImageLoaderModule {
-
-    @Provides
-    @Singleton
-    fun provideImageLoader(
-        @ApplicationContext context: Context,
-    ): ImageLoader {
-        return ImageLoader.Builder(context)
-            .components {
-                add(VideoThumbnailDecoder.Factory())
-            }
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .diskCache(
-                DiskCache.Builder()
-                    .fileSystem(FileSystem.SYSTEM)
-                    .directory(context.filesDir.resolve("thumbnails"))
-                    .maxSizePercent(1.0)
-                    .build(),
-            )
-            .crossfade(true)
-            .build()
-    }
 }

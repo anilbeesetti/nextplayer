@@ -6,6 +6,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -105,6 +106,48 @@ fun SelectablePreference(
                 modifier = Modifier.semantics { contentDescription = title },
                 checked = selected,
                 onCheckedChange = null,
+            )
+        },
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SingleSelectablePreference(
+    title: String,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    selected: Boolean = false,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
+    index: Int = 0,
+    count: Int = 1,
+) {
+    NextSegmentedListItem(
+        modifier = modifier,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        index = index,
+        count = count,
+        content = {
+            Text(
+                text = title,
+                maxLines = 1,
+            )
+        },
+        supportingContent = {
+            description?.let {
+                Text(
+                    text = it,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
+        leadingContent = {
+            RadioButton(
+                selected = selected,
+                onClick = null,
             )
         },
     )

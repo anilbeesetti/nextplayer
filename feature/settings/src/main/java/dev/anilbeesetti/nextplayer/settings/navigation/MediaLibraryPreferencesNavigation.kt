@@ -22,11 +22,13 @@ fun NavController.navigateToFolderPreferencesScreen(navOptions: NavOptions? = na
 fun NavGraphBuilder.mediaLibraryPreferencesScreen(
     onNavigateUp: () -> Unit,
     onFolderSettingClick: () -> Unit,
+    onThumbnailSettingClick: () -> Unit,
 ) {
     composable(route = mediaLibraryPreferencesNavigationRoute) {
         MediaLibraryPreferencesScreen(
             onNavigateUp = onNavigateUp,
             onFolderSettingClick = onFolderSettingClick,
+            onThumbnailSettingClick = onThumbnailSettingClick,
         )
     }
 }

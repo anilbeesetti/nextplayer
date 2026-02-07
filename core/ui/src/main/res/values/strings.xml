@@ -283,4 +283,15 @@
     <string name="reorder">Reorder</string>
     <string name="remove">Remove</string>
     <string name="unknown">Unknown</string>
+    <string name="thumbnail_generation">Thumbnail generation</string>
+    <string name="thumbnail_generation_desc">Select how video thumbnails are generated</string>
+    <string name="first_frame">First frame</string>
+    <string name="first_frame_desc">Use the first frame of the video</string>
+    <string name="frame_at_percentage">Frame at position</string>
+    <string name="frame_at_percentage_desc">Use frame at specific position in the video</string>
+    <string name="hybrid">Hybrid (smart)</string>
+    <string name="hybrid_desc">Automatically skip solid color frames</string>
+    <string name="hybrid_slow">Slower</string>
+    <string name="frame_position">Frame position</string>
+    <string name="frame_position_value">Frame at %1$.0f%%</string>
 </resources>
