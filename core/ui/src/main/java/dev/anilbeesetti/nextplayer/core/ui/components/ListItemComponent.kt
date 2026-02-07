@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,7 @@ fun NextSegmentedListItem(
     content: @Composable () -> Unit,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
+    interactionSource: MutableInteractionSource? = null,
 ) {
     SegmentedListItem(
         modifier = modifier,
@@ -49,6 +51,7 @@ fun NextSegmentedListItem(
         supportingContent = supportingContent,
         trailingContent = trailingContent,
         overlineContent = overlineContent,
+        interactionSource = interactionSource,
         content = content,
     )
 }

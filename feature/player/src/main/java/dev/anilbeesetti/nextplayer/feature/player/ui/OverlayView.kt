@@ -5,7 +5,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -20,9 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,8 +37,6 @@ fun BoxScope.OverlayView(
     modifier: Modifier = Modifier,
     show: Boolean,
     title: String,
-    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val configuration = LocalConfiguration.current
@@ -79,24 +74,16 @@ fun BoxScope.OverlayView(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp)
                     .padding(top = 24.dp)
                     .padding(end = endPadding),
             ) {
                 Text(
+                    modifier = Modifier.padding(horizontal = 24.dp),
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(bottom = 24.dp),
-                    verticalArrangement = verticalArrangement,
-                    horizontalAlignment = horizontalAlignment,
-                ) {
-                    content()
-                }
+                content()
             }
         }
     }

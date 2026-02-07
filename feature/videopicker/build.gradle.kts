@@ -55,7 +55,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
 
-    implementation(libs.coil.kt.compose)
+    implementation(libs.coil.compose)
     implementation(libs.accompanist.permissions)
 
     // Hilt

@@ -54,6 +54,11 @@ dependencies {
     implementation(libs.androidx.compose.icons)
     implementation(libs.androidx.constraintlayout)
 
+    implementation(libs.coil.compose)
+
+    // Reorderable list for drag-and-drop
+    implementation(libs.reorderable)
+
     // Media3
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.exoplayer)
