@@ -266,4 +266,9 @@
     <string name="reset_settings_description">重置所有设置为默认状态</string>
     <string name="reset_settings_confirmation">您确定想要重置所有设置为默认状态吗？</string>
     <string name="reset">重置</string>
+    <string name="search_videos_and_folders">搜索视频和文件夹</string>
+    <string name="search">搜索</string>
+    <string name="no_results_found">未找到结果</string>
+    <string name="unknown">未知</string>
+    <string name="remove">移除</string>
 </resources>
