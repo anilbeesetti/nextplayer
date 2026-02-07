@@ -84,7 +84,7 @@ private fun AudioPreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 4
+                val totalRows = 5
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_audio_lang),
                     description = LocalesHelper.getLocaleDisplayLanguage(uiState.preferences.preferredAudioLanguage)
@@ -119,6 +119,15 @@ private fun AudioPreferencesContent(
                     isChecked = uiState.preferences.showSystemVolumePanel,
                     onClick = { onEvent(AudioPreferencesUiEvent.ToggleShowSystemVolumePanel) },
                     index = 3,
+                    count = totalRows,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.volume_boost),
+                    description = stringResource(id = R.string.volume_boost_desc),
+                    icon = NextIcons.VolumeUp,
+                    isChecked = uiState.preferences.enableVolumeBoost,
+                    onClick = { onEvent(AudioPreferencesUiEvent.ToggleVolumeBoost) },
+                    index = 4,
                     count = totalRows,
                 )
             }

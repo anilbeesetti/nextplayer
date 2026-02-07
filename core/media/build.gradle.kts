@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
@@ -34,6 +33,7 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.github.anilbeesetti.nextlib.mediainfo)
+    implementation(libs.coil.compose)
 
     // Hilt
     implementation(libs.hilt.android)

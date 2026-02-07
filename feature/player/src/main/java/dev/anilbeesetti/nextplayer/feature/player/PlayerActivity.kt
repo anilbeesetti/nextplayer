@@ -102,7 +102,7 @@ class PlayerActivity : ComponentActivity() {
             CompositionLocalProvider(LocalHidePlayerButtonsBackground provides (uiState.playerPreferences?.hidePlayerButtonsBackground == true)) {
                 NextPlayerTheme(darkTheme = true) {
                     MediaPlayerScreen(
-                        player = player ?: return@NextPlayerTheme,
+                        player = player,
                         viewModel = viewModel,
                         playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
                         onSelectSubtitleClick = {

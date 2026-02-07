@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.hilt)
@@ -17,8 +16,8 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         applicationId = "dev.anilbeesetti.nextplayer"
-        versionCode = 47
-        versionName = "0.15.0"
+        versionCode = 49
+        versionName = "0.15.2"
     }
 
     buildFeatures {
@@ -121,6 +120,8 @@ dependencies {
 
     implementation(libs.google.android.material)
     implementation(libs.androidx.core.splashscreen)
+
+    implementation(libs.coil.compose)
 
     // Hilt
     implementation(libs.hilt.android)
