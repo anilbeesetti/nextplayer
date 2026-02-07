@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItemColors
@@ -69,9 +68,7 @@ fun ListSectionTitle(
 ) {
     Text(
         text = text,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(contentPadding),
+        modifier = modifier.padding(contentPadding),
         color = color,
         style = MaterialTheme.typography.labelLarge,
     )
