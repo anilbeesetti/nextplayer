@@ -4,9 +4,11 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 
 @OptIn(UnstableApi::class)
@@ -33,6 +36,7 @@ fun ControlsTopView(
     onPlaylistClick: () -> Unit = {},
     onBackClick: () -> Unit,
 ) {
+    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
     Row(
         modifier = modifier
             .background(
@@ -43,8 +47,8 @@ fun ControlsTopView(
                     ),
                 ),
             )
-            .statusBarsPadding()
             .displayCutoutPadding()
+            .padding(systemBarsPadding.copy(bottom = 0.dp))
             .padding(horizontal = 8.dp)
             .padding(bottom = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
