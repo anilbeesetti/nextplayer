@@ -14,14 +14,17 @@ import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.ApplicationPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.PlayerPreferencesSerializer
+import dev.anilbeesetti.nextplayer.core.datastore.serializer.SearchHistorySerializer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
+import dev.anilbeesetti.nextplayer.core.model.SearchHistory
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 
 private const val APP_PREFERENCES_DATASTORE_FILE = "app_preferences.json"
 private const val PLAYER_PREFERENCES_DATASTORE_FILE = "player_preferences.json"
+private const val SEARCH_HISTORY_DATASTORE_FILE = "search_history.json"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -52,6 +55,20 @@ object DataStoreModule {
             serializer = PlayerPreferencesSerializer,
             scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
             produceFile = { applicationContext.dataStoreFile(PLAYER_PREFERENCES_DATASTORE_FILE) },
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchHistoryDataStore(
+        @ApplicationContext applicationContext: Context,
+        @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
+        @ApplicationScope scope: CoroutineScope,
+    ): DataStore<SearchHistory> {
+        return DataStoreFactory.create(
+            serializer = SearchHistorySerializer,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+            produceFile = { applicationContext.dataStoreFile(SEARCH_HISTORY_DATASTORE_FILE) },
         )
     }
 }

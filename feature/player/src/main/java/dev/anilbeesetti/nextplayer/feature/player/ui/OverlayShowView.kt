@@ -8,19 +8,20 @@ import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
+import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 
 @Composable
 fun BoxScope.OverlayShowView(
-    modifier: Modifier = Modifier,
     player: Player,
     overlayView: OverlayView?,
     videoContentScale: VideoContentScale,
     onDismiss: () -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
+    onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
     onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .matchParentSize()
             .then(
                 if (overlayView != null) {
@@ -41,6 +42,7 @@ fun BoxScope.OverlayShowView(
         show = overlayView == OverlayView.SUBTITLE_SELECTOR,
         player = player,
         onSelectSubtitleClick = onSelectSubtitleClick,
+        onEvent = onSubtitleOptionEvent,
         onDismiss = onDismiss,
     )
 
@@ -55,6 +57,11 @@ fun BoxScope.OverlayShowView(
         onVideoContentScaleChanged = onVideoContentScaleChanged,
         onDismiss = onDismiss,
     )
+
+    PlaylistView(
+        show = overlayView == OverlayView.PLAYLIST,
+        player = player,
+    )
 }
 
 val Configuration.isPortrait: Boolean
@@ -65,4 +72,5 @@ enum class OverlayView {
     SUBTITLE_SELECTOR,
     PLAYBACK_SPEED,
     VIDEO_CONTENT_SCALE,
+    PLAYLIST,
 }

@@ -266,6 +266,10 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.PLAYBACK_SPEED
                                     },
+                                    onPlaylistClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.PLAYLIST
+                                    },
                                     onBackClick = onBackClick,
                                 )
                             }
@@ -365,6 +369,7 @@ fun MediaPlayerScreen(
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 onDismiss = { overlayView = null },
                 onSelectSubtitleClick = onSelectSubtitleClick,
+                onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
         }

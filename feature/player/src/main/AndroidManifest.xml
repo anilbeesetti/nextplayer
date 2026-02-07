@@ -5,15 +5,16 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
-    <application android:usesCleartextTraffic="true"
-        tools:targetApi="m">
+    <application android:usesCleartextTraffic="true">
         <activity
             android:name=".PlayerActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|keyboardHidden|navigation"
             android:exported="true"
             android:launchMode="singleTask"
             android:supportsPictureInPicture="true"
+            android:resizeableActivity="true"
             android:theme="@style/NextPlayer"
+            android:windowSoftInputMode="adjustResize"
             tools:targetApi="o">
 
             <!-- This filter captures protocols without type info -->

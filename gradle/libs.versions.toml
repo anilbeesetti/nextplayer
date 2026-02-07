@@ -5,32 +5,33 @@ android-minSdk = "23"
 android-jvm = "17"
 aboutlibraries = "13.2.1"
 accompanist = "0.37.3"
-androidGradlePlugin = "8.13.2"
+androidGradlePlugin = "9.0.0"
 androidMaterial = "1.13.0"
 androidxActivity = "1.12.3"
 androidxAppCompat = "1.7.1"
-androidxComposeBom = "2026.01.00"
-androidxMaterial3 = "1.5.0-alpha12"
+androidxComposeBom = "2026.01.01"
+androidxMaterial3 = "1.5.0-alpha13"
 androidxConstraintLayout = "2.2.1"
 androidxCore = "1.17.0"
 androidxCoreSplashscreen = "1.2.0"
 androidxDataStore = "1.2.0"
-androidxEspresso = "3.6.1"
+androidxEspresso = "3.7.0"
 androidxHiltNavigationCompose = "1.3.0"
 androidxLifecycle = "2.10.0"
 androidxMedia3 = "1.9.2"
-androidxNavigation = "2.9.6"
+androidxNavigation = "2.9.7"
 androidxTestExt = "1.3.0"
-coil = "2.7.0"
-hilt = "2.57.2"
+coil = "3.3.0"
+hilt = "2.59.1"
 junit4 = "4.13.2"
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 kotlinxCoroutines = "1.10.2"
 kotlinxSerializationJson = "1.10.0"
-ksp = "2.3.4"
+ksp = "2.3.5"
 ktlint = "12.3.0"
+reorderable = "3.0.0"
 room = "2.8.4"
-nextlib = "1.9.0-0.10.0"
+nextlib = "1.9.1-0.11.0"
 universalChardet = "2.5.0"
 
 
@@ -72,7 +73,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
-coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 github-albfernandez-juniversalchardet = { group="com.github.albfernandez", name = "juniversalchardet", version.ref="universalChardet" }
 github-anilbeesetti-nextlib-media3ext = { group = "io.github.anilbeesetti", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "io.github.anilbeesetti", name = "nextlib-mediainfo", version.ref = "nextlib" }
@@ -85,6 +86,7 @@ kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
 [plugins]
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
@@ -92,7 +94,6 @@ androidApplication = { id = "com.android.application", version.ref = "androidGra
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

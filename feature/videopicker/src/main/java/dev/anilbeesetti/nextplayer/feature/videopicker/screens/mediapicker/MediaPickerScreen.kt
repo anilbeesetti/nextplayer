@@ -111,6 +111,7 @@ fun MediaPickerRoute(
     onPlayVideos: (uris: List<Uri>) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -122,6 +123,7 @@ fun MediaPickerRoute(
         onNavigateUp = onNavigateUp,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
+        onSearchClick = onSearchClick,
         onEvent = viewModel::onEvent,
     )
 }
@@ -135,6 +137,7 @@ internal fun MediaPickerScreen(
     onPlayVideos: (List<Uri>) -> Unit = {},
     onFolderClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onEvent: (MediaPickerUiEvent) -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
@@ -219,6 +222,12 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else {
+                        IconButton(onClick = onSearchClick) {
+                            Icon(
+                                imageVector = NextIcons.Search,
+                                contentDescription = stringResource(id = R.string.search),
+                            )
+                        }
                         IconButton(onClick = { showQuickSettingsDialog = true }) {
                             Icon(
                                 imageVector = NextIcons.DashBoard,

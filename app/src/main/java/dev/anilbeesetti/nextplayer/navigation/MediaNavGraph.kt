@@ -10,6 +10,8 @@ import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRoute
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToSearch
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.searchScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 import kotlinx.serialization.Serializable
 
@@ -40,6 +42,19 @@ fun NavGraphBuilder.mediaNavGraph(
             },
             onFolderClick = navController::navigateToMediaPickerScreen,
             onSettingsClick = navController::navigateToSettings,
+            onSearchClick = navController::navigateToSearch,
+        )
+
+        searchScreen(
+            onNavigateUp = navController::navigateUp,
+            onPlayVideo = { uri ->
+                val intent = Intent(context, PlayerActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = uri
+                }
+                context.startActivity(intent)
+            },
+            onFolderClick = navController::navigateToMediaPickerScreen,
         )
     }
 }

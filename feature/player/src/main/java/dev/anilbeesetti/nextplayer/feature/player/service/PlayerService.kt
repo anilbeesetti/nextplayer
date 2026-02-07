@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
@@ -29,6 +30,10 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import coil3.ImageLoader
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.toBitmap
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
@@ -53,11 +58,16 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setIsScrubbingModeEnabled
+import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleDelayMilliseconds
+import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
+import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
+import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -69,6 +79,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
@@ -83,6 +94,9 @@ class PlayerService : MediaSessionService() {
     @Inject
     lateinit var mediaRepository: MediaRepository
 
+    @Inject
+    lateinit var imageLoader: ImageLoader
+
     private val playerPreferences: PlayerPreferences
         get() = preferencesRepository.playerPreferences.value
 
@@ -96,9 +110,11 @@ class PlayerService : MediaSessionService() {
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             isMediaItemReady = false
             mediaItem?.mediaMetadata?.let { metadata ->
-                mediaSession?.player?.setPlaybackSpeed(
-                    metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed,
-                )
+                mediaSession?.player?.run {
+                    setPlaybackSpeed(metadata.playbackSpeed ?: playerPreferences.defaultPlaybackSpeed)
+                    playerSpecificSubtitleDelayMilliseconds = metadata.subtitleDelayMilliseconds ?: 0L
+                    playerSpecificSubtitleSpeed = metadata.subtitleSpeed ?: 1f
+                }
 
                 metadata.positionMs?.takeIf { playerPreferences.resume == Resume.YES }?.let {
                     mediaSession?.player?.seekTo(it)
@@ -141,6 +157,7 @@ class PlayerService : MediaSessionService() {
                         )
                     }
                 }
+
                 else -> return
             }
         }
@@ -302,6 +319,7 @@ class PlayerService : MediaSessionService() {
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future(Dispatchers.Default) {
             val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+            loadArtworkInBackground(updatedMediaItems)
             return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
         }
 
@@ -311,6 +329,7 @@ class PlayerService : MediaSessionService() {
             mediaItems: MutableList<MediaItem>,
         ): ListenableFuture<MutableList<MediaItem>> = serviceScope.future(Dispatchers.Default) {
             val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+            loadArtworkInBackground(updatedMediaItems)
             return@future updatedMediaItems.toMutableList()
         }
 
@@ -357,7 +376,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_SKIP_SILENCE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY)
-                    mediaSession?.player?.skipSilenceEnabled = enabled
+                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
                     mediaSession?.sessionExtras = Bundle().apply {
                         putBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, enabled)
                     }
@@ -365,7 +384,7 @@ class PlayerService : MediaSessionService() {
                 }
 
                 CustomCommands.GET_SKIP_SILENCE_ENABLED -> {
-                    val enabled = mediaSession?.player?.skipSilenceEnabled ?: false
+                    val enabled = mediaSession?.player?.playerSpecificSkipSilenceEnabled ?: false
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
@@ -388,6 +407,38 @@ class PlayerService : MediaSessionService() {
                             putInt(CustomCommands.AUDIO_SESSION_ID_KEY, audioSessionId)
                         },
                     )
+                }
+
+                CustomCommands.GET_SUBTITLE_DELAY -> {
+                    val subtitleDelay = mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putLong(CustomCommands.SUBTITLE_DELAY_KEY, subtitleDelay)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_SUBTITLE_DELAY -> {
+                    val subtitleDelay = args.getLong(CustomCommands.SUBTITLE_DELAY_KEY)
+                    mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds = subtitleDelay
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_SUBTITLE_SPEED -> {
+                    val subtitleSpeed = mediaSession?.player?.playerSpecificSubtitleSpeed ?: 0f
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putFloat(CustomCommands.SUBTITLE_SPEED_KEY, subtitleSpeed)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_SUBTITLE_SPEED -> {
+                    val subtitleSpeed = args.getFloat(CustomCommands.SUBTITLE_SPEED_KEY)
+                    mediaSession?.player?.playerSpecificSubtitleSpeed = subtitleSpeed
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.STOP_PLAYER_SESSION -> {
@@ -527,33 +578,32 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
-                val artwork = video?.thumbnailPath?.toUri() ?: Uri.Builder().apply {
-                    val defaultArtwork = R.drawable.artwork_default
-                    scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                    authority(resources.getResourcePackageName(defaultArtwork))
-                    appendPath(resources.getResourceTypeName(defaultArtwork))
-                    appendPath(resources.getResourceEntryName(defaultArtwork))
-                }.build()
+                // Use placeholder artwork initially - actual artwork will be loaded in background
+                val artworkUri = getDefaultArtworkUri()
 
+                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
                 val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
                 val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
                 val audioTrackIndex = mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
                 val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
+                val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
+                val subtitleSpeed = mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
 
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(title)
-                            setArtworkUri(artwork)
+                            setArtworkUri(artworkUri)
                             setExtras(
                                 positionMs = positionMs,
                                 videoScale = videoScale,
                                 playbackSpeed = playbackSpeed,
                                 audioTrackIndex = audioTrackIndex,
                                 subtitleTrackIndex = subtitleTrackIndex,
+                                subtitleDelayMilliseconds = subtitleDelay,
+                                subtitleSpeed = subtitleSpeed,
                             )
                         }.build(),
                     )
@@ -561,18 +611,68 @@ class PlayerService : MediaSessionService() {
             }
         }.awaitAll()
     }
-}
+    
+    private fun getDefaultArtworkUri(): Uri = Uri.Builder().apply {
+        val defaultArtwork = R.drawable.artwork_default
+        scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+        authority(resources.getResourcePackageName(defaultArtwork))
+        appendPath(resources.getResourceTypeName(defaultArtwork))
+        appendPath(resources.getResourceEntryName(defaultArtwork))
+    }.build()
 
-@get:UnstableApi
-private val Player.audioSessionId: Int
-    get() = when (this) {
-        is ExoPlayer -> this.audioSessionId
-        else -> C.AUDIO_SESSION_ID_UNSET
+    private suspend fun loadArtworkForUri(uri: Uri): ByteArray? {
+        return try {
+            val result = imageLoader.execute(
+                ImageRequest.Builder(this@PlayerService)
+                    .data(uri)
+                    .build(),
+            )
+            (result as? SuccessResult)?.image?.toBitmap()?.toByteArray()
+        } catch (e: Exception) {
+            null
+        }
     }
 
+    private fun loadArtworkInBackground(mediaItems: List<MediaItem>) {
+        serviceScope.launch(Dispatchers.Default) {
+            mediaItems.forEach { mediaItem ->
+                launch {
+                    val uri = mediaItem.mediaId.toUri()
+                    val artworkData = loadArtworkForUri(uri) ?: return@launch
+
+                    withContext(Dispatchers.Main) {
+                        val player = mediaSession?.player ?: return@withContext
+                        val currentIndex = (0 until player.mediaItemCount).firstOrNull {
+                            player.getMediaItemAt(it).mediaId == mediaItem.mediaId
+                        } ?: return@withContext
+
+                        val currentMediaItem = player.getMediaItemAt(currentIndex)
+                        val updatedMediaItem = currentMediaItem.buildUpon()
+                            .setMediaMetadata(
+                                currentMediaItem.mediaMetadata.buildUpon()
+                                    .setArtworkUri(null)
+                                    .setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                                    .build(),
+                            )
+                            .build()
+
+                        player.replaceMediaItem(currentIndex, updatedMediaItem)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun Bitmap.toByteArray(): ByteArray {
+        val stream = ByteArrayOutputStream()
+        compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        return stream.toByteArray()
+    }
+}
+        
 @get:UnstableApi
 @set:UnstableApi
-private var Player.skipSilenceEnabled: Boolean
+private var Player.playerSpecificSkipSilenceEnabled: Boolean
     @OptIn(UnstableApi::class)
     get() = when (this) {
         is ExoPlayer -> this.skipSilenceEnabled
@@ -581,5 +681,33 @@ private var Player.skipSilenceEnabled: Boolean
     set(value) {
         when (this) {
             is ExoPlayer -> this.skipSilenceEnabled = value
+        }
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.playerSpecificSubtitleDelayMilliseconds: Long
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.subtitleDelayMilliseconds
+        else -> 0L
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.subtitleDelayMilliseconds = value
+        }
+    }
+
+@get:UnstableApi
+@set:UnstableApi
+private var Player.playerSpecificSubtitleSpeed: Float
+    @OptIn(UnstableApi::class)
+    get() = when (this) {
+        is ExoPlayer -> this.subtitleSpeed
+        else -> 0f
+    }
+    set(value) {
+        when (this) {
+            is ExoPlayer -> this.subtitleSpeed = value
         }
     }
