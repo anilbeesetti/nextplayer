@@ -232,9 +232,9 @@
     <string name="play">Αναπαραγωγή</string>
     <string name="delete_item_info">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Το επιλεγμένο στοιχείο θα διαγραφεί οριστικά</string>
     <string name="volume_gesture">Έντασης ήχου</string>
-    <string name="volume_gesture_description">Ρύθμιση ήχου με κάθετο σύρσιμο</string>
+    <string name="volume_gesture_description">Ρύθμιση ήχου με κάθετο σύρσιμο δεξιά</string>
     <string name="brightness_gesture">Φωτεινότητας</string>
-    <string name="brightness_gesture_description">Ρύθμιση φωτεινότητας με κάθετο σύρσιμο</string>
+    <string name="brightness_gesture_description">Ρύθμιση φωτεινότητας με κάθετο σύρσιμο αριστερά</string>
     <string name="pan_gesture">Μετατόπισης</string>
     <string name="pan_gesture_description">Μεγέθυνση και μετατόπιση του βίντεο</string>
     <string name="hide_player_buttons_background">Απόκρυψη φόντου κουμπιών αναπαραγωγής</string>

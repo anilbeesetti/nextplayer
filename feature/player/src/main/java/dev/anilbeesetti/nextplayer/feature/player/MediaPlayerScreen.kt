@@ -86,7 +86,7 @@ val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> 
 @OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerScreen(
-    player: Player,
+    player: Player?,
     viewModel: PlayerViewModel,
     playerPreferences: PlayerPreferences,
     modifier: Modifier = Modifier,
@@ -94,6 +94,12 @@ fun MediaPlayerScreen(
     onBackClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
 ) {
+    val volumeState = rememberVolumeState(
+        player = player,
+        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
+        volumeBoostEnabled = playerPreferences.enableVolumeBoost,
+    )
+    player ?: return
     val metadataState = rememberMetadataState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
     val controlsVisibilityState = rememberControlsVisibilityState(
@@ -110,6 +116,7 @@ fun MediaPlayerScreen(
     val seekGestureState = rememberSeekGestureState(
         player = player,
         sensitivity = playerPreferences.seekSensitivity,
+        enableSeekGesture = playerPreferences.useSeekControls,
     )
     val pictureInPictureState = rememberPictureInPictureState(
         player = player,
@@ -122,14 +129,12 @@ fun MediaPlayerScreen(
         enablePanGesture = playerPreferences.enablePanGesture,
         onEvent = viewModel::onVideoZoomEvent,
     )
-    val volumeState = rememberVolumeState(
-        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
-    )
     val brightnessState = rememberBrightnessState()
     val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
+        volumeState = volumeState,
+        brightnessState = brightnessState,
         enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
         enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
-        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
     )
     val rotationState = rememberRotationState(
         player = player,
@@ -333,6 +338,7 @@ fun MediaPlayerScreen(
                     ) {
                         VerticalProgressView(
                             value = volumeState.volumePercentage,
+                            maxValue = volumeState.maxVolumePercentage,
                             icon = painterResource(coreUiR.drawable.ic_volume),
                         )
                     }
