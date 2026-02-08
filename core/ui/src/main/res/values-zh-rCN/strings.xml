@@ -280,4 +280,16 @@
     <string name="reorder">重新排序</string>
     <string name="no_videos_in_queue">队列中无视频</string>
     <string name="now_playing">正在播放</string>
+    <string name="thumbnail_setting_change_confirmation">更改此设定会清除缩略图缓存。打开媒体列表时会重新生成缩略图。继续吗？</string>
+    <string name="frame_position_value">视频时长的 %1$.0f%% 处的帧</string>
+    <string name="frame_position">帧位置</string>
+    <string name="hybrid_slow">较慢</string>
+    <string name="thumbnail_generation">缩略图生成</string>
+    <string name="thumbnail_generation_strategy">缩略图生成策略</string>
+    <string name="first_frame">首帧</string>
+    <string name="first_frame_desc">使用视频的首帧</string>
+    <string name="frame_at_position">某位置的帧</string>
+    <string name="frame_at_position_desc">使用视频中特定位置的帧</string>
+    <string name="hybrid">混合（智能）</string>
+    <string name="hybrid_desc">优先使用首帧。若其大部分是纯色，则改用视频中特定位置的一帧。</string>
 </resources>
