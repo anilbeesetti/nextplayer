@@ -120,15 +120,15 @@ fun SingleSelectablePreference(
     selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
-    index: Int = 0,
-    count: Int = 1,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
 ) {
     NextSegmentedListItem(
         modifier = modifier,
         onClick = onClick,
         onLongClick = onLongClick,
-        index = index,
-        count = count,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
         content = {
             Text(
                 text = title,

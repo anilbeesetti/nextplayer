@@ -104,7 +104,6 @@ private fun ThumbnailPreferencesContent(
                 modifier = Modifier.selectableGroup(),
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 3
                 SingleSelectablePreference(
                     title = stringResource(id = R.string.first_frame),
                     description = stringResource(id = R.string.first_frame_desc),
@@ -113,8 +112,7 @@ private fun ThumbnailPreferencesContent(
                         if (preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.FIRST_FRAME) return@SingleSelectablePreference
                         pendingChange = ThumbnailPreferenceChange.Strategy(ThumbnailGenerationStrategy.FIRST_FRAME)
                     },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true
                 )
                 SingleSelectablePreference(
                     title = stringResource(id = R.string.frame_at_position),
@@ -124,8 +122,6 @@ private fun ThumbnailPreferencesContent(
                         if (preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE) return@SingleSelectablePreference
                         pendingChange = ThumbnailPreferenceChange.Strategy(ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE)
                     },
-                    index = 1,
-                    count = totalRows,
                 )
                 SingleSelectablePreference(
                     title = stringResource(id = R.string.hybrid),
@@ -135,8 +131,7 @@ private fun ThumbnailPreferencesContent(
                         if (preferences.thumbnailGenerationStrategy == ThumbnailGenerationStrategy.HYBRID) return@SingleSelectablePreference
                         pendingChange = ThumbnailPreferenceChange.Strategy(ThumbnailGenerationStrategy.HYBRID)
                     },
-                    index = 2,
-                    count = totalRows,
+                    isLastItem = true
                 )
             }
 
@@ -148,6 +143,8 @@ private fun ThumbnailPreferencesContent(
                 icon = NextIcons.Frame,
                 value = frameSliderValue,
                 valueRange = 0f..100f,
+                isFirstItem = true,
+                isLastItem = true,
                 onValueChange = { frameSliderValue = it },
                 onValueChangeFinished = {
                     val newPosition = frameSliderValue / 100f

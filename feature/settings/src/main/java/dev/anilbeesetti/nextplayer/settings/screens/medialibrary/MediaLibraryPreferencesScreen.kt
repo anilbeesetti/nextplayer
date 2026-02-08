@@ -126,6 +126,8 @@ private fun MediaLibraryPreferencesContent(
                     },
                     icon = NextIcons.Image,
                     onClick = onThumbnailSettingClick,
+                    isFirstItem = true,
+                    isLastItem = true,
                 )
             }
         }
