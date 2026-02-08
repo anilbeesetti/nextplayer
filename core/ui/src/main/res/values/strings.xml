@@ -294,4 +294,5 @@
     <string name="hybrid_slow">Slower</string>
     <string name="frame_position">Frame position</string>
     <string name="frame_position_value">Frame at %1$.0f%% of the video duration</string>
+    <string name="thumbnail_setting_change_confirmation">Changing this setting will clear the thumbnail cache. Thumbnails will be generated again when media list is opened. Continue?</string>
 </resources>
