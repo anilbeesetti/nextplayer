@@ -75,7 +75,7 @@
     <string name="remember_selections">Zapamiętaj wybory</string>
     <string name="resume_description">Wybierz czy odtwarzać wideo od momentu ich zatrzymania</string>
     <string name="grant_permission">Przyznaj uprawnienia</string>
-    <string name="seconds">%1$s sekund</string>
+    <string name="seconds">%1$s sek.</string>
     <string name="permission_request">Prośba o zezwolenie</string>
     <string name="open_settings">Otwórz ustawienia</string>
     <string name="unknown_error">Wystąpił nieznany błąd</string>
@@ -266,4 +266,18 @@
     <string name="reset_settings_description">Przywróć wszystkie ustawienia do stanu domyślnego</string>
     <string name="reset_settings_confirmation">Czy na pewno chcesz przywrócić wszystkie ustawienia do wartości domyślnych?</string>
     <string name="reset">Zresetuj</string>
+    <string name="delay">Opóźnienie</string>
+    <string name="speed">Szybkość</string>
+    <string name="search">Wyszukaj</string>
+    <string name="search_videos_and_folders">Wyszukaj wideo i katalogi</string>
+    <string name="recent_searches">Ostatnie wyszukiwania</string>
+    <string name="popular_folders">Popularne katalogi</string>
+    <string name="clear_history">Wyczyść historię</string>
+    <string name="no_results_found">Nic nie znaleziono</string>
+    <string name="search_results">Wyniki wyszukiwania</string>
+    <string name="now_playing">Teraz odtwarzane</string>
+    <string name="no_videos_in_queue">Brak wideo w kolejce</string>
+    <string name="reorder">Przeorganizuj</string>
+    <string name="remove">Usuń</string>
+    <string name="unknown">Nieznany</string>
 </resources>
