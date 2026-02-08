@@ -266,4 +266,18 @@
     <string name="reset_settings_description">Lähtesta kõik seadistused nende vaikimisi väärtusteks</string>
     <string name="reset_settings_confirmation">Kas oled kindel, et soovid kõik seadistused muuta algväärtusteks?</string>
     <string name="reset">Lähtesta</string>
+    <string name="delay">Viivitus</string>
+    <string name="speed">Kiirus</string>
+    <string name="search">Otsi</string>
+    <string name="search_videos_and_folders">Otsi videoid ja kaustu</string>
+    <string name="recent_searches">Hiljutised otsingud</string>
+    <string name="popular_folders">Populaarsed kaustad</string>
+    <string name="clear_history">Kustuta ajalugu</string>
+    <string name="no_results_found">Tulemusi ei leidu</string>
+    <string name="search_results">Otsingutulemused</string>
+    <string name="now_playing">Hetkel esitamisel</string>
+    <string name="no_videos_in_queue">Esitusjärjekorras pole videoid</string>
+    <string name="reorder">Muuda järjekorda</string>
+    <string name="remove">Eemalda</string>
+    <string name="unknown">Tundmatu</string>
 </resources>
