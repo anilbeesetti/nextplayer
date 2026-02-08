@@ -266,4 +266,7 @@
     <string name="reset_settings_description">將所有設定還原至預設值</string>
     <string name="reset_settings_confirmation">您確定要將所有設定還原為預設值嗎？</string>
     <string name="reset">重設</string>
+    <string name="delay">延遲</string>
+    <string name="speed">速度</string>
+    <string name="search">搜尋</string>
 </resources>
