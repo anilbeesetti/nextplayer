@@ -1,11 +1,13 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -92,7 +94,6 @@ fun SelectablePreference(
             description?.let {
                 Text(
                     text = it,
-                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
@@ -105,6 +106,47 @@ fun SelectablePreference(
                 modifier = Modifier.semantics { contentDescription = title },
                 checked = selected,
                 onCheckedChange = null,
+            )
+        },
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SingleSelectablePreference(
+    title: String,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    selected: Boolean = false,
+    onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
+) {
+    NextSegmentedListItem(
+        modifier = modifier,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
+        content = {
+            Text(
+                text = title,
+                maxLines = 1,
+            )
+        },
+        supportingContent = {
+            description?.let {
+                Text(
+                    text = it,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
+        leadingContent = {
+            RadioButton(
+                selected = selected,
+                onClick = null,
             )
         },
     )
