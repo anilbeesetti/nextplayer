@@ -25,5 +25,10 @@ data class ApplicationPreferences(
 
     // Thumbnail generation
     val thumbnailGenerationStrategy: ThumbnailGenerationStrategy = ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,
-    val thumbnailFramePosition: Float = 0.33f,
-)
+    val thumbnailFramePosition: Float = DEFAULT_THUMBNAIL_FRAME_POSITION,
+) {
+
+    companion object {
+        const val DEFAULT_THUMBNAIL_FRAME_POSITION = 0.33f
+    }
+}

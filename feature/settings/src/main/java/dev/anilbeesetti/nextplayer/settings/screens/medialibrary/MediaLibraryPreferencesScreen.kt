@@ -119,10 +119,7 @@ private fun MediaLibraryPreferencesContent(
                     title = stringResource(id = R.string.thumbnail_generation),
                     description = when (preferences.thumbnailGenerationStrategy) {
                         ThumbnailGenerationStrategy.FIRST_FRAME -> stringResource(id = R.string.first_frame)
-                        ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE -> stringResource(
-                            id = R.string.frame_position_value,
-                            preferences.thumbnailFramePosition * 100,
-                        )
+                        ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE -> stringResource(R.string.frame_at_position)
                         ThumbnailGenerationStrategy.HYBRID -> stringResource(id = R.string.hybrid)
                     },
                     icon = NextIcons.Image,

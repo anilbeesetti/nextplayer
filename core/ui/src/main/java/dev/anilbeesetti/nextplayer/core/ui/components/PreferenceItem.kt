@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -93,7 +94,6 @@ fun SelectablePreference(
             description?.let {
                 Text(
                     text = it,
-                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
@@ -139,7 +139,6 @@ fun SingleSelectablePreference(
             description?.let {
                 Text(
                     text = it,
-                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
