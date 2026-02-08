@@ -269,4 +269,27 @@
     <string name="delay">延遲</string>
     <string name="speed">速度</string>
     <string name="search">搜尋</string>
+    <string name="search_videos_and_folders">搜尋資料夾與影片</string>
+    <string name="recent_searches">最近搜尋</string>
+    <string name="popular_folders">熱門資料夾</string>
+    <string name="clear_history">清除記錄</string>
+    <string name="no_results_found">找不到結果</string>
+    <string name="search_results">搜尋結果</string>
+    <string name="now_playing">現正播放</string>
+    <string name="no_videos_in_queue">佇列中沒有影片</string>
+    <string name="reorder">重新排序</string>
+    <string name="remove">移除</string>
+    <string name="unknown">未知</string>
+    <string name="thumbnail_generation">建立縮圖</string>
+    <string name="thumbnail_generation_strategy">產生縮圖方式</string>
+    <string name="first_frame">首個影格</string>
+    <string name="first_frame_desc">使用影片中第一個影格</string>
+    <string name="frame_at_position">影格位置</string>
+    <string name="frame_at_position_desc">使用影片中特定位置影格</string>
+    <string name="hybrid">混合（智慧）</string>
+    <string name="hybrid_desc">優先使用第一影格，若判定純色居多則改為特定位置影格</string>
+    <string name="hybrid_slow">較慢</string>
+    <string name="frame_position">影格位置</string>
+    <string name="frame_position_value">影片時間中的 %1$.0f%%</string>
+    <string name="thumbnail_setting_change_confirmation">變更這項設定將會清除縮圖快取，開啟媒體清單時將會重新產生。\n要繼續嗎？</string>
 </resources>
