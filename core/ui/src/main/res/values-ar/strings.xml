@@ -266,4 +266,18 @@
     <string name="reset_settings_description">إعادة ضبط كل الإعدادات إلى حالتها الافتراضية</string>
     <string name="reset_settings_confirmation">أمتأكد أنك تريد إعادة ضبط كل الإعدادات إلى حالتها الافتراضية؟</string>
     <string name="reset">إعادة ضبط</string>
+    <string name="delay">تأخير</string>
+    <string name="speed">السرعة</string>
+    <string name="search">بحث</string>
+    <string name="search_videos_and_folders">بحث عن فيديوهات ومجلدات</string>
+    <string name="recent_searches">عمليات البحث الأخيرة</string>
+    <string name="popular_folders">المجلدات المشهورة</string>
+    <string name="clear_history">مسح السجل</string>
+    <string name="no_results_found">لا نتيجة</string>
+    <string name="search_results">نتيجة البحث</string>
+    <string name="now_playing">يُشغّل الآن</string>
+    <string name="no_videos_in_queue">لا فيديوهات على القائمة</string>
+    <string name="reorder">إعادة ترتيب</string>
+    <string name="remove">إزالة</string>
+    <string name="unknown">غير معروف</string>
 </resources>
