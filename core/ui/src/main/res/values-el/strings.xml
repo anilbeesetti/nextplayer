@@ -154,7 +154,7 @@
     <string name="system_caption_style">Στυλ συστήματος</string>
     <string name="system_caption_style_desc">Άνοιγμα των προτιμήσεων υποτίτλων συστήματος</string>
     <string name="fields">Πεδία</string>
-    <string name="thumbnail">Εικονίδιο</string>
+    <string name="thumbnail">Μικρογραφία</string>
     <string name="extension">Επέκταση</string>
     <string name="path">Διαδρομή</string>
     <string name="resolution">Ανάλυση</string>
@@ -280,4 +280,16 @@
     <string name="no_results_found">Κανένα αποτέλεσμα</string>
     <string name="search_results">Αποτελέσματα αναζήτησης</string>
     <string name="now_playing">Τρέχουσα αναπαραγωγή</string>
+    <string name="first_frame">Πρώτο καρέ</string>
+    <string name="first_frame_desc">Χρήση του πρώτου καρέ του βίντεο</string>
+    <string name="frame_at_position">Καρέ σε θέση</string>
+    <string name="frame_at_position_desc">Χρήση καρέ σε συγκεκριμένη θέση στο βίντεο</string>
+    <string name="hybrid">Υβριδικά (έξυπνα)</string>
+    <string name="hybrid_desc">Προσπάθεια χρήσης του πρώτου καρέ. Εάν είναι κυρίως ένα ενιαίο χρώμα, χρήση ενός καρέ από μια συγκεκριμένη θέση στο βίντεο</string>
+    <string name="hybrid_slow">Πιο αργά</string>
+    <string name="frame_position">Θέση καρέ</string>
+    <string name="frame_position_value">Καρέ στο %1$.0f%% της διάρκειας του βίντεο</string>
+    <string name="thumbnail_setting_change_confirmation">Η αλλαγή αυτής της ρύθμισης θα διαγράψει την προσωρινή μνήμη των μικρογραφιών. Οι μικρογραφίες θα δημιουργηθούν ξανά όταν ανοίξει η λίστα πολυμέσων. Συνέχεια;</string>
+    <string name="thumbnail_generation_strategy">Στρατηγική δημιουργίας μικρογραφιών</string>
+    <string name="thumbnail_generation">Δημιουργία μικρογραφιών</string>
 </resources>
