@@ -280,4 +280,16 @@
     <string name="reorder">Przeorganizuj</string>
     <string name="remove">Usuń</string>
     <string name="unknown">Nieznany</string>
+    <string name="thumbnail_generation">Generowanie miniatur</string>
+    <string name="thumbnail_generation_strategy">Strategia generowania miniatur</string>
+    <string name="first_frame">Pierwsza klatka</string>
+    <string name="first_frame_desc">Używaj pierwszej klatki wideo</string>
+    <string name="frame_at_position">Klatka w pozycji</string>
+    <string name="frame_at_position_desc">Używaj klatki z określonego miejsca wideo</string>
+    <string name="hybrid">Hybrydowe (inteligentne)</string>
+    <string name="hybrid_desc">Próbuje użyć pierwszej klatki. Jeśli jest to głównie jednolity kolor, używa klatki z określonej pozycji wideo w zamian</string>
+    <string name="hybrid_slow">Wolniejsze</string>
+    <string name="frame_position">Pozycja klatki</string>
+    <string name="frame_position_value">Klatka w %1$.0f%% czasu trwania wideo</string>
+    <string name="thumbnail_setting_change_confirmation">Zmiana tego ustawienia spowoduje wyczyszczenie pamięci podręcznej miniatur. Miniatury zostaną wygenerowane ponownie po otwarciu listy multimediów. Kontynuować?</string>
 </resources>
