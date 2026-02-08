@@ -98,30 +98,26 @@ private fun SubtitlePreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 2
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_subtitle_lang),
                     description = LocalesHelper.getLocaleDisplayLanguage(uiState.preferences.preferredSubtitleLanguage)
                         .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_subtitle_lang_description),
                     icon = NextIcons.Language,
                     onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog)) },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.subtitle_text_encoding),
                     description = charsetResource.first { it.contains(uiState.preferences.subtitleTextEncoding) },
                     icon = NextIcons.Subtitle,
                     onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog)) },
-                    index = 1,
-                    count = totalRows,
+                    isLastItem = true
                 )
             }
             ListSectionTitle(text = stringResource(id = R.string.appearance_name))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 6
                 PreferenceSwitchWithDivider(
                     title = stringResource(R.string.system_caption_style),
                     description = stringResource(R.string.system_caption_style_desc),
@@ -129,8 +125,7 @@ private fun SubtitlePreferencesContent(
                     isChecked = uiState.preferences.useSystemCaptionStyle,
                     onChecked = { onEvent(SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle) },
                     onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.subtitle_font),
@@ -138,8 +133,6 @@ private fun SubtitlePreferencesContent(
                     icon = NextIcons.Font,
                     enabled = uiState.preferences.useSystemCaptionStyle.not(),
                     onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleFontDialog)) },
-                    index = 1,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.subtitle_text_bold),
@@ -148,8 +141,6 @@ private fun SubtitlePreferencesContent(
                     enabled = uiState.preferences.useSystemCaptionStyle.not(),
                     isChecked = uiState.preferences.subtitleTextBold,
                     onClick = { onEvent(SubtitlePreferencesUiEvent.ToggleSubtitleTextBold) },
-                    index = 2,
-                    count = totalRows,
                 )
                 PreferenceSlider(
                     title = stringResource(id = R.string.subtitle_text_size),
@@ -172,8 +163,6 @@ private fun SubtitlePreferencesContent(
                             )
                         }
                     },
-                    index = 3,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.subtitle_background),
@@ -182,8 +171,6 @@ private fun SubtitlePreferencesContent(
                     enabled = uiState.preferences.useSystemCaptionStyle.not(),
                     isChecked = uiState.preferences.subtitleBackground,
                     onClick = { onEvent(SubtitlePreferencesUiEvent.ToggleSubtitleBackground) },
-                    index = 4,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.embedded_styles),
@@ -191,8 +178,7 @@ private fun SubtitlePreferencesContent(
                     icon = NextIcons.Style,
                     isChecked = uiState.preferences.applyEmbeddedStyles,
                     onClick = { onEvent(SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles) },
-                    index = 5,
-                    count = totalRows,
+                    isLastItem = true
                 )
             }
         }

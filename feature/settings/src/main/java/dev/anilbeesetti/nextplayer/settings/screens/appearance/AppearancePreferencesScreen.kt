@@ -83,7 +83,6 @@ private fun AppearancePreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = if (supportsDynamicTheming()) 3 else 2
                 PreferenceSwitchWithDivider(
                     title = stringResource(id = R.string.dark_theme),
                     description = uiState.preferences.themeConfig.name(),
@@ -91,8 +90,7 @@ private fun AppearancePreferencesContent(
                     onChecked = { onEvent(AppearancePreferencesEvent.ToggleDarkTheme) },
                     icon = NextIcons.DarkMode,
                     onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.high_contrast_dark_theme),
@@ -100,8 +98,7 @@ private fun AppearancePreferencesContent(
                     icon = NextIcons.Contrast,
                     isChecked = uiState.preferences.useHighContrastDarkTheme,
                     onClick = { onEvent(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
-                    index = 1,
-                    count = totalRows,
+                    isLastItem = !supportsDynamicTheming()
                 )
                 if (supportsDynamicTheming()) {
                     PreferenceSwitch(
@@ -110,8 +107,7 @@ private fun AppearancePreferencesContent(
                         icon = NextIcons.Appearance,
                         isChecked = uiState.preferences.useDynamicColors,
                         onClick = { onEvent(AppearancePreferencesEvent.ToggleUseDynamicColors) },
-                        index = 2,
-                        count = totalRows,
+                        isLastItem = true
                     )
                 }
             }

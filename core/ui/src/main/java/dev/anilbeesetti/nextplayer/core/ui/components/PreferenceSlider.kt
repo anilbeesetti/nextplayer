@@ -20,8 +20,8 @@ fun PreferenceSlider(
     description: String? = null,
     icon: ImageVector? = null,
     enabled: Boolean = true,
-    index: Int = 0,
-    count: Int = 1,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     onValueChange: (Float) -> Unit,
@@ -32,8 +32,8 @@ fun PreferenceSlider(
         onClick = {},
         onLongClick = null,
         enabled = enabled,
-        index = index,
-        count = count,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
         leadingContent = icon?.let {
             {
                 Icon(

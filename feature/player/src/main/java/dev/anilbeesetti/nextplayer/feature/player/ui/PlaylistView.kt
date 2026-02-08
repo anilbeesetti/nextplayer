@@ -110,8 +110,8 @@ fun BoxScope.PlaylistView(
                         val isCurrentItem = index == playlistState.currentMediaItemIndex
                         PlaylistItemView(
                             mediaItem = mediaItem,
-                            index = index,
-                            count = playlistState.playlist.size,
+                            isFirstItem = index == 0,
+                            isLastItem = index == playlistState.playlist.lastIndex,
                             isCurrentItem = isCurrentItem,
                             canDelete = playlistState.playlist.size > 1,
                             onClick = { playlistState.seekToItem(index) },
@@ -128,8 +128,8 @@ fun BoxScope.PlaylistView(
 @Composable
 private fun ReorderableCollectionItemScope.PlaylistItemView(
     mediaItem: MediaItem,
-    index: Int,
-    count: Int,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
     isCurrentItem: Boolean,
     canDelete: Boolean,
     onClick: () -> Unit,
@@ -161,8 +161,8 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
             },
             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
         ),
-        index = index,
-        count = count,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
         onClick = onClick,
         leadingContent = {
             Row(

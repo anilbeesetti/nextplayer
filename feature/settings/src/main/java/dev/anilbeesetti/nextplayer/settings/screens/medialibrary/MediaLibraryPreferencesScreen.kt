@@ -90,8 +90,8 @@ private fun MediaLibraryPreferencesContent(
                     icon = NextIcons.Check,
                     isChecked = preferences.markLastPlayedMedia,
                     onClick = { onEvent(MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia) },
-                    index = 0,
-                    count = 1,
+                    isFirstItem = true,
+                    isLastItem = true,
                 )
             }
 
@@ -104,6 +104,8 @@ private fun MediaLibraryPreferencesContent(
                     description = stringResource(id = R.string.manage_folders_desc),
                     icon = NextIcons.FolderOff,
                     onClick = onFolderSettingClick,
+                    isFirstItem = true,
+                    isLastItem = true,
                 )
             }
         }

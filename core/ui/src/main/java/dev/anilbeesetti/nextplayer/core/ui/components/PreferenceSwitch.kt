@@ -13,8 +13,8 @@ fun PreferenceSwitch(
     enabled: Boolean = true,
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
-    index: Int = 0,
-    count: Int = 1,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
 ) {
     PreferenceItem(
         title = title,
@@ -22,8 +22,8 @@ fun PreferenceSwitch(
         icon = icon,
         enabled = enabled,
         onClick = onClick,
-        index = index,
-        count = count,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
         trailingContent = {
             NextSwitch(
                 checked = isChecked,

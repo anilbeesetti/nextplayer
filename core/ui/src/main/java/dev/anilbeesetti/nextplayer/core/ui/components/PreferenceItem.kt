@@ -29,8 +29,8 @@ fun PreferenceItem(
     enabled: Boolean,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
-    index: Int = 0,
-    count: Int = 1,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
     trailingContent: @Composable () -> Unit = {},
 ) {
     NextSegmentedListItem(
@@ -38,8 +38,8 @@ fun PreferenceItem(
         onClick = onClick,
         onLongClick = onLongClick,
         enabled = enabled,
-        index = index,
-        count = count,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
         leadingContent = icon?.let {
             {
                 Icon(
@@ -70,15 +70,15 @@ fun SelectablePreference(
     selected: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
-    index: Int = 0,
-    count: Int = 1,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
 ) {
     NextSegmentedListItem(
         modifier = modifier,
         onClick = onClick,
         onLongClick = onLongClick,
-        index = index,
-        count = count,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
         content = {
             Text(
                 text = title,
