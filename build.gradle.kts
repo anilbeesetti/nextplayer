@@ -1,4 +1,3 @@
-import com.mikepenz.aboutlibraries.plugin.DuplicateMode
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 

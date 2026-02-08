@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
@@ -33,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 fun MediaLibraryPreferencesScreen(
     onNavigateUp: () -> Unit,
     onFolderSettingClick: () -> Unit = {},
+    onThumbnailSettingClick: () -> Unit = {},
     viewModel: MediaLibraryPreferencesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -41,6 +43,7 @@ fun MediaLibraryPreferencesScreen(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
         onFolderSettingClick = onFolderSettingClick,
+        onThumbnailSettingClick = onThumbnailSettingClick,
         onEvent = viewModel::onEvent,
     )
 }
@@ -51,6 +54,7 @@ private fun MediaLibraryPreferencesContent(
     uiState: MediaLibraryPreferencesUiState,
     onNavigateUp: () -> Unit,
     onFolderSettingClick: () -> Unit,
+    onThumbnailSettingClick: () -> Unit,
     onEvent: (MediaLibraryPreferencesUiEvent) -> Unit,
 ) {
     val preferences = uiState.preferences
@@ -108,6 +112,24 @@ private fun MediaLibraryPreferencesContent(
                     isLastItem = true,
                 )
             }
+
+            ListSectionTitle(text = stringResource(id = R.string.thumbnail))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.thumbnail_generation),
+                    description = when (preferences.thumbnailGenerationStrategy) {
+                        ThumbnailGenerationStrategy.FIRST_FRAME -> stringResource(id = R.string.first_frame)
+                        ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE -> stringResource(R.string.frame_at_position)
+                        ThumbnailGenerationStrategy.HYBRID -> stringResource(id = R.string.hybrid)
+                    },
+                    icon = NextIcons.Image,
+                    onClick = onThumbnailSettingClick,
+                    isFirstItem = true,
+                    isLastItem = true,
+                )
+            }
         }
     }
 }
@@ -120,6 +142,7 @@ private fun MediaLibraryPreferencesScreenPreview() {
             uiState = MediaLibraryPreferencesUiState(),
             onNavigateUp = {},
             onFolderSettingClick = {},
+            onThumbnailSettingClick = {},
             onEvent = {},
         )
     }

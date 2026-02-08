@@ -25,6 +25,7 @@ fun PreferenceSlider(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit = {},
     trailingContent: @Composable () -> Unit = {},
 ) {
     NextSegmentedListItem(
@@ -54,6 +55,7 @@ fun PreferenceSlider(
                     value = value,
                     valueRange = valueRange,
                     onValueChange = onValueChange,
+                    onValueChangeFinished = onValueChangeFinished,
                 )
             }
         },

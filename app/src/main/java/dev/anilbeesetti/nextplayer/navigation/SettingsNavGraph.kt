@@ -22,10 +22,12 @@ import dev.anilbeesetti.nextplayer.settings.navigation.navigateToLibraries
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSubtitlePreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToThumbnailPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.playerPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.settingsNavigationRoute
 import dev.anilbeesetti.nextplayer.settings.navigation.settingsScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.subtitlePreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.thumbnailPreferencesScreen
 
 const val SETTINGS_ROUTE = "settings_nav_route"
 
@@ -57,6 +59,10 @@ fun NavGraphBuilder.settingsNavGraph(
         mediaLibraryPreferencesScreen(
             onNavigateUp = navController::navigateUp,
             onFolderSettingClick = navController::navigateToFolderPreferencesScreen,
+            onThumbnailSettingClick = navController::navigateToThumbnailPreferencesScreen,
+        )
+        thumbnailPreferencesScreen(
+            onNavigateUp = navController::navigateUp,
         )
         folderPreferencesScreen(
             onNavigateUp = navController::navigateUp,

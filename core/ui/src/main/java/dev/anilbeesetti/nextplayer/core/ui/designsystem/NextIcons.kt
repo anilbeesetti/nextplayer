@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FileOpen
+import androidx.compose.material.icons.rounded.FilterFrames
 import androidx.compose.material.icons.rounded.FlipToBack
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOff
@@ -44,6 +45,7 @@ import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.MiscellaneousServices
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PanToolAlt
@@ -146,4 +148,6 @@ object NextIcons {
     val Copy = Icons.Rounded.ContentCopy
     val ExtraSettings = Icons.Rounded.MiscellaneousServices
     val DeleteSweep = Icons.Rounded.DeleteSweep
+    val Image = Icons.Rounded.Image
+    val Frame = Icons.Rounded.FilterFrames
 }
