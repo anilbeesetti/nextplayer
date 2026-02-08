@@ -26,8 +26,8 @@ fun PreferenceSwitchWithDivider(
     isChecked: Boolean = true,
     onClick: (() -> Unit) = {},
     onChecked: () -> Unit = {},
-    index: Int = 0,
-    count: Int = 1,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
 ) {
     PreferenceItem(
         title = title,
@@ -35,8 +35,8 @@ fun PreferenceSwitchWithDivider(
         icon = icon,
         onClick = onClick,
         enabled = enabled,
-        index = index,
-        count = count,
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
         trailingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

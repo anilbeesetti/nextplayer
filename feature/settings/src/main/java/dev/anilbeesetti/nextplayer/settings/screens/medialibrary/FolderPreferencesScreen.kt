@@ -93,8 +93,8 @@ private fun FolderPreferencesContent(
                             description = folder.path,
                             selected = folder.path in uiState.preferences.excludeFolders,
                             onClick = { onEvent(FolderPreferencesUiEvent.UpdateExcludeList(folder.path)) },
-                            index = index,
-                            count = uiState.foldersDataState.value.size,
+                            isFirstItem = index == 0,
+                            isLastItem = index == uiState.foldersDataState.value.lastIndex,
                         )
                     }
                 }

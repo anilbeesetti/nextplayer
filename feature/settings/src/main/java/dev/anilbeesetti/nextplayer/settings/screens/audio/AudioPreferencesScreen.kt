@@ -84,15 +84,13 @@ private fun AudioPreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 5
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_audio_lang),
                     description = LocalesHelper.getLocaleDisplayLanguage(uiState.preferences.preferredAudioLanguage)
                         .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_audio_lang_description),
                     icon = NextIcons.Language,
                     onClick = { onEvent(AudioPreferencesUiEvent.ShowDialog(AudioPreferenceDialog.AudioLanguageDialog)) },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true,
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.require_audio_focus),
@@ -100,8 +98,6 @@ private fun AudioPreferencesContent(
                     icon = NextIcons.Focus,
                     isChecked = uiState.preferences.requireAudioFocus,
                     onClick = { onEvent(AudioPreferencesUiEvent.ToggleRequireAudioFocus) },
-                    index = 1,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.pause_on_headset_disconnect),
@@ -109,8 +105,6 @@ private fun AudioPreferencesContent(
                     icon = NextIcons.HeadsetOff,
                     isChecked = uiState.preferences.pauseOnHeadsetDisconnect,
                     onClick = { onEvent(AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect) },
-                    index = 2,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.system_volume_panel),
@@ -118,8 +112,6 @@ private fun AudioPreferencesContent(
                     icon = NextIcons.Headset,
                     isChecked = uiState.preferences.showSystemVolumePanel,
                     onClick = { onEvent(AudioPreferencesUiEvent.ToggleShowSystemVolumePanel) },
-                    index = 3,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.volume_boost),
@@ -127,8 +119,7 @@ private fun AudioPreferencesContent(
                     icon = NextIcons.VolumeUp,
                     isChecked = uiState.preferences.enableVolumeBoost,
                     onClick = { onEvent(AudioPreferencesUiEvent.ToggleVolumeBoost) },
-                    index = 4,
-                    count = totalRows,
+                    isLastItem = true
                 )
             }
         }

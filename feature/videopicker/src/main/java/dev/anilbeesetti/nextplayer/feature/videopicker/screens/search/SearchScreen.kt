@@ -276,8 +276,8 @@ private fun SuggestionsContent(
                     isRecentlyPlayedFolder = false,
                     preferences = preferences.copy(mediaLayoutMode = MediaLayoutMode.LIST),
                     modifier = Modifier.padding(horizontal = 8.dp),
-                    index = index,
-                    count = popularFolders.size,
+                    isFirstItem = index == 0,
+                    isLastItem = index == popularFolders.lastIndex,
                     onClick = { onFolderClick(folder.path) },
                 )
             }

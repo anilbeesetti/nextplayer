@@ -88,6 +88,8 @@ private fun DecoderPreferencesContent(
                     description = preferences.decoderPriority.name(),
                     icon = NextIcons.Priority,
                     onClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(DecoderPreferenceDialog.DecoderPriorityDialog)) },
+                    isFirstItem = true,
+                    isLastItem = true,
                 )
             }
         }

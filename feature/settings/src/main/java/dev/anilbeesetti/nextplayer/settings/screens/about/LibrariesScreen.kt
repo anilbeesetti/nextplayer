@@ -106,8 +106,8 @@ fun LibrariesScreen(
                             }
                         }
                     },
-                    index = index,
-                    count = libs.libraries.size,
+                    isFirstItem = index == 0,
+                    isLastItem = index == libs.libraries.lastIndex,
                     onClick = {
                         library.website?.takeIf { it.isNotBlank() }?.let {
                             uriHandler.openUriOrShowToast(uri = it, context = context)

@@ -98,15 +98,13 @@ private fun PlayerPreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 9
                 PreferenceSwitch(
                     title = stringResource(id = R.string.seek_gesture),
                     description = stringResource(id = R.string.seek_gesture_description),
                     icon = NextIcons.SwipeHorizontal,
                     isChecked = uiState.preferences.useSeekControls,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleUseSeekControls) },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.brightness_gesture),
@@ -114,8 +112,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.SwipeVertical,
                     isChecked = uiState.preferences.enableBrightnessSwipeGesture,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleEnableBrightnessSwipeGesture) },
-                    index = 1,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.volume_gesture),
@@ -123,8 +119,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.SwipeVertical,
                     isChecked = uiState.preferences.enableVolumeSwipeGesture,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleEnableVolumeSwipeGesture) },
-                    index = 2,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.zoom_gesture),
@@ -132,8 +126,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Pinch,
                     isChecked = uiState.preferences.useZoomControls,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleUseZoomControls) },
-                    index = 3,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.pan_gesture),
@@ -142,8 +134,6 @@ private fun PlayerPreferencesContent(
                     enabled = uiState.preferences.useZoomControls,
                     isChecked = uiState.preferences.enablePanGesture,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleEnablePanGesture) },
-                    index = 4,
-                    count = totalRows,
                 )
                 PreferenceSwitchWithDivider(
                     title = stringResource(id = R.string.double_tap),
@@ -152,8 +142,6 @@ private fun PlayerPreferencesContent(
                     isChecked = (uiState.preferences.doubleTapGesture != DoubleTapGesture.NONE),
                     onChecked = { onEvent(PlayerPreferencesUiEvent.ToggleDoubleTapGesture) },
                     onClick = { onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.DoubleTapDialog)) },
-                    index = 5,
-                    count = totalRows,
                 )
                 PreferenceSwitchWithDivider(
                     title = stringResource(id = R.string.long_press_gesture),
@@ -162,8 +150,6 @@ private fun PlayerPreferencesContent(
                     isChecked = uiState.preferences.useLongPressControls,
                     onChecked = { onEvent(PlayerPreferencesUiEvent.ToggleUseLongPressControls) },
                     onClick = { onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.LongPressControlsSpeedDialog)) },
-                    index = 6,
-                    count = totalRows,
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.seek_increment),
@@ -172,8 +158,6 @@ private fun PlayerPreferencesContent(
                     value = uiState.preferences.seekIncrement.toFloat(),
                     valueRange = 1.0f..60.0f,
                     onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateSeekIncrement(it.toInt())) },
-                    index = 7,
-                    count = totalRows,
                     trailingContent = {
                         FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateSeekIncrement(PlayerPreferences.DEFAULT_SEEK_INCREMENT)) }) {
                             Icon(
@@ -190,8 +174,7 @@ private fun PlayerPreferencesContent(
                     value = uiState.preferences.seekSensitivity,
                     valueRange = 0.1f..2.0f,
                     onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateSeekSensitivity(it)) },
-                    index = 8,
-                    count = totalRows,
+                    isLastItem = true,
                     trailingContent = {
                         FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateSeekSensitivity(PlayerPreferences.DEFAULT_SEEK_SENSITIVITY)) }) {
                             Icon(
@@ -206,7 +189,6 @@ private fun PlayerPreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 3
                 PreferenceSlider(
                     title = stringResource(R.string.controller_timeout),
                     description = stringResource(R.string.seconds, uiState.preferences.controllerAutoHideTimeout),
@@ -214,8 +196,7 @@ private fun PlayerPreferencesContent(
                     value = uiState.preferences.controllerAutoHideTimeout.toFloat(),
                     valueRange = 1.0f..60.0f,
                     onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt())) },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true,
                     trailingContent = {
                         FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT)) }) {
                             Icon(
@@ -231,8 +212,7 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.HideSource,
                     isChecked = uiState.preferences.hidePlayerButtonsBackground,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleHidePlayerButtonsBackground) },
-                    index = 2,
-                    count = totalRows,
+                    isLastItem = true
                 )
             }
 
@@ -240,14 +220,12 @@ private fun PlayerPreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 8
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.resume),
                     description = stringResource(id = R.string.resume_description),
                     icon = NextIcons.Resume,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.ResumeDialog)) },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true,
                 )
                 PreferenceSlider(
                     title = stringResource(id = R.string.default_playback_speed),
@@ -256,8 +234,6 @@ private fun PlayerPreferencesContent(
                     value = uiState.preferences.defaultPlaybackSpeed,
                     valueRange = 0.2f..4.0f,
                     onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(it)) },
-                    index = 1,
-                    count = totalRows,
                     trailingContent = {
                         FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f)) }) {
                             Icon(
@@ -275,8 +251,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Player,
                     isChecked = uiState.preferences.autoplay,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoplay) },
-                    index = 2,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.pip_settings),
@@ -286,8 +260,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Pip,
                     isChecked = uiState.preferences.autoPip,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoPip) },
-                    index = 3,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.background_play),
@@ -297,8 +269,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Headset,
                     isChecked = uiState.preferences.autoBackgroundPlay,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay) },
-                    index = 4,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.remember_brightness_level),
@@ -308,8 +278,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Brightness,
                     isChecked = uiState.preferences.rememberPlayerBrightness,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel) },
-                    index = 5,
-                    count = totalRows,
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.remember_selections),
@@ -317,8 +285,6 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Selection,
                     isChecked = uiState.preferences.rememberSelections,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleRememberSelections) },
-                    index = 6,
-                    count = totalRows,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.player_screen_orientation),
@@ -327,8 +293,7 @@ private fun PlayerPreferencesContent(
                     onClick = {
                         onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog))
                     },
-                    index = 7,
-                    count = totalRows,
+                    isLastItem = true
                 )
             }
         }
