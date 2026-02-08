@@ -92,27 +92,27 @@ fun BoxScope.SubtitleSelectorView(
                     onDismiss()
                 },
             )
+            Spacer(modifier = Modifier.size(16.dp))
+            FilledTonalButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    onSelectSubtitleClick()
+                    onDismiss()
+                },
+            ) {
+                Text(text = stringResource(R.string.open_subtitle))
+            }
+            Spacer(modifier = Modifier.size(16.dp))
+            DelayInput(
+                value = subtitleOptionsState.delayMilliseconds,
+                onValueChange = { subtitleOptionsState.setDelay(it) },
+            )
+            Spacer(modifier = Modifier.size(16.dp))
+            SpeedInput(
+                value = subtitleOptionsState.speedMultiplier,
+                onValueChange = { subtitleOptionsState.setSpeed(it) },
+            )
         }
-        Spacer(modifier = Modifier.size(16.dp))
-        FilledTonalButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                onSelectSubtitleClick()
-                onDismiss()
-            },
-        ) {
-            Text(text = stringResource(R.string.open_subtitle))
-        }
-        Spacer(modifier = Modifier.size(16.dp))
-        DelayInput(
-            value = subtitleOptionsState.delayMilliseconds,
-            onValueChange = { subtitleOptionsState.setDelay(it) },
-        )
-        Spacer(modifier = Modifier.size(16.dp))
-        SpeedInput(
-            value = subtitleOptionsState.speedMultiplier,
-            onValueChange = { subtitleOptionsState.setSpeed(it) },
-        )
     }
 }
 
