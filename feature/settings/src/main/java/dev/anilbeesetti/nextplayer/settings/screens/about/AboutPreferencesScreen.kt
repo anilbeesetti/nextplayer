@@ -117,7 +117,6 @@ fun AboutPreferencesScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                val totalRows = 3
                 ClickablePreferenceItem(
                     title = stringResource(R.string.kofi),
                     description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
@@ -128,8 +127,7 @@ fun AboutPreferencesScreen(
                             context = context,
                         )
                     },
-                    index = 0,
-                    count = totalRows,
+                    isFirstItem = true
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
@@ -141,8 +139,6 @@ fun AboutPreferencesScreen(
                             context = context,
                         )
                     },
-                    index = 1,
-                    count = totalRows,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.upi),
@@ -154,8 +150,7 @@ fun AboutPreferencesScreen(
                             Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    index = 2,
-                    count = totalRows,
+                    isLastItem = true,
                 )
             }
         }

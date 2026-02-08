@@ -61,8 +61,8 @@ fun SettingsScreen(
                     description = stringResource(id = row.descriptionResId),
                     icon = row.icon,
                     onClick = { onItemClick(row.setting) },
-                    index = index,
-                    count = settingRows.size,
+                    isFirstItem = index == 0,
+                    isLastItem = index == settingRows.lastIndex,
                 )
             }
         }

@@ -104,9 +104,9 @@ fun MediaView(
                     folder = folder,
                     isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
                     preferences = preferences,
-                    index = index,
                     selected = selected,
-                    count = rootFolder.folderList.size,
+                    isFirstItem = index == 0,
+                    isLastItem = index == rootFolder.folderList.lastIndex,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
                             haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
@@ -144,8 +144,8 @@ fun MediaView(
                     video = video,
                     preferences = preferences,
                     isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
-                    index = index,
-                    count = rootFolder.mediaList.size,
+                    isFirstItem = index == 0,
+                    isLastItem = index == rootFolder.mediaList.lastIndex,
                     selected = selected,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
