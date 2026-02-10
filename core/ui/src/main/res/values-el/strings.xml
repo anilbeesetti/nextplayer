@@ -106,7 +106,7 @@
     <string name="default_playback_speed">Ταχύτητα αναπαραγωγής</string>
     <string name="network_stream">Δικτυακή ροή</string>
     <string name="enter_a_network_url">Εισάγετε μια διεύθυνση URL:</string>
-    <string name="monospace">Monospace</string>
+    <string name="monospace">Μονοδιάστημα</string>
     <string name="sans_serif">Sans Serif</string>
     <string name="serif">Serif</string>
     <string name="subtitle_text_size">Μέγεθος</string>
@@ -166,14 +166,14 @@
     <string name="codec">Κωδικοποιητής</string>
     <string name="properties">Ιδιότητες</string>
     <string name="channels">Κανάλια</string>
-    <string name="video_track">Βίντεο</string>
+    <string name="video_track">Κομμάτι Βίντεο</string>
     <string name="subtitle_track">Υπότιτλοι</string>
     <string name="sample_format">Μορφή δειγματοληψίας</string>
     <string name="bitrate">Ρυθμός bit</string>
     <string name="frame_rate">Ρυθμός καρέ</string>
     <string name="language">Γλώσσα</string>
     <string name="okay">Εντάξει</string>
-    <string name="audio_track">Ήχος</string>
+    <string name="audio_track">Κομμάτι Ήχου</string>
     <string name="sample_rate">Ρυθμός δειγματοληψίας</string>
     <string name="file">Αρχείο</string>
     <string name="format">Μορφή</string>
@@ -190,7 +190,7 @@
     <string name="exit">Έξοδος</string>
     <string name="mark_last_played_media">Επισήμανση αναπαραγωγής</string>
     <string name="open_local_video">Τοπικό βίντεο</string>
-    <string name="open_network_stream">Δικτυακή ροή</string>
+    <string name="open_network_stream">Άνοιγμα Δικτυακής ροής</string>
     <string name="mark_last_played_media_desc">Επισήμανση τελευταίας αναπαραγωγής σε κάθε φάκελο</string>
     <string name="skip_silence">Παράκαμψη σίγασης</string>
     <string name="folders">Φάκελοι</string>
