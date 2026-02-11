@@ -190,7 +190,7 @@
     <string name="exit">Έξοδος</string>
     <string name="mark_last_played_media">Επισήμανση αναπαραγωγής</string>
     <string name="open_local_video">Τοπικό βίντεο</string>
-    <string name="open_network_stream">Άνοιγμα Δικτυακής ροής</string>
+    <string name="open_network_stream">Δικτυακή ροή</string>
     <string name="mark_last_played_media_desc">Επισήμανση τελευταίας αναπαραγωγής σε κάθε φάκελο</string>
     <string name="skip_silence">Παράκαμψη σίγασης</string>
     <string name="folders">Φάκελοι</string>
