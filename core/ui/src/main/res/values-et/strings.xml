@@ -280,4 +280,16 @@
     <string name="reorder">Muuda järjekorda</string>
     <string name="remove">Eemalda</string>
     <string name="unknown">Tundmatu</string>
+    <string name="thumbnail_generation">Pisipiltide loomine</string>
+    <string name="thumbnail_generation_strategy">Strateegia pisipiltide loomisel</string>
+    <string name="first_frame">Esimene kaader</string>
+    <string name="first_frame_desc">Kasuta video esimest kaadrit</string>
+    <string name="frame_at_position">Kaader kindlast asukohast</string>
+    <string name="frame_at_position_desc">Kasuta kaadrit määratud asukohast videos</string>
+    <string name="hybrid">Hübriidne (nutikas)</string>
+    <string name="hybrid_desc">Proovib kasutada esimest kaadrit, aga kui see on ühevärviline, siis kasutab kaadrit kindlast asukohat</string>
+    <string name="hybrid_slow">Aeglasem</string>
+    <string name="frame_position">Kaadri asukoht</string>
+    <string name="frame_position_value">Kaader, mille asukoht on %1$.0f%% video kestusest</string>
+    <string name="thumbnail_setting_change_confirmation">Selle seadistuse muutmisel kustutatakse seni puhverdatud pisipildid. Meediumiloendi avamisel luuakse nad uuesti. Kas jätkame?</string>
 </resources>
