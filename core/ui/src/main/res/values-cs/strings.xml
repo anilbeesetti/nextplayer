@@ -208,7 +208,7 @@
     <string name="mark_last_played_media_desc">Označit posledně přehráté video ve každé složce</string>
     <string name="grid">Mřížka</string>
     <string name="list">Seznam</string>
-    <string name="media_layout">Rozhraní seznamu Medií</string>
+    <string name="media_layout">Rozhraní seznamu medií</string>
     <string name="decoder_desc">Priorita dekodéru, nastavení dekodéru pro přehrávání</string>
     <string name="embedded_styles">Vložené styly</string>
     <string name="embedded_styles_desc">Použít vložené styly, které jsou obsažené v souborech s titulky, jako například ASS a podobné</string>
@@ -246,7 +246,7 @@
     <string name="user_data">Uživatelské data</string>
     <string name="delete_thumbnail_cache">Odstranit mezipaměť miniatur</string>
     <string name="delete_thumbnail_cache_description">Odstranit všechny uložené miniatury v mezipaměti. Miniatury budou vygenerovány zas, když se otevře seznam medií</string>
-    <string name="delete_thumbnail_cache_confirmation">Chcete opravhu odstranit všechny miniatury?</string>
+    <string name="delete_thumbnail_cache_confirmation">Chcete opravdu odstranit všechny miniatury?</string>
     <string name="reset_settings">Resetovat nastavení</string>
     <string name="reset_settings_description">Resetovat všechna nastavení na výchozí hodnoty</string>
     <string name="reset_settings_confirmation">Chcete opravdu resetovat všechna nastavení na jejich výchozí hodnoty?</string>
@@ -255,4 +255,26 @@
     <string name="play">Přehrát</string>
     <string name="hide_player_buttons_background">Nezobrazovat pozadí tlačítek v přehrávači</string>
     <string name="hide_player_buttons_background_description">Nezobrazovat pozadí všech tlačítek pro ovládání přehrávače</string>
+    <string name="thumbnail_generation">Vygenerování miniatur</string>
+    <string name="thumbnail_generation_strategy">Vyberte jak vygenerovat miniatury</string>
+    <string name="first_frame">První snímek</string>
+    <string name="first_frame_desc">Použít první snímek videa</string>
+    <string name="frame_at_position">Snímek ve vybraném místě</string>
+    <string name="frame_at_position_desc">Použít snímek ve konkrétním času v videu</string>
+    <string name="hybrid">Hybridní (chytrý)</string>
+    <string name="hybrid_desc">Zkusí použít první snímek. Jestli to je spíše plná barva, tak místo toho použít snímek ve konkrétním času v videu</string>
+    <string name="hybrid_slow">Pomalejší</string>
+    <string name="frame_position">Pozice snímku</string>
+    <string name="frame_position_value">Snímek v %1$.0f%% délky videa</string>
+    <string name="thumbnail_setting_change_confirmation">Změny tohoto nastavení vyčistí mezipaměť miniatur. Miniatury budou vygenerovány zas, když otevřete seznam médií. Chcete pokračovat?</string>
+    <string name="search_videos_and_folders">Hledat videa a složky</string>
+    <string name="recent_searches">Nedávné hledání</string>
+    <string name="clear_history">Vymazat historii</string>
+    <string name="no_results_found">Žádné výseldky nenalezeny</string>
+    <string name="search_results">Výsledky hledání</string>
+    <string name="now_playing">Právě hraje</string>
+    <string name="no_videos_in_queue">Žádné videa v frontě</string>
+    <string name="remove">Odebrat</string>
+    <string name="unknown">Neznámé</string>
+    <string name="search">Hledat</string>
 </resources>
