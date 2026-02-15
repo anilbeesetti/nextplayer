@@ -41,6 +41,7 @@ class AudioPreferencesViewModel @Inject constructor(
             AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect -> togglePauseOnHeadsetDisconnect()
             AudioPreferencesUiEvent.ToggleShowSystemVolumePanel -> toggleShowSystemVolumePanel()
             AudioPreferencesUiEvent.ToggleRequireAudioFocus -> toggleRequireAudioFocus()
+            AudioPreferencesUiEvent.ToggleMuteAllVideosAudio -> toggleMuteAllVideosAudio()
             AudioPreferencesUiEvent.ToggleVolumeBoost -> toggleVolumeBoost()
         }
     }
@@ -83,6 +84,14 @@ class AudioPreferencesViewModel @Inject constructor(
         }
     }
 
+    private fun toggleMuteAllVideosAudio() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(muteAllVideosAudio = !it.muteAllVideosAudio)
+            }
+        }
+    }
+
     private fun toggleVolumeBoost() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -108,5 +117,6 @@ sealed interface AudioPreferencesUiEvent {
     data object TogglePauseOnHeadsetDisconnect : AudioPreferencesUiEvent
     data object ToggleShowSystemVolumePanel : AudioPreferencesUiEvent
     data object ToggleRequireAudioFocus : AudioPreferencesUiEvent
+    data object ToggleMuteAllVideosAudio : AudioPreferencesUiEvent
     data object ToggleVolumeBoost : AudioPreferencesUiEvent
 }

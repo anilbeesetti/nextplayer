@@ -10,6 +10,8 @@ enum class CustomCommands(val customAction: String) {
     ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK"),
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
+    SET_SESSION_MUTE_ENABLED(customAction = "SET_SESSION_MUTE_ENABLED"),
+    GET_SESSION_MUTE_ENABLED(customAction = "GET_SESSION_MUTE_ENABLED"),
     SET_IS_SCRUBBING_MODE_ENABLED(customAction = "SET_IS_SCRUBBING_MODE_ENABLED"),
     GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
     GET_SUBTITLE_DELAY(customAction = "GET_SUBTITLE_DELAY"),
@@ -32,6 +34,7 @@ enum class CustomCommands(val customAction: String) {
 
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
+        const val SESSION_MUTE_ENABLED_KEY = "session_mute_enabled"
         const val IS_SCRUBBING_MODE_ENABLED_KEY = "is_scrubbing_mode_enabled"
         const val AUDIO_SESSION_ID_KEY = "audio_session_id"
         const val SUBTITLE_DELAY_KEY = "subtitle_delay"
@@ -63,6 +66,18 @@ fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
     val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
+}
+
+suspend fun MediaController.setSessionMuteEnabled(enabled: Boolean) {
+    val args = Bundle().apply {
+        putBoolean(CustomCommands.SESSION_MUTE_ENABLED_KEY, enabled)
+    }
+    sendCustomCommand(CustomCommands.SET_SESSION_MUTE_ENABLED.sessionCommand, args).await()
+}
+
+suspend fun MediaController.getSessionMuteEnabled(): Boolean {
+    val result = sendCustomCommand(CustomCommands.GET_SESSION_MUTE_ENABLED.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getBoolean(CustomCommands.SESSION_MUTE_ENABLED_KEY, false)
 }
 
 fun MediaController.setSubtitleDelayMilliseconds(delayMillis: Long) {
