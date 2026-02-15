@@ -76,6 +76,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -87,6 +88,13 @@ class PlayerService : MediaSessionService() {
 
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
+    private var latestPlayerPreferences: PlayerPreferences = PlayerPreferences()
+    private var sessionMuteEnabled: Boolean = false
+
+    private val mediaAudioAttributes = AudioAttributes.Builder()
+        .setUsage(C.USAGE_MEDIA)
+        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+        .build()
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
@@ -393,6 +401,24 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
+                CustomCommands.SET_SESSION_MUTE_ENABLED -> {
+                    val enabled = args.getBoolean(CustomCommands.SESSION_MUTE_ENABLED_KEY)
+                    sessionMuteEnabled = enabled
+                    (mediaSession?.player as? ExoPlayer)?.let { player ->
+                        applyMuteAndAudioPolicy(player)
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_SESSION_MUTE_ENABLED -> {
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putBoolean(CustomCommands.SESSION_MUTE_ENABLED_KEY, sessionMuteEnabled)
+                        },
+                    )
+                }
+
                 CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY)
                     mediaSession?.player?.setIsScrubbingModeEnabled(enabled)
@@ -465,10 +491,13 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        val initialPreferences = playerPreferences
+        latestPlayerPreferences = initialPreferences
+
         val renderersFactory = NextRenderersFactory(applicationContext)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(
-                when (playerPreferences.decoderPriority) {
+                when (initialPreferences.decoderPriority) {
                     DecoderPriority.DEVICE_ONLY -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
                     DecoderPriority.PREFER_DEVICE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
                     DecoderPriority.PREFER_APP -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
@@ -478,8 +507,8 @@ class PlayerService : MediaSessionService() {
         val trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(
                 buildUponParameters()
-                    .setPreferredAudioLanguage(playerPreferences.preferredAudioLanguage)
-                    .setPreferredTextLanguage(playerPreferences.preferredSubtitleLanguage),
+                    .setPreferredAudioLanguage(initialPreferences.preferredAudioLanguage)
+                    .setPreferredTextLanguage(initialPreferences.preferredSubtitleLanguage),
             )
         }
 
@@ -487,18 +516,15 @@ class PlayerService : MediaSessionService() {
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                    .build(),
-                playerPreferences.requireAudioFocus,
+                mediaAudioAttributes,
+                initialPreferences.requireAudioFocus,
             )
-            .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
+            .setHandleAudioBecomingNoisy(initialPreferences.pauseOnHeadsetDisconnect)
             .build()
             .also {
                 it.addListener(playbackStateListener)
-                it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
-                it.repeatMode = when (playerPreferences.loopMode) {
+                it.pauseAtEndOfMediaItems = !initialPreferences.autoplay
+                it.repeatMode = when (initialPreferences.loopMode) {
                     LoopMode.OFF -> Player.REPEAT_MODE_OFF
                     LoopMode.ONE -> Player.REPEAT_MODE_ONE
                     LoopMode.ALL -> Player.REPEAT_MODE_ALL
@@ -530,6 +556,14 @@ class PlayerService : MediaSessionService() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
+        applyMuteAndAudioPolicy(player)
+        serviceScope.launch {
+            preferencesRepository.playerPreferences.collect { preferences ->
+                latestPlayerPreferences = preferences
+                applyMuteAndAudioPolicy(player)
+            }
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -551,6 +585,15 @@ class PlayerService : MediaSessionService() {
         }
         subtitleCacheDir.deleteFiles()
         serviceScope.cancel()
+    }
+
+    private fun applyMuteAndAudioPolicy(player: ExoPlayer) {
+        val shouldMute = latestPlayerPreferences.muteAllVideosAudio || sessionMuteEnabled
+        player.volume = if (shouldMute) 0f else 1f
+        player.setAudioAttributes(
+            mediaAudioAttributes,
+            latestPlayerPreferences.requireAudioFocus && !shouldMute,
+        )
     }
 
     private suspend fun updatedMediaItemsWithMetadata(

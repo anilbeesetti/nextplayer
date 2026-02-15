@@ -13,7 +13,9 @@ import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
+import dev.anilbeesetti.nextplayer.feature.player.service.getSessionMuteEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.getSkipSilenceEnabled
+import dev.anilbeesetti.nextplayer.feature.player.service.setSessionMuteEnabled
 import dev.anilbeesetti.nextplayer.feature.player.service.setSkipSilenceEnabled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -38,6 +40,9 @@ class PlaybackParametersState(
     var skipSilenceEnabled: Boolean by mutableStateOf(false)
         private set
 
+    var sessionMuteEnabled: Boolean by mutableStateOf(false)
+        private set
+
     fun setPlaybackSpeed(speed: Float) {
         player.setPlaybackSpeed(speed)
     }
@@ -53,9 +58,21 @@ class PlaybackParametersState(
         }
     }
 
+    fun setIsSessionMuteEnabled(enabled: Boolean) {
+        scope.launch {
+            when (player) {
+                is MediaController -> player.setSessionMuteEnabled(enabled)
+                is ExoPlayer -> player.volume = if (enabled) 0f else 1f
+                else -> return@launch
+            }
+            updateSessionMuteEnabled()
+        }
+    }
+
     suspend fun observe() {
         updateSpeed()
         updateSkipSilenceEnabled()
+        updateSessionMuteEnabled()
 
         player.listen { events ->
             if (events.contains(Player.EVENT_PLAYBACK_PARAMETERS_CHANGED)) {
@@ -73,6 +90,16 @@ class PlaybackParametersState(
             skipSilenceEnabled = when (player) {
                 is MediaController -> player.getSkipSilenceEnabled()
                 is ExoPlayer -> player.skipSilenceEnabled
+                else -> return@launch
+            }
+        }
+    }
+
+    private fun updateSessionMuteEnabled() {
+        scope.launch {
+            sessionMuteEnabled = when (player) {
+                is MediaController -> player.getSessionMuteEnabled()
+                is ExoPlayer -> player.volume == 0f
                 else -> return@launch
             }
         }

@@ -93,6 +93,13 @@ private fun AudioPreferencesContent(
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
+                    title = stringResource(id = R.string.mute_all_video_audio),
+                    description = stringResource(id = R.string.mute_all_video_audio_desc),
+                    icon = NextIcons.VolumeUp,
+                    isChecked = uiState.preferences.muteAllVideosAudio,
+                    onClick = { onEvent(AudioPreferencesUiEvent.ToggleMuteAllVideosAudio) },
+                )
+                PreferenceSwitch(
                     title = stringResource(R.string.require_audio_focus),
                     description = stringResource(R.string.require_audio_focus_desc),
                     icon = NextIcons.Focus,
