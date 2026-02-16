@@ -29,9 +29,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.core.common.storagePermission
+import dev.anilbeesetti.nextplayer.core.common.hasFullStoragePermission
+import dev.anilbeesetti.nextplayer.core.common.storagePermissions
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -102,15 +103,21 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface,
                 ) {
-                    val storagePermissionState = rememberPermissionState(permission = storagePermission)
+                    val storagePermissionsState = rememberMultiplePermissionsState(permissions = storagePermissions)
+                    val permissionGrants = storagePermissionsState.permissions.associate {
+                        it.permission to it.status.isGranted
+                    }
+                    val hasFullStorageAccess = hasFullStoragePermission(permissionGrants)
 
                     LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
-                        storagePermissionState.launchPermissionRequest()
+                        storagePermissionsState.launchMultiplePermissionRequest()
                     }
 
-                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
-                        if (storagePermissionState.status.isGranted) {
+                    LaunchedEffect(hasFullStorageAccess) {
+                        if (hasFullStorageAccess) {
                             synchronizer.startSync()
+                        } else {
+                            synchronizer.stopSync()
                         }
                     }
 
