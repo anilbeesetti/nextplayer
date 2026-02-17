@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Bitmap
+import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
@@ -103,6 +104,9 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+
+    private var loudnessEnhancer: LoudnessEnhancer? = null
+    private var currentVolumeGain: Int = 0
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -294,6 +298,34 @@ class PlayerService : MediaSessionService() {
                 }
             }
         }
+
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            super.onAudioSessionIdChanged(audioSessionId)
+            if (!playerPreferences.enableVolumeBoost) return
+            if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) return
+            try {
+                loudnessEnhancer?.release()
+                loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                println("HELLO: in audio session change $loudnessEnhancer")
+                if (currentVolumeGain > 0) {
+                    setEnhancerTargetGain(currentVolumeGain)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                loudnessEnhancer = null
+            }
+        }
+    }
+
+    private fun setEnhancerTargetGain(gain: Int) {
+        val enhancer = loudnessEnhancer ?: return
+
+        try {
+            enhancer.setTargetGain(gain)
+            enhancer.enabled = gain > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private val mediaSessionCallback = object : MediaSession.Callback {
@@ -399,12 +431,27 @@ class PlayerService : MediaSessionService() {
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
-                CustomCommands.GET_AUDIO_SESSION_ID -> {
-                    val audioSessionId = mediaSession?.player?.audioSessionId ?: C.AUDIO_SESSION_ID_UNSET
+                CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED -> {
+                    val isSupported = loudnessEnhancer != null
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply {
-                            putInt(CustomCommands.AUDIO_SESSION_ID_KEY, audioSessionId)
+                            putBoolean(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED_KEY, isSupported)
+                        },
+                    )
+                }
+
+                CustomCommands.SET_LOUDNESS_GAIN -> {
+                    val gain = args.getInt(CustomCommands.LOUDNESS_GAIN_KEY, 0)
+                    setEnhancerTargetGain(gain)
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_LOUDNESS_GAIN -> {
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putInt(CustomCommands.LOUDNESS_GAIN_KEY, currentVolumeGain)
                         },
                     )
                 }
@@ -541,6 +588,8 @@ class PlayerService : MediaSessionService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        loudnessEnhancer?.release()
+        loudnessEnhancer = null
         mediaSession?.run {
             player.clearMediaItems()
             player.stop()
@@ -628,7 +677,7 @@ class PlayerService : MediaSessionService() {
                     .build(),
             )
             (result as? SuccessResult)?.image?.toBitmap()?.toByteArray()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

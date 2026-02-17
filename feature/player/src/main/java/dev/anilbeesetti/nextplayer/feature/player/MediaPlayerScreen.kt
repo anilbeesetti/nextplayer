@@ -101,7 +101,6 @@ fun MediaPlayerScreen(
     val volumeState = rememberVolumeState(
         player = player,
         showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
-        volumeBoostEnabled = playerPreferences.enableVolumeBoost,
     )
     player ?: return
     val metadataState = rememberMetadataState(player)
