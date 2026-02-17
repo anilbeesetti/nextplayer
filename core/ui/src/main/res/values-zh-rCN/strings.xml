@@ -291,5 +291,5 @@
     <string name="frame_at_position">某位置的帧</string>
     <string name="frame_at_position_desc">使用视频中特定位置的帧</string>
     <string name="hybrid">混合（智能）</string>
-    <string name="hybrid_desc">优先使用首帧。若其大部分为纯色，则改用视频中特定位置的一帧。</string>
+    <string name="hybrid_desc">尝试使用首帧。若其大部分是纯色，则改用视频中特定位置的一帧。</string>
 </resources>
