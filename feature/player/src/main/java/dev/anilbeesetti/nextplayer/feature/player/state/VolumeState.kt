@@ -136,12 +136,18 @@ class VolumeState(
         val player = player as? MediaController ?: return
         isLoudnessGainSupported = player.getIsLoudnessGainSupported()
         val loudnessGain = player.getLoudnessGain()
+        val systemVolume = audioManager.currentStreamVolume
 
-        // Sync currentVolume from service's boost state when returning from background
         if (loudnessGain > 0 && isLoudnessGainSupported) {
-            val boostVolume = (loudnessGain * systemMaxVolume) / MAX_BOOST_GAIN_MB
-            currentVolume = systemMaxVolume + boostVolume
-            volumePercentage = calculateVolumePercentage()
+            if (systemVolume < systemMaxVolume) {
+                currentVolume = systemVolume
+                volumePercentage = calculateVolumePercentage()
+                player.setLoudnessGain(0)
+            } else {
+                val boostVolume = (loudnessGain * systemMaxVolume) / MAX_BOOST_GAIN_MB
+                currentVolume = systemMaxVolume + boostVolume
+                volumePercentage = calculateVolumePercentage()
+            }
         }
 
         player.listen { events ->
