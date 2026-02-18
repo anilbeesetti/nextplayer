@@ -306,7 +306,6 @@ class PlayerService : MediaSessionService() {
             try {
                 loudnessEnhancer?.release()
                 loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-                println("HELLO: in audio session change $loudnessEnhancer")
                 if (currentVolumeGain > 0) {
                     setEnhancerTargetGain(currentVolumeGain)
                 }
@@ -323,6 +322,7 @@ class PlayerService : MediaSessionService() {
         try {
             enhancer.setTargetGain(gain)
             enhancer.enabled = gain > 0
+            currentVolumeGain = enhancer.targetGain.toInt()
         } catch (e: Exception) {
             e.printStackTrace()
         }

@@ -137,6 +137,13 @@ class VolumeState(
         isLoudnessGainSupported = player.getIsLoudnessGainSupported()
         val loudnessGain = player.getLoudnessGain()
 
+        // Sync currentVolume from service's boost state when returning from background
+        if (loudnessGain > 0 && isLoudnessGainSupported) {
+            val boostVolume = (loudnessGain * systemMaxVolume) / MAX_BOOST_GAIN_MB
+            currentVolume = systemMaxVolume + boostVolume
+            volumePercentage = calculateVolumePercentage()
+        }
+
         player.listen { events ->
             if (events.contains(Player.EVENT_AUDIO_SESSION_ID)) {
                 scope.launch {
