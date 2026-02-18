@@ -17,9 +17,8 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
@@ -41,23 +40,7 @@ fun rememberVolumeState(
 ): VolumeState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val volumeState = rememberSaveable(
-        player,
-        saver = Saver<VolumeState, Map<String, Any>>(
-            save = {
-                mapOf("initialVolume" to it.currentVolume)
-            },
-            restore = {
-                VolumeState(
-                    player = player,
-                    context = context,
-                    showVolumePanelIfHeadsetIsOn = showVolumePanelIfHeadsetIsOn,
-                    initialVolume = it["initialVolume"] as Int,
-                    scope = scope,
-                )
-            },
-        ),
-    ) {
+    val volumeState = remember {
         VolumeState(
             player = player,
             context = context,
@@ -75,7 +58,6 @@ class VolumeState(
     private val player: Player?,
     private val context: Context,
     private val showVolumePanelIfHeadsetIsOn: Boolean,
-    private val initialVolume: Int? = null,
     private val scope: CoroutineScope,
 ) {
     private val audioManager = getSystemService(context, AudioManager::class.java)!!
@@ -90,7 +72,7 @@ class VolumeState(
     val maxVolumePercentage: Int
         get() = if (isLoudnessGainSupported) MAX_VOLUME_PERCENTAGE_BOOST else MAX_VOLUME_PERCENTAGE_NORMAL
 
-    var currentVolume: Int by mutableIntStateOf(initialVolume ?: audioManager.currentStreamVolume)
+    var currentVolume: Int by mutableIntStateOf(audioManager.currentStreamVolume)
         private set
 
     var volumePercentage: Int by mutableIntStateOf(calculateVolumePercentage())
