@@ -86,14 +86,6 @@ fun ControlsBottomView(
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     Column(
         modifier = modifier
-            .background(
-                Brush.verticalGradient(
-                    colorStops = arrayOf(
-                        0f to Color.Transparent,
-                        1f to Color.Black.copy(alpha = 0.3f),
-                    ),
-                ),
-            )
             .padding(systemBarsPadding.copy(top = 0.dp))
             .padding(horizontal = 8.dp)
             .padding(top = 16.dp)

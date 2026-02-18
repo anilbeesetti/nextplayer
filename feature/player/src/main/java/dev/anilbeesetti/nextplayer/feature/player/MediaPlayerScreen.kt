@@ -197,6 +197,18 @@ fun MediaPlayerScreen(
                     ),
                 )
 
+                AnimatedVisibility(
+                    visible = controlsVisibilityState.controlsVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    Box(
+                        modifier = modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.2f)),
+                    )
+                }
+
                 if (mediaPresentationState.isBuffering) {
                     CircularProgressIndicator(
                         modifier = Modifier
