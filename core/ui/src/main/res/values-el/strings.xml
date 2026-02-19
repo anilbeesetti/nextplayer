@@ -288,4 +288,14 @@
     <string name="thumbnail_setting_change_confirmation">Η αλλαγή αυτής της ρύθμισης θα διαγράψει την προσωρινή μνήμη των μικρογραφιών. Οι μικρογραφίες θα δημιουργηθούν ξανά όταν ανοίξει η λίστα πολυμέσων. Συνέχεια;</string>
     <string name="thumbnail_generation_strategy">Στρατηγική δημιουργίας μικρογραφιών</string>
     <string name="thumbnail_generation">Δημιουργία μικρογραφιών</string>
+    <string name="gestures_name">Χειρονομίες</string>
+    <string name="gestures_description">Ρύθμιση παραμέτρων χειρονομιών</string>
+    <string name="seek_gesture_sensitivity">Ευαισθησία χειρονομίας αναζήτησης</string>
+    <string name="reset_seek_sensitivity">Επαναφορά ευαισθησίας αναζήτησης</string>
+    <string name="volume_gesture_sensitivity">Ευαισθησία χειρονομίας έντασης</string>
+    <string name="reset_volume_gesture_sensitivity">Επαναφορά ευαισθησίας χειρονομίας έντασης</string>
+    <string name="brightness_gesture_sensitivity">Ευαισθησία χειρονομίας φωτεινότητας</string>
+    <string name="reset_brightness_gesture_sensitivity">Επαναφορά ευαισθησίας χειρονομίας φωτεινότητας</string>
+    <string name="material_you_controls">Χειριστήρια Material You</string>
+    <string name="material_you_controls_description">Χρήση χειριστηρίων στυλ Material You</string>
 </resources>
