@@ -139,6 +139,8 @@ fun MediaPlayerScreen(
         brightnessState = brightnessState,
         enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
         enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
+        volumeGestureSensitivity = playerPreferences.volumeGestureSensitivity,
+        brightnessGestureSensitivity = playerPreferences.brightnessGestureSensitivity,
     )
     val rotationState = rememberRotationState(
         player = player,

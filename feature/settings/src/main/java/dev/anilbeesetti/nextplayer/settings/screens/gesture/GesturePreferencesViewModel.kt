@@ -48,6 +48,8 @@ class GesturePreferencesViewModel @Inject constructor(
             is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(event.value)
             is GesturePreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(event.value)
             is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(event.value)
+            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity -> updateVolumeGestureSensitivity(event.value)
+            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity -> updateBrightnessGestureSensitivity(event.value)
         }
     }
 
@@ -148,6 +150,22 @@ class GesturePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    private fun updateVolumeGestureSensitivity(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(volumeGestureSensitivity = value.round(1))
+            }
+        }
+    }
+
+    private fun updateBrightnessGestureSensitivity(value: Float) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(brightnessGestureSensitivity = value.round(1))
+            }
+        }
+    }
 }
 
 @Stable
@@ -174,4 +192,6 @@ sealed interface GesturePreferencesUiEvent {
     data class UpdateLongPressControlsSpeed(val value: Float) : GesturePreferencesUiEvent
     data class UpdateSeekIncrement(val value: Int) : GesturePreferencesUiEvent
     data class UpdateSeekSensitivity(val value: Float) : GesturePreferencesUiEvent
+    data class UpdateVolumeGestureSensitivity(val value: Float) : GesturePreferencesUiEvent
+    data class UpdateBrightnessGestureSensitivity(val value: Float) : GesturePreferencesUiEvent
 }

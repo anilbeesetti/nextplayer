@@ -33,7 +33,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.round
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialogWithDoneAndCancelButtons
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -103,6 +102,26 @@ private fun GesturePreferencesContent(
                     onClick = { onEvent(GesturePreferencesUiEvent.ToggleUseSeekControls) },
                     isFirstItem = true
                 )
+                PreferenceSlider(
+                    title = stringResource(R.string.seek_gesture_sensitivity),
+                    description = uiState.preferences.seekSensitivity.toString(),
+                    icon = NextIcons.Sensitivity,
+                    enabled = uiState.preferences.useSeekControls,
+                    value = uiState.preferences.seekSensitivity,
+                    valueRange = 0.1f..2.0f,
+                    onValueChange = { onEvent(GesturePreferencesUiEvent.UpdateSeekSensitivity(it)) },
+                    trailingContent = {
+                        FilledIconButton(
+                            enabled = uiState.preferences.useSeekControls,
+                            onClick = { onEvent(GesturePreferencesUiEvent.UpdateSeekSensitivity(PlayerPreferences.DEFAULT_SEEK_SENSITIVITY)) }
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_seek_sensitivity),
+                            )
+                        }
+                    },
+                )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.brightness_gesture),
                     description = stringResource(id = R.string.brightness_gesture_description),
@@ -110,12 +129,52 @@ private fun GesturePreferencesContent(
                     isChecked = uiState.preferences.enableBrightnessSwipeGesture,
                     onClick = { onEvent(GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture) },
                 )
+                PreferenceSlider(
+                    title = stringResource(R.string.brightness_gesture_sensitivity),
+                    description = uiState.preferences.brightnessGestureSensitivity.toString(),
+                    icon = NextIcons.Sensitivity,
+                    enabled = uiState.preferences.enableBrightnessSwipeGesture,
+                    value = uiState.preferences.brightnessGestureSensitivity,
+                    valueRange = 0.1f..2.0f,
+                    onValueChange = { onEvent(GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity(it)) },
+                    trailingContent = {
+                        FilledIconButton(
+                            enabled = uiState.preferences.enableBrightnessSwipeGesture,
+                            onClick = { onEvent(GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity(PlayerPreferences.DEFAULT_BRIGHTNESS_GESTURE_SENSITIVITY)) }
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_brightness_gesture_sensitivity),
+                            )
+                        }
+                    },
+                )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.volume_gesture),
                     description = stringResource(id = R.string.volume_gesture_description),
                     icon = NextIcons.SwipeVertical,
                     isChecked = uiState.preferences.enableVolumeSwipeGesture,
                     onClick = { onEvent(GesturePreferencesUiEvent.ToggleEnableVolumeSwipeGesture) },
+                )
+                PreferenceSlider(
+                    title = stringResource(R.string.volume_gesture_sensitivity),
+                    description = uiState.preferences.volumeGestureSensitivity.toString(),
+                    icon = NextIcons.Sensitivity,
+                    enabled = uiState.preferences.enableVolumeSwipeGesture,
+                    value = uiState.preferences.volumeGestureSensitivity,
+                    valueRange = 0.1f..2.0f,
+                    onValueChange = { onEvent(GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity(it)) },
+                    trailingContent = {
+                        FilledIconButton(
+                            enabled = uiState.preferences.enableVolumeSwipeGesture,
+                            onClick = { onEvent(GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity(PlayerPreferences.DEFAULT_VOLUME_GESTURE_SENSITIVITY)) }
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = stringResource(id = R.string.reset_volume_gesture_sensitivity),
+                            )
+                        }
+                    },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.zoom_gesture),
@@ -151,6 +210,7 @@ private fun GesturePreferencesContent(
                 PreferenceSlider(
                     title = stringResource(R.string.seek_increment),
                     description = stringResource(R.string.seconds, uiState.preferences.seekIncrement),
+                    isLastItem = true,
                     icon = NextIcons.Replay,
                     value = uiState.preferences.seekIncrement.toFloat(),
                     valueRange = 1.0f..60.0f,
@@ -160,23 +220,6 @@ private fun GesturePreferencesContent(
                             Icon(
                                 imageVector = NextIcons.History,
                                 contentDescription = stringResource(id = R.string.reset_seek_increment),
-                            )
-                        }
-                    },
-                )
-                PreferenceSlider(
-                    title = stringResource(R.string.seek_sensitivity),
-                    description = uiState.preferences.seekSensitivity.toString(),
-                    icon = NextIcons.FastForward,
-                    value = uiState.preferences.seekSensitivity,
-                    valueRange = 0.1f..2.0f,
-                    onValueChange = { onEvent(GesturePreferencesUiEvent.UpdateSeekSensitivity(it)) },
-                    isLastItem = true,
-                    trailingContent = {
-                        FilledIconButton(onClick = { onEvent(GesturePreferencesUiEvent.UpdateSeekSensitivity(PlayerPreferences.DEFAULT_SEEK_SENSITIVITY)) }) {
-                            Icon(
-                                imageVector = NextIcons.History,
-                                contentDescription = stringResource(id = R.string.reset_seek_sentivity),
                             )
                         }
                     },

@@ -249,8 +249,12 @@
     <string name="reset_seek_increment">Reset seek increment</string>
     <string name="reset_controller_timeout">Reset controller timeout</string>
     <string name="reset_default_playback_speed">Reset default playback speed</string>
-    <string name="seek_sensitivity">Seek sensitivity</string>
-    <string name="reset_seek_sentivity">Reset seek sensitivity</string>
+    <string name="seek_gesture_sensitivity">Seek gesture sensitivity</string>
+    <string name="reset_seek_sensitivity">Reset seek sensitivity</string>
+    <string name="volume_gesture_sensitivity">Volume gesture sensitivity</string>
+    <string name="reset_volume_gesture_sensitivity">Reset volume gesture sensitivity</string>
+    <string name="brightness_gesture_sensitivity">Brightness gesture sensitivity</string>
+    <string name="reset_brightness_gesture_sensitivity">Reset brightness gesture sensitivity</string>
     <string name="shuffle_on">Shuffle on</string>
     <string name="shuffle_off">Shuffle off</string>
     <string name="crash_screen_title">Oops</string>

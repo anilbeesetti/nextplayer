@@ -23,8 +23,8 @@ fun rememberVolumeAndBrightnessGestureState(
     brightnessState: BrightnessState,
     enableVolumeGesture: Boolean,
     enableBrightnessGesture: Boolean,
-    volumeGestureSensitivity: Float = 0.5f,
-    brightnessGestureSensitivity: Float = 0.5f,
+    volumeGestureSensitivity: Float,
+    brightnessGestureSensitivity: Float,
 ): VolumeAndBrightnessGestureState {
     val coroutineScope = rememberCoroutineScope()
     val volumeAndBrightnessGestureState = remember(volumeState, brightnessState) {
@@ -47,8 +47,8 @@ class VolumeAndBrightnessGestureState(
     private val brightnessState: BrightnessState,
     private val enableVolumeGesture: Boolean = true,
     private val enableBrightnessGesture: Boolean = true,
-    private val volumeGestureSensitivity: Float = 0.5f,
-    private val brightnessGestureSensitivity: Float = 0.5f,
+    private val volumeGestureSensitivity: Float,
+    private val brightnessGestureSensitivity: Float,
     private val coroutineScope: CoroutineScope,
 ) {
     var activeGesture: VerticalGesture? by mutableStateOf(null)
