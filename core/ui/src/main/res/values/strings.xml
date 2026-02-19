@@ -34,6 +34,8 @@
     <string name="player_controls_progress">Player progress bar</string>
     <string name="player_description">Player appearance, playback controls</string>
     <string name="player_name">Player</string>
+    <string name="gestures_name">Gestures</string>
+    <string name="gestures_description">Configure player touch gestures</string>
     <string name="quick_settings">Quick Settings</string>
     <string name="autoplay_settings">Autoplay</string>
     <string name="autoplay_settings_description">Automatically play the next video in the current folder</string>
