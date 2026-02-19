@@ -207,11 +207,11 @@ private fun PlayerPreferencesContent(
                     },
                 )
                 PreferenceSwitch(
-                    title = stringResource(id = R.string.hide_player_buttons_background),
-                    description = stringResource(id = R.string.hide_player_buttons_background_description),
-                    icon = NextIcons.HideSource,
-                    isChecked = uiState.preferences.hidePlayerButtonsBackground,
-                    onClick = { onEvent(PlayerPreferencesUiEvent.ToggleHidePlayerButtonsBackground) },
+                    title = stringResource(id = R.string.material_you_controls),
+                    description = stringResource(id = R.string.material_you_controls_description),
+                    icon = NextIcons.Appearance,
+                    isChecked = uiState.preferences.useMaterialYouControls,
+                    onClick = { onEvent(PlayerPreferencesUiEvent.ToggleUseMaterialYouControls) },
                     isLastItem = true
                 )
             }

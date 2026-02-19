@@ -55,7 +55,7 @@ import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
-import dev.anilbeesetti.nextplayer.feature.player.LocalHidePlayerButtonsBackground
+import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.ShuffleButton
@@ -194,10 +194,9 @@ private fun PlayerSeekbar(
     onSeek: (Float) -> Unit,
     onSeekFinished: () -> Unit,
 ) {
-    val hidePlayerButtonsBackground = LocalHidePlayerButtonsBackground.current
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        if (hidePlayerButtonsBackground) {
-            SimpleSlider(
+        if (LocalUseMaterialYouControls.current) {
+            MaterialYouSlider(
                 modifier = modifier.fillMaxWidth(),
                 value = position,
                 valueRange = 0f..duration,
@@ -205,7 +204,7 @@ private fun PlayerSeekbar(
                 onValueChangeFinished = onSeekFinished,
             )
         } else {
-            Material3Slider(
+            SimpleSlider(
                 modifier = modifier.fillMaxWidth(),
                 value = position,
                 valueRange = 0f..duration,
@@ -218,7 +217,7 @@ private fun PlayerSeekbar(
 
 @kotlin.OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Material3Slider(
+private fun MaterialYouSlider(
     modifier: Modifier = Modifier,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,

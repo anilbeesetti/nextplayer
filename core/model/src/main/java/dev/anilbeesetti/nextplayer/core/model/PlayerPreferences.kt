@@ -35,6 +35,7 @@ data class PlayerPreferences(
     val controllerAutoHideTimeout: Int = DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
     val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
     val hidePlayerButtonsBackground: Boolean = false,
+    val useMaterialYouControls: Boolean = false,
 
     // Audio Preferences
     val preferredAudioLanguage: String = "",

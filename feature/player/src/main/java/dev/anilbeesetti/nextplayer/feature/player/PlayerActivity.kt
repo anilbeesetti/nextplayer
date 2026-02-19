@@ -48,7 +48,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-val LocalHidePlayerButtonsBackground = compositionLocalOf { false }
+val LocalUseMaterialYouControls = compositionLocalOf { false }
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -99,7 +99,7 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(LocalHidePlayerButtonsBackground provides (uiState.playerPreferences?.hidePlayerButtonsBackground == true)) {
+            CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
                 NextPlayerTheme(darkTheme = true) {
                     MediaPlayerScreen(
                         player = player,

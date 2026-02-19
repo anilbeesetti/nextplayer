@@ -61,7 +61,7 @@ class PlayerPreferencesViewModel @Inject constructor(
             is PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout -> updateControlAutoHideTimeout(event.value)
             is PlayerPreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(event.value)
             is PlayerPreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(event.value)
-            PlayerPreferencesUiEvent.ToggleHidePlayerButtonsBackground -> toggleHidePlayerButtonsBackground()
+            PlayerPreferencesUiEvent.ToggleUseMaterialYouControls -> toggleUseMaterialYouControls()
         }
     }
 
@@ -245,10 +245,10 @@ class PlayerPreferencesViewModel @Inject constructor(
         }
     }
 
-    private fun toggleHidePlayerButtonsBackground() {
+    private fun toggleUseMaterialYouControls() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(hidePlayerButtonsBackground = !it.hidePlayerButtonsBackground)
+                it.copy(useMaterialYouControls = !it.useMaterialYouControls)
             }
         }
     }
@@ -291,5 +291,5 @@ sealed interface PlayerPreferencesUiEvent {
     data class UpdateControlAutoHideTimeout(val value: Int) : PlayerPreferencesUiEvent
     data class UpdateSeekIncrement(val value: Int) : PlayerPreferencesUiEvent
     data class UpdateSeekSensitivity(val value: Float) : PlayerPreferencesUiEvent
-    data object ToggleHidePlayerButtonsBackground : PlayerPreferencesUiEvent
+    data object ToggleUseMaterialYouControls : PlayerPreferencesUiEvent
 }
