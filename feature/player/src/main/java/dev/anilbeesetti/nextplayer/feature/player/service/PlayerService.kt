@@ -155,9 +155,11 @@ class PlayerService : MediaSessionService() {
 
                 DISCONTINUITY_REASON_REMOVE -> {
                     serviceScope.launch {
+                        val durationMs = oldMediaItem.mediaMetadata.durationMs
+                        val isAtEnd = durationMs != null && oldPosition.positionMs >= durationMs - 1000
                         mediaRepository.updateMediumPosition(
                             uri = oldMediaItem.mediaId,
-                            position = oldPosition.positionMs,
+                            position = if (isAtEnd) C.TIME_UNSET else oldPosition.positionMs,
                         )
                     }
                 }
@@ -269,6 +271,17 @@ class PlayerService : MediaSessionService() {
                 }
                 stopSelf()
             }
+        }
+
+        override fun onRenderedFirstFrame() {
+            super.onRenderedFirstFrame()
+            val player = mediaSession?.player ?: return
+            val currentMediaItem = player.currentMediaItem ?: return
+            // Update the media metadata duration so that it will be used later in position discontinuity handling
+            player.replaceMediaItem(
+                player.currentMediaItemIndex,
+                currentMediaItem.copy(durationMs = player.duration)
+            )
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {

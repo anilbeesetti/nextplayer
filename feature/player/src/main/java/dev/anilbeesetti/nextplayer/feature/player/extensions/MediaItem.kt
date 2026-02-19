@@ -38,7 +38,7 @@ fun MediaMetadata.Builder.setExtras(
     subtitleTrackIndex: Int? = null,
     subtitleDelayMilliseconds: Long? = null,
     subtitleSpeed: Float? = null,
-) = setExtras(
+): MediaMetadata.Builder = setExtras(
     Bundle().setExtras(
         positionMs = positionMs,
         videoScale = videoScale,
@@ -94,22 +94,25 @@ val MediaMetadata.subtitleSpeed: Float?
 
 fun MediaItem.copy(
     positionMs: Long? = this.mediaMetadata.positionMs,
+    durationMs: Long? = this.mediaMetadata.durationMs,
     videoZoom: Float? = this.mediaMetadata.videoZoom,
     playbackSpeed: Float? = this.mediaMetadata.playbackSpeed,
     audioTrackIndex: Int? = this.mediaMetadata.audioTrackIndex,
     subtitleTrackIndex: Int? = this.mediaMetadata.subtitleTrackIndex,
     subtitleDelayMilliseconds: Long? = this.mediaMetadata.subtitleDelayMilliseconds,
     subtitleSpeed: Float? = this.mediaMetadata.subtitleSpeed,
-) = buildUpon().setMediaMetadata(
-    mediaMetadata.buildUpon().setExtras(
-        Bundle(mediaMetadata.extras).setExtras(
-            positionMs = positionMs,
-            videoScale = videoZoom,
-            playbackSpeed = playbackSpeed,
-            audioTrackIndex = audioTrackIndex,
-            subtitleTrackIndex = subtitleTrackIndex,
-            subtitleDelayMilliseconds = subtitleDelayMilliseconds,
-            subtitleSpeed = subtitleSpeed,
-        ),
-    ).build(),
+): MediaItem = buildUpon().setMediaMetadata(
+    mediaMetadata.buildUpon()
+        .setDurationMs(durationMs)
+        .setExtras(
+            Bundle(mediaMetadata.extras).setExtras(
+                positionMs = positionMs,
+                videoScale = videoZoom,
+                playbackSpeed = playbackSpeed,
+                audioTrackIndex = audioTrackIndex,
+                subtitleTrackIndex = subtitleTrackIndex,
+                subtitleDelayMilliseconds = subtitleDelayMilliseconds,
+                subtitleSpeed = subtitleSpeed,
+            ),
+        ).build(),
 ).build()
