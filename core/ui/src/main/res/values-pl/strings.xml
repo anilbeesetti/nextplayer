@@ -238,16 +238,12 @@
     <string name="brightness_gesture_description">Dostosuj jasność, przesuwając palcem w pionie</string>
     <string name="pan_gesture">Gest przesunięcia</string>
     <string name="pan_gesture_description">Powiększaj i przesuwaj obraz wideo</string>
-    <string name="hide_player_buttons_background">Ukrywaj tło przycisków odtwarzacza</string>
-    <string name="hide_player_buttons_background_description">Ukrywaj tło wszystkich przycisków sterujących odtwarzaczem</string>
     <string name="m_n_selected">Zaznaczono %1$d / %2$d</string>
     <string name="select_all">Zaznacz wszystko</string>
     <string name="deselect_all">Odznacz wszystko</string>
     <string name="reset_seek_increment">Zresetuj przyrost wyszukiwania</string>
     <string name="reset_controller_timeout">Zresetuj limit czasu kontrolera</string>
     <string name="reset_default_playback_speed">Przywróć domyślną prędkość odtwarzania</string>
-    <string name="seek_sensitivity">Czułość przeszukiwania</string>
-    <string name="reset_seek_sentivity">Zresetuj czułość przeszukiwania</string>
     <string name="shuffle_on">Włączono losowe odtwarzanie</string>
     <string name="shuffle_off">Wyłączono losowe odtwarzanie</string>
     <string name="crash_screen_title">Ups</string>

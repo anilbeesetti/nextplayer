@@ -238,16 +238,12 @@
     <string name="brightness_gesture_description">透過上下滑動調整亮度</string>
     <string name="pan_gesture">拖曳手勢</string>
     <string name="pan_gesture_description">縮放與移動影片</string>
-    <string name="hide_player_buttons_background">隱藏播放按鍵背景</string>
-    <string name="hide_player_buttons_background_description">隱藏所有播放工具列背景</string>
     <string name="m_n_selected">已選取 %1$d / %2$d</string>
     <string name="select_all">選取全部</string>
     <string name="deselect_all">取消選取全部</string>
     <string name="reset_seek_increment">重設跳轉增量</string>
     <string name="reset_controller_timeout">重設控制器逾時</string>
     <string name="reset_default_playback_speed">重設播放速度</string>
-    <string name="seek_sensitivity">跳轉靈敏度</string>
-    <string name="reset_seek_sentivity">重設跳轉靈敏度</string>
     <string name="shuffle_on">啟用隨機播放</string>
     <string name="shuffle_off">停用隨機播放</string>
     <string name="crash_screen_title">糟糕</string>

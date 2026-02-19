@@ -271,8 +271,6 @@
     <string name="brightness_gesture_description">Atur kecerahan dengan mengusap secara vertikal</string>
     <string name="pan_gesture">Gestur geser</string>
     <string name="pan_gesture_description">Perbesar dan geser video</string>
-    <string name="hide_player_buttons_background">Sembunyikan latar belakang tombol pemutar</string>
-    <string name="hide_player_buttons_background_description">Sembunyikan latar belakang semua tombol kontrol pemutar</string>
     <string name="m_n_selected">%1$d / %2$d Dipilih</string>
     <string name="select_all">Pilih semua</string>
     <string name="deselect_all">Batalkan semua pilihan</string>

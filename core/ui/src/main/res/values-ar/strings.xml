@@ -238,16 +238,12 @@
     <string name="brightness_gesture_description">عدل الإضاءة عبر السحب عموديًا</string>
     <string name="pan_gesture">ايماءة التحريك</string>
     <string name="pan_gesture_description">تكبير وتحريك الفيديو</string>
-    <string name="hide_player_buttons_background">إخفاء خلفية أزرار المشغل</string>
-    <string name="hide_player_buttons_background_description">إخفاء خلفية كل أزرار تحكم المشغل</string>
     <string name="m_n_selected">%1$d / %2$d محددة</string>
     <string name="select_all">تحديد الكل</string>
     <string name="deselect_all">إلغاء تحديد الكل</string>
     <string name="reset_seek_increment">إعادة ضبط القفز الزمني</string>
     <string name="reset_controller_timeout">إعادة ضبط مهلة وحدة التحكم</string>
     <string name="reset_default_playback_speed">إعادة ضبط سرعة التشغيل الافتراضية</string>
-    <string name="seek_sensitivity">حساسية التمرير</string>
-    <string name="reset_seek_sentivity">إعادة ضبط حساسية التمرير</string>
     <string name="shuffle_on">الخلط مفعل</string>
     <string name="shuffle_off">الخلط موقف</string>
     <string name="crash_screen_title">اوبس</string>
