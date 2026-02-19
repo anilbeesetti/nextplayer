@@ -18,10 +18,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.isPipFeatureSupported
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -150,15 +152,17 @@ private fun PlayerPreferencesContent(
                     isChecked = uiState.preferences.autoplay,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoplay) },
                 )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.pip_settings),
-                    description = stringResource(
-                        id = R.string.pip_settings_description,
-                    ),
-                    icon = NextIcons.Pip,
-                    isChecked = uiState.preferences.autoPip,
-                    onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoPip) },
-                )
+                if (LocalContext.current.isPipFeatureSupported) {
+                    PreferenceSwitch(
+                        title = stringResource(id = R.string.pip_settings),
+                        description = stringResource(
+                            id = R.string.pip_settings_description,
+                        ),
+                        icon = NextIcons.Pip,
+                        isChecked = uiState.preferences.autoPip,
+                        onClick = { onEvent(PlayerPreferencesUiEvent.ToggleAutoPip) },
+                    )
+                }
                 PreferenceSwitch(
                     title = stringResource(id = R.string.background_play),
                     description = stringResource(
