@@ -7,3 +7,7 @@ fun Float.round(decimalPlaces: Int): Float {
     return (this * 10.0.pow(decimalPlaces.toDouble()))
         .roundToInt() / 10.0.pow(decimalPlaces.toDouble()).toFloat()
 }
+
+fun Float.toString(decimalPlaces: Int): String {
+    return "%.${decimalPlaces}f".format(this)
+}

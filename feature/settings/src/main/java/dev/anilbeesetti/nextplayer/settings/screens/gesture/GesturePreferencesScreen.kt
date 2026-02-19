@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.round
+import dev.anilbeesetti.nextplayer.core.common.extensions.toString
 import dev.anilbeesetti.nextplayer.core.model.DoubleTapGesture
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -104,7 +105,7 @@ private fun GesturePreferencesContent(
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.seek_gesture_sensitivity),
-                    description = uiState.preferences.seekSensitivity.toString(),
+                    description = uiState.preferences.seekSensitivity.toString(decimalPlaces = 2),
                     icon = NextIcons.Sensitivity,
                     enabled = uiState.preferences.useSeekControls,
                     value = uiState.preferences.seekSensitivity,
@@ -131,7 +132,7 @@ private fun GesturePreferencesContent(
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.brightness_gesture_sensitivity),
-                    description = uiState.preferences.brightnessGestureSensitivity.toString(),
+                    description = uiState.preferences.brightnessGestureSensitivity.toString(decimalPlaces = 2),
                     icon = NextIcons.Sensitivity,
                     enabled = uiState.preferences.enableBrightnessSwipeGesture,
                     value = uiState.preferences.brightnessGestureSensitivity,
@@ -158,7 +159,7 @@ private fun GesturePreferencesContent(
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.volume_gesture_sensitivity),
-                    description = uiState.preferences.volumeGestureSensitivity.toString(),
+                    description = uiState.preferences.volumeGestureSensitivity.toString(decimalPlaces = 2),
                     icon = NextIcons.Sensitivity,
                     enabled = uiState.preferences.enableVolumeSwipeGesture,
                     value = uiState.preferences.volumeGestureSensitivity,

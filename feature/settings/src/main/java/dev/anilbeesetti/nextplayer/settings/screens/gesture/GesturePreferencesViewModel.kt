@@ -146,7 +146,7 @@ class GesturePreferencesViewModel @Inject constructor(
     private fun updateSeekSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(seekSensitivity = value.round(1))
+                it.copy(seekSensitivity = value.round(2))
             }
         }
     }
@@ -154,7 +154,7 @@ class GesturePreferencesViewModel @Inject constructor(
     private fun updateVolumeGestureSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(volumeGestureSensitivity = value.round(1))
+                it.copy(volumeGestureSensitivity = value.round(2))
             }
         }
     }
@@ -162,7 +162,7 @@ class GesturePreferencesViewModel @Inject constructor(
     private fun updateBrightnessGestureSensitivity(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(brightnessGestureSensitivity = value.round(1))
+                it.copy(brightnessGestureSensitivity = value.round(2))
             }
         }
     }
