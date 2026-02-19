@@ -50,6 +50,7 @@
     <string name="seek_gesture">Seek gesture</string>
     <string name="seek_gesture_description">Swipe horizontally to seek forwards or backwards</string>
     <string name="select_audio_track">Select audio track</string>
+    <string name="select_video_track">Select video track</string>
     <string name="select_subtitle_track">Select subtitle track</string>
     <string name="settings">Settings</string>
     <string name="size">Size</string>

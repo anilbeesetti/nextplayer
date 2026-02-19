@@ -16,11 +16,13 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {
             append(label)
         }
         if (isEmpty()) {
-            if (trackType == C.TRACK_TYPE_TEXT) {
-                append("Subtitle Track #${index + 1}")
-            } else {
-                append("Audio Track #${index + 1}")
-            }
+            append(
+                when (trackType) {
+                    C.TRACK_TYPE_TEXT -> "Subtitle Track #${index + 1}"
+                    C.TRACK_TYPE_VIDEO -> "Video Track #${index + 1}"
+                    else -> "Audio Track #${index + 1}"
+                },
+            )
         }
 
         @Suppress("DEPRECATION")

@@ -32,6 +32,8 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 fun ControlsTopView(
     modifier: Modifier = Modifier,
     title: String,
+    showVideoTrackButton: Boolean = false,
+    onVideoTrackClick: () -> Unit = {},
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaybackSpeedClick: () -> Unit = {},
@@ -77,6 +79,14 @@ fun ControlsTopView(
                     painter = painterResource(R.drawable.ic_speed),
                     contentDescription = null,
                 )
+            }
+            if (showVideoTrackButton) {
+                PlayerButton(onClick = onVideoTrackClick) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_video_track),
+                        contentDescription = null,
+                    )
+                }
             }
             PlayerButton(onClick = onAudioClick) {
                 Icon(

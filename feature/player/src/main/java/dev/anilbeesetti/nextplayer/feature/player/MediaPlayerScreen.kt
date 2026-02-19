@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
@@ -71,6 +72,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPicture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberTracksState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
@@ -147,6 +149,8 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
+    val videoTracksState = rememberTracksState(player, C.TRACK_TYPE_VIDEO)
+    val hasMultipleVideoTracks = videoTracksState.tracks.size > 1
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -173,6 +177,12 @@ fun MediaPlayerScreen(
     }
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
+
+    LaunchedEffect(hasMultipleVideoTracks, overlayView) {
+        if (!hasMultipleVideoTracks && overlayView == OverlayView.VIDEO_SELECTOR) {
+            overlayView = null
+        }
+    }
 
     CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
         Box {
@@ -268,6 +278,11 @@ fun MediaPlayerScreen(
                             ) {
                                 ControlsTopView(
                                     title = metadataState.title ?: "",
+                                    showVideoTrackButton = hasMultipleVideoTracks,
+                                    onVideoTrackClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.VIDEO_SELECTOR
+                                    },
                                     onAudioClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.AUDIO_SELECTOR
