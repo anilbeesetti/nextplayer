@@ -62,7 +62,10 @@ fun ControlsTopView(
             modifier = Modifier.weight(1f),
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_playlist),

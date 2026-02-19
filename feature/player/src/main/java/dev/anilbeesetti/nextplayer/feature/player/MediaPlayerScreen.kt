@@ -205,7 +205,7 @@ fun MediaPlayerScreen(
                     Box(
                         modifier = modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.2f)),
+                            .background(Color.Black.copy(alpha = 0.3f)),
                     )
                 }
 
