@@ -121,11 +121,11 @@
     <string name="play_url">输入要播放的视频网址</string>
     <string name="video_software_decoders">软件视频解码器</string>
     <string name="decoder_priority">解码器优先级</string>
-    <string name="prefer_device_decoders">首选设备解码器</string>
+    <string name="prefer_device_decoders">首选硬件解码器</string>
     <string name="decoder">解码器</string>
-    <string name="video_software_decoders_desc">使用应用的软件视频解码器（实验性）</string>
-    <string name="prefer_app_decoders">首选应用解码器</string>
-    <string name="device_decoders_only">仅限设备解码器</string>
+    <string name="video_software_decoders_desc">使用软件视频解码器（实验性）</string>
+    <string name="prefer_app_decoders">首选软件解码器</string>
+    <string name="device_decoders_only">仅限硬件解码器</string>
     <string name="decoder_desc">解码器优先级、播放解码器选项</string>
     <string name="embedded_styles_desc">应用字幕文件（如 ASS 等）中存在的嵌入样式</string>
     <string name="embedded_styles">嵌入样式</string>
