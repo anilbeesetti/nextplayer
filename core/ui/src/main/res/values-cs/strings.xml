@@ -231,8 +231,6 @@
     <string name="deselect_all">Zrušit výběr</string>
     <string name="reset_seek_increment">Resetovat posun ve videí</string>
     <string name="reset_default_playback_speed">Resetovat výchozí rychlost přehrávání</string>
-    <string name="seek_sensitivity">Citlivost posunu ve videí</string>
-    <string name="reset_seek_sentivity">Resetovat citlivost posunu ve videí</string>
     <string name="shuffle_on">Náhodné přehrávání zapnuto</string>
     <string name="shuffle_off">Náhodné přehrávání vypnuto</string>
     <string name="crash_screen_title">Jejda</string>
@@ -253,8 +251,6 @@
     <string name="reset">Resetovat</string>
     <string name="info">Info</string>
     <string name="play">Přehrát</string>
-    <string name="hide_player_buttons_background">Nezobrazovat pozadí tlačítek v přehrávači</string>
-    <string name="hide_player_buttons_background_description">Nezobrazovat pozadí všech tlačítek pro ovládání přehrávače</string>
     <string name="thumbnail_generation">Vygenerování miniatur</string>
     <string name="thumbnail_generation_strategy">Vyberte jak vygenerovat miniatury</string>
     <string name="first_frame">První snímek</string>

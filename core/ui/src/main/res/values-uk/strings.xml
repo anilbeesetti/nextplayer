@@ -238,16 +238,12 @@
     <string name="brightness_gesture_description">Регулюйте яскравість, проводячи пальцем вертикально</string>
     <string name="pan_gesture">Жест панорамування</string>
     <string name="pan_gesture_description">Масштаб та панорамування відео</string>
-    <string name="hide_player_buttons_background">Приховати фон кнопок програвача</string>
-    <string name="hide_player_buttons_background_description">Приховати фон усіх кнопок керування програвача</string>
     <string name="m_n_selected">%1$d / %2$d вибрано</string>
     <string name="select_all">Вибрати все</string>
     <string name="deselect_all">Зняти всі виділення</string>
     <string name="reset_seek_increment">Скинути крок перемотування відео</string>
     <string name="reset_controller_timeout">Скинути час приховування кнопок</string>
     <string name="reset_default_playback_speed">Скинути до типової швидкість відтворення</string>
-    <string name="seek_sensitivity">Чутливість перемотування</string>
-    <string name="reset_seek_sentivity">Скинути чутливість перемотування</string>
     <string name="shuffle_on">Перемішування ввімкнено</string>
     <string name="shuffle_off">Перемішування вимкнено</string>
     <string name="crash_screen_title">Йойки</string>
