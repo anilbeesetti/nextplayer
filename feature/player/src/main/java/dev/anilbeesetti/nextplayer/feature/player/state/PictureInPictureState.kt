@@ -35,6 +35,7 @@ import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.media3.common.Player
 import androidx.media3.common.listen
+import dev.anilbeesetti.nextplayer.core.common.extensions.isPipFeatureSupported
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
 @Composable
@@ -70,8 +71,7 @@ class PictureInPictureState(
         private const val PIP_ACTION_PREVIOUS = 4
     }
 
-    val isPipSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-        activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    val isPipSupported: Boolean = activity.isPipFeatureSupported
 
     val hasPipPermission: Boolean
         get() = if (isPipSupported) {

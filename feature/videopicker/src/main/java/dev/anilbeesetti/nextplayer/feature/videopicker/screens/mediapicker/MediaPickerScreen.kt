@@ -170,7 +170,7 @@ internal fun MediaPickerScreen(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.secondaryContainer)
-                                .clickable { selectionManager.clearSelection() }
+                                .clickable { selectionManager.exitSelectionMode() }
                                 .padding(8.dp)
                                 .padding(end = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -246,7 +246,7 @@ internal fun MediaPickerScreen(
         },
         bottomBar = {
             SelectionActionsSheet(
-                show = selectionManager.isInSelectionMode,
+                show = selectionManager.isInSelectionMode && selectionManager.allSelectedVideos.isNotEmpty(),
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
                 onPlayAction = {
@@ -419,7 +419,7 @@ internal fun MediaPickerScreen(
     }
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
-        selectionManager.clearSelection()
+        selectionManager.exitSelectionMode()
     }
 
     if (showQuickSettingsDialog) {

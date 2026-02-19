@@ -73,6 +73,7 @@ enum class Setting {
     APPEARANCE,
     MEDIA_LIBRARY,
     PLAYER,
+    GESTURES,
     DECODER,
     AUDIO,
     SUBTITLE,
@@ -103,6 +104,12 @@ private enum class SettingRow(
         descriptionResId = R.string.player_description,
         icon = NextIcons.Player,
         setting = Setting.PLAYER,
+    ),
+    GESTURES(
+        titleResId = R.string.gestures_name,
+        descriptionResId = R.string.gestures_description,
+        icon = NextIcons.SwipeHorizontal,
+        setting = Setting.GESTURES,
     ),
     DECODER(
         titleResId = R.string.decoder,

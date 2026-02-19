@@ -30,11 +30,14 @@ data class PlayerPreferences(
     val longPressControlsSpeed: Float = 2.0f,
     val seekIncrement: Int = DEFAULT_SEEK_INCREMENT,
     val seekSensitivity: Float = DEFAULT_SEEK_SENSITIVITY,
+    val volumeGestureSensitivity: Float = DEFAULT_VOLUME_GESTURE_SENSITIVITY,
+    val brightnessGestureSensitivity: Float = DEFAULT_BRIGHTNESS_GESTURE_SENSITIVITY,
 
     // Player Interface
     val controllerAutoHideTimeout: Int = DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
     val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
     val hidePlayerButtonsBackground: Boolean = false,
+    val useMaterialYouControls: Boolean = false,
 
     // Audio Preferences
     val preferredAudioLanguage: String = "",
@@ -59,7 +62,9 @@ data class PlayerPreferences(
 
     companion object {
         const val DEFAULT_SEEK_INCREMENT = 10
-        const val DEFAULT_SEEK_SENSITIVITY = 0.5f
+        const val DEFAULT_SEEK_SENSITIVITY = 0.50f
+        const val DEFAULT_VOLUME_GESTURE_SENSITIVITY = 0.50f
+        const val DEFAULT_BRIGHTNESS_GESTURE_SENSITIVITY = 0.50f
         const val DEFAULT_SUBTITLE_TEXT_SIZE = 20
         const val DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT = 4
     }

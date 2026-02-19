@@ -417,3 +417,7 @@ fun Context.getStorageVolumes() = try {
 fun Context.appIcon(): Bitmap? {
     return packageManager.getApplicationInfo(packageName, 0).loadIcon(packageManager)?.toBitmapOrNull()
 }
+
+val Context.isPipFeatureSupported: Boolean
+    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)

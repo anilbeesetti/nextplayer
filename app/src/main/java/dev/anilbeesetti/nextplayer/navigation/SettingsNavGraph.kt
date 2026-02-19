@@ -14,8 +14,10 @@ import dev.anilbeesetti.nextplayer.settings.navigation.librariesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.mediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.gesturePreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAudioPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToDecoderPreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToGesturePreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToGeneralPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToLibraries
@@ -45,6 +47,7 @@ fun NavGraphBuilder.settingsNavGraph(
                     Setting.APPEARANCE -> navController.navigateToAppearancePreferences()
                     Setting.MEDIA_LIBRARY -> navController.navigateToMediaLibraryPreferencesScreen()
                     Setting.PLAYER -> navController.navigateToPlayerPreferences()
+                    Setting.GESTURES -> navController.navigateToGesturePreferences()
                     Setting.DECODER -> navController.navigateToDecoderPreferences()
                     Setting.AUDIO -> navController.navigateToAudioPreferences()
                     Setting.SUBTITLE -> navController.navigateToSubtitlePreferences()
@@ -68,6 +71,9 @@ fun NavGraphBuilder.settingsNavGraph(
             onNavigateUp = navController::navigateUp,
         )
         playerPreferencesScreen(
+            onNavigateUp = navController::navigateUp,
+        )
+        gesturePreferencesScreen(
             onNavigateUp = navController::navigateUp,
         )
         decoderPreferencesScreen(

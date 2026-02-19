@@ -34,6 +34,8 @@
     <string name="player_controls_progress">Player progress bar</string>
     <string name="player_description">Player appearance, playback controls</string>
     <string name="player_name">Player</string>
+    <string name="gestures_name">Gestures</string>
+    <string name="gestures_description">Configure player touch gestures</string>
     <string name="quick_settings">Quick Settings</string>
     <string name="autoplay_settings">Autoplay</string>
     <string name="autoplay_settings_description">Automatically play the next video in the current folder</string>
@@ -241,16 +243,18 @@
     <string name="brightness_gesture_description">Adjust brightness by swiping vertically</string>
     <string name="pan_gesture">Pan gesture</string>
     <string name="pan_gesture_description">Zoom and pan the video</string>
-    <string name="hide_player_buttons_background">Hide player buttons background</string>
-    <string name="hide_player_buttons_background_description">Hide the background of all player control buttons</string>
     <string name="m_n_selected">%1$d / %2$d Selected</string>
     <string name="select_all">Select all</string>
     <string name="deselect_all">Deselect all</string>
     <string name="reset_seek_increment">Reset seek increment</string>
     <string name="reset_controller_timeout">Reset controller timeout</string>
     <string name="reset_default_playback_speed">Reset default playback speed</string>
-    <string name="seek_sensitivity">Seek sensitivity</string>
-    <string name="reset_seek_sentivity">Reset seek sensitivity</string>
+    <string name="seek_gesture_sensitivity">Seek gesture sensitivity</string>
+    <string name="reset_seek_sensitivity">Reset seek sensitivity</string>
+    <string name="volume_gesture_sensitivity">Volume gesture sensitivity</string>
+    <string name="reset_volume_gesture_sensitivity">Reset volume gesture sensitivity</string>
+    <string name="brightness_gesture_sensitivity">Brightness gesture sensitivity</string>
+    <string name="reset_brightness_gesture_sensitivity">Reset brightness gesture sensitivity</string>
     <string name="shuffle_on">Shuffle on</string>
     <string name="shuffle_off">Shuffle off</string>
     <string name="crash_screen_title">Oops</string>
@@ -295,4 +299,6 @@
     <string name="frame_position">Frame position</string>
     <string name="frame_position_value">Frame at %1$.0f%% of the video duration</string>
     <string name="thumbnail_setting_change_confirmation">Changing this setting will clear the thumbnail cache. Thumbnails will be generated again when media list is opened. Continue?</string>
+    <string name="material_you_controls">Material You controls</string>
+    <string name="material_you_controls_description">Use material you style controls</string>
 </resources>

@@ -21,7 +21,7 @@ internal fun PreviousButton(player: Player, modifier: Modifier = Modifier) {
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
-        modifier = modifier,
+        modifier = modifier.size(48.dp),
         isEnabled = state.isEnabled,
         onClick = {
             state.onClick()

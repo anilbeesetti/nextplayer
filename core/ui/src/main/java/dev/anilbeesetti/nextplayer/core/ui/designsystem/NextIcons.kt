@@ -73,6 +73,7 @@ import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Update
 
 object NextIcons {
@@ -127,6 +128,7 @@ object NextIcons {
     val Style = Icons.Rounded.Style
     val Subtitle = Icons.Rounded.Subtitles
     val Size = Icons.AutoMirrored.Rounded.CompareArrows
+    val Sensitivity = Icons.Rounded.Tune
     val Speed = Icons.Rounded.Speed
     val SwipeHorizontal = Icons.Rounded.Swipe
     val SwipeVertical = Icons.Rounded.SwipeVertical

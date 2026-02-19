@@ -23,6 +23,7 @@ fun rememberSelectionManager(): SelectionManager {
 class SelectionManager(
     initialSelectedVideos: Set<SelectedVideo> = emptySet(),
     initialSelectedFolders: Set<SelectedFolder> = emptySet(),
+    initialIsInSelectionMode: Boolean = false,
 ) {
     var selectedVideos: Set<SelectedVideo> by mutableStateOf(initialSelectedVideos)
         private set
@@ -30,9 +31,10 @@ class SelectionManager(
     var selectedFolders: Set<SelectedFolder> by mutableStateOf(initialSelectedFolders)
         private set
 
-    val allSelectedVideos: Set<SelectedVideo> by derivedStateOf { selectedVideos + selectedFolders.flatMap { it.mediaList } }
+    var isInSelectionMode: Boolean by mutableStateOf(initialIsInSelectionMode)
+        private set
 
-    val isInSelectionMode: Boolean by derivedStateOf { selectedVideos.isNotEmpty() || selectedFolders.isNotEmpty() }
+    val allSelectedVideos: Set<SelectedVideo> by derivedStateOf { selectedVideos + selectedFolders.flatMap { it.mediaList } }
 
     val isSingleVideoSelected: Boolean by derivedStateOf { selectedVideos.size == 1 && selectedFolders.isEmpty() }
 
@@ -43,6 +45,11 @@ class SelectionManager(
         } else {
             selectedFolders + folder.toSelectedFolder()
         }
+        if (allSelectedVideos.isNotEmpty()) {
+            enterSelectionMode()
+        } else {
+            exitSelectionMode()
+        }
     }
 
     fun toggleVideoSelection(video: Video) {
@@ -52,17 +59,34 @@ class SelectionManager(
         } else {
             selectedVideos + video.toSelectedVideo()
         }
+        if (allSelectedVideos.isNotEmpty()) {
+            enterSelectionMode()
+        } else {
+            exitSelectionMode()
+        }
     }
 
     fun selectFolder(folder: Folder) {
+        enterSelectionMode()
         selectedFolders = selectedFolders + folder.toSelectedFolder()
     }
 
     fun selectVideo(video: Video) {
+        enterSelectionMode()
         selectedVideos = selectedVideos + video.toSelectedVideo()
     }
 
     fun clearSelection() {
+        selectedVideos = emptySet()
+        selectedFolders = emptySet()
+    }
+
+    fun enterSelectionMode() {
+        isInSelectionMode = true
+    }
+
+    fun exitSelectionMode() {
+        isInSelectionMode = false
         selectedVideos = emptySet()
         selectedFolders = emptySet()
     }
@@ -77,19 +101,19 @@ class SelectionManager(
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        val Saver = Saver<SelectionManager, Map<String, Set<Serializable>>>(
+        val Saver = Saver<SelectionManager, Map<String, Any>>(
             save = {
                 mapOf(
                     "selectedVideos" to it.selectedVideos,
                     "selectedFolders" to it.selectedFolders,
+                    "isInSelectionMode" to it.isInSelectionMode,
                 )
             },
             restore = {
                 SelectionManager(
-                    initialSelectedVideos = (it["selectedVideos"] as? Set<SelectedVideo>)
-                        ?: emptySet(),
-                    initialSelectedFolders = (it["selectedFolders"] as? Set<SelectedFolder>)
-                        ?: emptySet(),
+                    initialSelectedVideos = (it["selectedVideos"] as? Set<SelectedVideo>) ?: emptySet(),
+                    initialSelectedFolders = (it["selectedFolders"] as? Set<SelectedFolder>) ?: emptySet(),
+                    initialIsInSelectionMode = it["isInSelectionMode"] as? Boolean ?: false,
                 )
             },
         )

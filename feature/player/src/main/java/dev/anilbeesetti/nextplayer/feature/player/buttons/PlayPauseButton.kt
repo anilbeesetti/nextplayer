@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.buttons
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -9,9 +10,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 
+@OptIn(UnstableApi::class)
 @Composable
 fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
     val state = rememberPlayPauseButtonState(player)
@@ -25,15 +28,14 @@ fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
     }
 
     PlayerButton(
-        modifier = modifier,
-        contentPadding = PaddingValues(12.dp),
+        modifier = modifier.size(64.dp),
         isEnabled = state.isEnabled,
         onClick = state::onClick,
     ) {
         Icon(
             painter = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(48.dp),
         )
     }
 }

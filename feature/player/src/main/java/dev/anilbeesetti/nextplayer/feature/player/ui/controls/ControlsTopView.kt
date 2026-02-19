@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,18 +38,9 @@ fun ControlsTopView(
     onPlaylistClick: () -> Unit = {},
     onBackClick: () -> Unit,
 ) {
-    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
+    val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
     Row(
         modifier = modifier
-            .background(
-                Brush.verticalGradient(
-                    colorStops = arrayOf(
-                        0f to Color.Black.copy(alpha = 0.3f),
-                        1f to Color.Transparent,
-                    ),
-                ),
-            )
-            .displayCutoutPadding()
             .padding(systemBarsPadding.copy(bottom = 0.dp))
             .padding(horizontal = 8.dp)
             .padding(bottom = 16.dp),
@@ -71,7 +64,7 @@ fun ControlsTopView(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
