@@ -288,4 +288,14 @@
     <string name="frame_position">Pozycja klatki</string>
     <string name="frame_position_value">Klatka w %1$.0f%% czasu trwania wideo</string>
     <string name="thumbnail_setting_change_confirmation">Zmiana tego ustawienia spowoduje wyczyszczenie pamięci podręcznej miniatur. Miniatury zostaną wygenerowane ponownie po otwarciu listy multimediów. Kontynuować?</string>
+    <string name="gestures_name">Gesty</string>
+    <string name="gestures_description">Skonfiguruj gesty dotykowe odtwarzacza</string>
+    <string name="seek_gesture_sensitivity">Wyszukaj czułość gestów</string>
+    <string name="reset_seek_sensitivity">Zresetuj czułość wyszukiwania</string>
+    <string name="volume_gesture_sensitivity">Czułość gestów głośności</string>
+    <string name="reset_volume_gesture_sensitivity">Zresetuj czułość gestów głośności</string>
+    <string name="brightness_gesture_sensitivity">Czułość gestów jasności</string>
+    <string name="reset_brightness_gesture_sensitivity">Zresetuj czułość gestów jasności</string>
+    <string name="material_you_controls">Elementy sterujące Material You</string>
+    <string name="material_you_controls_description">Używaj stylu Material You dla elementów sterujących</string>
 </resources>
