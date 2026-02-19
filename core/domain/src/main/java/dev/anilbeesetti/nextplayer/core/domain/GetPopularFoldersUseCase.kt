@@ -15,12 +15,16 @@ class GetPopularFoldersUseCase @Inject constructor(
 ) {
 
     operator fun invoke(limit: Int = 5): Flow<List<Folder>> {
-        return getSortedFoldersUseCase()
-            .map { folders ->
-                folders
-                    .sortedByDescending { it.mediaList.size }
-                    .take(limit)
-            }
-            .flowOn(defaultDispatcher)
+        return getSortedFoldersUseCase().map { folders ->
+            folders.sortedWith(
+                compareByDescending<Folder> { folder ->
+                    folder.allMediaList.count { it.lastPlayedAt != null }
+                }.thenByDescending { folder ->
+                    folder.recentlyPlayedVideo?.lastPlayedAt?.time ?: 0L
+                }.thenByDescending { folder ->
+                    folder.mediaList.size
+                },
+            ).take(limit)
+        }.flowOn(defaultDispatcher)
     }
 }
