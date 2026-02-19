@@ -236,8 +236,6 @@
     <string name="volume_gesture_description">通过纵向滑动调整音量</string>
     <string name="brightness_gesture">亮度手势</string>
     <string name="brightness_gesture_description">通过纵向滑动调整亮度</string>
-    <string name="hide_player_buttons_background">隐藏播放器按钮背景</string>
-    <string name="hide_player_buttons_background_description">隐藏所有播放器控制按钮的背景</string>
     <string name="m_n_selected">已选择 %1$d / %2$d</string>
     <string name="select_all">全选</string>
     <string name="deselect_all">全不选</string>
@@ -251,8 +249,6 @@
     <string name="shuffle_on">已开启随机播放</string>
     <string name="shuffle_off">已关闭随机播放</string>
     <string name="reset_seek_increment">重置跳转增量</string>
-    <string name="seek_sensitivity">跳转灵敏度</string>
-    <string name="reset_seek_sentivity">重置跳转灵敏度</string>
     <string name="reset_controller_timeout">重置控制器超时</string>
     <string name="pan_gesture">平移手势</string>
     <string name="pan_gesture_description">缩放和平移视频</string>
