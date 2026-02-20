@@ -292,4 +292,10 @@
     <string name="gestures_description">配置播放器触摸手势</string>
     <string name="material_you_controls">Material You 控件</string>
     <string name="material_you_controls_description">使用 material you 样式控件</string>
+    <string name="seek_gesture_sensitivity">跳转手势灵敏度</string>
+    <string name="reset_seek_sensitivity">重置跳转灵敏度</string>
+    <string name="volume_gesture_sensitivity">音量手势灵敏度</string>
+    <string name="reset_volume_gesture_sensitivity">重置音量手势灵敏度</string>
+    <string name="brightness_gesture_sensitivity">亮度手势灵敏度</string>
+    <string name="reset_brightness_gesture_sensitivity">重置亮度手势灵敏度</string>
 </resources>
