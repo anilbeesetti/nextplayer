@@ -288,4 +288,8 @@
     <string name="frame_at_position_desc">使用视频中特定位置的帧</string>
     <string name="hybrid">混合（智能）</string>
     <string name="hybrid_desc">优先使用首帧。若其大部分为纯色，则改用视频中特定位置的一帧。</string>
+    <string name="gestures_name">手势</string>
+    <string name="gestures_description">配置播放器触摸手势</string>
+    <string name="material_you_controls">Material You 控件</string>
+    <string name="material_you_controls_description">使用 material you 样式控件</string>
 </resources>
