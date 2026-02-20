@@ -47,6 +47,7 @@ fun BoxScope.PlaybackSpeedSelectorView(
     modifier: Modifier = Modifier,
     show: Boolean,
     player: Player,
+    globalMuteEnabled: Boolean = false,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val playbackParametersState = rememberPlaybackParametersState(player)
@@ -175,6 +176,32 @@ fun BoxScope.PlaybackSpeedSelectorView(
                 )
                 NextSwitch(
                     checked = playbackParametersState.skipSilenceEnabled,
+                    onCheckedChange = null,
+                )
+            }
+
+            val isMuted = globalMuteEnabled || playbackParametersState.sessionMuteEnabled
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .toggleable(
+                        value = isMuted,
+                        enabled = !globalMuteEnabled,
+                        onValueChange = { playbackParametersState.setIsSessionMuteEnabled(it) },
+                    )
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .semantics(mergeDescendants = true) {},
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.mute_for_this_session),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                NextSwitch(
+                    checked = isMuted,
                     onCheckedChange = null,
                 )
             }
