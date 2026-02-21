@@ -683,8 +683,6 @@ class PlayerService : MediaSessionService() {
                                 subtitleDelayMilliseconds = subtitleDelay,
                                 subtitleSpeed = subtitleSpeed,
                                 videoTrackIndex = videoTrackIndex,
-                                subtitleDelayMilliseconds = subtitleDelay,
-                                subtitleSpeed = subtitleSpeed,
                             )
                         }.build(),
                     )

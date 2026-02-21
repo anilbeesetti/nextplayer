@@ -39,19 +39,19 @@ fun MediaMetadata.Builder.setExtras(
     playbackSpeed: Float? = null,
     audioTrackIndex: Int? = null,
     subtitleTrackIndex: Int? = null,
-    videoTrackIndex: Int? = null,
     subtitleDelayMilliseconds: Long? = null,
     subtitleSpeed: Float? = null,
-): MediaMetadata.Builder = setExtras(
+    videoTrackIndex: Int? = null,
+    ): MediaMetadata.Builder = setExtras(
     Bundle().setExtras(
         positionMs = positionMs,
         videoScale = videoScale,
         playbackSpeed = playbackSpeed,
         audioTrackIndex = audioTrackIndex,
         subtitleTrackIndex = subtitleTrackIndex,
-        videoTrackIndex = videoTrackIndex,
         subtitleDelayMilliseconds = subtitleDelayMilliseconds,
         subtitleSpeed = subtitleSpeed,
+        videoTrackIndex = videoTrackIndex,
     ),
 )
 
