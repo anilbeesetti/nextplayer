@@ -288,4 +288,14 @@
     <string name="frame_position_value">Кадр на %1$.0f%% длительности видео</string>
     <string name="frame_position">Позиция кадра</string>
     <string name="hybrid_slow">Медленнее</string>
+    <string name="gestures_name">Жесты</string>
+    <string name="gestures_description">Настройка жестов управления</string>
+    <string name="seek_gesture_sensitivity">Чувствительность жеста перемотки</string>
+    <string name="reset_seek_sensitivity">Сбросить чувствительность жеста перемотки</string>
+    <string name="volume_gesture_sensitivity">Чувствительность жеста громкости</string>
+    <string name="reset_volume_gesture_sensitivity">Сбросить чувствительность жеста громкости</string>
+    <string name="brightness_gesture_sensitivity">Чувствительность жеста яркости</string>
+    <string name="reset_brightness_gesture_sensitivity">Сбросить чувствительность жеста яркости</string>
+    <string name="material_you_controls_description">Использовать элементы управления в стиле Material You</string>
+    <string name="material_you_controls">Управление в стиле Material You</string>
 </resources>
