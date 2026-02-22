@@ -288,4 +288,14 @@
     <string name="frame_position">Позиція кадру</string>
     <string name="frame_position_value">Кадр на %1$.0f%% тривалості відео</string>
     <string name="thumbnail_setting_change_confirmation">Зміна цього налаштування призведе до очищення кешу мініатюр. Ескізи будуть створені знову при відкритті списку медіафайлів. Продовжити?</string>
+    <string name="gestures_name">Жести</string>
+    <string name="gestures_description">Налаштувати жести керування програвачем</string>
+    <string name="seek_gesture_sensitivity">Чутливість жестів перемотування</string>
+    <string name="reset_seek_sensitivity">Скинути чутливість перемотування</string>
+    <string name="volume_gesture_sensitivity">Чутливість жестів гучності</string>
+    <string name="reset_volume_gesture_sensitivity">Скинути чутливість жестів гучності</string>
+    <string name="brightness_gesture_sensitivity">Чутливість жестів яскравості</string>
+    <string name="reset_brightness_gesture_sensitivity">Скинути чутливість жестів яскравості</string>
+    <string name="material_you_controls">Керування Material You</string>
+    <string name="material_you_controls_description">Використовувати елементи керування в стилі Material You</string>
 </resources>
