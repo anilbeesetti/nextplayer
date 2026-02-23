@@ -60,4 +60,46 @@ class StoragePermissionTest {
 
         assertFalse(hasLimitedAccess)
     }
+
+    @Test
+    fun `shouldAutoRequestStoragePermission returns true when no storage access has been granted yet`() {
+        val shouldAutoRequest = shouldAutoRequestStoragePermission(
+            permissionGrants = mapOf(
+                Manifest.permission.READ_MEDIA_VIDEO to false,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED to false,
+            ),
+            alreadyRequestedInSession = false,
+            sdkInt = Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
+        )
+
+        assertTrue(shouldAutoRequest)
+    }
+
+    @Test
+    fun `shouldAutoRequestStoragePermission returns false when limited access is granted`() {
+        val shouldAutoRequest = shouldAutoRequestStoragePermission(
+            permissionGrants = mapOf(
+                Manifest.permission.READ_MEDIA_VIDEO to false,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED to true,
+            ),
+            alreadyRequestedInSession = false,
+            sdkInt = Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
+        )
+
+        assertFalse(shouldAutoRequest)
+    }
+
+    @Test
+    fun `shouldAutoRequestStoragePermission returns false after auto request already happened in session`() {
+        val shouldAutoRequest = shouldAutoRequestStoragePermission(
+            permissionGrants = mapOf(
+                Manifest.permission.READ_MEDIA_VIDEO to false,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED to false,
+            ),
+            alreadyRequestedInSession = true,
+            sdkInt = Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
+        )
+
+        assertFalse(shouldAutoRequest)
+    }
 }

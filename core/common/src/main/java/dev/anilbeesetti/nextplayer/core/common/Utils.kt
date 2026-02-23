@@ -42,6 +42,17 @@ fun hasLimitedStoragePermission(
     return hasSelectedAccess && !hasFullAccess
 }
 
+fun shouldAutoRequestStoragePermission(
+    permissionGrants: Map<String, Boolean>,
+    alreadyRequestedInSession: Boolean,
+    sdkInt: Int = Build.VERSION.SDK_INT,
+): Boolean {
+    if (alreadyRequestedInSession) return false
+    val hasFullAccess = hasFullStoragePermission(permissionGrants, sdkInt)
+    val hasLimitedAccess = hasLimitedStoragePermission(permissionGrants, sdkInt)
+    return !hasFullAccess && !hasLimitedAccess
+}
+
 /**
  * Utility functions.
  */

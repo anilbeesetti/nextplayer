@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -32,6 +33,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.hasFullStoragePermission
+import dev.anilbeesetti.nextplayer.core.common.shouldAutoRequestStoragePermission
 import dev.anilbeesetti.nextplayer.core.common.storagePermissions
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
@@ -103,14 +105,22 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface,
                 ) {
+                    var hasAutoRequestedStoragePermissionInSession by rememberSaveable { mutableStateOf(false) }
                     val storagePermissionsState = rememberMultiplePermissionsState(permissions = storagePermissions)
                     val permissionGrants = storagePermissionsState.permissions.associate {
                         it.permission to it.status.isGranted
                     }
                     val hasFullStorageAccess = hasFullStoragePermission(permissionGrants)
+                    val shouldAutoRequestPermission = shouldAutoRequestStoragePermission(
+                        permissionGrants = permissionGrants,
+                        alreadyRequestedInSession = hasAutoRequestedStoragePermissionInSession,
+                    )
 
                     LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
-                        storagePermissionsState.launchMultiplePermissionRequest()
+                        if (shouldAutoRequestPermission) {
+                            hasAutoRequestedStoragePermissionInSession = true
+                            storagePermissionsState.launchMultiplePermissionRequest()
+                        }
                     }
 
                     LaunchedEffect(hasFullStorageAccess) {
