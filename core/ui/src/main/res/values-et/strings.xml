@@ -242,7 +242,7 @@
     <string name="select_all">Vali kõik</string>
     <string name="deselect_all">Eemalda kogu valik</string>
     <string name="reset_seek_increment">Lähtesta kerimise samm</string>
-    <string name="reset_controller_timeout">Lähtesta aegumine kontrolleris</string>
+    <string name="reset_controller_timeout">Lähtesta kontrolleri aegumine</string>
     <string name="reset_default_playback_speed">Lähtesta vaikimisi taasesituse kiirus</string>
     <string name="shuffle_on">Lugude segamine on kasutusel</string>
     <string name="shuffle_off">Lugude segamine pole kasutusel</string>
@@ -288,4 +288,14 @@
     <string name="frame_position">Kaadri asukoht</string>
     <string name="frame_position_value">Kaader, mille asukoht on %1$.0f%% video kestusest</string>
     <string name="thumbnail_setting_change_confirmation">Selle seadistuse muutmisel kustutatakse seni puhverdatud pisipildid. Meediumiloendi avamisel luuakse nad uuesti. Kas jätkame?</string>
+    <string name="gestures_name">Viiped</string>
+    <string name="gestures_description">Seadista meediaesitajas kasutatavaid viipeid</string>
+    <string name="seek_gesture_sensitivity">Keriva viipe tundlikkus</string>
+    <string name="reset_seek_sensitivity">Lähtesta kerimise tundlikkus</string>
+    <string name="volume_gesture_sensitivity">Valjuse viipe tundlikkus</string>
+    <string name="reset_volume_gesture_sensitivity">Lähtesta valjuse viipe tundlikkus</string>
+    <string name="brightness_gesture_sensitivity">Ereduse viipe tundlikkus</string>
+    <string name="reset_brightness_gesture_sensitivity">Lähtesta ereduse viipe tundlikkus</string>
+    <string name="material_you_controls">Juhtnupud Material You stiilis</string>
+    <string name="material_you_controls_description">Kasuta Material You stiilis juhtnuppe</string>
 </resources>
