@@ -15,6 +15,7 @@ fun BoxScope.OverlayShowView(
     player: Player,
     overlayView: OverlayView?,
     videoContentScale: VideoContentScale,
+    globalMuteEnabled: Boolean = false,
     onDismiss: () -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
     onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
@@ -49,6 +50,7 @@ fun BoxScope.OverlayShowView(
     PlaybackSpeedSelectorView(
         show = overlayView == OverlayView.PLAYBACK_SPEED,
         player = player,
+        globalMuteEnabled = globalMuteEnabled,
     )
 
     VideoContentScaleSelectorView(
