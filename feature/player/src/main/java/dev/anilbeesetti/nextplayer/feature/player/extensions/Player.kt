@@ -24,17 +24,22 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
     val trackTypeText = when (trackType) {
         C.TRACK_TYPE_AUDIO -> "audio"
         C.TRACK_TYPE_TEXT -> "subtitle"
+        C.TRACK_TYPE_VIDEO -> "video"
         else -> throw IllegalArgumentException("Invalid track type: $trackType")
     }
 
     if (trackIndex < 0) {
+        if (trackType == C.TRACK_TYPE_VIDEO) {
+            Logger.logDebug("Player", "Ignoring disable request for video track")
+            return
+        }
         Logger.logDebug("Player", "Disabling $trackTypeText")
         trackSelectionParameters = trackSelectionParameters
             .buildUpon()
             .setTrackTypeDisabled(trackType, true)
             .build()
     } else {
-        val tracks = currentTracks.groups.filter { it.type == trackType }
+        val tracks = currentTracks.groups.filter { it.type == trackType && it.isSupported }
 
         if (tracks.isEmpty() || trackIndex >= tracks.size) {
             Logger.logError("Player", "Operation failed: Invalid track index: $trackIndex")

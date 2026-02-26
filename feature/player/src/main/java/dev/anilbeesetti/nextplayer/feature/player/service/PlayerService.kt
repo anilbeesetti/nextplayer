@@ -64,6 +64,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.videoTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
@@ -180,6 +181,9 @@ class PlayerService : MediaSessionService() {
                 mediaSession?.player?.mediaMetadata?.subtitleTrackIndex?.let {
                     mediaSession?.player?.switchTrack(C.TRACK_TYPE_TEXT, it)
                 }
+                mediaSession?.player?.mediaMetadata?.videoTrackIndex?.let {
+                    mediaSession?.player?.switchTrack(C.TRACK_TYPE_VIDEO, it)
+                }
             }
         }
 
@@ -190,6 +194,7 @@ class PlayerService : MediaSessionService() {
 
             val audioTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_AUDIO)
             val subtitleTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_TEXT)
+            val videoTrackIndex = player.getManuallySelectedTrackIndex(C.TRACK_TYPE_VIDEO)
 
             if (audioTrackIndex != null) {
                 serviceScope.launch {
@@ -209,11 +214,21 @@ class PlayerService : MediaSessionService() {
                 }
             }
 
+            if (videoTrackIndex != null) {
+                serviceScope.launch {
+                    mediaRepository.updateMediumVideoTrack(
+                        uri = currentMediaItem.mediaId,
+                        videoTrackIndex = videoTrackIndex,
+                    )
+                }
+            }
+
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
                 currentMediaItem.copy(
                     audioTrackIndex = audioTrackIndex,
                     subtitleTrackIndex = subtitleTrackIndex,
+                    videoTrackIndex = videoTrackIndex,
                 ),
             )
         }
@@ -651,6 +666,7 @@ class PlayerService : MediaSessionService() {
                 val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
                 val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
                 val subtitleSpeed = mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
+                val videoTrackIndex = mediaItem.mediaMetadata.videoTrackIndex ?: videoState?.videoTrackIndex
 
                 mediaItem.buildUpon().apply {
                     setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
@@ -666,6 +682,7 @@ class PlayerService : MediaSessionService() {
                                 subtitleTrackIndex = subtitleTrackIndex,
                                 subtitleDelayMilliseconds = subtitleDelay,
                                 subtitleSpeed = subtitleSpeed,
+                                videoTrackIndex = videoTrackIndex,
                             )
                         }.build(),
                     )

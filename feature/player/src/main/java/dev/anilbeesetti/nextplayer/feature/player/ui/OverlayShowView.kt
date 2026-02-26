@@ -38,6 +38,12 @@ fun BoxScope.OverlayShowView(
         onDismiss = onDismiss,
     )
 
+    VideoTrackSelectorView(
+        show = overlayView == OverlayView.VIDEO_SELECTOR,
+        player = player,
+        onDismiss = onDismiss,
+    )
+
     SubtitleSelectorView(
         show = overlayView == OverlayView.SUBTITLE_SELECTOR,
         player = player,
@@ -69,6 +75,7 @@ val Configuration.isPortrait: Boolean
 
 enum class OverlayView {
     AUDIO_SELECTOR,
+    VIDEO_SELECTOR,
     SUBTITLE_SELECTOR,
     PLAYBACK_SPEED,
     VIDEO_CONTENT_SCALE,
