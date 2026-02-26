@@ -224,11 +224,14 @@ class LocalMediaSynchronizer @Inject constructor(
             val dateModifiedColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_MODIFIED)
 
             while (cursor.moveToNext()) {
+                if (dataColumn == -1 || cursor.isNull(dataColumn)) continue
+
                 val id = cursor.getLong(idColumn)
+                val data = cursor.getString(dataColumn)
                 mediaVideos.add(
                     MediaVideo(
                         id = id,
-                        data = cursor.getString(dataColumn),
+                        data = data,
                         duration = cursor.getLong(durationColumn),
                         uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
                         width = cursor.getInt(widthColumn),
@@ -239,7 +242,7 @@ class LocalMediaSynchronizer @Inject constructor(
                 )
             }
         }
-        return mediaVideos.filter { File(it.data).exists() }
+        return mediaVideos.filter { it.data.isNotBlank() }
     }
 
     companion object {

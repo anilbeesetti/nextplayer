@@ -72,9 +72,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.shouldShowRationale
+import dev.anilbeesetti.nextplayer.core.common.hasFullStoragePermission
+import dev.anilbeesetti.nextplayer.core.common.hasLimitedStoragePermission
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
+import dev.anilbeesetti.nextplayer.core.common.storagePermissions
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -141,7 +144,11 @@ internal fun MediaPickerScreen(
     onEvent: (MediaPickerUiEvent) -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
-    val permissionState = rememberPermissionState(permission = storagePermission)
+    val permissionsState = rememberMultiplePermissionsState(permissions = storagePermissions)
+    val permissionGrants = permissionsState.permissions.associate { it.permission to it.status.isGranted }
+    val hasFullStorageAccess = hasFullStoragePermission(permissionGrants)
+    val hasLimitedStorageAccess = hasLimitedStoragePermission(permissionGrants)
+    val shouldShowPermissionRationale = permissionsState.permissions.any { it.status.shouldShowRationale }
     val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -375,10 +382,11 @@ internal fun MediaPickerScreen(
                 ) {
                     val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
                     PermissionMissingView(
-                        isGranted = permissionState.status.isGranted,
-                        showRationale = permissionState.status.shouldShowRationale,
-                        permission = permissionState.permission,
-                        launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                        isGranted = hasFullStorageAccess,
+                        isLimitedAccess = hasLimitedStorageAccess,
+                        showRationale = shouldShowPermissionRationale,
+                        permission = storagePermission,
+                        launchPermissionRequest = { permissionsState.launchMultiplePermissionRequest() },
                     ) {
                         val rootFolder = uiState.mediaDataState.value
                         if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
