@@ -14,6 +14,11 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.withType<JavaCompile> {
+    sourceCompatibility = libs.versions.android.jvm.get()
+    targetCompatibility = libs.versions.android.jvm.get()
+}
+
 dependencies {
     implementation(libs.kotlinx.serialization.json)
 }
