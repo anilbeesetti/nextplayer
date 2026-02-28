@@ -273,4 +273,15 @@
     <string name="remove">Odebrat</string>
     <string name="unknown">Neznámé</string>
     <string name="search">Hledat</string>
+    <string name="gestures_name">Gesta</string>
+    <string name="gestures_description">Nastavit dotykové gesta pro přehrávač</string>
+    <string name="popular_folders">Časté složky</string>
+    <string name="material_you_controls">Material You ovládání</string>
+    <string name="material_you_controls_description">Použít ovládání stylu Material You</string>
+    <string name="seek_gesture_sensitivity">Citlivost gesta na posun</string>
+    <string name="reset_seek_sensitivity">Resetovat citlivost na posun</string>
+    <string name="volume_gesture_sensitivity">Citlivost gesta na hlasitost</string>
+    <string name="reset_volume_gesture_sensitivity">Resetovat citlivost gesta na hlasitost</string>
+    <string name="brightness_gesture_sensitivity">Citlivost gesta na jas</string>
+    <string name="reset_brightness_gesture_sensitivity">Resetovat citlivost gesta na jas</string>
 </resources>
