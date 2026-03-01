@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ascending">ঊর্ধ্বগামী</string>
-    <string name="about_description">সংস্করণ, ক্রেডিট</string>
+    <string name="about_description">ভার্সন, সাপোর্ট, ক্রেডিট</string>
     <string name="double_tap">ডবল ট্যাপ</string>
     <string name="double_tap_description">ডবল ট্যাপ এর কাজ বেছে নিন</string>
     <string name="descending">অধোগামী</string>
@@ -138,7 +138,7 @@
     <string name="skip_silence">নীরবতা এড়ান</string>
     <string name="player_controls_progress">প্লেয়ার অগ্রগতি বার</string>
     <string name="player_description">প্লেয়ারের চেহারা, প্লেব্যাক নিয়ন্ত্রণ</string>
-    <string name="remember_selections_description">সব ফাইল যেমন অডিও ট্র্যাক, ভিডিও ট্র্যাক ইত্যাদির জন্য নির্বাচনসমূহ মনে রাখুন</string>
+    <string name="remember_selections_description">প্রত্যেক ফাইল যেমন অডিও ট্র্যাক, ভিডিও ট্র্যাক ইত্যাদির জন্য নির্বাচনসমূহ মনে রাখুন</string>
     <string name="remember_selections">নির্বাচনসমূহ মনে রাখুন</string>
     <string name="ff_rewind">দ্রুত আগান/পিছান</string>
     <string name="play_pause_ff_rewind">চালু/বিরতি এবং দ্রুত আগান/পিছান</string>
@@ -205,4 +205,22 @@
     <string name="properties">বৈশিষ্ট্য</string>
     <string name="mark_last_played_media_desc">হোম এবং সকল ফোল্ডারে শেষ চালানো মিডিয়া চিহ্নিত করুন</string>
     <string name="played_progress">চালানো অগ্রগতি</string>
+    <string name="gestures_name">ইঙ্গিতসমূহ</string>
+    <string name="gestures_description">প্লেয়ার টাচ সজ্জিত করুন</string>
+    <string name="loop_mode">চক্র মোড</string>
+    <string name="loop_mode_off">চক্র: বন্ধ</string>
+    <string name="loop_mode_one">চক্র: এক</string>
+    <string name="loop_mode_all">চক্র: সব</string>
+    <string name="libraries">লাইব্রেরিসমূহ</string>
+    <string name="github">গিটহাব</string>
+    <string name="donate">অনুদান</string>
+    <string name="error_opening_link">এই লিঙ্ক পরিচালনার জন্য কোনো অ্যাপ পাওয়া যায়নি</string>
+    <string name="media_layout">মিডিয়া লেআউট</string>
+    <string name="list">তালিকা</string>
+    <string name="grid">গ্রিড</string>
+    <string name="info">তথ্য</string>
+    <string name="play">চালু</string>
+    <string name="recently_played">সাম্প্রতিক চালুকৃত</string>
+    <string name="delete_one_video">১টি ভিডিও মুছে ফেলবেন?</string>
+    <string name="delete_videos">%1$dটি ভিডিও মুছে ফেলবেন?</string>
 </resources>
