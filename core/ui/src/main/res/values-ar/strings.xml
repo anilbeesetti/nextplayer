@@ -32,7 +32,7 @@
     <string name="about_description">الإصدار، الدعم، الاعتمادات</string>
     <string name="about_name">حول التطبيق</string>
     <string name="appearance_description">تخصيص التطبيق وفقًا لاحتياجاتك</string>
-    <string name="cancel">إلغاء</string>
+    <string name="cancel">ألغِ</string>
     <string name="descending">تنازلي</string>
     <string name="error_playing_video">خطأ: لا يمكن تشغيل الفيديو</string>
     <string name="fast_seek">التقدم السريع</string>
@@ -70,7 +70,7 @@
     <string name="dynamic_theme_description">تطبيق الألون من خلفية الجهاز</string>
     <string name="longest">الأطول</string>
     <string name="off">إيقاف التشغيل</string>
-    <string name="on">تشغيل</string>
+    <string name="on">مفعّل</string>
     <string name="audio">الصوت</string>
     <string name="force_rescan_storage_desc">تحذير: قد يؤدي بدء إعادة فحص التخزين إلى زيادة استخدام الموارد على جهازك</string>
     <string name="preferred_subtitle_lang_description">لغة الترجمة التي تريد استخدامها افتراضيًا</string>
@@ -222,7 +222,7 @@
     <string name="kofi">Ko-fi</string>
     <string name="support_the_developer_on">ادعم المطور على %1$s</string>
     <string name="info">المعلومات</string>
-    <string name="play">تشغيل</string>
+    <string name="play">شغّل</string>
     <string name="recently_played">مشغل حديثا</string>
     <string name="delete_one_video">حذف فيديو 1؟</string>
     <string name="delete_videos">حذف %1$d فيديو؟</string>
@@ -288,4 +288,14 @@
     <string name="frame_position">وضع الإطار</string>
     <string name="frame_position_value">الإطار بنسبة %1$.0f%% من مدة الفيديو</string>
     <string name="thumbnail_setting_change_confirmation">تغيير هذا الإعداد سيمسح ذاكرة التخزين المؤقتة للصور المصغرة. سيتم إنشاء الصور المصغرة مرة أخرى عند فتح قائمة الوسائط. هل تستمر؟</string>
+    <string name="gestures_name">الإيماءات</string>
+    <string name="gestures_description">اضبط إيماءات اللمس للمشغل</string>
+    <string name="seek_gesture_sensitivity">حساسية إيماءة التقديم والتأخير</string>
+    <string name="reset_seek_sensitivity">صفّر إيماءة التقديم والتأخير</string>
+    <string name="volume_gesture_sensitivity">حساسية إيماءات التحكم في الصوت</string>
+    <string name="reset_volume_gesture_sensitivity">صفّر حساسية إيماءة التحكم في الصوت</string>
+    <string name="brightness_gesture_sensitivity">حساسية إيماءة السطوع</string>
+    <string name="reset_brightness_gesture_sensitivity">صفّر حساسية إيماءة السطوع</string>
+    <string name="material_you_controls">عناصر تحكم Material You</string>
+    <string name="material_you_controls_description">استخدم عناصر التحكم بنمط Material You</string>
 </resources>
