@@ -160,6 +160,8 @@
     <string name="pause_on_headset_disconnect_desc">Pause playback when headset disconnected from the device</string>
     <string name="system_volume_panel">System volume panel</string>
     <string name="system_volume_panel_desc">Show system volume panel while adjusting volume with headset on</string>
+    <string name="mute_all_video_audio">Mute all video audio</string>
+    <string name="mute_all_video_audio_desc">Mute audio for every video until turned off. Per-file audio track choices are preserved.</string>
     <string name="system_caption_style">System caption style</string>
     <string name="system_caption_style_desc">Click to open system captioning preferences</string>
     <string name="fields">Fields</string>
@@ -197,6 +199,7 @@
     <string name="exit">Exit</string>
     <string name="play_next_video">Play next video</string>
     <string name="skip_silence">Skip silence</string>
+    <string name="mute_for_this_session">Mute for this session</string>
     <string name="folder">Folder</string>
     <string name="folders">Folders</string>
     <string name="tree">Tree</string>
