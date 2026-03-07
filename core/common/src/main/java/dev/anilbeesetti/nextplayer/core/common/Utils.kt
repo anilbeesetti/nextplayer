@@ -7,10 +7,50 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
-val storagePermission = when {
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_VIDEO
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Manifest.permission.READ_EXTERNAL_STORAGE
-    else -> Manifest.permission.WRITE_EXTERNAL_STORAGE
+fun resolveStoragePermissions(
+    sdkInt: Int = Build.VERSION.SDK_INT,
+): List<String> = when {
+    sdkInt >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> listOf(
+        Manifest.permission.READ_MEDIA_VIDEO,
+        Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
+    )
+    sdkInt >= Build.VERSION_CODES.TIRAMISU -> listOf(Manifest.permission.READ_MEDIA_VIDEO)
+    sdkInt >= Build.VERSION_CODES.R -> listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+    else -> listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+}
+
+val storagePermissions = resolveStoragePermissions()
+
+val storagePermission = storagePermissions.first()
+
+fun hasFullStoragePermission(
+    permissionGrants: Map<String, Boolean>,
+    sdkInt: Int = Build.VERSION.SDK_INT,
+): Boolean = when {
+    sdkInt >= Build.VERSION_CODES.TIRAMISU -> permissionGrants[Manifest.permission.READ_MEDIA_VIDEO] == true
+    sdkInt >= Build.VERSION_CODES.R -> permissionGrants[Manifest.permission.READ_EXTERNAL_STORAGE] == true
+    else -> permissionGrants[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true
+}
+
+fun hasLimitedStoragePermission(
+    permissionGrants: Map<String, Boolean>,
+    sdkInt: Int = Build.VERSION.SDK_INT,
+): Boolean {
+    if (sdkInt < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return false
+    val hasSelectedAccess = permissionGrants[Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED] == true
+    val hasFullAccess = hasFullStoragePermission(permissionGrants, sdkInt)
+    return hasSelectedAccess && !hasFullAccess
+}
+
+fun shouldAutoRequestStoragePermission(
+    permissionGrants: Map<String, Boolean>,
+    alreadyRequestedInSession: Boolean,
+    sdkInt: Int = Build.VERSION.SDK_INT,
+): Boolean {
+    if (alreadyRequestedInSession) return false
+    val hasFullAccess = hasFullStoragePermission(permissionGrants, sdkInt)
+    val hasLimitedAccess = hasLimitedStoragePermission(permissionGrants, sdkInt)
+    return !hasFullAccess && !hasLimitedAccess
 }
 
 /**
