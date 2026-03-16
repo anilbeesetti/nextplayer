@@ -26,4 +26,9 @@
     <string name="permission_info">Next player sovellus vaatii \"%1$s\" oikeudet videon toistamista varten. Ilman sitä videon toistaminen ei toimi. Sovelluksen käyttämistä varten, anna oikeudet.</string>
     <string name="settings">Asetukset</string>
     <string name="size">Koko</string>
+    <string name="player_controls_exit">Navigoi ylös</string>
+    <string name="player_controls_next">Seuraava</string>
+    <string name="player_controls_play_pause">Toista</string>
+    <string name="player_controls_previous">Edellinen</string>
+    <string name="player_controls_progress">Etenemispalkki</string>
 </resources>
