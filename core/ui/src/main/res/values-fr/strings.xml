@@ -236,15 +236,11 @@
     <string name="volume_gesture_description">Ajuster le volume en glissant verticalement</string>
     <string name="brightness_gesture">Geste de luminosité</string>
     <string name="brightness_gesture_description">Ajuster la luminosité en glissant verticalement</string>
-    <string name="hide_player_buttons_background">Cacher l\'arrière-plan des boutons</string>
-    <string name="hide_player_buttons_background_description">Cache l\'arrière-plan des boutons dans le lecteur</string>
     <string name="m_n_selected">%1$d / %2$d sélectionnés</string>
     <string name="select_all">Tout sélectionner</string>
     <string name="deselect_all">Annuler la sélection</string>
     <string name="reset_seek_increment">Réinitialiser l\'incrément</string>
     <string name="reset_default_playback_speed">Réinitialiser la vitesse de lecture par défaut</string>
-    <string name="seek_sensitivity">Sensibilité de la recherche rapide</string>
-    <string name="reset_seek_sentivity">Réinitialiser la sensibilité de recherche rapide</string>
     <string name="shuffle_on">Aléatoire activé</string>
     <string name="shuffle_off">Aléatoire désactivé</string>
     <string name="crash_screen_title">Oups</string>
