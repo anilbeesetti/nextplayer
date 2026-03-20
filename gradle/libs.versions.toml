@@ -31,7 +31,7 @@ ksp = "2.3.6"
 ktlint = "12.3.0"
 reorderable = "3.0.0"
 room = "2.8.4"
-nextlib = "1.9.1-0.11.0"
+nextlib = "1.9.3-0.12.0"
 universalChardet = "2.5.0"
 
 

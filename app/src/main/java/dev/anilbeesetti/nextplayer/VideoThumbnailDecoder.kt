@@ -18,7 +18,7 @@ import coil3.request.Options
 import coil3.toAndroidUri
 import okio.FileSystem
 import androidx.core.graphics.get
-import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
+import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
 import kotlin.math.abs
 
 class VideoThumbnailDecoder(
@@ -53,48 +53,52 @@ class VideoThumbnailDecoder(
             }
         }
 
-        return MediaMetadataRetriever().use { retriever ->
-            retriever.setDataSource(source)
+        val rawBitmap = MediaMetadataRetriever().use { nativeRetriever ->
+            MediaThumbnailRetriever().use { ffmpegRetriever ->
+                nativeRetriever.setDataSource(source)
+                ffmpegRetriever.setDataSource(source)
 
-            // First, try to get embedded picture (album art/metadata thumbnail)
-            val embeddedPicture = retriever.embeddedPicture?.let { pictureBytes ->
-                BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
-            }
+                // First, try to get embedded picture (album art/metadata thumbnail)
+                val embeddedPicture = nativeRetriever.embeddedPicture ?: ffmpegRetriever.getEmbeddedPicture()
+                val embeddedPictureBitmap = embeddedPicture?.let { pictureBytes ->
+                    BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
+                }
 
-            // If embedded picture exists, use it directly
-            val rawBitmap = if (embeddedPicture != null) {
-                embeddedPicture
-            } else {
-                // No embedded picture - apply the selected strategy
-                val videoDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                if (embeddedPictureBitmap != null) {
+                    return@use embeddedPictureBitmap
+                }
+
+                val videoDuration = nativeRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                     ?.toLongOrNull() ?: 0L
 
-                when (strategy) {
+                return@use when (strategy) {
                     is ThumbnailStrategy.FirstFrame -> {
-                        retriever.getFrameAtTime(0)
+                        nativeRetriever.getFrameAtTime(0) ?: ffmpegRetriever.getFrameAtTime(0)
                     }
+
                     is ThumbnailStrategy.FrameAtPercentage -> {
-                        retriever.getFrameAtTime((videoDuration * strategy.percentage * 1000).toLong())
+                        val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
+                        nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegRetriever.getFrameAtTime(timeUs)
                     }
+
                     is ThumbnailStrategy.Hybrid -> {
-                        val firstFrame = retriever.getFrameAtTime(0)
-                        if (firstFrame != null && isSolidColor(firstFrame)) {
-                            retriever.getFrameAtTime((videoDuration * strategy.percentage * 1000).toLong())
+                        val firstFrame = nativeRetriever.getFrameAtTime(0)
+                        if (firstFrame == null || isSolidColor(firstFrame)) {
+                            val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
+                            nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegRetriever.getFrameAtTime(timeUs)
                         } else {
                             firstFrame
                         }
                     }
-                }
-            } ?: getThumbnailFromMediaInfo()
-            ?: throw IllegalStateException("Failed to get video thumbnail.")
-
-            val bitmap = writeToDiskCache(rawBitmap)
-
-            DecodeResult(
-                image = bitmap.toDrawable(options.context.resources).asImage(),
-                isSampled = false,
-            )
+                } ?: throw IllegalStateException("Failed to get video thumbnail.")
+            }
         }
+
+        val bitmap = writeToDiskCache(rawBitmap)
+        return DecodeResult(
+            image = bitmap.toDrawable(options.context.resources).asImage(),
+            isSampled = false,
+        )
     }
 
     private fun MediaMetadataRetriever.setDataSource(source: ImageSource) {
@@ -112,28 +116,18 @@ class VideoThumbnailDecoder(
         }
     }
 
-    private fun getThumbnailFromMediaInfo(): Bitmap? {
-        return try {
-            // Create a new MediaInfoBuilder instance properly
-            val source = this.source
-            val metadata = source.metadata
-            val mediaInfo = when {
-                metadata is ContentMetadata -> {
-                    MediaInfoBuilder().from(
-                        context = options.context,
-                        uri = metadata.uri.toAndroidUri(),
-                    ).build()
-                }
-                source.fileSystem === FileSystem.SYSTEM -> {
-                    MediaInfoBuilder().from(
-                        filePath = source.file().toFile().path,
-                    ).build()
-                }
-                else -> null
+    private fun MediaThumbnailRetriever.setDataSource(source: ImageSource) {
+        val metadata = source.metadata
+        when {
+            metadata is ContentMetadata -> {
+                setDataSource(options.context, metadata.uri.toAndroidUri())
             }
-            mediaInfo?.getFrame()?.also { mediaInfo.release() }
-        } catch (e: Exception) {
-            null
+
+            source.fileSystem === FileSystem.SYSTEM -> {
+                setDataSource(source.file().toFile().path)
+            }
+
+            else -> error("Not supported")
         }
     }
 
@@ -215,8 +209,8 @@ sealed class ThumbnailStrategy {
 
 /**
  * Checks if a bitmap is mostly a solid color.
- * Uses a sampling approach to check a grid of pixels in the center region.
- * Returns true if 95% or more of sampled pixels are similar (within threshold).
+ * Uses a scaling approach to sample the center region and compares pixels to the center color.
+ * Returns true if [threshold] (default 95%) or more of sampled pixels are similar.
  */
 private fun isSolidColor(bitmap: Bitmap, threshold: Float = 0.7f): Boolean {
     val width = bitmap.width
