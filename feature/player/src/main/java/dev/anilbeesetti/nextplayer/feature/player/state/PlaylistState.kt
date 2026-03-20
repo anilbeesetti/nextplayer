@@ -62,6 +62,7 @@ class PlaylistState(
 
     fun seekToItem(index: Int) {
         if (index !in playlist.indices) return
+        if (player.currentMediaItemIndex == index) return
         player.seekToDefaultPosition(index)
         updateCurrentIndex()
     }
