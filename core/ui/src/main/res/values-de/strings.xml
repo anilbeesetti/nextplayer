@@ -221,4 +221,5 @@
     <string name="list">Liste</string>
     <string name="grid">Raster</string>
     <string name="loop_mode">Wiedergabemodus</string>
+    <string name="gestures_name">Gesten</string>
 </resources>
