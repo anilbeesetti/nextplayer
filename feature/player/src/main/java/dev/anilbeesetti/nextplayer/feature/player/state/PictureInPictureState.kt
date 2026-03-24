@@ -84,6 +84,11 @@ class PictureInPictureState(
     var isInPictureInPictureMode: Boolean by mutableStateOf(false)
         private set
 
+    private var lastAppliedSourceRectHint: Rect? = null
+    private var lastAppliedAspectRatio: Rational? = null
+    private var lastAppliedAutoEnterEnabled: Boolean? = null
+    private var lastAppliedActionsPlaybackState: Boolean? = null
+
     private val pictureInPictureParamsBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         PictureInPictureParams.Builder().apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -99,11 +104,26 @@ class PictureInPictureState(
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         if (rect.width() <= 0 || rect.height() <= 0) return
 
-        Rational(rect.width(), rect.height()).takeIf { it.toFloat() in 0.5f..2.39f }?.let {
-            pictureInPictureParamsBuilder.setAspectRatio(it)
+        val sourceRectHint = Rect(rect)
+        val aspectRatio = Rational(sourceRectHint.width(), sourceRectHint.height())
+            .takeIf { it.toFloat() in 0.5f..2.39f }
+
+        var pictureInPictureParamsChanged = false
+
+        if (aspectRatio != null && aspectRatio != lastAppliedAspectRatio) {
+            pictureInPictureParamsBuilder.setAspectRatio(aspectRatio)
+            lastAppliedAspectRatio = aspectRatio
+            pictureInPictureParamsChanged = true
         }
-        pictureInPictureParamsBuilder.setSourceRectHint(rect)
-        activity.setPictureInPictureParams(pictureInPictureParamsBuilder.build())
+        if (sourceRectHint != lastAppliedSourceRectHint) {
+            pictureInPictureParamsBuilder.setSourceRectHint(sourceRectHint)
+            lastAppliedSourceRectHint = sourceRectHint
+            pictureInPictureParamsChanged = true
+        }
+
+        if (pictureInPictureParamsChanged) {
+            applyPictureInPictureParams()
+        }
     }
 
     fun enterPictureInPictureMode(): Boolean {
@@ -179,13 +199,20 @@ class PictureInPictureState(
         if (pictureInPictureParamsBuilder == null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
 
-        pictureInPictureParamsBuilder.setAutoEnterEnabled(autoEnter && player.isPlaying)
-        activity.setPictureInPictureParams(pictureInPictureParamsBuilder.build())
+        val autoEnterEnabled = autoEnter && player.isPlaying
+        if (autoEnterEnabled == lastAppliedAutoEnterEnabled) return
+
+        pictureInPictureParamsBuilder.setAutoEnterEnabled(autoEnterEnabled)
+        lastAppliedAutoEnterEnabled = autoEnterEnabled
+        applyPictureInPictureParams()
     }
 
     private fun updatePictureInPictureActions() {
         if (pictureInPictureParamsBuilder == null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
+        val isPlaying = player.isPlaying
+        if (isPlaying == lastAppliedActionsPlaybackState) return
 
         val actions = listOf(
             createPipAction(
@@ -194,7 +221,7 @@ class PictureInPictureState(
                 icon = coreUiR.drawable.ic_skip_prev,
                 actionCode = PIP_ACTION_PREVIOUS,
             ),
-            if (player.isPlaying) {
+            if (isPlaying) {
                 createPipAction(
                     context = activity,
                     title = "pause",
@@ -218,7 +245,19 @@ class PictureInPictureState(
         )
 
         pictureInPictureParamsBuilder.setActions(actions)
-        activity.setPictureInPictureParams(pictureInPictureParamsBuilder.build())
+        lastAppliedActionsPlaybackState = isPlaying
+        applyPictureInPictureParams()
+    }
+
+    private fun applyPictureInPictureParams() {
+        if (pictureInPictureParamsBuilder == null) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
+        try {
+            activity.setPictureInPictureParams(pictureInPictureParamsBuilder.build())
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
