@@ -30,7 +30,7 @@ class FolderPreferencesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            mediaRepository.getFoldersFlow().collect {
+            mediaRepository.getFolders().collect {
                 uiStateInternal.update { currentState ->
                     currentState.copy(foldersDataState = DataState.Success(it))
                 }

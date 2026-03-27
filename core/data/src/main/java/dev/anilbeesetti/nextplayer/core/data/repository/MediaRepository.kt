@@ -2,14 +2,15 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
+import dev.anilbeesetti.nextplayer.core.media.services.MediaFolder
+import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 
 interface MediaRepository {
-    fun getVideosFlow(): Flow<List<Video>>
-    fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>>
-    fun getFoldersFlow(): Flow<List<Folder>>
+    fun getFolders(folderPath: String? = null): Flow<List<Folder>>
+    fun getVideos(folderPath: String? = null): Flow<List<Video>>
 
     suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?

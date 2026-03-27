@@ -13,15 +13,11 @@ class FakeMediaRepository : MediaRepository {
     val videos = mutableListOf<Video>()
     val directories = mutableListOf<Folder>()
 
-    override fun getVideosFlow(): Flow<List<Video>> {
+    override fun getVideos(folderPath: String?): Flow<List<Video>> {
         return flowOf(videos)
     }
 
-    override fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>> {
-        return flowOf(videos)
-    }
-
-    override fun getFoldersFlow(): Flow<List<Folder>> {
+    override fun getFolders(folderPath: String?): Flow<List<Folder>> {
         return flowOf(directories)
     }
 

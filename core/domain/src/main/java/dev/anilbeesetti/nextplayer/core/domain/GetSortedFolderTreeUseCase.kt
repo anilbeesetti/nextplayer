@@ -19,7 +19,7 @@ class GetSortedFolderTreeUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
     operator fun invoke(folderPath: String? = null): Flow<Folder?> = combine(
-        mediaRepository.getFoldersFlow(),
+        mediaRepository.getFolders(folderPath),
         preferencesRepository.applicationPreferences,
     ) { folders, preferences ->
         val currentFolder = folderPath?.let {

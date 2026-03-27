@@ -32,7 +32,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
-import dev.anilbeesetti.nextplayer.core.media.services.MediaService
+import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -49,14 +49,14 @@ class MainActivity : ComponentActivity() {
     lateinit var synchronizer: MediaSynchronizer
 
     @Inject
-    lateinit var mediaService: MediaService
+    lateinit var mediaOperationsService: MediaOperationsService
 
     private val viewModel: MainViewModel by viewModels()
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mediaService.initialize(this@MainActivity)
+        mediaOperationsService.initialize(this@MainActivity)
 
         var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
 

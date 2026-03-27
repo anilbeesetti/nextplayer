@@ -110,7 +110,7 @@ data class Sort(
             By.TITLE -> folderNameComparator
             By.LENGTH -> compareBy<Folder> { it.mediaList.size }.then(folderNameComparator)
             By.PATH -> folderPathComparator
-            By.SIZE -> compareBy<Folder> { it.mediaSize }.then(folderNameComparator)
+            By.SIZE -> compareBy<Folder> { it.totalSize }.then(folderNameComparator)
             By.DATE -> compareBy<Folder> { it.dateModified }.then(folderNameComparator)
         }
 

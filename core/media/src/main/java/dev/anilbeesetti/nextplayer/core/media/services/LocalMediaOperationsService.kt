@@ -28,9 +28,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 @Singleton
-class LocalMediaService @Inject constructor(
+class LocalMediaOperationsService @Inject constructor(
     @ApplicationContext private val context: Context,
-) : MediaService {
+) : MediaOperationsService {
 
     private lateinit var activity: Activity
     private val contentResolver = context.contentResolver

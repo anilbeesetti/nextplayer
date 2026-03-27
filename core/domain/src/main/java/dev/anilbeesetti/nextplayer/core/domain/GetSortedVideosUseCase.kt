@@ -20,14 +20,8 @@ class GetSortedVideosUseCase @Inject constructor(
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
-        val videosFlow = if (folderPath != null) {
-            mediaRepository.getVideosFlowFromFolderPath(folderPath)
-        } else {
-            mediaRepository.getVideosFlow()
-        }
-
         return combine(
-            videosFlow,
+            mediaRepository.getVideos(folderPath),
             preferencesRepository.applicationPreferences,
         ) { videoItems, preferences ->
 

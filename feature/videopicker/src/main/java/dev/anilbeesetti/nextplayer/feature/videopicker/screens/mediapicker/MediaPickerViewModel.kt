@@ -9,7 +9,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
+import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
@@ -27,8 +30,11 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
     getSortedMediaUseCase: GetSortedMediaUseCase,
+    getSortedVideosUseCase: GetSortedVideosUseCase,
+    getSortedFoldersUseCase: GetSortedFoldersUseCase,
     savedStateHandle: SavedStateHandle,
     private val mediaService: MediaService,
+    private val mediaOperationsService: MediaOperationsService,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
     private val mediaSynchronizer: MediaSynchronizer,
@@ -87,19 +93,19 @@ class MediaPickerViewModel @Inject constructor(
                     video.uriString.toUri()
                 }
             }
-            mediaService.deleteMedia(uris)
+            mediaOperationsService.deleteMedia(uris)
         }
     }
 
     private fun deleteVideos(uris: List<String>) {
         viewModelScope.launch {
-            mediaService.deleteMedia(uris.map { it.toUri() })
+            mediaOperationsService.deleteMedia(uris.map { it.toUri() })
         }
     }
 
     private fun shareVideos(uris: List<String>) {
         viewModelScope.launch {
-            mediaService.shareMedia(uris.map { it.toUri() })
+            mediaOperationsService.shareMedia(uris.map { it.toUri() })
         }
     }
 
@@ -111,7 +117,7 @@ class MediaPickerViewModel @Inject constructor(
 
     private fun renameVideo(uri: Uri, to: String) {
         viewModelScope.launch {
-            mediaService.renameMedia(uri, to)
+            mediaOperationsService.renameMedia(uri, to)
         }
     }
 

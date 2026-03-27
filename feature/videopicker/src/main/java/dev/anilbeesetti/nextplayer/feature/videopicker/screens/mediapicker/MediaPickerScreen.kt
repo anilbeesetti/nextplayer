@@ -75,7 +75,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
-import dev.anilbeesetti.nextplayer.core.media.services.MediaService
+import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -271,7 +271,7 @@ internal fun MediaPickerScreen(
                     onEvent(MediaPickerUiEvent.ShareVideos(selectionManager.allSelectedVideos.map { it.uriString }))
                 },
                 onDeleteAction = {
-                    if (MediaService.willSystemAsksForDeleteConfirmation()) {
+                    if (MediaOperationsService.willSystemAsksForDeleteConfirmation()) {
                         onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
                         selectionManager.clearSelection()
                     } else {

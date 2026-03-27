@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
-import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
@@ -10,8 +9,7 @@ import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
-import dev.anilbeesetti.nextplayer.core.database.relations.DirectoryWithMedia
-import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
+import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
@@ -22,18 +20,42 @@ class LocalMediaRepository @Inject constructor(
     private val mediumDao: MediumDao,
     private val mediumStateDao: MediumStateDao,
     private val directoryDao: DirectoryDao,
+    private val mediaService: MediaService,
 ) : MediaRepository {
 
-    override fun getVideosFlow(): Flow<List<Video>> {
-        return mediumDao.getAllWithInfo().map { it.map(MediumWithInfo::toVideo) }
+    override fun getFolders(folderPath: String?): Flow<List<Folder>> {
+        return mediaService.getFolders(folderPath).map { mediaFolders ->
+            mediaFolders.map { mediaFolder ->
+                Folder(
+                    name = mediaFolder.name,
+                    path = mediaFolder.path,
+                    dateModified = mediaFolder.dateModified,
+                    totalSize = mediaFolder.totalSize,
+                    totalDuration = mediaFolder.totalDuration,
+                    videosCount = mediaFolder.videosCount,
+                    foldersCount = mediaFolder.foldersCount,
+                    mediaList = emptyList(),
+                    folderList = emptyList(),
+                )
+            }
+        }
     }
 
-    override fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>> {
-        return mediumDao.getAllWithInfoFromDirectory(folderPath).map { it.map(MediumWithInfo::toVideo) }
-    }
-
-    override fun getFoldersFlow(): Flow<List<Folder>> {
-        return directoryDao.getAllWithMedia().map { it.map(DirectoryWithMedia::toFolder) }
+    override fun getVideos(folderPath: String?): Flow<List<Video>> {
+        return mediaService.getVideos(folderPath).map { mediaVideos ->
+            mediaVideos.map {
+                Video(
+                    id = it.id,
+                    uriString = it.uri.toString(),
+                    duration = it.duration,
+                    height = it.height,
+                    nameWithExtension = it.title,
+                    width = it.width,
+                    path = it.path,
+                    size = it.size,
+                )
+            }
+        }
     }
 
     override suspend fun getVideoByUri(uri: String): Video? {

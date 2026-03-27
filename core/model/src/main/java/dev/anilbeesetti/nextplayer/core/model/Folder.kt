@@ -8,12 +8,13 @@ data class Folder(
     val dateModified: Long,
     val parentPath: String? = null,
     val formattedMediaSize: String = "",
+    val totalSize: Long = 0,
+    val totalDuration: Long = 0,
+    val videosCount: Int = 0,
+    val foldersCount: Int = 0,
     val mediaList: List<Video> = emptyList(),
     val folderList: List<Folder> = emptyList(),
 ) : Serializable {
-
-    val mediaSize: Long = mediaList.sumOf { it.size } + folderList.sumOf { it.mediaSize }
-    val mediaDuration: Long = mediaList.sumOf { it.duration } + folderList.sumOf { it.mediaDuration }
     val allMediaList: List<Video> = mediaList + folderList.flatMap { it.allMediaList }
     val recentlyPlayedVideo: Video? = allMediaList.recentPlayed()
     val firstVideo: Video? = allMediaList.firstOrNull()
