@@ -115,7 +115,7 @@ fun MediaPickerRoute(
     onSearchClick: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
     MediaPickerScreen(
         uiState = uiState,
