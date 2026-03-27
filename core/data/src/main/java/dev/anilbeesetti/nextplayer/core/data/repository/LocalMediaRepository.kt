@@ -2,12 +2,9 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
-import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
-import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
@@ -19,7 +16,6 @@ import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import androidx.core.net.toUri
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
@@ -55,19 +51,7 @@ class LocalMediaRepository @Inject constructor(
                 mediaVideos.mapAsync { mediaVideo ->
                     val uriString = mediaVideo.uri.toString()
                     val mediaState = mediumStates.find { it.uriString == uriString }
-                    Video(
-                        id = mediaVideo.id,
-                        uriString = uriString,
-                        duration = mediaVideo.duration,
-                        height = mediaVideo.height,
-                        nameWithExtension = mediaVideo.title,
-                        width = mediaVideo.width,
-                        path = mediaVideo.path,
-                        size = mediaVideo.size,
-                        formattedDuration = Utils.formatDurationMillis(mediaVideo.duration),
-                        formattedFileSize = Utils.formatFileSize(mediaVideo.size),
-                        playbackPosition = mediaState?.playbackPosition,
-                    )
+                    mediaVideo.toVideo(mediaState)
                 }
             }
         }
@@ -78,7 +62,7 @@ class LocalMediaRepository @Inject constructor(
         val mediaStateDeferred = async { mediumStateDao.get(uri) }
 
         val mediaVideo = mediaVideoDeferred.await() ?: return@coroutineScope null
-        val mediaState = mediaStateDeferred.await() ?: return@coroutineScope null
+        val mediaState = mediaStateDeferred.await()
 
         return@coroutineScope mediaVideo.toVideo(mediaState)
     }
