@@ -149,6 +149,7 @@ class MediaStoreMediaService @Inject constructor(
     ): List<MediaFolder> {
         val mediaVideos = getMediaVideos(folderPath = folderPath, directChildrenOnly = false)
         val videosByActualFolder = mediaVideos.groupBy { File(it.path).parentFile }
+        
         val videosByFolder = if (directChildrenOnly && folderPath != null) {
             mediaVideos.groupBy { video ->
                 File(video.path).walkUp().firstOrNull { it.parent == folderPath }
@@ -157,9 +158,19 @@ class MediaStoreMediaService @Inject constructor(
             videosByActualFolder
         }
 
+        val actualFolderPaths = videosByActualFolder.keys.filterNotNull().map { it.path }
+
         return videosByFolder.mapNotNull { (folderFile, videos) ->
             if (folderFile == null) return@mapNotNull null
-            if (directChildrenOnly && folderFile.parent != folderPath) return@mapNotNull null
+
+            val nestedFoldersCount = if (directChildrenOnly) {
+                val folderPrefix = folderFile.path + File.separator
+                actualFolderPaths
+                    .filter { it.startsWith(folderPrefix) }
+                    .map { it.removePrefix(folderPrefix).substringBefore(File.separator) }
+                    .distinct()
+                    .count()
+            } else 0
 
             MediaFolder(
                 path = folderFile.path,
@@ -168,12 +179,8 @@ class MediaStoreMediaService @Inject constructor(
                 totalSize = videos.sumOf { it.size },
                 totalDuration = videos.sumOf { it.duration },
                 videosCount = videosByActualFolder[folderFile]?.size ?: 0,
-                foldersCount = 1,
+                foldersCount = nestedFoldersCount,
             )
-        }.also {
-            it.forEach {
-                println(it)
-            }
         }
     }
 

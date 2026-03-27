@@ -163,13 +163,13 @@ private fun FolderListItem(
                     if (folder.videosCount > 0) {
                         InfoChip(
                             text = "${folder.videosCount} " +
-                                stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+                                stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos),
                         )
                     }
                     if (folder.foldersCount > 0) {
                         InfoChip(
                             text = "${folder.foldersCount} " +
-                                stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
+                                stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders),
                         )
                     }
                     if (preferences.showSizeField) {
