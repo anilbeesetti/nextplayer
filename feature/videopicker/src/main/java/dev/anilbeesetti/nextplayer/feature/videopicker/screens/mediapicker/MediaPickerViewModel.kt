@@ -30,10 +30,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
     getSortedMediaUseCase: GetSortedMediaUseCase,
-    getSortedVideosUseCase: GetSortedVideosUseCase,
-    getSortedFoldersUseCase: GetSortedFoldersUseCase,
     savedStateHandle: SavedStateHandle,
-    private val mediaService: MediaService,
     private val mediaOperationsService: MediaOperationsService,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,

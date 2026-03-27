@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
+import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
@@ -12,54 +13,74 @@ import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import androidx.core.net.toUri
+import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
 
 class LocalMediaRepository @Inject constructor(
-    private val mediumDao: MediumDao,
     private val mediumStateDao: MediumStateDao,
-    private val directoryDao: DirectoryDao,
     private val mediaService: MediaService,
 ) : MediaRepository {
 
     override fun getFolders(folderPath: String?): Flow<List<Folder>> {
         return mediaService.getFolders(folderPath).map { mediaFolders ->
-            mediaFolders.map { mediaFolder ->
-                Folder(
-                    name = mediaFolder.name,
-                    path = mediaFolder.path,
-                    dateModified = mediaFolder.dateModified,
-                    totalSize = mediaFolder.totalSize,
-                    totalDuration = mediaFolder.totalDuration,
-                    videosCount = mediaFolder.videosCount,
-                    foldersCount = mediaFolder.foldersCount,
-                    mediaList = emptyList(),
-                    folderList = emptyList(),
-                )
+            coroutineScope {
+                mediaFolders.mapAsync { mediaFolder ->
+                    Folder(
+                        name = mediaFolder.name,
+                        path = mediaFolder.path,
+                        dateModified = mediaFolder.dateModified,
+                        totalSize = mediaFolder.totalSize,
+                        totalDuration = mediaFolder.totalDuration,
+                        videosCount = mediaFolder.videosCount,
+                        foldersCount = mediaFolder.foldersCount,
+                        mediaList = emptyList(),
+                        folderList = emptyList(),
+                    )
+                }
             }
         }
     }
 
     override fun getVideos(folderPath: String?): Flow<List<Video>> {
-        return mediaService.getVideos(folderPath).map { mediaVideos ->
-            mediaVideos.map {
-                Video(
-                    id = it.id,
-                    uriString = it.uri.toString(),
-                    duration = it.duration,
-                    height = it.height,
-                    nameWithExtension = it.title,
-                    width = it.width,
-                    path = it.path,
-                    size = it.size,
-                )
+        return combine(mediaService.getVideos(folderPath), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+            coroutineScope {
+                mediaVideos.mapAsync { mediaVideo ->
+                    val uriString = mediaVideo.uri.toString()
+                    val mediaState = mediumStates.find { it.uriString == uriString }
+                    Video(
+                        id = mediaVideo.id,
+                        uriString = uriString,
+                        duration = mediaVideo.duration,
+                        height = mediaVideo.height,
+                        nameWithExtension = mediaVideo.title,
+                        width = mediaVideo.width,
+                        path = mediaVideo.path,
+                        size = mediaVideo.size,
+                        formattedDuration = Utils.formatDurationMillis(mediaVideo.duration),
+                        formattedFileSize = Utils.formatFileSize(mediaVideo.size),
+                        playbackPosition = mediaState?.playbackPosition,
+                    )
+                }
             }
         }
     }
 
-    override suspend fun getVideoByUri(uri: String): Video? {
-        return mediumDao.getWithInfo(uri)?.toVideo()
+    override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
+        val mediaVideoDeferred = async { mediaService.getVideo(uri.toUri()) }
+        val mediaStateDeferred = async { mediumStateDao.get(uri) }
+
+        val mediaVideo = mediaVideoDeferred.await() ?: return@coroutineScope null
+        val mediaState = mediaStateDeferred.await() ?: return@coroutineScope null
+
+        return@coroutineScope mediaVideo.toVideo(mediaState)
     }
 
     override suspend fun getVideoState(uri: String): VideoState? {
@@ -166,4 +187,22 @@ class LocalMediaRepository @Inject constructor(
             ),
         )
     }
+
+    private fun MediaVideo.toVideo(mediaState: MediumStateEntity?) = Video(
+        id = this.id,
+        uriString = this.uri.toString(),
+        duration = this.duration,
+        height = this.height,
+        nameWithExtension = this.title,
+        width = this.width,
+        path = this.path,
+        size = this.size,
+        formattedDuration = Utils.formatDurationMillis(this.duration),
+        formattedFileSize = Utils.formatFileSize(this.size),
+        playbackPosition = mediaState?.playbackPosition,
+    )
+}
+
+suspend inline fun <T, R> List<T>.mapAsync(crossinline transform: suspend (T) -> R): List<R> {
+    return coroutineScope { map { async { transform(it) } }.awaitAll() }
 }

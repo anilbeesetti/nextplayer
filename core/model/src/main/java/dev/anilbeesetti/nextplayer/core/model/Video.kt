@@ -13,7 +13,7 @@ data class Video(
     val width: Int,
     val height: Int,
     val size: Long,
-    val playbackPosition: Long = 200,
+    val playbackPosition: Long? = null,
     val dateModified: Long = 0,
     val formattedDuration: String = "",
     val formattedFileSize: String = "",
@@ -25,7 +25,9 @@ data class Video(
 ) : Serializable {
 
     val displayName: String = nameWithExtension.substringBeforeLast(".")
-    val playedPercentage: Float = (playbackPosition.toFloat() / duration.toFloat()).takeIf { playbackPosition >= 0 } ?: 1f
+    val playedPercentage: Float? = playbackPosition?.let { playbackPosition ->
+        (playbackPosition.toFloat() / duration.toFloat()).takeIf { playbackPosition >= 0 }
+    }
 
     companion object {
         val sample = Video(

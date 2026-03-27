@@ -268,7 +268,7 @@ private fun ThumbnailView(
             )
         }
 
-        if (preferences.showPlayedProgress && video.playedPercentage > 0) {
+        if (preferences.showPlayedProgress && video.playedPercentage != null) {
             Box(
                 modifier = Modifier
                     .height(4.dp)
@@ -282,7 +282,7 @@ private fun ThumbnailView(
                 )
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(video.playedPercentage)
+                        .fillMaxWidth(video.playedPercentage!!)
                         .fillMaxHeight()
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary),

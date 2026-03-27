@@ -42,6 +42,8 @@ data class MediaVideo(
 interface MediaService {
     fun getFolders(folderPath: String? = null): Flow<List<MediaFolder>>
     fun getVideos(folderPath: String? = null): Flow<List<MediaVideo>>
+
+    fun getVideo(uri: Uri): MediaVideo?
 }
 
 class MediaStoreMediaService @Inject constructor(
@@ -88,6 +90,45 @@ class MediaStoreMediaService @Inject constructor(
         // close
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
     }.flowOn(Dispatchers.IO).distinctUntilChanged()
+
+
+    override fun getVideo(uri: Uri): MediaVideo? {
+        return context.contentResolver.query(
+            uri,
+            VIDEO_PROJECTION,
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndex(MediaStore.Video.Media._ID)
+            val displayNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+            val dataColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+            val durationColumn = cursor.getColumnIndex(MediaStore.Video.Media.DURATION)
+            val widthColumn = cursor.getColumnIndex(MediaStore.Video.Media.WIDTH)
+            val heightColumn = cursor.getColumnIndex(MediaStore.Video.Media.HEIGHT)
+            val sizeColumn = cursor.getColumnIndex(MediaStore.Video.Media.SIZE)
+            val dateModifiedColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_MODIFIED)
+
+            if (!cursor.moveToFirst()) return null
+            val id = cursor.getLong(idColumn)
+            val path = cursor.getString(dataColumn)
+            val file = File(path)
+            if (!file.exists()) return null
+
+            MediaVideo(
+                id = id,
+                path = path,
+                uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
+                title = file.nameWithoutExtension,
+                displayName = cursor.getString(displayNameColumn),
+                duration = cursor.getLong(durationColumn),
+                width = cursor.getInt(widthColumn),
+                height = cursor.getInt(heightColumn),
+                size = cursor.getLong(sizeColumn),
+                dateModified = cursor.getLong(dateModifiedColumn),
+            )
+        }
+    }
 
 
     private fun getMediaVideos(
