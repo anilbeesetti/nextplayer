@@ -1,4 +1,4 @@
-package dev.anilbeesetti.nextplayer.feature.player.extensions
+package dev.anilbeesetti.nextplayer.core.common.service
 
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher

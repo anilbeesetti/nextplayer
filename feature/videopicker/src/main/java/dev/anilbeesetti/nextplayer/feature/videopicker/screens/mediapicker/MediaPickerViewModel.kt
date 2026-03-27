@@ -17,6 +17,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
+import kotlinx.coroutines.Job
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +27,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
-    getSortedMediaUseCase: GetSortedMediaUseCase,
     savedStateHandle: SavedStateHandle,
+    private val getSortedMediaUseCase: GetSortedMediaUseCase,
     private val mediaOperationsService: MediaOperationsService,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
@@ -46,26 +47,11 @@ class MediaPickerViewModel @Inject constructor(
     )
     val uiState = uiStateInternal.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            getSortedMediaUseCase.invoke(folderPath).collect {
-                uiStateInternal.update { currentState ->
-                    currentState.copy(
-                        mediaDataState = DataState.Success(it),
-                    )
-                }
-            }
-        }
+    private var mediaCollectJob: Job? = null
 
-        viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect {
-                uiStateInternal.update { currentState ->
-                    currentState.copy(
-                        preferences = it,
-                    )
-                }
-            }
-        }
+    init {
+        collectMedia()
+        collectPreferences()
     }
 
     fun onEvent(event: MediaPickerUiEvent) {
@@ -77,6 +63,31 @@ class MediaPickerViewModel @Inject constructor(
             is MediaPickerUiEvent.RenameVideo -> renameVideo(event.uri, event.to)
             is MediaPickerUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
             is MediaPickerUiEvent.UpdateMenu -> updateMenu(event.preferences)
+            is MediaPickerUiEvent.OnPermissionAccepted -> collectMedia()
+        }
+    }
+
+    private fun collectMedia() {
+        mediaCollectJob?.cancel()
+        uiStateInternal.update { currentState ->
+            currentState.copy(mediaDataState = DataState.Loading)
+        }
+        mediaCollectJob = viewModelScope.launch {
+            getSortedMediaUseCase.invoke(folderPath).collect {
+                uiStateInternal.update { currentState ->
+                    currentState.copy(mediaDataState = DataState.Success(it))
+                }
+            }
+        }
+    }
+
+    private fun collectPreferences() {
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect {
+                uiStateInternal.update { currentState ->
+                    currentState.copy(preferences = it)
+                }
+            }
         }
     }
 
@@ -133,8 +144,8 @@ class MediaPickerViewModel @Inject constructor(
 @Stable
 data class MediaPickerUiState(
     val folderName: String?,
-    val mediaDataState: DataState<Folder?> = DataState.Loading,
     val refreshing: Boolean = false,
+    val mediaDataState: DataState<Folder?> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
 )
 
@@ -146,4 +157,5 @@ sealed interface MediaPickerUiEvent {
     data class RenameVideo(val uri: Uri, val to: String) : MediaPickerUiEvent
     data class AddToSync(val uri: Uri) : MediaPickerUiEvent
     data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerUiEvent
+    data object OnPermissionAccepted : MediaPickerUiEvent
 }

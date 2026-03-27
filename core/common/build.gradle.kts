@@ -28,6 +28,7 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.ktx)
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.github.albfernandez.juniversalchardet)

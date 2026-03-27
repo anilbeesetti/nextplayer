@@ -142,7 +142,14 @@ internal fun MediaPickerScreen(
     onEvent: (MediaPickerUiEvent) -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
-    val permissionState = rememberPermissionState(permission = storagePermission)
+    val permissionState = rememberPermissionState(
+        permission = storagePermission,
+        onPermissionResult = { result ->
+            if (result) {
+                onEvent(MediaPickerUiEvent.OnPermissionAccepted)
+            }
+        }
+    )
     val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),

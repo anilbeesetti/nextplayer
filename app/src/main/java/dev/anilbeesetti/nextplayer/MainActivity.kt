@@ -22,16 +22,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
-import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -39,8 +35,8 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.MediaRootRoute
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -57,6 +53,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mediaOperationsService.initialize(this@MainActivity)
+        synchronizer.startSync()
 
         var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
 
@@ -102,18 +99,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface,
                 ) {
-                    val storagePermissionState = rememberPermissionState(permission = storagePermission)
-
-                    LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
-                        storagePermissionState.launchPermissionRequest()
-                    }
-
-                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
-                        if (storagePermissionState.status.isGranted) {
-                            synchronizer.startSync()
-                        }
-                    }
-
                     val mainNavController = rememberNavController()
 
                     NavHost(
