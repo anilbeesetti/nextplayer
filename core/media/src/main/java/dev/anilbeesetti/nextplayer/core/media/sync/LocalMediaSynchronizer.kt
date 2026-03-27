@@ -1,7 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.media.sync
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import androidx.core.net.toUri
 import coil3.ImageLoader
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
@@ -52,7 +54,7 @@ class LocalMediaSynchronizer @Inject constructor(
         val currentMediaUris = media.map { it.uri.toString() }
 
         val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
-            it.uriString in currentMediaUris
+            it.uriString in currentMediaUris && !ContentResolver.SCHEME_CONTENT.equals(it.uriString.toUri().scheme, ignoreCase = true)
         }
 
         mediumStateDao.delete(unwantedMediaStates.map { it.uriString })
