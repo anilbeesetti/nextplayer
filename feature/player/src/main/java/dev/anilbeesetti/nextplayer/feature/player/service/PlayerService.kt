@@ -280,7 +280,7 @@ class PlayerService : MediaSessionService() {
             // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration)
+                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
             )
         }
 

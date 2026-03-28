@@ -200,7 +200,7 @@ fun MediaPlayerScreen(
                 )
 
                 AnimatedVisibility(
-                    visible = controlsVisibilityState.controlsVisible,
+                    visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
@@ -251,7 +251,10 @@ fun MediaPlayerScreen(
                             .safeDrawingPadding()
                             .padding(top = 24.dp),
                     ) {
-                        PlayerButton(onClick = { controlsVisibilityState.unlockControls() }) {
+                        PlayerButton(
+                            containerColor = Color.Black.copy(0.5f),
+                            onClick = { controlsVisibilityState.unlockControls() }
+                        ) {
                             Icon(
                                 painter = painterResource(coreUiR.drawable.ic_lock),
                                 contentDescription = stringResource(coreUiR.string.controls_unlock),
