@@ -7,6 +7,7 @@ import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.RippleConfiguration
@@ -31,6 +32,7 @@ fun PlayerButton(
     isEnabled: Boolean = true,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    containerColor: Color = Color.Transparent,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -86,6 +88,7 @@ fun PlayerButton(
                 enabled = isEnabled,
                 modifier = modifier,
                 interactionSource = interactionSource,
+                colors = IconButtonDefaults.iconButtonColors().copy(containerColor = containerColor),
                 content = content,
             )
         }
