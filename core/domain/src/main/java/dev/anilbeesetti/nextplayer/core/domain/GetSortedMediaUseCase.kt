@@ -8,7 +8,6 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
-import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,12 +26,6 @@ class GetSortedMediaUseCase @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
         return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
-            val folderPath = folderPath.takeIf { it != null } ?: when (preferences.mediaViewMode) {
-                MediaViewMode.FOLDER_TREE -> Environment.getExternalStorageDirectory()?.path
-                MediaViewMode.FOLDERS -> null
-                MediaViewMode.VIDEOS -> null
-            }
-
             val filter = if (folderPath != null) {
                 FolderFilter.WithPath(folderPath)
             } else {
@@ -43,10 +36,10 @@ class GetSortedMediaUseCase @Inject constructor(
                 }
             }
 
-            val videos = getSortedVideosUseCase(filter)
-            val folders = getSortedFoldersUseCase(filter)
+            val videosFlow = getSortedVideosUseCase(filter)
+            val foldersFlow = getSortedFoldersUseCase(filter)
 
-            combine(videos, folders) { videos, folders ->
+            combine(videosFlow, foldersFlow) { videos, folders ->
                 when (preferences.mediaViewMode) {
                     MediaViewMode.FOLDER_TREE -> MediaHolder(
                         videos = videos,

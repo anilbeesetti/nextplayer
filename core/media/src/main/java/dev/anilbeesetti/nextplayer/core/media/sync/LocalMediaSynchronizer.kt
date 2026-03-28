@@ -55,7 +55,7 @@ class LocalMediaSynchronizer @Inject constructor(
         val currentMediaUris = media.map { it.uri.toString() }
 
         val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
-            it.uriString in currentMediaUris && !ContentResolver.SCHEME_CONTENT.equals(it.uriString.toUri().scheme, ignoreCase = true)
+            it.uriString in currentMediaUris || !ContentResolver.SCHEME_CONTENT.equals(it.uriString.toUri().scheme, ignoreCase = true)
         }
 
         mediumStateDao.delete(unwantedMediaStates.map { it.uriString })

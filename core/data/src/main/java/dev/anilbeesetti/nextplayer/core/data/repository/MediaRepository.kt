@@ -10,13 +10,10 @@ import kotlinx.coroutines.flow.Flow
 interface MediaRepository {
     fun observeFolders(filter: FolderFilter): Flow<List<Folder>>
     fun observeVideos(filter: FolderFilter): Flow<List<Video>>
-
     suspend fun fetchFolders(filter: FolderFilter): List<Folder>
     suspend fun fetchVideos(filter: FolderFilter): List<Video>
-
     suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?
-
     suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long)
     suspend fun updateMediumPosition(uri: String, position: Long)
     suspend fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float)

@@ -12,28 +12,21 @@ data class Folder(
     val videosCount: Int = 0,
     val foldersCount: Int = 0,
 ) : Serializable {
-    // TODO
-    val recentlyPlayedVideo: Video? = null
-    // TODO
-    val firstVideo: Video? = null
-
-    fun isRecentlyPlayedVideo(video: Video?): Boolean {
-        if (recentlyPlayedVideo == null) return false
-        if (video == null) return false
-        return video.path == recentlyPlayedVideo.path
-    }
-
     companion object {
-        val rootFolder = Folder(
-            name = "Root",
-            path = "/",
-            dateModified = System.currentTimeMillis(),
-        )
-
         val sample = Folder(
             name = "Folder 1",
             path = "/storage/emulated/0/DCIM/Camera/Live Photos",
             dateModified = 2000,
         )
+    }
+}
+
+fun List<Folder>.findClosestFolder(videoPath: String): Folder? {
+    val videoDirectory = videoPath.substringBeforeLast("/") + "/"
+
+    return filter { folder ->
+        videoDirectory.startsWith(folder.path)
+    }.maxByOrNull { folder ->
+        folder.path.length
     }
 }

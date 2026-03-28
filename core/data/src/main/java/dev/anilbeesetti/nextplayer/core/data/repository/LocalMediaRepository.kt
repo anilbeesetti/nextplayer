@@ -21,6 +21,7 @@ import androidx.core.net.toUri
 import dev.anilbeesetti.nextplayer.core.media.services.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
 import dev.anilbeesetti.nextplayer.core.model.FolderFilter
+import java.util.Date
 
 class LocalMediaRepository @Inject constructor(
     private val mediumStateDao: MediumStateDao,
@@ -187,6 +188,7 @@ class LocalMediaRepository @Inject constructor(
         formattedDuration = Utils.formatDurationMillis(this.duration),
         formattedFileSize = Utils.formatFileSize(this.size),
         playbackPosition = mediaState?.playbackPosition,
+        lastPlayedAt = mediaState?.lastPlayedTime?.let { Date(it) }
     )
     
     private fun MediaFolder.toFolder() = Folder(

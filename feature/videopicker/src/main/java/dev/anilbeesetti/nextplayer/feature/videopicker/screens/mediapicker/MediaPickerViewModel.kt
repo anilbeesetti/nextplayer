@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.domain.GetRecentlyPlayedVideoUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
@@ -16,8 +17,11 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
+import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
@@ -27,6 +31,7 @@ import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -36,6 +41,7 @@ import kotlinx.coroutines.launch
 class MediaPickerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getSortedMediaUseCase: GetSortedMediaUseCase,
+    private val getRecentlyPlayedVideoUseCase: GetRecentlyPlayedVideoUseCase,
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val mediaOperationsService: MediaOperationsService,
     private val preferencesRepository: PreferencesRepository,
@@ -83,9 +89,18 @@ class MediaPickerViewModel @Inject constructor(
             currentState.copy(mediaDataState = DataState.Loading)
         }
         mediaCollectJob = viewModelScope.launch {
-            getSortedMediaUseCase.invoke(folderPath).collect {
+            combine(
+                getSortedMediaUseCase.invoke(folderPath),
+                getRecentlyPlayedVideoUseCase.invoke(folderPath),
+            ) { media, recentlyPlayed ->
+                media to recentlyPlayed
+            }.collect { (media, recentlyPlayed) ->
                 uiStateInternal.update { currentState ->
-                    currentState.copy(mediaDataState = DataState.Success(it))
+                    currentState.copy(
+                        mediaDataState = DataState.Success(media),
+                        recentlyPlayedVideo = recentlyPlayed,
+                        recentlyPlayedFolder = recentlyPlayed?.let { media?.folders?.findClosestFolder(it.path) }
+                    )
                 }
             }
         }
@@ -169,6 +184,8 @@ class MediaPickerViewModel @Inject constructor(
 data class MediaPickerUiState(
     val folderName: String?,
     val refreshing: Boolean = false,
+    val recentlyPlayedVideo: Video? = null,
+    val recentlyPlayedFolder: Folder? = null,
     val mediaDataState: DataState<MediaHolder?> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
 )
@@ -185,5 +202,5 @@ sealed interface MediaPickerAction {
 }
 
 sealed interface MediaPickerEvent {
-    data class PlayVideos(val uris: List<Uri>): MediaPickerEvent
+    data class PlayVideos(val uris: List<Uri>) : MediaPickerEvent
 }

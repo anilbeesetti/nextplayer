@@ -29,8 +29,12 @@ import androidx.core.net.toUri
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
+import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
+import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
+import dev.anilbeesetti.nextplayer.core.model.recentPlayed
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
@@ -42,6 +46,8 @@ import kotlin.math.abs
 @Composable
 fun MediaView(
     mediaHolder: MediaHolder,
+    recentlyPlayedVideo: Video?,
+    recentlyPlayedFolder: Folder?,
     preferences: ApplicationPreferences,
     showHeaders: Boolean = preferences.mediaViewMode == MediaViewMode.FOLDER_TREE,
     contentPadding: PaddingValues = PaddingValues(),
@@ -102,9 +108,7 @@ fun MediaView(
                 val selected by remember { derivedStateOf { selectionManager.isFolderSelected(folder) } }
                 FolderItem(
                     folder = folder,
-                    // TODO
-//                    isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
-                    isRecentlyPlayedFolder = false,
+                    isRecentlyPlayedFolder = folder.path == recentlyPlayedFolder?.path,
                     preferences = preferences,
                     selected = selected,
                     isFirstItem = index == 0,
@@ -145,9 +149,7 @@ fun MediaView(
                 VideoItem(
                     video = video,
                     preferences = preferences,
-                    // TODO
-//                    isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
-                    isRecentlyPlayedVideo = false,
+                    isRecentlyPlayedVideo = video.path == recentlyPlayedVideo?.path,
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.videos.lastIndex,
                     selected = selected,

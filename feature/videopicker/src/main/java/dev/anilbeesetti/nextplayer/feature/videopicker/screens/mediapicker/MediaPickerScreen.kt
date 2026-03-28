@@ -85,6 +85,7 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.recentPlayed
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -349,24 +350,23 @@ internal fun MediaPickerScreen(
                         Text(text = stringResource(id = R.string.open_local_video))
                     },
                 )
-                FloatingActionButtonMenuItem(
-                    onClick = {
-                        isFabExpanded = false
-                        val folder = (uiState.mediaDataState as? DataState.Success)?.value ?: return@FloatingActionButtonMenuItem
-                        // TODO
-//                        val videoToPlay = folder.recentlyPlayedVideo ?: folder.firstVideo ?: return@FloatingActionButtonMenuItem
-//                        onPlayVideo(videoToPlay.uriString.toUri())
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = NextIcons.History,
-                            contentDescription = null,
-                        )
-                    },
-                    text = {
-                        Text(text = stringResource(id = R.string.recently_played))
-                    },
-                )
+                if (uiState.recentlyPlayedVideo != null) {
+                    FloatingActionButtonMenuItem(
+                        onClick = {
+                            isFabExpanded = false
+                            onPlayVideo(uiState.recentlyPlayedVideo.uriString.toUri())
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = NextIcons.History,
+                                contentDescription = null,
+                            )
+                        },
+                        text = {
+                            Text(text = stringResource(id = R.string.recently_played))
+                        },
+                    )
+                }
             }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -404,6 +404,8 @@ internal fun MediaPickerScreen(
                         }
 
                         MediaView(
+                            recentlyPlayedVideo = uiState.recentlyPlayedVideo,
+                            recentlyPlayedFolder = uiState.recentlyPlayedFolder,
                             mediaHolder = mediaHolder,
                             preferences = uiState.preferences,
                             onFolderClick = onFolderClick,

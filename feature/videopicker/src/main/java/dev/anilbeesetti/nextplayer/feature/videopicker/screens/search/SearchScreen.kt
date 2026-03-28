@@ -409,6 +409,8 @@ private fun SearchResultsContent(
             }
         } else {
             MediaView(
+                recentlyPlayedVideo = null,
+                recentlyPlayedFolder = null,
                 mediaHolder = MediaHolder(
                     videos = searchResults.videos,
                     folders = searchResults.folders,
