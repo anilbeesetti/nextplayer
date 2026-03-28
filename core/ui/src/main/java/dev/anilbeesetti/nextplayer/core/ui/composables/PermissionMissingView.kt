@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.ui.composables
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
 
@@ -29,5 +30,9 @@ fun PermissionMissingView(
                 permission,
             ),
         )
+
+        LaunchedEffect(Unit) {
+            launchPermissionRequest()
+        }
     }
 }
