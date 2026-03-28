@@ -70,12 +70,15 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
+import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -101,9 +104,11 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettings
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoInfoDialog
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectedFolder
-import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectedVideo
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 
 @Composable
 fun MediaPickerRoute(
@@ -117,15 +122,20 @@ fun MediaPickerRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
+    ObserveAsEvents(flow = viewModel.events) { event ->
+        when (event) {
+            is MediaPickerEvent.PlayVideos -> onPlayVideos(event.uris)
+        }
+    }
+
     MediaPickerScreen(
         uiState = uiState,
         onPlayVideo = onPlayVideo,
-        onPlayVideos = onPlayVideos,
         onNavigateUp = onNavigateUp,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
         onSearchClick = onSearchClick,
-        onEvent = viewModel::onEvent,
+        onAction = viewModel::onAction,
     )
 }
 
@@ -135,18 +145,17 @@ internal fun MediaPickerScreen(
     uiState: MediaPickerUiState,
     onNavigateUp: () -> Unit = {},
     onPlayVideo: (Uri) -> Unit = {},
-    onPlayVideos: (List<Uri>) -> Unit = {},
     onFolderClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onEvent: (MediaPickerUiEvent) -> Unit = {},
+    onAction: (MediaPickerAction) -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(
         permission = storagePermission,
         onPermissionResult = { result ->
             if (result) {
-                onEvent(MediaPickerUiEvent.OnPermissionAccepted)
+                onAction(MediaPickerAction.OnPermissionAccepted)
             }
         }
     )
@@ -164,8 +173,8 @@ internal fun MediaPickerScreen(
     var showInfoActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
 
-    val selectedItemsSize = selectionManager.selectedFolders.size + selectionManager.selectedVideos.size
-    val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folderList.size + mediaList.size } ?: 0
+    val selectedItemsSize = selectionManager.selectionItems.size
+    val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
 
     Scaffold(
         topBar = {
@@ -208,8 +217,8 @@ internal fun MediaPickerScreen(
                             onClick = {
                                 if (selectedItemsSize != totalItemsSize) {
                                     (uiState.mediaDataState as? DataState.Success)?.value?.let { folder ->
-                                        folder.folderList.forEach { selectionManager.selectFolder(it) }
-                                        folder.mediaList.forEach { selectionManager.selectVideo(it) }
+                                        folder.folders.forEach { selectionManager.selectFolder(it) }
+                                        folder.videos.forEach { selectionManager.selectVideo(it) }
                                     }
                                 } else {
                                     selectionManager.clearSelection()
@@ -254,34 +263,33 @@ internal fun MediaPickerScreen(
         },
         bottomBar = {
             SelectionActionsSheet(
-                show = selectionManager.isInSelectionMode && selectionManager.allSelectedVideos.isNotEmpty(),
+                show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
                 onPlayAction = {
-                    val videoUris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
-                    onPlayVideos(videoUris)
-                    selectionManager.clearSelection()
+                    onAction(MediaPickerAction.PlaySelectedItems(selectionManager.selectionItems))
+                    selectionManager.exitSelectionMode()
                 },
                 onRenameAction = {
-                    val selectedVideo = selectionManager.selectedVideos.firstOrNull() ?: return@SelectionActionsSheet
-                    val video = (uiState.mediaDataState as? DataState.Success)?.value?.mediaList
-                        ?.find { it.uriString == selectedVideo.uriString } ?: return@SelectionActionsSheet
+                    val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
+                    val video = (uiState.mediaDataState as? DataState.Success)?.value?.videos
+                        ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
                     showRenameActionFor = video
                 },
                 onInfoAction = {
-                    val selectedVideo = selectionManager.selectedVideos.firstOrNull() ?: return@SelectionActionsSheet
-                    val video = (uiState.mediaDataState as? DataState.Success)?.value?.mediaList
-                        ?.find { it.uriString == selectedVideo.uriString } ?: return@SelectionActionsSheet
+                    val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
+                    val video = (uiState.mediaDataState as? DataState.Success)?.value?.videos
+                        ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
                     showInfoActionFor = video
-                    selectionManager.clearSelection()
+                    selectionManager.exitSelectionMode()
                 },
                 onShareAction = {
-                    onEvent(MediaPickerUiEvent.ShareVideos(selectionManager.allSelectedVideos.map { it.uriString }))
+                    onAction(MediaPickerAction.ShareSelectedItems(selectionManager.selectionItems))
                 },
                 onDeleteAction = {
                     if (MediaOperationsService.willSystemAsksForDeleteConfirmation()) {
-                        onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
-                        selectionManager.clearSelection()
+                        onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems))
+                        selectionManager.exitSelectionMode()
                     } else {
                         showDeleteVideosConfirmation = true
                     }
@@ -345,8 +353,9 @@ internal fun MediaPickerScreen(
                     onClick = {
                         isFabExpanded = false
                         val folder = (uiState.mediaDataState as? DataState.Success)?.value ?: return@FloatingActionButtonMenuItem
-                        val videoToPlay = folder.recentlyPlayedVideo ?: folder.firstVideo ?: return@FloatingActionButtonMenuItem
-                        onPlayVideo(videoToPlay.uriString.toUri())
+                        // TODO
+//                        val videoToPlay = folder.recentlyPlayedVideo ?: folder.firstVideo ?: return@FloatingActionButtonMenuItem
+//                        onPlayVideo(videoToPlay.uriString.toUri())
                     },
                     icon = {
                         Icon(
@@ -379,7 +388,7 @@ internal fun MediaPickerScreen(
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                         .background(MaterialTheme.colorScheme.background),
                     isRefreshing = uiState.refreshing,
-                    onRefresh = { onEvent(MediaPickerUiEvent.Refresh) },
+                    onRefresh = { onAction(MediaPickerAction.Refresh) },
                 ) {
                     val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
                     PermissionMissingView(
@@ -388,21 +397,21 @@ internal fun MediaPickerScreen(
                         permission = permissionState.permission,
                         launchPermissionRequest = { permissionState.launchPermissionRequest() },
                     ) {
-                        val rootFolder = uiState.mediaDataState.value
-                        if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
+                        val mediaHolder = uiState.mediaDataState.value
+                        if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
                             NoVideosFound(contentPadding = updatedScaffoldPadding)
                             return@PermissionMissingView
                         }
 
                         MediaView(
-                            rootFolder = rootFolder,
+                            mediaHolder = mediaHolder,
                             preferences = uiState.preferences,
                             onFolderClick = onFolderClick,
                             onVideoClick = { onPlayVideo(it) },
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
                             contentPadding = updatedScaffoldPadding,
-                            onVideoLoaded = { onEvent(MediaPickerUiEvent.AddToSync(it)) },
+                            onVideoLoaded = { onAction(MediaPickerAction.AddToSync(it)) },
                         )
                     }
                 }
@@ -434,7 +443,7 @@ internal fun MediaPickerScreen(
         QuickSettingsDialog(
             applicationPreferences = uiState.preferences,
             onDismiss = { showQuickSettingsDialog = false },
-            updatePreferences = { onEvent(MediaPickerUiEvent.UpdateMenu(it)) },
+            updatePreferences = { onAction(MediaPickerAction.UpdateMenu(it)) },
         )
     }
 
@@ -450,9 +459,9 @@ internal fun MediaPickerScreen(
             name = video.displayName,
             onDismiss = { showRenameActionFor = null },
             onDone = {
-                onEvent(MediaPickerUiEvent.RenameVideo(video.uriString.toUri(), it))
+                onAction(MediaPickerAction.RenameVideo(video.uriString.toUri(), it))
+                selectionManager.exitSelectionMode()
                 showRenameActionFor = null
-                selectionManager.clearSelection()
             },
         )
     }
@@ -466,11 +475,10 @@ internal fun MediaPickerScreen(
 
     if (showDeleteVideosConfirmation) {
         DeleteConfirmationDialog(
-            selectedVideos = selectionManager.selectedVideos,
-            selectedFolders = selectionManager.selectedFolders,
+            selectionItems = selectionManager.selectionItems,
             onConfirm = {
-                onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
-                selectionManager.clearSelection()
+                onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems))
+                selectionManager.exitSelectionMode()
                 showDeleteVideosConfirmation = false
             },
             onCancel = { showDeleteVideosConfirmation = false },
@@ -481,11 +489,13 @@ internal fun MediaPickerScreen(
 @Composable
 private fun DeleteConfirmationDialog(
     modifier: Modifier = Modifier,
-    selectedVideos: Set<SelectedVideo>,
-    selectedFolders: Set<SelectedFolder>,
+    selectionItems: Set<SelectionItem>,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    val selectedVideos = selectionItems.filterIsInstance<SelectionItem.Video>()
+    val selectedFolders = selectionItems.filterIsInstance<SelectionItem.Folder>()
+
     NextDialog(
         onDismissRequest = onCancel,
         title = {
@@ -687,15 +697,12 @@ private fun MediaPickerScreenPreview(
             uiState = MediaPickerUiState(
                 folderName = null,
                 mediaDataState = DataState.Success(
-                    value = Folder(
-                        name = "Root Folder",
-                        path = "/root",
-                        dateModified = System.currentTimeMillis(),
-                        folderList = listOf(
+                    value = MediaHolder(
+                        folders = listOf(
                             Folder(name = "Folder 1", path = "/root/folder1", dateModified = System.currentTimeMillis()),
                             Folder(name = "Folder 2", path = "/root/folder2", dateModified = System.currentTimeMillis()),
                         ),
-                        mediaList = videos,
+                        videos = videos,
                     ),
                 ),
                 preferences = ApplicationPreferences().copy(
@@ -747,6 +754,23 @@ private fun MediaPickerLoadingPreview() {
                     preferences = ApplicationPreferences(),
                 ),
             )
+        }
+    }
+}
+
+@Composable
+fun <T> ObserveAsEvents(
+    flow: Flow<T>,
+    key1: Any? = null,
+    key2: Any? = null,
+    onEvent: suspend (T) -> Unit
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner, key1,key2) {
+        lifecycleOwner.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
+            withContext(context = Dispatchers.Main.immediate) {
+                flow.collect(onEvent)
+            }
         }
     }
 }

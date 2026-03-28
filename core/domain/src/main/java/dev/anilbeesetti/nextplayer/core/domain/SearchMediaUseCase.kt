@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.domain
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,13 +23,6 @@ data class SearchResults(
         get() = folders.size + videos.size
 }
 
-fun SearchResults.asRootFolder(): Folder {
-    return Folder.rootFolder.copy(
-        mediaList = videos,
-        folderList = folders,
-    )
-}
-
 class SearchMediaUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
@@ -42,8 +36,8 @@ class SearchMediaUseCase @Inject constructor(
         }
 
         return combine(
-            getSortedVideosUseCase(),
-            getSortedFoldersUseCase(),
+            getSortedVideosUseCase(FolderFilter.All),
+            getSortedFoldersUseCase(FolderFilter.All),
         ) { videos, folders ->
             val searchMatcher = SearchMatcher(normalizedQuery)
 

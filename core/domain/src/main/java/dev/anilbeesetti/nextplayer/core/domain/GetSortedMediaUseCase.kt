@@ -5,7 +5,9 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
+import dev.anilbeesetti.nextplayer.core.model.Video
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -23,7 +25,7 @@ class GetSortedMediaUseCase @Inject constructor(
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    operator fun invoke(folderPath: String? = null): Flow<Folder?> {
+    operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
         return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
             val folderPath = folderPath.takeIf { it != null } ?: when (preferences.mediaViewMode) {
                 MediaViewMode.FOLDER_TREE -> Environment.getExternalStorageDirectory()?.path
@@ -31,36 +33,47 @@ class GetSortedMediaUseCase @Inject constructor(
                 MediaViewMode.VIDEOS -> null
             }
 
-            val videos = getSortedVideosUseCase(folderPath)
-            val folders = getSortedFoldersUseCase(folderPath)
+            val filter = if (folderPath != null) {
+                FolderFilter.WithPath(folderPath)
+            } else {
+                when (preferences.mediaViewMode) {
+                    MediaViewMode.FOLDER_TREE -> FolderFilter.WithPath(folderPath = Environment.getExternalStorageDirectory().path)
+                    MediaViewMode.FOLDERS -> FolderFilter.All
+                    MediaViewMode.VIDEOS -> FolderFilter.All
+                }
+            }
+
+            val videos = getSortedVideosUseCase(filter)
+            val folders = getSortedFoldersUseCase(filter)
 
             combine(videos, folders) { videos, folders ->
                 when (preferences.mediaViewMode) {
-                    MediaViewMode.FOLDER_TREE -> Folder.rootFolder.copy(
-                        mediaList = videos,
-                        folderList = folders,
+                    MediaViewMode.FOLDER_TREE -> MediaHolder(
+                        videos = videos,
+                        folders = folders,
                     )
                     MediaViewMode.FOLDERS -> if (folderPath == null) {
-                        Folder.rootFolder.copy(
-                            mediaList = emptyList(),
-                            folderList = folders,
+                        MediaHolder(
+                            videos = emptyList(),
+                            folders = folders,
                         )
                     } else {
-                        val file = File(folderPath)
-                        Folder(
-                            name = file.name,
-                            path = file.path,
-                            dateModified = file.lastModified(),
-                            mediaList = videos,
-                            folderList = emptyList(),
+                        MediaHolder(
+                            videos = videos,
+                            folders = emptyList(),
                         )
                     }
-                    MediaViewMode.VIDEOS -> Folder.rootFolder.copy(
-                        mediaList = videos,
-                        folderList = emptyList(),
+                    MediaViewMode.VIDEOS -> MediaHolder(
+                        videos = videos,
+                        folders = emptyList(),
                     )
                 }
             }
         }.flowOn(defaultDispatcher)
     }
 }
+
+data class MediaHolder(
+    val videos: List<Video>,
+    val folders: List<Folder>,
+)

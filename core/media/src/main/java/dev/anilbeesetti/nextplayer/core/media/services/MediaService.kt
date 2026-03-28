@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.media.services
 
 import android.net.Uri
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import kotlinx.coroutines.flow.Flow
 
 data class MediaFolder(
@@ -27,9 +28,11 @@ data class MediaVideo(
 )
 
 interface MediaService {
-    fun getFolders(folderPath: String? = null): Flow<List<MediaFolder>>
-    fun getVideos(folderPath: String? = null): Flow<List<MediaVideo>>
-
-    fun getVideo(uri: Uri): MediaVideo?
+    fun observeFolders(filter: FolderFilter): Flow<List<MediaFolder>>
+    fun observeVideos(filter: FolderFilter): Flow<List<MediaVideo>>
+    suspend fun fetchFolders(filter: FolderFilter): List<MediaFolder>
+    suspend fun fetchVideos(filter: FolderFilter): List<MediaVideo>
+    suspend fun findVideo(uri: Uri): MediaVideo?
+    suspend fun findFolder(path: String): MediaFolder?
 }
 

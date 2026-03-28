@@ -18,35 +18,27 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import androidx.core.net.toUri
+import dev.anilbeesetti.nextplayer.core.media.services.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 
 class LocalMediaRepository @Inject constructor(
     private val mediumStateDao: MediumStateDao,
     private val mediaService: MediaService,
 ) : MediaRepository {
 
-    override fun getFolders(folderPath: String?): Flow<List<Folder>> {
-        return mediaService.getFolders(folderPath).map { mediaFolders ->
+    override fun observeFolders(filter: FolderFilter): Flow<List<Folder>> {
+        return mediaService.observeFolders(filter).map { mediaFolders ->
             coroutineScope {
                 mediaFolders.mapAsync { mediaFolder ->
-                    Folder(
-                        name = mediaFolder.name,
-                        path = mediaFolder.path,
-                        dateModified = mediaFolder.dateModified,
-                        totalSize = mediaFolder.totalSize,
-                        totalDuration = mediaFolder.totalDuration,
-                        videosCount = mediaFolder.videosCount,
-                        foldersCount = mediaFolder.foldersCount,
-                        mediaList = emptyList(),
-                        folderList = emptyList(),
-                    )
+                    mediaFolder.toFolder()
                 }
             }
         }
     }
 
-    override fun getVideos(folderPath: String?): Flow<List<Video>> {
-        return combine(mediaService.getVideos(folderPath), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+    override fun observeVideos(filter: FolderFilter): Flow<List<Video>> {
+        return combine(mediaService.observeVideos(filter), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
             coroutineScope {
                 mediaVideos.mapAsync { mediaVideo ->
                     val uriString = mediaVideo.uri.toString()
@@ -57,8 +49,19 @@ class LocalMediaRepository @Inject constructor(
         }
     }
 
+    override suspend fun fetchFolders(filter: FolderFilter): List<Folder> {
+        return mediaService.fetchFolders(filter).mapAsync { it.toFolder() }
+    }
+
+    override suspend fun fetchVideos(filter: FolderFilter): List<Video> {
+        return mediaService.fetchVideos(filter).mapAsync { mediaVideo ->
+            val mediaState = mediumStateDao.get(mediaVideo.uri.toString())
+            mediaVideo.toVideo(mediaState)
+        }
+    }
+
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
-        val mediaVideoDeferred = async { mediaService.getVideo(uri.toUri()) }
+        val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
         val mediaStateDeferred = async { mediumStateDao.get(uri) }
 
         val mediaVideo = mediaVideoDeferred.await() ?: return@coroutineScope null
@@ -184,6 +187,16 @@ class LocalMediaRepository @Inject constructor(
         formattedDuration = Utils.formatDurationMillis(this.duration),
         formattedFileSize = Utils.formatFileSize(this.size),
         playbackPosition = mediaState?.playbackPosition,
+    )
+    
+    private fun MediaFolder.toFolder() = Folder(
+        name = this.name,
+        path = this.path,
+        dateModified = this.dateModified,
+        totalSize = this.totalSize,
+        totalDuration = this.totalDuration,
+        videosCount = this.videosCount,
+        foldersCount = this.foldersCount,
     )
 }
 

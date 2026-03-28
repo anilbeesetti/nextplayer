@@ -4,6 +4,7 @@ import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -13,12 +14,20 @@ class FakeMediaRepository : MediaRepository {
     val videos = mutableListOf<Video>()
     val directories = mutableListOf<Folder>()
 
-    override fun getVideos(folderPath: String?): Flow<List<Video>> {
+    override fun observeFolders(filter: FolderFilter): Flow<List<Folder>> {
+        return flowOf(directories)
+    }
+
+    override fun observeVideos(filter: FolderFilter): Flow<List<Video>> {
         return flowOf(videos)
     }
 
-    override fun getFolders(folderPath: String?): Flow<List<Folder>> {
-        return flowOf(directories)
+    override suspend fun fetchFolders(filter: FolderFilter): List<Folder> {
+        return directories
+    }
+
+    override suspend fun fetchVideos(filter: FolderFilter): List<Video> {
+        return videos
     }
 
     override suspend fun getVideoByUri(uri: String): Video? {

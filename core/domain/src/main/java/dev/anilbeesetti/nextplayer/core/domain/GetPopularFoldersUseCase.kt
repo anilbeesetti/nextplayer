@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.domain
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -15,14 +16,15 @@ class GetPopularFoldersUseCase @Inject constructor(
 ) {
 
     operator fun invoke(limit: Int = 5): Flow<List<Folder>> {
-        return getSortedFoldersUseCase().map { folders ->
+        return getSortedFoldersUseCase(FolderFilter.All).map { folders ->
+            // TODO
             folders.sortedWith(
                 compareByDescending<Folder> { folder ->
-                    folder.allMediaList.count { it.lastPlayedAt != null }
+                    folder.foldersCount + folder.videosCount
                 }.thenByDescending { folder ->
                     folder.recentlyPlayedVideo?.lastPlayedAt?.time ?: 0L
                 }.thenByDescending { folder ->
-                    folder.mediaList.size
+                    folder.videosCount
                 },
             ).take(limit)
         }.flowOn(defaultDispatcher)

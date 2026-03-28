@@ -10,18 +10,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
+import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
+import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
-import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
+import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -29,6 +36,7 @@ import kotlinx.coroutines.launch
 class MediaPickerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getSortedMediaUseCase: GetSortedMediaUseCase,
+    private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val mediaOperationsService: MediaOperationsService,
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
@@ -36,7 +44,6 @@ class MediaPickerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
-
     val folderPath = folderArgs.folderId
 
     private val uiStateInternal = MutableStateFlow(
@@ -47,6 +54,9 @@ class MediaPickerViewModel @Inject constructor(
     )
     val uiState = uiStateInternal.asStateFlow()
 
+    private val eventsInternal = Channel<MediaPickerEvent>()
+    val events = eventsInternal.receiveAsFlow()
+
     private var mediaCollectJob: Job? = null
 
     init {
@@ -54,16 +64,16 @@ class MediaPickerViewModel @Inject constructor(
         collectPreferences()
     }
 
-    fun onEvent(event: MediaPickerUiEvent) {
-        when (event) {
-            is MediaPickerUiEvent.DeleteFolders -> deleteFolders(event.folders)
-            is MediaPickerUiEvent.DeleteVideos -> deleteVideos(event.videos)
-            is MediaPickerUiEvent.ShareVideos -> shareVideos(event.videos)
-            is MediaPickerUiEvent.Refresh -> refresh()
-            is MediaPickerUiEvent.RenameVideo -> renameVideo(event.uri, event.to)
-            is MediaPickerUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
-            is MediaPickerUiEvent.UpdateMenu -> updateMenu(event.preferences)
-            is MediaPickerUiEvent.OnPermissionAccepted -> collectMedia()
+    fun onAction(action: MediaPickerAction) {
+        when (action) {
+            is MediaPickerAction.Refresh -> refresh()
+            is MediaPickerAction.RenameVideo -> renameVideo(action.uri, action.to)
+            is MediaPickerAction.AddToSync -> addToMediaInfoSynchronizer(action.uri)
+            is MediaPickerAction.UpdateMenu -> updateMenu(action.preferences)
+            is MediaPickerAction.OnPermissionAccepted -> collectMedia()
+            is MediaPickerAction.PlaySelectedItems -> playSelectedItems(action.selectionItems)
+            is MediaPickerAction.DeleteSelectedItems -> deleteSelectedItems(action.selectionItems)
+            is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
         }
     }
 
@@ -91,26 +101,24 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    private fun deleteFolders(folders: List<Folder>) {
+    private fun playSelectedItems(selectedItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            val uris = folders.flatMap { folder ->
-                folder.allMediaList.map { video ->
-                    video.uriString.toUri()
-                }
-            }
-            mediaOperationsService.deleteMedia(uris)
+            val videoUris = selectedItems.toVideoUris()
+            eventsInternal.send(MediaPickerEvent.PlayVideos(videoUris))
         }
     }
 
-    private fun deleteVideos(uris: List<String>) {
+    private fun deleteSelectedItems(selectedItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            mediaOperationsService.deleteMedia(uris.map { it.toUri() })
+            val videoUris = selectedItems.toVideoUris()
+            mediaOperationsService.deleteMedia(videoUris)
         }
     }
 
-    private fun shareVideos(uris: List<String>) {
+    private fun shareSelectedItems(selectedItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            mediaOperationsService.shareMedia(uris.map { it.toUri() })
+            val videoUris = selectedItems.toVideoUris()
+            mediaOperationsService.shareMedia(videoUris)
         }
     }
 
@@ -139,23 +147,43 @@ class MediaPickerViewModel @Inject constructor(
             preferencesRepository.updateApplicationPreferences { preferences }
         }
     }
+
+    private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> {
+        val preferences = uiStateInternal.value.preferences
+        return flatMap { selectionItem ->
+            when (selectionItem) {
+                is SelectionItem.Video -> listOf(selectionItem.uriString.toUri())
+                is SelectionItem.Folder -> {
+                    val filter = FolderFilter.WithPath(
+                        folderPath = selectionItem.path,
+                        directChildrenOnly = preferences.mediaViewMode == MediaViewMode.FOLDERS,
+                    )
+                    getSortedVideosUseCase.invoke(filter).first().map { it.uriString.toUri() }
+                }
+            }
+        }
+    }
 }
 
 @Stable
 data class MediaPickerUiState(
     val folderName: String?,
     val refreshing: Boolean = false,
-    val mediaDataState: DataState<Folder?> = DataState.Loading,
+    val mediaDataState: DataState<MediaHolder?> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
 )
 
-sealed interface MediaPickerUiEvent {
-    data class DeleteVideos(val videos: List<String>) : MediaPickerUiEvent
-    data class DeleteFolders(val folders: List<Folder>) : MediaPickerUiEvent
-    data class ShareVideos(val videos: List<String>) : MediaPickerUiEvent
-    data object Refresh : MediaPickerUiEvent
-    data class RenameVideo(val uri: Uri, val to: String) : MediaPickerUiEvent
-    data class AddToSync(val uri: Uri) : MediaPickerUiEvent
-    data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerUiEvent
-    data object OnPermissionAccepted : MediaPickerUiEvent
+sealed interface MediaPickerAction {
+    data object Refresh : MediaPickerAction
+    data class RenameVideo(val uri: Uri, val to: String) : MediaPickerAction
+    data class AddToSync(val uri: Uri) : MediaPickerAction
+    data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerAction
+    data object OnPermissionAccepted : MediaPickerAction
+    data class PlaySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class DeleteSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class ShareSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+}
+
+sealed interface MediaPickerEvent {
+    data class PlayVideos(val uris: List<Uri>): MediaPickerEvent
 }

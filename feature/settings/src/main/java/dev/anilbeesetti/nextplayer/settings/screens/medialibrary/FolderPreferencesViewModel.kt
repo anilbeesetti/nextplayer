@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,7 @@ class FolderPreferencesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            mediaRepository.getFolders().collect {
+            mediaRepository.observeFolders(FolderFilter.All).collect {
                 uiStateInternal.update { currentState ->
                     currentState.copy(foldersDataState = DataState.Success(it))
                 }

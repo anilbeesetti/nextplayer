@@ -55,8 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.domain.SearchResults
-import dev.anilbeesetti.nextplayer.core.domain.asRootFolder
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -409,7 +409,10 @@ private fun SearchResultsContent(
             }
         } else {
             MediaView(
-                rootFolder = searchResults.asRootFolder(),
+                mediaHolder = MediaHolder(
+                    videos = searchResults.videos,
+                    folders = searchResults.folders,
+                ),
                 preferences = preferences,
                 onFolderClick = onFolderClick,
                 onVideoClick = onVideoClick,
@@ -443,13 +446,11 @@ private fun SearchScreenWithHistoryPreview() {
                         name = "Movies",
                         path = "/storage/Movies",
                         dateModified = System.currentTimeMillis(),
-                        mediaList = listOf(Video.sample, Video.sample),
                     ),
                     Folder(
                         name = "Downloads",
                         path = "/storage/Downloads",
                         dateModified = System.currentTimeMillis(),
-                        mediaList = listOf(Video.sample),
                     ),
                 ),
             ),

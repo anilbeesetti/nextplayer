@@ -21,31 +21,25 @@ fun rememberSelectionManager(): SelectionManager {
 
 @Stable
 class SelectionManager(
-    initialSelectedVideos: Set<SelectedVideo> = emptySet(),
-    initialSelectedFolders: Set<SelectedFolder> = emptySet(),
+    initialSelectionItems: Set<SelectionItem> = emptySet(),
     initialIsInSelectionMode: Boolean = false,
 ) {
-    var selectedVideos: Set<SelectedVideo> by mutableStateOf(initialSelectedVideos)
-        private set
-
-    var selectedFolders: Set<SelectedFolder> by mutableStateOf(initialSelectedFolders)
+    var selectionItems: Set<SelectionItem> by mutableStateOf(initialSelectionItems)
         private set
 
     var isInSelectionMode: Boolean by mutableStateOf(initialIsInSelectionMode)
         private set
 
-    val allSelectedVideos: Set<SelectedVideo> by derivedStateOf { selectedVideos + selectedFolders.flatMap { it.mediaList } }
-
-    val isSingleVideoSelected: Boolean by derivedStateOf { selectedVideos.size == 1 && selectedFolders.isEmpty() }
+    val isSingleVideoSelected: Boolean by derivedStateOf { selectionItems.size == 1 && selectionItems.first() is SelectionItem.Video }
 
     fun toggleFolderSelection(folder: Folder) {
-        val selectedFolder = selectedFolders.find { it.path == folder.path }
-        selectedFolders = if (selectedFolder != null) {
-            selectedFolders - selectedFolder
+        val selectedFolder = selectionItems.find { it.id == folder.path }
+        selectionItems = if (selectedFolder != null) {
+            selectionItems - selectedFolder
         } else {
-            selectedFolders + folder.toSelectedFolder()
+            selectionItems + folder.toSelectedFolder()
         }
-        if (allSelectedVideos.isNotEmpty()) {
+        if (selectionItems.isNotEmpty()) {
             enterSelectionMode()
         } else {
             exitSelectionMode()
@@ -53,13 +47,13 @@ class SelectionManager(
     }
 
     fun toggleVideoSelection(video: Video) {
-        val selectedVideo = selectedVideos.find { it.uriString == video.uriString }
-        selectedVideos = if (selectedVideo != null) {
-            selectedVideos - selectedVideo
+        val selectedVideo = selectionItems.find { it.id == video.uriString }
+        selectionItems = if (selectedVideo != null) {
+            selectionItems - selectedVideo
         } else {
-            selectedVideos + video.toSelectedVideo()
+            selectionItems + video.toSelectedVideo()
         }
-        if (allSelectedVideos.isNotEmpty()) {
+        if (selectionItems.isNotEmpty()) {
             enterSelectionMode()
         } else {
             exitSelectionMode()
@@ -68,17 +62,16 @@ class SelectionManager(
 
     fun selectFolder(folder: Folder) {
         enterSelectionMode()
-        selectedFolders = selectedFolders + folder.toSelectedFolder()
+        selectionItems = selectionItems + folder.toSelectedFolder()
     }
 
     fun selectVideo(video: Video) {
         enterSelectionMode()
-        selectedVideos = selectedVideos + video.toSelectedVideo()
+        selectionItems = selectionItems + video.toSelectedVideo()
     }
 
     fun clearSelection() {
-        selectedVideos = emptySet()
-        selectedFolders = emptySet()
+        selectionItems = emptySet()
     }
 
     fun enterSelectionMode() {
@@ -87,16 +80,15 @@ class SelectionManager(
 
     fun exitSelectionMode() {
         isInSelectionMode = false
-        selectedVideos = emptySet()
-        selectedFolders = emptySet()
+        selectionItems = emptySet()
     }
 
     fun isFolderSelected(folder: Folder): Boolean {
-        return selectedFolders.find { it.path == folder.path } != null
+        return selectionItems.find { it.id == folder.path } != null
     }
 
     fun isVideoSelected(video: Video): Boolean {
-        return selectedVideos.find { it.uriString == video.uriString } != null
+        return selectionItems.find { it.id == video.uriString } != null
     }
 
     companion object {
@@ -104,15 +96,13 @@ class SelectionManager(
         val Saver = Saver<SelectionManager, Map<String, Any>>(
             save = {
                 mapOf(
-                    "selectedVideos" to it.selectedVideos,
-                    "selectedFolders" to it.selectedFolders,
+                    "selectionItems" to it.selectionItems,
                     "isInSelectionMode" to it.isInSelectionMode,
                 )
             },
             restore = {
                 SelectionManager(
-                    initialSelectedVideos = (it["selectedVideos"] as? Set<SelectedVideo>) ?: emptySet(),
-                    initialSelectedFolders = (it["selectedFolders"] as? Set<SelectedFolder>) ?: emptySet(),
+                    initialSelectionItems = (it["selectionItems"] as? Set<SelectionItem>) ?: emptySet(),
                     initialIsInSelectionMode = it["isInSelectionMode"] as? Boolean ?: false,
                 )
             },
@@ -120,28 +110,33 @@ class SelectionManager(
     }
 }
 
-@Stable
-data class SelectedFolder(
-    val name: String,
-    val path: String,
-    val mediaList: List<SelectedVideo>,
-) : Serializable
+sealed interface SelectionItem: Serializable {
+    @Stable
+    data class Folder(
+        override val name: String,
+        val path: String,
+    ) : SelectionItem {
+        override val id: String = path
+    }
 
-@Stable
-data class SelectedVideo(
-    val name: String,
-    val nameWithExtension: String,
-    val uriString: String,
-) : Serializable
+    @Stable
+    data class Video(
+        override val name: String,
+        val uriString: String,
+    ) : SelectionItem {
+        override val id: String = uriString
+    }
 
-private fun Folder.toSelectedFolder() = SelectedFolder(
+    val id: String
+    val name: String
+}
+
+private fun Folder.toSelectedFolder() = SelectionItem.Folder(
     name = name,
     path = path,
-    mediaList = allMediaList.map { it.toSelectedVideo() },
 )
 
-private fun Video.toSelectedVideo() = SelectedVideo(
+private fun Video.toSelectedVideo() = SelectionItem.Video(
     name = displayName,
-    nameWithExtension = nameWithExtension,
     uriString = uriString,
 )

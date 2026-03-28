@@ -5,12 +5,12 @@ import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 
 class GetSortedFoldersUseCase @Inject constructor(
@@ -19,9 +19,9 @@ class GetSortedFoldersUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(folderPath: String? = null): Flow<List<Folder>> {
+    operator fun invoke(filter: FolderFilter): Flow<List<Folder>> {
         return combine(
-            mediaRepository.getFolders(folderPath),
+            mediaRepository.observeFolders(filter),
             preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
 

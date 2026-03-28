@@ -4,6 +4,7 @@ import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
@@ -19,9 +20,9 @@ class GetSortedVideosUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
-    operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
+    operator fun invoke(filter: FolderFilter): Flow<List<Video>> {
         return combine(
-            mediaRepository.getVideos(folderPath),
+            mediaRepository.observeVideos(filter),
             preferencesRepository.applicationPreferences,
         ) { videoItems, preferences ->
 

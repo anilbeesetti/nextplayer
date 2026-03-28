@@ -108,7 +108,7 @@ data class Sort(
 
         val comparator = when (by) {
             By.TITLE -> folderNameComparator
-            By.LENGTH -> compareBy<Folder> { it.mediaList.size }.then(folderNameComparator)
+            By.LENGTH -> compareBy<Folder> { it.totalDuration }.then(folderNameComparator)
             By.PATH -> folderPathComparator
             By.SIZE -> compareBy<Folder> { it.totalSize }.then(folderNameComparator)
             By.DATE -> compareBy<Folder> { it.dateModified }.then(folderNameComparator)
