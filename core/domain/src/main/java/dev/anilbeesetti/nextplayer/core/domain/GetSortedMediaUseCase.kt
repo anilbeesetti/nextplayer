@@ -26,43 +26,55 @@ class GetSortedMediaUseCase @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
         return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
-            val filter = if (folderPath != null) {
-                FolderFilter.WithPath(folderPath)
-            } else {
-                when (preferences.mediaViewMode) {
-                    MediaViewMode.FOLDER_TREE -> FolderFilter.WithPath(folderPath = Environment.getExternalStorageDirectory().path)
-                    MediaViewMode.FOLDERS -> FolderFilter.All
-                    MediaViewMode.VIDEOS -> FolderFilter.All
-                }
-            }
+            val filter = getFolderFilter(folderPath, preferences.mediaViewMode)
 
             val videosFlow = getSortedVideosUseCase(filter)
             val foldersFlow = getSortedFoldersUseCase(filter)
 
             combine(videosFlow, foldersFlow) { videos, folders ->
-                when (preferences.mediaViewMode) {
-                    MediaViewMode.FOLDER_TREE -> MediaHolder(
-                        videos = videos,
-                        folders = folders,
-                    )
-                    MediaViewMode.FOLDERS -> if (folderPath == null) {
-                        MediaHolder(
-                            videos = emptyList(),
-                            folders = folders,
-                        )
-                    } else {
-                        MediaHolder(
-                            videos = videos,
-                            folders = emptyList(),
-                        )
-                    }
-                    MediaViewMode.VIDEOS -> MediaHolder(
-                        videos = videos,
-                        folders = emptyList(),
-                    )
-                }
+                createMediaHolder(folderPath, preferences.mediaViewMode, videos, folders)
             }
         }.flowOn(defaultDispatcher)
+    }
+    private fun getFolderFilter(folderPath: String?, mediaViewMode: MediaViewMode): FolderFilter {
+        return if (folderPath != null) {
+            FolderFilter.WithPath(folderPath)
+        } else {
+            when (mediaViewMode) {
+                MediaViewMode.FOLDER_TREE -> FolderFilter.WithPath(folderPath = Environment.getExternalStorageDirectory().path)
+                MediaViewMode.FOLDERS -> FolderFilter.All
+                MediaViewMode.VIDEOS -> FolderFilter.All
+            }
+        }
+    }
+
+    private fun createMediaHolder(
+        folderPath: String?,
+        mediaViewMode: MediaViewMode,
+        videos: List<Video>,
+        folders: List<Folder>,
+    ): MediaHolder {
+        return when (mediaViewMode) {
+            MediaViewMode.FOLDER_TREE -> MediaHolder(
+                videos = videos,
+                folders = folders,
+            )
+            MediaViewMode.FOLDERS -> if (folderPath == null) {
+                MediaHolder(
+                    videos = emptyList(),
+                    folders = folders,
+                )
+            } else {
+                MediaHolder(
+                    videos = videos,
+                    folders = emptyList(),
+                )
+            }
+            MediaViewMode.VIDEOS -> MediaHolder(
+                videos = videos,
+                folders = emptyList(),
+            )
+        }
     }
 }
 

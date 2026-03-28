@@ -20,7 +20,8 @@ class GetPopularFoldersUseCase @Inject constructor(
             // TODO
             folders.sortedWith(
                 compareByDescending<Folder> { folder ->
-                    folder.foldersCount + folder.videosCount
+                    true
+//                    folder.allMediaList.count { it.lastPlayedAt != null }
 //                }.thenByDescending { folder ->
 //                    folder.recentlyPlayedVideo?.lastPlayedAt?.time ?: 0L
                 }.thenByDescending { folder ->

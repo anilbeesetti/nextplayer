@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
@@ -38,28 +38,19 @@ class MediaStoreMediaService @Inject constructor(
         )
     }
 
-    override fun observeFolders(filter: FolderFilter): Flow<List<MediaFolder>> = callbackFlow {
-        val observer = object : ContentObserver(null) {
-            override fun onChange(selfChange: Boolean) {
-                launch { send(fetchFolders(filter)) }
-            }
-        }
-        context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
-        send(fetchFolders(filter))
-        awaitClose { context.contentResolver.unregisterContentObserver(observer) }
-    }.flowOn(Dispatchers.IO).distinctUntilChanged()
+    override fun observeFolders(filter: FolderFilter): Flow<List<MediaFolder>> {
+        return context.contentObserverFlow()
+            .map { fetchFolders(filter) }
+            .flowOn(Dispatchers.IO)
+            .distinctUntilChanged()
+    }
 
-
-    override fun observeVideos(filter: FolderFilter): Flow<List<MediaVideo>> = callbackFlow {
-        val observer = object : ContentObserver(null) {
-            override fun onChange(selfChange: Boolean) {
-                launch { send(fetchVideos(filter)) }
-            }
-        }
-        context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
-        send(fetchVideos(filter))
-        awaitClose { context.contentResolver.unregisterContentObserver(observer) }
-    }.flowOn(Dispatchers.IO).distinctUntilChanged()
+    override fun observeVideos(filter: FolderFilter): Flow<List<MediaVideo>> {
+        return context.contentObserverFlow()
+            .map { fetchVideos(filter) }
+            .flowOn(Dispatchers.IO)
+            .distinctUntilChanged()
+    }
 
     override suspend fun fetchFolders(filter: FolderFilter): List<MediaFolder> = withContext(Dispatchers.IO) {
         val allDescendantsFilter = when (filter) {
@@ -183,5 +174,16 @@ class MediaStoreMediaService @Inject constructor(
             size = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)),
             dateModified = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED)),
         )
+    }
+
+    private fun Context.contentObserverFlow(): Flow<Unit> = callbackFlow {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                trySend(Unit)
+            }
+        }
+        contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
+        trySend(Unit)
+        awaitClose { contentResolver.unregisterContentObserver(observer) }
     }
 }
