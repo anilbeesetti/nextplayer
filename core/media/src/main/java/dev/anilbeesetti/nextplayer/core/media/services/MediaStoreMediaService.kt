@@ -165,8 +165,9 @@ class MediaStoreMediaService @Inject constructor(
         return MediaVideo(
             id = id,
             path = path,
-            uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
             title = file.nameWithoutExtension,
+            parentPath = file.parent!!,
+            uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
             displayName = getString(getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
             duration = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
             width = getInt(getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),

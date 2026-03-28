@@ -19,6 +19,7 @@ data class MediaVideo(
     val uri: Uri,
     val path: String,
     val title: String,
+    val parentPath: String,
     val displayName: String,
     val duration: Long,
     val size: Long,

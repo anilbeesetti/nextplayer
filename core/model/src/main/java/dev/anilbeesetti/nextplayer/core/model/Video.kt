@@ -6,7 +6,6 @@ import java.util.Date
 data class Video(
     val id: Long,
     val path: String,
-    // TODO: add parentPath
     val parentPath: String = "",
     val duration: Long,
     val uriString: String,
