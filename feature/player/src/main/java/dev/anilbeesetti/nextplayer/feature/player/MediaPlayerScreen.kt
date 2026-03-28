@@ -385,6 +385,7 @@ fun MediaPlayerScreen(
                 player = player,
                 overlayView = overlayView,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+                globalMuteEnabled = playerPreferences.muteAllVideosAudio,
                 onDismiss = { overlayView = null },
                 onSelectSubtitleClick = onSelectSubtitleClick,
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
