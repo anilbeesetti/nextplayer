@@ -8,9 +8,9 @@ import dev.anilbeesetti.nextplayer.core.media.services.LocalMediaOperationsServi
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaStoreMediaService
-import dev.anilbeesetti.nextplayer.core.media.sync.LocalMediaInfoSynchronizer
+import dev.anilbeesetti.nextplayer.core.media.sync.LocalMediaInfoRetriever
 import dev.anilbeesetti.nextplayer.core.media.sync.LocalMediaSynchronizer
-import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoRetriever
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import javax.inject.Singleton
 
@@ -27,8 +27,8 @@ interface MediaModule {
     @Binds
     @Singleton
     fun bindsMediaInfoSynchronizer(
-        mediaInfoSynchronizer: LocalMediaInfoSynchronizer,
-    ): MediaInfoSynchronizer
+        mediaInfoSynchronizer: LocalMediaInfoRetriever,
+    ): MediaInfoRetriever
 
     @Binds
     @Singleton

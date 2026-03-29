@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoRetriever
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import javax.inject.Inject
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ThumbnailPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-    private val mediaInfoSynchronizer: MediaInfoSynchronizer,
+    private val mediaInfoRetriever: MediaInfoRetriever,
 ) : ViewModel() {
 
     private val uiStateInternal = MutableStateFlow(
@@ -50,7 +50,7 @@ class ThumbnailPreferencesViewModel @Inject constructor(
             }
             // Clear cache only if strategy actually changed
             if (currentStrategy != strategy) {
-                mediaInfoSynchronizer.clearThumbnailsCache()
+                mediaInfoRetriever.clearThumbnailsCache()
             }
         }
     }
@@ -63,7 +63,7 @@ class ThumbnailPreferencesViewModel @Inject constructor(
             }
             // Clear cache only if position actually changed
             if (currentPosition != position) {
-                mediaInfoSynchronizer.clearThumbnailsCache()
+                mediaInfoRetriever.clearThumbnailsCache()
             }
         }
     }

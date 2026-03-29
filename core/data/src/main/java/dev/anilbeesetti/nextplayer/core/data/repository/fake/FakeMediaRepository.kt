@@ -5,6 +5,7 @@ import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.FolderFilter
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -35,6 +36,10 @@ class FakeMediaRepository : MediaRepository {
     }
 
     override suspend fun getVideoState(uri: String): VideoState? {
+        return null
+    }
+
+    override suspend fun getMediaInfo(uri: String): MediaInfo? {
         return null
     }
 

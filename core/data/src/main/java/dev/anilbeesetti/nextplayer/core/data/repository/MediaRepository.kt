@@ -4,6 +4,7 @@ import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.FolderFilter
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +15,7 @@ interface MediaRepository {
     suspend fun fetchVideos(filter: FolderFilter): List<Video>
     suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?
+    suspend fun getMediaInfo(uri: String): MediaInfo?
     suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long)
     suspend fun updateMediumPosition(uri: String, position: Long)
     suspend fun updateMediumPlaybackSpeed(uri: String, playbackSpeed: Float)

@@ -17,20 +17,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.Utils
-import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 
 @Composable
-fun VideoInfoDialog(
-    video: Video,
+fun MediaInfoDialog(
+    mediaInfo: MediaInfo,
     onDismiss: () -> Unit,
 ) {
     NextDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = video.displayName,
+                text = mediaInfo.video.displayName,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -44,27 +44,27 @@ fun VideoInfoDialog(
                 MediaInfoTitle(text = stringResource(R.string.file))
                 MediaInfoText(
                     title = stringResource(id = R.string.file),
-                    subText = video.nameWithExtension,
+                    subText = mediaInfo.video.nameWithExtension,
                 )
                 MediaInfoText(
                     title = stringResource(id = R.string.location),
-                    subText = video.parentPath,
+                    subText = mediaInfo.video.parentPath,
                 )
                 MediaInfoText(
                     title = stringResource(id = R.string.size),
-                    subText = video.formattedFileSize,
+                    subText = mediaInfo.video.formattedFileSize,
                 )
                 MediaInfoText(
                     title = stringResource(id = R.string.duration),
-                    subText = video.formattedDuration,
+                    subText = mediaInfo.video.formattedDuration,
                 )
-                video.format?.let {
+                mediaInfo.video.format?.let {
                     MediaInfoText(
                         title = stringResource(id = R.string.format),
                         subText = it,
                     )
                 }
-                video.videoStream?.let { videoStream ->
+                mediaInfo.videoStream?.let { videoStream ->
                     MediaInfoTitle(text = stringResource(id = R.string.video_track))
                     videoStream.title?.let {
                         MediaInfoText(
@@ -91,7 +91,7 @@ fun VideoInfoDialog(
                         )
                     }
                 }
-                video.audioStreams.forEachIndexed { index, audioStream ->
+                mediaInfo.audioStreams.forEachIndexed { index, audioStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
                     audioStream.title?.let {
                         MediaInfoText(
@@ -128,7 +128,7 @@ fun VideoInfoDialog(
                         )
                     }
                 }
-                video.subtitleStreams.forEachIndexed { index, subtitleStream ->
+                mediaInfo.subtitleStreams.forEachIndexed { index, subtitleStream ->
                     MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
                     subtitleStream.title?.let {
                         MediaInfoText(

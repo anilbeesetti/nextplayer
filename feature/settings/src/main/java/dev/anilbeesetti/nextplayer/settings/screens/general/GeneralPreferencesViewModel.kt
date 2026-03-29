@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoRetriever
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class GeneralPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-    private val mediaInfoSynchronizer: MediaInfoSynchronizer,
+    private val mediaInfoRetriever: MediaInfoRetriever,
 ) : ViewModel() {
 
     private val uiStateInternal = MutableStateFlow(GeneralPreferencesUiState())
@@ -33,7 +33,7 @@ class GeneralPreferencesViewModel @Inject constructor(
 
     private fun clearThumbnailCache() {
         viewModelScope.launch {
-            mediaInfoSynchronizer.clearThumbnailsCache()
+            mediaInfoRetriever.clearThumbnailsCache()
         }
     }
 

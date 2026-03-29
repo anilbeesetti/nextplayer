@@ -2,7 +2,7 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 
 import android.net.Uri
 
-interface MediaInfoSynchronizer {
+interface MediaInfoRetriever {
 
     fun sync(uri: Uri)
 

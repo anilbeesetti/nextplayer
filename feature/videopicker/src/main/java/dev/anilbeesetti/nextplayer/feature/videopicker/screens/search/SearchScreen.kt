@@ -202,7 +202,6 @@ internal fun SearchScreen(
                         contentPadding = updatedScaffoldPadding,
                         onFolderClick = onFolderClick,
                         onVideoClick = onVideoClick,
-                        onVideoLoaded = { onEvent(SearchUiEvent.AddToSync(it)) },
                     )
                 }
             }
@@ -365,7 +364,6 @@ private fun SearchResultsContent(
     contentPadding: PaddingValues = PaddingValues(),
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
-    onVideoLoaded: (Uri) -> Unit,
 ) {
     AnimatedVisibility(
         visible = isSearching,
@@ -418,7 +416,6 @@ private fun SearchResultsContent(
                 preferences = preferences,
                 onFolderClick = onFolderClick,
                 onVideoClick = onVideoClick,
-                onVideoLoaded = onVideoLoaded,
                 showHeaders = true,
                 contentPadding = contentPadding,
             )

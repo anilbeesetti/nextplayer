@@ -55,7 +55,6 @@ fun MediaView(
     lazyGridState: LazyGridState = rememberLazyGridState(),
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
-    onVideoLoaded: (Uri) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -165,7 +164,6 @@ fun MediaView(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         selectionManager.toggleVideoSelection(video)
                     },
-                    modifier = Modifier.onFirstVisible { onVideoLoaded(video.uriString.toUri()) },
                 )
             }
         }

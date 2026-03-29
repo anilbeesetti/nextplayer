@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.search
 
-import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,10 +9,8 @@ import dev.anilbeesetti.nextplayer.core.data.repository.SearchHistoryRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetPopularFoldersUseCase
 import dev.anilbeesetti.nextplayer.core.domain.SearchMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.SearchResults
-import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +19,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -29,7 +27,6 @@ class SearchViewModel @Inject constructor(
     private val getPopularFoldersUseCase: GetPopularFoldersUseCase,
     private val searchHistoryRepository: SearchHistoryRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val mediaInfoSynchronizer: MediaInfoSynchronizer,
 ) : ViewModel() {
 
     private val uiStateInternal = MutableStateFlow(SearchUiState())
@@ -94,7 +91,6 @@ class SearchViewModel @Inject constructor(
             is SearchUiEvent.OnHistoryItemClick -> onHistoryItemClick(event.query)
             is SearchUiEvent.OnRemoveHistoryItem -> removeHistoryItem(event.query)
             is SearchUiEvent.OnClearHistory -> clearHistory()
-            is SearchUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
         }
     }
 
@@ -128,12 +124,6 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun addToMediaInfoSynchronizer(uri: Uri) {
-        viewModelScope.launch {
-            mediaInfoSynchronizer.sync(uri)
-        }
-    }
-
     companion object {
         private const val SEARCH_DEBOUNCE_MS = 300L
     }
@@ -155,5 +145,4 @@ sealed interface SearchUiEvent {
     data class OnHistoryItemClick(val query: String) : SearchUiEvent
     data class OnRemoveHistoryItem(val query: String) : SearchUiEvent
     data object OnClearHistory : SearchUiEvent
-    data class AddToSync(val uri: Uri) : SearchUiEvent
 }

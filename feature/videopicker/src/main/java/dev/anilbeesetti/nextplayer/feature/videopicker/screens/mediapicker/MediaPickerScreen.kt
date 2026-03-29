@@ -85,7 +85,6 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
-import dev.anilbeesetti.nextplayer.core.model.recentPlayed
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
@@ -104,7 +103,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NoVideosFound
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoInfoDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlinx.coroutines.Dispatchers
@@ -171,7 +170,6 @@ internal fun MediaPickerScreen(
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
 
     var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(null) }
-    var showInfoActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
 
     val selectedItemsSize = selectionManager.selectionItems.size
@@ -281,7 +279,7 @@ internal fun MediaPickerScreen(
                     val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
                     val video = (uiState.mediaDataState as? DataState.Success)?.value?.videos
                         ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
-                    showInfoActionFor = video
+                    onAction(MediaPickerAction.ShowMediaInfo(video))
                     selectionManager.exitSelectionMode()
                 },
                 onShareAction = {
@@ -413,7 +411,6 @@ internal fun MediaPickerScreen(
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
                             contentPadding = updatedScaffoldPadding,
-                            onVideoLoaded = { onAction(MediaPickerAction.AddToSync(it)) },
                         )
                     }
                 }
@@ -468,10 +465,10 @@ internal fun MediaPickerScreen(
         )
     }
 
-    showInfoActionFor?.let { video ->
-        VideoInfoDialog(
-            video = video,
-            onDismiss = { showInfoActionFor = null },
+    uiState.mediaInfo?.let { mediaInfo ->
+        MediaInfoDialog(
+            mediaInfo = mediaInfo,
+            onDismiss = { onAction(MediaPickerAction.DismissMediaInfo) },
         )
     }
 

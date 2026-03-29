@@ -8,13 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetRecentlyPlayedVideoUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
-import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -27,8 +27,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -36,6 +34,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import javax.inject.Inject
 
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
@@ -44,8 +44,8 @@ class MediaPickerViewModel @Inject constructor(
     private val getRecentlyPlayedVideoUseCase: GetRecentlyPlayedVideoUseCase,
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val mediaOperationsService: MediaOperationsService,
+    private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    private val mediaInfoSynchronizer: MediaInfoSynchronizer,
     private val mediaSynchronizer: MediaSynchronizer,
 ) : ViewModel() {
 
@@ -74,12 +74,13 @@ class MediaPickerViewModel @Inject constructor(
         when (action) {
             is MediaPickerAction.Refresh -> refresh()
             is MediaPickerAction.RenameVideo -> renameVideo(action.uri, action.to)
-            is MediaPickerAction.AddToSync -> addToMediaInfoSynchronizer(action.uri)
             is MediaPickerAction.UpdateMenu -> updateMenu(action.preferences)
             is MediaPickerAction.OnPermissionAccepted -> collectMedia()
             is MediaPickerAction.PlaySelectedItems -> playSelectedItems(action.selectionItems)
             is MediaPickerAction.DeleteSelectedItems -> deleteSelectedItems(action.selectionItems)
             is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
+            is MediaPickerAction.ShowMediaInfo -> showMediaInfo(action.video)
+            MediaPickerAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
         }
     }
 
@@ -137,9 +138,12 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    private fun addToMediaInfoSynchronizer(uri: Uri) {
+    private fun showMediaInfo(video: Video) {
         viewModelScope.launch {
-            mediaInfoSynchronizer.sync(uri)
+            val mediaInfo = mediaRepository.getMediaInfo(video.uriString)
+            if (mediaInfo != null) {
+                uiStateInternal.update { it.copy(mediaInfo = mediaInfo) }
+            }
         }
     }
 
@@ -188,17 +192,19 @@ data class MediaPickerUiState(
     val recentlyPlayedFolder: Folder? = null,
     val mediaDataState: DataState<MediaHolder?> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
+    val mediaInfo: dev.anilbeesetti.nextplayer.core.model.MediaInfo? = null,
 )
 
 sealed interface MediaPickerAction {
     data object Refresh : MediaPickerAction
     data class RenameVideo(val uri: Uri, val to: String) : MediaPickerAction
-    data class AddToSync(val uri: Uri) : MediaPickerAction
     data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerAction
     data object OnPermissionAccepted : MediaPickerAction
     data class PlaySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class DeleteSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class ShareSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class ShowMediaInfo(val video: Video): MediaPickerAction
+    data object DismissMediaInfo : MediaPickerAction
 }
 
 sealed interface MediaPickerEvent {

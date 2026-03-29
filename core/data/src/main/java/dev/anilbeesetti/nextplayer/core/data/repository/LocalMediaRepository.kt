@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import android.content.Context
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
@@ -18,14 +19,24 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import androidx.core.net.toUri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.media.services.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
+import dev.anilbeesetti.nextplayer.core.model.AudioStreamInfo
 import dev.anilbeesetti.nextplayer.core.model.FolderFilter
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
+import dev.anilbeesetti.nextplayer.core.model.SubtitleStreamInfo
+import dev.anilbeesetti.nextplayer.core.model.VideoStreamInfo
+import io.github.anilbeesetti.nextlib.mediainfo.AudioStream
+import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
+import io.github.anilbeesetti.nextlib.mediainfo.SubtitleStream
+import io.github.anilbeesetti.nextlib.mediainfo.VideoStream
 import java.util.Date
 
 class LocalMediaRepository @Inject constructor(
     private val mediumStateDao: MediumStateDao,
     private val mediaService: MediaService,
+    @ApplicationContext private val context: Context,
 ) : MediaRepository {
 
     override fun observeFolders(filter: FolderFilter): Flow<List<Folder>> {
@@ -73,6 +84,18 @@ class LocalMediaRepository @Inject constructor(
 
     override suspend fun getVideoState(uri: String): VideoState? {
         return mediumStateDao.get(uri)?.toVideoState()
+    }
+
+    override suspend fun getMediaInfo(uri: String): MediaInfo? {
+        val video = getVideoByUri(uri) ?: return null
+        val mediaInfo = runCatching { MediaInfoBuilder().from(context = context, uri = uri.toUri()).build() }.getOrNull()
+        mediaInfo?.release()
+        return MediaInfo(
+            video = video,
+            videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
+            audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
+            subtitleStreams = mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
+        )
     }
 
     override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
@@ -200,6 +223,39 @@ class LocalMediaRepository @Inject constructor(
         totalDuration = this.totalDuration,
         videosCount = this.videosCount,
         foldersCount = this.foldersCount,
+    )
+
+    private fun VideoStream.toVideoStreamInfo() = VideoStreamInfo(
+        index = index,
+        title = title,
+        codecName = codecName,
+        language = language,
+        disposition = disposition,
+        bitRate = bitRate,
+        frameRate = frameRate,
+        frameWidth = frameWidth,
+        frameHeight = frameHeight,
+    )
+
+    private fun AudioStream.toAudioStreamInfo() = AudioStreamInfo(
+        index = index,
+        title = title,
+        codecName = codecName,
+        language = language,
+        disposition = disposition,
+        bitRate = bitRate,
+        sampleFormat = sampleFormat,
+        sampleRate = sampleRate,
+        channels = channels,
+        channelLayout = channelLayout,
+    )
+
+    private fun SubtitleStream.toSubtitleStreamInfo() = SubtitleStreamInfo(
+        index = index,
+        title = title,
+        codecName = codecName,
+        language = language,
+        disposition = disposition,
     )
 }
 
