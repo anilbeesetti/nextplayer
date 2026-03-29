@@ -36,6 +36,7 @@ class GetSortedMediaUseCase @Inject constructor(
             }
         }.flowOn(defaultDispatcher)
     }
+
     private fun getFolderFilter(folderPath: String?, mediaViewMode: MediaViewMode): FolderFilter {
         return if (folderPath != null) {
             FolderFilter.WithPath(folderPath)

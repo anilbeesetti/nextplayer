@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 class MediaStoreMediaService @Inject constructor(
     @ApplicationContext private val context: Context,
-): MediaService {
+) : MediaService {
 
     companion object {
         private val VIDEO_PROJECTION = arrayOf(
@@ -53,45 +53,91 @@ class MediaStoreMediaService @Inject constructor(
     }
 
     override suspend fun fetchFolders(filter: FolderFilter): List<MediaFolder> = withContext(Dispatchers.IO) {
+        val mediaVideos = fetchAllDescendantVideos(filter)
+        val videosByActualFolder = mediaVideos.groupBy { File(it.path).parentFile }
+        val videosByDisplayFolder = groupVideosByDisplayFolder(mediaVideos, filter, videosByActualFolder)
+        val actualFolderPaths = videosByActualFolder.keys.filterNotNull().map { it.path }
+
+        return@withContext videosByDisplayFolder.mapNotNull { (folderFile, videos) ->
+            folderFile?.toMediaFolder(
+                videos = videos,
+                filter = filter,
+                actualFolderPaths = actualFolderPaths,
+                videosByActualFolder = videosByActualFolder,
+            )
+        }
+    }
+
+    /**
+     * Fetches all videos that are descendants of the filter path (ignoring directChildrenOnly).
+     */
+    private suspend fun fetchAllDescendantVideos(filter: FolderFilter): List<MediaVideo> {
         val allDescendantsFilter = when (filter) {
             is FolderFilter.WithPath -> filter.copy(directChildrenOnly = false)
             FolderFilter.All -> FolderFilter.All
         }
-        val mediaVideos = fetchVideos(allDescendantsFilter)
-        val videosByActualFolder = mediaVideos.groupBy { File(it.path).parentFile }
+        return fetchVideos(allDescendantsFilter)
+    }
 
-        val videosByFolder = if (filter is FolderFilter.WithPath && filter.directChildrenOnly) {
-            mediaVideos.groupBy { video ->
+    /**
+     * Groups videos by their display folder.
+     *
+     * For FOLDER_TREE mode with directChildrenOnly=true, videos in nested folders
+     * are grouped under their nearest ancestor that is a direct child of the filter path.
+     * Otherwise, videos are grouped by their actual parent folder.
+     */
+    private fun groupVideosByDisplayFolder(
+        videos: List<MediaVideo>,
+        filter: FolderFilter,
+        videosByActualFolder: Map<File?, List<MediaVideo>>,
+    ): Map<File?, List<MediaVideo>> {
+        return if (filter is FolderFilter.WithPath && filter.directChildrenOnly) {
+            videos.groupBy { video ->
                 File(video.path).walkUp().firstOrNull { it.parent == filter.folderPath }
             }
         } else {
             videosByActualFolder
         }
+    }
 
-        val actualFolderPaths = videosByActualFolder.keys.filterNotNull().map { it.path }
+    /**
+     * Converts a folder File to MediaFolder with computed metadata.
+     */
+    private fun File.toMediaFolder(
+        videos: List<MediaVideo>,
+        filter: FolderFilter,
+        actualFolderPaths: List<String>,
+        videosByActualFolder: Map<File?, List<MediaVideo>>,
+    ): MediaFolder {
+        val nestedFoldersCount = calculateNestedFoldersCount(filter, actualFolderPaths)
 
-        return@withContext videosByFolder.mapNotNull { (folderFile, videos) ->
-            if (folderFile == null) return@mapNotNull null
+        return MediaFolder(
+            path = path,
+            name = prettyName,
+            dateModified = videos.minOfOrNull { it.dateModified } ?: 0L,
+            totalSize = videos.sumOf { it.size },
+            totalDuration = videos.sumOf { it.duration },
+            videosCount = videosByActualFolder[this]?.size ?: 0,
+            foldersCount = nestedFoldersCount,
+        )
+    }
 
-            val nestedFoldersCount = if (filter is FolderFilter.WithPath && filter.directChildrenOnly) {
-                val folderPrefix = folderFile.path + File.separator
-                actualFolderPaths
-                    .filter { it.startsWith(folderPrefix) }
-                    .map { it.removePrefix(folderPrefix).substringBefore(File.separator) }
-                    .distinct()
-                    .count()
-            } else 0
+    /**
+     * Calculates the number of direct child folders within this folder.
+     * Only applicable when displaying folder tree with directChildrenOnly=true.
+     */
+    private fun File.calculateNestedFoldersCount(
+        filter: FolderFilter,
+        actualFolderPaths: List<String>,
+    ): Int {
+        if (filter !is FolderFilter.WithPath || !filter.directChildrenOnly) return 0
 
-            MediaFolder(
-                path = folderFile.path,
-                name = folderFile.prettyName,
-                dateModified = videos.minOfOrNull { it.dateModified } ?: 0L,
-                totalSize = videos.sumOf { it.size },
-                totalDuration = videos.sumOf { it.duration },
-                videosCount = videosByActualFolder[folderFile]?.size ?: 0,
-                foldersCount = nestedFoldersCount,
-            )
-        }
+        val folderPrefix = path + File.separator
+        return actualFolderPaths
+            .filter { it.startsWith(folderPrefix) }
+            .map { it.removePrefix(folderPrefix).substringBefore(File.separator) }
+            .distinct()
+            .count()
     }
 
     override suspend fun fetchVideos(filter: FolderFilter): List<MediaVideo> = withContext(Dispatchers.IO) {
@@ -117,14 +163,13 @@ class MediaStoreMediaService @Inject constructor(
         return@withContext mediaVideos
     }
 
-
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
         return@withContext context.contentResolver.query(
             uri,
             VIDEO_PROJECTION,
             null,
             null,
-            null
+            null,
         )?.use { cursor ->
             if (!cursor.moveToFirst()) return@withContext null
             cursor.toMediaVideo()
@@ -155,6 +200,9 @@ class MediaStoreMediaService @Inject constructor(
         )
     }
 
+    /**
+     * Walks up the directory tree from this file's parent to the root.
+     */
     private fun File.walkUp() = generateSequence(parentFile) { it.parentFile }
 
     private fun Cursor.toMediaVideo(): MediaVideo? {

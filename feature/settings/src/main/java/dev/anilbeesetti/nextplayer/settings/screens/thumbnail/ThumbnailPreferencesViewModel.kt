@@ -3,9 +3,10 @@ package dev.anilbeesetti.nextplayer.settings.screens.thumbnail
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil3.ImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoRetriever
+import dev.anilbeesetti.nextplayer.core.media.extensions.clearAllCache
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
 import javax.inject.Inject
@@ -17,7 +18,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ThumbnailPreferencesViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
-    private val mediaInfoRetriever: MediaInfoRetriever,
+    private val imageLoader: ImageLoader,
 ) : ViewModel() {
 
     private val uiStateInternal = MutableStateFlow(
@@ -50,7 +51,7 @@ class ThumbnailPreferencesViewModel @Inject constructor(
             }
             // Clear cache only if strategy actually changed
             if (currentStrategy != strategy) {
-                mediaInfoRetriever.clearThumbnailsCache()
+                imageLoader.clearAllCache()
             }
         }
     }
@@ -63,7 +64,7 @@ class ThumbnailPreferencesViewModel @Inject constructor(
             }
             // Clear cache only if position actually changed
             if (currentPosition != position) {
-                mediaInfoRetriever.clearThumbnailsCache()
+                imageLoader.clearAllCache()
             }
         }
     }

@@ -53,6 +53,9 @@ dependencies {
 
     implementation(libs.aboutlibraries.core)
 
+    // Coil
+    implementation(libs.coil.compose)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

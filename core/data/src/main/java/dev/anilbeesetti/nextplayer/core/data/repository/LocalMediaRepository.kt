@@ -2,36 +2,31 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.content.Context
 import android.net.Uri
-import dev.anilbeesetti.nextplayer.core.common.Utils
+import androidx.core.net.toUri
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
+import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
+import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
+import dev.anilbeesetti.nextplayer.core.data.mappers.toSubtitleStreamInfo
+import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
+import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.FolderFilter
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
+import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import androidx.core.net.toUri
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
-import dev.anilbeesetti.nextplayer.core.media.services.MediaFolder
-import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
-import dev.anilbeesetti.nextplayer.core.model.AudioStreamInfo
-import dev.anilbeesetti.nextplayer.core.model.FolderFilter
-import dev.anilbeesetti.nextplayer.core.model.MediaInfo
-import dev.anilbeesetti.nextplayer.core.model.SubtitleStreamInfo
-import dev.anilbeesetti.nextplayer.core.model.VideoStreamInfo
-import io.github.anilbeesetti.nextlib.mediainfo.AudioStream
-import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
-import io.github.anilbeesetti.nextlib.mediainfo.SubtitleStream
-import io.github.anilbeesetti.nextlib.mediainfo.VideoStream
-import java.util.Date
+import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
     private val mediumStateDao: MediumStateDao,
@@ -41,23 +36,16 @@ class LocalMediaRepository @Inject constructor(
 
     override fun observeFolders(filter: FolderFilter): Flow<List<Folder>> {
         return mediaService.observeFolders(filter).map { mediaFolders ->
-            coroutineScope {
-                mediaFolders.map { mediaFolder ->
-                    mediaFolder.toFolder()
-                }
-            }
+            mediaFolders.map { it.toFolder() }
         }
     }
 
     override fun observeVideos(filter: FolderFilter): Flow<List<Video>> {
         return combine(mediaService.observeVideos(filter), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
             val statesMap = mediumStates.associateBy { it.uriString }
-            coroutineScope {
-                mediaVideos.map { mediaVideo ->
-                    val uriString = mediaVideo.uri.toString()
-                    val mediaState = statesMap[uriString]
-                    mediaVideo.toVideo(mediaState)
-                }
+            mediaVideos.map { mediaVideo ->
+                val mediaState = statesMap[mediaVideo.uri.toString()]
+                mediaVideo.toVideo(mediaState)
             }
         }
     }
@@ -199,63 +187,4 @@ class LocalMediaRepository @Inject constructor(
             ),
         )
     }
-
-    private fun MediaVideo.toVideo(mediaState: MediumStateEntity?) = Video(
-        id = this.id,
-        uriString = this.uri.toString(),
-        duration = this.duration,
-        height = this.height,
-        width = this.width,
-        path = this.path,
-        size = this.size,
-        nameWithExtension = this.title,
-        parentPath = this.parentPath,
-        formattedDuration = Utils.formatDurationMillis(this.duration),
-        formattedFileSize = Utils.formatFileSize(this.size),
-        playbackPosition = mediaState?.playbackPosition,
-        lastPlayedAt = mediaState?.lastPlayedTime?.let { Date(it) }
-    )
-    
-    private fun MediaFolder.toFolder() = Folder(
-        name = this.name,
-        path = this.path,
-        dateModified = this.dateModified,
-        totalSize = this.totalSize,
-        totalDuration = this.totalDuration,
-        videosCount = this.videosCount,
-        foldersCount = this.foldersCount,
-    )
-
-    private fun VideoStream.toVideoStreamInfo() = VideoStreamInfo(
-        index = index,
-        title = title,
-        codecName = codecName,
-        language = language,
-        disposition = disposition,
-        bitRate = bitRate,
-        frameRate = frameRate,
-        frameWidth = frameWidth,
-        frameHeight = frameHeight,
-    )
-
-    private fun AudioStream.toAudioStreamInfo() = AudioStreamInfo(
-        index = index,
-        title = title,
-        codecName = codecName,
-        language = language,
-        disposition = disposition,
-        bitRate = bitRate,
-        sampleFormat = sampleFormat,
-        sampleRate = sampleRate,
-        channels = channels,
-        channelLayout = channelLayout,
-    )
-
-    private fun SubtitleStream.toSubtitleStreamInfo() = SubtitleStreamInfo(
-        index = index,
-        title = title,
-        codecName = codecName,
-        language = language,
-        disposition = disposition,
-    )
 }
