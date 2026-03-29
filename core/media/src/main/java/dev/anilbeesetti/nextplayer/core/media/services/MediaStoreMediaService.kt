@@ -85,7 +85,7 @@ class MediaStoreMediaService @Inject constructor(
             MediaFolder(
                 path = folderFile.path,
                 name = folderFile.prettyName,
-                dateModified = videos.minOf { it.dateModified },
+                dateModified = videos.minOfOrNull { it.dateModified } ?: 0L,
                 totalSize = videos.sumOf { it.size },
                 totalDuration = videos.sumOf { it.duration },
                 videosCount = videosByActualFolder[folderFile]?.size ?: 0,
@@ -166,7 +166,7 @@ class MediaStoreMediaService @Inject constructor(
             id = id,
             path = path,
             title = file.nameWithoutExtension,
-            parentPath = file.parent!!,
+            parentPath = file.parent ?: "/",
             uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
             displayName = getString(getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
             duration = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),

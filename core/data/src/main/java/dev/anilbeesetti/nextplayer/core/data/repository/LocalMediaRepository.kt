@@ -12,7 +12,6 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
 import dev.anilbeesetti.nextplayer.core.media.services.MediaFolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
 import dev.anilbeesetti.nextplayer.core.model.AudioStreamInfo
@@ -42,7 +42,7 @@ class LocalMediaRepository @Inject constructor(
     override fun observeFolders(filter: FolderFilter): Flow<List<Folder>> {
         return mediaService.observeFolders(filter).map { mediaFolders ->
             coroutineScope {
-                mediaFolders.mapAsync { mediaFolder ->
+                mediaFolders.map { mediaFolder ->
                     mediaFolder.toFolder()
                 }
             }
@@ -51,10 +51,11 @@ class LocalMediaRepository @Inject constructor(
 
     override fun observeVideos(filter: FolderFilter): Flow<List<Video>> {
         return combine(mediaService.observeVideos(filter), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+            val statesMap = mediumStates.associateBy { it.uriString }
             coroutineScope {
-                mediaVideos.mapAsync { mediaVideo ->
+                mediaVideos.map { mediaVideo ->
                     val uriString = mediaVideo.uri.toString()
-                    val mediaState = mediumStates.find { it.uriString == uriString }
+                    val mediaState = statesMap[uriString]
                     mediaVideo.toVideo(mediaState)
                 }
             }
@@ -62,7 +63,7 @@ class LocalMediaRepository @Inject constructor(
     }
 
     override suspend fun fetchFolders(filter: FolderFilter): List<Folder> {
-        return mediaService.fetchFolders(filter).mapAsync { it.toFolder() }
+        return mediaService.fetchFolders(filter).map { it.toFolder() }
     }
 
     override suspend fun fetchVideos(filter: FolderFilter): List<Video> {
@@ -257,8 +258,4 @@ class LocalMediaRepository @Inject constructor(
         language = language,
         disposition = disposition,
     )
-}
-
-suspend inline fun <T, R> List<T>.mapAsync(crossinline transform: suspend (T) -> R): List<R> {
-    return coroutineScope { map { async { transform(it) } }.awaitAll() }
 }
