@@ -2,8 +2,11 @@ package dev.anilbeesetti.nextplayer
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Paint
 import android.media.MediaMetadataRetriever
 import android.os.Build.VERSION.SDK_INT
+import androidx.core.graphics.applyCanvas
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
@@ -20,6 +23,15 @@ import okio.FileSystem
 import androidx.core.graphics.get
 import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
 import kotlin.math.abs
+import coil3.decode.DecodeUtils
+import coil3.request.maxBitmapSize
+import coil3.size.Precision
+import coil3.size.Size
+import coil3.size.pxOrElse
+import coil3.util.component1
+import coil3.util.component2
+import java.io.File
+import kotlin.math.roundToInt
 
 class VideoThumbnailDecoder(
     private val source: ImageSource,
@@ -41,18 +53,46 @@ class VideoThumbnailDecoder(
     @OptIn(ExperimentalCoilApi::class)
     override suspend fun decode(): DecodeResult {
         readFromDiskCache()?.use { snapshot ->
-            val cachedBitmap = snapshot.data.toFile().inputStream().use { input ->
-                BitmapFactory.decodeStream(input)
-            }
+            val file = snapshot.data.toFile()
 
-            if (cachedBitmap != null) {
+            // Read cached image dimensions (no pixel allocation)
+            val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            file.inputStream().use { BitmapFactory.decodeStream(it, null, boundsOpts) }
+            val cachedWidth = boundsOpts.outWidth
+            val cachedHeight = boundsOpts.outHeight
+
+            // Determine what size the caller actually wants
+            val requestedWidth = options.size.width.pxOrElse { 0 }
+            val requestedHeight = options.size.height.pxOrElse { 0 }
+
+            // Cache is sufficient only if requested size <= cached size (or size is unspecified)
+            val cacheIsSufficient = (requestedWidth == 0 || requestedWidth <= cachedWidth) &&
+                    (requestedHeight == 0 || requestedHeight <= cachedHeight)
+
+            if (cacheIsSufficient) {
+                val dstSize = computeDstSize(cachedWidth, cachedHeight)
+                val sampledBitmap = file.inputStream().use { BitmapFactory.decodeStream(it) }
+                val normalizedBitmap = normalizeBitmap(
+                    inBitmap = sampledBitmap,
+                    srcWidth = cachedWidth,
+                    srcHeight = cachedHeight,
+                    dstSize = dstSize,
+                )
                 return DecodeResult(
-                    image = cachedBitmap.toDrawable(options.context.resources).asImage(),
-                    isSampled = false,
+                    image = normalizedBitmap.toDrawable(options.context.resources).asImage(),
+                    isSampled = DecodeUtils.computeSizeMultiplier(
+                        srcWidth = cachedWidth,
+                        srcHeight = cachedHeight,
+                        dstWidth = normalizedBitmap.width,
+                        dstHeight = normalizedBitmap.height,
+                        scale = options.scale,
+                        maxSize = options.maxBitmapSize,
+                    ) < 1.0,
                 )
             }
         }
 
+        // Cache miss OR cache insufficient: decode fresh thumbnail
         val rawBitmap = MediaMetadataRetriever().use { nativeRetriever ->
             MediaThumbnailRetriever().use { ffmpegRetriever ->
                 nativeRetriever.setDataSource(source)
@@ -64,11 +104,10 @@ class VideoThumbnailDecoder(
                     BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
                 }
 
-                if (embeddedPictureBitmap != null) {
-                    return@use embeddedPictureBitmap
-                }
+                if (embeddedPictureBitmap != null) return@use embeddedPictureBitmap
 
-                val videoDuration = nativeRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                val videoDuration = nativeRetriever
+                    .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                     ?.toLongOrNull() ?: 0L
 
                 return@use when (strategy) {
@@ -94,10 +133,28 @@ class VideoThumbnailDecoder(
             }
         }
 
-        val bitmap = writeToDiskCache(rawBitmap)
+        val srcWidth = rawBitmap.width
+        val srcHeight = rawBitmap.height
+        val dstSize = computeDstSize(srcWidth, srcHeight)
+        val scaledBitmap = normalizeBitmap(
+            inBitmap = rawBitmap,
+            srcWidth = srcWidth,
+            srcHeight = srcHeight,
+            dstSize = dstSize,
+        )
+
+        writeToDiskCache(scaledBitmap)
+
         return DecodeResult(
-            image = bitmap.toDrawable(options.context.resources).asImage(),
-            isSampled = false,
+            image = scaledBitmap.toDrawable(options.context.resources).asImage(),
+            isSampled = DecodeUtils.computeSizeMultiplier(
+                srcWidth = srcWidth,
+                srcHeight = srcHeight,
+                dstWidth = scaledBitmap.width,
+                dstHeight = scaledBitmap.height,
+                scale = options.scale,
+                maxSize = options.maxBitmapSize,
+            ) < 1.0,
         )
     }
 
@@ -144,7 +201,7 @@ class VideoThumbnailDecoder(
         val editor = diskCache.value?.openEditor(diskCacheKey) ?: return inBitmap
         try {
             editor.data.toFile().outputStream().use { output ->
-                inBitmap.compress(Bitmap.CompressFormat.JPEG, 40, output)
+                inBitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)
             }
             editor.commitAndOpenSnapshot()?.use { snapshot ->
                 val outBitmap = snapshot.data.toFile().inputStream().use { input ->
@@ -154,10 +211,7 @@ class VideoThumbnailDecoder(
                 return outBitmap
             }
         } catch (_: Exception) {
-            try {
-                editor.abort()
-            } catch (_: Exception) {
-            }
+            runCatching { editor.abort() }
         }
         return inBitmap
     }
@@ -182,6 +236,61 @@ class VideoThumbnailDecoder(
         private fun isApplicable(mimeType: String?): Boolean {
             return mimeType != null && mimeType.startsWith("video/")
         }
+    }
+
+    private fun normalizeBitmap(inBitmap: Bitmap, srcWidth: Int, srcHeight: Int, dstSize: Size): Bitmap {
+        val scale = DecodeUtils.computeSizeMultiplier(
+            srcWidth = srcWidth,
+            srcHeight = srcHeight,
+            dstWidth = dstSize.width.pxOrElse { inBitmap.width },
+            dstHeight = dstSize.height.pxOrElse { inBitmap.height },
+            scale = options.scale,
+            maxSize = options.maxBitmapSize,
+        ).toFloat()
+
+        if (scale == 1f) return inBitmap
+
+        val dstWidth = (scale * inBitmap.width).roundToInt()
+        val dstHeight = (scale * inBitmap.height).roundToInt()
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        val outBitmap = createBitmap(dstWidth, dstHeight, inBitmap.config ?: Bitmap.Config.ARGB_8888)
+        outBitmap.applyCanvas {
+            scale(scale, scale)
+            drawBitmap(inBitmap, 0f, 0f, paint)
+        }
+        inBitmap.recycle()
+        return outBitmap
+    }
+
+    @OptIn(ExperimentalCoilApi::class)
+    private fun computeDstSize(srcWidth: Int, srcHeight: Int): Size {
+        if (srcWidth <= 0 || srcHeight <= 0) return Size.ORIGINAL
+
+        val (dstWidth, dstHeight) = DecodeUtils.computeDstSize(
+            srcWidth = srcWidth,
+            srcHeight = srcHeight,
+            targetSize = options.size,
+            scale = options.scale,
+            maxSize = options.maxBitmapSize,
+        )
+        val rawScale = DecodeUtils.computeSizeMultiplier(
+            srcWidth = srcWidth,
+            srcHeight = srcHeight,
+            dstWidth = dstWidth,
+            dstHeight = dstHeight,
+            scale = options.scale,
+            maxSize = options.maxBitmapSize,
+        )
+        val finalScale = if (options.precision == Precision.INEXACT) {
+            rawScale.coerceAtMost(1.0)
+        } else {
+            rawScale
+        }
+        return Size(
+            (finalScale * srcWidth).roundToInt(),
+            (finalScale * srcHeight).roundToInt(),
+        )
     }
 }
 
