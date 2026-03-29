@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.core.domain
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.model.Folder
-import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -36,8 +35,8 @@ class SearchMediaUseCase @Inject constructor(
         }
 
         return combine(
-            getSortedVideosUseCase(FolderFilter.All),
-            getSortedFoldersUseCase(FolderFilter.All),
+            getSortedVideosUseCase(),
+            getSortedFoldersUseCase(),
         ) { videos, folders ->
             val searchMatcher = SearchMatcher(normalizedQuery)
 

@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
@@ -17,7 +18,6 @@ import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
-import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
@@ -34,14 +34,14 @@ class LocalMediaRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : MediaRepository {
 
-    override fun observeFolders(filter: FolderFilter): Flow<List<Folder>> {
-        return mediaService.observeFolders(filter).map { mediaFolders ->
+    override fun observeFolders(folderPath: String): Flow<List<Folder>> {
+        return mediaService.observeFolders(folderPath).map { mediaFolders ->
             mediaFolders.map { it.toFolder() }
         }
     }
 
-    override fun observeVideos(filter: FolderFilter): Flow<List<Video>> {
-        return combine(mediaService.observeVideos(filter), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+    override fun observeVideos(folderPath: String): Flow<List<Video>> {
+        return combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
             val statesMap = mediumStates.associateBy { it.uriString }
             mediaVideos.map { mediaVideo ->
                 val mediaState = statesMap[mediaVideo.uri.toString()]
@@ -50,12 +50,12 @@ class LocalMediaRepository @Inject constructor(
         }
     }
 
-    override suspend fun fetchFolders(filter: FolderFilter): List<Folder> {
-        return mediaService.fetchFolders(filter).map { it.toFolder() }
+    override suspend fun fetchFolders(folderPath: String): List<Folder> {
+        return mediaService.fetchFolders(folderPath).map { it.toFolder() }
     }
 
-    override suspend fun fetchVideos(filter: FolderFilter): List<Video> {
-        return mediaService.fetchVideos(filter).mapAsync { mediaVideo ->
+    override suspend fun fetchVideos(folderPath: String): List<Video> {
+        return mediaService.fetchVideos(folderPath).mapAsync { mediaVideo ->
             val mediaState = mediumStateDao.get(mediaVideo.uri.toString())
             mediaVideo.toVideo(mediaState)
         }

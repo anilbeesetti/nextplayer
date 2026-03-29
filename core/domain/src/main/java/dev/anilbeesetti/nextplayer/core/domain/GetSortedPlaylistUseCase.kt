@@ -2,12 +2,12 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import java.io.File
@@ -22,15 +22,28 @@ class GetSortedPlaylistUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
+
     suspend operator fun invoke(uri: Uri): List<Video> = withContext(defaultDispatcher) {
         val path = context.getPath(uri) ?: return@withContext emptyList()
         val parent = File(path).parent ?: return@withContext emptyList()
-        val filter = when (preferencesRepository.applicationPreferences.first().mediaViewMode) {
-            MediaViewMode.FOLDER_TREE -> FolderFilter.WithPath(parent, directChildrenOnly = false)
-            MediaViewMode.FOLDERS -> FolderFilter.WithPath(parent, directChildrenOnly = true)
-            MediaViewMode.VIDEOS -> FolderFilter.All
-        }
+        val preferences = preferencesRepository.applicationPreferences.first()
 
-        getSortedVideosUseCase.invoke(filter).first()
+        val videos = getSortedVideosUseCase(parent).first()
+
+        // Filter based on view mode
+        when (preferences.mediaViewMode) {
+            MediaViewMode.FOLDER_TREE -> {
+                // Include all videos in the folder and subfolders
+                videos
+            }
+            MediaViewMode.FOLDERS -> {
+                // Only include videos directly in the same folder
+                videos.filter { it.parentPath == parent }
+            }
+            MediaViewMode.VIDEOS -> {
+                // Include all videos
+                videos
+            }
+        }
     }
 }

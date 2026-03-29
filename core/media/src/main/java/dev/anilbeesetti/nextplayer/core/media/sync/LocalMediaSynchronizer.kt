@@ -14,7 +14,6 @@ import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
-import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +41,7 @@ class LocalMediaSynchronizer @Inject constructor(
 
     override fun startSync() {
         if (mediaSyncingJob != null) return
-        mediaSyncingJob = mediaService.observeVideos(FolderFilter.All).onEach { media ->
+        mediaSyncingJob = mediaService.observeVideos().onEach { media ->
             applicationScope.launch { updateMedia(media) }
         }.launchIn(applicationScope)
     }

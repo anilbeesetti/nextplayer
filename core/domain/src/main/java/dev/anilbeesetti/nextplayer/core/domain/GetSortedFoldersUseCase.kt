@@ -1,11 +1,11 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
+import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
-import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,9 +19,11 @@ class GetSortedFoldersUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(filter: FolderFilter): Flow<List<Folder>> {
+    operator fun invoke(
+        folderPath: String = Environment.getExternalStorageDirectory().path,
+    ): Flow<List<Folder>> {
         return combine(
-            mediaRepository.observeFolders(filter),
+            mediaRepository.observeFolders(folderPath),
             preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
 

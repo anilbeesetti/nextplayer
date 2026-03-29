@@ -18,7 +18,6 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
-import dev.anilbeesetti.nextplayer.core.model.FolderFilter
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
@@ -173,11 +172,14 @@ class MediaPickerViewModel @Inject constructor(
             when (selectionItem) {
                 is SelectionItem.Video -> listOf(selectionItem.uriString.toUri())
                 is SelectionItem.Folder -> {
-                    val filter = FolderFilter.WithPath(
-                        folderPath = selectionItem.path,
-                        directChildrenOnly = preferences.mediaViewMode == MediaViewMode.FOLDERS,
-                    )
-                    getSortedVideosUseCase.invoke(filter).first().map { it.uriString.toUri() }
+                    val videos = getSortedVideosUseCase(selectionItem.path).first()
+                    // In FOLDERS mode, only include direct children
+                    val filteredVideos = if (preferences.mediaViewMode == MediaViewMode.FOLDERS) {
+                        videos.filter { it.parentPath == selectionItem.path }
+                    } else {
+                        videos
+                    }
+                    filteredVideos.map { it.uriString.toUri() }
                 }
             }
         }
