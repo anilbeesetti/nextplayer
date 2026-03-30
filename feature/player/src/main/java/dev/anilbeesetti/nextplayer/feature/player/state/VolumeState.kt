@@ -40,7 +40,7 @@ fun rememberVolumeState(
 ): VolumeState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val volumeState = remember {
+    val volumeState = remember(player) {
         VolumeState(
             player = player,
             context = context,
