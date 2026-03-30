@@ -4,6 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Paint
 import android.media.MediaMetadataRetriever
+import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
+import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION
+import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH
+import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
@@ -24,7 +28,9 @@ import androidx.core.graphics.get
 import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
 import kotlin.math.abs
 import coil3.decode.DecodeUtils
+import coil3.request.bitmapConfig
 import coil3.request.maxBitmapSize
+import coil3.size.Dimension
 import coil3.size.Precision
 import coil3.size.Size
 import coil3.size.pxOrElse
@@ -196,45 +202,16 @@ class VideoThumbnailDecoder(
         }
     }
 
-    private fun writeToDiskCache(inBitmap: Bitmap): Bitmap {
-        if (!options.diskCachePolicy.writeEnabled) return inBitmap
-        val editor = diskCache.value?.openEditor(diskCacheKey) ?: return inBitmap
+    private fun writeToDiskCache(inBitmap: Bitmap) {
+        if (!options.diskCachePolicy.writeEnabled) return
+        val editor = diskCache.value?.openEditor(diskCacheKey) ?: return
         try {
             editor.data.toFile().outputStream().use { output ->
                 inBitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)
             }
-            editor.commitAndOpenSnapshot()?.use { snapshot ->
-                val outBitmap = snapshot.data.toFile().inputStream().use { input ->
-                    BitmapFactory.decodeStream(input)
-                }
-                inBitmap.recycle()
-                return outBitmap
-            }
+            editor.commit()
         } catch (_: Exception) {
             runCatching { editor.abort() }
-        }
-        return inBitmap
-    }
-
-    class Factory(
-        private val thumbnailStrategy: () -> ThumbnailStrategy,
-    ) : Decoder.Factory {
-        override fun create(
-            result: SourceFetchResult,
-            options: Options,
-            imageLoader: ImageLoader,
-        ): Decoder? {
-            if (!isApplicable(result.mimeType)) return null
-            return VideoThumbnailDecoder(
-                source = result.source,
-                options = options,
-                strategy = thumbnailStrategy(),
-                diskCache = lazy { imageLoader.diskCache },
-            )
-        }
-
-        private fun isApplicable(mimeType: String?): Boolean {
-            return mimeType != null && mimeType.startsWith("video/")
         }
     }
 
@@ -291,6 +268,28 @@ class VideoThumbnailDecoder(
             (finalScale * srcWidth).roundToInt(),
             (finalScale * srcHeight).roundToInt(),
         )
+    }
+
+    class Factory(
+        private val thumbnailStrategy: () -> ThumbnailStrategy,
+    ) : Decoder.Factory {
+        override fun create(
+            result: SourceFetchResult,
+            options: Options,
+            imageLoader: ImageLoader,
+        ): Decoder? {
+            if (!isApplicable(result.mimeType)) return null
+            return VideoThumbnailDecoder(
+                source = result.source,
+                options = options,
+                strategy = thumbnailStrategy(),
+                diskCache = lazy { imageLoader.diskCache },
+            )
+        }
+
+        private fun isApplicable(mimeType: String?): Boolean {
+            return mimeType != null && mimeType.startsWith("video/")
+        }
     }
 }
 
