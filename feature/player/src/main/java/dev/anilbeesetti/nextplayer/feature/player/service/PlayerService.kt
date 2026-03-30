@@ -31,6 +31,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import coil3.ImageLoader
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -704,7 +705,7 @@ class PlayerService : MediaSessionService() {
         return@withContext try {
             val request = ImageRequest.Builder(this@PlayerService)
                 .data(uri)
-                .diskCacheKey(uri.toString())
+                .size(512, 512)
                 .build()
             imageLoader.execute(request)
             val diskCache = imageLoader.diskCache ?: return@withContext null

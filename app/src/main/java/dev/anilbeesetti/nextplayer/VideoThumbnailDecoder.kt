@@ -4,10 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Paint
 import android.media.MediaMetadataRetriever
-import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
-import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION
-import android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH
-import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
@@ -28,15 +24,12 @@ import androidx.core.graphics.get
 import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
 import kotlin.math.abs
 import coil3.decode.DecodeUtils
-import coil3.request.bitmapConfig
 import coil3.request.maxBitmapSize
-import coil3.size.Dimension
 import coil3.size.Precision
 import coil3.size.Size
 import coil3.size.pxOrElse
 import coil3.util.component1
 import coil3.util.component2
-import java.io.File
 import kotlin.math.roundToInt
 
 class VideoThumbnailDecoder(
