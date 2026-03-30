@@ -233,7 +233,7 @@ private fun ThumbnailView(
         // Thumbnail image
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(mediaItem.mediaMetadata.artworkData ?: mediaItem.mediaMetadata.artworkUri)
+                .data(mediaItem.mediaId)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
