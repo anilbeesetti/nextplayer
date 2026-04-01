@@ -45,10 +45,10 @@
     <string name="unknown_error">发生未知错误</string>
     <string name="playback">播放</string>
     <string name="interface_name">界面</string>
-    <string name="shortest">最短</string>
-    <string name="longest">最长</string>
-    <string name="smallest">最小</string>
-    <string name="largest">最大</string>
+    <string name="shortest">最短到最长</string>
+    <string name="longest">最长到最短</string>
+    <string name="smallest">最小到最大</string>
+    <string name="largest">最大到最小</string>
     <string name="video_zoom">视频缩放</string>
     <string name="dynamic_theme_description">将系统壁纸的颜色应用到应用主题中</string>
     <string name="controls_lock">锁定控件</string>
@@ -100,8 +100,8 @@
     <string name="player_screen_orientation">播放器屏幕方向</string>
     <string name="video_orientation">视频方向</string>
     <string name="landscape_auto">横向（传感器）</string>
-    <string name="newest">最新</string>
-    <string name="oldest">最旧</string>
+    <string name="newest">最新到最旧</string>
+    <string name="oldest">最旧到最新</string>
     <string name="date">日期</string>
     <string name="default_playback_speed">默认播放速度</string>
     <string name="network_stream">网络串流</string>
