@@ -284,4 +284,6 @@
     <string name="reset_volume_gesture_sensitivity">Resetovat citlivost gesta na hlasitost</string>
     <string name="brightness_gesture_sensitivity">Citlivost gesta na jas</string>
     <string name="reset_brightness_gesture_sensitivity">Resetovat citlivost gesta na jas</string>
+    <string name="speed">Rychlost</string>
+    <string name="delay">Prodleva</string>
 </resources>
