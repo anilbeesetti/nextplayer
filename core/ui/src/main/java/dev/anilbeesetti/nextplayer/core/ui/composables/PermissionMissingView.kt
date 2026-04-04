@@ -7,6 +7,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 @Composable
 fun PermissionMissingView(
     isGranted: Boolean,
+    isLimitedAccess: Boolean,
     showRationale: Boolean,
     permission: String,
     launchPermissionRequest: () -> Unit,
@@ -14,6 +15,11 @@ fun PermissionMissingView(
 ) {
     if (isGranted) {
         content()
+    } else if (isLimitedAccess) {
+        PermissionRationaleDialog(
+            text = stringResource(id = R.string.permission_limited_info),
+            onConfirmButtonClick = launchPermissionRequest,
+        )
     } else if (showRationale) {
         PermissionRationaleDialog(
             text = stringResource(
