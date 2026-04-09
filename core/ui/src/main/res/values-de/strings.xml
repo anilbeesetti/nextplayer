@@ -222,4 +222,14 @@
     <string name="grid">Raster</string>
     <string name="loop_mode">Wiedergabemodus</string>
     <string name="gestures_name">Gesten</string>
+    <string name="info">Info</string>
+    <string name="delete_one_video">1 Video löschen?</string>
+    <string name="delete_videos">%1$d Videos löschen?</string>
+    <string name="delete_one_folder">1 Ordner löschen?</string>
+    <string name="delete_folders">%1$d Ordner löschen?</string>
+    <string name="delete_items">%1$d Elemente löschen?</string>
+    <string name="gestures">Gesten</string>
+    <string name="m_n_selected">%1$d / %2$d ausgewählt</string>
+    <string name="select_all">Alles auswählen</string>
+    <string name="deselect_all">Alles abwählen</string>
 </resources>
