@@ -133,7 +133,7 @@ fun ControlsBottomView(
                 Icon(
                     painter = painterResource(R.drawable.ic_screen_rotation),
                     contentDescription = null,
-                    modifier = Modifier.size(12.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
