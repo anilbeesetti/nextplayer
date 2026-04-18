@@ -223,11 +223,11 @@
     <string name="error_opening_link">Bu bağlantıyı işleyecek bir uygulama bulunamadı</string>
     <string name="info">Bilgi</string>
     <string name="play">Oynat</string>
-    <string name="delete_one_video">1 videoyu silmek mi istiyorsunuz?</string>
-    <string name="delete_videos">%1$d videoyu silmek mi istiyorsunuz?</string>
-    <string name="delete_one_folder">1 klasörü silmek mi istiyorsunuz?</string>
-    <string name="delete_folders">%1$d klasörü silmek mi istiyorsunuz?</string>
-    <string name="delete_items">%1$d öğeyi silmek mi istiyorsunuz?</string>
+    <string name="delete_one_video">1 videoyu silmek istiyor musunuz?</string>
+    <string name="delete_videos">%1$d videoyu silmek istiyor musunuz?</string>
+    <string name="delete_one_folder">1 klasörü silmek istiyor musunuz?</string>
+    <string name="delete_folders">%1$d klasörü silmek istiyor musunuz?</string>
+    <string name="delete_items">%1$d öğeyi silmek istiyor musunuz?</string>
     <string name="m_n_selected">%1$d / %2$d Seçildi</string>
     <string name="select_all">Tümünü seç</string>
     <string name="deselect_all">Tüm seçimleri kaldır</string>
@@ -297,4 +297,5 @@
     <string name="thumbnail_setting_change_confirmation">Bu ayarı değiştirmek küçük resim önbelleğini temizleyecektir. Medya listesi açıldığında küçük resimler yeniden oluşturulacaktır. Devam edilsin mi?</string>
     <string name="material_you_controls">Material You kontrolleri</string>
     <string name="material_you_controls_description">Material You stili kontroller kullanın</string>
+    <string name="pan_gesture_description">Videoyu yakınlaştırın ve kaydırın</string>
 </resources>
