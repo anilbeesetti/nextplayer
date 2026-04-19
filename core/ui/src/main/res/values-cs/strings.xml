@@ -286,4 +286,5 @@
     <string name="reset_brightness_gesture_sensitivity">Resetovat citlivost gesta na jas</string>
     <string name="speed">Rychlost</string>
     <string name="delay">Prodleva</string>
+    <string name="reorder">Seřadit</string>
 </resources>
