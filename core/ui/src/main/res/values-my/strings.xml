@@ -1,3 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="about_description">ဗားရှင်း၊ ပန့်ပိုးမယ်၊ ခရက်ဒစ်</string>
+    <string name="about_name">အကြောင်း</string>
+    <string name="appearance_description">စိတ်ကြိတ်ချိန်ညှိပါ</string>
+    <string name="appearance_name">အသွင်အပြင်</string>
+    <string name="ascending">ငယ်စဉ်ကြီးလိုက်</string>
+    <string name="cancel">ပယ်ဖျက်မည်</string>
+    <string name="descending">ကြီးစဉ်ငယ်လိုက်</string>
+    <string name="disable">ပိတ်ထားမည်</string>
+    <string name="done">ပြီးပြီ</string>
+    <string name="double_tap">နှစ်ချက်နှိပ်</string>
+    <string name="double_tap_description">နှစ်ချက်နှိပ်လျှင် လုပ်ဆောင်မည့် အက်ရှင်</string>
+    <string name="error_playing_video">မှားယွင်းမှုး: ဗွီဒီယို ဖွင့်မရပါ</string>
+    <string name="fast_seek">အမြန်ကြည့်ခြင်း</string>
+    <string name="grant_permission">ခွင့်ပြုချက်ပေးမည်</string>
+    <string name="group_videos">ဖော်ဒါဖြင့် ဗွီဒီယိုကို အုပ်စုခွဲမည်</string>
+    <string name="duration">ကြာချိန်</string>
+    <string name="location">ဖိုင်နေရာ</string>
+    <string name="menu">မီနူး</string>
+    <string name="navigate_up">အပေါ်သို့</string>
+    <string name="no_videos_found">ဗွီဒီယို မတွေ့ပါ</string>
+    <string name="open_settings">စက်တင်ဖွင့်ပါ</string>
+    <string name="permission_not_granted">ခွင့်ပြုချက် မပေးထားပါ</string>
 </resources>
