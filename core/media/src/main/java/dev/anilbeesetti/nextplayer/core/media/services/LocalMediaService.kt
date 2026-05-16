@@ -80,41 +80,69 @@ class LocalMediaService @Inject constructor(
 
     override suspend fun hideVideos(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
         return@withContext runCatching {
-            // Vault folder: Android/data/dev.anilbeesetti.nextplayer/files/.vault/
-            // This is app-private so it gets cleaned up on uninstall.
-            // The .nomedia file tells Android gallery apps to ignore this folder.
+            // Vault folder inside app-private external storage.
+            // Gets deleted automatically if app is uninstalled.
+            // .nomedia tells Android gallery apps to ignore this folder.
             val vaultDir = File(context.getExternalFilesDir(null), ".vault")
             if (!vaultDir.exists()) vaultDir.mkdirs()
             val nomediaFile = File(vaultDir, ".nomedia")
             if (!nomediaFile.exists()) nomediaFile.createNewFile()
 
             uris.all { uri ->
-                val sourcePath = context.getPath(uri) ?: return@all false
-                val sourceFile = File(sourcePath)
-                if (!sourceFile.exists()) return@all false
+                // Get filename using OpenableColumns — works on ALL Android versions including 10+
+                val filename = getFilenameFromUri(uri) ?: return@all false
 
-                // Avoid overwriting existing files with the same name
-                var destFile = File(vaultDir, sourceFile.name)
+                // Handle duplicate filenames in vault
+                var destFile = File(vaultDir, filename)
                 if (destFile.exists()) {
+                    val name = filename.substringBeforeLast(".")
+                    val ext = filename.substringAfterLast(".", "")
                     destFile = File(
                         vaultDir,
-                        "${sourceFile.nameWithoutExtension}_${System.currentTimeMillis()}.${sourceFile.extension}",
+                        "${name}_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
                     )
                 }
 
-                // Copy to vault then delete the original
-                sourceFile.copyTo(destFile, overwrite = false)
+                // Copy bytes via ContentResolver — no file path needed, works on Android 10+
+                val inputStream = contentResolver.openInputStream(uri) ?: return@all false
+                inputStream.use { input ->
+                    destFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
 
-                // Remove from MediaStore so it disappears from the library immediately
-                contentResolver.delete(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    "${MediaStore.Video.Media.DATA} = ?",
-                    arrayOf(sourcePath),
-                )
+                // Delete original from MediaStore (removes from library + deletes the file)
+                contentResolver.delete(uri, null, null)
 
-                sourceFile.delete()
+                true
             }
         }.getOrElse { it.printStackTrace(); false }
+    }
+
+    /**
+     * Gets display filename from a content URI using OpenableColumns.
+     * This works on all Android versions including Android 10+ where DATA column is deprecated.
+     */
+    private fun getFilenameFromUri(uri: Uri): String? {
+        try {
+            contentResolver.query(
+                uri,
+                arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
+                null, null, null,
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex >= 0) {
+                        val name = cursor.getString(nameIndex)
+                        if (!name.isNullOrBlank()) return name
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        // Fallback
+        return uri.lastPathSegment?.substringAfterLast("/")
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
