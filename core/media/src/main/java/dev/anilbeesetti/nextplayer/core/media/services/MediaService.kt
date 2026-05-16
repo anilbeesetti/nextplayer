@@ -9,6 +9,7 @@ interface MediaService {
     suspend fun deleteMedia(uris: List<Uri>): Boolean
     suspend fun renameMedia(uri: Uri, to: String): Boolean
     suspend fun shareMedia(uris: List<Uri>)
+    suspend fun hideVideos(uris: List<Uri>): Boolean
 
     companion object {
         fun willSystemAsksForDeleteConfirmation(): Boolean {
