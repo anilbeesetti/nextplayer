@@ -270,6 +270,12 @@ internal fun MediaPickerScreen(
                 onShareAction = {
                     onEvent(MediaPickerUiEvent.ShareVideos(selectionManager.allSelectedVideos.map { it.uriString }))
                 },
+                onHideAction = {
+                    // Pass the content URIs directly — LocalMediaService resolves the file path
+                    val uris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
+                    onEvent(MediaPickerUiEvent.HideVideos(uris))
+                    selectionManager.clearSelection()
+                },
                 onDeleteAction = {
                     if (MediaService.willSystemAsksForDeleteConfirmation()) {
                         onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
@@ -561,6 +567,7 @@ private fun SelectionActionsSheet(
     onRenameAction: () -> Unit,
     onShareAction: () -> Unit,
     onInfoAction: () -> Unit,
+    onHideAction: () -> Unit,
     onDeleteAction: () -> Unit,
 ) {
     AnimatedVisibility(
@@ -611,6 +618,11 @@ private fun SelectionActionsSheet(
                     imageVector = NextIcons.Share,
                     title = stringResource(R.string.share),
                     onClick = onShareAction,
+                )
+                SelectionAction(
+                    imageVector = NextIcons.HideSource,
+                    title = "Hide",
+                    onClick = onHideAction,
                 )
                 if (showInfoAction) {
                     SelectionAction(
