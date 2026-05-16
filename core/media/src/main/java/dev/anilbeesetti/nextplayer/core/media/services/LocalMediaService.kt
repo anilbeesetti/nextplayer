@@ -78,6 +78,45 @@ class LocalMediaService @Inject constructor(
         activity.startActivity(intent)
     }
 
+    override suspend fun hideVideos(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
+        return@withContext runCatching {
+            // Vault folder: Android/data/dev.anilbeesetti.nextplayer/files/.vault/
+            // This is app-private so it gets cleaned up on uninstall.
+            // The .nomedia file tells Android gallery apps to ignore this folder.
+            val vaultDir = File(context.getExternalFilesDir(null), ".vault")
+            if (!vaultDir.exists()) vaultDir.mkdirs()
+            val nomediaFile = File(vaultDir, ".nomedia")
+            if (!nomediaFile.exists()) nomediaFile.createNewFile()
+
+            uris.all { uri ->
+                val sourcePath = context.getPath(uri) ?: return@all false
+                val sourceFile = File(sourcePath)
+                if (!sourceFile.exists()) return@all false
+
+                // Avoid overwriting existing files with the same name
+                var destFile = File(vaultDir, sourceFile.name)
+                if (destFile.exists()) {
+                    destFile = File(
+                        vaultDir,
+                        "${sourceFile.nameWithoutExtension}_${System.currentTimeMillis()}.${sourceFile.extension}",
+                    )
+                }
+
+                // Copy to vault then delete the original
+                sourceFile.copyTo(destFile, overwrite = false)
+
+                // Remove from MediaStore so it disappears from the library immediately
+                contentResolver.delete(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    "${MediaStore.Video.Media.DATA} = ?",
+                    arrayOf(sourcePath),
+                )
+
+                sourceFile.delete()
+            }
+        }.getOrElse { it.printStackTrace(); false }
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     private fun launchWriteRequest(
         uris: List<Uri>,
