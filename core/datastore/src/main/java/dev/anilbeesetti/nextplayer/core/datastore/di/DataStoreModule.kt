@@ -15,9 +15,11 @@ import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.ApplicationPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.PlayerPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.datastore.serializer.SearchHistorySerializer
+import dev.anilbeesetti.nextplayer.core.datastore.serializer.VaultPreferencesSerializer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.SearchHistory
+import dev.anilbeesetti.nextplayer.core.model.VaultPreferences
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 private const val APP_PREFERENCES_DATASTORE_FILE = "app_preferences.json"
 private const val PLAYER_PREFERENCES_DATASTORE_FILE = "player_preferences.json"
 private const val SEARCH_HISTORY_DATASTORE_FILE = "search_history.json"
+private const val VAULT_PREFERENCES_DATASTORE_FILE = "vault_preferences.json"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -69,6 +72,20 @@ object DataStoreModule {
             serializer = SearchHistorySerializer,
             scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
             produceFile = { applicationContext.dataStoreFile(SEARCH_HISTORY_DATASTORE_FILE) },
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideVaultPreferencesDataStore(
+        @ApplicationContext applicationContext: Context,
+        @Dispatcher(NextDispatchers.IO) ioDispatcher: CoroutineDispatcher,
+        @ApplicationScope scope: CoroutineScope,
+    ): DataStore<VaultPreferences> {
+        return DataStoreFactory.create(
+            serializer = VaultPreferencesSerializer,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+            produceFile = { applicationContext.dataStoreFile(VAULT_PREFERENCES_DATASTORE_FILE) },
         )
     }
 }
