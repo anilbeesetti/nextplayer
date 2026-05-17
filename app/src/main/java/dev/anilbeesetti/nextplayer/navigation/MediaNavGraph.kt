@@ -11,7 +11,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRou
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToSearch
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToVault
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.searchScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.vaultScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 import kotlinx.serialization.Serializable
 
@@ -43,6 +45,7 @@ fun NavGraphBuilder.mediaNavGraph(
             onFolderClick = navController::navigateToMediaPickerScreen,
             onSettingsClick = navController::navigateToSettings,
             onSearchClick = navController::navigateToSearch,
+            onVaultClick = navController::navigateToVault,
         )
 
         searchScreen(
@@ -55,6 +58,10 @@ fun NavGraphBuilder.mediaNavGraph(
                 context.startActivity(intent)
             },
             onFolderClick = navController::navigateToMediaPickerScreen,
+        )
+
+        vaultScreen(
+            onNavigateUp = navController::navigateUp,
         )
     }
 }
