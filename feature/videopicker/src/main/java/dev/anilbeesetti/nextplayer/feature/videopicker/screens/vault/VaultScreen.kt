@@ -381,6 +381,7 @@ private fun PinNumpad(
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun VaultContentScreen(
     files: List<String>,
