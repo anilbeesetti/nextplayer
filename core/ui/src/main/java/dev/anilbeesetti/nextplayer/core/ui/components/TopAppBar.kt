@@ -41,6 +41,7 @@ fun NextTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
     fontWeight: FontWeight? = null,
+    titleModifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
@@ -54,6 +55,7 @@ fun NextTopAppBar(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontWeight = fontWeight,
+                modifier = titleModifier,
             )
         },
         navigationIcon = navigationIcon,
