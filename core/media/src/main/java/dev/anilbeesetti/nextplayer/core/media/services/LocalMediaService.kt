@@ -4,8 +4,10 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -109,7 +111,7 @@ class LocalMediaService @Inject constructor(
 
             if (!copiedSuccessfully) return@runCatching false
 
-            // Step 3: Delete originals using createDeleteRequest (required on Android 11+)
+            // Step 3: Delete originals
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 deleteMediaR(uris)
             } else {
@@ -117,6 +119,53 @@ class LocalMediaService @Inject constructor(
             }
         }.getOrElse { it.printStackTrace(); false }
     }
+
+    override fun listVaultFiles(): List<String> {
+        val vaultDir = File(context.getExternalFilesDir(null), ".vault")
+        if (!vaultDir.exists()) return emptyList()
+        return vaultDir.listFiles()
+            ?.filter { it.isFile && it.name != ".nomedia" }
+            ?.map { it.name }
+            ?: emptyList()
+    }
+
+    override suspend fun unhideVideos(filenames: List<String>, destinationDir: String?): Boolean =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val vaultDir = File(context.getExternalFilesDir(null), ".vault")
+                val destDir = if (destinationDir != null) {
+                    File(destinationDir)
+                } else {
+                    Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_MOVIES,
+                    )
+                }
+                if (!destDir.exists()) destDir.mkdirs()
+
+                filenames.all { filename ->
+                    val src = File(vaultDir, filename)
+                    if (!src.exists()) return@all false
+                    var dest = File(destDir, filename)
+                    if (dest.exists()) {
+                        val name = filename.substringBeforeLast(".")
+                        val ext = filename.substringAfterLast(".", "")
+                        dest = File(
+                            destDir,
+                            "${name}_restored_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
+                        )
+                    }
+                    src.copyTo(dest, overwrite = false)
+                    MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(dest.absolutePath),
+                        null,
+                        null,
+                    )
+                    src.delete()
+                    true
+                }
+            }.getOrElse { it.printStackTrace(); false }
+        }
 
     private fun getFilenameFromUri(uri: Uri): String? {
         try {
