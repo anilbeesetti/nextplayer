@@ -9,6 +9,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -113,6 +114,7 @@ fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,
     onNavigateUp: () -> Unit,
+    onVaultClick: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -124,11 +126,12 @@ fun MediaPickerRoute(
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
         onSearchClick = onSearchClick,
+        onVaultClick = onVaultClick,
         onEvent = viewModel::onEvent,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalPermissionsApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun MediaPickerScreen(
     uiState: MediaPickerUiState,
@@ -138,6 +141,7 @@ internal fun MediaPickerScreen(
     onFolderClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
+    onVaultClick: () -> Unit = {},
     onEvent: (MediaPickerUiEvent) -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
@@ -164,6 +168,15 @@ internal fun MediaPickerScreen(
             NextTopAppBar(
                 title = (uiState.folderName ?: stringResource(R.string.app_name)).takeIf { !selectionManager.isInSelectionMode } ?: "",
                 fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
+                titleModifier = if (uiState.folderName == null && !selectionManager.isInSelectionMode) {
+                    Modifier.combinedClickable(
+                        onClick = {},
+                        onLongClick = onVaultClick,
+                        onLongClickLabel = "Open vault",
+                    )
+                } else {
+                    Modifier
+                },
                 navigationIcon = {
                     if (selectionManager.isInSelectionMode) {
                         Row(
