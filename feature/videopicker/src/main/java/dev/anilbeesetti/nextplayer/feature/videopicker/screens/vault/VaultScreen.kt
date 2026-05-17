@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -10,6 +11,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,12 +74,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun VaultRoute(
     onNavigateUp: () -> Unit,
+    onPlayVideo: (Uri) -> Unit,
     viewModel: VaultViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     VaultScreen(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
+        onPlayVideo = onPlayVideo,
         onSetPin = viewModel::setPin,
         onVerifyPin = viewModel::verifyPin,
         onVaultUnlocked = viewModel::onVaultUnlocked,
@@ -88,11 +92,12 @@ fun VaultRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun VaultScreen(
     uiState: VaultUiState,
     onNavigateUp: () -> Unit = {},
+    onPlayVideo: (Uri) -> Unit = {},
     onSetPin: (String) -> Unit = {},
     onVerifyPin: suspend (String) -> Boolean = { false },
     onVaultUnlocked: () -> Unit = {},
@@ -159,6 +164,7 @@ internal fun VaultScreen(
                         files = uiState.vaultFiles,
                         selectedFiles = selectedFiles,
                         isUnhiding = uiState.isUnhiding,
+                        onPlayVideo = onPlayVideo,
                         onUnhideSelected = {
                             onUnhideVideos(selectedFiles.toList())
                             selectedFiles.clear()
@@ -204,7 +210,7 @@ private fun PinGateScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-           imageVector = NextIcons.HideSource,
+            imageVector = NextIcons.HideSource,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary,
@@ -380,6 +386,7 @@ private fun VaultContentScreen(
     files: List<String>,
     selectedFiles: MutableList<String>,
     isUnhiding: Boolean,
+    onPlayVideo: (Uri) -> Unit,
     onUnhideSelected: () -> Unit,
     scaffoldPadding: PaddingValues,
     modifier: Modifier = Modifier,
@@ -428,7 +435,16 @@ private fun VaultContentScreen(
                     VaultFileItem(
                         filename = filename,
                         selected = selected,
-                        onClick = {
+                        inSelectionMode = selectedFiles.isNotEmpty(),
+                        onClick = { fileUri ->
+                            if (selectedFiles.isNotEmpty()) {
+                                if (selected) selectedFiles.remove(filename)
+                                else selectedFiles.add(filename)
+                            } else {
+                                onPlayVideo(fileUri)
+                            }
+                        },
+                        onLongClick = {
                             if (selected) selectedFiles.remove(filename)
                             else selectedFiles.add(filename)
                         },
@@ -480,16 +496,20 @@ private fun VaultContentScreen(
     }
 }
 
+@androidx.compose.foundation.ExperimentalFoundationApi
 @Composable
 private fun VaultFileItem(
     filename: String,
     selected: Boolean,
-    onClick: () -> Unit,
+    inSelectionMode: Boolean,
+    onClick: (Uri) -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val vaultDir = remember { context.getExternalFilesDir(null)?.let { File(it, ".vault") } }
-    val filePath = vaultDir?.let { File(it, filename).absolutePath }
+    val filePath = remember(filename) { vaultDir?.let { File(it, filename).absolutePath } }
+    val fileUri = remember(filePath) { filePath?.let { Uri.fromFile(File(it)) } }
 
     OutlinedCard(
         modifier = modifier
@@ -506,7 +526,10 @@ private fun VaultFileItem(
                     Modifier
                 },
             )
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = { fileUri?.let { onClick(it) } },
+                onLongClick = onLongClick,
+            ),
     ) {
         Row(
             modifier = Modifier
@@ -539,6 +562,21 @@ private fun VaultFileItem(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                     )
+                }
+                if (!inSelectionMode) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = NextIcons.Play,
+                            contentDescription = "Play",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
                 }
             }
 
