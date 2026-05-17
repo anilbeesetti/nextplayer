@@ -10,6 +10,10 @@ data class ApplicationPreferences(
     val useHighContrastDarkTheme: Boolean = false,
     val useDynamicColors: Boolean = true,
     val markLastPlayedMedia: Boolean = true,
+    // When enabled, the library is built only from manually picked folders
+    // (SAF tree URIs), which can include hidden (dot) folders.
+    val manualFolderSelection: Boolean = false,
+    val manuallySelectedFolders: List<String> = emptyList(),
     val excludeFolders: List<String> = emptyList(),
     val mediaViewMode: MediaViewMode = MediaViewMode.FOLDERS,
     val mediaLayoutMode: MediaLayoutMode = MediaLayoutMode.LIST,

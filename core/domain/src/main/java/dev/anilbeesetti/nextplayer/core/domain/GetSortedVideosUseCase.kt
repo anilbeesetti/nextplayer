@@ -31,8 +31,10 @@ class GetSortedVideosUseCase @Inject constructor(
             preferencesRepository.applicationPreferences,
         ) { videoItems, preferences ->
 
+            // The exclude list belongs to MediaStore mode; manual selection
+            // has its own explicit folder list, so it is not applied there.
             val nonExcludedVideos = videoItems.filterNot {
-                it.parentPath in preferences.excludeFolders
+                !preferences.manualFolderSelection && it.parentPath in preferences.excludeFolders
             }
 
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)

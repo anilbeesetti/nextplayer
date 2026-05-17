@@ -108,8 +108,15 @@ class MainActivity : ComponentActivity() {
                         storagePermissionState.launchPermissionRequest()
                     }
 
-                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
-                        if (storagePermissionState.status.isGranted) {
+                    // Manual folder selection uses SAF, so sync can start without
+                    // the media permission. startSync() is idempotent.
+                    val manualFolderSelection = (uiState as? MainActivityUiState.Success)
+                        ?.preferences?.manualFolderSelection == true
+                    LaunchedEffect(
+                        key1 = storagePermissionState.status.isGranted,
+                        key2 = manualFolderSelection,
+                    ) {
+                        if (storagePermissionState.status.isGranted || manualFolderSelection) {
                             synchronizer.startSync()
                         }
                     }

@@ -21,21 +21,26 @@ import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
+import dev.anilbeesetti.nextplayer.core.datastore.datasource.AppPreferencesDataSource
 import dev.anilbeesetti.nextplayer.core.media.model.MediaVideo
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -44,6 +49,8 @@ class LocalMediaSynchronizer @Inject constructor(
     private val mediumStateDao: MediumStateDao,
     private val directoryDao: DirectoryDao,
     private val imageLoader: ImageLoader,
+    private val appPreferencesDataSource: AppPreferencesDataSource,
+    private val documentTreeScanner: DocumentTreeScanner,
     @ApplicationScope private val applicationScope: CoroutineScope,
     @ApplicationContext private val context: Context,
     @Dispatcher(NextDispatchers.IO) private val dispatcher: CoroutineDispatcher,
@@ -51,18 +58,94 @@ class LocalMediaSynchronizer @Inject constructor(
 
     private var mediaSyncingJob: Job? = null
 
+    // Forces a re-scan in manual mode even when the picked folders are unchanged.
+    private val manualRefreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
     override suspend fun refresh(path: String?): Boolean {
+        val preferences = appPreferencesDataSource.preferences.first()
+        if (preferences.manualFolderSelection) {
+            manualRefreshTrigger.emit(Unit)
+            // Minimal delay so the pull-to-refresh spinner is actually visible.
+            delay(MANUAL_REFRESH_FEEDBACK_MS)
+            return true
+        }
         return path?.let { context.scanPaths(listOf(path)) }
             ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
     }
 
+    @Synchronized
     override fun startSync() {
         if (mediaSyncingJob != null) return
-        mediaSyncingJob = getMediaVideosFlow().onEach { media ->
-            applicationScope.launch { updateDirectories(media) }
-            applicationScope.launch { updateMedia(media) }
-        }.launchIn(applicationScope)
+        mediaSyncingJob = applicationScope.launch {
+            // collectLatest only cancels the inner block when the mode/folders
+            // actually change (rare, user-initiated) - never mid-scan from a
+            // hot preference emission, so blocking scans aren't yanked.
+            appPreferencesDataSource.preferences
+                .map { ManualMode(it.manualFolderSelection, it.manuallySelectedFolders) }
+                .distinctUntilChanged()
+                .collectLatest { mode ->
+                    if (mode.manual) {
+                        manualRefreshTrigger.onStart { emit(Unit) }.collect {
+                            val media = try {
+                                documentTreeScanner.scan(mode.folders)
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                return@collect
+                            }
+                            safely { updateDirectoriesFromMedia(media) }
+                            safely { updateMedia(media) }
+                        }
+                    } else {
+                        getMediaVideosFlow().collect { media ->
+                            safely { updateDirectories(media) }
+                            safely { updateMedia(media) }
+                        }
+                    }
+                }
+        }
     }
+
+    private data class ManualMode(val manual: Boolean, val folders: List<String>)
+
+    // Logs failures but never swallows cancellation (keeps structured concurrency intact).
+    private suspend fun safely(block: suspend () -> Unit) {
+        try {
+            block()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // Manual mode can't traverse the filesystem (scoped storage), so directories
+    // are derived from the scanned media paths. Only the media's parent folders
+    // are created - never the filesystem root and never a self-referential node
+    // (parentPath == path), which would make the folder-tree recursion loop.
+    private suspend fun updateDirectoriesFromMedia(media: List<MediaVideo>) =
+        withContext(Dispatchers.Default) {
+            val directories = media
+                .mapNotNull { File(it.data).parentFile }
+                .distinctBy { it.path }
+                .filter { it.path.isNotEmpty() && it.path != "/" }
+                .map { dir ->
+                    DirectoryEntity(
+                        path = dir.path,
+                        name = dir.name.ifEmpty { dir.path },
+                        modified = dir.lastModified(),
+                        parentPath = dir.parentFile?.path
+                            ?.takeIf { it.isNotEmpty() && it != dir.path } ?: "/",
+                    )
+                }
+            directoryDao.upsertAll(directories)
+
+            val currentDirectoryPaths = directories.map { it.path }
+            val unwantedDirectories = directoryDao.getAll().first()
+                .filterNot { it.path in currentDirectoryPaths }
+            directoryDao.delete(unwantedDirectories.map { it.path })
+        }
 
     override fun stopSync() {
         mediaSyncingJob?.cancel()
@@ -243,6 +326,8 @@ class LocalMediaSynchronizer @Inject constructor(
     }
 
     companion object {
+        private const val MANUAL_REFRESH_FEEDBACK_MS = 350L
+
         val VIDEO_PROJECTION = arrayOf(
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DATA,

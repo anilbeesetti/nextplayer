@@ -52,7 +52,11 @@ class GetSortedFolderTreeUseCase @Inject constructor(
         preferences: ApplicationPreferences,
     ): List<Folder> {
         return filter {
-            it.parentPath == path && it.path !in preferences.excludeFolders
+            // it.path != path guards against a self-referential directory
+            // (parentPath == path) causing infinite recursion. The exclude
+            // list applies to MediaStore mode only.
+            it.parentPath == path && it.path != path &&
+                (preferences.manualFolderSelection || it.path !in preferences.excludeFolders)
         }.map { directory ->
             Folder(
                 name = directory.name,

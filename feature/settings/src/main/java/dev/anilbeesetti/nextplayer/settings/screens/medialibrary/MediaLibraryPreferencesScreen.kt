@@ -103,12 +103,37 @@ private fun MediaLibraryPreferencesContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                ClickablePreferenceItem(
-                    title = stringResource(id = R.string.manage_folders),
-                    description = stringResource(id = R.string.manage_folders_desc),
-                    icon = NextIcons.FolderOff,
-                    onClick = onFolderSettingClick,
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.select_folders_manually),
+                    description = stringResource(id = R.string.select_folders_manually_desc),
+                    icon = NextIcons.CheckBox,
+                    isChecked = preferences.manualFolderSelection,
+                    onClick = { onEvent(MediaLibraryPreferencesUiEvent.ToggleManualFolderSelection) },
                     isFirstItem = true,
+                    isLastItem = false,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(
+                        id = if (preferences.manualFolderSelection) {
+                            R.string.library_folders
+                        } else {
+                            R.string.manage_folders
+                        },
+                    ),
+                    description = stringResource(
+                        id = if (preferences.manualFolderSelection) {
+                            R.string.library_folders_desc
+                        } else {
+                            R.string.manage_folders_desc
+                        },
+                    ),
+                    icon = if (preferences.manualFolderSelection) {
+                        NextIcons.Folder
+                    } else {
+                        NextIcons.FolderOff
+                    },
+                    onClick = onFolderSettingClick,
+                    isFirstItem = false,
                     isLastItem = true,
                 )
             }
