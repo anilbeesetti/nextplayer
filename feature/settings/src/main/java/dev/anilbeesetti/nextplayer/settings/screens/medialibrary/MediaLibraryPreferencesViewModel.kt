@@ -33,6 +33,7 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
     fun onEvent(event: MediaLibraryPreferencesUiEvent) {
         when (event) {
             MediaLibraryPreferencesUiEvent.ToggleMarkLastPlayedMedia -> toggleMarkLastPlayedMedia()
+            MediaLibraryPreferencesUiEvent.ToggleManualFolderSelection -> toggleManualFolderSelection()
         }
     }
 
@@ -40,6 +41,14 @@ class MediaLibraryPreferencesViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(markLastPlayedMedia = !it.markLastPlayedMedia)
+            }
+        }
+    }
+
+    private fun toggleManualFolderSelection() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(manualFolderSelection = !it.manualFolderSelection)
             }
         }
     }
@@ -51,4 +60,5 @@ data class MediaLibraryPreferencesUiState(
 
 sealed interface MediaLibraryPreferencesUiEvent {
     data object ToggleMarkLastPlayedMedia : MediaLibraryPreferencesUiEvent
+    data object ToggleManualFolderSelection : MediaLibraryPreferencesUiEvent
 }

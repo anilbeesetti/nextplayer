@@ -95,10 +95,19 @@ class VideoThumbnailDecoder(
         val rawBitmap = MediaMetadataRetriever().use { nativeRetriever ->
             MediaThumbnailRetriever().use { ffmpegRetriever ->
                 nativeRetriever.setDataSource(source)
-                ffmpegRetriever.setDataSource(source)
+                // The ffmpeg retriever can't open SAF content:// URIs
+                // (manual/hidden folders); degrade to native-only instead
+                // of failing the whole thumbnail.
+                val ffmpegOk = try {
+                    ffmpegRetriever.setDataSource(source)
+                    true
+                } catch (e: Exception) {
+                    false
+                }
 
                 // First, try to get embedded picture (album art/metadata thumbnail)
-                val embeddedPicture = nativeRetriever.embeddedPicture ?: ffmpegRetriever.getEmbeddedPicture()
+                val embeddedPicture = nativeRetriever.embeddedPicture
+                    ?: if (ffmpegOk) ffmpegRetriever.getEmbeddedPicture() else null
                 val embeddedPictureBitmap = embeddedPicture?.let { pictureBytes ->
                     BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
                 }
@@ -109,21 +118,24 @@ class VideoThumbnailDecoder(
                     .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                     ?.toLongOrNull() ?: 0L
 
+                fun ffmpegFrame(timeUs: Long) =
+                    if (ffmpegOk) ffmpegRetriever.getFrameAtTime(timeUs) else null
+
                 return@use when (strategy) {
                     is ThumbnailStrategy.FirstFrame -> {
-                        nativeRetriever.getFrameAtTime(0) ?: ffmpegRetriever.getFrameAtTime(0)
+                        nativeRetriever.getFrameAtTime(0) ?: ffmpegFrame(0)
                     }
 
                     is ThumbnailStrategy.FrameAtPercentage -> {
                         val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                        nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegRetriever.getFrameAtTime(timeUs)
+                        nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegFrame(timeUs)
                     }
 
                     is ThumbnailStrategy.Hybrid -> {
                         val firstFrame = nativeRetriever.getFrameAtTime(0)
                         if (firstFrame == null || isSolidColor(firstFrame)) {
                             val timeUs = (videoDuration * strategy.percentage * 1000).toLong()
-                            nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegRetriever.getFrameAtTime(timeUs)
+                            nativeRetriever.getFrameAtTime(timeUs) ?: ffmpegFrame(timeUs)
                         } else {
                             firstFrame
                         }
@@ -271,7 +283,7 @@ class VideoThumbnailDecoder(
             options: Options,
             imageLoader: ImageLoader,
         ): Decoder? {
-            if (!isApplicable(result.mimeType)) return null
+            if (!isApplicable(result)) return null
             return VideoThumbnailDecoder(
                 source = result.source,
                 options = options,
@@ -280,8 +292,28 @@ class VideoThumbnailDecoder(
             )
         }
 
-        private fun isApplicable(mimeType: String?): Boolean {
-            return mimeType != null && mimeType.startsWith("video/")
+        private fun isApplicable(result: SourceFetchResult): Boolean {
+            val mimeType = result.mimeType
+            if (mimeType != null && mimeType.startsWith("video/")) return true
+            // Don't hijack real image/audio content.
+            if (mimeType != null &&
+                (mimeType.startsWith("image/") || mimeType.startsWith("audio/"))
+            ) {
+                return false
+            }
+            // SAF tree-document URIs (manually picked / hidden folders) often
+            // report no mime type or a generic one (application/octet-stream),
+            // so fall back to the URI's video extension.
+            val uri = (result.source.metadata as? ContentMetadata)?.uri ?: return false
+            val extension = uri.toString().substringAfterLast('.', "").lowercase()
+            return extension in VIDEO_EXTENSIONS
+        }
+
+        private companion object {
+            val VIDEO_EXTENSIONS = setOf(
+                "mp4", "mkv", "webm", "avi", "mov", "flv", "wmv", "m4v",
+                "3gp", "ts", "m2ts", "mts", "mpg", "mpeg", "ogv", "vob",
+            )
         }
     }
 }

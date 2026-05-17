@@ -24,8 +24,11 @@ class GetSortedFoldersUseCase @Inject constructor(
             preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
 
+            // Exclude list applies to MediaStore mode only; manual selection
+            // has its own explicit folder list.
             val nonExcludedDirectories = folders.filter {
-                it.mediaList.isNotEmpty() && it.path !in preferences.excludeFolders
+                it.mediaList.isNotEmpty() &&
+                    (preferences.manualFolderSelection || it.path !in preferences.excludeFolders)
             }
 
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)

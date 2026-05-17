@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.settings.screens.medialibrary
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,9 +14,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.SelectablePreference
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
@@ -40,10 +45,17 @@ fun FolderPreferencesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
 
+    val folderPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree(),
+    ) { uri ->
+        if (uri != null) viewModel.onEvent(FolderPreferencesUiEvent.AddFolder(uri))
+    }
+
     FolderPreferencesContent(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
         onEvent = viewModel::onEvent,
+        onAddFolderClick = { folderPicker.launch(null) },
     )
 }
 
@@ -53,6 +65,7 @@ private fun FolderPreferencesContent(
     uiState: FolderPreferencesUiState,
     onNavigateUp: () -> Unit,
     onEvent: (FolderPreferencesUiEvent) -> Unit,
+    onAddFolderClick: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -70,6 +83,16 @@ private fun FolderPreferencesContent(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
+        if (uiState.preferences.manualFolderSelection) {
+            ManualFoldersList(
+                manualFolders = uiState.manualFolders,
+                contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
+                onAddFolderClick = onAddFolderClick,
+                onRemove = { onEvent(FolderPreferencesUiEvent.RemoveFolder(it)) },
+            )
+            return@Scaffold
+        }
+
         when (uiState.foldersDataState) {
             is DataState.Loading -> {
                 Box(
@@ -105,6 +128,61 @@ private fun FolderPreferencesContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ManualFoldersList(
+    manualFolders: List<ManualFolder>,
+    contentPadding: PaddingValues,
+    onAddFolderClick: () -> Unit,
+    onRemove: (String) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+    ) {
+        item {
+            PreferenceItem(
+                title = stringResource(id = R.string.add_folder),
+                icon = NextIcons.Add,
+                enabled = true,
+                onClick = onAddFolderClick,
+                isFirstItem = true,
+                isLastItem = true,
+            )
+        }
+        if (manualFolders.isEmpty()) {
+            item {
+                Text(
+                    text = stringResource(id = R.string.no_manual_folders),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
+        } else {
+            itemsIndexed(manualFolders) { index, folder ->
+                PreferenceItem(
+                    title = folder.displayPath.substringAfterLast('/').ifEmpty { folder.displayPath },
+                    description = folder.displayPath,
+                    icon = NextIcons.Folder,
+                    enabled = true,
+                    isFirstItem = index == 0,
+                    isLastItem = index == manualFolders.lastIndex,
+                    trailingContent = {
+                        IconButton(onClick = { onRemove(folder.uriString) }) {
+                            Icon(
+                                imageVector = NextIcons.Delete,
+                                contentDescription = stringResource(id = R.string.remove),
+                            )
+                        }
+                    },
+                )
+            }
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun FolderPreferencesScreenPreview() {
@@ -113,6 +191,7 @@ private fun FolderPreferencesScreenPreview() {
             uiState = FolderPreferencesUiState(),
             onNavigateUp = {},
             onEvent = {},
+            onAddFolderClick = {},
         )
     }
 }

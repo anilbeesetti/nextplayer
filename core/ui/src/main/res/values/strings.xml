@@ -192,6 +192,12 @@
     <string name="rename_to">Rename to</string>
     <string name="mark_last_played_media">Mark last played media</string>
     <string name="mark_last_played_media_desc">Mark last played media in home and in each folder</string>
+    <string name="select_folders_manually">Select folders manually</string>
+    <string name="select_folders_manually_desc">Pick any folder as part of your library. Supports hidden folders.</string>
+    <string name="add_folder">Add folder</string>
+    <string name="no_manual_folders">No folders added yet. Tap “Add folder” to pick one.</string>
+    <string name="library_folders">Library folders</string>
+    <string name="library_folders_desc">Add or remove</string>
     <string name="open_local_video">Open local video</string>
     <string name="open_network_stream">Open network stream</string>
     <string name="exit">Exit</string>
