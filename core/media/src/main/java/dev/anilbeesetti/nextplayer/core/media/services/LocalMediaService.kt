@@ -80,19 +80,15 @@ class LocalMediaService @Inject constructor(
 
     override suspend fun hideVideos(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
         return@withContext runCatching {
-            // Vault folder inside app-private external storage.
-            // Gets deleted automatically if app is uninstalled.
-            // .nomedia tells Android gallery apps to ignore this folder.
+            // Step 1: Create vault folder with .nomedia
             val vaultDir = File(context.getExternalFilesDir(null), ".vault")
             if (!vaultDir.exists()) vaultDir.mkdirs()
             val nomediaFile = File(vaultDir, ".nomedia")
             if (!nomediaFile.exists()) nomediaFile.createNewFile()
 
-            uris.all { uri ->
-                // Get filename using OpenableColumns — works on ALL Android versions including 10+
+            // Step 2: Copy all selected videos into vault
+            val copiedSuccessfully = uris.all { uri ->
                 val filename = getFilenameFromUri(uri) ?: return@all false
-
-                // Handle duplicate filenames in vault
                 var destFile = File(vaultDir, filename)
                 if (destFile.exists()) {
                     val name = filename.substringBeforeLast(".")
@@ -102,27 +98,26 @@ class LocalMediaService @Inject constructor(
                         "${name}_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
                     )
                 }
-
-                // Copy bytes via ContentResolver — no file path needed, works on Android 10+
                 val inputStream = contentResolver.openInputStream(uri) ?: return@all false
                 inputStream.use { input ->
                     destFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
-
-                // Delete original from MediaStore (removes from library + deletes the file)
-                contentResolver.delete(uri, null, null)
-
                 true
+            }
+
+            if (!copiedSuccessfully) return@runCatching false
+
+            // Step 3: Delete originals using createDeleteRequest (required on Android 11+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                deleteMediaR(uris)
+            } else {
+                deleteMediaBelowR(uris)
             }
         }.getOrElse { it.printStackTrace(); false }
     }
 
-    /**
-     * Gets display filename from a content URI using OpenableColumns.
-     * This works on all Android versions including Android 10+ where DATA column is deprecated.
-     */
     private fun getFilenameFromUri(uri: Uri): String? {
         try {
             contentResolver.query(
@@ -141,7 +136,6 @@ class LocalMediaService @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        // Fallback
         return uri.lastPathSegment?.substringAfterLast("/")
     }
 
