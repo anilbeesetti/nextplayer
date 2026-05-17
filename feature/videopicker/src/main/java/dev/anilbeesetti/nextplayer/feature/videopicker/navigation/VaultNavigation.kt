@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
+import android.net.Uri
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -16,8 +17,12 @@ fun NavController.navigateToVault(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.vaultScreen(
     onNavigateUp: () -> Unit,
+    onPlayVideo: (Uri) -> Unit,
 ) {
     composable<VaultRoute> {
-        VaultRouteComposable(onNavigateUp = onNavigateUp)
+        VaultRouteComposable(
+            onNavigateUp = onNavigateUp,
+            onPlayVideo = onPlayVideo,
+        )
     }
 }
