@@ -12,11 +12,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.displayCutout
@@ -53,11 +55,13 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -68,6 +72,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -104,6 +109,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoInfoDial
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectedFolder
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectedVideo
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
+import kotlinx.coroutines.launch
 
 @Composable
 fun MediaPickerRoute(
@@ -128,6 +134,8 @@ fun MediaPickerRoute(
         onSearchClick = onSearchClick,
         onVaultClick = onVaultClick,
         onEvent = viewModel::onEvent,
+        onPinSetForHide = viewModel::onPinSetForHide,
+        onDismissPinSetup = viewModel::dismissPinSetup,
     )
 }
 
@@ -143,6 +151,8 @@ internal fun MediaPickerScreen(
     onSearchClick: () -> Unit = {},
     onVaultClick: () -> Unit = {},
     onEvent: (MediaPickerUiEvent) -> Unit = {},
+    onPinSetForHide: (String) -> Unit = {},
+    onDismissPinSetup: () -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(permission = storagePermission)
@@ -284,7 +294,6 @@ internal fun MediaPickerScreen(
                     onEvent(MediaPickerUiEvent.ShareVideos(selectionManager.allSelectedVideos.map { it.uriString }))
                 },
                 onHideAction = {
-                    // Pass the content URIs directly — LocalMediaService resolves the file path
                     val uris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
                     onEvent(MediaPickerUiEvent.HideVideos(uris))
                     selectionManager.clearSelection()
@@ -487,7 +496,158 @@ internal fun MediaPickerScreen(
             onCancel = { showDeleteVideosConfirmation = false },
         )
     }
+
+    if (uiState.showPinSetupForHide) {
+        PinSetupDialog(
+            onDismiss = onDismissPinSetup,
+            onPinConfirmed = onPinSetForHide,
+        )
+    }
 }
+
+@Composable
+private fun PinSetupDialog(
+    onDismiss: () -> Unit,
+    onPinConfirmed: (String) -> Unit,
+) {
+    var phase by rememberSaveable { mutableStateOf(PinDialogPhase.CREATE) }
+    var firstPin by rememberSaveable { mutableStateOf("") }
+    var enteredPin by rememberSaveable { mutableStateOf("") }
+    var hasError by rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    Dialog(onDismissRequest = onDismiss) {
+        androidx.compose.material3.Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Icon(
+                    imageVector = NextIcons.HideSource,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = if (phase == PinDialogPhase.CREATE) "Create a vault PIN" else "Confirm your PIN",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = if (phase == PinDialogPhase.CREATE) {
+                        "Set a 4-digit PIN before hiding videos"
+                    } else {
+                        "Re-enter your PIN to confirm"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    repeat(4) { index ->
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (index < enteredPin.length) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                ),
+                        )
+                    }
+                }
+                if (hasError) {
+                    Text(
+                        text = "PINs don't match, try again",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+                val rows = listOf(
+                    listOf("1", "2", "3"),
+                    listOf("4", "5", "6"),
+                    listOf("7", "8", "9"),
+                    listOf("", "0", "⌫"),
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    rows.forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            row.forEach { label ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(2f)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(
+                                            if (label.isNotEmpty()) MaterialTheme.colorScheme.surfaceVariant
+                                            else Color.Transparent,
+                                        )
+                                        .then(
+                                            if (label.isNotEmpty()) {
+                                                Modifier.clickable {
+                                                    if (label == "⌫") {
+                                                        if (enteredPin.isNotEmpty()) {
+                                                            enteredPin = enteredPin.dropLast(1)
+                                                            hasError = false
+                                                        }
+                                                    } else if (enteredPin.length < 4) {
+                                                        enteredPin += label
+                                                        hasError = false
+                                                        if (enteredPin.length == 4) {
+                                                            scope.launch {
+                                                                when (phase) {
+                                                                    PinDialogPhase.CREATE -> {
+                                                                        firstPin = enteredPin
+                                                                        enteredPin = ""
+                                                                        phase = PinDialogPhase.CONFIRM
+                                                                    }
+                                                                    PinDialogPhase.CONFIRM -> {
+                                                                        if (enteredPin == firstPin) {
+                                                                            onPinConfirmed(enteredPin)
+                                                                        } else {
+                                                                            hasError = true
+                                                                            enteredPin = ""
+                                                                            firstPin = ""
+                                                                            phase = PinDialogPhase.CREATE
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            } else Modifier,
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (label.isNotEmpty()) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Medium,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        }
+    }
+}
+
+private enum class PinDialogPhase { CREATE, CONFIRM }
 
 @Composable
 private fun DeleteConfirmationDialog(
