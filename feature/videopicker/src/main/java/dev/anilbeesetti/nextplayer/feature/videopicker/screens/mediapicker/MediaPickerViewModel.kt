@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
@@ -18,6 +19,7 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import java.io.File
+import java.security.MessageDigest
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +34,7 @@ class MediaPickerViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
     private val mediaSynchronizer: MediaSynchronizer,
+    private val vaultRepository: VaultRepository,
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
@@ -73,12 +76,36 @@ class MediaPickerViewModel @Inject constructor(
             is MediaPickerUiEvent.DeleteFolders -> deleteFolders(event.folders)
             is MediaPickerUiEvent.DeleteVideos -> deleteVideos(event.videos)
             is MediaPickerUiEvent.ShareVideos -> shareVideos(event.videos)
-            is MediaPickerUiEvent.HideVideos -> hideVideos(event.uris)
+            is MediaPickerUiEvent.HideVideos -> requestHideVideos(event.uris)
             is MediaPickerUiEvent.Refresh -> refresh()
             is MediaPickerUiEvent.RenameVideo -> renameVideo(event.uri, event.to)
             is MediaPickerUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
             is MediaPickerUiEvent.UpdateMenu -> updateMenu(event.preferences)
         }
+    }
+
+    private fun requestHideVideos(uris: List<Uri>) {
+        viewModelScope.launch {
+            if (!vaultRepository.vaultPreferences.value.hasPinSet) {
+                uiStateInternal.update { it.copy(pendingHideUris = uris, showPinSetupForHide = true) }
+            } else {
+                hideVideos(uris)
+            }
+        }
+    }
+
+    fun onPinSetForHide(rawPin: String) {
+        viewModelScope.launch {
+            val hashed = sha256(rawPin)
+            vaultRepository.setPin(hashed)
+            val pending = uiStateInternal.value.pendingHideUris
+            uiStateInternal.update { it.copy(showPinSetupForHide = false, pendingHideUris = emptyList()) }
+            hideVideos(pending)
+        }
+    }
+
+    fun dismissPinSetup() {
+        uiStateInternal.update { it.copy(showPinSetupForHide = false, pendingHideUris = emptyList()) }
     }
 
     private fun deleteFolders(folders: List<Folder>) {
@@ -107,7 +134,6 @@ class MediaPickerViewModel @Inject constructor(
     private fun hideVideos(uris: List<Uri>) {
         viewModelScope.launch {
             mediaService.hideVideos(uris)
-            // Refresh so hidden videos disappear from the list immediately
             mediaSynchronizer.refresh()
         }
     }
@@ -137,6 +163,11 @@ class MediaPickerViewModel @Inject constructor(
             preferencesRepository.updateApplicationPreferences { preferences }
         }
     }
+
+    private fun sha256(input: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
 }
 
 @Stable
@@ -145,6 +176,8 @@ data class MediaPickerUiState(
     val mediaDataState: DataState<Folder?> = DataState.Loading,
     val refreshing: Boolean = false,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
+    val showPinSetupForHide: Boolean = false,
+    val pendingHideUris: List<Uri> = emptyList(),
 )
 
 sealed interface MediaPickerUiEvent {
