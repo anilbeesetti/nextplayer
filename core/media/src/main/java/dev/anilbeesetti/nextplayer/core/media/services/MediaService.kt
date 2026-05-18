@@ -12,7 +12,7 @@ interface MediaService {
     suspend fun hideVideos(uris: List<Uri>): Boolean
 
     /**
-     * Moves files from the vault back to the given [destinationDir] (defaults to Movies).
+     * Moves files from the vault back to their original location (or Movies as fallback).
      * [filenames] are relative to the vault directory.
      */
     suspend fun unhideVideos(filenames: List<String>, destinationDir: String? = null): Boolean
@@ -21,6 +21,11 @@ interface MediaService {
      * Returns the list of filenames currently stored in the vault directory.
      */
     fun listVaultFiles(): List<String>
+
+    /**
+     * Returns the duration in milliseconds of a vault file by filename.
+     */
+    fun getVaultFileDuration(filename: String): Long
 
     companion object {
         fun willSystemAsksForDeleteConfirmation(): Boolean {
