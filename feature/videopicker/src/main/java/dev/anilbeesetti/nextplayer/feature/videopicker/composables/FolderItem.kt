@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -120,19 +119,6 @@ private fun FolderListItem(
                         .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
                         .aspectRatio(20 / 17f),
                 )
-
-                if (preferences.showDurationField) {
-                    InfoChip(
-                        text = Utils.formatDurationMillis(folder.mediaDuration),
-                        modifier = Modifier
-                            .padding(5.dp)
-                            .padding(bottom = 3.dp)
-                            .align(Alignment.BottomEnd),
-                        backgroundColor = Color.Black.copy(alpha = 0.6f),
-                        contentColor = Color.White,
-                        shape = MaterialTheme.shapes.extraSmall,
-                    )
-                }
             }
         },
         content = {
@@ -230,19 +216,6 @@ private fun FolderGridItem(
                             .width(min(90.dp, LocalConfiguration.current.screenWidthDp.dp * 0.3f))
                             .aspectRatio(20 / 17f),
                     )
-
-                    if (preferences.showDurationField) {
-                        InfoChip(
-                            text = Utils.formatDurationMillis(folder.mediaDuration),
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .padding(bottom = 3.dp)
-                                .align(Alignment.BottomEnd),
-                            backgroundColor = Color.Black.copy(alpha = 0.6f),
-                            contentColor = Color.White,
-                            shape = MaterialTheme.shapes.extraSmall,
-                        )
-                    }
                 }
 
                 Column(
