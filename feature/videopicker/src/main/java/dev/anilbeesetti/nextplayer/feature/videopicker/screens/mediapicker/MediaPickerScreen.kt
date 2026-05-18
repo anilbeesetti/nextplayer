@@ -293,11 +293,11 @@ internal fun MediaPickerScreen(
                 onShareAction = {
                     onEvent(MediaPickerUiEvent.ShareVideos(selectionManager.allSelectedVideos.map { it.uriString }))
                 },
-                onHideAction = {
-                    val uris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
-                    onEvent(MediaPickerUiEvent.HideVideos(uris))
-                    selectionManager.clearSelection()
-                },
+            onHideAction = {
+    val uris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
+    onEvent(MediaPickerUiEvent.HideVideos(uris))
+    selectionManager.exitSelectionMode()
+},
                 onDeleteAction = {
                     if (MediaService.willSystemAsksForDeleteConfirmation()) {
                         onEvent(MediaPickerUiEvent.DeleteVideos(selectionManager.allSelectedVideos.map { it.uriString }))
