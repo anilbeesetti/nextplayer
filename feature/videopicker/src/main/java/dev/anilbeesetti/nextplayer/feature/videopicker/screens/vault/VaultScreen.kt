@@ -9,7 +9,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +30,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +69,7 @@ import coil3.request.crossfade
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.launch
 
 @Composable
@@ -88,7 +89,11 @@ fun VaultRoute(
         onPinError = viewModel::onPinError,
         onClearPinError = viewModel::clearPinError,
         onUnhideVideos = viewModel::unhideVideos,
-        onClearPin = viewModel::clearPin,
+        onRequestClearPin = viewModel::requestClearPin,
+        onDismissClearPin = viewModel::dismissClearPin,
+        onClearPinAfterVerify = viewModel::clearPinAfterVerify,
+        onClearClearPinError = viewModel::clearClearPinError,
+        onDismissFirstTimeTip = viewModel::dismissFirstTimeTip,
     )
 }
 
@@ -104,9 +109,51 @@ internal fun VaultScreen(
     onPinError: () -> Unit = {},
     onClearPinError: () -> Unit = {},
     onUnhideVideos: (List<String>) -> Unit = {},
-    onClearPin: () -> Unit = {},
+    onRequestClearPin: () -> Unit = {},
+    onDismissClearPin: () -> Unit = {},
+    onClearPinAfterVerify: (String) -> Unit = {},
+    onClearClearPinError: () -> Unit = {},
+    onDismissFirstTimeTip: () -> Unit = {},
 ) {
     val selectedFiles = remember { mutableStateListOf<String>() }
+
+    // First-time tip dialog
+    if (uiState.showFirstTimeTip) {
+        AlertDialog(
+            onDismissRequest = onDismissFirstTimeTip,
+            icon = {
+                Icon(
+                    imageVector = NextIcons.HideSource,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp),
+                )
+            },
+            title = { Text("How to hide videos") },
+            text = {
+                Text(
+                    text = "To hide a video, long-press any video in your library and tap the Hide option.\n\nTo access hidden videos later, long-press the app icon on your home screen and tap \"Vault\".",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start,
+                )
+            },
+            confirmButton = {
+                Button(onClick = onDismissFirstTimeTip) {
+                    Text("Got it")
+                }
+            },
+        )
+    }
+
+    // Verify old PIN before removing it
+    if (uiState.showVerifyPinToClear) {
+        VerifyPinDialog(
+            error = uiState.clearPinError,
+            onVerify = onClearPinAfterVerify,
+            onDismiss = onDismissClearPin,
+            onClearError = onClearClearPinError,
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -123,7 +170,7 @@ internal fun VaultScreen(
                 },
                 actions = {
                     if (uiState.isUnlocked && uiState.hasPinSet) {
-                        TextButton(onClick = onClearPin) {
+                        TextButton(onClick = onRequestClearPin) {
                             Text("Remove PIN")
                         }
                     }
@@ -162,6 +209,7 @@ internal fun VaultScreen(
                 } else {
                     VaultContentScreen(
                         files = uiState.vaultFiles,
+                        durations = uiState.vaultFileDurations,
                         selectedFiles = selectedFiles,
                         isUnhiding = uiState.isUnhiding,
                         onPlayVideo = onPlayVideo,
@@ -179,6 +227,95 @@ internal fun VaultScreen(
         }
     }
 }
+
+// ── Verify-old-PIN dialog shown before removing PIN ──────────────────────────
+
+@Composable
+private fun VerifyPinDialog(
+    error: Boolean,
+    onVerify: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onClearError: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var enteredPin by rememberSaveable { mutableStateOf("") }
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        androidx.compose.material3.Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Icon(
+                    imageVector = NextIcons.HideSource,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = "Enter current PIN",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "Enter your existing PIN to remove it",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    repeat(4) { index ->
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (index < enteredPin.length) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                ),
+                        )
+                    }
+                }
+                if (error) {
+                    Text(
+                        text = "Incorrect PIN",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+                PinNumpad(
+                    onDigit = { digit ->
+                        if (enteredPin.length < 4) {
+                            enteredPin += digit
+                            onClearError()
+                            if (enteredPin.length == 4) {
+                                scope.launch {
+                                    onVerify(enteredPin)
+                                    enteredPin = ""
+                                }
+                            }
+                        }
+                    },
+                    onDelete = {
+                        if (enteredPin.isNotEmpty()) {
+                            enteredPin = enteredPin.dropLast(1)
+                            onClearError()
+                        }
+                    },
+                )
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text("Cancel")
+                }
+            }
+        }
+    }
+}
+
+// ── PIN gate (lock screen) ────────────────────────────────────────────────────
 
 @Composable
 private fun PinGateScreen(
@@ -381,10 +518,13 @@ private fun PinNumpad(
     }
 }
 
+// ── Vault content (unlocked) ──────────────────────────────────────────────────
+
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun VaultContentScreen(
     files: List<String>,
+    durations: Map<String, Long>,
     selectedFiles: MutableList<String>,
     isUnhiding: Boolean,
     onPlayVideo: (Uri) -> Unit,
@@ -435,6 +575,7 @@ private fun VaultContentScreen(
                     val selected = filename in selectedFiles
                     VaultFileItem(
                         filename = filename,
+                        durationMs = durations[filename] ?: 0L,
                         selected = selected,
                         inSelectionMode = selectedFiles.isNotEmpty(),
                         onClick = { fileUri ->
@@ -497,10 +638,13 @@ private fun VaultContentScreen(
     }
 }
 
+// ── Individual vault file row ─────────────────────────────────────────────────
+
 @androidx.compose.foundation.ExperimentalFoundationApi
 @Composable
 private fun VaultFileItem(
     filename: String,
+    durationMs: Long,
     selected: Boolean,
     inSelectionMode: Boolean,
     onClick: (Uri) -> Unit,
@@ -512,21 +656,12 @@ private fun VaultFileItem(
     val filePath = remember(filename) { vaultDir?.let { File(it, filename).absolutePath } }
     val fileUri = remember(filePath) { filePath?.let { Uri.fromFile(File(it)) } }
 
+    val formattedDuration = remember(durationMs) { formatDuration(durationMs) }
+
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
-            .then(
-                if (selected) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = MaterialTheme.shapes.medium,
-                    )
-                } else {
-                    Modifier
-                },
-            )
             .combinedClickable(
                 onClick = { fileUri?.let { onClick(it) } },
                 onLongClick = onLongClick,
@@ -539,19 +674,21 @@ private fun VaultFileItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            // Thumbnail with duration chip — no play overlay, no selection circle
             Box(
                 modifier = Modifier
                     .width(100.dp)
                     .aspectRatio(16f / 10f)
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = NextIcons.Video,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                    modifier = Modifier.fillMaxSize(0.5f),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxSize(0.5f),
                 )
                 if (filePath != null) {
                     AsyncImage(
@@ -564,20 +701,19 @@ private fun VaultFileItem(
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
-                if (!inSelectionMode) {
-                    Box(
+                // Duration chip in bottom-end corner (like normal videos)
+                if (durationMs > 0L && formattedDuration.isNotEmpty()) {
+                    Text(
+                        text = formattedDuration,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                        color = Color.White,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = NextIcons.Play,
-                            contentDescription = "Play",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(28.dp),
-                        )
-                    }
+                            .align(Alignment.BottomEnd)
+                            .padding(4.dp)
+                            .clip(MaterialTheme.shapes.extraSmall)
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .padding(vertical = 1.dp, horizontal = 3.dp),
+                    )
                 }
             }
 
@@ -596,22 +732,18 @@ private fun VaultFileItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-
-            if (selected) {
-                Icon(
-                    imageVector = NextIcons.CheckBox,
-                    contentDescription = "Selected",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp),
-                )
-            } else {
-                Icon(
-                    imageVector = NextIcons.CheckBoxOutline,
-                    contentDescription = "Not selected",
-                    tint = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
         }
+    }
+}
+
+private fun formatDuration(ms: Long): String {
+    if (ms <= 0L) return ""
+    val hours = TimeUnit.MILLISECONDS.toHours(ms)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(ms) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(ms) % 60
+    return if (hours > 0) {
+        String.format("%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format("%d:%02d", minutes, seconds)
     }
 }
