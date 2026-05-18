@@ -1,5 +1,4 @@
 ![Next player banner](fastlane/metadata/android/en-US/images/featureGraphic.png)
-
 # Next Player
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/anilbeesetti/nextplayer.svg?logo=github&label=GitHub&cacheSeconds=3600)](https://github.com/anilbeesetti/nextplayer/releases/latest)
