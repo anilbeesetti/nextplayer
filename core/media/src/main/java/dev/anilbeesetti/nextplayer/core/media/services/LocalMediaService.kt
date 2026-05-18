@@ -169,7 +169,7 @@ class LocalMediaService @Inject constructor(
 
                     // Try to read original path from .meta file
                     val metaFile = File(vaultDir, "$filename.meta")
-                    val originalDir: File = if (metaFile.exists()) {
+                    val originalDir: File? = if (metaFile.exists()) {
                         try {
                             val json = JSONObject(metaFile.readText())
                             val originalPath = json.optString("originalPath", "")
