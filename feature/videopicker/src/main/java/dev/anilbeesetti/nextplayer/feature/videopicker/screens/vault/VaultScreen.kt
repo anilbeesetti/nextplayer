@@ -546,11 +546,8 @@ private fun VaultContentScreen(
     scaffoldPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
-    // Context menu state for single-item long press
-    var contextMenuFile by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf<String?>(null) }
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Delete confirmation dialog
     if (showDeleteConfirmDialog) {
@@ -632,81 +629,6 @@ private fun VaultContentScreen(
         )
     }
 
-    // Context menu bottom sheet (single-item long press when NOT in selection mode)
-    contextMenuFile?.let { filename ->
-        ModalBottomSheet(
-            onDismissRequest = { contextMenuFile = null },
-            sheetState = bottomSheetState,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(bottom = 16.dp),
-            ) {
-                Text(
-                    text = filename.substringBeforeLast("."),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Divider()
-                // Unhide option
-                androidx.compose.material3.ListItem(
-                    headlineContent = { Text("Unhide") },
-                    leadingContent = {
-                        Icon(
-                            imageVector = NextIcons.HideSource,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        val file = filename
-                        contextMenuFile = null
-                        selectedFiles.clear()
-                        selectedFiles.add(file)
-                        onUnhideSelected()
-                    },
-                )
-                // Delete option
-                androidx.compose.material3.ListItem(
-                    headlineContent = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                    leadingContent = {
-                        Icon(
-                            imageVector = NextIcons.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        contextMenuFile = null
-                        selectedFiles.clear()
-                        selectedFiles.add(filename)
-                        showDeleteConfirmDialog = true
-                    },
-                )
-                // Info option
-                androidx.compose.material3.ListItem(
-                    headlineContent = { Text("Info") },
-                    leadingContent = {
-                        Icon(
-                            imageVector = NextIcons.Info,
-                            contentDescription = null,
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        contextMenuFile = null
-                        showInfoDialog = filename
-                    },
-                )
-            }
-        }
-    }
-
     Box(modifier = modifier) {
         if (files.isEmpty()) {
             Column(
@@ -740,7 +662,7 @@ private fun VaultContentScreen(
             LazyColumn(
                 contentPadding = PaddingValues(
                     top = 12.dp,
-                    bottom = scaffoldPadding.calculateBottomPadding() + if (selectedFiles.isNotEmpty()) 88.dp else 16.dp,
+                    bottom = scaffoldPadding.calculateBottomPadding() + if (selectedFiles.isNotEmpty()) 100.dp else 16.dp,
                     start = 16.dp,
                     end = 16.dp,
                 ),
@@ -755,52 +677,60 @@ private fun VaultContentScreen(
                         inSelectionMode = selectedFiles.isNotEmpty(),
                         onClick = { fileUri ->
                             if (selectedFiles.isNotEmpty()) {
+                                // In selection mode: tap toggles selection
                                 if (selected) selectedFiles.remove(filename)
                                 else selectedFiles.add(filename)
                             } else {
+                                // Normal mode: tap plays video
                                 onPlayVideo(fileUri)
                             }
                         },
                         onLongClick = {
-                            if (selectedFiles.isNotEmpty()) {
-                                // Already in multi-select mode — toggle selection
-                                if (selected) selectedFiles.remove(filename)
-                                else selectedFiles.add(filename)
-                            } else {
-                                // Open context menu for this single item
-                                contextMenuFile = filename
-                            }
+                            // Long press ALWAYS toggles selection (enters multi-select mode)
+                            if (selected) selectedFiles.remove(filename)
+                            else selectedFiles.add(filename)
                         },
+                        onInfoClick = { showInfoDialog = filename },
                     )
                 }
             }
         }
 
+        // ── Bottom action bar (shown when items are selected) ──────────────
         AnimatedVisibility(
             visible = selectedFiles.isNotEmpty(),
             modifier = Modifier.align(Alignment.BottomCenter),
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceContainer)
                     .navigationBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
             ) {
                 Text(
                     text = "${selectedFiles.size} selected",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp),
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(onClick = { selectedFiles.clear() }) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    // Cancel
+                    FilledTonalButton(
+                        onClick = { selectedFiles.clear() },
+                        modifier = Modifier.weight(1f),
+                    ) {
                         Text("Cancel")
                     }
+                    // Delete
                     FilledTonalButton(
                         onClick = { showDeleteConfirmDialog = true },
+                        modifier = Modifier.weight(1f),
                         colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -814,9 +744,11 @@ private fun VaultContentScreen(
                         Spacer(Modifier.width(4.dp))
                         Text("Delete")
                     }
+                    // Unhide
                     Button(
                         onClick = onUnhideSelected,
                         enabled = !isUnhiding,
+                        modifier = Modifier.weight(1f),
                     ) {
                         if (isUnhiding) {
                             CircularProgressIndicator(
@@ -824,7 +756,7 @@ private fun VaultContentScreen(
                                 strokeWidth = 2.dp,
                                 color = MaterialTheme.colorScheme.onPrimary,
                             )
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(6.dp))
                         }
                         Text("Unhide")
                     }
@@ -880,6 +812,7 @@ private fun VaultFileItem(
     inSelectionMode: Boolean,
     onClick: (Uri) -> Unit,
     onLongClick: () -> Unit,
+    onInfoClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -956,7 +889,7 @@ private fun VaultFileItem(
                             .size(28.dp),
                     )
                 }
-                // Duration chip in bottom-end corner (like normal videos)
+                // Duration chip in bottom-end corner
                 if (!selected && durationMs > 0L && formattedDuration.isNotEmpty()) {
                     Text(
                         text = formattedDuration,
@@ -987,6 +920,16 @@ private fun VaultFileItem(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // Show Info button when NOT in selection mode
+                if (!inSelectionMode) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "Info",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { onInfoClick() },
+                    )
+                }
             }
 
             // Trailing checkmark in selection mode
