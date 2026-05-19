@@ -133,8 +133,10 @@ class MediaPickerViewModel @Inject constructor(
 
     private fun hideVideos(uris: List<Uri>) {
         viewModelScope.launch {
+            uiStateInternal.update { it.copy(isHiding = true) }
             mediaService.hideVideos(uris)
             mediaSynchronizer.refresh()
+            uiStateInternal.update { it.copy(isHiding = false) }
         }
     }
 
@@ -175,6 +177,7 @@ data class MediaPickerUiState(
     val folderName: String?,
     val mediaDataState: DataState<Folder?> = DataState.Loading,
     val refreshing: Boolean = false,
+    val isHiding: Boolean = false,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
     val showPinSetupForHide: Boolean = false,
     val pendingHideUris: List<Uri> = emptyList(),
