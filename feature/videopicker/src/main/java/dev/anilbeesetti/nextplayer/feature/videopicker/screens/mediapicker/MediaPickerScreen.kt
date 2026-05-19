@@ -523,7 +523,7 @@ internal fun MediaPickerScreen(
             title = { Text("Video hidden successfully") },
             text = {
                 Text(
-                    text = "To access your hidden videos, long-press the app icon on your home screen and tap \"Vault\".",
+                    text = "To access your hidden videos, long-press the app name on the home screen of apk.",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start,
                 )
