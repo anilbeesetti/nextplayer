@@ -3,8 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 import android.net.Uri
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -12,6 +10,10 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.MediaPickerRoute
 import kotlinx.serialization.Serializable
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 
 internal const val folderIdArg = "folderId"
 
