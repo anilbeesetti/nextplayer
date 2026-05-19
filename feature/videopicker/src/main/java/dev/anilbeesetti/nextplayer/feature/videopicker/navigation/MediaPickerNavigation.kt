@@ -1,6 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
 import android.net.Uri
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -38,7 +42,32 @@ fun NavGraphBuilder.mediaPickerScreen(
     onSearchClick: () -> Unit,
     onVaultClick: () -> Unit = {},
 ) {
-    composable<MediaPickerRoute> {
+    composable<MediaPickerRoute>(
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+            )
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+            )
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+            )
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+            )
+        },
+    ) {
         MediaPickerRoute(
             onPlayVideo = onPlayVideo,
             onPlayVideos = onPlayVideos,
