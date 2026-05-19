@@ -33,6 +33,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -137,6 +139,7 @@ fun MediaPickerRoute(
         onEvent = viewModel::onEvent,
         onPinSetForHide = viewModel::onPinSetForHide,
         onDismissPinSetup = viewModel::dismissPinSetup,
+        onDismissHowToTip = viewModel::dismissHowToTip,
     )
 }
 
@@ -154,6 +157,7 @@ internal fun MediaPickerScreen(
     onEvent: (MediaPickerUiEvent) -> Unit = {},
     onPinSetForHide: (String) -> Unit = {},
     onDismissPinSetup: () -> Unit = {},
+    onDismissHowToTip: () -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(permission = storagePermission)
@@ -505,6 +509,33 @@ internal fun MediaPickerScreen(
         )
     }
     
+    if (uiState.showHowToTip) {
+        AlertDialog(
+            onDismissRequest = { onDismissHowToTip() },
+            icon = {
+                Icon(
+                    imageVector = NextIcons.HideSource,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp),
+                )
+            },
+            title = { Text("Video hidden successfully") },
+            text = {
+                Text(
+                    text = "To access your hidden videos, long-press the app icon on your home screen and tap \"Vault\".",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start,
+                )
+            },
+            confirmButton = {
+                Button(onClick = { onDismissHowToTip() }) {
+                    Text("Got it")
+                }
+            },
+        )
+    }
+
     if (uiState.isHiding) {
         Box(
             modifier = Modifier
