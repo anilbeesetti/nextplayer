@@ -92,12 +92,12 @@ class SelectionManager(
     }
 
     fun isFolderSelected(folder: Folder): Boolean {
-        return selectedFolders.find { it.path == folder.path } != null
-    }
+    return selectedFolders.any { it.path == folder.path }
+}
 
-    fun isVideoSelected(video: Video): Boolean {
-        return selectedVideos.find { it.uriString == video.uriString } != null
-    }
+fun isVideoSelected(video: Video): Boolean {
+    return selectedVideos.any { it.uriString == video.uriString }
+}
 
     companion object {
         @Suppress("UNCHECKED_CAST")
