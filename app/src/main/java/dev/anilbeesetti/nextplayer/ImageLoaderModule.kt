@@ -45,7 +45,7 @@ object ImageLoaderModule {
             // Memory cache: keep recently viewed thumbnails in RAM for instant re-display on scroll
             .memoryCache(
                 MemoryCache.Builder()
-                    .maxSizePercent(context, 0.20) // use 20% of available app memory
+                    .maxSizePercent(context, 0.25) // use 20% of available app memory
                     .build(),
             )
             .memoryCachePolicy(CachePolicy.ENABLED)
@@ -58,7 +58,7 @@ object ImageLoaderModule {
                     .maxSizeBytes(512L * 1024 * 1024) // 512 MB
                     .build(),
             )
-            .crossfade(true)
+            .crossfade(100)
             .build()
     }
 }
