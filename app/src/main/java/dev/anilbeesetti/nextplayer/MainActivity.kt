@@ -7,9 +7,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -119,18 +118,10 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = mainNavController,
                         startDestination = MediaRootRoute,
-                        enterTransition = {
-                            fadeIn(animationSpec = tween(durationMillis = 150))
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(durationMillis = 150))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(durationMillis = 150))
-                        },
-                        popExitTransition = {
-                            fadeOut(animationSpec = tween(durationMillis = 150))
-                        },
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = { ExitTransition.None },
                     ) {
                         mediaNavGraph(
                             context = this@MainActivity,
