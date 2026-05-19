@@ -30,19 +30,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -90,6 +96,7 @@ fun VaultRoute(
         onPinError = viewModel::onPinError,
         onClearPinError = viewModel::clearPinError,
         onUnhideVideos = viewModel::unhideVideos,
+        onDeleteVideos = viewModel::deleteVaultFiles,
         onRequestClearPin = viewModel::requestClearPin,
         onDismissClearPin = viewModel::dismissClearPin,
         onClearPinAfterVerify = viewModel::clearPinAfterVerify,
@@ -110,6 +117,7 @@ internal fun VaultScreen(
     onPinError: () -> Unit = {},
     onClearPinError: () -> Unit = {},
     onUnhideVideos: (List<String>) -> Unit = {},
+    onDeleteVideos: (List<String>) -> Unit = {},
     onRequestClearPin: () -> Unit = {},
     onDismissClearPin: () -> Unit = {},
     onClearPinAfterVerify: (String) -> Unit = {},
@@ -216,6 +224,10 @@ internal fun VaultScreen(
                         onPlayVideo = onPlayVideo,
                         onUnhideSelected = {
                             onUnhideVideos(selectedFiles.toList())
+                            selectedFiles.clear()
+                        },
+                        onDeleteSelected = {
+                            onDeleteVideos(selectedFiles.toList())
                             selectedFiles.clear()
                         },
                         scaffoldPadding = scaffoldPadding,
@@ -521,7 +533,7 @@ private fun PinNumpad(
 
 // ── Vault content (unlocked) ──────────────────────────────────────────────────
 
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun VaultContentScreen(
     files: List<String>,
@@ -530,9 +542,171 @@ private fun VaultContentScreen(
     isUnhiding: Boolean,
     onPlayVideo: (Uri) -> Unit,
     onUnhideSelected: () -> Unit,
+    onDeleteSelected: () -> Unit,
     scaffoldPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
+    // Context menu state for single-item long press
+    var contextMenuFile by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var showInfoDialog by remember { mutableStateOf<String?>(null) }
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Delete confirmation dialog
+    if (showDeleteConfirmDialog) {
+        val count = selectedFiles.size
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            icon = {
+                Icon(
+                    imageVector = NextIcons.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            },
+            title = {
+                Text(if (count == 1) "Delete video?" else "Delete $count videos?")
+            },
+            text = {
+                Text("This action cannot be undone. The selected video(s) will be permanently deleted from the vault.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirmDialog = false
+                        onDeleteSelected()
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                    ),
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
+    // Info dialog for a single file
+    showInfoDialog?.let { filename ->
+        val context = LocalContext.current
+        val vaultDir = remember { context.getExternalFilesDir(null)?.let { java.io.File(it, ".vault") } }
+        val file = remember(filename) { vaultDir?.let { java.io.File(it, filename) } }
+        val fileSizeBytes = remember(filename) { file?.length() ?: 0L }
+        val fileSizeText = remember(fileSizeBytes) {
+            when {
+                fileSizeBytes >= 1_000_000_000L -> "%.2f GB".format(fileSizeBytes / 1_000_000_000.0)
+                fileSizeBytes >= 1_000_000L -> "%.2f MB".format(fileSizeBytes / 1_000_000.0)
+                fileSizeBytes >= 1_000L -> "%.1f KB".format(fileSizeBytes / 1_000.0)
+                else -> "$fileSizeBytes B"
+            }
+        }
+        val durationMs = durations[filename] ?: 0L
+        val durationText = remember(durationMs) { formatDuration(durationMs) }
+
+        AlertDialog(
+            onDismissRequest = { showInfoDialog = null },
+            icon = {
+                Icon(
+                    imageVector = NextIcons.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            },
+            title = { Text("Video Info") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    InfoRow(label = "Name", value = filename.substringBeforeLast("."))
+                    InfoRow(label = "Format", value = filename.substringAfterLast(".").uppercase())
+                    if (durationText.isNotEmpty()) InfoRow(label = "Duration", value = durationText)
+                    if (fileSizeBytes > 0L) InfoRow(label = "Size", value = fileSizeText)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInfoDialog = null }) { Text("Close") }
+            },
+        )
+    }
+
+    // Context menu bottom sheet (single-item long press when NOT in selection mode)
+    contextMenuFile?.let { filename ->
+        ModalBottomSheet(
+            onDismissRequest = { contextMenuFile = null },
+            sheetState = bottomSheetState,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp),
+            ) {
+                Text(
+                    text = filename.substringBeforeLast("."),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Divider()
+                // Unhide option
+                androidx.compose.material3.ListItem(
+                    headlineContent = { Text("Unhide") },
+                    leadingContent = {
+                        Icon(
+                            imageVector = NextIcons.HideSource,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        val file = filename
+                        contextMenuFile = null
+                        selectedFiles.clear()
+                        selectedFiles.add(file)
+                        onUnhideSelected()
+                    },
+                )
+                // Delete option
+                androidx.compose.material3.ListItem(
+                    headlineContent = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                    leadingContent = {
+                        Icon(
+                            imageVector = NextIcons.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        contextMenuFile = null
+                        selectedFiles.clear()
+                        selectedFiles.add(filename)
+                        showDeleteConfirmDialog = true
+                    },
+                )
+                // Info option
+                androidx.compose.material3.ListItem(
+                    headlineContent = { Text("Info") },
+                    leadingContent = {
+                        Icon(
+                            imageVector = NextIcons.Info,
+                            contentDescription = null,
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        contextMenuFile = null
+                        showInfoDialog = filename
+                    },
+                )
+            }
+        }
+    }
+
     Box(modifier = modifier) {
         if (files.isEmpty()) {
             Column(
@@ -588,8 +762,14 @@ private fun VaultContentScreen(
                             }
                         },
                         onLongClick = {
-                            if (selected) selectedFiles.remove(filename)
-                            else selectedFiles.add(filename)
+                            if (selectedFiles.isNotEmpty()) {
+                                // Already in multi-select mode — toggle selection
+                                if (selected) selectedFiles.remove(filename)
+                                else selectedFiles.add(filename)
+                            } else {
+                                // Open context menu for this single item
+                                contextMenuFile = filename
+                            }
                         },
                     )
                 }
@@ -618,6 +798,21 @@ private fun VaultContentScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilledTonalButton(onClick = { selectedFiles.clear() }) {
                         Text("Cancel")
+                    }
+                    FilledTonalButton(
+                        onClick = { showDeleteConfirmDialog = true },
+                        colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = NextIcons.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text("Delete")
                     }
                     Button(
                         onClick = onUnhideSelected,
@@ -694,6 +889,9 @@ private fun VaultFileItem(
 
     val formattedDuration = remember(durationMs) { formatDuration(durationMs) }
 
+    val selectionBorderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    val cardBackground = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface
+
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
@@ -702,15 +900,20 @@ private fun VaultFileItem(
                 onClick = { fileUri?.let { onClick(it) } },
                 onLongClick = onLongClick,
             ),
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = selectionBorderColor,
+        ),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(cardBackground)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Thumbnail with duration chip — no play overlay, no selection circle
+            // Thumbnail with duration chip and selection indicator
             Box(
                 modifier = Modifier
                     .width(100.dp)
@@ -737,8 +940,24 @@ private fun VaultFileItem(
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
+                // Selection overlay — scrim + checkmark
+                if (selected) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = "Selected",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(28.dp),
+                    )
+                }
                 // Duration chip in bottom-end corner (like normal videos)
-                if (durationMs > 0L && formattedDuration.isNotEmpty()) {
+                if (!selected && durationMs > 0L && formattedDuration.isNotEmpty()) {
                     Text(
                         text = formattedDuration,
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
@@ -760,6 +979,7 @@ private fun VaultFileItem(
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -768,7 +988,41 @@ private fun VaultFileItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+
+            // Trailing checkmark in selection mode
+            if (inSelectionMode) {
+                Icon(
+                    imageVector = if (selected)
+                        Icons.Filled.CheckCircle
+                    else
+                        Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    tint = if (selected) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    modifier = Modifier.size(24.dp),
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+        )
     }
 }
 
