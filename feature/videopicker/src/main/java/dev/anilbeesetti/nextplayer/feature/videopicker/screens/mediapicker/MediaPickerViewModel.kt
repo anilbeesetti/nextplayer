@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
@@ -7,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
@@ -35,9 +37,11 @@ class MediaPickerViewModel @Inject constructor(
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
     private val mediaSynchronizer: MediaSynchronizer,
     private val vaultRepository: VaultRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
+    private val prefs = context.getSharedPreferences("vault_prefs", Context.MODE_PRIVATE)
 
     val folderPath = folderArgs.folderId
 
@@ -100,12 +104,17 @@ class MediaPickerViewModel @Inject constructor(
             vaultRepository.setPin(hashed)
             val pending = uiStateInternal.value.pendingHideUris
             uiStateInternal.update { it.copy(showPinSetupForHide = false, pendingHideUris = emptyList()) }
-            hideVideos(pending)
+            hideVideos(pending, isFirstTime = true)
         }
     }
 
     fun dismissPinSetup() {
         uiStateInternal.update { it.copy(showPinSetupForHide = false, pendingHideUris = emptyList()) }
+    }
+
+    fun dismissHowToTip() {
+        prefs.edit().putBoolean("has_seen_vault_tip", true).apply()
+        uiStateInternal.update { it.copy(showHowToTip = false) }
     }
 
     private fun deleteFolders(folders: List<Folder>) {
@@ -131,12 +140,15 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    private fun hideVideos(uris: List<Uri>) {
+    private fun hideVideos(uris: List<Uri>, isFirstTime: Boolean = false) {
         viewModelScope.launch {
             uiStateInternal.update { it.copy(isHiding = true) }
             mediaService.hideVideos(uris)
             mediaSynchronizer.refresh()
             uiStateInternal.update { it.copy(isHiding = false) }
+            if (isFirstTime) {
+                uiStateInternal.update { it.copy(showHowToTip = true) }
+            }
         }
     }
 
@@ -178,6 +190,7 @@ data class MediaPickerUiState(
     val mediaDataState: DataState<Folder?> = DataState.Loading,
     val refreshing: Boolean = false,
     val isHiding: Boolean = false,
+    val showHowToTip: Boolean = false,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
     val showPinSetupForHide: Boolean = false,
     val pendingHideUris: List<Uri> = emptyList(),
