@@ -49,6 +49,8 @@ class MediaPickerViewModel @Inject constructor(
         MediaPickerUiState(
             folderName = folderPath?.let { File(folderPath).prettyName },
             preferences = preferencesRepository.applicationPreferences.value,
+            // Sub-folders load from local DB instantly; skip the spinner by starting empty
+            mediaDataState = if (folderPath != null) DataState.Success(null) else DataState.Loading,
         ),
     )
     val uiState = uiStateInternal.asStateFlow()
