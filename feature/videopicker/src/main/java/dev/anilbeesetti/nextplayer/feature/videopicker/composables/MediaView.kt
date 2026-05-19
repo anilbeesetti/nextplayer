@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onFirstVisible
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -55,113 +55,125 @@ fun MediaView(
 
     val folderMinWidth = 90.dp
     val videoMinWidth = 130.dp
-    BoxWithConstraints {
-        val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 8.dp
-            MediaLayoutMode.GRID -> 8.dp
-        }
-        val itemSpacing = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 2.dp
-            MediaLayoutMode.GRID -> 2.dp
-        }
-        val maxWidth = this.maxWidth - (contentHorizontalPadding * 2) - itemSpacing
-        val maxFolders = (maxWidth / folderMinWidth).toInt()
-        val maxVideos = (maxWidth / videoMinWidth).toInt()
-        val spans = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 1
-            MediaLayoutMode.GRID -> lcm(maxFolders, maxVideos)
-        }
 
-        val singleFolderSpan = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 1
-            MediaLayoutMode.GRID -> spans / maxFolders
-        }
-        val singleVideoSpan = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 1
-            MediaLayoutMode.GRID -> spans / maxVideos
-        }
+    // Use LocalConfiguration instead of BoxWithConstraints to avoid subcomposition overhead
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp.dp
+    val contentHorizontalPadding = 8.dp
+    val itemSpacing = 2.dp
+    val maxWidth = screenWidthDp - (contentHorizontalPadding * 2) - itemSpacing
 
-        LazyVerticalGrid(
-            modifier = Modifier.fillMaxSize(),
-            state = lazyGridState,
-            columns = GridCells.Fixed(spans),
-            contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(itemSpacing),
-            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-        ) {
-            if (showHeaders && rootFolder.folderList.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.folders) + " (${rootFolder.folderList.size})")
-                }
+    val spans = remember(preferences.mediaLayoutMode, maxWidth) {
+        when (preferences.mediaLayoutMode) {
+            MediaLayoutMode.LIST -> 1
+            MediaLayoutMode.GRID -> {
+                val maxFolders = (maxWidth / folderMinWidth).toInt()
+                val maxVideos = (maxWidth / videoMinWidth).toInt()
+                lcm(maxFolders, maxVideos)
             }
-            itemsIndexed(
-                items = rootFolder.folderList,
-                key = { _, folder -> folder.path },
-                span = { _, _ -> GridItemSpan(singleFolderSpan) },
-            ) { index, folder ->
-                val selected by remember { derivedStateOf { selectionManager.isFolderSelected(folder) } }
-                FolderItem(
-                    folder = folder,
-                    isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
-                    preferences = preferences,
-                    selected = selected,
-                    isFirstItem = index == 0,
-                    isLastItem = index == rootFolder.folderList.lastIndex,
-                    onClick = {
-                        if (selectionManager.isInSelectionMode) {
-                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                            selectionManager.toggleFolderSelection(folder)
-                        } else {
-                            onFolderClick(folder.path)
-                        }
-                    },
-                    onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+    }
+
+    val singleFolderSpan = remember(preferences.mediaLayoutMode, maxWidth) {
+        when (preferences.mediaLayoutMode) {
+            MediaLayoutMode.LIST -> 1
+            MediaLayoutMode.GRID -> {
+                val maxFolders = (maxWidth / folderMinWidth).toInt()
+                spans / maxFolders
+            }
+        }
+    }
+
+    val singleVideoSpan = remember(preferences.mediaLayoutMode, maxWidth) {
+        when (preferences.mediaLayoutMode) {
+            MediaLayoutMode.LIST -> 1
+            MediaLayoutMode.GRID -> {
+                val maxVideos = (maxWidth / videoMinWidth).toInt()
+                spans / maxVideos
+            }
+        }
+    }
+
+    LazyVerticalGrid(
+        modifier = Modifier.fillMaxSize(),
+        state = lazyGridState,
+        columns = GridCells.Fixed(spans),
+        contentPadding = contentPadding + PaddingValues(horizontal = contentHorizontalPadding, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(itemSpacing),
+        horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+    ) {
+        if (showHeaders && rootFolder.folderList.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                ListSectionTitle(text = stringResource(id = R.string.folders) + " (${rootFolder.folderList.size})")
+            }
+        }
+        itemsIndexed(
+            items = rootFolder.folderList,
+            key = { _, folder -> folder.path },
+            span = { _, _ -> GridItemSpan(singleFolderSpan) },
+        ) { index, folder ->
+            val selected by remember { derivedStateOf { selectionManager.isFolderSelected(folder) } }
+            FolderItem(
+                folder = folder,
+                isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
+                preferences = preferences,
+                selected = selected,
+                isFirstItem = index == 0,
+                isLastItem = index == rootFolder.folderList.lastIndex,
+                onClick = {
+                    if (selectionManager.isInSelectionMode) {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                         selectionManager.toggleFolderSelection(folder)
-                    },
-                )
-            }
+                    } else {
+                        onFolderClick(folder.path)
+                    }
+                },
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    selectionManager.toggleFolderSelection(folder)
+                },
+            )
+        }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Spacer(modifier = Modifier.size(8.dp))
-                }
+        if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Spacer(modifier = Modifier.size(8.dp))
             }
+        }
 
-            if (showHeaders && rootFolder.mediaList.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.videos) + " (${rootFolder.mediaList.size})")
-                }
+        if (showHeaders && rootFolder.mediaList.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                ListSectionTitle(text = stringResource(id = R.string.videos) + " (${rootFolder.mediaList.size})")
             }
+        }
 
-            itemsIndexed(
-                items = rootFolder.mediaList,
-                key = { _, video -> video.uriString },
-                span = { _, _ -> GridItemSpan(singleVideoSpan) },
-            ) { index, video ->
-                val selected by remember { derivedStateOf { selectionManager.isVideoSelected(video) } }
-                VideoItem(
-                    video = video,
-                    preferences = preferences,
-                    isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
-                    isFirstItem = index == 0,
-                    isLastItem = index == rootFolder.mediaList.lastIndex,
-                    selected = selected,
-                    onClick = {
-                        if (selectionManager.isInSelectionMode) {
-                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                            selectionManager.toggleVideoSelection(video)
-                        } else {
-                            onVideoClick(video.uriString.toUri())
-                        }
-                    },
-                    onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        itemsIndexed(
+            items = rootFolder.mediaList,
+            key = { _, video -> video.uriString },
+            span = { _, _ -> GridItemSpan(singleVideoSpan) },
+        ) { index, video ->
+            val selected by remember { derivedStateOf { selectionManager.isVideoSelected(video) } }
+            VideoItem(
+                video = video,
+                preferences = preferences,
+                isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
+                isFirstItem = index == 0,
+                isLastItem = index == rootFolder.mediaList.lastIndex,
+                selected = selected,
+                onClick = {
+                    if (selectionManager.isInSelectionMode) {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                         selectionManager.toggleVideoSelection(video)
-                    },
-                    modifier = Modifier.onFirstVisible { onVideoLoaded(video.uriString.toUri()) },
-                )
-            }
+                    } else {
+                        onVideoClick(video.uriString.toUri())
+                    }
+                },
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    selectionManager.toggleVideoSelection(video)
+                },
+                modifier = Modifier.onFirstVisible { onVideoLoaded(video.uriString.toUri()) },
+            )
         }
     }
 }
