@@ -6,6 +6,9 @@ import android.content.Intent
 import android.database.ContentObserver
 import android.provider.MediaStore
 import coil3.ImageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.size.Size
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
@@ -61,6 +64,7 @@ class LocalMediaSynchronizer @Inject constructor(
         mediaSyncingJob = getMediaVideosFlow().onEach { media ->
             applicationScope.launch { updateDirectories(media) }
             applicationScope.launch { updateMedia(media) }
+            applicationScope.launch { prefetchThumbnails(media) }
         }.launchIn(applicationScope)
     }
 
@@ -180,6 +184,22 @@ class LocalMediaSynchronizer @Inject constructor(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private suspend fun prefetchThumbnails(media: List<MediaVideo>) = withContext(dispatcher) {
+        // Only prefetch if not already in disk cache — avoids redundant I/O
+        media.take(60).forEach { video -> // limit to first 60 to avoid OOM
+            val uri = video.uri
+            if (imageLoader.diskCache?.openSnapshot(uri.toString()) == null) {
+                val request = ImageRequest.Builder(context)
+                    .data(uri)
+                    .size(Size(320, 180)) // small size — just enough for thumbnail
+                    .memoryCachePolicy(CachePolicy.DISABLED) // skip memory, write to disk only
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .build()
+                imageLoader.enqueue(request)
             }
         }
     }
