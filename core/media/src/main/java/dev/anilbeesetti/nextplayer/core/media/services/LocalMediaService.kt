@@ -184,19 +184,42 @@ class LocalMediaService @Inject constructor(
                         ?: if (destinationDir != null) File(destinationDir)
                         else Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
 
-                    if (!destDir.exists()) destDir.mkdirs()
+                    // If original dir is not writable (e.g. WhatsApp scoped folder),
+                    // fall back to Movies folder
+                    val resolvedDestDir = if (destDir.exists() && destDir.canWrite()) {
+                        destDir
+                    } else {
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+                    }
+                    if (!resolvedDestDir.exists()) resolvedDestDir.mkdirs()
 
-                    var dest = File(destDir, filename)
+                    var dest = File(resolvedDestDir, filename)
                     if (dest.exists()) {
                         val name = filename.substringBeforeLast(".")
                         val ext = filename.substringAfterLast(".", "")
                         dest = File(
-                            destDir,
+                            resolvedDestDir,
                             "${name}_restored_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
                         )
                     }
 
-                    src.copyTo(dest, overwrite = false)
+                    val copySuccess = runCatching { src.copyTo(dest, overwrite = false) }.isSuccess
+                    if (!copySuccess) {
+                        // Last resort: copy to Movies folder
+                        val fallbackDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+                        if (!fallbackDir.exists()) fallbackDir.mkdirs()
+                        dest = File(fallbackDir, filename)
+                        if (dest.exists()) {
+                            val name = filename.substringBeforeLast(".")
+                            val ext = filename.substringAfterLast(".", "")
+                            dest = File(
+                                fallbackDir,
+                                "${name}_restored_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
+                            )
+                        }
+                        src.copyTo(dest, overwrite = false)
+                    }
+
                     MediaScannerConnection.scanFile(
                         context,
                         arrayOf(dest.absolutePath),
@@ -204,7 +227,6 @@ class LocalMediaService @Inject constructor(
                         null,
                     )
                     src.delete()
-                    // Clean up meta file too
                     if (metaFile.exists()) metaFile.delete()
                     true
                 }
