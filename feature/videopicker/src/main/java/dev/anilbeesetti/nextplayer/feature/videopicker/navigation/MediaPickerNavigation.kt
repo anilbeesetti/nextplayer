@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
 import android.net.Uri
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -10,10 +12,6 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.MediaPickerRoute
 import kotlinx.serialization.Serializable
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 
 internal const val folderIdArg = "folderId"
 
@@ -47,26 +45,38 @@ fun NavGraphBuilder.mediaPickerScreen(
     composable<MediaPickerRoute>(
         enterTransition = {
             slideInHorizontally(
-                initialOffsetX = { it },
-                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                initialOffsetX = { fullWidth -> fullWidth },
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                )
             )
         },
         exitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { -it / 3 },
-                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                targetOffsetX = { fullWidth -> -fullWidth / 4 }, // subtle parallax push-back
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                )
             )
         },
         popEnterTransition = {
             slideInHorizontally(
-                initialOffsetX = { -it / 3 },
-                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                initialOffsetX = { fullWidth -> -fullWidth / 4 }, // match the parallax
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                )
             )
         },
         popExitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { it },
-                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                targetOffsetX = { fullWidth -> fullWidth },
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                )
             )
         },
     ) {
