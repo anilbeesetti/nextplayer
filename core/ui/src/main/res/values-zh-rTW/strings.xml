@@ -2,7 +2,7 @@
 <resources>
     <string name="delete_file">以下檔案將會被永久地刪除</string>
     <string name="size">大小</string>
-    <string name="high_contrast_dark_theme_desc">使用純黑背景於深色主題</string>
+    <string name="high_contrast_dark_theme_desc">深色主題使用純黑色背景</string>
     <string name="force_rescan_storage">強制掃描儲存區</string>
     <string name="ascending">遞增</string>
     <string name="dynamic_theme">動態色彩主題</string>
@@ -17,7 +17,7 @@
     <string name="double_tap">雙輕觸手勢</string>
     <string name="interface_name">介面</string>
     <string name="remember_selections">記住選擇</string>
-    <string name="remember_selections_description">記憶個別檔案設定，例如音軌、字幕軌道等。</string>
+    <string name="remember_selections_description">記憶個別檔案設定，例如音軌、字幕軌道等</string>
     <string name="landscape_reverse">橫向翻轉</string>
     <string name="long_press_gesture_desc">長按以 %.1fx 速度播放</string>
     <string name="network_stream">網路串流</string>
@@ -29,11 +29,11 @@
     <string name="player_controls_exit">向上巡覽</string>
     <string name="shortest">最短</string>
     <string name="portrait">直向</string>
-    <string name="require_audio_focus">需要音訊焦點</string>
+    <string name="require_audio_focus">要求音訊焦點</string>
     <string name="media_library_description">掃描與管理媒體庫</string>
     <string name="player_controls_progress">播放器進度列</string>
     <string name="descending">遞減</string>
-    <string name="autoplay_settings_description">自動播放在目前資料夾中下一個影片</string>
+    <string name="autoplay_settings_description">自動播放目前資料夾中的下個影片</string>
     <string name="controller_timeout">控制器逾時</string>
     <string name="no_videos_found">沒有找到影片</string>
     <string name="no">否</string>
@@ -55,17 +55,17 @@
     <string name="fast_playback_speed">%.1fx 速度</string>
     <string name="high_contrast_dark_theme">高對比深色主題</string>
     <string name="autoplay_settings">自動播放</string>
-    <string name="resume_description">選擇是否從你停止時的進度再續播放影片</string>
+    <string name="resume_description">從停止時的進度恢復播放影片</string>
     <string name="grant_permission">授予權限</string>
     <string name="scan">掃描</string>
-    <string name="resume">再續播放</string>
+    <string name="resume">恢復播放</string>
     <string name="player_name">播放器</string>
     <string name="yes">是</string>
     <string name="seconds">%1$s 秒</string>
     <string name="smallest">最小</string>
     <string name="off">關閉</string>
     <string name="pause_on_headset_disconnect">卸除時暫停</string>
-    <string name="prefer_app_decoders">優先選擇應用解碼器</string>
+    <string name="prefer_app_decoders">優先選擇附帶解碼器</string>
     <string name="automatic">自動 (感測器)</string>
     <string name="delete">刪除</string>
     <string name="zoom_gesture">縮放手勢</string>
@@ -75,11 +75,11 @@
     <string name="embedded_styles">嵌入式樣式</string>
     <string name="device_decoders_only">僅限裝置解碼器</string>
     <string name="appearance_name">外觀</string>
-    <string name="embedded_styles_desc">應用存在於字幕檔之中的嵌入式樣式，例如 ASS 等</string>
+    <string name="embedded_styles_desc">套用字幕檔中的嵌入式外觀，例如 ASS 等</string>
     <string name="subtitle_background_desc">啟用字幕背景</string>
     <string name="preferred_audio_lang">優先的音訊語言</string>
     <string name="permission_request">權限請求</string>
-    <string name="system_volume_panel_desc">當配戴耳機調整音量時，顯示系統音量面板</string>
+    <string name="system_volume_panel_desc">配戴耳機並調整音量時，顯示系統音效面板</string>
     <string name="open_settings">開啟設定</string>
     <string name="system_caption_style">系統字幕樣式</string>
     <string name="preferred_audio_lang_description">預設使用的音訊軌語言</string>
@@ -105,7 +105,7 @@
     <string name="manage_folders_desc">選擇的資料夾將被排除在媒體庫之外</string>
     <string name="remember_brightness_level">記住亮度等級</string>
     <string name="landscape">橫向</string>
-    <string name="system_caption_style_desc">點擊以開啟系統字幕偏好設定</string>
+    <string name="system_caption_style_desc">輕觸以開啟系統字幕偏好設定</string>
     <string name="screen_rotation">畫面旋轉</string>
     <string name="prefer_device_decoders">優先選擇裝置解碼器</string>
     <string name="dark_theme">深色主題</string>
@@ -132,7 +132,7 @@
     <string name="fast_seek">快速跳轉</string>
     <string name="select_playback_speed">選擇播放速度</string>
     <string name="seek_gesture">跳轉手勢</string>
-    <string name="require_audio_focus_desc">當此播放器播放影片時，暫停其他播放器，反之亦然。</string>
+    <string name="require_audio_focus_desc">播放影片時暫停其他播放器，反之亦然</string>
     <string name="permission_info">Next Player 應用程式需要 \"%1$s\" 權限以存取或播放媒體。沒有它，媒體存取與播放功能將無法工作。要完整地使用此應用程式，請授予權限。</string>
     <string name="settings">設定</string>
     <string name="z_a">Z-A</string>
@@ -180,10 +180,10 @@
     <string name="volume_boost_desc">提升音量高達 200%</string>
     <string name="volume_boost">音量增幅器</string>
     <string name="pip_settings">子母畫面模式</string>
-    <string name="pip_settings_description">當輕觸主畫面按鈕時自動切換至迷你播放器</string>
+    <string name="pip_settings_description">輕觸主畫面按鈕時自動切換至迷你播放器</string>
     <string name="open_subtitle">開啟本機字幕</string>
     <string name="no_subtitle_tracks_found">該影片的字幕軌道不可用或不受支援。</string>
-    <string name="no_audio_tracks_found">該影片的音軌不可用或不受支援。</string>
+    <string name="no_audio_tracks_found">這部影片的音軌無法使用或不支援。</string>
     <string name="rename">重新命名</string>
     <string name="rename_to">重新命名為</string>
     <string name="exit">退出</string>
@@ -201,7 +201,7 @@
     <string name="control_buttons_alignment_left">左</string>
     <string name="stop_player_session">停止播放器會話</string>
     <string name="background_play">背景播放</string>
-    <string name="background_play_description">當輕觸主畫面按鈕或螢幕鎖定時在背景中播放。</string>
+    <string name="background_play_description">輕觸主畫面按鈕或鎖定時於背景播放</string>
     <string name="enable_pip_from_settings">子母畫面已停用。請在設定中啟用以使用此功能。</string>
     <string name="control_buttons_alignment_right">右</string>
     <string name="control_buttons_alignment">控制按鈕對齊</string>
@@ -211,7 +211,7 @@
     <string name="loop_mode">循環模式</string>
     <string name="github">Github</string>
     <string name="error_opening_link">沒有應用程式可開啟這個連結</string>
-    <string name="support_the_developer_on">透過 %1$s 支援開發者</string>
+    <string name="support_the_developer_on">透過 %1$s 贊助開發者</string>
     <string name="kofi">Ko-fi</string>
     <string name="paypal">PayPal</string>
     <string name="upi">UPI</string>
