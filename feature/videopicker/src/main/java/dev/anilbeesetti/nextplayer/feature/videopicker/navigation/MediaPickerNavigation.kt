@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
 import android.net.Uri
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.SavedStateHandle
@@ -46,37 +48,19 @@ fun NavGraphBuilder.mediaPickerScreen(
         enterTransition = {
             slideInHorizontally(
                 initialOffsetX = { fullWidth -> fullWidth },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                )
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
             )
         },
         exitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { fullWidth -> -fullWidth / 4 }, // subtle parallax push-back
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                )
-            )
+            ExitTransition.None
         },
         popEnterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { fullWidth -> -fullWidth / 4 }, // match the parallax
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                )
-            )
+            EnterTransition.None
         },
         popExitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { fullWidth -> fullWidth },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                )
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
             )
         },
     ) {
