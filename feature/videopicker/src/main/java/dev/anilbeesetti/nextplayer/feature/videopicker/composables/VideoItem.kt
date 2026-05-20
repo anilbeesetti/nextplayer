@@ -24,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.crossfade
+import coil3.size.Scale
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -97,6 +98,9 @@ private fun VideoListItem(
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
 ) {
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+    val thumbnailWidth = remember(screenWidthDp) { min(150.dp, screenWidthDp * 0.35f) }
+
     NextSegmentedListItem(
         modifier = modifier,
         selected = selected,
@@ -122,8 +126,7 @@ private fun VideoListItem(
             ThumbnailView(
                 video = video,
                 preferences = preferences,
-                modifier = Modifier
-                    .width(min(150.dp, LocalConfiguration.current.screenWidthDp.dp * 0.35f)),
+                modifier = Modifier.width(thumbnailWidth),
             )
         },
         content = {
@@ -230,6 +233,22 @@ private fun ThumbnailView(
     preferences: ApplicationPreferences,
 ) {
     val context = LocalContext.current
+
+    // Build the ImageRequest once per video URI, not on every recomposition.
+    // memoryCacheKey lets Coil find the bitmap instantly from RAM without
+    // re-hashing the full URI on every frame during the slide animation.
+    val imageRequest = remember(video.uriString, preferences.showThumbnailField) {
+        ImageRequest.Builder(context)
+            .data(video.uriString)
+            .memoryCacheKey(video.uriString)
+            .diskCacheKey(video.uriString)
+            // Tell Coil the exact pixel size to decode at — prevents it from
+            // doing a layout-measurement pass during the animation.
+            .size(320, 200)
+            .scale(Scale.FILL)
+            .build()
+    }
+
     Box(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
@@ -246,10 +265,7 @@ private fun ThumbnailView(
         )
         if (preferences.showThumbnailField) {
             AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(video.uriString)
-                    .crossfade(true)
-                    .build(),
+                model = imageRequest,
                 contentDescription = null,
                 alignment = Alignment.Center,
                 contentScale = ContentScale.Crop,

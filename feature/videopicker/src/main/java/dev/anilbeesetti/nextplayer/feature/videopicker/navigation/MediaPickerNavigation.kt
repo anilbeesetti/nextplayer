@@ -1,6 +1,12 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
 import android.net.Uri
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -36,8 +42,28 @@ fun NavGraphBuilder.mediaPickerScreen(
     onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,
+    onVaultClick: () -> Unit = {},
 ) {
-    composable<MediaPickerRoute> {
+    composable<MediaPickerRoute>(
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { fullWidth -> fullWidth },
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+            )
+        },
+        exitTransition = {
+            ExitTransition.None
+        },
+        popEnterTransition = {
+            EnterTransition.None
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { fullWidth -> fullWidth },
+                animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+            )
+        },
+    ) {
         MediaPickerRoute(
             onPlayVideo = onPlayVideo,
             onPlayVideos = onPlayVideos,
@@ -45,6 +71,7 @@ fun NavGraphBuilder.mediaPickerScreen(
             onFolderClick = onFolderClick,
             onSettingsClick = onSettingsClick,
             onSearchClick = onSearchClick,
+            onVaultClick = onVaultClick,
         )
     }
 }

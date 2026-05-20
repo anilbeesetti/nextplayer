@@ -7,9 +7,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -119,44 +118,10 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = mainNavController,
                         startDestination = MediaRootRoute,
-                        enterTransition = {
-                            slideIntoContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                            )
-                        },
-                        exitTransition = {
-                            slideOutOfContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                                targetOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
-                            )
-                        },
-                        popEnterTransition = {
-                            slideIntoContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                                initialOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
-                            )
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                            )
-                        },
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = { ExitTransition.None },
                     ) {
                         mediaNavGraph(
                             context = this@MainActivity,

@@ -4,8 +4,11 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.MediaMetadataRetriever
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -26,6 +29,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 @Singleton
 class LocalMediaService @Inject constructor(
@@ -76,6 +80,196 @@ class LocalMediaService @Inject constructor(
             null,
         )
         activity.startActivity(intent)
+    }
+
+    override suspend fun hideVideos(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
+        return@withContext runCatching {
+            // Step 1: Create vault folder with .nomedia
+            val vaultDir = File(context.getExternalFilesDir(null), ".vault")
+            if (!vaultDir.exists()) vaultDir.mkdirs()
+            val nomediaFile = File(vaultDir, ".nomedia")
+            if (!nomediaFile.exists()) nomediaFile.createNewFile()
+
+            // Step 2: Copy all selected videos into vault and save original path metadata
+            val copiedSuccessfully = uris.all { uri ->
+                val filename = getFilenameFromUri(uri) ?: return@all false
+                val originalPath = getPathFromUri(uri)
+
+                var destFile = File(vaultDir, filename)
+                if (destFile.exists()) {
+                    val name = filename.substringBeforeLast(".")
+                    val ext = filename.substringAfterLast(".", "")
+                    destFile = File(
+                        vaultDir,
+                        "${name}_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
+                    )
+                }
+
+                val inputStream = contentResolver.openInputStream(uri) ?: return@all false
+                inputStream.use { input ->
+                    destFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                // Save original path in a .meta file alongside the video
+                if (originalPath != null) {
+                    val metaFile = File(vaultDir, "${destFile.name}.meta")
+                    val json = JSONObject()
+                    json.put("originalPath", originalPath)
+                    metaFile.writeText(json.toString())
+                }
+
+                true
+            }
+
+            if (!copiedSuccessfully) return@runCatching false
+
+            // Step 3: Delete originals
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                deleteMediaR(uris)
+            } else {
+                deleteMediaBelowR(uris)
+            }
+        }.getOrElse { it.printStackTrace(); false }
+    }
+
+    override fun listVaultFiles(): List<String> {
+        val vaultDir = File(context.getExternalFilesDir(null), ".vault")
+        if (!vaultDir.exists()) return emptyList()
+        return vaultDir.listFiles()
+            ?.filter { it.isFile && it.name != ".nomedia" && !it.name.endsWith(".meta") }
+            ?.map { it.name }
+            ?: emptyList()
+    }
+
+    override fun getVaultFileDuration(filename: String): Long {
+        val vaultDir = File(context.getExternalFilesDir(null), ".vault")
+        val file = File(vaultDir, filename)
+        if (!file.exists()) return 0L
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(file.absolutePath)
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            retriever.release()
+            duration
+        } catch (e: Exception) {
+            0L
+        }
+    }
+
+    override suspend fun unhideVideos(filenames: List<String>, destinationDir: String?): Boolean =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val vaultDir = File(context.getExternalFilesDir(null), ".vault")
+
+                filenames.all { filename ->
+                    val src = File(vaultDir, filename)
+                    if (!src.exists()) return@all false
+
+                    // Try to read original path from .meta file
+                    val metaFile = File(vaultDir, "$filename.meta")
+                    val originalDir: File? = if (metaFile.exists()) {
+                        try {
+                            val json = JSONObject(metaFile.readText())
+                            val originalPath = json.optString("originalPath", "")
+                            if (originalPath.isNotEmpty()) File(originalPath).parentFile else null
+                        } catch (e: Exception) {
+                            null
+                        }
+                    } else null
+
+                    // Fall back to destinationDir or Movies folder
+                    val destDir = originalDir
+                        ?: if (destinationDir != null) File(destinationDir)
+                        else Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+
+                    // If original dir is not writable (e.g. WhatsApp scoped folder),
+                    // fall back to Movies folder
+                    val resolvedDestDir = if (destDir.exists() && destDir.canWrite()) {
+                        destDir
+                    } else {
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+                    }
+                    if (!resolvedDestDir.exists()) resolvedDestDir.mkdirs()
+
+                    var dest = File(resolvedDestDir, filename)
+                    if (dest.exists()) {
+                        val name = filename.substringBeforeLast(".")
+                        val ext = filename.substringAfterLast(".", "")
+                        dest = File(
+                            resolvedDestDir,
+                            "${name}_restored_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
+                        )
+                    }
+
+                    val copySuccess = runCatching { src.copyTo(dest, overwrite = false) }.isSuccess
+                    if (!copySuccess) {
+                        // Last resort: copy to Movies folder
+                        val fallbackDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+                        if (!fallbackDir.exists()) fallbackDir.mkdirs()
+                        dest = File(fallbackDir, filename)
+                        if (dest.exists()) {
+                            val name = filename.substringBeforeLast(".")
+                            val ext = filename.substringAfterLast(".", "")
+                            dest = File(
+                                fallbackDir,
+                                "${name}_restored_${System.currentTimeMillis()}${if (ext.isNotEmpty()) ".$ext" else ""}",
+                            )
+                        }
+                        src.copyTo(dest, overwrite = false)
+                    }
+
+                    MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(dest.absolutePath),
+                        null,
+                        null,
+                    )
+                    src.delete()
+                    if (metaFile.exists()) metaFile.delete()
+                    true
+                }
+            }.getOrElse { it.printStackTrace(); false }
+        }
+
+    private fun getFilenameFromUri(uri: Uri): String? {
+        try {
+            contentResolver.query(
+                uri,
+                arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
+                null, null, null,
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex >= 0) {
+                        val name = cursor.getString(nameIndex)
+                        if (!name.isNullOrBlank()) return name
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return uri.lastPathSegment?.substringAfterLast("/")
+    }
+
+    private fun getPathFromUri(uri: Uri): String? {
+        return try {
+            contentResolver.query(
+                uri,
+                arrayOf(MediaStore.Video.Media.DATA),
+                null, null, null,
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val idx = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+                    if (idx >= 0) cursor.getString(idx) else null
+                } else null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
