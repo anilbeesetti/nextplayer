@@ -73,15 +73,16 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
         return
     }
 
+    val savedSpeed = playbackParameters.speed
+
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()
         .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
         .build()
 
     val index = currentMediaItemIndex
-    addMediaItem(index + 1, updateMediaItem)
-    seekTo(index + 1, currentPosition)
-    removeMediaItem(index)
+    replaceMediaItem(index, updateMediaItem)
+    setPlaybackSpeed(savedSpeed)
 }
 
 @OptIn(UnstableApi::class)
