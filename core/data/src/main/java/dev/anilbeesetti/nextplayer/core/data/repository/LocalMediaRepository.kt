@@ -12,6 +12,8 @@ import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.database.relations.DirectoryWithMedia
 import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
+import dev.anilbeesetti.nextplayer.core.model.Chapter
+import dev.anilbeesetti.nextplayer.core.model.ChapterListConverter
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
@@ -42,6 +44,12 @@ class LocalMediaRepository @Inject constructor(
 
     override suspend fun getVideoState(uri: String): VideoState? {
         return mediumStateDao.get(uri)?.toVideoState()
+    }
+
+    override fun getChaptersStream(uri: String): Flow<List<Chapter>> {
+        return mediumStateDao.getAsFlow(uri).map { state ->
+            ChapterListConverter.fromStringToList(state?.chapters ?: "")
+        }
     }
 
     override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
@@ -140,6 +148,17 @@ class LocalMediaRepository @Inject constructor(
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
                 subtitleSpeed = speed,
+                lastPlayedTime = System.currentTimeMillis(),
+            ),
+        )
+    }
+
+    override suspend fun updateChapters(uri: String, chapters: List<Chapter>) {
+        val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
+
+        mediumStateDao.upsert(
+            mediumState = stateEntity.copy(
+                chapters = ChapterListConverter.fromListToString(chapters),
                 lastPlayedTime = System.currentTimeMillis(),
             ),
         )

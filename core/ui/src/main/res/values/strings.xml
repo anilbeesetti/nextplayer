@@ -301,4 +301,12 @@
     <string name="thumbnail_setting_change_confirmation">Changing this setting will clear the thumbnail cache. Thumbnails will be generated again when media list is opened. Continue?</string>
     <string name="material_you_controls">Material You controls</string>
     <string name="material_you_controls_description">Use material you style controls</string>
+    <string name="chapters">Chapters</string>
+    <string name="add_bookmark">Add bookmark</string>
+    <string name="import_chapters">Import</string>
+    <string name="export_chapters">Export</string>
+    <string name="no_chapters">No chapters yet. Add a bookmark at the current position, or import a chapters file.</string>
+    <string name="bookmark_added">Bookmark added</string>
+    <string name="chapters_exported">Chapters exported</string>
+    <string name="invalid_chapters_file">Could not read chapters from that file</string>
 </resources>

@@ -63,6 +63,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberChaptersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
@@ -147,6 +148,7 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
+    val chaptersState = rememberChaptersState(player = player, viewModel = viewModel)
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -320,6 +322,14 @@ fun MediaPlayerScreen(
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onRotateClick = rotationState::rotate,
                                     onPlayInBackgroundClick = onPlayInBackgroundClick,
+                                    onChaptersClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.CHAPTERS
+                                    },
+                                    onAddBookmark = {
+                                        chaptersState.addBookmarkAtCurrentPosition()
+                                        Toast.makeText(context, coreUiR.string.bookmark_added, Toast.LENGTH_SHORT).show()
+                                    },
                                     onLockControlsClick = {
                                         controlsVisibilityState.showControls()
                                         controlsVisibilityState.lockControls()
@@ -385,6 +395,7 @@ fun MediaPlayerScreen(
                 player = player,
                 overlayView = overlayView,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+                chaptersState = chaptersState,
                 onDismiss = { overlayView = null },
                 onSelectSubtitleClick = onSelectSubtitleClick,
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,

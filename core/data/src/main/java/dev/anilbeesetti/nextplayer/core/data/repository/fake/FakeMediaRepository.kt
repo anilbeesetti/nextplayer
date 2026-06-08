@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository.fake
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
+import dev.anilbeesetti.nextplayer.core.model.Chapter
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,10 @@ class FakeMediaRepository : MediaRepository {
         return null
     }
 
+    override fun getChaptersStream(uri: String): Flow<List<Chapter>> {
+        return flowOf(emptyList())
+    }
+
     override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
     }
 
@@ -58,5 +63,8 @@ class FakeMediaRepository : MediaRepository {
     }
 
     override suspend fun updateSubtitleSpeed(uri: String, speed: Float) {
+    }
+
+    override suspend fun updateChapters(uri: String, chapters: List<Chapter>) {
     }
 }

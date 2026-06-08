@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.models
 
 import android.net.Uri
+import dev.anilbeesetti.nextplayer.core.model.Chapter
 
 data class VideoState(
     val path: String,
@@ -12,4 +13,5 @@ data class VideoState(
     val videoScale: Float,
     val subtitleDelayMilliseconds: Long,
     val subtitleSpeed: Float,
+    val chapters: List<Chapter>,
 )
