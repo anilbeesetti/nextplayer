@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
+import dev.anilbeesetti.nextplayer.core.model.Chapter
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,7 @@ interface MediaRepository {
 
     suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?
+    fun getChaptersStream(uri: String): Flow<List<Chapter>>
 
     suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long)
     suspend fun updateMediumPosition(uri: String, position: Long)
@@ -23,4 +25,5 @@ interface MediaRepository {
     suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri)
     suspend fun updateSubtitleDelay(uri: String, delay: Long)
     suspend fun updateSubtitleSpeed(uri: String, speed: Float)
+    suspend fun updateChapters(uri: String, chapters: List<Chapter>)
 }

@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
+import dev.anilbeesetti.nextplayer.core.model.Chapter
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -15,6 +16,7 @@ import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -103,6 +105,14 @@ class PlayerViewModel @Inject constructor(
     private fun updateSubtitleSpeed(uri: String, speed: Float) {
         viewModelScope.launch {
             mediaRepository.updateSubtitleSpeed(uri, speed)
+        }
+    }
+
+    fun chaptersFlow(uri: String): Flow<List<Chapter>> = mediaRepository.getChaptersStream(uri)
+
+    fun updateChapters(uri: String, chapters: List<Chapter>) {
+        viewModelScope.launch {
+            mediaRepository.updateChapters(uri, chapters)
         }
     }
 }

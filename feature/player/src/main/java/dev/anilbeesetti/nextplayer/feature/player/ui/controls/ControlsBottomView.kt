@@ -81,6 +81,8 @@ fun ControlsBottomView(
     onPictureInPictureClick: () -> Unit,
     onRotateClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
+    onChaptersClick: () -> Unit,
+    onAddBookmark: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
 ) {
@@ -176,6 +178,15 @@ fun ControlsBottomView(
             PlayerButton(onClick = onPlayInBackgroundClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_headset),
+                    contentDescription = null,
+                )
+            }
+            PlayerButton(
+                onClick = onChaptersClick,
+                onLongClick = onAddBookmark,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_chapters),
                     contentDescription = null,
                 )
             }
