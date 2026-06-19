@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.domain
 import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
+import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -15,123 +16,107 @@ import kotlinx.coroutines.flow.flowOn
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Produces the hierarchical (tree) view of media for a folder.
+ *
+ * Each level shows the videos directly inside the current folder plus a [Folder] for every
+ * immediate subfolder that contains videos. The top level (folderPath == null) spans all storage
+ * volumes: when more than one volume holds videos each volume is shown as a folder ("Internal
+ * Storage", a USB drive, …); with a single volume its contents are shown directly.
+ */
 class GetFolderTreeMediaUseCase @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(folderPath: String = Environment.getExternalStorageDirectory().path): Flow<MediaHolder> {
+    operator fun invoke(folderPath: String? = null): Flow<MediaHolder> {
         return combine(
             mediaRepository.observeVideos(folderPath),
             preferencesRepository.applicationPreferences,
         ) { videos, preferences ->
-            val nonExcludedVideos = videos.filterNot { it.parentPath in preferences.excludeFolders }
-
-            val directVideos = nonExcludedVideos.filter { it.parentPath == folderPath }
-            val nestedVideos = nonExcludedVideos.filter { it.parentPath != folderPath }
-
-            val videosByDisplayFolder = nestedVideos.groupBy { video ->
-                findDisplayFolderPath(video.path, folderPath)
-            }.filterKeys { it != null }
-
-            val displayFolders = buildDisplayFolders(
-                rootPath = folderPath,
-                videosByDisplayFolder = videosByDisplayFolder,
-                allNestedVideos = nestedVideos,
-                excludedFolders = preferences.excludeFolders,
-            )
-
+            val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
-            MediaHolder(
-                videos = directVideos.sortedWith(sort.videoComparator()),
-                folders = displayFolders.sortedWith(sort.folderComparator()),
-            )
+
+            if (folderPath != null) {
+                mediaUnder(folderPath, included, preferences.excludeFolders, sort)
+            } else {
+                topLevelMedia(included, preferences.excludeFolders, sort)
+            }
         }.flowOn(defaultDispatcher)
     }
 
     /**
-     * Finds the display folder path for a video.
-     *
-     * The display folder is the folder that is a direct child of the root path.
-     * For example, if rootPath is "/storage/0" and video is at "/storage/0/Movies/Action/film.mp4",
-     * the display folder path is "/storage/0/Movies".
-     *
-     * @param videoPath The full path to the video file.
-     * @param rootPath The current root folder path being viewed.
-     * @return The display folder path, or null if the video is directly in rootPath.
+     * The top level: one folder per storage volume that contains videos, or — when only a single
+     * volume has videos — that volume's contents shown directly (no volume wrapper).
      */
-    private fun findDisplayFolderPath(videoPath: String, rootPath: String): String? {
-        val videoFile = File(videoPath)
-        return videoFile.parentFile?.walkUp()?.firstOrNull { it.parent == rootPath }?.path
-    }
-
-    /**
-     * Walks up the directory tree from this file to the root.
-     */
-    private fun File.walkUp(): Sequence<File> = generateSequence(this) { it.parentFile }
-
-    /**
-     * Builds the list of display folders with computed statistics.
-     *
-     * @param rootPath The current root folder path.
-     * @param videosByDisplayFolder Videos grouped by their display folder path.
-     * @param allNestedVideos All videos that are in subfolders (not direct children of rootPath).
-     * @param excludedFolders Collection of folder paths to exclude.
-     * @return List of [Folder] objects representing the display folders.
-     */
-    private fun buildDisplayFolders(
-        rootPath: String,
-        videosByDisplayFolder: Map<String?, List<Video>>,
-        allNestedVideos: List<Video>,
-        excludedFolders: Collection<String>,
-    ): List<Folder> {
-        return videosByDisplayFolder.mapNotNull { (displayFolderPath, videosInDisplayFolder) ->
-            if (displayFolderPath == null || displayFolderPath in excludedFolders) return@mapNotNull null
-
-            val displayFolder = File(displayFolderPath)
-
-            // Get all videos that are descendants of this display folder
-            val allDescendantVideos = allNestedVideos.filter { video ->
-                video.path.startsWith(displayFolderPath + File.separator)
-            }
-
-            // Count direct videos (videos directly in the display folder)
-            val directVideosCount = allDescendantVideos.count { it.parentPath == displayFolderPath }
-
-            // Count direct subfolders that contain videos
-            val directSubfoldersCount = countDirectSubfolders(displayFolderPath, allDescendantVideos)
-
-            Folder(
-                name = displayFolder.name,
-                path = displayFolderPath,
-                parentPath = rootPath,
-                dateModified = allDescendantVideos.maxOfOrNull { it.dateModified } ?: 0L,
-                totalSize = allDescendantVideos.sumOf { it.size },
-                totalDuration = allDescendantVideos.sumOf { it.duration },
-                videosCount = directVideosCount,
-                foldersCount = directSubfoldersCount,
-            )
+    private fun topLevelMedia(videos: List<Video>, excludedFolders: Collection<String>, sort: Sort): MediaHolder {
+        val volumeRoots = videos.mapNotNull { volumeRootOf(it.path) }.distinct()
+        if (volumeRoots.size <= 1) {
+            val root = volumeRoots.firstOrNull() ?: Environment.getExternalStorageDirectory().path
+            return mediaUnder(root, videos, excludedFolders, sort)
         }
+        val folders = volumeRoots
+            .filterNot { it in excludedFolders }
+            .map { volumeRoot -> summarize(volumeRoot, videosUnder(volumeRoot, videos)) }
+        return MediaHolder(videos = emptyList(), folders = folders.sortedWith(sort.folderComparator()))
+    }
+
+    /** The videos directly inside [root] plus a [Folder] for each immediate subfolder with videos. */
+    private fun mediaUnder(root: String, videos: List<Video>, excludedFolders: Collection<String>, sort: Sort): MediaHolder {
+        val descendants = videosUnder(root, videos)
+        val directVideos = descendants.filter { it.parentPath == root }
+        val folders = immediateChildFolders(root, descendants)
+            .filterNot { it in excludedFolders }
+            .map { childPath -> summarize(childPath, videosUnder(childPath, descendants)) }
+
+        return MediaHolder(
+            videos = directVideos.sortedWith(sort.videoComparator()),
+            folders = folders.sortedWith(sort.folderComparator()),
+        )
+    }
+
+    /** Builds a [Folder] aggregating the stats of every video beneath [path]. */
+    private fun summarize(path: String, descendantVideos: List<Video>): Folder {
+        val file = File(path)
+        return Folder(
+            name = file.prettyName,
+            path = path,
+            parentPath = file.parent,
+            dateModified = descendantVideos.maxOfOrNull { it.dateModified } ?: 0L,
+            totalSize = descendantVideos.sumOf { it.size },
+            totalDuration = descendantVideos.sumOf { it.duration },
+            videosCount = descendantVideos.count { it.parentPath == path },
+            foldersCount = immediateChildFolders(path, descendantVideos).size,
+        )
+    }
+
+    /** Distinct immediate subfolders of [path] that contain at least one of [videos] (which are all beneath [path]). */
+    private fun immediateChildFolders(path: String, videos: List<Video>): List<String> {
+        val prefix = path + File.separator
+        return videos
+            .filter { it.parentPath != path }
+            .map { prefix + it.parentPath.removePrefix(prefix).substringBefore(File.separator) }
+            .distinct()
+    }
+
+    /** All videos located somewhere beneath [path]. */
+    private fun videosUnder(path: String, videos: List<Video>): List<Video> {
+        val prefix = path + File.separator
+        return videos.filter { it.path.startsWith(prefix) }
     }
 
     /**
-     * Counts the number of direct subfolders that contain videos.
-     *
-     * @param folderPath The folder to count subfolders for.
-     * @param descendantVideos All videos that are descendants of this folder.
-     * @return The count of direct subfolders containing videos.
+     * Infers the storage-volume root that contains [path] from its canonical MediaStore path:
+     * "/storage/emulated/<user>" for emulated (internal) storage, or "/storage/<volume>" for
+     * removable volumes (SD card / USB OTG). Returns null for unrecognised layouts.
      */
-    private fun countDirectSubfolders(folderPath: String, descendantVideos: List<Video>): Int {
-        val folderPrefix = folderPath + File.separator
-        return descendantVideos
-            .filter { it.parentPath != folderPath } // Exclude direct videos
-            .map { video ->
-                // Extract the direct subfolder name
-                val relativePath = video.parentPath.removePrefix(folderPrefix)
-                relativePath.substringBefore(File.separator)
-            }
-            .distinct()
-            .count()
+    private fun volumeRootOf(path: String): String? {
+        val parts = path.split('/').filter { it.isNotEmpty() }
+        return when {
+            parts.size >= 3 && parts[0] == "storage" && parts[1] == "emulated" -> "/storage/emulated/${parts[2]}"
+            parts.size >= 2 && parts[0] == "storage" -> "/storage/${parts[1]}"
+            else -> null
+        }
     }
 }

@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -41,11 +40,10 @@ class GetSortedMediaUseCase @Inject constructor(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
-        val rootPath = folderPath ?: Environment.getExternalStorageDirectory().path
         return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
             when (preferences.mediaViewMode) {
                 MediaViewMode.FOLDER_TREE -> {
-                    getFolderTreeMediaUseCase(rootPath)
+                    getFolderTreeMediaUseCase(folderPath)
                 }
 
                 MediaViewMode.FOLDERS -> {
@@ -63,7 +61,7 @@ class GetSortedMediaUseCase @Inject constructor(
                 }
 
                 MediaViewMode.VIDEOS -> {
-                    getSortedVideosUseCase(rootPath).map { videos ->
+                    getSortedVideosUseCase(folderPath).map { videos ->
                         MediaHolder(videos = videos, folders = emptyList())
                     }
                 }

@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -19,9 +18,7 @@ class GetSortedVideosUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): Flow<List<Video>> {
+    operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
         return combine(
             mediaRepository.observeVideos(folderPath),
             preferencesRepository.applicationPreferences,

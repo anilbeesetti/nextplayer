@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.net.Uri
-import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
@@ -19,42 +18,34 @@ interface MediaRepository {
     /**
      * Observes all unique folders containing videos under the given path.
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return A flow of folder lists.
      */
-    fun observeFolders(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): Flow<List<Folder>>
+    fun observeFolders(folderPath: String? = null): Flow<List<Folder>>
 
     /**
      * Observes all videos under the given path recursively.
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return A flow of video lists.
      */
-    fun observeVideos(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): Flow<List<Video>>
+    fun observeVideos(folderPath: String? = null): Flow<List<Video>>
 
     /**
      * Fetches all unique folders containing videos under the given path (one-shot).
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return List of folders.
      */
-    suspend fun fetchFolders(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): List<Folder>
+    suspend fun fetchFolders(folderPath: String? = null): List<Folder>
 
     /**
      * Fetches all videos under the given path recursively (one-shot).
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return List of videos.
      */
-    suspend fun fetchVideos(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): List<Video>
+    suspend fun fetchVideos(folderPath: String? = null): List<Video>
 
     suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?

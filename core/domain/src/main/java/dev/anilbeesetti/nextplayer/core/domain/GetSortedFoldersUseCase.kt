@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
@@ -19,9 +18,7 @@ class GetSortedFoldersUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): Flow<List<Folder>> {
+    operator fun invoke(folderPath: String? = null): Flow<List<Folder>> {
         return combine(
             mediaRepository.observeFolders(folderPath),
             preferencesRepository.applicationPreferences,

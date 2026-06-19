@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers

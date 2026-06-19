@@ -41,9 +41,9 @@ class LocalMediaSynchronizer @Inject constructor(
 
     override fun startSync() {
         if (mediaSyncingJob != null) return
-        mediaSyncingJob = mediaService.observeVideos().onEach { media ->
-            applicationScope.launch { updateMedia(media) }
-        }.launchIn(applicationScope)
+        mediaSyncingJob = mediaService.observeVideos()
+            .onEach { media -> updateMedia(media) }
+            .launchIn(applicationScope)
     }
 
     override fun stopSync() {

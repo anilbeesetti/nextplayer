@@ -22,10 +22,12 @@ data class Folder(
 }
 
 fun List<Folder>.findClosestFolder(videoPath: String): Folder? {
-    val videoDirectory = videoPath.substringBeforeLast("/") + "/"
+    val videoDirectory = videoPath.substringBeforeLast("/")
 
     return filter { folder ->
-        videoDirectory.startsWith(folder.path)
+        // Match the folder itself or an ancestor, respecting path-segment boundaries so
+        // that e.g. "/storage/Movies" is not treated as an ancestor of "/storage/Movies2".
+        videoDirectory == folder.path || videoDirectory.startsWith(folder.path + "/")
     }.maxByOrNull { folder ->
         folder.path.length
     }

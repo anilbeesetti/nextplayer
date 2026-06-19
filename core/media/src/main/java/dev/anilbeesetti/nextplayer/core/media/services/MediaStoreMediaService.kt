@@ -5,21 +5,27 @@ import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * [MediaService] implementation that queries the Android MediaStore for video files.
@@ -30,9 +36,12 @@ import javax.inject.Inject
  */
 class MediaStoreMediaService @Inject constructor(
     @ApplicationContext private val context: Context,
+    @ApplicationScope private val applicationScope: CoroutineScope,
 ) : MediaService {
 
     companion object {
+        private const val OBSERVER_DEBOUNCE_MS = 250L
+
         private val VIDEO_PROJECTION = arrayOf(
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DATA,
@@ -45,21 +54,46 @@ class MediaStoreMediaService @Inject constructor(
         )
     }
 
-    override fun observeFolders(folderPath: String): Flow<List<MediaFolder>> {
-        return context.contentObserverFlow()
+    /**
+     * A single, shared signal of MediaStore changes.
+     *
+     * One [ContentObserver] is registered for all observers (regardless of folder path),
+     * and bursts of change notifications (common during media scans) are coalesced via
+     * [debounce] so downstream collectors re-query at most once per quiet window.
+     */
+    @OptIn(FlowPreview::class)
+    private val mediaChanges: Flow<Unit> = callbackFlow {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                trySend(Unit)
+            }
+        }
+        context.contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
+        trySend(Unit)
+        awaitClose { context.contentResolver.unregisterContentObserver(observer) }
+    }
+        .debounce(OBSERVER_DEBOUNCE_MS.milliseconds)
+        .shareIn(
+            scope = applicationScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
+            replay = 1,
+        )
+
+    override fun observeFolders(folderPath: String?): Flow<List<MediaFolder>> {
+        return mediaChanges
             .map { fetchFolders(folderPath) }
             .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
     }
 
-    override fun observeVideos(folderPath: String): Flow<List<MediaVideo>> {
-        return context.contentObserverFlow()
+    override fun observeVideos(folderPath: String?): Flow<List<MediaVideo>> {
+        return mediaChanges
             .map { fetchVideos(folderPath) }
             .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
     }
 
-    override suspend fun fetchFolders(folderPath: String): List<MediaFolder> = withContext(Dispatchers.IO) {
+    override suspend fun fetchFolders(folderPath: String?): List<MediaFolder> = withContext(Dispatchers.IO) {
         val videos = fetchVideos(folderPath)
 
         val videosByFolder = videos.groupBy { File(it.path).parentFile }
@@ -79,11 +113,13 @@ class MediaStoreMediaService @Inject constructor(
         }
     }
 
-    override suspend fun fetchVideos(folderPath: String): List<MediaVideo> = withContext(Dispatchers.IO) {
+    override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> = withContext(Dispatchers.IO) {
         val mediaVideos = mutableListOf<MediaVideo>()
 
-        val selection = "${MediaStore.Video.Media.DATA} LIKE ?"
-        val selectionArgs = arrayOf("$folderPath/%")
+        // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
+        // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
+        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
+        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
         val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
 
         context.contentResolver.query(
@@ -144,6 +180,12 @@ class MediaStoreMediaService @Inject constructor(
      */
     private fun File.walkUp() = generateSequence(parentFile) { it.parentFile }
 
+    /**
+     * Escapes SQL LIKE metacharacters so a path is matched literally (used with `ESCAPE '\'`).
+     */
+    private fun String.escapeLike(): String =
+        replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
     private fun Cursor.toMediaVideo(): MediaVideo? {
         val path = getString(getColumnIndexOrThrow(MediaStore.Video.Media.DATA))
         val file = File(path)
@@ -162,16 +204,5 @@ class MediaStoreMediaService @Inject constructor(
             size = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)),
             dateModified = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED)),
         )
-    }
-
-    private fun Context.contentObserverFlow(): Flow<Unit> = callbackFlow {
-        val observer = object : ContentObserver(null) {
-            override fun onChange(selfChange: Boolean) {
-                trySend(Unit)
-            }
-        }
-        contentResolver.registerContentObserver(VIDEO_COLLECTION_URI, true, observer)
-        trySend(Unit)
-        awaitClose { contentResolver.unregisterContentObserver(observer) }
     }
 }

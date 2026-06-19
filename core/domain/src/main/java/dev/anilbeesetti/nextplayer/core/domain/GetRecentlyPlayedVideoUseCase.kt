@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
-import android.os.Environment
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
@@ -30,9 +29,8 @@ class GetRecentlyPlayedVideoUseCase @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(folderPath: String? = null): Flow<Video?> {
         return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
-            val searchPath = folderPath ?: Environment.getExternalStorageDirectory().path
-
-            getSortedVideosUseCase(searchPath).map { videos ->
+            // null folderPath scans all storage volumes.
+            getSortedVideosUseCase(folderPath).map { videos ->
                 // Filter based on view mode when folderPath is provided
                 val filteredVideos = if (folderPath != null) {
                     when (preferences.mediaViewMode) {

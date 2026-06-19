@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.media.services
 
 import android.net.Uri
-import android.os.Environment
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -17,45 +16,37 @@ interface MediaService {
      * Observes all unique folders containing videos under the given path.
      * Emits a new list whenever the underlying media changes.
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return A flow of folder lists. Each folder represents a directory containing at least one video.
      *         Folder statistics (videosCount, foldersCount) are set to 0 - compute at use case layer.
      */
-    fun observeFolders(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): Flow<List<MediaFolder>>
+    fun observeFolders(folderPath: String? = null): Flow<List<MediaFolder>>
 
     /**
      * Observes all videos under the given path recursively.
      * Emits a new list whenever the underlying media changes.
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return A flow of video lists containing all videos found under the path.
      */
-    fun observeVideos(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): Flow<List<MediaVideo>>
+    fun observeVideos(folderPath: String? = null): Flow<List<MediaVideo>>
 
     /**
      * Fetches all unique folders containing videos under the given path (one-shot).
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return List of folders, each representing a directory containing at least one video.
      *         Folder statistics (videosCount, foldersCount) are set to 0 - compute at use case layer.
      */
-    suspend fun fetchFolders(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): List<MediaFolder>
+    suspend fun fetchFolders(folderPath: String? = null): List<MediaFolder>
 
     /**
      * Fetches all videos under the given path recursively (one-shot).
      *
-     * @param folderPath The root path to search for videos. Defaults to external storage root.
+     * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return List of all videos found under the path.
      */
-    suspend fun fetchVideos(
-        folderPath: String = Environment.getExternalStorageDirectory().path,
-    ): List<MediaVideo>
+    suspend fun fetchVideos(folderPath: String? = null): List<MediaVideo>
 
     /**
      * Finds a specific video by its content URI.
