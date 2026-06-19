@@ -23,6 +23,7 @@ subprojects {
     }
 
     configure<com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension> {
+        offlineMode.set(true)
         export {
             excludeFields.addAll("generated")
         }
