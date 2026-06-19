@@ -27,21 +27,19 @@ class GetSortedPlaylistUseCase @Inject constructor(
         val parent = File(path).parent ?: return@withContext emptyList()
         val preferences = preferencesRepository.applicationPreferences.first()
 
-        val videos = getSortedVideosUseCase(parent).first()
-
-        // Filter based on view mode
+        // The playlist must match the order of the list the video was launched from.
         when (preferences.mediaViewMode) {
             MediaViewMode.FOLDER_TREE -> {
-                // Include all videos in the folder and subfolders
-                videos
+                // Tree mode: the folder and its subfolders.
+                getSortedVideosUseCase(parent).first()
             }
             MediaViewMode.FOLDERS -> {
-                // Only include videos directly in the same folder
-                videos.filter { it.parentPath == parent }
+                // Folders mode: only videos directly in the same folder.
+                getSortedVideosUseCase(parent).first().filter { it.parentPath == parent }
             }
             MediaViewMode.VIDEOS -> {
-                // Include all videos
-                videos
+                // Videos mode shows a single global list across all storage; play in that order.
+                getSortedVideosUseCase().first()
             }
         }
     }
