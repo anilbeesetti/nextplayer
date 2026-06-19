@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_description">Verzija, podrška, zasluge</string>
+    <string name="about_name">O aplikaciji</string>
+    <string name="appearance_description">Podesite aplikaciju</string>
+    <string name="appearance_name">Izgled</string>
+    <string name="ascending">Uzlazno</string>
+    <string name="cancel">Ukini</string>
+    <string name="descending">Silazno</string>
+    <string name="disable">Isključiti</string>
+    <string name="done">Gotovo</string>
+    <string name="double_tap">Pritisnuti dva puta</string>
+    <string name="double_tap_description">Izabrati pritisnuti dva puta</string>
+    <string name="error_playing_video">Greška: nije moguće reproducirati videozapis</string>
+    <string name="grant_permission">Dozvoliti</string>
+    <string name="duration">Dužina</string>
+    <string name="menu">Meni</string>
+    <string name="no_videos_found">Videozapisi nisu nađeni</string>
+    <string name="open_settings">Otvoriti Postavke</string>
+</resources>

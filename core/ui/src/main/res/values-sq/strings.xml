@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_description">Versioni, mbështetja, kreditet</string>
+    <string name="about_name">Rreth</string>
+    <string name="appearance_description">Përshtat aplikacionin sipas dëshirës tuaj</string>
+    <string name="appearance_name">Dukje</string>
+    <string name="ascending">Në ngjitje</string>
+</resources>
