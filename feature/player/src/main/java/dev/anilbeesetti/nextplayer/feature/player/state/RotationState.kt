@@ -95,7 +95,7 @@ class RotationState(
     }
 
     private fun getVideoBasedOrientation() = when {
-        player.videoSize.width == 0 || player.videoSize.height == 0 -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        player.videoSize.width == 0 || player.videoSize.height == 0 -> activity.requestedOrientation
         player.videoSize.isPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
     }
