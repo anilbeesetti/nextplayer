@@ -123,7 +123,7 @@ private fun FolderListItem(
 
                 if (preferences.showDurationField) {
                     InfoChip(
-                        text = Utils.formatDurationMillis(folder.mediaDuration),
+                        text = Utils.formatDurationMillis(folder.totalDuration),
                         modifier = Modifier
                             .padding(5.dp)
                             .padding(bottom = 3.dp)
@@ -160,20 +160,20 @@ private fun FolderListItem(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
-                    if (folder.mediaList.isNotEmpty()) {
+                    if (folder.videosCount > 0) {
                         InfoChip(
-                            text = "${folder.mediaList.size} " +
-                                stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos),
+                            text = "${folder.videosCount} " +
+                                stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos),
                         )
                     }
-                    if (folder.folderList.isNotEmpty()) {
+                    if (folder.foldersCount > 0) {
                         InfoChip(
-                            text = "${folder.folderList.size} " +
-                                stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders),
+                            text = "${folder.foldersCount} " +
+                                stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders),
                         )
                     }
                     if (preferences.showSizeField) {
-                        InfoChip(text = Utils.formatFileSize(folder.mediaSize))
+                        InfoChip(text = Utils.formatFileSize(folder.totalSize))
                     }
                 }
             }
@@ -233,7 +233,7 @@ private fun FolderGridItem(
 
                     if (preferences.showDurationField) {
                         InfoChip(
-                            text = Utils.formatDurationMillis(folder.mediaDuration),
+                            text = Utils.formatDurationMillis(folder.totalDuration),
                             modifier = Modifier
                                 .padding(5.dp)
                                 .padding(bottom = 3.dp)
@@ -261,13 +261,13 @@ private fun FolderGridItem(
                         },
                         textAlign = TextAlign.Center,
                     )
-                    val mediaCount = if (folder.mediaList.isNotEmpty()) {
-                        "${folder.mediaList.size} " + stringResource(id = R.string.video.takeIf { folder.mediaList.size == 1 } ?: R.string.videos)
+                    val mediaCount = if (folder.videosCount > 0) {
+                        "${folder.videosCount} " + stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos)
                     } else {
                         null
                     }
-                    val folderCount = if (folder.folderList.isNotEmpty()) {
-                        "${folder.folderList.size} " + stringResource(id = R.string.folder.takeIf { folder.folderList.size == 1 } ?: R.string.folders)
+                    val folderCount = if (folder.foldersCount > 0) {
+                        "${folder.foldersCount} " + stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders)
                     } else {
                         null
                     }
@@ -312,7 +312,7 @@ fun FolderItemRecentlyPlayedPreview() {
 fun FolderItemPreview() {
     NextPlayerTheme {
         FolderListItem(
-            folder = Folder.sample.copy(folderList = listOf(Folder.sample)),
+            folder = Folder.sample,
             preferences = ApplicationPreferences(),
             isRecentlyPlayedFolder = false,
         )
@@ -324,7 +324,7 @@ fun FolderItemPreview() {
 fun FolderGridViewPreview() {
     NextPlayerTheme {
         FolderGridItem(
-            folder = Folder.sample.copy(folderList = listOf(Folder.sample)),
+            folder = Folder.sample,
             preferences = ApplicationPreferences(),
             isRecentlyPlayedFolder = true,
         )

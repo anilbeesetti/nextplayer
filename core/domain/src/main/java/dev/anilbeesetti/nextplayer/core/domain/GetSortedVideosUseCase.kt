@@ -8,7 +8,6 @@ import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
@@ -16,18 +15,12 @@ import kotlinx.coroutines.flow.flowOn
 class GetSortedVideosUseCase @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
-    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(folderPath: String? = null): Flow<List<Video>> {
-        val videosFlow = if (folderPath != null) {
-            mediaRepository.getVideosFlowFromFolderPath(folderPath)
-        } else {
-            mediaRepository.getVideosFlow()
-        }
-
         return combine(
-            videosFlow,
+            mediaRepository.observeVideos(folderPath),
             preferencesRepository.applicationPreferences,
         ) { videoItems, preferences ->
 

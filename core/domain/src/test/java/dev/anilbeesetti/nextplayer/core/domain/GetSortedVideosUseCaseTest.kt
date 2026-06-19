@@ -4,6 +4,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakePreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -14,7 +15,7 @@ class GetSortedVideosUseCaseTest {
     private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
-    val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository)
+    val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository, Dispatchers.Unconfined)
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {

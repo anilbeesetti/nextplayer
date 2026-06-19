@@ -18,14 +18,14 @@ class GetSortedFoldersUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(): Flow<List<Folder>> {
+    operator fun invoke(folderPath: String? = null): Flow<List<Folder>> {
         return combine(
-            mediaRepository.getFoldersFlow(),
+            mediaRepository.observeFolders(folderPath),
             preferencesRepository.applicationPreferences,
         ) { folders, preferences ->
 
             val nonExcludedDirectories = folders.filter {
-                it.mediaList.isNotEmpty() && it.path !in preferences.excludeFolders
+                it.path !in preferences.excludeFolders
             }
 
             val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)

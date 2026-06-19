@@ -4,35 +4,19 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
-import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
-import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
-import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
-import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
-import dev.anilbeesetti.nextplayer.core.database.entities.SubtitleStreamInfoEntity
-import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
 
 @Database(
     entities = [
-        DirectoryEntity::class,
-        MediumEntity::class,
         MediumStateEntity::class,
-        VideoStreamInfoEntity::class,
-        AudioStreamInfoEntity::class,
-        SubtitleStreamInfoEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
 
-    abstract fun mediumDao(): MediumDao
-
     abstract fun mediumStateDao(): MediumStateDao
-
-    abstract fun directoryDao(): DirectoryDao
 
     companion object {
         const val DATABASE_NAME = "media_db"
@@ -182,6 +166,16 @@ abstract class MediaDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `media_state` ADD COLUMN `subtitle_delay` INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE `media_state` ADD COLUMN `subtitle_speed` REAL NOT NULL DEFAULT 1")
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS `directories`")
+                db.execSQL("DROP TABLE IF EXISTS `media`")
+                db.execSQL("DROP TABLE IF EXISTS `audio_stream_info`")
+                db.execSQL("DROP TABLE IF EXISTS `video_stream_info`")
+                db.execSQL("DROP TABLE IF EXISTS `subtitle_stream_info`")
             }
         }
     }

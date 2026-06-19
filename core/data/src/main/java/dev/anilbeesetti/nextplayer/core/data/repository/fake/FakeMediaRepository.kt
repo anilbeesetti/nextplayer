@@ -4,6 +4,7 @@ import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -13,16 +14,20 @@ class FakeMediaRepository : MediaRepository {
     val videos = mutableListOf<Video>()
     val directories = mutableListOf<Folder>()
 
-    override fun getVideosFlow(): Flow<List<Video>> {
-        return flowOf(videos)
+    override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
+        return flowOf(directories.filter { folderPath == null || it.path.startsWith(folderPath) })
     }
 
-    override fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>> {
-        return flowOf(videos)
+    override fun observeVideos(folderPath: String?): Flow<List<Video>> {
+        return flowOf(videos.filter { folderPath == null || it.path.startsWith(folderPath) })
     }
 
-    override fun getFoldersFlow(): Flow<List<Folder>> {
-        return flowOf(directories)
+    override suspend fun fetchFolders(folderPath: String?): List<Folder> {
+        return directories.filter { folderPath == null || it.path.startsWith(folderPath) }
+    }
+
+    override suspend fun fetchVideos(folderPath: String?): List<Video> {
+        return videos.filter { folderPath == null || it.path.startsWith(folderPath) }
     }
 
     override suspend fun getVideoByUri(uri: String): Video? {
@@ -30,6 +35,10 @@ class FakeMediaRepository : MediaRepository {
     }
 
     override suspend fun getVideoState(uri: String): VideoState? {
+        return null
+    }
+
+    override suspend fun getMediaInfo(uri: String): MediaInfo? {
         return null
     }
 

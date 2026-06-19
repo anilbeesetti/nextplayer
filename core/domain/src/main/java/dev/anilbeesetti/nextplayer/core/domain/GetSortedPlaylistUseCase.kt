@@ -21,12 +21,28 @@ class GetSortedPlaylistUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
+
     suspend operator fun invoke(uri: Uri): List<Video> = withContext(defaultDispatcher) {
         val path = context.getPath(uri) ?: return@withContext emptyList()
-        val parent = File(path).parent.takeIf {
-            preferencesRepository.applicationPreferences.first().mediaViewMode != MediaViewMode.VIDEOS
-        }
+        val parent = File(path).parent ?: return@withContext emptyList()
+        val preferences = preferencesRepository.applicationPreferences.first()
 
-        getSortedVideosUseCase.invoke(parent).first()
+        val videos = getSortedVideosUseCase(parent).first()
+
+        // Filter based on view mode
+        when (preferences.mediaViewMode) {
+            MediaViewMode.FOLDER_TREE -> {
+                // Include all videos in the folder and subfolders
+                videos
+            }
+            MediaViewMode.FOLDERS -> {
+                // Only include videos directly in the same folder
+                videos.filter { it.parentPath == parent }
+            }
+            MediaViewMode.VIDEOS -> {
+                // Include all videos
+                videos
+            }
+        }
     }
 }

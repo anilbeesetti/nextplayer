@@ -22,13 +22,6 @@ data class SearchResults(
         get() = folders.size + videos.size
 }
 
-fun SearchResults.asRootFolder(): Folder {
-    return Folder.rootFolder.copy(
-        mediaList = videos,
-        folderList = folders,
-    )
-}
-
 class SearchMediaUseCase @Inject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,

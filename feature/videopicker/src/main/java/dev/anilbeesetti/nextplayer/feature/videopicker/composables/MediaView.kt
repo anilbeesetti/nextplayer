@@ -27,10 +27,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
+import dev.anilbeesetti.nextplayer.core.model.Video
+import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
+import dev.anilbeesetti.nextplayer.core.model.recentPlayed
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
@@ -41,7 +45,9 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
 @Composable
 fun MediaView(
-    rootFolder: Folder,
+    mediaHolder: MediaHolder,
+    recentlyPlayedVideo: Video?,
+    recentlyPlayedFolder: Folder?,
     preferences: ApplicationPreferences,
     showHeaders: Boolean = preferences.mediaViewMode == MediaViewMode.FOLDER_TREE,
     contentPadding: PaddingValues = PaddingValues(),
@@ -49,7 +55,6 @@ fun MediaView(
     lazyGridState: LazyGridState = rememberLazyGridState(),
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
-    onVideoLoaded: (Uri) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -89,24 +94,24 @@ fun MediaView(
             verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         ) {
-            if (showHeaders && rootFolder.folderList.isNotEmpty()) {
+            if (showHeaders && mediaHolder.folders.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.folders) + " (${rootFolder.folderList.size})")
+                    ListSectionTitle(text = stringResource(id = R.string.folders) + " (${mediaHolder.folders.size})")
                 }
             }
             itemsIndexed(
-                items = rootFolder.folderList,
+                items = mediaHolder.folders,
                 key = { _, folder -> folder.path },
                 span = { _, _ -> GridItemSpan(singleFolderSpan) },
             ) { index, folder ->
                 val selected by remember { derivedStateOf { selectionManager.isFolderSelected(folder) } }
                 FolderItem(
                     folder = folder,
-                    isRecentlyPlayedFolder = rootFolder.isRecentlyPlayedVideo(folder.recentlyPlayedVideo),
+                    isRecentlyPlayedFolder = folder.path == recentlyPlayedFolder?.path,
                     preferences = preferences,
                     selected = selected,
                     isFirstItem = index == 0,
-                    isLastItem = index == rootFolder.folderList.lastIndex,
+                    isLastItem = index == mediaHolder.folders.lastIndex,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
                             haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
@@ -122,20 +127,20 @@ fun MediaView(
                 )
             }
 
-            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && rootFolder.folderList.isNotEmpty()) {
+            if (preferences.mediaViewMode == MediaViewMode.FOLDER_TREE && mediaHolder.folders.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.size(8.dp))
                 }
             }
 
-            if (showHeaders && rootFolder.mediaList.isNotEmpty()) {
+            if (showHeaders && mediaHolder.videos.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    ListSectionTitle(text = stringResource(id = R.string.videos) + " (${rootFolder.mediaList.size})")
+                    ListSectionTitle(text = stringResource(id = R.string.videos) + " (${mediaHolder.videos.size})")
                 }
             }
 
             itemsIndexed(
-                items = rootFolder.mediaList,
+                items = mediaHolder.videos,
                 key = { _, video -> video.uriString },
                 span = { _, _ -> GridItemSpan(singleVideoSpan) },
             ) { index, video ->
@@ -143,9 +148,9 @@ fun MediaView(
                 VideoItem(
                     video = video,
                     preferences = preferences,
-                    isRecentlyPlayedVideo = rootFolder.isRecentlyPlayedVideo(video),
+                    isRecentlyPlayedVideo = video.path == recentlyPlayedVideo?.path,
                     isFirstItem = index == 0,
-                    isLastItem = index == rootFolder.mediaList.lastIndex,
+                    isLastItem = index == mediaHolder.videos.lastIndex,
                     selected = selected,
                     onClick = {
                         if (selectionManager.isInSelectionMode) {
@@ -159,7 +164,6 @@ fun MediaView(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         selectionManager.toggleVideoSelection(video)
                     },
-                    modifier = Modifier.onFirstVisible { onVideoLoaded(video.uriString.toUri()) },
                 )
             }
         }

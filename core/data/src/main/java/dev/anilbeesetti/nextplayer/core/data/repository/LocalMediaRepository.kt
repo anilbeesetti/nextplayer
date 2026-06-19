@@ -1,47 +1,93 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
+import android.content.Context
 import android.net.Uri
+import android.os.Environment
+import androidx.core.net.toUri
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
+import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toFolder
+import dev.anilbeesetti.nextplayer.core.data.mappers.toSubtitleStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoState
+import dev.anilbeesetti.nextplayer.core.data.mappers.toVideoStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.models.VideoState
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
-import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
-import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
-import dev.anilbeesetti.nextplayer.core.database.relations.DirectoryWithMedia
-import dev.anilbeesetti.nextplayer.core.database.relations.MediumWithInfo
+import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.model.Folder
+import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
-import javax.inject.Inject
+import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
-    private val mediumDao: MediumDao,
     private val mediumStateDao: MediumStateDao,
-    private val directoryDao: DirectoryDao,
+    private val mediaService: MediaService,
+    @ApplicationContext private val context: Context,
 ) : MediaRepository {
 
-    override fun getVideosFlow(): Flow<List<Video>> {
-        return mediumDao.getAllWithInfo().map { it.map(MediumWithInfo::toVideo) }
+    override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
+        return mediaService.observeFolders(folderPath).map { mediaFolders ->
+            mediaFolders.map { it.toFolder() }
+        }
     }
 
-    override fun getVideosFlowFromFolderPath(folderPath: String): Flow<List<Video>> {
-        return mediumDao.getAllWithInfoFromDirectory(folderPath).map { it.map(MediumWithInfo::toVideo) }
+    override fun observeVideos(folderPath: String?): Flow<List<Video>> {
+        return combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+            val statesMap = mediumStates.associateBy { it.uriString }
+            mediaVideos.map { mediaVideo ->
+                val mediaState = statesMap[mediaVideo.uri.toString()]
+                mediaVideo.toVideo(mediaState)
+            }
+        }
     }
 
-    override fun getFoldersFlow(): Flow<List<Folder>> {
-        return directoryDao.getAllWithMedia().map { it.map(DirectoryWithMedia::toFolder) }
+    override suspend fun fetchFolders(folderPath: String?): List<Folder> {
+        return mediaService.fetchFolders(folderPath).map { it.toFolder() }
     }
 
-    override suspend fun getVideoByUri(uri: String): Video? {
-        return mediumDao.getWithInfo(uri)?.toVideo()
+    override suspend fun fetchVideos(folderPath: String?): List<Video> {
+        return mediaService.fetchVideos(folderPath).mapAsync { mediaVideo ->
+            val mediaState = mediumStateDao.get(mediaVideo.uri.toString())
+            mediaVideo.toVideo(mediaState)
+        }
+    }
+
+    override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
+        val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
+        val mediaStateDeferred = async { mediumStateDao.get(uri) }
+
+        val mediaVideo = mediaVideoDeferred.await() ?: return@coroutineScope null
+        val mediaState = mediaStateDeferred.await()
+
+        return@coroutineScope mediaVideo.toVideo(mediaState)
     }
 
     override suspend fun getVideoState(uri: String): VideoState? {
         return mediumStateDao.get(uri)?.toVideoState()
+    }
+
+    override suspend fun getMediaInfo(uri: String): MediaInfo? = withContext(Dispatchers.IO) {
+        val video = getVideoByUri(uri) ?: return@withContext null
+        val mediaInfo = runCatching { MediaInfoBuilder().from(context = context, uri = uri.toUri()).build() }.getOrNull()
+        val result = MediaInfo(
+            video = video.copy(format = mediaInfo?.format),
+            videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
+            audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
+            subtitleStreams = mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
+        )
+        mediaInfo?.release()
+        return@withContext result
     }
 
     override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {

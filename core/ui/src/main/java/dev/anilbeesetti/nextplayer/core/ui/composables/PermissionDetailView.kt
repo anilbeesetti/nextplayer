@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import androidx.core.net.toUri
 
 @Composable
 fun PermissionDetailView(
@@ -54,7 +55,7 @@ fun PermissionDetailView(
         Button(
             onClick = {
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.parse("package:" + context.packageName)
+                    data = ("package:" + context.packageName).toUri()
                     context.startActivity(this)
                 }
             },

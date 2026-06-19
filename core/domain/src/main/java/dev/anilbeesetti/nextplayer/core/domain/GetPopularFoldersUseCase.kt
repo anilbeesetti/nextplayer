@@ -6,23 +6,35 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 
+/**
+ * Use case for retrieving the most popular folders based on video play history.
+ *
+ * Folders are ranked by:
+ * 1. Number of videos played in the folder
+ * 2. Most recent play time of any video in the folder
+ * 3. Total video count in the folder
+ */
 class GetPopularFoldersUseCase @Inject constructor(
     private val getSortedFoldersUseCase: GetSortedFoldersUseCase,
+    private val getSortedVideosUseCase: GetSortedVideosUseCase,
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(limit: Int = 5): Flow<List<Folder>> {
-        return getSortedFoldersUseCase().map { folders ->
+        return combine(
+            getSortedFoldersUseCase(),
+            getSortedVideosUseCase(),
+        ) { folders, videos ->
             folders.sortedWith(
                 compareByDescending<Folder> { folder ->
-                    folder.allMediaList.count { it.lastPlayedAt != null }
+                    videos.count { it.parentPath == folder.path && it.lastPlayedAt != null }
                 }.thenByDescending { folder ->
-                    folder.recentlyPlayedVideo?.lastPlayedAt?.time ?: 0L
+                    videos.filter { it.parentPath == folder.path }.maxOfOrNull { it.lastPlayedAt?.time ?: 0L } ?: 0L
                 }.thenByDescending { folder ->
-                    folder.mediaList.size
+                    folder.videosCount
                 },
             ).take(limit)
         }.flowOn(defaultDispatcher)
