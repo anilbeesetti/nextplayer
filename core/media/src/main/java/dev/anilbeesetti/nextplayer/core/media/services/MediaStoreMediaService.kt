@@ -138,15 +138,22 @@ class MediaStoreMediaService @Inject constructor(
     }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
-        return@withContext context.contentResolver.query(
-            uri,
-            VIDEO_PROJECTION,
-            null,
-            null,
-            null,
-        )?.use { cursor ->
-            if (!cursor.moveToFirst()) return@withContext null
-            cursor.toMediaVideo()
+        return@withContext try {
+            context.contentResolver.query(
+                uri,
+                VIDEO_PROJECTION,
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                if (!cursor.moveToFirst()) return@withContext null
+                cursor.toMediaVideo()
+            }
+        } catch (e: Exception) {
+            // uri isn't a MediaStore video uri (e.g. a vault FileProvider uri) and the
+            // provider rejected the MediaStore-specific projection outright. Not finding a
+            // MediaStore row for it is the correct outcome, not a crash.
+            null
         }
     }
 
@@ -186,23 +193,45 @@ class MediaStoreMediaService @Inject constructor(
     private fun String.escapeLike(): String =
         replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
+    /**
+     * Converts the current row to a [MediaVideo], or null if this cursor doesn't actually
+     * expose MediaStore's video columns.
+     *
+     * [findVideo] runs this against whatever content uri it's given, which isn't always a
+     * MediaStore uri - vault playback, for example, passes a [androidx.core.content.FileProvider]
+     * uri whose cursor only ever has DISPLAY_NAME/SIZE columns. Querying MediaStore-specific
+     * columns (DATA, DURATION, etc) against that cursor has no matching column, and
+     * [Cursor.getColumnIndexOrThrow] throws IllegalArgumentException in that case. That
+     * exception was previously unhandled here, which crashed the coroutine awaiting this result
+     * and made vault playback close immediately. Resolving column indices safely up front avoids
+     * that crash and simply reports "not found" for any uri that isn't a MediaStore video uri.
+     */
     private fun Cursor.toMediaVideo(): MediaVideo? {
-        val path = getString(getColumnIndexOrThrow(MediaStore.Video.Media.DATA))
+        val dataIndex = getColumnIndex(MediaStore.Video.Media.DATA).takeIf { it >= 0 } ?: return null
+        val idIndex = getColumnIndex(MediaStore.Video.Media._ID).takeIf { it >= 0 } ?: return null
+        val displayNameIndex = getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME).takeIf { it >= 0 } ?: return null
+        val durationIndex = getColumnIndex(MediaStore.Video.Media.DURATION).takeIf { it >= 0 } ?: return null
+        val widthIndex = getColumnIndex(MediaStore.Video.Media.WIDTH).takeIf { it >= 0 } ?: return null
+        val heightIndex = getColumnIndex(MediaStore.Video.Media.HEIGHT).takeIf { it >= 0 } ?: return null
+        val sizeIndex = getColumnIndex(MediaStore.Video.Media.SIZE).takeIf { it >= 0 } ?: return null
+        val dateModifiedIndex = getColumnIndex(MediaStore.Video.Media.DATE_MODIFIED).takeIf { it >= 0 } ?: return null
+
+        val path = getString(dataIndex) ?: return null
         val file = File(path)
         if (!file.exists()) return null
-        val id = getLong(getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+        val id = getLong(idIndex)
         return MediaVideo(
             id = id,
             path = path,
             title = file.nameWithoutExtension,
             parentPath = file.parent ?: "/",
             uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
-            displayName = getString(getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)),
-            duration = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-            width = getInt(getColumnIndexOrThrow(MediaStore.Video.Media.WIDTH)),
-            height = getInt(getColumnIndexOrThrow(MediaStore.Video.Media.HEIGHT)),
-            size = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)),
-            dateModified = getLong(getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED)),
+            displayName = getString(displayNameIndex) ?: file.name,
+            duration = getLong(durationIndex),
+            width = getInt(widthIndex),
+            height = getInt(heightIndex),
+            size = getLong(sizeIndex),
+            dateModified = getLong(dateModifiedIndex),
         )
     }
 }

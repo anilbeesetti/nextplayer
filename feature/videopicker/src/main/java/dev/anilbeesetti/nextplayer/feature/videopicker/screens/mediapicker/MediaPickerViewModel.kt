@@ -8,8 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.data.repository.HideResult
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
 import dev.anilbeesetti.nextplayer.core.domain.GetRecentlyPlayedVideoUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
@@ -46,6 +49,8 @@ class MediaPickerViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val mediaSynchronizer: MediaSynchronizer,
+    private val vaultRepository: VaultRepository,
+    private val vaultPinRepository: VaultPinRepository,
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
@@ -80,6 +85,10 @@ class MediaPickerViewModel @Inject constructor(
             is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
             is MediaPickerAction.ShowMediaInfo -> showMediaInfo(action.video)
             MediaPickerAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
+            is MediaPickerAction.RequestHideSelectedItems -> requestHideSelectedItems(action.selectionItems)
+            is MediaPickerAction.SetVaultPinAndHide -> setVaultPinAndHide(action.pin)
+            MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
+            MediaPickerAction.DismissHideFlow -> uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
         }
     }
 
@@ -166,24 +175,87 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> {
+    private fun requestHideSelectedItems(selectedItems: Set<SelectionItem>) {
+        viewModelScope.launch {
+            val videoItems = selectedItems.toVideoItems()
+            if (videoItems.isEmpty()) return@launch
+            val hasPin = vaultPinRepository.hasPinSet()
+            when {
+                !hasPin -> {
+                    uiStateInternal.update { it.copy(hideFlow = HideFlowState.SetupPin(videoItems)) }
+                }
+                !vaultPinRepository.hasShownHideConfirmation() -> {
+                    uiStateInternal.update { it.copy(hideFlow = HideFlowState.ConfirmHide(videoItems)) }
+                }
+                else -> {
+                    hideVideoItems(videoItems)
+                }
+            }
+        }
+    }
+
+    private fun setVaultPinAndHide(pin: String) {
+        val pending = (uiStateInternal.value.hideFlow as? HideFlowState.SetupPin)?.items ?: return
+        viewModelScope.launch {
+            vaultPinRepository.setPin(pin)
+            hideVideoItems(pending)
+            vaultPinRepository.setHideConfirmationShown()
+            uiStateInternal.update { it.copy(hideFlow = HideFlowState.HowToFindInfo) }
+        }
+    }
+
+    private fun confirmHidePendingItems() {
+        val pending = (uiStateInternal.value.hideFlow as? HideFlowState.ConfirmHide)?.items ?: return
+        viewModelScope.launch {
+            hideVideoItems(pending)
+            vaultPinRepository.setHideConfirmationShown()
+            uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+        }
+    }
+
+    private suspend fun hideVideoItems(items: List<Pair<Uri, String?>>) {
+        uiStateInternal.update { it.copy(hideFlow = HideFlowState.Processing) }
+        val uris = items.map { it.first }
+        val movedFiles = mediaOperationsService.moveMedia(uris, vaultRepository.getStagingDir())
+        val results = items.mapNotNull { (uri, path) ->
+            vaultRepository.hideVideo(uri.toString(), movedFiles[uri], originalPath = path)
+        }
+        val staged = results.filterIsInstance<HideResult.Staged>()
+        if (staged.isEmpty()) {
+            uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            return
+        }
+        val leftoverUris = staged.map { it.leftoverUri }
+        val deleted = mediaOperationsService.deleteMedia(leftoverUris)
+        val stagedIds = staged.map { it.video.id }
+        if (deleted) {
+            vaultRepository.confirmStagedHides(confirmedIds = stagedIds, rolledBackIds = emptyList())
+        } else {
+            vaultRepository.confirmStagedHides(confirmedIds = emptyList(), rolledBackIds = stagedIds)
+        }
+        uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+    }
+
+    private suspend fun Set<SelectionItem>.toVideoItems(): List<Pair<Uri, String?>> {
         val preferences = uiStateInternal.value.preferences
         return flatMap { selectionItem ->
             when (selectionItem) {
-                is SelectionItem.Video -> listOf(selectionItem.uriString.toUri())
+                is SelectionItem.Video -> listOf(Pair(selectionItem.uriString.toUri(), selectionItem.path))
                 is SelectionItem.Folder -> {
                     val videos = getSortedVideosUseCase(selectionItem.path).first()
-                    // In FOLDERS mode, only include direct children
                     val filteredVideos = if (preferences.mediaViewMode == MediaViewMode.FOLDERS) {
                         videos.filter { it.parentPath == selectionItem.path }
                     } else {
                         videos
                     }
-                    filteredVideos.map { it.uriString.toUri() }
+                    filteredVideos.map { Pair(it.uriString.toUri(), it.path) }
                 }
             }
         }
     }
+
+    // Keep toVideoUris for any remaining callers
+    private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> = toVideoItems().map { it.first }
 }
 
 @Stable
@@ -195,7 +267,17 @@ data class MediaPickerUiState(
     val mediaDataState: DataState<MediaHolder?> = DataState.Loading,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
     val mediaInfo: dev.anilbeesetti.nextplayer.core.model.MediaInfo? = null,
+    val hideFlow: HideFlowState = HideFlowState.Idle,
 )
+
+sealed interface HideFlowState {
+    data object Idle : HideFlowState
+    data class ConfirmHide(val items: List<Pair<Uri, String?>>) : HideFlowState
+    data class SetupPin(val items: List<Pair<Uri, String?>>) : HideFlowState
+    data object HowToFindInfo : HideFlowState
+
+    data object Processing : HideFlowState
+}
 
 sealed interface MediaPickerAction {
     data object Refresh : MediaPickerAction
@@ -207,6 +289,10 @@ sealed interface MediaPickerAction {
     data class ShareSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class ShowMediaInfo(val video: Video): MediaPickerAction
     data object DismissMediaInfo : MediaPickerAction
+    data class RequestHideSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class SetVaultPinAndHide(val pin: String) : MediaPickerAction
+    data object ConfirmHidePendingItems : MediaPickerAction
+    data object DismissHideFlow : MediaPickerAction
 }
 
 sealed interface MediaPickerEvent {

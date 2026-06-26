@@ -46,6 +46,7 @@ import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.MiscellaneousServices
 import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PanToolAlt
@@ -152,4 +153,5 @@ object NextIcons {
     val DeleteSweep = Icons.Rounded.DeleteSweep
     val Image = Icons.Rounded.Image
     val Frame = Icons.Rounded.FilterFrames
+    val Lock = Icons.Rounded.Lock
 }

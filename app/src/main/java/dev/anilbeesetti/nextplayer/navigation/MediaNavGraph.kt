@@ -11,7 +11,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRou
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToSearch
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToVault
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.searchScreen
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.vaultScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
 import kotlinx.serialization.Serializable
 
@@ -43,6 +45,7 @@ fun NavGraphBuilder.mediaNavGraph(
             onFolderClick = navController::navigateToMediaPickerScreen,
             onSettingsClick = navController::navigateToSettings,
             onSearchClick = navController::navigateToSearch,
+            onVaultClick = navController::navigateToVault,
         )
 
         searchScreen(
@@ -55,6 +58,34 @@ fun NavGraphBuilder.mediaNavGraph(
                 context.startActivity(intent)
             },
             onFolderClick = navController::navigateToMediaPickerScreen,
+        )
+
+        vaultScreen(
+            onNavigateUp = navController::navigateUp,
+            onPlayVideo = { uri ->
+                // Grant read access explicitly at playback time. FLAG_GRANT_READ_URI_PERMISSION
+                // on the Intent covers PlayerActivity, but ExoPlayer streams via PlayerService
+                // (a separate component) — grantUriPermission() covers that too.
+                context.grantUriPermission(context.packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                val intent = Intent(context, PlayerActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = uri
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(intent)
+            },
+            onPlayVideos = { uris ->
+                uris.forEach { uri ->
+                    context.grantUriPermission(context.packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                val intent = Intent(context, PlayerActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = uris.first()
+                    putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(intent)
+            },
         )
     }
 }
