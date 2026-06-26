@@ -38,14 +38,14 @@ jobs:
           validate-wrappers: true
 
       - name: Decode keystore file
-        uses: timheuer/base64-to-file@v1
+        uses: timheuer/base64-to-file@v2
         id: keystore
         with:
           fileName: 'keystore.jks'
           encodedString: ${{ secrets.KEYSTORE }}
 
       - name: Decode Play API credentials file
-        uses: timheuer/base64-to-file@v1
+        uses: timheuer/base64-to-file@v2
         id: play_api_credentials
         with:
           fileName: 'play-api-credentials.json'
