@@ -301,4 +301,41 @@
     <string name="thumbnail_setting_change_confirmation">Changing this setting will clear the thumbnail cache. Thumbnails will be generated again when media list is opened. Continue?</string>
     <string name="material_you_controls">Material You controls</string>
     <string name="material_you_controls_description">Use material you style controls</string>
+
+    <!-- Vault -->
+    <string name="hide">Hide</string>
+    <string name="unhide">Unhide</string>
+    <string name="vault">Vault</string>
+    <string name="hidden_videos">Hidden videos</string>
+    <string name="hide_one_video_confirmation">Hide this video?</string>
+    <string name="hide_videos_confirmation">Hide %1$d videos?</string>
+    <string name="hide_video_info">Hidden videos are moved into a private vault protected by a PIN and removed from your gallery.</string>
+    <string name="hiding_videos_in_progress">Hiding…</string>
+    <string name="unhiding_videos_in_progress">Unhiding…</string>
+    <string name="hiding_videos">Hiding\u2026</string>
+    <string name="set_vault_pin">Set vault PIN</string>
+    <string name="set_vault_pin_description">Create a 4-digit PIN to protect your hidden videos</string>
+    <string name="confirm_vault_pin">Confirm PIN</string>
+    <string name="confirm_vault_pin_description">Re-enter your PIN to confirm</string>
+    <string name="enter_vault_pin">Enter PIN</string>
+    <string name="enter_vault_pin_description">Enter your PIN to access hidden videos</string>
+    <string name="pins_do_not_match">PINs don\'t match. Try again</string>
+    <string name="incorrect_pin">Incorrect PIN</string>
+    <string name="how_to_find_hidden_videos_title">How to find your hidden videos</string>
+    <string name="how_to_find_hidden_videos_description">Hidden videos are kept safe in your Vault. To open it again, press and hold the \"NextPlayer\" title at the top of the home screen and enter your PIN.</string>
+    <string name="got_it">Got it</string>
+    <string name="open_vault">Open vault</string>
+    <string name="vault_empty_title">No hidden videos</string>
+    <string name="vault_empty_description">Videos you hide will show up here. Long press a video and tap Hide to add it to the vault.</string>
+    <string name="unhide_one_video_confirmation">Unhide this video? It will be moved back to its original location.</string>
+    <string name="unhide_videos_confirmation">Unhide %1$d videos? They will be moved back to their original location.</string>
+    <string name="delete_one_video_from_vault">Permanently delete this video?</string>
+    <string name="delete_videos_from_vault">Permanently delete %1$d videos?</string>
+    <string name="delete_from_vault_info">This action cannot be undone. The video will be permanently deleted from your device.</string>
+    <string name="sort_by">Sort by</string>
+    <string name="name">Name</string>
+    <string name="date_hidden">Date hidden</string>
+    <string name="forgot_pin">Forgot PIN?</string>
+    <string name="reset_vault_pin_confirmation">Resetting your PIN will permanently delete all videos currently in the vault, since they can no longer be unlocked. Continue?</string>
+    <string name="reset_pin_and_delete_all">Reset PIN &amp; delete all</string>
 </resources>

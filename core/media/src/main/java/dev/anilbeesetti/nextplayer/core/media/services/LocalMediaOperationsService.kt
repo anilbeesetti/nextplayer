@@ -78,6 +78,15 @@ class LocalMediaOperationsService @Inject constructor(
         activity.startActivity(intent)
     }
 
+    override suspend fun moveMedia(uris: List<Uri>, targetDir: File): Map<Uri, File?> = withContext(Dispatchers.IO) {
+        if (uris.isEmpty()) return@withContext emptyMap()
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            moveMediaR(uris, targetDir)
+        } else {
+            moveMediaBelowR(uris, targetDir)
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     private fun launchWriteRequest(
         uris: List<Uri>,
@@ -157,5 +166,36 @@ class LocalMediaOperationsService @Inject constructor(
                 }
             }
         }.getOrNull() ?: false
+    }
+
+    /**
+     * Requests write access for every uri in [uris] in a single system prompt, then renames
+     * each one this app can resolve a path for into [targetDir]. Uris denied access, or for
+     * which [getPath] returns nothing, come back null so the caller can fall back to
+     * copy+delete just for those.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun moveMediaR(uris: List<Uri>, targetDir: File): Map<Uri, File?> =
+        suspendCancellableCoroutine { continuation ->
+            launchWriteRequest(
+                uris = uris,
+                onResultOk = { continuation.resume(renameAllInto(uris, targetDir)) },
+                onResultCanceled = { continuation.resume(uris.associateWith { null }) },
+            )
+        }
+
+    private fun moveMediaBelowR(uris: List<Uri>, targetDir: File): Map<Uri, File?> {
+        return renameAllInto(uris, targetDir)
+    }
+
+    private fun renameAllInto(uris: List<Uri>, targetDir: File): Map<Uri, File?> {
+        if (!targetDir.exists()) targetDir.mkdirs()
+        return uris.associateWith { uri ->
+            runCatching {
+                val sourceFile = context.getPath(uri)?.let { File(it) } ?: return@runCatching null
+                val destFile = File(targetDir, sourceFile.name)
+                if (sourceFile.renameTo(destFile)) destFile else null
+            }.getOrNull()
+        }
     }
 }

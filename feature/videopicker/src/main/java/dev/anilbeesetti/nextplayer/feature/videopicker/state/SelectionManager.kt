@@ -123,6 +123,7 @@ sealed interface SelectionItem: Serializable {
     data class Video(
         override val name: String,
         val uriString: String,
+        val path: String,
     ) : SelectionItem {
         override val id: String = uriString
     }
@@ -139,4 +140,5 @@ private fun Folder.toSelectedFolder() = SelectionItem.Folder(
 private fun Video.toSelectedVideo() = SelectionItem.Video(
     name = displayName,
     uriString = uriString,
+    path = path,
 )
