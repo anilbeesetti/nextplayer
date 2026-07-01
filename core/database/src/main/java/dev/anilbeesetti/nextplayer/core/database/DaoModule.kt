@@ -10,4 +10,7 @@ object DaoModule {
 
     @Provides
     fun provideMediumStateDao(db: MediaDatabase) = db.mediumStateDao()
+
+    @Provides
+    fun provideHiddenVideoDao(db: MediaDatabase) = db.hiddenVideoDao()
 }

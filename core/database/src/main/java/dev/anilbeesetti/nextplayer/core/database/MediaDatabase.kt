@@ -4,19 +4,24 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
+import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 
 @Database(
     entities = [
         MediumStateEntity::class,
+        HiddenVideoEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
 
     abstract fun mediumStateDao(): MediumStateDao
+
+    abstract fun hiddenVideoDao(): HiddenVideoDao
 
     companion object {
         const val DATABASE_NAME = "media_db"
@@ -176,6 +181,31 @@ abstract class MediaDatabase : RoomDatabase() {
                 db.execSQL("DROP TABLE IF EXISTS `audio_stream_info`")
                 db.execSQL("DROP TABLE IF EXISTS `video_stream_info`")
                 db.execSQL("DROP TABLE IF EXISTS `subtitle_stream_info`")
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `hidden_video` (
+                        `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        `vault_path` TEXT NOT NULL,
+                        `original_path` TEXT NOT NULL,
+                        `display_name` TEXT NOT NULL,
+                        `duration` INTEGER NOT NULL DEFAULT 0,
+                        `size` INTEGER NOT NULL DEFAULT 0,
+                        `width` INTEGER NOT NULL DEFAULT 0,
+                        `height` INTEGER NOT NULL DEFAULT 0,
+                        `hidden_at` INTEGER NOT NULL
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS `index_hidden_video_vault_path` ON `hidden_video` (`vault_path`)
+                    """,
+                )
             }
         }
     }

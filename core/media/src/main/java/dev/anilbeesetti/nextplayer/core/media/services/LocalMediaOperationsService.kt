@@ -78,6 +78,31 @@ class LocalMediaOperationsService @Inject constructor(
         activity.startActivity(intent)
     }
 
+    override suspend fun moveMedia(uris: List<Uri>, targetDir: File): Map<Uri, File?> = withContext(Dispatchers.IO) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val mediaStoreUris = uris.filter { it.authority == MediaStore.AUTHORITY }
+            if (mediaStoreUris.isNotEmpty()) {
+                val granted = requestWriteAccessR(mediaStoreUris)
+                if (!granted) return@withContext uris.associateWith { null }
+            }
+        }
+
+        uris.associateWith { uri ->
+            val sourceFile = context.getPath(uri)?.let { File(it) } ?: return@associateWith null
+            val destFile = File(targetDir, sourceFile.name)
+            if (sourceFile.renameTo(destFile)) destFile else null
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestWriteAccessR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
+        launchWriteRequest(
+            uris = uris,
+            onResultOk = { continuation.resume(true) },
+            onResultCanceled = { continuation.resume(false) },
+        )
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     private fun launchWriteRequest(
         uris: List<Uri>,

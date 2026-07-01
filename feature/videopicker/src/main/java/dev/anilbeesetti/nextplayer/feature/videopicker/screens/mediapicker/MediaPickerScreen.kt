@@ -7,10 +7,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -62,11 +66,13 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -104,6 +110,10 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettings
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlinx.coroutines.Dispatchers
@@ -118,6 +128,7 @@ fun MediaPickerRoute(
     onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,
+    onVaultClick: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
@@ -134,12 +145,18 @@ fun MediaPickerRoute(
         onNavigateUp = onNavigateUp,
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
+        onVaultClick = onVaultClick,
         onSearchClick = onSearchClick,
         onAction = viewModel::onAction,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalPermissionsApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalPermissionsApi::class,
+    ExperimentalFoundationApi::class,
+)
 @Composable
 internal fun MediaPickerScreen(
     uiState: MediaPickerUiState,
@@ -148,6 +165,7 @@ internal fun MediaPickerScreen(
     onFolderClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
+    onVaultClick: () -> Unit = {},
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
     val selectionManager = rememberSelectionManager()
@@ -178,8 +196,27 @@ internal fun MediaPickerScreen(
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = (uiState.folderName ?: stringResource(R.string.app_name)).takeIf { !selectionManager.isInSelectionMode } ?: "",
-                fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
+                title = {
+                    val titleText = (uiState.folderName ?: stringResource(R.string.app_name))
+                        .takeIf { !selectionManager.isInSelectionMode } ?: ""
+                    val isRootScreen = uiState.folderName == null && !selectionManager.isInSelectionMode
+                    Text(
+                        text = titleText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
+                        modifier = if (isRootScreen) {
+                            Modifier.combinedClickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {},
+                                onLongClick = onVaultClick,
+                            )
+                        } else {
+                            Modifier
+                        },
+                    )
+                },
                 navigationIcon = {
                     if (selectionManager.isInSelectionMode) {
                         Row(
@@ -265,6 +302,7 @@ internal fun MediaPickerScreen(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
+                showHideAction = selectionManager.selectionItems.isNotEmpty(),
                 onPlayAction = {
                     onAction(MediaPickerAction.PlaySelectedItems(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
@@ -284,6 +322,10 @@ internal fun MediaPickerScreen(
                 },
                 onShareAction = {
                     onAction(MediaPickerAction.ShareSelectedItems(selectionManager.selectionItems))
+                },
+                onHideAction = {
+                    onAction(MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems))
+                    selectionManager.exitSelectionMode()
                 },
                 onDeleteAction = {
                     if (MediaOperationsService.willSystemAsksForDeleteConfirmation()) {
@@ -483,6 +525,13 @@ internal fun MediaPickerScreen(
             onCancel = { showDeleteVideosConfirmation = false },
         )
     }
+
+    HideFlowDialogs(
+        hideFlow = uiState.hideFlow,
+        onConfirmHide = { onAction(MediaPickerAction.ConfirmHidePendingItems) },
+        onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(it)) },
+        onDismiss = { onAction(MediaPickerAction.DismissHideFlow) },
+    )
 }
 
 @Composable
@@ -539,6 +588,172 @@ private fun DeleteConfirmationDialog(
 }
 
 @Composable
+private fun HideFlowDialogs(
+    hideFlow: HideFlowState,
+    onConfirmHide: () -> Unit,
+    onSetPinAndHide: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    when (hideFlow) {
+        HideFlowState.Idle -> Unit
+
+        HideFlowState.Processing -> {
+            VaultProgressDialog(message = stringResource(R.string.hiding_videos_in_progress))
+        }
+
+        is HideFlowState.ConfirmHide -> {
+            val count = hideFlow.items.size
+            NextDialog(
+                onDismissRequest = onDismiss,
+                title = {
+                    Text(
+                        text = if (count == 1) {
+                            stringResource(R.string.hide_one_video_confirmation)
+                        } else {
+                            stringResource(R.string.hide_videos_confirmation, count)
+                        },
+                    )
+                },
+                content = { Text(text = stringResource(R.string.hide_video_info)) },
+                confirmButton = {
+                    TextButton(onClick = onConfirmHide) {
+                        Text(text = stringResource(R.string.hide))
+                    }
+                },
+                dismissButton = { CancelButton(onClick = onDismiss) },
+            )
+        }
+
+        is HideFlowState.SetupPin -> {
+            SetupVaultPinDialog(
+                onDismiss = onDismiss,
+                onPinConfirmed = onSetPinAndHide,
+            )
+        }
+
+        HideFlowState.HowToFindInfo -> {
+            NextDialog(
+                onDismissRequest = onDismiss,
+                title = { Text(text = stringResource(R.string.how_to_find_hidden_videos_title)) },
+                content = { Text(text = stringResource(R.string.how_to_find_hidden_videos_description)) },
+                confirmButton = {
+                    TextButton(onClick = onDismiss) {
+                        Text(text = stringResource(R.string.got_it))
+                    }
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SetupVaultPinDialog(
+    onDismiss: () -> Unit,
+    onPinConfirmed: (String) -> Unit,
+) {
+    var firstPin: String? by rememberSaveable { mutableStateOf(null) }
+    var currentPin by rememberSaveable { mutableStateOf("") }
+    var errorCount by rememberSaveable { mutableStateOf(0) }
+
+    val isConfirmStep = firstPin != null
+    val showError = errorCount > 0
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // Lock icon — matches the vault PIN screen's icon box
+                Box(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.large)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .padding(20.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = NextIcons.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = if (isConfirmStep) {
+                        stringResource(R.string.confirm_vault_pin)
+                    } else {
+                        stringResource(R.string.set_vault_pin)
+                    },
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (isConfirmStep) {
+                        stringResource(R.string.confirm_vault_pin_description)
+                    } else {
+                        stringResource(R.string.set_vault_pin_description)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                PinDotsIndicator(
+                    filledCount = currentPin.length,
+                    error = showError,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                if (showError) {
+                    Text(
+                        text = stringResource(R.string.pins_do_not_match),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+                PinKeypad(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    onDigit = { digit ->
+                        if (currentPin.length < VAULT_PIN_LENGTH) {
+                            currentPin += digit
+                            if (currentPin.length == VAULT_PIN_LENGTH) {
+                                val pinJustEntered = currentPin
+                                if (!isConfirmStep) {
+                                    firstPin = pinJustEntered
+                                    currentPin = ""
+                                    errorCount = 0
+                                } else if (pinJustEntered == firstPin) {
+                                    onPinConfirmed(pinJustEntered)
+                                } else {
+                                    errorCount++
+                                    currentPin = ""
+                                }
+                            }
+                        }
+                    },
+                    onBackspace = {
+                        if (currentPin.isNotEmpty()) currentPin = currentPin.dropLast(1)
+                    },
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                CancelButton(onClick = onDismiss)
+            }
+        }
+    }
+}
+
+@Composable
 private fun NetworkUrlDialog(
     onDismiss: () -> Unit,
     onDone: (String) -> Unit,
@@ -574,10 +789,12 @@ private fun SelectionActionsSheet(
     show: Boolean,
     showRenameAction: Boolean,
     showInfoAction: Boolean,
+    showHideAction: Boolean,
     onPlayAction: () -> Unit,
     onRenameAction: () -> Unit,
     onShareAction: () -> Unit,
     onInfoAction: () -> Unit,
+    onHideAction: () -> Unit,
     onDeleteAction: () -> Unit,
 ) {
     AnimatedVisibility(
@@ -634,6 +851,13 @@ private fun SelectionActionsSheet(
                         imageVector = NextIcons.Info,
                         title = stringResource(id = R.string.info),
                         onClick = onInfoAction,
+                    )
+                }
+                if (showHideAction) {
+                    SelectionAction(
+                        imageVector = NextIcons.HideSource,
+                        title = stringResource(id = R.string.hide),
+                        onClick = onHideAction,
                     )
                 }
                 SelectionAction(
