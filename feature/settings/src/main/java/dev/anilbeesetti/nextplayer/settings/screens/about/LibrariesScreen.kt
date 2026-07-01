@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mikepenz.aboutlibraries.Libs
+import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.util.withContext
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
@@ -37,11 +38,8 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun LibrariesScreen(
-    onNavigateUp: () -> Unit,
-) {
+fun LibrariesScreen(onNavigateUp: () -> Unit) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
 
     Scaffold(
         topBar = {
@@ -66,55 +64,80 @@ fun LibrariesScreen(
             contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            itemsIndexed(libs.libraries, key = { _, library -> library.uniqueId }) { index, library ->
-                NextSegmentedListItem(
-                    content = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = library.name,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                            library.artifactVersion?.let {
-                                Text(text = it)
-                            }
-                        }
-                    },
-                    supportingContent = {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = library.developers.takeIf { it.isNotEmpty() }
-                                    ?.mapNotNull { it.name }
-                                    ?.joinToString(", ")
-                                    ?: library.organization?.name ?: "",
-                            )
-                            FlowRow(
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                library.licenses.forEach {
-                                    Badge(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    ) {
-                                        Text(text = it.name, modifier = Modifier.padding(horizontal = 2.dp))
-                                    }
-                                }
-                            }
-                        }
-                    },
+            itemsIndexed(
+                items = libs.libraries,
+                key = { _, library -> library.uniqueId },
+            ) { index, library ->
+                LibraryRow(
+                    library = library,
                     isFirstItem = index == 0,
                     isLastItem = index == libs.libraries.lastIndex,
-                    onClick = {
-                        library.website?.takeIf { it.isNotBlank() }?.let {
-                            uriHandler.openUriOrShowToast(uri = it, context = context)
-                        }
-                    },
                 )
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun LibraryRow(
+    modifier: Modifier = Modifier,
+    library: Library,
+    isFirstItem: Boolean,
+    isLastItem: Boolean,
+) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+
+    NextSegmentedListItem(
+        modifier = modifier,
+        content = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = library.name,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                library.artifactVersion?.let {
+                    Text(text = it)
+                }
+            }
+        },
+        supportingContent = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = library.developers.takeIf { it.isNotEmpty() }
+                        ?.mapNotNull { it.name }
+                        ?.joinToString(", ")
+                        ?: library.organization?.name ?: "",
+                )
+                FlowRow(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    library.licenses.forEach {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        ) {
+                            Text(
+                                text = it.name,
+                                modifier = Modifier.padding(horizontal = 2.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        isFirstItem = isFirstItem,
+        isLastItem = isLastItem,
+        onClick = {
+            library.website?.takeIf { it.isNotBlank() }?.let {
+                uriHandler.openUriOrShowToast(uri = it, context = context)
+            }
+        },
+    )
 }

@@ -74,7 +74,10 @@ fun QuickSettingsDialog(
                         SegmentedButton(
                             selected = preferences.mediaViewMode == viewMode,
                             onClick = { preferences = preferences.copy(mediaViewMode = viewMode) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MediaViewMode.entries.size),
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = MediaViewMode.entries.size,
+                            ),
                             colors = SegmentedButtonDefaults.colors(
                                 activeContentColor = MaterialTheme.colorScheme.primary,
                                 activeBorderColor = MaterialTheme.colorScheme.primary,
@@ -91,8 +94,13 @@ fun QuickSettingsDialog(
                     MediaLayoutMode.entries.forEachIndexed { index, layoutMode ->
                         SegmentedButton(
                             selected = preferences.mediaLayoutMode == layoutMode,
-                            onClick = { preferences = preferences.copy(mediaLayoutMode = layoutMode) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MediaLayoutMode.entries.size),
+                            onClick = {
+                                preferences = preferences.copy(mediaLayoutMode = layoutMode)
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = MediaLayoutMode.entries.size,
+                            ),
                             colors = SegmentedButtonDefaults.colors(
                                 activeContentColor = MaterialTheme.colorScheme.primary,
                                 activeBorderColor = MaterialTheme.colorScheme.primary,
@@ -116,14 +124,23 @@ fun QuickSettingsDialog(
                         SegmentedButton(
                             selected = preferences.sortOrder == sortOrder,
                             onClick = { preferences = preferences.copy(sortOrder = sortOrder) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = Sort.Order.entries.size),
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = Sort.Order.entries.size,
+                            ),
                             colors = SegmentedButtonDefaults.colors(
                                 activeContentColor = MaterialTheme.colorScheme.primary,
                                 activeBorderColor = MaterialTheme.colorScheme.primary,
                             ),
                             icon = {
                                 Icon(
-                                    imageVector = if (sortOrder == Sort.Order.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
+                                    imageVector = if (sortOrder ==
+                                        Sort.Order.ASCENDING
+                                    ) {
+                                        NextIcons.ArrowUpward
+                                    } else {
+                                        NextIcons.ArrowDownward
+                                    },
                                     contentDescription = stringResource(R.string.ascending),
                                     modifier = Modifier.size(FilterChipDefaults.IconSize),
                                 )
@@ -144,37 +161,66 @@ fun QuickSettingsDialog(
                     FieldChip(
                         label = stringResource(id = R.string.duration),
                         selected = preferences.showDurationField,
-                        onClick = { preferences = preferences.copy(showDurationField = !preferences.showDurationField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(showDurationField = !preferences.showDurationField)
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.extension),
                         selected = preferences.showExtensionField,
-                        onClick = { preferences = preferences.copy(showExtensionField = !preferences.showExtensionField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(
+                                    showExtensionField = !preferences.showExtensionField,
+                                )
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.path),
                         selected = preferences.showPathField,
-                        onClick = { preferences = preferences.copy(showPathField = !preferences.showPathField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(showPathField = !preferences.showPathField)
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.played_progress),
                         selected = preferences.showPlayedProgress,
-                        onClick = { preferences = preferences.copy(showPlayedProgress = !preferences.showPlayedProgress) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(
+                                    showPlayedProgress = !preferences.showPlayedProgress,
+                                )
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.resolution),
                         selected = preferences.showResolutionField,
-                        onClick = { preferences = preferences.copy(showResolutionField = !preferences.showResolutionField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(
+                                    showResolutionField = !preferences.showResolutionField,
+                                )
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.size),
                         selected = preferences.showSizeField,
-                        onClick = { preferences = preferences.copy(showSizeField = !preferences.showSizeField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(showSizeField = !preferences.showSizeField)
+                        },
                     )
                     FieldChip(
                         label = stringResource(id = R.string.thumbnail),
                         selected = preferences.showThumbnailField,
-                        onClick = { preferences = preferences.copy(showThumbnailField = !preferences.showThumbnailField) },
+                        onClick = {
+                            preferences =
+                                preferences.copy(
+                                    showThumbnailField = !preferences.showThumbnailField,
+                                )
+                        },
                     )
                 }
             }
@@ -282,6 +328,7 @@ private fun DialogSectionTitle(text: String) {
 @Composable
 fun QuickSettingsPreview() {
     Surface {
-        QuickSettingsDialog(applicationPreferences = ApplicationPreferences(), onDismiss = { }, updatePreferences = {})
+        QuickSettingsDialog(applicationPreferences = ApplicationPreferences(), onDismiss = {
+        }, updatePreferences = {})
     }
 }

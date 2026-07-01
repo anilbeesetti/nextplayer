@@ -16,9 +16,7 @@ class SearchHistoryDataSource @Inject constructor(
 
     val searchHistory: Flow<SearchHistory> = searchHistoryDataStore.data
 
-    suspend fun update(
-        transform: suspend (SearchHistory) -> SearchHistory,
-    ) {
+    suspend fun update(transform: suspend (SearchHistory) -> SearchHistory) {
         try {
             searchHistoryDataStore.updateData(transform)
         } catch (ioException: Exception) {

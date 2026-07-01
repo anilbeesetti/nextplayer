@@ -17,9 +17,7 @@ import javax.inject.Singleton
 interface DataModule {
 
     @Binds
-    fun bindsMediaRepository(
-        videoRepository: LocalMediaRepository,
-    ): MediaRepository
+    fun bindsMediaRepository(videoRepository: LocalMediaRepository): MediaRepository
 
     @Binds
     @Singleton

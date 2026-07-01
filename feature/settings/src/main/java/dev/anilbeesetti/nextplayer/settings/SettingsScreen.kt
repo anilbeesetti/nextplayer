@@ -26,10 +26,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SettingsScreen(
-    onNavigateUp: () -> Unit,
-    onItemClick: (Setting) -> Unit,
-) {
+fun SettingsScreen(onNavigateUp: () -> Unit, onItemClick: (Setting) -> Unit) {
     Scaffold(
         topBar = {
             NextTopAppBar(

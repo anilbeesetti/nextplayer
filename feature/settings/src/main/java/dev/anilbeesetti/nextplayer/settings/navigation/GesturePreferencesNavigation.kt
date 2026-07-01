@@ -9,7 +9,12 @@ import dev.anilbeesetti.nextplayer.settings.screens.gesture.GesturePreferencesSc
 
 const val gesturePreferencesNavigationRoute = "gesture_preferences_route"
 
-fun NavController.navigateToGesturePreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToGesturePreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(gesturePreferencesNavigationRoute, navOptions)
 }
 

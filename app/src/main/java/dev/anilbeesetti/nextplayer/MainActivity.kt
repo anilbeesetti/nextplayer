@@ -35,8 +35,8 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.MediaRootRoute
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -160,9 +160,7 @@ class MainActivity : ComponentActivity() {
  * current system context.
  */
 @Composable
-fun shouldUseDarkTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+fun shouldUseDarkTheme(uiState: MainActivityUiState): Boolean = when (uiState) {
     MainActivityUiState.Loading -> isSystemInDarkTheme()
     is MainActivityUiState.Success -> when (uiState.preferences.themeConfig) {
         ThemeConfig.SYSTEM -> isSystemInDarkTheme()
@@ -172,9 +170,7 @@ fun shouldUseDarkTheme(
 }
 
 @Composable
-fun shouldUseHighContrastDarkTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+fun shouldUseHighContrastDarkTheme(uiState: MainActivityUiState): Boolean = when (uiState) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> uiState.preferences.useHighContrastDarkTheme
 }
@@ -183,9 +179,7 @@ fun shouldUseHighContrastDarkTheme(
  * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
  */
 @Composable
-fun shouldUseDynamicTheming(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
+fun shouldUseDynamicTheming(uiState: MainActivityUiState): Boolean = when (uiState) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> uiState.preferences.useDynamicColors
 }

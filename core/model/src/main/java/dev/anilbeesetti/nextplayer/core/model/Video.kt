@@ -26,7 +26,10 @@ data class Video(
 
     val displayName: String = nameWithExtension.substringBeforeLast(".")
     val playedPercentage: Float? = playbackPosition?.let { playbackPosition ->
-        (playbackPosition.toFloat() / duration.toFloat()).takeIf { playbackPosition >= 0 && duration > 0 }
+        (playbackPosition.toFloat() / duration.toFloat()).takeIf {
+            playbackPosition >= 0 &&
+                duration > 0
+        }
     }
 
     companion object {
@@ -47,5 +50,6 @@ data class Video(
     }
 }
 
-fun List<Video>.recentPlayed(): Video? =
-    filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()
+fun List<Video>.recentPlayed(): Video? = filter {
+    it.lastPlayedAt != null
+}.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()

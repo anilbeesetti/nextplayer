@@ -105,57 +105,55 @@ class LocalMediaOperationsService @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun deleteMediaR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
-        launchDeleteRequest(
-            uris = uris,
-            onResultOk = { continuation.resume(true) },
-            onResultCanceled = { continuation.resume(false) },
-        )
-    }
+    private suspend fun deleteMediaR(uris: List<Uri>): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            launchDeleteRequest(
+                uris = uris,
+                onResultOk = { continuation.resume(true) },
+                onResultCanceled = { continuation.resume(false) },
+            )
+        }
 
-    private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean {
-        return uris.map { uri ->
-            contentResolver.deleteMedia(uri)
-        }.all { it }
-    }
+    private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean = uris.map { uri ->
+        contentResolver.deleteMedia(uri)
+    }.all { it }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun renameMediaR(uri: Uri, to: String): Boolean = suspendCancellableCoroutine { continuation ->
-        val scope = CoroutineScope(Dispatchers.Default)
-        launchWriteRequest(
-            uris = listOf(uri),
-            onResultOk = {
-                scope.launch {
-                    val result = contentResolver.updateMedia(
-                        uri = uri,
-                        contentValues = ContentValues().apply {
-                            put(MediaStore.MediaColumns.DISPLAY_NAME, to)
-                        },
-                    )
-                    continuation.resume(result)
-                }
-            },
-            onResultCanceled = { continuation.resume(false) },
-        )
-        continuation.invokeOnCancellation { scope.cancel() }
-    }
+    private suspend fun renameMediaR(uri: Uri, to: String): Boolean =
+        suspendCancellableCoroutine { continuation ->
+            val scope = CoroutineScope(Dispatchers.Default)
+            launchWriteRequest(
+                uris = listOf(uri),
+                onResultOk = {
+                    scope.launch {
+                        val result = contentResolver.updateMedia(
+                            uri = uri,
+                            contentValues = ContentValues().apply {
+                                put(MediaStore.MediaColumns.DISPLAY_NAME, to)
+                            },
+                        )
+                        continuation.resume(result)
+                    }
+                },
+                onResultCanceled = { continuation.resume(false) },
+            )
+            continuation.invokeOnCancellation { scope.cancel() }
+        }
 
-    private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean {
-        return runCatching {
-            val oldFile = context.getPath(uri)?.let { File(it) } ?: throw Error()
-            val newFile = File(oldFile.parentFile, to)
-            oldFile.renameTo(newFile).also { success ->
-                if (success) {
-                    contentResolver.updateMedia(
-                        uri = uri,
-                        contentValues = ContentValues().apply {
-                            put(MediaStore.Files.FileColumns.DISPLAY_NAME, to)
-                            put(MediaStore.Files.FileColumns.TITLE, to)
-                            put(MediaStore.Files.FileColumns.DATA, newFile.path)
-                        },
-                    )
-                }
+    private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean = runCatching {
+        val oldFile = context.getPath(uri)?.let { File(it) } ?: throw Error()
+        val newFile = File(oldFile.parentFile, to)
+        oldFile.renameTo(newFile).also { success ->
+            if (success) {
+                contentResolver.updateMedia(
+                    uri = uri,
+                    contentValues = ContentValues().apply {
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, to)
+                        put(MediaStore.Files.FileColumns.TITLE, to)
+                        put(MediaStore.Files.FileColumns.DATA, newFile.path)
+                    },
+                )
             }
-        }.getOrNull() ?: false
-    }
+        }
+    }.getOrNull() ?: false
 }

@@ -15,7 +15,8 @@ class GetSortedVideosUseCaseTest {
     private val mediaRepository = FakeMediaRepository()
     private val preferencesRepository = FakePreferencesRepository()
 
-    val getSortedVideosUseCase = GetSortedVideosUseCase(mediaRepository, preferencesRepository, Dispatchers.Unconfined)
+    val getSortedVideosUseCase =
+        GetSortedVideosUseCase(mediaRepository, preferencesRepository, Dispatchers.Unconfined)
 
     @Test
     fun testGetSortedVideosUseCase_whenSortByTitleAscending() = runTest {

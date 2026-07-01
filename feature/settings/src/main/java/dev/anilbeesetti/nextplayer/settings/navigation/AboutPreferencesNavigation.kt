@@ -11,11 +11,20 @@ import dev.anilbeesetti.nextplayer.settings.screens.about.LibrariesScreen
 const val aboutPreferencesNavigationRoute = "about_preferences_route"
 const val librariesNavigationRoute = "libraries_route"
 
-fun NavController.navigateToAboutPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToAboutPreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(aboutPreferencesNavigationRoute, navOptions)
 }
 
-fun NavController.navigateToLibraries(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToLibraries(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop = true
+    },
+) {
     this.navigate(librariesNavigationRoute, navOptions)
 }
 
@@ -31,9 +40,7 @@ fun NavGraphBuilder.aboutPreferencesScreen(
     }
 }
 
-fun NavGraphBuilder.librariesScreen(
-    onNavigateUp: () -> Unit,
-) {
+fun NavGraphBuilder.librariesScreen(onNavigateUp: () -> Unit) {
     composable(route = librariesNavigationRoute) {
         LibrariesScreen(
             onNavigateUp = onNavigateUp,

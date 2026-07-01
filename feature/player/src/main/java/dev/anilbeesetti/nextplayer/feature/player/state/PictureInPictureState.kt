@@ -8,7 +8,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -76,7 +75,12 @@ class PictureInPictureState(
     val hasPipPermission: Boolean
         get() = if (isPipSupported) {
             val appOps = getSystemService(activity, AppOpsManager::class.java) ?: return true
-            appOps.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, Process.myUid(), activity.packageName) == AppOpsManager.MODE_ALLOWED
+            appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
+                Process.myUid(),
+                activity.packageName,
+            ) ==
+                AppOpsManager.MODE_ALLOWED
         } else {
             true
         }
@@ -89,7 +93,9 @@ class PictureInPictureState(
     private var lastAppliedAutoEnterEnabled: Boolean? = null
     private var lastAppliedActionsPlaybackState: Boolean? = null
 
-    private val pictureInPictureParamsBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    private val pictureInPictureParamsBuilder = if (Build.VERSION.SDK_INT >=
+        Build.VERSION_CODES.O
+    ) {
         PictureInPictureParams.Builder().apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 setSeamlessResizeEnabled(true)
@@ -141,31 +147,35 @@ class PictureInPictureState(
         activity.startActivity(intent)
     }
 
-    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult = with(disposableEffectScope) {
-        val pipBroadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent == null || intent.action != PIP_INTENT_ACTION) return
-                when (intent.getIntExtra(PIP_INTENT_ACTION_CODE, 0)) {
-                    PIP_ACTION_PLAY -> player.play()
-                    PIP_ACTION_PAUSE -> player.pause()
-                    PIP_ACTION_NEXT -> player.seekToNext()
-                    PIP_ACTION_PREVIOUS -> player.seekToPrevious()
+    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
+        with(disposableEffectScope) {
+            val pipBroadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    if (intent == null || intent.action != PIP_INTENT_ACTION) return
+                    when (intent.getIntExtra(PIP_INTENT_ACTION_CODE, 0)) {
+                        PIP_ACTION_PLAY -> player.play()
+                        PIP_ACTION_PAUSE -> player.pause()
+                        PIP_ACTION_NEXT -> player.seekToNext()
+                        PIP_ACTION_PREVIOUS -> player.seekToPrevious()
+                    }
                 }
             }
-        }
 
-        val pictureInPictureModeChangedListener: Consumer<PictureInPictureModeChangedInfo> = Consumer {
+            val pictureInPictureModeChangedListener: Consumer<PictureInPictureModeChangedInfo> =
+                Consumer {
+                    updateIsInPictureInPictureMode(pipBroadcastReceiver)
+                }
+
             updateIsInPictureInPictureMode(pipBroadcastReceiver)
-        }
+            activity.addOnPictureInPictureModeChangedListener(pictureInPictureModeChangedListener)
 
-        updateIsInPictureInPictureMode(pipBroadcastReceiver)
-        activity.addOnPictureInPictureModeChangedListener(pictureInPictureModeChangedListener)
-
-        return onDispose {
-            runCatching { activity.unregisterReceiver(pipBroadcastReceiver) }
-            activity.removeOnPictureInPictureModeChangedListener(pictureInPictureModeChangedListener)
+            return onDispose {
+                runCatching { activity.unregisterReceiver(pipBroadcastReceiver) }
+                activity.removeOnPictureInPictureModeChangedListener(
+                    pictureInPictureModeChangedListener,
+                )
+            }
         }
-    }
 
     suspend fun observe() {
         updateAutoEnterEnabled()
@@ -266,20 +276,18 @@ class PictureInPictureState(
         title: String,
         @DrawableRes icon: Int,
         actionCode: Int,
-    ): RemoteAction {
-        return RemoteAction(
-            Icon.createWithResource(context, icon),
-            title,
-            title,
-            PendingIntent.getBroadcast(
-                context,
-                actionCode,
-                Intent(PIP_INTENT_ACTION).apply {
-                    putExtra(PIP_INTENT_ACTION_CODE, actionCode)
-                    setPackage(context.packageName)
-                },
-                PendingIntent.FLAG_IMMUTABLE,
-            ),
-        )
-    }
+    ): RemoteAction = RemoteAction(
+        Icon.createWithResource(context, icon),
+        title,
+        title,
+        PendingIntent.getBroadcast(
+            context,
+            actionCode,
+            Intent(PIP_INTENT_ACTION).apply {
+                putExtra(PIP_INTENT_ACTION_CODE, actionCode)
+                setPackage(context.packageName)
+            },
+            PendingIntent.FLAG_IMMUTABLE,
+        ),
+    )
 }

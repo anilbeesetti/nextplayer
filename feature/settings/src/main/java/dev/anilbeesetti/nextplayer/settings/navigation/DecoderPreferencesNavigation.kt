@@ -9,7 +9,12 @@ import dev.anilbeesetti.nextplayer.settings.screens.decoder.DecoderPreferencesSc
 
 const val decoderPreferencesNavigationRoute = "decoder_preferences_route"
 
-fun NavController.navigateToDecoderPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToDecoderPreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(decoderPreferencesNavigationRoute, navOptions)
 }
 

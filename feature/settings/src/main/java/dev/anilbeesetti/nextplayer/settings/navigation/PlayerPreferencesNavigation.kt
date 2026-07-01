@@ -9,7 +9,12 @@ import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesScre
 
 const val playerPreferencesNavigationRoute = "player_preferences_route"
 
-fun NavController.navigateToPlayerPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToPlayerPreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(playerPreferencesNavigationRoute, navOptions)
 }
 

@@ -21,9 +21,7 @@ object Utils {
     /**
      * Converts px to dp.
      */
-    fun pxToDp(px: Float): Float {
-        return px / Resources.getSystem().displayMetrics.density
-    }
+    fun pxToDp(px: Float): Float = px / Resources.getSystem().displayMetrics.density
 
     /**
      * Formats the given duration in milliseconds to a string in the format of `mm:ss` or `hh:mm:ss`.
@@ -45,12 +43,10 @@ object Utils {
      * Formats the given duration in milliseconds to a string in the format of
      * `+mm:ss` or `+hh:mm:ss` or `-mm:ss` or `-hh:mm:ss`.
      */
-    fun formatDurationMillisSign(millis: Long): String {
-        return if (millis >= 0) {
-            "+${formatDurationMillis(millis)}"
-        } else {
-            "-${formatDurationMillis(abs(millis))}"
-        }
+    fun formatDurationMillisSign(millis: Long): String = if (millis >= 0) {
+        "+${formatDurationMillis(millis)}"
+    } else {
+        "-${formatDurationMillis(abs(millis))}"
     }
 
     fun formatFileSize(size: Long): String {
@@ -83,7 +79,7 @@ object Utils {
         }
     }
 
-    fun formatLanguage(language: String?): String? {
-        return language?.let { lang -> Locale.forLanguageTag(lang).displayLanguage.takeIf { it.isNotEmpty() } }
+    fun formatLanguage(language: String?): String? = language?.let { lang ->
+        Locale.forLanguageTag(lang).displayLanguage.takeIf { it.isNotEmpty() }
     }
 }

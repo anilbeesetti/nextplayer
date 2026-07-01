@@ -17,14 +17,9 @@ internal class FolderArgs(val folderId: String?) {
 }
 
 @Serializable
-data class MediaPickerRoute(
-    val folderId: String? = null,
-)
+data class MediaPickerRoute(val folderId: String? = null)
 
-fun NavController.navigateToMediaPickerScreen(
-    folderId: String,
-    navOptions: NavOptions? = null,
-) {
+fun NavController.navigateToMediaPickerScreen(folderId: String, navOptions: NavOptions? = null) {
     val encodedFolderId = Uri.encode(folderId)
     this.navigate(MediaPickerRoute(encodedFolderId), navOptions)
 }

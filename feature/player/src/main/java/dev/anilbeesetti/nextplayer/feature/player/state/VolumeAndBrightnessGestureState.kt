@@ -95,7 +95,8 @@ class VolumeAndBrightnessGestureState(
             }
 
             VerticalGesture.BRIGHTNESS -> {
-                val brightnessChange = (startingY - change.position.y) * (brightnessGestureSensitivity / 10)
+                val brightnessChange =
+                    (startingY - change.position.y) * (brightnessGestureSensitivity / 10)
                 val newBrightness = startBrightnessPercentage + brightnessChange.toInt()
                 brightnessChangePercentage = (newBrightness - startBrightnessPercentage).coerceIn(
                     minimumValue = 0 - startBrightnessPercentage,

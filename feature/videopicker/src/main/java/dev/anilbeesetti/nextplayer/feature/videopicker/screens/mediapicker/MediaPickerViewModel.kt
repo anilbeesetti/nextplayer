@@ -24,6 +24,8 @@ import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,8 +35,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import javax.inject.Inject
 
 @HiltViewModel
 class MediaPickerViewModel @Inject constructor(
@@ -79,7 +79,9 @@ class MediaPickerViewModel @Inject constructor(
             is MediaPickerAction.DeleteSelectedItems -> deleteSelectedItems(action.selectionItems)
             is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
             is MediaPickerAction.ShowMediaInfo -> showMediaInfo(action.video)
-            MediaPickerAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
+            MediaPickerAction.DismissMediaInfo -> uiStateInternal.update {
+                it.copy(mediaInfo = null)
+            }
         }
     }
 
@@ -99,7 +101,9 @@ class MediaPickerViewModel @Inject constructor(
                     currentState.copy(
                         mediaDataState = DataState.Success(media),
                         recentlyPlayedVideo = recentlyPlayed,
-                        recentlyPlayedFolder = recentlyPlayed?.let { media?.folders?.findClosestFolder(it.path) }
+                        recentlyPlayedFolder = recentlyPlayed?.let {
+                            media?.folders?.findClosestFolder(it.path)
+                        },
                     )
                 }
             }
@@ -205,7 +209,7 @@ sealed interface MediaPickerAction {
     data class PlaySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class DeleteSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class ShareSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
-    data class ShowMediaInfo(val video: Video): MediaPickerAction
+    data class ShowMediaInfo(val video: Video) : MediaPickerAction
     data object DismissMediaInfo : MediaPickerAction
 }
 

@@ -9,7 +9,12 @@ import dev.anilbeesetti.nextplayer.settings.screens.general.GeneralPreferencesSc
 
 const val generalPreferencesNavigationRoute = "general_preferences_route"
 
-fun NavController.navigateToGeneralPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToGeneralPreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(generalPreferencesNavigationRoute, navOptions)
 }
 

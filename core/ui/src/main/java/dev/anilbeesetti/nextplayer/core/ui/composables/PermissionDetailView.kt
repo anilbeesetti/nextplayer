@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.ui.composables
 
 import android.Manifest
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,15 +21,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import androidx.core.net.toUri
 
 @Composable
-fun PermissionDetailView(
-    text: String,
-) {
+fun PermissionDetailView(text: String) {
     val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize(),

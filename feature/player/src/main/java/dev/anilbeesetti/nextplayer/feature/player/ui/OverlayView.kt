@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -55,8 +54,20 @@ fun BoxScope.OverlayView(
             },
         ),
         visible = show,
-        enter = if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
-        exit = if (configuration.isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
+        enter = if (configuration.isPortrait) {
+            slideInVertically {
+                it
+            }
+        } else {
+            slideInHorizontally { it }
+        },
+        exit = if (configuration.isPortrait) {
+            slideOutVertically {
+                it
+            }
+        } else {
+            slideOutHorizontally { it }
+        },
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -95,7 +106,11 @@ fun BoxScope.OverlayView(
 private fun PreviewOverlayView() {
     NextPlayerTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-            OverlayView(modifier = Modifier.align(Alignment.BottomCenter), title = "Selector view", show = true) {
+            OverlayView(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                title = "Selector view",
+                show = true,
+            ) {
                 Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum")
             }
         }

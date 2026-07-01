@@ -79,7 +79,9 @@ fun SearchRoute(
     onFolderClick: (folderPath: String) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(
+        minActiveState = Lifecycle.State.RESUMED,
+    )
 
     SearchScreen(
         uiState = uiState,
@@ -174,7 +176,9 @@ internal fun SearchScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = scaffoldPadding.calculateTopPadding())
-                .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current)),
+                .padding(
+                    start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current),
+                ),
         ) {
             Box(
                 modifier = Modifier
@@ -316,11 +320,7 @@ private fun SuggestionsContent(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun SearchHistoryItem(
-    query: String,
-    onClick: () -> Unit,
-    onRemove: () -> Unit,
-) {
+private fun SearchHistoryItem(query: String, onClick: () -> Unit, onRemove: () -> Unit) {
     NextSegmentedListItem(
         modifier = Modifier.padding(horizontal = 8.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -473,8 +473,14 @@ private fun SearchScreenWithResultsPreview() {
                         ),
                     ),
                     videos = listOf(
-                        Video.sample.copy(nameWithExtension = "Movie_Clip.mp4", uriString = "content://sample/movie_clip.mp4"),
-                        Video.sample.copy(nameWithExtension = "My_Movie.mp4", uriString = "content://sample/my_movie.mp4"),
+                        Video.sample.copy(
+                            nameWithExtension = "Movie_Clip.mp4",
+                            uriString = "content://sample/movie_clip.mp4",
+                        ),
+                        Video.sample.copy(
+                            nameWithExtension = "My_Movie.mp4",
+                            uriString = "content://sample/my_movie.mp4",
+                        ),
                     ),
                 ),
             ),

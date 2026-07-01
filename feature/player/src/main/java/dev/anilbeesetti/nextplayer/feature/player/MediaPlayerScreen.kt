@@ -60,8 +60,14 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.MediaPresentationState
+import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
+import dev.anilbeesetti.nextplayer.feature.player.state.RotationState
+import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
+import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
@@ -74,7 +80,6 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
-import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
@@ -200,7 +205,9 @@ fun MediaPlayerScreen(
                 )
 
                 AnimatedVisibility(
-                    visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
+                    visible =
+                    controlsVisibilityState.controlsVisible &&
+                        !controlsVisibilityState.controlsLocked,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
@@ -237,14 +244,19 @@ fun MediaPlayerScreen(
                             ),
                         ) {
                             Text(
-                                text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
+                                text = stringResource(
+                                    coreUiR.string.fast_playback_speed,
+                                    tapGestureState.longPressSpeed,
+                                ),
                                 style = MaterialTheme.typography.labelLarge,
                             )
                         }
                     }
                 }
 
-                if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
+                if (controlsVisibilityState.controlsVisible &&
+                    controlsVisibilityState.controlsLocked
+                ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -253,7 +265,7 @@ fun MediaPlayerScreen(
                     ) {
                         PlayerButton(
                             containerColor = Color.Black.copy(0.5f),
-                            onClick = { controlsVisibilityState.unlockControls() }
+                            onClick = { controlsVisibilityState.unlockControls() },
                         ) {
                             Icon(
                                 painter = painterResource(coreUiR.drawable.ic_lock),
@@ -293,55 +305,37 @@ fun MediaPlayerScreen(
                         },
                         middleView = {
                             when {
-                                seekGestureState.seekAmount != null -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
-                                videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
-                                videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()))
-                                controlsVisibilityState.controlsVisible -> ControlsMiddleView(player = player)
+                                seekGestureState.seekAmount != null -> InfoView(
+                                    info = seekGestureState.seekAmountFormatted +
+                                        "\n[${seekGestureState.seekToPositionFormated}]",
+                                )
+                                videoZoomAndContentScaleState.isZooming -> InfoView(
+                                    info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%",
+                                )
+                                videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(
+                                    info = stringResource(
+                                        videoZoomAndContentScaleState.videoContentScale.nameRes(),
+                                    ),
+                                )
+                                controlsVisibilityState.controlsVisible -> ControlsMiddleView(
+                                    player = player,
+                                )
                                 else -> Unit
                             }
                         },
                         bottomView = {
-                            AnimatedVisibility(
-                                visible = controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                            ) {
-                                val context = LocalContext.current
-                                ControlsBottomView(
-                                    player = player,
-                                    mediaPresentationState = mediaPresentationState,
-                                    controlsAlignment = when (playerPreferences.controlButtonsPosition) {
-                                        ControlButtonsPosition.LEFT -> Alignment.Start
-                                        ControlButtonsPosition.RIGHT -> Alignment.End
-                                    },
-                                    videoContentScale = videoZoomAndContentScaleState.videoContentScale,
-                                    isPipSupported = pictureInPictureState.isPipSupported,
-                                    onSeek = seekGestureState::onSeek,
-                                    onSeekEnd = seekGestureState::onSeekEnd,
-                                    onRotateClick = rotationState::rotate,
-                                    onPlayInBackgroundClick = onPlayInBackgroundClick,
-                                    onLockControlsClick = {
-                                        controlsVisibilityState.showControls()
-                                        controlsVisibilityState.lockControls()
-                                    },
-                                    onVideoContentScaleClick = {
-                                        controlsVisibilityState.showControls()
-                                        videoZoomAndContentScaleState.switchToNextVideoContentScale()
-                                    },
-                                    onVideoContentScaleLongClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.VIDEO_CONTENT_SCALE
-                                    },
-                                    onPictureInPictureClick = {
-                                        if (!pictureInPictureState.hasPipPermission) {
-                                            Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
-                                            pictureInPictureState.openPictureInPictureSettings()
-                                        } else {
-                                            pictureInPictureState.enterPictureInPictureMode()
-                                        }
-                                    },
-                                )
-                            }
+                            MediaPlayerBottomBar(
+                                player = player,
+                                mediaPresentationState = mediaPresentationState,
+                                playerPreferences = playerPreferences,
+                                videoZoomAndContentScaleState = videoZoomAndContentScaleState,
+                                pictureInPictureState = pictureInPictureState,
+                                controlsVisibilityState = controlsVisibilityState,
+                                seekGestureState = seekGestureState,
+                                rotationState = rotationState,
+                                onPlayInBackgroundClick = onPlayInBackgroundClick,
+                                onOverlayViewChange = { overlayView = it },
+                            )
                         },
                     )
                 }
@@ -356,7 +350,8 @@ fun MediaPlayerScreen(
                 ) {
                     AnimatedVisibility(
                         modifier = Modifier.align(Alignment.CenterStart),
-                        visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.VOLUME,
+                        visible =
+                        volumeAndBrightnessGestureState.activeGesture == VerticalGesture.VOLUME,
                         enter = fadeIn(),
                         exit = fadeOut(),
                     ) {
@@ -369,7 +364,9 @@ fun MediaPlayerScreen(
 
                     AnimatedVisibility(
                         modifier = Modifier.align(Alignment.CenterEnd),
-                        visible = volumeAndBrightnessGestureState.activeGesture == VerticalGesture.BRIGHTNESS,
+                        visible =
+                        volumeAndBrightnessGestureState.activeGesture ==
+                            VerticalGesture.BRIGHTNESS,
                         enter = fadeIn(),
                         exit = fadeOut(),
                     ) {
@@ -388,7 +385,9 @@ fun MediaPlayerScreen(
                 onDismiss = { overlayView = null },
                 onSelectSubtitleClick = onSelectSubtitleClick,
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
-                onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
+                onVideoContentScaleChanged = {
+                    videoZoomAndContentScaleState.onVideoContentScaleChanged(it)
+                },
             )
         }
     }
@@ -438,10 +437,74 @@ fun MediaPlayerScreen(
 }
 
 @Composable
+private fun MediaPlayerBottomBar(
+    player: Player,
+    mediaPresentationState: MediaPresentationState,
+    playerPreferences: PlayerPreferences,
+    videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
+    pictureInPictureState: PictureInPictureState,
+    controlsVisibilityState: ControlsVisibilityState,
+    seekGestureState: SeekGestureState,
+    rotationState: RotationState,
+    onPlayInBackgroundClick: () -> Unit,
+    onOverlayViewChange: (OverlayView?) -> Unit,
+) {
+    AnimatedVisibility(
+        visible = controlsVisibilityState.controlsVisible &&
+            !controlsVisibilityState.controlsLocked,
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
+        val context = LocalContext.current
+        val controlsAlignment = when (playerPreferences.controlButtonsPosition) {
+            ControlButtonsPosition.LEFT -> Alignment.Start
+            ControlButtonsPosition.RIGHT -> Alignment.End
+        }
+        ControlsBottomView(
+            player = player,
+            mediaPresentationState = mediaPresentationState,
+            controlsAlignment = controlsAlignment,
+            videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+            isPipSupported = pictureInPictureState.isPipSupported,
+            onSeek = seekGestureState::onSeek,
+            onSeekEnd = seekGestureState::onSeekEnd,
+            onRotateClick = rotationState::rotate,
+            onPlayInBackgroundClick = onPlayInBackgroundClick,
+            onLockControlsClick = {
+                controlsVisibilityState.showControls()
+                controlsVisibilityState.lockControls()
+            },
+            onVideoContentScaleClick = {
+                controlsVisibilityState.showControls()
+                videoZoomAndContentScaleState.switchToNextVideoContentScale()
+            },
+            onVideoContentScaleLongClick = {
+                controlsVisibilityState.hideControls()
+                onOverlayViewChange(OverlayView.VIDEO_CONTENT_SCALE)
+            },
+            onPictureInPictureClick = {
+                if (!pictureInPictureState.hasPipPermission) {
+                    Toast.makeText(
+                        context,
+                        coreUiR.string.enable_pip_from_settings,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    pictureInPictureState.openPictureInPictureSettings()
+                } else {
+                    pictureInPictureState.enterPictureInPictureMode()
+                }
+            },
+        )
+    }
+}
+
+@Composable
 fun InfoView(
     modifier: Modifier = Modifier,
     info: String,
-    textStyle: TextStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+    textStyle: TextStyle = MaterialTheme.typography.headlineMedium.copy(
+        fontWeight = FontWeight.Bold,
+    ),
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -461,7 +524,10 @@ fun InfoView(
 fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(
+            40.dp,
+            alignment = Alignment.CenterHorizontally,
+        ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PreviousButton(player = player)

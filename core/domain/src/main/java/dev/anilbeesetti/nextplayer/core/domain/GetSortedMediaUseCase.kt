@@ -39,8 +39,8 @@ class GetSortedMediaUseCase @Inject constructor(
      * @return A flow emitting [MediaHolder] with videos and folders appropriate for the view mode.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> {
-        return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
+    operator fun invoke(folderPath: String? = null): Flow<MediaHolder?> =
+        preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
             when (preferences.mediaViewMode) {
                 MediaViewMode.FOLDER_TREE -> {
                     getFolderTreeMediaUseCase(folderPath)
@@ -67,7 +67,6 @@ class GetSortedMediaUseCase @Inject constructor(
                 }
             }
         }.flowOn(defaultDispatcher)
-    }
 }
 
 /**
@@ -76,7 +75,4 @@ class GetSortedMediaUseCase @Inject constructor(
  * @property videos List of video items to display.
  * @property folders List of folder items to display.
  */
-data class MediaHolder(
-    val videos: List<Video>,
-    val folders: List<Folder>,
-)
+data class MediaHolder(val videos: List<Video>, val folders: List<Folder>)

@@ -18,10 +18,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object MediaRootRoute
 
-fun NavGraphBuilder.mediaNavGraph(
-    context: Context,
-    navController: NavHostController,
-) {
+fun NavGraphBuilder.mediaNavGraph(context: Context, navController: NavHostController) {
     navigation<MediaRootRoute>(startDestination = MediaPickerRoute()) {
         mediaPickerScreen(
             onNavigateUp = navController::navigateUp,

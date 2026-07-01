@@ -120,8 +120,12 @@ private fun MediaLibraryPreferencesContent(
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.thumbnail_generation),
                     description = when (preferences.thumbnailGenerationStrategy) {
-                        ThumbnailGenerationStrategy.FIRST_FRAME -> stringResource(id = R.string.first_frame)
-                        ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE -> stringResource(R.string.frame_at_position)
+                        ThumbnailGenerationStrategy.FIRST_FRAME -> stringResource(
+                            id = R.string.first_frame,
+                        )
+                        ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE -> stringResource(
+                            R.string.frame_at_position,
+                        )
                         ThumbnailGenerationStrategy.HYBRID -> stringResource(id = R.string.hybrid)
                     },
                     icon = NextIcons.Image,

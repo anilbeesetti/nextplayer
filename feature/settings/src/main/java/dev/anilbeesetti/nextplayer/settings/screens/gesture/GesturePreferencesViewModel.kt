@@ -37,7 +37,9 @@ class GesturePreferencesViewModel @Inject constructor(
     fun onEvent(event: GesturePreferencesUiEvent) {
         when (event) {
             is GesturePreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is GesturePreferencesUiEvent.UpdateDoubleTapGesture -> updateDoubleTapGesture(event.gesture)
+            is GesturePreferencesUiEvent.UpdateDoubleTapGesture -> updateDoubleTapGesture(
+                event.gesture,
+            )
             GesturePreferencesUiEvent.ToggleUseLongPressControls -> toggleUseLongPressControls()
             GesturePreferencesUiEvent.ToggleDoubleTapGesture -> toggleDoubleTapGesture()
             GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture -> toggleEnableBrightnessSwipeGesture()
@@ -45,11 +47,17 @@ class GesturePreferencesViewModel @Inject constructor(
             GesturePreferencesUiEvent.ToggleUseSeekControls -> toggleUseSeekControls()
             GesturePreferencesUiEvent.ToggleUseZoomControls -> toggleUseZoomControls()
             GesturePreferencesUiEvent.ToggleEnablePanGesture -> toggleEnablePanGesture()
-            is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(event.value)
+            is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed -> updateLongPressControlsSpeed(
+                event.value,
+            )
             is GesturePreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(event.value)
             is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(event.value)
-            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity -> updateVolumeGestureSensitivity(event.value)
-            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity -> updateBrightnessGestureSensitivity(event.value)
+            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity -> updateVolumeGestureSensitivity(
+                event.value,
+            )
+            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity -> updateBrightnessGestureSensitivity(
+                event.value,
+            )
         }
     }
 
@@ -131,7 +139,9 @@ class GesturePreferencesViewModel @Inject constructor(
 
     private fun updateLongPressControlsSpeed(value: Float) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(longPressControlsSpeed = value) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(longPressControlsSpeed = value)
+            }
         }
     }
 

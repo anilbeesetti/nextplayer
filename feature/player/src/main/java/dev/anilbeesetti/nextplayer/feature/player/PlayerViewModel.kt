@@ -44,9 +44,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    suspend fun getPlaylistFromUri(uri: Uri): List<Video> {
-        return getSortedPlaylistUseCase.invoke(uri)
-    }
+    suspend fun getPlaylistFromUri(uri: Uri): List<Video> = getSortedPlaylistUseCase.invoke(uri)
 
     fun updateVideoZoom(uri: String, zoom: Float) {
         viewModelScope.launch {
@@ -62,7 +60,9 @@ class PlayerViewModel @Inject constructor(
 
     fun updateVideoContentScale(contentScale: VideoContentScale) {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(playerVideoZoom = contentScale) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(playerVideoZoom = contentScale)
+            }
         }
     }
 
@@ -108,8 +108,6 @@ class PlayerViewModel @Inject constructor(
 }
 
 @Stable
-data class PlayerUiState(
-    val playerPreferences: PlayerPreferences? = null,
-)
+data class PlayerUiState(val playerPreferences: PlayerPreferences? = null)
 
 sealed interface PlayerEvent

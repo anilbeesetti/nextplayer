@@ -72,10 +72,7 @@ private const val UPI_ID = "anilbeesetti10@oksbi"
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AboutPreferencesScreen(
-    onLibrariesClick: () -> Unit,
-    onNavigateUp: () -> Unit,
-) {
+fun AboutPreferencesScreen(onLibrariesClick: () -> Unit, onNavigateUp: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val clipboard = LocalClipboard.current
@@ -119,7 +116,10 @@ fun AboutPreferencesScreen(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(R.string.kofi),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.kofi)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.kofi),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_kofi),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -127,11 +127,14 @@ fun AboutPreferencesScreen(
                             context = context,
                         )
                     },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.paypal),
-                    description = stringResource(R.string.support_the_developer_on, stringResource(R.string.paypal)),
+                    description = stringResource(
+                        R.string.support_the_developer_on,
+                        stringResource(R.string.paypal),
+                    ),
                     icon = ImageVector.vectorResource(R.drawable.ic_paypal),
                     onClick = {
                         uriHandler.openUriOrShowToast(
@@ -147,7 +150,11 @@ fun AboutPreferencesScreen(
                     onClick = {
                         scope.launch {
                             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("text", UPI_ID)))
-                            Toast.makeText(context, "copied to clipboard", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "copied to clipboard",
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         }
                     },
                     isLastItem = true,
@@ -312,6 +319,10 @@ internal fun UriHandler.openUriOrShowToast(uri: String, context: Context) {
     try {
         openUri(uri = uri)
     } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.error_opening_link), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.error_opening_link),
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 }

@@ -24,13 +24,12 @@ enum class CustomCommands(val customAction: String) {
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
 
     companion object {
-        fun fromSessionCommand(sessionCommand: SessionCommand): CustomCommands? {
-            return entries.find { it.customAction == sessionCommand.customAction }
+        fun fromSessionCommand(sessionCommand: SessionCommand): CustomCommands? = entries.find {
+            it.customAction ==
+                sessionCommand.customAction
         }
 
-        fun asSessionCommands(): List<SessionCommand> {
-            return entries.map { it.sessionCommand }
-        }
+        fun asSessionCommands(): List<SessionCommand> = entries.map { it.sessionCommand }
 
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
@@ -64,7 +63,8 @@ fun MediaController.setMediaControllerIsScrubbingModeEnabled(enabled: Boolean) {
 }
 
 suspend fun MediaController.getSkipSilenceEnabled(): Boolean {
-    val result = sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
+    val result =
+        sendCustomCommand(CustomCommands.GET_SKIP_SILENCE_ENABLED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.SKIP_SILENCE_ENABLED_KEY, false)
 }
 
@@ -109,6 +109,7 @@ suspend fun MediaController.getLoudnessGain(): Int {
 }
 
 suspend fun MediaController.getIsLoudnessGainSupported(): Boolean {
-    val result = sendCustomCommand(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED.sessionCommand, Bundle.EMPTY)
+    val result =
+        sendCustomCommand(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED_KEY, false)
 }

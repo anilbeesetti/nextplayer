@@ -10,6 +10,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.VIDEO_COLLECTION_URI
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import java.io.File
+import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -23,9 +26,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
-import java.io.File
-import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * [MediaService] implementation that queries the Android MediaStore for video files.
@@ -79,63 +79,74 @@ class MediaStoreMediaService @Inject constructor(
             replay = 1,
         )
 
-    override fun observeFolders(folderPath: String?): Flow<List<MediaFolder>> {
-        return mediaChanges
-            .map { fetchFolders(folderPath) }
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
-    }
+    override fun observeFolders(folderPath: String?): Flow<List<MediaFolder>> = mediaChanges
+        .map { fetchFolders(folderPath) }
+        .flowOn(Dispatchers.IO)
+        .distinctUntilChanged()
 
-    override fun observeVideos(folderPath: String?): Flow<List<MediaVideo>> {
-        return mediaChanges
-            .map { fetchVideos(folderPath) }
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
-    }
+    override fun observeVideos(folderPath: String?): Flow<List<MediaVideo>> = mediaChanges
+        .map { fetchVideos(folderPath) }
+        .flowOn(Dispatchers.IO)
+        .distinctUntilChanged()
 
-    override suspend fun fetchFolders(folderPath: String?): List<MediaFolder> = withContext(Dispatchers.IO) {
-        val videos = fetchVideos(folderPath)
+    override suspend fun fetchFolders(folderPath: String?): List<MediaFolder> =
+        withContext(Dispatchers.IO) {
+            val videos = fetchVideos(folderPath)
 
-        val videosByFolder = videos.groupBy { File(it.path).parentFile }
+            val videosByFolder = videos.groupBy { File(it.path).parentFile }
 
-        return@withContext videosByFolder.mapNotNull { (folder, folderVideos) ->
-            folder?.let {
-                MediaFolder(
-                    path = it.path,
-                    name = it.prettyName,
-                    dateModified = folderVideos.maxOfOrNull { video -> video.dateModified } ?: 0L,
-                    totalSize = folderVideos.sumOf { video -> video.size },
-                    totalDuration = folderVideos.sumOf { video -> video.duration },
-                    videosCount = folderVideos.size,
-                    foldersCount = 0,
-                )
+            return@withContext videosByFolder.mapNotNull { (folder, folderVideos) ->
+                folder?.let {
+                    MediaFolder(
+                        path = it.path,
+                        name = it.prettyName,
+                        dateModified =
+                        folderVideos.maxOfOrNull { video -> video.dateModified } ?: 0L,
+                        totalSize = folderVideos.sumOf { video -> video.size },
+                        totalDuration = folderVideos.sumOf { video -> video.duration },
+                        videosCount = folderVideos.size,
+                        foldersCount = 0,
+                    )
+                }
             }
         }
-    }
 
-    override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> = withContext(Dispatchers.IO) {
-        val mediaVideos = mutableListOf<MediaVideo>()
+    override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> =
+        withContext(Dispatchers.IO) {
+            val mediaVideos = mutableListOf<MediaVideo>()
 
-        // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
-        // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
-        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
-        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
-        val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
-
-        context.contentResolver.query(
-            VIDEO_COLLECTION_URI,
-            VIDEO_PROJECTION,
-            selection,
-            selectionArgs,
-            sortOrder,
-        )?.use { cursor ->
-            while (cursor.moveToNext()) {
-                val video = cursor.toMediaVideo() ?: continue
-                mediaVideos.add(video)
+            // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
+            // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
+            val selection = if (folderPath ==
+                null
+            ) {
+                null
+            } else {
+                "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
             }
+            val selectionArgs = if (folderPath ==
+                null
+            ) {
+                null
+            } else {
+                arrayOf("${folderPath.escapeLike()}/%")
+            }
+            val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
+
+            context.contentResolver.query(
+                VIDEO_COLLECTION_URI,
+                VIDEO_PROJECTION,
+                selection,
+                selectionArgs,
+                sortOrder,
+            )?.use { cursor ->
+                while (cursor.moveToNext()) {
+                    val video = cursor.toMediaVideo() ?: continue
+                    mediaVideos.add(video)
+                }
+            }
+            return@withContext mediaVideos
         }
-        return@withContext mediaVideos
-    }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
         return@withContext context.contentResolver.query(

@@ -34,8 +34,8 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
-import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
@@ -57,7 +57,8 @@ class PlayerActivity : ComponentActivity() {
     private val viewModel: PlayerViewModel by viewModels()
     val playerPreferences get() = viewModel.uiState.value.playerPreferences
 
-    private val onWindowAttributesChangedListener = CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
+    private val onWindowAttributesChangedListener =
+        CopyOnWriteArrayList<Consumer<WindowManager.LayoutParams?>>()
 
     private var isPlaybackFinished = false
     private var playInBackground: Boolean = false
@@ -99,7 +100,10 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
+            CompositionLocalProvider(
+                LocalUseMaterialYouControls provides
+                    (uiState.playerPreferences?.useMaterialYouControls == true),
+            ) {
                 NextPlayerTheme(darkTheme = true) {
                     MediaPlayerScreen(
                         player = player,
@@ -117,7 +121,10 @@ class PlayerActivity : ComponentActivity() {
                                         MimeTypes.BASE_TYPE_TEXT + "/*",
                                     ),
                                 ) ?: return@launch
-                                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                contentResolver.takePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                                )
                                 maybeInitControllerFuture()
                                 controllerFuture?.await()?.addSubtitleTrack(uri)
                             }
@@ -154,7 +161,8 @@ class PlayerActivity : ComponentActivity() {
             viewModel.playWhenReady = playWhenReady
             removeListener(playbackStateListener)
         }
-        val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
+        val shouldPlayInBackground =
+            playInBackground || playerPreferences?.autoBackgroundPlay == true
         if (subtitleFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
             mediaController?.pause()
         }
@@ -175,8 +183,13 @@ class PlayerActivity : ComponentActivity() {
 
     private fun maybeInitControllerFuture() {
         if (controllerFuture == null) {
-            val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
-            controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
+            val sessionToken =
+                SessionToken(
+                    applicationContext,
+                    ComponentName(applicationContext, PlayerService::class.java),
+                )
+            controllerFuture =
+                MediaController.Builder(applicationContext, sessionToken).buildAsync()
         }
     }
 
@@ -184,7 +197,8 @@ class PlayerActivity : ComponentActivity() {
         val uri = intent.data ?: return
 
         val returningFromBackground = !isIntentNew && mediaController?.currentMediaItem != null
-        val isNewUriTheCurrentMediaItem = mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
+        val isNewUriTheCurrentMediaItem =
+            mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
 
         if (returningFromBackground || isNewUriTheCurrentMediaItem) {
             mediaController?.prepare()
@@ -242,7 +256,11 @@ class PlayerActivity : ComponentActivity() {
 
         withContext(Dispatchers.Main) {
             mediaController?.run {
-                setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
+                setMediaItems(
+                    mediaItems,
+                    mediaItemIndexToPlay,
+                    playerApi.position?.toLong() ?: C.TIME_UNSET,
+                )
                 playWhenReady = viewModel.playWhenReady
                 prepare()
             }

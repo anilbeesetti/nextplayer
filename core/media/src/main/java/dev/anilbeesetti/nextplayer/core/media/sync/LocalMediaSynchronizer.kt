@@ -34,10 +34,9 @@ class LocalMediaSynchronizer @Inject constructor(
 
     private var mediaSyncingJob: Job? = null
 
-    override suspend fun refresh(path: String?): Boolean {
-        return path?.let { context.scanPaths(listOf(path)) }
+    override suspend fun refresh(path: String?): Boolean =
+        path?.let { context.scanPaths(listOf(path)) }
             ?: context.getStorageVolumes().all { context.scanStorage(it.path) }
-    }
 
     override fun startSync() {
         if (mediaSyncingJob != null) return
@@ -54,7 +53,11 @@ class LocalMediaSynchronizer @Inject constructor(
         val currentMediaUris = media.map { it.uri.toString() }
 
         val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
-            it.uriString in currentMediaUris || !ContentResolver.SCHEME_CONTENT.equals(it.uriString.toUri().scheme, ignoreCase = true)
+            it.uriString in currentMediaUris ||
+                !ContentResolver.SCHEME_CONTENT.equals(
+                    it.uriString.toUri().scheme,
+                    ignoreCase = true,
+                )
         }
 
         mediumStateDao.delete(unwantedMediaStates.map { it.uriString })
@@ -78,7 +81,10 @@ class LocalMediaSynchronizer @Inject constructor(
                 for (sub in UriListConverter.fromStringToList(mediaState.externalSubs)) {
                     if (sub !in currentMediaExternalSubs) {
                         try {
-                            context.contentResolver.releasePersistableUriPermission(sub, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            context.contentResolver.releasePersistableUriPermission(
+                                sub,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                            )
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }

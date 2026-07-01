@@ -51,10 +51,17 @@ fun NextSegmentedListItem(
             if (defaultBaseShape is CornerBasedShape) {
                 shapes.copy(
                     shape = defaultBaseShape.copy(
-                        topStart = overrideShape.topStart.takeIf { isFirstItem } ?: defaultBaseShape.topStart,
-                        topEnd = overrideShape.topEnd.takeIf { isFirstItem } ?: defaultBaseShape.topEnd,
-                        bottomStart = overrideShape.bottomStart.takeIf { isLastItem } ?: defaultBaseShape.bottomStart,
-                        bottomEnd = overrideShape.bottomEnd.takeIf { isLastItem } ?: defaultBaseShape.bottomEnd,
+                        topStart =
+                        overrideShape.topStart.takeIf { isFirstItem }
+                            ?: defaultBaseShape.topStart,
+                        topEnd =
+                        overrideShape.topEnd.takeIf { isFirstItem } ?: defaultBaseShape.topEnd,
+                        bottomStart =
+                        overrideShape.bottomStart.takeIf { isLastItem }
+                            ?: defaultBaseShape.bottomStart,
+                        bottomEnd =
+                        overrideShape.bottomEnd.takeIf { isLastItem }
+                            ?: defaultBaseShape.bottomEnd,
                     ),
                 )
             } else {

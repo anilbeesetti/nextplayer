@@ -99,7 +99,9 @@ private fun FolderListItem(
             } else {
                 ListItemDefaults.colors().contentColor
             },
-            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+            supportingContentColor = if (isRecentlyPlayedFolder &&
+                preferences.markLastPlayedMedia
+            ) {
                 MaterialTheme.colorScheme.primary
             } else {
                 ListItemDefaults.colors().supportingContentColor
@@ -163,13 +165,21 @@ private fun FolderListItem(
                     if (folder.videosCount > 0) {
                         InfoChip(
                             text = "${folder.videosCount} " +
-                                stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos),
+                                stringResource(
+                                    id =
+                                    R.string.video.takeIf { folder.videosCount == 1 }
+                                        ?: R.string.videos,
+                                ),
                         )
                     }
                     if (folder.foldersCount > 0) {
                         InfoChip(
                             text = "${folder.foldersCount} " +
-                                stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders),
+                                stringResource(
+                                    id =
+                                    R.string.folder.takeIf { folder.foldersCount == 1 }
+                                        ?: R.string.folders,
+                                ),
                         )
                     }
                     if (preferences.showSizeField) {
@@ -204,7 +214,9 @@ private fun FolderGridItem(
             } else {
                 ListItemDefaults.segmentedColors().contentColor
             },
-            supportingContentColor = if (isRecentlyPlayedFolder && preferences.markLastPlayedMedia) {
+            supportingContentColor = if (isRecentlyPlayedFolder &&
+                preferences.markLastPlayedMedia
+            ) {
                 MaterialTheme.colorScheme.primary
             } else {
                 ListItemDefaults.colors().supportingContentColor
@@ -262,12 +274,23 @@ private fun FolderGridItem(
                         textAlign = TextAlign.Center,
                     )
                     val mediaCount = if (folder.videosCount > 0) {
-                        "${folder.videosCount} " + stringResource(id = R.string.video.takeIf { folder.videosCount == 1 } ?: R.string.videos)
+                        "${folder.videosCount} " +
+                            stringResource(
+                                id =
+                                R.string.video.takeIf {
+                                    folder.videosCount == 1
+                                } ?: R.string.videos,
+                            )
                     } else {
                         null
                     }
                     val folderCount = if (folder.foldersCount > 0) {
-                        "${folder.foldersCount} " + stringResource(id = R.string.folder.takeIf { folder.foldersCount == 1 } ?: R.string.folders)
+                        "${folder.foldersCount} " +
+                            stringResource(
+                                id =
+                                R.string.folder.takeIf { folder.foldersCount == 1 }
+                                    ?: R.string.folders,
+                            )
                     } else {
                         null
                     }
@@ -286,7 +309,9 @@ private fun FolderGridItem(
                             }
                         },
                         maxLines = 2,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Normal,
+                        ),
                         textAlign = TextAlign.Center,
                     )
                 }

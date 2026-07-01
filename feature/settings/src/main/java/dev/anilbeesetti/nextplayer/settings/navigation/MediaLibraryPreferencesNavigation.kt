@@ -11,11 +11,21 @@ import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPre
 const val mediaLibraryPreferencesNavigationRoute = "media_library_preferences_route"
 const val folderPreferencesNavigationRoute = "folder_preferences_route"
 
-fun NavController.navigateToMediaLibraryPreferencesScreen(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToMediaLibraryPreferencesScreen(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(mediaLibraryPreferencesNavigationRoute, navOptions)
 }
 
-fun NavController.navigateToFolderPreferencesScreen(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToFolderPreferencesScreen(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(folderPreferencesNavigationRoute, navOptions)
 }
 

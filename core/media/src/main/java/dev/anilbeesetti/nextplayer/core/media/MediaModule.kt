@@ -18,9 +18,7 @@ interface MediaModule {
 
     @Binds
     @Singleton
-    fun bindsMediaSynchronizer(
-        mediaSynchronizer: LocalMediaSynchronizer,
-    ): MediaSynchronizer
+    fun bindsMediaSynchronizer(mediaSynchronizer: LocalMediaSynchronizer): MediaSynchronizer
 
     @Binds
     @Singleton
@@ -30,7 +28,5 @@ interface MediaModule {
 
     @Binds
     @Singleton
-    fun bindMediaService(
-        mediaService: MediaStoreMediaService,
-    ): MediaService
+    fun bindMediaService(mediaService: MediaStoreMediaService): MediaService
 }

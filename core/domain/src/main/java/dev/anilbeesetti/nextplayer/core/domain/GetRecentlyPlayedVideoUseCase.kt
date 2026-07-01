@@ -6,13 +6,13 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.recentPlayed
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 /**
  * Use case for retrieving the most recently played video.
@@ -27,8 +27,8 @@ class GetRecentlyPlayedVideoUseCase @Inject constructor(
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    operator fun invoke(folderPath: String? = null): Flow<Video?> {
-        return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
+    operator fun invoke(folderPath: String? = null): Flow<Video?> =
+        preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
             // null folderPath scans all storage volumes.
             getSortedVideosUseCase(folderPath).map { videos ->
                 // Filter based on view mode when folderPath is provided
@@ -44,5 +44,4 @@ class GetRecentlyPlayedVideoUseCase @Inject constructor(
                 filteredVideos.recentPlayed()
             }
         }.flowOn(defaultDispatcher)
-    }
 }

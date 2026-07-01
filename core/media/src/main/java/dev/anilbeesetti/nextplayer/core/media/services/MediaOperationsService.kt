@@ -11,8 +11,7 @@ interface MediaOperationsService {
     suspend fun shareMedia(uris: List<Uri>)
 
     companion object {
-        fun willSystemAsksForDeleteConfirmation(): Boolean {
-            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-        }
+        fun willSystemAsksForDeleteConfirmation(): Boolean =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
     }
 }

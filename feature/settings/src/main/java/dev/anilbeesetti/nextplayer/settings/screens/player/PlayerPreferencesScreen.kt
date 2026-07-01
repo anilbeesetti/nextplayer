@@ -95,21 +95,34 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Appearance,
                     isChecked = uiState.preferences.useMaterialYouControls,
                     onClick = { onEvent(PlayerPreferencesUiEvent.ToggleUseMaterialYouControls) },
-                    isFirstItem = true
+                    isFirstItem = true,
                 )
                 PreferenceSlider(
                     title = stringResource(R.string.controller_timeout),
-                    description = stringResource(R.string.seconds, uiState.preferences.controllerAutoHideTimeout),
+                    description = stringResource(
+                        R.string.seconds,
+                        uiState.preferences.controllerAutoHideTimeout,
+                    ),
                     icon = NextIcons.Timer,
                     value = uiState.preferences.controllerAutoHideTimeout.toFloat(),
                     valueRange = 1.0f..60.0f,
-                    onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt())) },
+                    onValueChange = {
+                        onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt()))
+                    },
                     isLastItem = true,
                     trailingContent = {
-                        FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT)) }) {
+                        FilledIconButton(onClick = {
+                            onEvent(
+                                PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(
+                                    PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
+                                ),
+                            )
+                        }) {
                             Icon(
                                 imageVector = NextIcons.History,
-                                contentDescription = stringResource(id = R.string.reset_controller_timeout),
+                                contentDescription = stringResource(
+                                    id = R.string.reset_controller_timeout,
+                                ),
                             )
                         }
                     },
@@ -124,7 +137,13 @@ private fun PlayerPreferencesContent(
                     title = stringResource(id = R.string.resume),
                     description = stringResource(id = R.string.resume_description),
                     icon = NextIcons.Resume,
-                    onClick = { onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.ResumeDialog)) },
+                    onClick = {
+                        onEvent(
+                            PlayerPreferencesUiEvent.ShowDialog(
+                                PlayerPreferenceDialog.ResumeDialog,
+                            ),
+                        )
+                    },
                     isFirstItem = true,
                 )
                 PreferenceSlider(
@@ -133,12 +152,18 @@ private fun PlayerPreferencesContent(
                     icon = NextIcons.Speed,
                     value = uiState.preferences.defaultPlaybackSpeed,
                     valueRange = 0.2f..4.0f,
-                    onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(it)) },
+                    onValueChange = {
+                        onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(it))
+                    },
                     trailingContent = {
-                        FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f)) }) {
+                        FilledIconButton(onClick = {
+                            onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f))
+                        }) {
                             Icon(
                                 imageVector = NextIcons.History,
-                                contentDescription = stringResource(id = R.string.reset_default_playback_speed),
+                                contentDescription = stringResource(
+                                    id = R.string.reset_default_playback_speed,
+                                ),
                             )
                         }
                     },
@@ -193,9 +218,13 @@ private fun PlayerPreferencesContent(
                     description = uiState.preferences.playerScreenOrientation.name(),
                     icon = NextIcons.Rotation,
                     onClick = {
-                        onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.PlayerScreenOrientationDialog))
+                        onEvent(
+                            PlayerPreferencesUiEvent.ShowDialog(
+                                PlayerPreferenceDialog.PlayerScreenOrientationDialog,
+                            ),
+                        )
                     },
-                    isLastItem = true
+                    isLastItem = true,
                 )
             }
         }
@@ -230,7 +259,11 @@ private fun PlayerPreferencesContent(
                                 text = it.name(),
                                 selected = it == uiState.preferences.playerScreenOrientation,
                                 onClick = {
-                                    onEvent(PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation(it))
+                                    onEvent(
+                                        PlayerPreferencesUiEvent.UpdatePreferredPlayerOrientation(
+                                            it,
+                                        ),
+                                    )
                                     onEvent(PlayerPreferencesUiEvent.ShowDialog(null))
                                 },
                             )
@@ -248,7 +281,11 @@ private fun PlayerPreferencesContent(
                                 text = it.name(),
                                 selected = it == uiState.preferences.controlButtonsPosition,
                                 onClick = {
-                                    onEvent(PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition(it))
+                                    onEvent(
+                                        PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition(
+                                            it,
+                                        ),
+                                    )
                                     onEvent(PlayerPreferencesUiEvent.ShowDialog(null))
                                 },
                             )

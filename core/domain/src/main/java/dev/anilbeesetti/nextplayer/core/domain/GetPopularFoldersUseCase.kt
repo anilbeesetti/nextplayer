@@ -23,20 +23,22 @@ class GetPopularFoldersUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(limit: Int = 5): Flow<List<Folder>> {
-        return combine(
-            getSortedFoldersUseCase(),
-            getSortedVideosUseCase(),
-        ) { folders, videos ->
-            folders.sortedWith(
-                compareByDescending<Folder> { folder ->
-                    videos.count { it.parentPath == folder.path && it.lastPlayedAt != null }
-                }.thenByDescending { folder ->
-                    videos.filter { it.parentPath == folder.path }.maxOfOrNull { it.lastPlayedAt?.time ?: 0L } ?: 0L
-                }.thenByDescending { folder ->
-                    folder.videosCount
-                },
-            ).take(limit)
-        }.flowOn(defaultDispatcher)
-    }
+    operator fun invoke(limit: Int = 5): Flow<List<Folder>> = combine(
+        getSortedFoldersUseCase(),
+        getSortedVideosUseCase(),
+    ) { folders, videos ->
+        folders.sortedWith(
+            compareByDescending<Folder> { folder ->
+                videos.count { it.parentPath == folder.path && it.lastPlayedAt != null }
+            }.thenByDescending { folder ->
+                videos.filter { it.parentPath == folder.path }.maxOfOrNull {
+                    it.lastPlayedAt?.time
+                        ?: 0L
+                }
+                    ?: 0L
+            }.thenByDescending { folder ->
+                folder.videosCount
+            },
+        ).take(limit)
+    }.flowOn(defaultDispatcher)
 }

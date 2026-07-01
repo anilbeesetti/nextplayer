@@ -10,7 +10,11 @@ import dev.anilbeesetti.nextplayer.settings.SettingsScreen
 
 const val settingsNavigationRoute = "settings_route"
 
-fun NavController.navigateToSettings(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToSettings(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop = true
+    },
+) {
     this.navigate(settingsNavigationRoute, navOptions)
 }
 

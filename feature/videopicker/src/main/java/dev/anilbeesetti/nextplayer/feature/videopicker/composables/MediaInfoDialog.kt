@@ -22,10 +22,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 
 @Composable
-fun MediaInfoDialog(
-    mediaInfo: MediaInfo,
-    onDismiss: () -> Unit,
-) {
+fun MediaInfoDialog(mediaInfo: MediaInfo, onDismiss: () -> Unit) {
     NextDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -92,7 +89,9 @@ fun MediaInfoDialog(
                     }
                 }
                 mediaInfo.audioStreams.forEachIndexed { index, audioStream ->
-                    MediaInfoTitle(text = "${stringResource(id = R.string.audio_track)} #${index + 1}")
+                    MediaInfoTitle(
+                        text = "${stringResource(id = R.string.audio_track)} #${index + 1}",
+                    )
                     audioStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
@@ -129,7 +128,9 @@ fun MediaInfoDialog(
                     }
                 }
                 mediaInfo.subtitleStreams.forEachIndexed { index, subtitleStream ->
-                    MediaInfoTitle(text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}")
+                    MediaInfoTitle(
+                        text = "${stringResource(id = R.string.subtitle_track)} #${index + 1}",
+                    )
                     subtitleStream.title?.let {
                         MediaInfoText(
                             title = stringResource(id = R.string.title),
@@ -171,11 +172,7 @@ private fun MediaInfoTitle(
 }
 
 @Composable
-private fun MediaInfoText(
-    title: String,
-    subText: String,
-    modifier: Modifier = Modifier,
-) {
+private fun MediaInfoText(title: String, subText: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
         Text(text = "$title: ", style = MaterialTheme.typography.titleSmall)
         Text(text = subText)

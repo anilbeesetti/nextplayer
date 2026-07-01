@@ -66,7 +66,8 @@ class MediaPresentationState(
                     }
 
                     if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
-                        this@MediaPresentationState.isBuffering = player.playbackState == Player.STATE_BUFFERING
+                        this@MediaPresentationState.isBuffering =
+                            player.playbackState == Player.STATE_BUFFERING
                     }
 
                     if (events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {

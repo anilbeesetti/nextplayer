@@ -69,7 +69,9 @@ fun VerticalProgressView(
                 style = MaterialTheme.typography.labelLarge.copy(
                     color = MaterialTheme.colorScheme.onBackground,
                 ),
-                autoSize = TextAutoSize.StepBased(maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
+                autoSize = TextAutoSize.StepBased(
+                    maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
+                ),
             )
         }
         Box(
@@ -84,7 +86,9 @@ fun VerticalProgressView(
                 modifier = Modifier
                     .width(width)
                     .fillMaxHeight(fillFraction)
-                    .background(if (isBoostActive) boostColor else MaterialTheme.colorScheme.primary),
+                    .background(
+                        if (isBoostActive) boostColor else MaterialTheme.colorScheme.primary,
+                    ),
             )
         }
         Box(

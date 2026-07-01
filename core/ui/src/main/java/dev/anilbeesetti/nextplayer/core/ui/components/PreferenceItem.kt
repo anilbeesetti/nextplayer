@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -86,7 +85,11 @@ fun SelectablePreference(
                 text = title,
                 maxLines = 1,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
+                    textDecoration = if (selected) {
+                        TextDecoration.LineThrough
+                    } else {
+                        TextDecoration.None
+                    },
                 ),
             )
         },
@@ -96,7 +99,11 @@ fun SelectablePreference(
                     text = it,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        textDecoration = if (selected) TextDecoration.LineThrough else TextDecoration.None,
+                        textDecoration = if (selected) {
+                            TextDecoration.LineThrough
+                        } else {
+                            TextDecoration.None
+                        },
                     ),
                 )
             }
@@ -172,6 +179,5 @@ fun SelectablePreferencePreview() {
     )
 }
 
-internal fun Color.applyAlpha(enabled: Boolean): Color {
-    return if (enabled) this else this.copy(alpha = 0.6f)
-}
+internal fun Color.applyAlpha(enabled: Boolean): Color =
+    if (enabled) this else this.copy(alpha = 0.6f)

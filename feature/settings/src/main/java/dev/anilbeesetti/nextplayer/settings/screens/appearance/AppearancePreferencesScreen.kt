@@ -89,16 +89,22 @@ private fun AppearancePreferencesContent(
                     isChecked = uiState.preferences.themeConfig == ThemeConfig.ON,
                     onChecked = { onEvent(AppearancePreferencesEvent.ToggleDarkTheme) },
                     icon = NextIcons.DarkMode,
-                    onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
-                    isFirstItem = true
+                    onClick = {
+                        onEvent(
+                            AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme),
+                        )
+                    },
+                    isFirstItem = true,
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.high_contrast_dark_theme),
                     description = stringResource(R.string.high_contrast_dark_theme_desc),
                     icon = NextIcons.Contrast,
                     isChecked = uiState.preferences.useHighContrastDarkTheme,
-                    onClick = { onEvent(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
-                    isLastItem = !supportsDynamicTheming()
+                    onClick = {
+                        onEvent(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme)
+                    },
+                    isLastItem = !supportsDynamicTheming(),
                 )
                 if (supportsDynamicTheming()) {
                     PreferenceSwitch(
@@ -107,7 +113,7 @@ private fun AppearancePreferencesContent(
                         icon = NextIcons.Appearance,
                         isChecked = uiState.preferences.useDynamicColors,
                         onClick = { onEvent(AppearancePreferencesEvent.ToggleUseDynamicColors) },
-                        isLastItem = true
+                        isLastItem = true,
                     )
                 }
             }

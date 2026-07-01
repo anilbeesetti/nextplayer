@@ -45,8 +45,8 @@ class PlayerApi(val activity: PlayerActivity) {
         return playlist.map { (it as Uri).toString() }
     }
 
-    fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent {
-        return Intent(API_RESULT_INTENT).apply {
+    fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent =
+        Intent(API_RESULT_INTENT).apply {
             if (isPlaybackFinished) {
                 putExtra(API_END_BY, API_END_BY_COMPLETION)
             } else {
@@ -55,7 +55,6 @@ class PlayerApi(val activity: PlayerActivity) {
                 if (position != C.TIME_UNSET) putExtra(API_POSITION, position.toInt())
             }
         }
-    }
 
     companion object {
         const val API_TITLE = "title"

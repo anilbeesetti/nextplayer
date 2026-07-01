@@ -9,7 +9,12 @@ import dev.anilbeesetti.nextplayer.settings.screens.appearance.AppearancePrefere
 
 const val appearancePreferencesNavigationRoute = "appearance_preferences_route"
 
-fun NavController.navigateToAppearancePreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToAppearancePreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(appearancePreferencesNavigationRoute, navOptions)
 }
 

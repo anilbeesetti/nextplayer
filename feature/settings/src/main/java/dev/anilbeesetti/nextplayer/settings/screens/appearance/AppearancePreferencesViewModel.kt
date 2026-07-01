@@ -53,7 +53,13 @@ class AppearancePreferencesViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(
-                    themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON,
+                    themeConfig = if (it.themeConfig ==
+                        ThemeConfig.ON
+                    ) {
+                        ThemeConfig.OFF
+                    } else {
+                        ThemeConfig.ON
+                    },
                 )
             }
         }

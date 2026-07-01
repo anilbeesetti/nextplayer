@@ -9,12 +9,12 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import java.io.File
-import javax.inject.Inject
 
 /**
  * Produces the hierarchical (tree) view of media for a folder.
@@ -30,27 +30,29 @@ class GetFolderTreeMediaUseCase @Inject constructor(
     @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    operator fun invoke(folderPath: String? = null): Flow<MediaHolder> {
-        return combine(
-            mediaRepository.observeVideos(folderPath),
-            preferencesRepository.applicationPreferences,
-        ) { videos, preferences ->
-            val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
-            val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
+    operator fun invoke(folderPath: String? = null): Flow<MediaHolder> = combine(
+        mediaRepository.observeVideos(folderPath),
+        preferencesRepository.applicationPreferences,
+    ) { videos, preferences ->
+        val included = videos.filterNot { it.parentPath in preferences.excludeFolders }
+        val sort = Sort(by = preferences.sortBy, order = preferences.sortOrder)
 
-            if (folderPath != null) {
-                mediaUnder(folderPath, included, preferences.excludeFolders, sort)
-            } else {
-                topLevelMedia(included, preferences.excludeFolders, sort)
-            }
-        }.flowOn(defaultDispatcher)
-    }
+        if (folderPath != null) {
+            mediaUnder(folderPath, included, preferences.excludeFolders, sort)
+        } else {
+            topLevelMedia(included, preferences.excludeFolders, sort)
+        }
+    }.flowOn(defaultDispatcher)
 
     /**
      * The top level: one folder per storage volume that contains videos, or — when only a single
      * volume has videos — that volume's contents shown directly (no volume wrapper).
      */
-    private fun topLevelMedia(videos: List<Video>, excludedFolders: Collection<String>, sort: Sort): MediaHolder {
+    private fun topLevelMedia(
+        videos: List<Video>,
+        excludedFolders: Collection<String>,
+        sort: Sort,
+    ): MediaHolder {
         val volumeRoots = videos.mapNotNull { volumeRootOf(it.path) }.distinct()
         if (volumeRoots.size <= 1) {
             val root = volumeRoots.firstOrNull() ?: Environment.getExternalStorageDirectory().path
@@ -59,11 +61,19 @@ class GetFolderTreeMediaUseCase @Inject constructor(
         val folders = volumeRoots
             .filterNot { it in excludedFolders }
             .map { volumeRoot -> summarize(volumeRoot, videosUnder(volumeRoot, videos)) }
-        return MediaHolder(videos = emptyList(), folders = folders.sortedWith(sort.folderComparator()))
+        return MediaHolder(
+            videos = emptyList(),
+            folders = folders.sortedWith(sort.folderComparator()),
+        )
     }
 
     /** The videos directly inside [root] plus a [Folder] for each immediate subfolder with videos. */
-    private fun mediaUnder(root: String, videos: List<Video>, excludedFolders: Collection<String>, sort: Sort): MediaHolder {
+    private fun mediaUnder(
+        root: String,
+        videos: List<Video>,
+        excludedFolders: Collection<String>,
+        sort: Sort,
+    ): MediaHolder {
         val descendants = videosUnder(root, videos)
         val directVideos = descendants.filter { it.parentPath == root }
         val folders = immediateChildFolders(root, descendants)
@@ -114,7 +124,8 @@ class GetFolderTreeMediaUseCase @Inject constructor(
     private fun volumeRootOf(path: String): String? {
         val parts = path.split('/').filter { it.isNotEmpty() }
         return when {
-            parts.size >= 3 && parts[0] == "storage" && parts[1] == "emulated" -> "/storage/emulated/${parts[2]}"
+            parts.size >= 3 && parts[0] == "storage" && parts[1] == "emulated" ->
+                "/storage/emulated/${parts[2]}"
             parts.size >= 2 && parts[0] == "storage" -> "/storage/${parts[1]}"
             else -> null
         }

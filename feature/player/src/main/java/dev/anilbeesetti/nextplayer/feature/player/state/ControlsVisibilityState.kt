@@ -22,9 +22,13 @@ import kotlinx.coroutines.launch
 fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): ControlsVisibilityState {
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
-    val controlsVisibilityState = remember { ControlsVisibilityState(player, hideAfter, coroutineScope) }
+    val controlsVisibilityState =
+        remember { ControlsVisibilityState(player, hideAfter, coroutineScope) }
     LaunchedEffect(player) { controlsVisibilityState.observe() }
-    LaunchedEffect(controlsVisibilityState.controlsVisible, controlsVisibilityState.controlsLocked) {
+    LaunchedEffect(
+        controlsVisibilityState.controlsVisible,
+        controlsVisibilityState.controlsLocked,
+    ) {
         if (controlsVisibilityState.controlsLocked) {
             activity?.toggleSystemBars(showBars = false)
             return@LaunchedEffect

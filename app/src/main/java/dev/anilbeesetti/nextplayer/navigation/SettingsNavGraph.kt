@@ -10,16 +10,16 @@ import dev.anilbeesetti.nextplayer.settings.navigation.audioPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.decoderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.folderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.generalPreferencesScreen
+import dev.anilbeesetti.nextplayer.settings.navigation.gesturePreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.librariesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.mediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAboutPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAppearancePreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.gesturePreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToAudioPreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToDecoderPreferences
-import dev.anilbeesetti.nextplayer.settings.navigation.navigateToGesturePreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToFolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToGeneralPreferences
+import dev.anilbeesetti.nextplayer.settings.navigation.navigateToGesturePreferences
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToLibraries
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToMediaLibraryPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToPlayerPreferences
@@ -33,9 +33,7 @@ import dev.anilbeesetti.nextplayer.settings.navigation.thumbnailPreferencesScree
 
 const val SETTINGS_ROUTE = "settings_nav_route"
 
-fun NavGraphBuilder.settingsNavGraph(
-    navController: NavHostController,
-) {
+fun NavGraphBuilder.settingsNavGraph(navController: NavHostController) {
     navigation(
         startDestination = settingsNavigationRoute,
         route = SETTINGS_ROUTE,

@@ -9,7 +9,12 @@ import dev.anilbeesetti.nextplayer.settings.screens.audio.AudioPreferencesScreen
 
 const val audioPreferencesNavigationRoute = "audio_preferences_route"
 
-fun NavController.navigateToAudioPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToAudioPreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(audioPreferencesNavigationRoute, navOptions)
 }
 

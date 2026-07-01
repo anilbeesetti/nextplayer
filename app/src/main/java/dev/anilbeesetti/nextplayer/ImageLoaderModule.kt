@@ -13,8 +13,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.model.ThumbnailGenerationStrategy
-import okio.FileSystem
 import javax.inject.Singleton
+import okio.FileSystem
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -25,31 +25,34 @@ object ImageLoaderModule {
     fun provideImageLoader(
         @ApplicationContext context: Context,
         preferencesRepository: PreferencesRepository,
-    ): ImageLoader {
-        return ImageLoader.Builder(context)
-            .components {
-                add(
-                    VideoThumbnailDecoder.Factory(
-                        thumbnailStrategy = {
-                            val preferences = preferencesRepository.applicationPreferences.value
-                            when (preferences.thumbnailGenerationStrategy) {
-                                ThumbnailGenerationStrategy.FIRST_FRAME -> ThumbnailStrategy.FirstFrame
-                                ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE -> ThumbnailStrategy.FrameAtPercentage(preferences.thumbnailFramePosition)
-                                ThumbnailGenerationStrategy.HYBRID -> ThumbnailStrategy.Hybrid(preferences.thumbnailFramePosition)
-                            }
-                        },
-                    ),
-                )
-            }
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .diskCache(
-                DiskCache.Builder()
-                    .fileSystem(FileSystem.SYSTEM)
-                    .directory(context.filesDir.resolve("thumbnails"))
-                    .maxSizePercent(1.0)
-                    .build(),
+    ): ImageLoader = ImageLoader.Builder(context)
+        .components {
+            add(
+                VideoThumbnailDecoder.Factory(
+                    thumbnailStrategy = {
+                        val preferences = preferencesRepository.applicationPreferences.value
+                        when (preferences.thumbnailGenerationStrategy) {
+                            ThumbnailGenerationStrategy.FIRST_FRAME -> ThumbnailStrategy.FirstFrame
+                            ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE ->
+                                ThumbnailStrategy.FrameAtPercentage(
+                                    preferences.thumbnailFramePosition,
+                                )
+                            ThumbnailGenerationStrategy.HYBRID -> ThumbnailStrategy.Hybrid(
+                                preferences.thumbnailFramePosition,
+                            )
+                        }
+                    },
+                ),
             )
-            .crossfade(true)
-            .build()
-    }
+        }
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .diskCache(
+            DiskCache.Builder()
+                .fileSystem(FileSystem.SYSTEM)
+                .directory(context.filesDir.resolve("thumbnails"))
+                .maxSizePercent(1.0)
+                .build(),
+        )
+        .crossfade(true)
+        .build()
 }

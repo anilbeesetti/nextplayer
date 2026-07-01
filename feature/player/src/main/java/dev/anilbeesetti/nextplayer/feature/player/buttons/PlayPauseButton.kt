@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.buttons
 
 import androidx.annotation.OptIn
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable

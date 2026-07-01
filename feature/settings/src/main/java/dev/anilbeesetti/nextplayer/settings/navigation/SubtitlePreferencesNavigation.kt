@@ -9,7 +9,12 @@ import dev.anilbeesetti.nextplayer.settings.screens.subtitle.SubtitlePreferences
 
 const val subtitlePreferencesNavigationRoute = "subtitle_preferences_route"
 
-fun NavController.navigateToSubtitlePreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
+fun NavController.navigateToSubtitlePreferences(
+    navOptions: NavOptions? = navOptions {
+        launchSingleTop =
+            true
+    },
+) {
     this.navigate(subtitlePreferencesNavigationRoute, navOptions)
 }
 

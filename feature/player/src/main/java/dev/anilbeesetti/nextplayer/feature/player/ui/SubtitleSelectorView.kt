@@ -117,10 +117,7 @@ fun BoxScope.SubtitleSelectorView(
 }
 
 @Composable
-private fun DelayInput(
-    value: Long,
-    onValueChange: (Long) -> Unit,
-) {
+private fun DelayInput(value: Long, onValueChange: (Long) -> Unit) {
     var valueString by remember {
         mutableStateOf(if (value == 0L) "0" else "%.2f".format(value / 1000.0))
     }
@@ -168,10 +165,7 @@ private fun DelayInput(
 }
 
 @Composable
-private fun SpeedInput(
-    value: Float,
-    onValueChange: (Float) -> Unit,
-) {
+private fun SpeedInput(value: Float, onValueChange: (Float) -> Unit) {
     var valueString by remember {
         mutableStateOf(if (value == 1f) "1" else "%.2f".format(value))
     }
@@ -282,7 +276,8 @@ private fun Modifier.repeatingClickable(
                     while (enabled && down.pressed) {
                         updatedOnClick()
                         delay(currentDelayMillis)
-                        val nextMillis = currentDelayMillis - (currentDelayMillis * delayDecayFactor)
+                        val nextMillis =
+                            currentDelayMillis - (currentDelayMillis * delayDecayFactor)
                         currentDelayMillis = nextMillis.toLong().coerceAtLeast(minDelayMillis)
                     }
                 }

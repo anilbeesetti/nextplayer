@@ -14,33 +14,39 @@ class FakeMediaRepository : MediaRepository {
     val videos = mutableListOf<Video>()
     val directories = mutableListOf<Folder>()
 
-    override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
-        return flowOf(directories.filter { folderPath == null || it.path.startsWith(folderPath) })
+    override fun observeFolders(folderPath: String?): Flow<List<Folder>> = flowOf(
+        directories.filter {
+            folderPath ==
+                null ||
+                it.path.startsWith(folderPath)
+        },
+    )
+
+    override fun observeVideos(folderPath: String?): Flow<List<Video>> = flowOf(
+        videos.filter {
+            folderPath ==
+                null ||
+                it.path.startsWith(folderPath)
+        },
+    )
+
+    override suspend fun fetchFolders(folderPath: String?): List<Folder> = directories.filter {
+        folderPath ==
+            null ||
+            it.path.startsWith(folderPath)
     }
 
-    override fun observeVideos(folderPath: String?): Flow<List<Video>> {
-        return flowOf(videos.filter { folderPath == null || it.path.startsWith(folderPath) })
+    override suspend fun fetchVideos(folderPath: String?): List<Video> = videos.filter {
+        folderPath ==
+            null ||
+            it.path.startsWith(folderPath)
     }
 
-    override suspend fun fetchFolders(folderPath: String?): List<Folder> {
-        return directories.filter { folderPath == null || it.path.startsWith(folderPath) }
-    }
+    override suspend fun getVideoByUri(uri: String): Video? = videos.find { it.path == uri }
 
-    override suspend fun fetchVideos(folderPath: String?): List<Video> {
-        return videos.filter { folderPath == null || it.path.startsWith(folderPath) }
-    }
+    override suspend fun getVideoState(uri: String): VideoState? = null
 
-    override suspend fun getVideoByUri(uri: String): Video? {
-        return videos.find { it.path == uri }
-    }
-
-    override suspend fun getVideoState(uri: String): VideoState? {
-        return null
-    }
-
-    override suspend fun getMediaInfo(uri: String): MediaInfo? {
-        return null
-    }
+    override suspend fun getMediaInfo(uri: String): MediaInfo? = null
 
     override suspend fun updateMediumLastPlayedTime(uri: String, lastPlayedTime: Long) {
     }

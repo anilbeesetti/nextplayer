@@ -156,43 +156,36 @@ class CrashActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun shareLogs(
-        deviceInfo: String,
-        exceptionString: String,
-        logcat: String,
-    ) = withContext(Dispatchers.IO) {
-        val file = File(cacheDir, "next_player_logs.txt").also {
-            if (it.exists()) it.delete()
-            it.createNewFile()
+    private suspend fun shareLogs(deviceInfo: String, exceptionString: String, logcat: String) =
+        withContext(Dispatchers.IO) {
+            val file = File(cacheDir, "next_player_logs.txt").also {
+                if (it.exists()) it.delete()
+                it.createNewFile()
+            }
+            val logs = concatLogs(
+                deviceInfo = deviceInfo,
+                crashLogs = exceptionString,
+                logcat = logcat,
+            )
+            file.writeText(text = logs)
+            val uri = FileProvider.getUriForFile(
+                this@CrashActivity,
+                "$packageName.fileprovider",
+                file,
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                clipData = ClipData.newRawUri(null, uri)
+                putExtra(Intent.EXTRA_STREAM, uri)
+            }
+            startActivity(
+                Intent.createChooser(intent, getString(R.string.crash_screen_share)),
+            )
         }
-        val logs = concatLogs(
-            deviceInfo = deviceInfo,
-            crashLogs = exceptionString,
-            logcat = logcat,
-        )
-        file.writeText(text = logs)
-        val uri = FileProvider.getUriForFile(
-            this@CrashActivity,
-            "$packageName.fileprovider",
-            file,
-        )
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-            clipData = ClipData.newRawUri(null, uri)
-            putExtra(Intent.EXTRA_STREAM, uri)
-        }
-        startActivity(
-            Intent.createChooser(intent, getString(R.string.crash_screen_share)),
-        )
-    }
 
-    private fun concatLogs(
-        deviceInfo: String,
-        crashLogs: String? = null,
-        logcat: String,
-    ): String {
-        return StringBuilder().apply {
+    private fun concatLogs(deviceInfo: String, crashLogs: String? = null, logcat: String): String =
+        StringBuilder().apply {
             appendLine(deviceInfo)
             appendLine()
             if (!crashLogs.isNullOrBlank()) {
@@ -205,7 +198,6 @@ class CrashActivity : ComponentActivity() {
             appendLine("Logcat:")
             appendLine(logcat)
         }.toString()
-    }
 
     private suspend fun collectLogcat(): String = withContext(Dispatchers.IO) {
         val process = Runtime.getRuntime()
@@ -294,7 +286,10 @@ private fun CrashScreen(
                 style = MaterialTheme.typography.headlineLarge,
             )
             Text(
-                text = stringResource(R.string.crash_screen_subtitle, stringResource(R.string.app_name)),
+                text = stringResource(
+                    R.string.crash_screen_subtitle,
+                    stringResource(R.string.app_name),
+                ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
@@ -313,10 +308,7 @@ private fun CrashScreen(
 }
 
 @Composable
-private fun LogsSelectionContainer(
-    logs: String,
-    modifier: Modifier = Modifier,
-) {
+private fun LogsSelectionContainer(logs: String, modifier: Modifier = Modifier) {
     SelectionContainer(
         modifier = modifier
             .fillMaxWidth()

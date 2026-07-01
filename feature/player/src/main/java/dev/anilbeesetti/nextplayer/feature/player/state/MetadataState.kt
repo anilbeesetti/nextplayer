@@ -25,7 +25,11 @@ class MetadataState(private val player: Player) {
     suspend fun observe() {
         title = player.mediaMetadata.title?.toString()
         player.listen { events ->
-            if (events.containsAny(Player.EVENT_MEDIA_METADATA_CHANGED, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+            if (events.containsAny(
+                    Player.EVENT_MEDIA_METADATA_CHANGED,
+                    Player.EVENT_MEDIA_ITEM_TRANSITION,
+                )
+            ) {
                 title = player.mediaMetadata.title?.toString()
             }
         }

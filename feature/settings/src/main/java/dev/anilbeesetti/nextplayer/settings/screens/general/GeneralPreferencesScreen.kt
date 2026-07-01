@@ -83,15 +83,27 @@ private fun GeneralPreferencesContent(
                     title = stringResource(R.string.delete_thumbnail_cache),
                     description = stringResource(R.string.delete_thumbnail_cache_description),
                     icon = NextIcons.DeleteSweep,
-                    onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(GeneralPreferencesDialog.ClearThumbnailCacheDialog)) },
-                    isFirstItem = true
+                    onClick = {
+                        onEvent(
+                            GeneralPreferencesUiEvent.ShowDialog(
+                                GeneralPreferencesDialog.ClearThumbnailCacheDialog,
+                            ),
+                        )
+                    },
+                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.reset_settings),
                     description = stringResource(R.string.reset_settings_description),
                     icon = NextIcons.History,
-                    onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(GeneralPreferencesDialog.ResetSettingsDialog)) },
-                    isLastItem = true
+                    onClick = {
+                        onEvent(
+                            GeneralPreferencesUiEvent.ShowDialog(
+                                GeneralPreferencesDialog.ResetSettingsDialog,
+                            ),
+                        )
+                    },
+                    isLastItem = true,
                 )
             }
         }
@@ -117,7 +129,11 @@ private fun GeneralPreferencesContent(
                                 Text(text = stringResource(R.string.delete))
                             }
                         },
-                        dismissButton = { CancelButton(onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(null)) }) },
+                        dismissButton = {
+                            CancelButton(onClick = {
+                                onEvent(GeneralPreferencesUiEvent.ShowDialog(null))
+                            })
+                        },
                         content = {
                             Text(
                                 text = stringResource(R.string.delete_thumbnail_cache_confirmation),
@@ -145,7 +161,11 @@ private fun GeneralPreferencesContent(
                                 Text(text = stringResource(R.string.reset))
                             }
                         },
-                        dismissButton = { CancelButton(onClick = { onEvent(GeneralPreferencesUiEvent.ShowDialog(null)) }) },
+                        dismissButton = {
+                            CancelButton(onClick = {
+                                onEvent(GeneralPreferencesUiEvent.ShowDialog(null))
+                            })
+                        },
                         content = {
                             Text(
                                 text = stringResource(R.string.reset_settings_confirmation),

@@ -2,10 +2,7 @@ package dev.anilbeesetti.nextplayer.core.model
 
 import kotlin.comparisons.reversed as kotlinReversed
 
-data class Sort(
-    val by: By,
-    val order: Order,
-) {
+data class Sort(val by: By, val order: Order) {
     enum class By {
         TITLE,
         LENGTH,

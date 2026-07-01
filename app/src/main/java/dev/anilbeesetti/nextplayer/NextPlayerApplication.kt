@@ -13,7 +13,9 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 
 @HiltAndroidApp
-class NextPlayerApplication : Application(), SingletonImageLoader.Factory {
+class NextPlayerApplication :
+    Application(),
+    SingletonImageLoader.Factory {
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
@@ -27,7 +29,9 @@ class NextPlayerApplication : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
-        Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler(applicationContext, CrashActivity::class.java))
+        Thread.setDefaultUncaughtExceptionHandler(
+            GlobalExceptionHandler(applicationContext, CrashActivity::class.java),
+        )
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader = imageLoader

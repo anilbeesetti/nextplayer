@@ -23,10 +23,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.isPortrait
 
 @UnstableApi
 @Composable
-fun rememberRotationState(
-    player: Player,
-    screenOrientation: ScreenOrientation,
-): RotationState {
+fun rememberRotationState(player: Player, screenOrientation: ScreenOrientation): RotationState {
     val activity = LocalActivity.current as ComponentActivity
     val rotationState = remember {
         RotationState(
@@ -58,17 +55,18 @@ class RotationState(
         }
     }
 
-    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult = with(disposableEffectScope) {
-        val configurationChangedListener: Consumer<Configuration> = Consumer {
-            currentRequestedOrientation = activity.requestedOrientation
-        }
+    fun handleListeners(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
+        with(disposableEffectScope) {
+            val configurationChangedListener: Consumer<Configuration> = Consumer {
+                currentRequestedOrientation = activity.requestedOrientation
+            }
 
-        activity.addOnConfigurationChangedListener(configurationChangedListener)
+            activity.addOnConfigurationChangedListener(configurationChangedListener)
 
-        onDispose {
-            activity.removeOnConfigurationChangedListener(configurationChangedListener)
+            onDispose {
+                activity.removeOnConfigurationChangedListener(configurationChangedListener)
+            }
         }
-    }
 
     suspend fun observe() {
         setOrientation()

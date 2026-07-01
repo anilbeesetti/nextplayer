@@ -8,11 +8,7 @@ import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
 
 @Composable
-fun DoneButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
+fun DoneButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     TextButton(
         enabled = enabled,
         onClick = onClick,
@@ -23,11 +19,7 @@ fun DoneButton(
 }
 
 @Composable
-fun CancelButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
+fun CancelButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     TextButton(
         enabled = enabled,
         onClick = onClick,

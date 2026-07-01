@@ -100,18 +100,36 @@ private fun SubtitlePreferencesContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_subtitle_lang),
-                    description = LocalesHelper.getLocaleDisplayLanguage(uiState.preferences.preferredSubtitleLanguage)
-                        .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_subtitle_lang_description),
+                    description =
+                    LocalesHelper.getLocaleDisplayLanguage(
+                        uiState.preferences.preferredSubtitleLanguage,
+                    )
+                        .takeIf { it.isNotBlank() }
+                        ?: stringResource(R.string.preferred_subtitle_lang_description),
                     icon = NextIcons.Language,
-                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleLanguageDialog)) },
-                    isFirstItem = true
+                    onClick = {
+                        onEvent(
+                            SubtitlePreferencesUiEvent.ShowDialog(
+                                SubtitlePreferenceDialog.SubtitleLanguageDialog,
+                            ),
+                        )
+                    },
+                    isFirstItem = true,
                 )
                 ClickablePreferenceItem(
                     title = stringResource(R.string.subtitle_text_encoding),
-                    description = charsetResource.first { it.contains(uiState.preferences.subtitleTextEncoding) },
+                    description = charsetResource.first {
+                        it.contains(uiState.preferences.subtitleTextEncoding)
+                    },
                     icon = NextIcons.Subtitle,
-                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleEncodingDialog)) },
-                    isLastItem = true
+                    onClick = {
+                        onEvent(
+                            SubtitlePreferencesUiEvent.ShowDialog(
+                                SubtitlePreferenceDialog.SubtitleEncodingDialog,
+                            ),
+                        )
+                    },
+                    isLastItem = true,
                 )
             }
             ListSectionTitle(text = stringResource(id = R.string.appearance_name))
@@ -124,7 +142,9 @@ private fun SubtitlePreferencesContent(
                     icon = NextIcons.Caption,
                     isChecked = uiState.preferences.useSystemCaptionStyle,
                     onChecked = { onEvent(SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle) },
-                    onClick = { context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS)) },
+                    onClick = {
+                        context.startActivity(Intent(Settings.ACTION_CAPTIONING_SETTINGS))
+                    },
                     isFirstItem = true,
                 )
                 ClickablePreferenceItem(
@@ -132,7 +152,13 @@ private fun SubtitlePreferencesContent(
                     description = uiState.preferences.subtitleFont.name(),
                     icon = NextIcons.Font,
                     enabled = uiState.preferences.useSystemCaptionStyle.not(),
-                    onClick = { onEvent(SubtitlePreferencesUiEvent.ShowDialog(SubtitlePreferenceDialog.SubtitleFontDialog)) },
+                    onClick = {
+                        onEvent(
+                            SubtitlePreferencesUiEvent.ShowDialog(
+                                SubtitlePreferenceDialog.SubtitleFontDialog,
+                            ),
+                        )
+                    },
                 )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.subtitle_text_bold),
@@ -149,17 +175,25 @@ private fun SubtitlePreferencesContent(
                     enabled = uiState.preferences.useSystemCaptionStyle.not(),
                     value = uiState.preferences.subtitleTextSize.toFloat(),
                     valueRange = 10f..60f,
-                    onValueChange = { onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(it.toInt())) },
+                    onValueChange = {
+                        onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(it.toInt()))
+                    },
                     trailingContent = {
                         FilledIconButton(
                             enabled = uiState.preferences.useSystemCaptionStyle.not(),
                             onClick = {
-                                onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(PlayerPreferences.DEFAULT_SUBTITLE_TEXT_SIZE))
+                                onEvent(
+                                    SubtitlePreferencesUiEvent.UpdateSubtitleFontSize(
+                                        PlayerPreferences.DEFAULT_SUBTITLE_TEXT_SIZE,
+                                    ),
+                                )
                             },
                         ) {
                             Icon(
                                 imageVector = NextIcons.History,
-                                contentDescription = stringResource(id = R.string.reset_seek_increment),
+                                contentDescription = stringResource(
+                                    id = R.string.reset_seek_increment,
+                                ),
                             )
                         }
                     },
@@ -178,7 +212,7 @@ private fun SubtitlePreferencesContent(
                     icon = NextIcons.Style,
                     isChecked = uiState.preferences.applyEmbeddedStyles,
                     onClick = { onEvent(SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles) },
-                    isLastItem = true
+                    isLastItem = true,
                 )
             }
         }
@@ -193,9 +227,14 @@ private fun SubtitlePreferencesContent(
                         items(languages) {
                             RadioTextButton(
                                 text = it.first,
-                                selected = it.second == uiState.preferences.preferredSubtitleLanguage,
+                                selected =
+                                it.second == uiState.preferences.preferredSubtitleLanguage,
                                 onClick = {
-                                    onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleLanguage(it.second))
+                                    onEvent(
+                                        SubtitlePreferencesUiEvent.UpdateSubtitleLanguage(
+                                            it.second,
+                                        ),
+                                    )
                                     onEvent(SubtitlePreferencesUiEvent.ShowDialog(null))
                                 },
                             )
@@ -231,9 +270,14 @@ private fun SubtitlePreferencesContent(
                             if (currentCharset.isEmpty() || Charset.isSupported(currentCharset)) {
                                 RadioTextButton(
                                     text = it,
-                                    selected = currentCharset == uiState.preferences.subtitleTextEncoding,
+                                    selected =
+                                    currentCharset == uiState.preferences.subtitleTextEncoding,
                                     onClick = {
-                                        onEvent(SubtitlePreferencesUiEvent.UpdateSubtitleEncoding(currentCharset))
+                                        onEvent(
+                                            SubtitlePreferencesUiEvent.UpdateSubtitleEncoding(
+                                                currentCharset,
+                                            ),
+                                        )
                                         onEvent(SubtitlePreferencesUiEvent.ShowDialog(null))
                                     },
                                 )

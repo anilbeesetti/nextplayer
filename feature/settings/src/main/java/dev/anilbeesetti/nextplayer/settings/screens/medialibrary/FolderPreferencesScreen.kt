@@ -38,7 +38,9 @@ fun FolderPreferencesScreen(
     onNavigateUp: () -> Unit,
     viewModel: FolderPreferencesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(
+        minActiveState = Lifecycle.State.RESUMED,
+    )
 
     FolderPreferencesContent(
         uiState = uiState,
@@ -92,7 +94,9 @@ private fun FolderPreferencesContent(
                             title = folder.name,
                             description = folder.path,
                             selected = folder.path in uiState.preferences.excludeFolders,
-                            onClick = { onEvent(FolderPreferencesUiEvent.UpdateExcludeList(folder.path)) },
+                            onClick = {
+                                onEvent(FolderPreferencesUiEvent.UpdateExcludeList(folder.path))
+                            },
                             isFirstItem = index == 0,
                             isLastItem = index == uiState.foldersDataState.value.lastIndex,
                         )

@@ -87,7 +87,13 @@ private fun DecoderPreferencesContent(
                     title = stringResource(R.string.decoder_priority),
                     description = preferences.decoderPriority.name(),
                     icon = NextIcons.Priority,
-                    onClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(DecoderPreferenceDialog.DecoderPriorityDialog)) },
+                    onClick = {
+                        onEvent(
+                            DecoderPreferencesUiEvent.ShowDialog(
+                                DecoderPreferenceDialog.DecoderPriorityDialog,
+                            ),
+                        )
+                    },
                     isFirstItem = true,
                     isLastItem = true,
                 )

@@ -86,10 +86,20 @@ private fun AudioPreferencesContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.preferred_audio_lang),
-                    description = LocalesHelper.getLocaleDisplayLanguage(uiState.preferences.preferredAudioLanguage)
-                        .takeIf { it.isNotBlank() } ?: stringResource(R.string.preferred_audio_lang_description),
+                    description =
+                    LocalesHelper.getLocaleDisplayLanguage(
+                        uiState.preferences.preferredAudioLanguage,
+                    )
+                        .takeIf { it.isNotBlank() }
+                        ?: stringResource(R.string.preferred_audio_lang_description),
                     icon = NextIcons.Language,
-                    onClick = { onEvent(AudioPreferencesUiEvent.ShowDialog(AudioPreferenceDialog.AudioLanguageDialog)) },
+                    onClick = {
+                        onEvent(
+                            AudioPreferencesUiEvent.ShowDialog(
+                                AudioPreferenceDialog.AudioLanguageDialog,
+                            ),
+                        )
+                    },
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
@@ -119,7 +129,7 @@ private fun AudioPreferencesContent(
                     icon = NextIcons.VolumeUp,
                     isChecked = uiState.preferences.enableVolumeBoost,
                     onClick = { onEvent(AudioPreferencesUiEvent.ToggleVolumeBoost) },
-                    isLastItem = true
+                    isLastItem = true,
                 )
             }
         }

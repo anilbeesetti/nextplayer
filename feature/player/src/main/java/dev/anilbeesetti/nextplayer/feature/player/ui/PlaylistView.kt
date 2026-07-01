@@ -61,11 +61,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(UnstableApi::class)
 @Composable
-fun BoxScope.PlaylistView(
-    modifier: Modifier = Modifier,
-    show: Boolean,
-    player: Player,
-) {
+fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: Player) {
     val hapticFeedback = LocalHapticFeedback.current
     val playlistState = rememberPlaylistState(player)
     val lazyListState = rememberLazyListState()
@@ -142,7 +138,9 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
             .fillMaxWidth()
             .draggableHandle(
                 onDragStarted = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                    hapticFeedback.performHapticFeedback(
+                        HapticFeedbackType.GestureThresholdActivate,
+                    )
                 },
                 onDragStopped = {
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
@@ -188,7 +186,9 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
         },
         content = {
             Text(
-                text = mediaItem.mediaMetadata.title?.toString() ?: stringResource(R.string.unknown),
+                text = mediaItem.mediaMetadata.title?.toString() ?: stringResource(
+                    R.string.unknown,
+                ),
                 maxLines = 2,
                 style = MaterialTheme.typography.titleSmall,
                 overflow = TextOverflow.Ellipsis,
@@ -209,10 +209,7 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
 }
 
 @Composable
-private fun ThumbnailView(
-    modifier: Modifier = Modifier,
-    mediaItem: MediaItem,
-) {
+private fun ThumbnailView(modifier: Modifier = Modifier, mediaItem: MediaItem) {
     val context = LocalContext.current
     Box(
         modifier = modifier
@@ -247,7 +244,9 @@ private fun ThumbnailView(
             if (durationMs > 0) {
                 Text(
                     text = Utils.formatDurationMillis(durationMs),
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Normal,
+                    ),
                     color = Color.White,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)

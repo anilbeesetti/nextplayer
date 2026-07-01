@@ -18,7 +18,10 @@ data class PlayerPreferences(
     val loopMode: LoopMode = LoopMode.OFF,
 
     // Controls (Gestures)
-    @Deprecated(message = "Use individual enableVolumeSwipeGesture and enableBrightnessSwipeGesture instead")
+    @Deprecated(
+        message = "Use individual enableVolumeSwipeGesture and " +
+            "enableBrightnessSwipeGesture instead",
+    )
     val useSwipeControls: Boolean = true,
     val enableVolumeSwipeGesture: Boolean = true,
     val enableBrightnessSwipeGesture: Boolean = true,

@@ -11,9 +11,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository,
-) : ViewModel() {
+class MainViewModel @Inject constructor(private val preferencesRepository: PreferencesRepository) :
+    ViewModel() {
 
     val uiState = preferencesRepository.applicationPreferences.map { preferences ->
         MainActivityUiState.Success(preferences)

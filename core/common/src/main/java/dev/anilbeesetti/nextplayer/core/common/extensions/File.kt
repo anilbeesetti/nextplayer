@@ -60,4 +60,5 @@ fun File.deleteFiles() {
 }
 
 val File.prettyName: String
-    get() = this.name.takeIf { this.path != Environment.getExternalStorageDirectory()?.path } ?: "Internal Storage"
+    get() = this.name.takeIf { this.path != Environment.getExternalStorageDirectory()?.path }
+        ?: "Internal Storage"

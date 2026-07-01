@@ -19,9 +19,7 @@ fun rememberCuesState(player: Player): CuesState {
     return cuesState
 }
 
-class CuesState(
-    private val player: Player,
-) {
+class CuesState(private val player: Player) {
     var cues: List<Cue> by mutableStateOf(emptyList())
         private set
 

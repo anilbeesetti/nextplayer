@@ -13,11 +13,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 
 @Composable
-fun OptionsDialog(
-    text: String,
-    onDismissClick: () -> Unit,
-    options: LazyListScope.() -> Unit,
-) {
+fun OptionsDialog(text: String, onDismissClick: () -> Unit, options: LazyListScope.() -> Unit) {
     NextDialog(
         onDismissRequest = onDismissClick,
         title = {

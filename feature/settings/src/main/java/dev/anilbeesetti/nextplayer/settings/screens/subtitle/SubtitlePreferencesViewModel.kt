@@ -38,13 +38,19 @@ class SubtitlePreferencesViewModel @Inject constructor(
     fun onEvent(event: SubtitlePreferencesUiEvent) {
         when (event) {
             is SubtitlePreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(event.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleLanguage -> updateSubtitleLanguage(
+                event.value,
+            )
             is SubtitlePreferencesUiEvent.UpdateSubtitleFont -> updateSubtitleFont(event.value)
             SubtitlePreferencesUiEvent.ToggleSubtitleTextBold -> toggleSubtitleTextBold()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(event.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleFontSize -> updateSubtitleFontSize(
+                event.value,
+            )
             SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
             SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
-            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(event.value)
+            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(
+                event.value,
+            )
             SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle -> toggleUseSystemCaptionStyle()
         }
     }
@@ -111,7 +117,9 @@ class SubtitlePreferencesViewModel @Inject constructor(
 
     private fun toggleUseSystemCaptionStyle() {
         viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle) }
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(useSystemCaptionStyle = !it.useSystemCaptionStyle)
+            }
         }
     }
 }

@@ -2,7 +2,6 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.mapAsync
@@ -21,6 +20,7 @@ import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 class LocalMediaRepository @Inject constructor(
     private val mediumStateDao: MediumStateDao,
@@ -36,32 +35,33 @@ class LocalMediaRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : MediaRepository {
 
-    override fun observeFolders(folderPath: String?): Flow<List<Folder>> {
-        return mediaService.observeFolders(folderPath).map { mediaFolders ->
+    override fun observeFolders(folderPath: String?): Flow<List<Folder>> =
+        mediaService.observeFolders(folderPath).map { mediaFolders ->
             mediaFolders.map { it.toFolder() }
         }
-    }
 
-    override fun observeVideos(folderPath: String?): Flow<List<Video>> {
-        return combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) { mediaVideos, mediumStates ->
+    override fun observeVideos(folderPath: String?): Flow<List<Video>> =
+        combine(mediaService.observeVideos(folderPath), mediumStateDao.getAll()) {
+                mediaVideos,
+                mediumStates,
+            ->
             val statesMap = mediumStates.associateBy { it.uriString }
             mediaVideos.map { mediaVideo ->
                 val mediaState = statesMap[mediaVideo.uri.toString()]
                 mediaVideo.toVideo(mediaState)
             }
         }
-    }
 
-    override suspend fun fetchFolders(folderPath: String?): List<Folder> {
-        return mediaService.fetchFolders(folderPath).map { it.toFolder() }
-    }
+    override suspend fun fetchFolders(folderPath: String?): List<Folder> =
+        mediaService.fetchFolders(folderPath).map {
+            it.toFolder()
+        }
 
-    override suspend fun fetchVideos(folderPath: String?): List<Video> {
-        return mediaService.fetchVideos(folderPath).mapAsync { mediaVideo ->
+    override suspend fun fetchVideos(folderPath: String?): List<Video> =
+        mediaService.fetchVideos(folderPath).mapAsync { mediaVideo ->
             val mediaState = mediumStateDao.get(mediaVideo.uri.toString())
             mediaVideo.toVideo(mediaState)
         }
-    }
 
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
         val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
@@ -73,18 +73,20 @@ class LocalMediaRepository @Inject constructor(
         return@coroutineScope mediaVideo.toVideo(mediaState)
     }
 
-    override suspend fun getVideoState(uri: String): VideoState? {
-        return mediumStateDao.get(uri)?.toVideoState()
-    }
+    override suspend fun getVideoState(uri: String): VideoState? =
+        mediumStateDao.get(uri)?.toVideoState()
 
     override suspend fun getMediaInfo(uri: String): MediaInfo? = withContext(Dispatchers.IO) {
         val video = getVideoByUri(uri) ?: return@withContext null
-        val mediaInfo = runCatching { MediaInfoBuilder().from(context = context, uri = uri.toUri()).build() }.getOrNull()
+        val mediaInfo = runCatching {
+            MediaInfoBuilder().from(context = context, uri = uri.toUri()).build()
+        }.getOrNull()
         val result = MediaInfo(
             video = video.copy(format = mediaInfo?.format),
             videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
             audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),
-            subtitleStreams = mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
+            subtitleStreams =
+            mediaInfo?.subtitleStreams?.map { it.toSubtitleStreamInfo() } ?: emptyList(),
         )
         mediaInfo?.release()
         return@withContext result
@@ -159,7 +161,10 @@ class LocalMediaRepository @Inject constructor(
         val currentExternalSubs = UriListConverter.fromStringToList(stateEntity.externalSubs)
 
         if (currentExternalSubs.contains(subtitleUri)) return
-        val newExternalSubs = UriListConverter.fromListToString(urlList = currentExternalSubs + subtitleUri)
+        val newExternalSubs = UriListConverter.fromListToString(
+            urlList =
+            currentExternalSubs + subtitleUri,
+        )
 
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(

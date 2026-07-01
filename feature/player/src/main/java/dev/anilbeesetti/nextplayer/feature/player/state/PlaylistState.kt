@@ -19,9 +19,7 @@ fun rememberPlaylistState(player: Player): PlaylistState {
     return playlistState
 }
 
-class PlaylistState(
-    private val player: Player,
-) {
+class PlaylistState(private val player: Player) {
     var playlist: List<MediaItem> by mutableStateOf(emptyList())
         private set
 
@@ -33,7 +31,11 @@ class PlaylistState(
         updateCurrentIndex()
 
         player.listen { events ->
-            if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_TIMELINE_CHANGED)) {
+            if (events.containsAny(
+                    Player.EVENT_MEDIA_ITEM_TRANSITION,
+                    Player.EVENT_TIMELINE_CHANGED,
+                )
+            ) {
                 updatePlaylist()
             }
             if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {

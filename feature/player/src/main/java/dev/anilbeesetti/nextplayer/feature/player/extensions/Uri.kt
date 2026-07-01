@@ -13,23 +13,23 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.convertToUTF8
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import java.nio.charset.Charset
 
-fun Uri.getSubtitleMime(): String {
-    return when {
-        path?.endsWith(".ssa") == true || path?.endsWith(".ass") == true -> {
-            MimeTypes.TEXT_SSA
-        }
+fun Uri.getSubtitleMime(): String = when {
+    path?.endsWith(".ssa") == true || path?.endsWith(".ass") == true -> {
+        MimeTypes.TEXT_SSA
+    }
 
-        path?.endsWith(".vtt") == true -> {
-            MimeTypes.TEXT_VTT
-        }
+    path?.endsWith(".vtt") == true -> {
+        MimeTypes.TEXT_VTT
+    }
 
-        path?.endsWith(".ttml") == true || path?.endsWith(".xml") == true || path?.endsWith(".dfxp") == true -> {
-            MimeTypes.APPLICATION_TTML
-        }
+    path?.endsWith(".ttml") == true ||
+        path?.endsWith(".xml") == true ||
+        path?.endsWith(".dfxp") == true -> {
+        MimeTypes.APPLICATION_TTML
+    }
 
-        else -> {
-            MimeTypes.APPLICATION_SUBRIP
-        }
+    else -> {
+        MimeTypes.APPLICATION_SUBRIP
     }
 }
 
@@ -58,10 +58,11 @@ suspend fun Context.uriToSubtitleConfiguration(
 }
 
 @Suppress("DEPRECATION")
-fun Bundle.getParcelableUriArray(key: String): ArrayList<out Parcelable>? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+fun Bundle.getParcelableUriArray(key: String): ArrayList<out Parcelable>? =
+    if (Build.VERSION.SDK_INT >=
+        Build.VERSION_CODES.TIRAMISU
+    ) {
         getParcelableArrayList(key, Uri::class.java)
     } else {
         getParcelableArrayList(key)
     }
-}

@@ -45,9 +45,7 @@ class GeneralPreferencesViewModel @Inject constructor(
     }
 }
 
-data class GeneralPreferencesUiState(
-    val showDialog: GeneralPreferencesDialog? = null,
-)
+data class GeneralPreferencesUiState(val showDialog: GeneralPreferencesDialog? = null)
 
 sealed interface GeneralPreferencesDialog {
     data object ClearThumbnailCacheDialog : GeneralPreferencesDialog
