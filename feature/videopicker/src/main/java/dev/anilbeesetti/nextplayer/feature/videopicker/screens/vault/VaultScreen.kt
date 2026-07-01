@@ -3,14 +3,23 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -21,6 +30,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,10 +53,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -58,6 +72,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
@@ -194,7 +209,7 @@ private fun VaultPinScreen(
 @Composable
 private fun PinEntryContent(
     modifier: Modifier = Modifier,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     description: String,
     pinErrorCount: Int,
@@ -310,8 +325,15 @@ private fun VaultGalleryScreen(
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = if (selectionManager.isInSelectionMode) "" else stringResource(R.string.hidden_videos),
-                fontWeight = FontWeight.Bold,
+                title = {
+                    val titleText = stringResource(R.string.hidden_videos).takeIf { !selectionManager.isInSelectionMode } ?: ""
+                    Text(
+                        text = titleText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 navigationIcon = {
                     if (selectionManager.isInSelectionMode) {
                         Row(
@@ -393,54 +415,67 @@ private fun VaultGalleryScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { padding ->
-        when {
-            uiState.isLoading -> {
-                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
+                .padding(start = padding.calculateStartPadding(LocalLayoutDirection.current))
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            val updatedPadding = padding.copy(top = 0.dp, start = 0.dp)
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(updatedPadding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
 
-            uiState.hiddenVideos.isEmpty() -> {
-                VaultEmptyState(contentPadding = padding)
-            }
+                uiState.hiddenVideos.isEmpty() -> {
+                    VaultEmptyState(contentPadding = updatedPadding)
+                }
 
-            else -> {
-                LazyVerticalGrid(
-                    modifier = Modifier.fillMaxSize(),
-                    columns = if (uiState.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
-                        GridCells.Adaptive(minSize = 130.dp)
-                    } else {
-                        GridCells.Fixed(1)
-                    },
-                    contentPadding = PaddingValues(
-                        start = 8.dp,
-                        end = 8.dp,
-                        top = padding.calculateTopPadding() + 8.dp,
-                        bottom = padding.calculateBottomPadding() + 8.dp,
-                    ),
-                ) {
-                    items(
-                        items = uiState.hiddenVideos,
-                        key = { it.uriString },
-                    ) { video ->
-                        val selected = selectionManager.isVideoSelected(video)
-                        VideoItem(
-                            modifier = Modifier.padding(2.dp),
-                            video = video,
-                            isRecentlyPlayedVideo = false,
-                            preferences = uiState.preferences,
-                            selected = selected,
-                            onClick = {
-                                if (selectionManager.isInSelectionMode) {
+                else -> {
+                    LazyVerticalGrid(
+                        modifier = Modifier.fillMaxSize(),
+                        columns = if (uiState.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
+                            GridCells.Adaptive(minSize = 130.dp)
+                        } else {
+                            GridCells.Fixed(1)
+                        },
+                        contentPadding = PaddingValues(
+                            start = 8.dp,
+                            end = 8.dp,
+                            top = updatedPadding.calculateTopPadding() + 8.dp,
+                            bottom = updatedPadding.calculateBottomPadding() + 8.dp,
+                        ),
+                    ) {
+                        items(
+                            items = uiState.hiddenVideos,
+                            key = { it.uriString },
+                        ) { video ->
+                            val selected = selectionManager.isVideoSelected(video)
+                            VideoItem(
+                                modifier = Modifier.padding(2.dp),
+                                video = video,
+                                isRecentlyPlayedVideo = false,
+                                preferences = uiState.preferences,
+                                selected = selected,
+                                onClick = {
+                                    if (selectionManager.isInSelectionMode) {
+                                        selectionManager.toggleVideoSelection(video)
+                                    } else {
+                                        onAction(VaultAction.PlayVideo(video))
+                                    }
+                                },
+                                onLongClick = {
                                     selectionManager.toggleVideoSelection(video)
-                                } else {
-                                    onAction(VaultAction.PlayVideo(video))
-                                }
-                            },
-                            onLongClick = {
-                                selectionManager.toggleVideoSelection(video)
-                            },
-                        )
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -628,6 +663,7 @@ private fun VaultSortDialog(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VaultSelectionActionsSheet(
+    modifier: Modifier = Modifier,
     show: Boolean,
     onPlayAction: () -> Unit,
     onInfoAction: () -> Unit,
@@ -635,52 +671,99 @@ private fun VaultSelectionActionsSheet(
     onUnhideAction: () -> Unit,
     onDeleteAction: () -> Unit,
 ) {
-    if (!show) return
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
+    AnimatedVisibility(
+        modifier = modifier.padding(
+            start = WindowInsets.displayCutout.asPaddingValues()
+                .calculateStartPadding(LocalLayoutDirection.current),
+        ),
+        visible = show,
+        enter = slideInVertically { it },
+        exit = slideOutVertically { it },
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            VaultActionItem(icon = NextIcons.Play, label = stringResource(R.string.play), onClick = onPlayAction)
-            if (showInfoAction) {
-                VaultActionItem(icon = NextIcons.Info, label = stringResource(R.string.info), onClick = onInfoAction)
+        val shape = MaterialTheme.shapes.largeIncreased.copy(
+            bottomStart = ZeroCornerSize,
+            bottomEnd = ZeroCornerSize,
+        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = shape,
+                    )
+                    .clip(shape)
+                    .horizontalScroll(rememberScrollState())
+                    .navigationBarsPadding()
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 12.dp,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                VaultSelectionAction(
+                    imageVector = NextIcons.Play,
+                    title = stringResource(R.string.play),
+                    onClick = onPlayAction,
+                )
+                if (showInfoAction) {
+                    VaultSelectionAction(
+                        imageVector = NextIcons.Info,
+                        title = stringResource(R.string.info),
+                        onClick = onInfoAction,
+                    )
+                }
+                VaultSelectionAction(
+                    imageVector = NextIcons.Lock,
+                    title = stringResource(R.string.unhide),
+                    onClick = onUnhideAction,
+                )
+                VaultSelectionAction(
+                    imageVector = NextIcons.Delete,
+                    title = stringResource(R.string.delete),
+                    onClick = onDeleteAction,
+                )
             }
-            VaultActionItem(icon = NextIcons.Lock, label = stringResource(R.string.unhide), onClick = onUnhideAction)
-            VaultActionItem(icon = NextIcons.Delete, label = stringResource(R.string.delete), onClick = onDeleteAction)
         }
     }
 }
 
 @Composable
-private fun VaultActionItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
+private fun VaultSelectionAction(
+    imageVector: ImageVector,
+    title: String,
     onClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
-            .clip(MaterialTheme.shapes.medium)
+            .defaultMinSize(
+                minWidth = 75.dp,
+                minHeight = 64.dp,
+            )
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(
+                horizontal = 16.dp,
+                vertical = 8.dp,
+            ),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            imageVector = icon,
-            contentDescription = label,
+            imageVector = imageVector,
+            contentDescription = title,
+            modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(modifier = Modifier.size(4.dp))
         Text(
-            text = label,
+            text = title,
+            modifier = Modifier,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
     }
 }
