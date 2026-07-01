@@ -7,9 +7,8 @@ import java.security.SecureRandom
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 
 @Singleton
 class LocalVaultPinRepository @Inject constructor(
@@ -20,23 +19,16 @@ class LocalVaultPinRepository @Inject constructor(
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    private val isPinSetInternal = MutableStateFlow(
-        preferences.contains(KEY_PIN_HASH),
-    )
-    override val isPinSet = isPinSetInternal.asStateFlow()
-
     override suspend fun hasPinSet(): Boolean = withContext(Dispatchers.IO) {
         preferences.contains(KEY_PIN_HASH)
     }
 
     override suspend fun setPin(pin: String) = withContext(Dispatchers.IO) {
         val salt = generateSalt()
-        val hash = hashPin(pin, salt)
-        preferences.edit()
-            .putString(KEY_PIN_HASH, hash)
-            .putString(KEY_SALT, salt)
-            .apply()
-        isPinSetInternal.value = true
+        preferences.edit {
+            putString(KEY_PIN_HASH, hashPin(pin, salt))
+            putString(KEY_SALT, salt)
+        }
     }
 
     override suspend fun verifyPin(pin: String): Boolean = withContext(Dispatchers.IO) {
@@ -45,23 +37,14 @@ class LocalVaultPinRepository @Inject constructor(
         hashPin(pin, salt) == storedHash
     }
 
-    override suspend fun clearPin() = withContext(Dispatchers.IO) {
-        preferences.edit()
-            .remove(KEY_PIN_HASH)
-            .remove(KEY_SALT)
-            .remove(KEY_HIDE_CONFIRMATION_SHOWN)
-            .apply()
-        isPinSetInternal.value = false
-    }
-
     override suspend fun hasShownHideConfirmation(): Boolean = withContext(Dispatchers.IO) {
         preferences.getBoolean(KEY_HIDE_CONFIRMATION_SHOWN, false)
     }
 
     override suspend fun setHideConfirmationShown() = withContext(Dispatchers.IO) {
-        preferences.edit()
-            .putBoolean(KEY_HIDE_CONFIRMATION_SHOWN, true)
-            .apply()
+        preferences.edit {
+            putBoolean(KEY_HIDE_CONFIRMATION_SHOWN, true)
+        }
     }
 
     private fun generateSalt(): String {

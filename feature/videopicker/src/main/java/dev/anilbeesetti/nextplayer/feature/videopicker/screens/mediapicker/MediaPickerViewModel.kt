@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
-import dev.anilbeesetti.nextplayer.core.data.repository.HideResult
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
@@ -177,7 +176,7 @@ class MediaPickerViewModel @Inject constructor(
 
     private fun requestHideSelectedItems(selectedItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            val videoItems = selectedItems.toVideoItems()
+            val videoItems = selectedItems.toVideos()
             if (videoItems.isEmpty()) return@launch
             val hasPin = vaultPinRepository.hasPinSet()
             when {
@@ -213,34 +212,17 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    private suspend fun hideVideoItems(items: List<Pair<Uri, String?>>) {
+    private suspend fun hideVideoItems(videos: List<Video>) {
         uiStateInternal.update { it.copy(hideFlow = HideFlowState.Processing) }
-        val uris = items.map { it.first }
-        val movedFiles = mediaOperationsService.moveMedia(uris, vaultRepository.getStagingDir())
-        val results = items.mapNotNull { (uri, path) ->
-            vaultRepository.hideVideo(uri.toString(), movedFiles[uri], originalPath = path)
-        }
-        val staged = results.filterIsInstance<HideResult.Staged>()
-        if (staged.isEmpty()) {
-            uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
-            return
-        }
-        val leftoverUris = staged.map { it.leftoverUri }
-        val deleted = mediaOperationsService.deleteMedia(leftoverUris)
-        val stagedIds = staged.map { it.video.id }
-        if (deleted) {
-            vaultRepository.confirmStagedHides(confirmedIds = stagedIds, rolledBackIds = emptyList())
-        } else {
-            vaultRepository.confirmStagedHides(confirmedIds = emptyList(), rolledBackIds = stagedIds)
-        }
+        vaultRepository.hideVideos(videos)
         uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
     }
 
-    private suspend fun Set<SelectionItem>.toVideoItems(): List<Pair<Uri, String?>> {
+    private suspend fun Set<SelectionItem>.toVideos(): List<Video> {
         val preferences = uiStateInternal.value.preferences
         return flatMap { selectionItem ->
             when (selectionItem) {
-                is SelectionItem.Video -> listOf(Pair(selectionItem.uriString.toUri(), selectionItem.path))
+                is SelectionItem.Video -> listOfNotNull(mediaRepository.getVideoByUri(selectionItem.uriString))
                 is SelectionItem.Folder -> {
                     val videos = getSortedVideosUseCase(selectionItem.path).first()
                     val filteredVideos = if (preferences.mediaViewMode == MediaViewMode.FOLDERS) {
@@ -248,14 +230,15 @@ class MediaPickerViewModel @Inject constructor(
                     } else {
                         videos
                     }
-                    filteredVideos.map { Pair(it.uriString.toUri(), it.path) }
+                    filteredVideos
                 }
             }
         }
     }
 
-    // Keep toVideoUris for any remaining callers
-    private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> = toVideoItems().map { it.first }
+    private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> {
+        return toVideos().map { it.uriString.toUri() }
+    }
 }
 
 @Stable
@@ -272,8 +255,8 @@ data class MediaPickerUiState(
 
 sealed interface HideFlowState {
     data object Idle : HideFlowState
-    data class ConfirmHide(val items: List<Pair<Uri, String?>>) : HideFlowState
-    data class SetupPin(val items: List<Pair<Uri, String?>>) : HideFlowState
+    data class ConfirmHide(val items: List<Video>) : HideFlowState
+    data class SetupPin(val items: List<Video>) : HideFlowState
     data object HowToFindInfo : HideFlowState
 
     data object Processing : HideFlowState

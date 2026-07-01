@@ -1,60 +1,32 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
-import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
-import java.io.File
 import kotlinx.coroutines.flow.Flow
 
 interface VaultRepository {
 
-    /**
-     * Observes all videos currently hidden in the vault, newest hidden first.
-     */
     fun observeHiddenVideos(): Flow<List<Video>>
 
-    /**
-     * Whether the vault currently has at least one hidden video.
-     */
-    suspend fun hasHiddenVideos(): Boolean
+    /** Moves [videos] into the vault and records them as hidden. */
+    suspend fun hideVideos(videos: List<Video>)
 
-    fun getStagingDir(): File
+    /** Moves the given vault [videos] back to their original locations. */
+    suspend fun unhideVideos(videos: List<Video>): UnhideResult
 
-    suspend fun hideVideo(originalUri: String, movedFile: File? = null, originalPath: String? = null): HideResult?
+    /** Permanently deletes the given vault [videos] (both the file and the record). */
+    suspend fun deleteHiddenVideos(videos: List<Video>)
 
-
-    suspend fun confirmStagedHides(confirmedIds: List<Long>, rolledBackIds: List<Long>)
-
-    /**
-     * Moves every video back out of the vault to its original location.
-     *
-     * @return the ids of the vault entries that failed to restore, empty if all succeeded.
-     */
-    suspend fun unhideVideos(ids: List<Long>): List<Long>
-
-    /**
-     * Permanently deletes the given hidden videos from the vault.
-     */
-    suspend fun deleteHiddenVideos(ids: List<Long>)
-
-    /**
-     * Reads extended media info (codec, resolution, etc) for a hidden video.
-     */
     suspend fun getHiddenVideoInfo(id: Long): MediaInfo?
 }
 
 /**
- * Result of a single [VaultRepository.hideVideo] call.
+ * Outcome of an unhide operation.
+ *
+ * @param relocatedCount number of videos that couldn't be restored to their original folder
+ *   (e.g. a custom folder or storage root, which scoped storage disallows) and were instead
+ *   placed in the fallback directory.
  */
-sealed interface HideResult {
-    /** The video that's now in the vault (whether already fully hidden, or still staged). */
-    val video: Video
-
-    /**
-     * The video was moved directly into the vault. Nothing left to clean up - the original
-     * file no longer exists anywhere outside the vault.
-     */
-    data class Hidden(override val video: Video) : HideResult
-
-    data class Staged(override val video: Video, val leftoverUri: Uri) : HideResult
-}
+data class UnhideResult(
+    val relocatedCount: Int = 0,
+)

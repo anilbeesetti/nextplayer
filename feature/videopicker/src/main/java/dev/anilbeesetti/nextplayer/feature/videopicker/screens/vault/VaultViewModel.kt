@@ -137,10 +137,7 @@ class VaultViewModel @Inject constructor(
 
     private fun playSelected(selectionItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            val currentVideos = uiStateInternal.value.hiddenVideos
-            val uris = selectionItems.filterIsInstance<SelectionItem.Video>()
-                .mapNotNull { item -> currentVideos.find { it.uriString == item.uriString } }
-                .map { it.uriString.toUri() }
+            val uris = selectionItems.toVideos().map { it.uriString.toUri() }
             if (uris.isNotEmpty()) {
                 eventsInternal.send(VaultEvent.PlayVideos(uris))
             }
@@ -149,17 +146,18 @@ class VaultViewModel @Inject constructor(
 
     private fun unhideVideos(selectionItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            val ids = selectionItems.toVideoIds()
             uiStateInternal.update { it.copy(isUnhiding = true) }
-            vaultRepository.unhideVideos(ids)
+            val result = vaultRepository.unhideVideos(selectionItems.toVideos())
             uiStateInternal.update { it.copy(isUnhiding = false) }
+            if (result.relocatedCount > 0) {
+                eventsInternal.send(VaultEvent.VideosRelocated(result.relocatedCount))
+            }
         }
     }
 
     private fun deleteVideos(selectionItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            val ids = selectionItems.toVideoIds()
-            vaultRepository.deleteHiddenVideos(ids)
+            vaultRepository.deleteHiddenVideos(selectionItems.toVideos())
         }
     }
 
@@ -172,11 +170,9 @@ class VaultViewModel @Inject constructor(
         }
     }
 
-    private fun Set<SelectionItem>.toVideoIds(): List<Long> {
-        val currentVideos = uiStateInternal.value.hiddenVideos
-        return filterIsInstance<SelectionItem.Video>().mapNotNull { item ->
-            currentVideos.find { it.uriString == item.uriString }?.id
-        }
+    private fun Set<SelectionItem>.toVideos(): List<Video> {
+        val selectedUris = filterIsInstance<SelectionItem.Video>().map { it.uriString }.toSet()
+        return uiStateInternal.value.hiddenVideos.filter { it.uriString in selectedUris }
     }
 }
 
@@ -218,4 +214,5 @@ sealed interface VaultAction {
 
 sealed interface VaultEvent {
     data class PlayVideos(val uris: List<Uri>) : VaultEvent
+    data class VideosRelocated(val count: Int) : VaultEvent
 }

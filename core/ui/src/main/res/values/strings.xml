@@ -312,6 +312,10 @@
     <string name="hide_video_info">Hidden videos are moved into a private vault protected by a PIN and removed from your gallery.</string>
     <string name="hiding_videos_in_progress">Hiding…</string>
     <string name="unhiding_videos_in_progress">Unhiding…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">Couldn\'t restore to its original folder — moved to Movies/</item>
+        <item quantity="other">Couldn\'t restore %1$d videos to their original folders — moved to Movies/</item>
+    </plurals>
     <string name="hiding_videos">Hiding\u2026</string>
     <string name="set_vault_pin">Set vault PIN</string>
     <string name="set_vault_pin_description">Create a 4-digit PIN to protect your hidden videos</string>

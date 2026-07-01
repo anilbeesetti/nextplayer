@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.navigation
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.navigation
@@ -27,21 +28,8 @@ fun NavGraphBuilder.mediaNavGraph(
     navigation<MediaRootRoute>(startDestination = MediaPickerRoute()) {
         mediaPickerScreen(
             onNavigateUp = navController::navigateUp,
-            onPlayVideo = { uri ->
-                val intent = Intent(context, PlayerActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = uri
-                }
-                context.startActivity(intent)
-            },
-            onPlayVideos = { uris ->
-                val intent = Intent(context, PlayerActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = uris.first()
-                    putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
-                }
-                context.startActivity(intent)
-            },
+            onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
+            onPlayVideos = { uris -> context.startPlayback(uris) },
             onFolderClick = navController::navigateToMediaPickerScreen,
             onSettingsClick = navController::navigateToSettings,
             onSearchClick = navController::navigateToSearch,
@@ -50,42 +38,29 @@ fun NavGraphBuilder.mediaNavGraph(
 
         searchScreen(
             onNavigateUp = navController::navigateUp,
-            onPlayVideo = { uri ->
-                val intent = Intent(context, PlayerActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = uri
-                }
-                context.startActivity(intent)
-            },
+            onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
             onFolderClick = navController::navigateToMediaPickerScreen,
         )
 
         vaultScreen(
             onNavigateUp = navController::navigateUp,
-            onPlayVideo = { uri ->
-                // Grant read access explicitly at playback time. FLAG_GRANT_READ_URI_PERMISSION
-                // on the Intent covers PlayerActivity, but ExoPlayer streams via PlayerService
-                // (a separate component) — grantUriPermission() covers that too.
-                context.grantUriPermission(context.packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                val intent = Intent(context, PlayerActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = uri
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                context.startActivity(intent)
-            },
-            onPlayVideos = { uris ->
-                uris.forEach { uri ->
-                    context.grantUriPermission(context.packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                val intent = Intent(context, PlayerActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = uris.first()
-                    putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                context.startActivity(intent)
-            },
+            // Vault files are served through FileProvider, so read access must be granted at
+            // playback time for both PlayerActivity and the (separate) PlayerService component.
+            onPlayVideo = { uri -> context.startPlayback(listOf(uri), grantReadPermission = true) },
+            onPlayVideos = { uris -> context.startPlayback(uris, grantReadPermission = true) },
         )
     }
+}
+
+private fun Context.startPlayback(uris: List<Uri>, grantReadPermission: Boolean = false) {
+    if (grantReadPermission) {
+        uris.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+    }
+    val intent = Intent(this, PlayerActivity::class.java).apply {
+        action = Intent.ACTION_VIEW
+        data = uris.first()
+        if (uris.size > 1) putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
+        if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    startActivity(intent)
 }

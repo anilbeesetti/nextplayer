@@ -1,12 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +21,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,7 +34,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,12 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -68,6 +62,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.ObserveAsEvents
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
@@ -81,11 +76,21 @@ fun VaultRoute(
     onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
             is VaultEvent.PlayVideos -> {
                 if (event.uris.size == 1) onPlayVideo(event.uris.first()) else onPlayVideos(event.uris)
+            }
+
+            is VaultEvent.VideosRelocated -> {
+                val message = context.resources.getQuantityString(
+                    R.plurals.videos_relocated_to_movies,
+                    event.count,
+                    event.count,
+                )
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -104,13 +109,16 @@ internal fun VaultScreen(
     onNavigateUp: () -> Unit,
 ) {
     when (uiState.stage) {
-        VaultStage.LOCKED -> VaultUnlockScreen(
+        VaultStage.LOCKED -> VaultPinScreen(
+            title = stringResource(R.string.enter_vault_pin),
+            description = stringResource(R.string.enter_vault_pin_description),
             pinErrorCount = uiState.pinErrorCount,
+            errorMessage = stringResource(R.string.incorrect_pin),
             onSubmit = { onAction(VaultAction.SubmitUnlockPin(it)) },
             onNavigateUp = onNavigateUp,
         )
 
-        VaultStage.SET_PIN -> VaultPinEntryScreen(
+        VaultStage.SET_PIN -> VaultPinScreen(
             title = stringResource(R.string.set_vault_pin),
             description = stringResource(R.string.set_vault_pin_description),
             pinErrorCount = uiState.setPinGeneration,
@@ -118,7 +126,7 @@ internal fun VaultScreen(
             onNavigateUp = onNavigateUp,
         )
 
-        VaultStage.CONFIRM_PIN -> VaultPinEntryScreen(
+        VaultStage.CONFIRM_PIN -> VaultPinScreen(
             title = stringResource(R.string.confirm_vault_pin),
             description = stringResource(R.string.confirm_vault_pin_description),
             pinErrorCount = uiState.pinErrorCount,
@@ -141,80 +149,19 @@ internal fun VaultScreen(
     }
 
     if (uiState.isUnhiding) {
-        Dialog(onDismissRequest = {}) {
-            AnimatedVisibility(
-                visible = true,
-                enter = fadeIn() + scaleIn(initialScale = 0.9f),
-                exit = fadeOut() + scaleOut(targetScale = 0.9f),
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(28.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 3.dp,
-                        )
-                        Text(
-                            text = stringResource(R.string.unhiding_videos_in_progress),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
-                }
-            }
-        }
+        VaultProgressDialog(message = stringResource(R.string.unhiding_videos_in_progress))
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun VaultUnlockScreen(
-    pinErrorCount: Int,
-    onSubmit: (String) -> Unit,
-    onNavigateUp: () -> Unit,
-) {
-    Scaffold(
-        topBar = {
-            NextTopAppBar(
-                title = "",
-                navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
-                        Icon(
-                            imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
-                },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { padding ->
-        PinEntryContent(
-            modifier = Modifier.padding(padding),
-            icon = NextIcons.Lock,
-            title = stringResource(R.string.enter_vault_pin),
-            description = stringResource(R.string.enter_vault_pin_description),
-            pinErrorCount = pinErrorCount,
-            errorMessage = stringResource(R.string.incorrect_pin),
-            onSubmit = onSubmit,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun VaultPinEntryScreen(
+private fun VaultPinScreen(
     title: String,
     description: String,
     pinErrorCount: Int,
     onSubmit: (String) -> Unit,
     onNavigateUp: () -> Unit,
-    errorMessage: String? = null,
+    errorMessage: String = "",
 ) {
     Scaffold(
         topBar = {
@@ -238,7 +185,7 @@ private fun VaultPinEntryScreen(
             title = title,
             description = description,
             pinErrorCount = pinErrorCount,
-            errorMessage = errorMessage ?: "",
+            errorMessage = errorMessage,
             onSubmit = onSubmit,
         )
     }
@@ -253,7 +200,6 @@ private fun PinEntryContent(
     pinErrorCount: Int,
     errorMessage: String,
     onSubmit: (String) -> Unit,
-    footer: @Composable (() -> Unit)? = null,
 ) {
     // pin resets on every wrong attempt because pinErrorCount increments each time
     var pin by rememberSaveable(pinErrorCount) { mutableStateOf("") }
@@ -322,8 +268,6 @@ private fun PinEntryContent(
                 if (pin.isNotEmpty()) pin = pin.dropLast(1)
             },
         )
-        Spacer(modifier = Modifier.size(16.dp))
-        footer?.invoke()
         Spacer(modifier = Modifier.size(16.dp))
     }
 }
@@ -743,9 +687,11 @@ private fun VaultActionItem(
 
 @PreviewLightDark
 @Composable
-private fun VaultUnlockScreenPreview() {
+private fun VaultPinScreenPreview() {
     NextPlayerTheme {
-        VaultUnlockScreen(
+        VaultPinScreen(
+            title = stringResource(R.string.enter_vault_pin),
+            description = stringResource(R.string.enter_vault_pin_description),
             pinErrorCount = 0,
             onSubmit = {},
             onNavigateUp = {},
