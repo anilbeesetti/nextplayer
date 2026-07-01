@@ -298,4 +298,31 @@
     <string name="reset_brightness_gesture_sensitivity">Επαναφορά ευαισθησίας χειρονομίας φωτεινότητας</string>
     <string name="material_you_controls">Χειριστήρια Material You</string>
     <string name="material_you_controls_description">Χρήση χειριστηρίων στυλ Material You</string>
+    <string name="hide">Απόκρυψη</string>
+    <string name="unhide">Εμφάνιση</string>
+    <string name="vault">Κρύπτη</string>
+    <string name="hidden_videos">Κρυμμένα βίντεο</string>
+    <string name="hide_one_video_confirmation">Απόκρυψη του βίντεο;</string>
+    <string name="hide_videos_confirmation">Απόκρυψη %1$d βίντεο;</string>
+    <string name="hide_video_info">Τα κρυφά βίντεο μετακινούνται σε μια κρύπτη που προστατεύεται από PIN και αφαιρούνται από τη συλλογή σας.</string>
+    <string name="hiding_videos_in_progress">Απόκρυψη…</string>
+    <string name="unhiding_videos_in_progress">Εμφάνιση…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">Δεν ήταν δυνατή η επαναφορά στον αρχικό φάκελο — μετακινήθηκε στο Movies/</item>
+        <item quantity="other">Δεν ήταν δυνατή η επαναφορά %1$d βίντεο στους αρχικούς τους φακέλους — μετακινήθηκαν στο Movies/</item>
+    </plurals>
+    <string name="hiding_videos">Απόκρυψη…</string>
+    <string name="set_vault_pin">Ορισμός PIN κρύπτης</string>
+    <string name="set_vault_pin_description">Δημιουργήστε έναν τετραψήφιο κωδικό PIN για να προστατεύσετε τα κρυμμένα βίντεό σας</string>
+    <string name="confirm_vault_pin">Επιβεβαίωση PIN</string>
+    <string name="confirm_vault_pin_description">Εισάγετε ξανά τον κωδικό PIN σας για επιβεβαίωση</string>
+    <string name="enter_vault_pin">Εισάγετε το PIN</string>
+    <string name="enter_vault_pin_description">Εισάγετε το PIN σας για να αποκτήσετε πρόσβαση στα κρυφά βίντεο</string>
+    <string name="pins_do_not_match">Τα PIN δεν ταιριάζουν. Δοκιμάστε ξανά</string>
+    <string name="incorrect_pin">Λανθασμένο PIN</string>
+    <string name="how_to_find_hidden_videos_title">Πώς να βρείτε τα κρυφά σας βίντεο</string>
+    <string name="how_to_find_hidden_videos_description">Τα κρυμμένα βίντεο φυλάσσονται με ασφάλεια στην κρύπτη σας. Για να την ανοίξετε ξανά, πατήστε παρατεταμένα τον τίτλο \"NextPlayer\" στο επάνω μέρος της αρχικής οθόνης και εισάγετε τον κωδικό PIN σας.</string>
+    <string name="open_vault">Άνοιγμα κρύπτης</string>
+    <string name="vault_empty_title">Κανένα κρυφό βίντεο</string>
+    <string name="vault_empty_description">Τα βίντεο που αποκρύπτετε θα εμφανίζονται εδώ. Πατήστε παρατεταμένα ένα βίντεο και πατήστε Απόκρυψη για να το προσθέσετε στο αρχείο καταγραφής.</string>
 </resources>
