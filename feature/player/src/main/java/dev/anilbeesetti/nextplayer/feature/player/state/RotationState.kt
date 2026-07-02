@@ -2,6 +2,10 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.os.Build
+import android.view.Surface
+import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
@@ -14,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.util.Consumer
 import androidx.media3.common.Player
 import androidx.media3.common.listen
@@ -47,6 +52,7 @@ class RotationState(
     private val activity: ComponentActivity,
     private val player: Player,
     private val screenOrientation: ScreenOrientation,
+    private var landscapeHint: Boolean = true
 ) {
     var currentRequestedOrientation: Int by mutableIntStateOf(activity.requestedOrientation)
         private set
@@ -55,6 +61,27 @@ class RotationState(
         activity.requestedOrientation = when (activity.resources.configuration.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
+
+        if (landscapeHint) {
+            val text = "long press to reverse landscape "
+            Toast.makeText(activity, text, 0).show()
+            landscapeHint = false
+        }
+    }
+
+    fun rotateLong() {
+        val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            activity.display?.rotation
+        } else {
+            val windowManager = getSystemService(activity, WindowManager::class.java)!!
+            windowManager.defaultDisplay.rotation
+        }
+
+        activity.requestedOrientation = when (rotation) {
+            Surface.ROTATION_90 -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+            Surface.ROTATION_270 -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            else ->  ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
     }
 

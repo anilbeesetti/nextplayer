@@ -81,6 +81,7 @@ fun ControlsBottomView(
     onLockControlsClick: () -> Unit,
     onPictureInPictureClick: () -> Unit,
     onRotateClick: () -> Unit,
+    onRotateLongClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
@@ -130,6 +131,7 @@ fun ControlsBottomView(
             PlayerButton(
                 modifier = modifier.size(30.dp),
                 onClick = onRotateClick,
+                onLongClick = onRotateLongClick,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_screen_rotation),
