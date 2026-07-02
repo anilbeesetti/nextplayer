@@ -319,7 +319,7 @@
     <string name="enter_vault_pin_description">输入 PIN 码以访问隐藏的视频</string>
     <string name="pins_do_not_match">PIN 码不匹配。请重试。</string>
     <string name="incorrect_pin">PIN 码错误</string>
-    <string name="reset_vault_pin_confirmation">重置 PIN 码会永久删除当前在保险箱中的所有视频，因为已无法将其解锁。继续吗？</string>
+    <string name="reset_vault_pin_confirmation">重置 PIN 码会永久删除当前在保险箱中的所有视频，因为已无法再将其解锁。继续吗？</string>
     <string name="how_to_find_hidden_videos_description">隐藏的视频安全地存放在保险箱中。要重新打开保险箱，请按住主屏幕顶部的“Next Player”标题并输入 PIN 码。</string>
     <string name="how_to_find_hidden_videos_title">如何找到隐藏的视频</string>
     <string name="got_it">知道了</string>
