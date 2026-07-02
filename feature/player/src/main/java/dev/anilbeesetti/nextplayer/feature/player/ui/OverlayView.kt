@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import kotlinx.coroutines.delay
 
 @Composable
 fun BoxScope.OverlayView(
@@ -51,13 +52,12 @@ fun BoxScope.OverlayView(
         .asPaddingValues()
         .calculateEndPadding(layoutDirection)
 
-    // Move D-pad focus into the panel when it opens so remote users can navigate the options.
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(show) {
         if (show) {
             repeat(times = 5) {
                 if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-                kotlinx.coroutines.delay(50)
+                delay(50)
             }
         }
     }

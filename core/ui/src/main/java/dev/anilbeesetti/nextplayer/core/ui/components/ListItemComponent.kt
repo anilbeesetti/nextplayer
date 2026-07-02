@@ -46,9 +46,6 @@ fun NextSegmentedListItem(
 ) {
     val overrideShape = MaterialTheme.shapes.large
 
-    // D-pad focus indication: draw a ring so the focused item is obvious on a TV. The border is
-    // inset within the item's bounds so it never overflows the screen or the list's rounded clip.
-    // On touch devices this never triggers, so the phone/tablet look is unchanged.
     val focusInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
     val isFocused by focusInteractionSource.collectIsFocusedAsState()
     val focusScale by animateFloatAsState(targetValue = if (isFocused) 1.01f else 1f, label = "focusScale")
@@ -58,16 +55,16 @@ fun NextSegmentedListItem(
             .zIndex(if (isFocused) 1f else 0f)
             .scale(focusScale)
             .then(
-            if (isFocused) {
-                Modifier.border(
-                    width = 2.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = overrideShape,
-                )
-            } else {
-                Modifier
-            },
-        ),
+                if (isFocused) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = overrideShape,
+                    )
+                } else {
+                    Modifier
+                },
+            ),
         selected = selected,
         onClick = onClick,
         onLongClick = onLongClick,

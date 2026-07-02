@@ -185,9 +185,6 @@ fun MediaPlayerScreen(
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
-    // Android TV / D-pad support: on a TV we drive the player with remote key events instead of
-    // touch gestures, keep a focusable root so keys arrive while controls are hidden, and move
-    // focus onto the play/pause button whenever the controls appear.
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
@@ -198,8 +195,6 @@ fun MediaPlayerScreen(
         LaunchedEffect(Unit) {
             runCatching { rootFocusRequester.requestFocus() }
         }
-        // When the controls appear, move focus to the seek bar so the D-pad left/right scrubs the
-        // timeline. When they hide, hand focus back to the root so key events keep arriving.
         LaunchedEffect(controlsVisibilityState.controlsVisible, controlsVisibilityState.controlsLocked, overlayView) {
             if (overlayView != null) return@LaunchedEffect
             if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
@@ -531,11 +526,6 @@ fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player) {
     }
 }
 
-/**
- * Handles a hardware/remote key event for the player on Android TV. Returns `true` when the event
- * was consumed. D-pad navigation keys are only consumed while the controls are hidden, so that once
- * controls are visible the focus system can move between the on-screen buttons normally.
- */
 @OptIn(UnstableApi::class)
 private fun handlePlayerKeyEvent(
     keyEvent: KeyEvent,
@@ -569,12 +559,10 @@ private fun handlePlayerKeyEvent(
         Key.MediaPrevious -> { player.seekToPrevious(); controls.showControls(); true }
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
             if (!controls.controlsVisible) {
-                // Quick play/pause from a bare screen, and reveal the controls.
                 togglePlayPause()
                 controls.showControls()
                 true
             } else {
-                // Controls are up: let the focused control (button/seek bar) handle it.
                 false
             }
         }
@@ -584,7 +572,6 @@ private fun handlePlayerKeyEvent(
                 controls.showControls()
                 true
             } else {
-                // Keep controls up; the focused seek bar scrubs, other rows navigate.
                 controls.showControls()
                 false
             }

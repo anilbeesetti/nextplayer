@@ -35,8 +35,6 @@ fun PreferenceSwitchWithDivider(
     isLastItem: Boolean = false,
 ) {
     PreferenceItem(
-        // On a TV the row (not the trailing switch) takes focus and center opens the dialog, so map
-        // the D-pad left/right to the toggle — otherwise the switch would be unreachable.
         modifier = Modifier.onPreviewKeyEvent { event ->
             if (enabled &&
                 event.type == KeyEventType.KeyDown &&

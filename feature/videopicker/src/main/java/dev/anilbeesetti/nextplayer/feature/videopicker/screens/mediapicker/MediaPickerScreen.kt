@@ -482,8 +482,6 @@ internal fun MediaPickerScreen(
                     }
                 }
 
-                // On a TV there's no touch pull-to-refresh; using PullToRefreshBox there makes the
-                // D-pad's downward scroll trigger the refresh spinner, so fall back to a plain box.
                 if (isTv) {
                     Box(modifier = containerModifier) { successContent() }
                 } else {

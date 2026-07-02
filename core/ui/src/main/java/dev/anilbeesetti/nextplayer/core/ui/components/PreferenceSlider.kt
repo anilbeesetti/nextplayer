@@ -35,8 +35,6 @@ fun PreferenceSlider(
     onReset: (() -> Unit)? = null,
     trailingContent: @Composable () -> Unit = {},
 ) {
-    // On a TV the row (not the inner Slider) receives focus, so map the D-pad to it directly:
-    // left/right nudge the value by a sensible step, and center resets (when a reset is provided).
     val span = valueRange.endInclusive - valueRange.start
     val keyStep = if (span <= 5f) 0.1f else 1f
 

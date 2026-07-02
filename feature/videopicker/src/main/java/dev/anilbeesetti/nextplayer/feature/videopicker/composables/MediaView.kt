@@ -60,7 +60,6 @@ fun MediaView(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // On a TV, use larger minimum item widths so the grid isn't too dense to navigate with a D-pad.
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val folderMinWidth = if (isTv) 160.dp else 90.dp

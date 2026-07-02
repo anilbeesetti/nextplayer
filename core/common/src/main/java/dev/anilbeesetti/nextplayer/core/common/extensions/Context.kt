@@ -35,10 +35,6 @@ import org.mozilla.universalchardet.UniversalDetector
 
 val VIDEO_COLLECTION_URI: Uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
-/**
- * `true` when the app is running on an Android TV / leanback device, used to opt into
- * remote-friendly (D-pad) behaviour without changing the touch experience on phones.
- */
 val Context.isTelevision: Boolean
     get() {
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
