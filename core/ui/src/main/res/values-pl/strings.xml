@@ -339,4 +339,40 @@
     <string name="forgot_pin">Nie pamiętasz kodu PIN?</string>
     <string name="reset_vault_pin_confirmation">Zresetowanie kodu PIN spowoduje trwałe usunięcie wszystkich wideo znajdujących się obecnie w sejfie, ponieważ nie będzie już można ich odblokować. Czy chcesz kontynuować?</string>
     <string name="reset_pin_and_delete_all">Zresetuj kod PIN i usuń wszystko</string>
+    <string name="copy">Kopiuj</string>
+    <string name="move">Przenieś</string>
+    <string name="copying_videos_in_progress">Kopiowanie…</string>
+    <string name="moving_videos_in_progress">Przenoszenie…</string>
+    <string name="transfer_file_progress">Plik %1$d z %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">Skopiowano 1 wideo</item>
+        <item quantity="few">Skopiowano %1$d wideo</item>
+        <item quantity="many">Skopiowano %1$d wideo</item>
+        <item quantity="other">Skopiowano %1$d wideo</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">Przeniesiono 1 wideo</item>
+        <item quantity="few">Przeniesiono %1$d wideo</item>
+        <item quantity="many">Przeniesiono %1$d wideo</item>
+        <item quantity="other">Przeniesiono %1$d wideo</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Nie można było skopiować 1 wideo</item>
+        <item quantity="few">Nie można było skopiować %1$d wideo</item>
+        <item quantity="many">Nie można było skopiować %1$d wideo</item>
+        <item quantity="other">Nie można było skopiować %1$d wideo</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Nie można było przenieść 1 wideo</item>
+        <item quantity="few">Nie można było przenieść %1$d wideo</item>
+        <item quantity="many">Nie można było przenieść %1$d wideo</item>
+        <item quantity="other">Nie można było przenieść %1$d wideo</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Przeniesiono 1 wideo, ale nie udało się usunąć oryginału</item>
+        <item quantity="few">Przeniesiono %1$d wideo, ale nie udało się usunąć oryginałów</item>
+        <item quantity="many">Przeniesiono %1$d wideo, ale nie udało się usunąć oryginałów</item>
+        <item quantity="other">Przeniesiono %1$d wideo, ale nie udało się usunąć oryginałów</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Nie można przenieść do tego samego katalogu</string>
 </resources>
