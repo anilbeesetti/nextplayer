@@ -22,11 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onFirstVisible
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -58,8 +60,10 @@ fun MediaView(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    val folderMinWidth = 90.dp
-    val videoMinWidth = 130.dp
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val folderMinWidth = if (isTv) 160.dp else 90.dp
+    val videoMinWidth = if (isTv) 240.dp else 130.dp
     BoxWithConstraints {
         val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
             MediaLayoutMode.LIST -> 8.dp

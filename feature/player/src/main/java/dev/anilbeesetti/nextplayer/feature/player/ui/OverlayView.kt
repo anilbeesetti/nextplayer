@@ -20,18 +20,24 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import kotlinx.coroutines.delay
 
 @Composable
 fun BoxScope.OverlayView(
@@ -45,6 +51,16 @@ fun BoxScope.OverlayView(
     val endPadding = WindowInsets.safeDrawing
         .asPaddingValues()
         .calculateEndPadding(layoutDirection)
+
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(show) {
+        if (show) {
+            repeat(times = 5) {
+                if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
+                delay(50)
+            }
+        }
+    }
 
     AnimatedVisibility(
         modifier = Modifier.align(
@@ -75,6 +91,8 @@ fun BoxScope.OverlayView(
         ) {
             Column(
                 modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .focusGroup()
                     .padding(top = 24.dp)
                     .padding(end = endPadding),
             ) {

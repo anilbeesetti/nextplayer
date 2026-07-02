@@ -13,6 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -30,6 +35,17 @@ fun PreferenceSwitchWithDivider(
     isLastItem: Boolean = false,
 ) {
     PreferenceItem(
+        modifier = Modifier.onPreviewKeyEvent { event ->
+            if (enabled &&
+                event.type == KeyEventType.KeyDown &&
+                (event.key == Key.DirectionLeft || event.key == Key.DirectionRight)
+            ) {
+                onChecked()
+                true
+            } else {
+                false
+            }
+        },
         title = title,
         description = description,
         icon = icon,

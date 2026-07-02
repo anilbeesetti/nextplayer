@@ -23,6 +23,9 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -30,12 +33,16 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit,
     onItemClick: (Setting) -> Unit,
 ) {
+    val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.settings),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -51,8 +58,10 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
+                .tvListFocus(listFocusRequester)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
             settingRows.forEachIndexed { index, row ->

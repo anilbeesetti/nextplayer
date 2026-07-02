@@ -90,6 +90,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
@@ -184,6 +185,8 @@ internal fun MediaPickerScreen(
     onVaultClick: () -> Unit = {},
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(
         permission = storagePermission,
@@ -444,16 +447,14 @@ internal fun MediaPickerScreen(
             }
 
             is DataState.Success -> {
-                PullToRefreshBox(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = scaffoldPadding.calculateTopPadding())
-                        .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current))
-                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(MaterialTheme.colorScheme.background),
-                    isRefreshing = uiState.refreshing,
-                    onRefresh = { onAction(MediaPickerAction.Refresh) },
-                ) {
+                val containerModifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = scaffoldPadding.calculateTopPadding())
+                    .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current))
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(MaterialTheme.colorScheme.background)
+
+                val successContent: @Composable () -> Unit = {
                     val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
                     PermissionMissingView(
                         isGranted = permissionState.status.isGranted,
@@ -479,6 +480,16 @@ internal fun MediaPickerScreen(
                             contentPadding = updatedScaffoldPadding,
                         )
                     }
+                }
+
+                if (isTv) {
+                    Box(modifier = containerModifier) { successContent() }
+                } else {
+                    PullToRefreshBox(
+                        modifier = containerModifier,
+                        isRefreshing = uiState.refreshing,
+                        onRefresh = { onAction(MediaPickerAction.Refresh) },
+                    ) { successContent() }
                 }
             }
         }

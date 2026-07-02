@@ -10,7 +10,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -26,10 +32,37 @@ fun PreferenceSlider(
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit = {},
+    onReset: (() -> Unit)? = null,
     trailingContent: @Composable () -> Unit = {},
 ) {
+    val span = valueRange.endInclusive - valueRange.start
+    val keyStep = if (span <= 5f) 0.1f else 1f
+
+    fun nudged(direction: Int): Float {
+        val raw = (value + direction * keyStep).coerceIn(valueRange.start, valueRange.endInclusive)
+        return if (keyStep < 1f) (raw * 10).roundToInt() / 10f else raw.roundToInt().toFloat()
+    }
+
     NextSegmentedListItem(
-        modifier = modifier,
+        modifier = modifier.onPreviewKeyEvent { event ->
+            if (!enabled || event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            when (event.key) {
+                Key.DirectionLeft -> {
+                    onValueChange(nudged(direction = -1))
+                    onValueChangeFinished()
+                    true
+                }
+                Key.DirectionRight -> {
+                    onValueChange(nudged(direction = 1))
+                    onValueChangeFinished()
+                    true
+                }
+                Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                    onReset?.let { it(); true } ?: false
+                }
+                else -> false
+            }
+        },
         onClick = {},
         onLongClick = null,
         enabled = enabled,

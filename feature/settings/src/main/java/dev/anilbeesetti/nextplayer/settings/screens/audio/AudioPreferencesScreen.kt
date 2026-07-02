@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -57,12 +60,13 @@ private fun AudioPreferencesContent(
 ) {
     val languages = remember { listOf(Pair("None", "")) + LocalesHelper.getAvailableLocales() }
 
+    val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.audio),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -77,6 +81,7 @@ private fun AudioPreferencesContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
+                .tvListFocus(listFocusRequester)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {

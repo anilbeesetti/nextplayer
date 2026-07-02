@@ -75,6 +75,7 @@ fun ControlsBottomView(
     controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
+    seekBarModifier: Modifier = Modifier,
     onVideoContentScaleClick: () -> Unit,
     onVideoContentScaleLongClick: () -> Unit,
     onLockControlsClick: () -> Unit,
@@ -138,6 +139,7 @@ fun ControlsBottomView(
             }
         }
         PlayerSeekbar(
+            modifier = seekBarModifier,
             position = mediaPresentationState.position.toFloat(),
             duration = mediaPresentationState.duration.toFloat(),
             onSeek = { onSeek(it.toLong()) },

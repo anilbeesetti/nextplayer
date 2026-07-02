@@ -1,6 +1,9 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerBasedShape
@@ -12,11 +15,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -39,8 +45,26 @@ fun NextSegmentedListItem(
     interactionSource: MutableInteractionSource? = null,
 ) {
     val overrideShape = MaterialTheme.shapes.large
+
+    val focusInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
+    val isFocused by focusInteractionSource.collectIsFocusedAsState()
+    val focusScale by animateFloatAsState(targetValue = if (isFocused) 1.01f else 1f, label = "focusScale")
+
     SegmentedListItem(
-        modifier = modifier,
+        modifier = modifier
+            .zIndex(if (isFocused) 1f else 0f)
+            .scale(focusScale)
+            .then(
+                if (isFocused) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = overrideShape,
+                    )
+                } else {
+                    Modifier
+                },
+            ),
         selected = selected,
         onClick = onClick,
         onLongClick = onLongClick,
@@ -67,7 +91,7 @@ fun NextSegmentedListItem(
         supportingContent = supportingContent,
         trailingContent = trailingContent,
         overlineContent = overlineContent,
-        interactionSource = interactionSource,
+        interactionSource = focusInteractionSource,
         content = content,
     )
 }

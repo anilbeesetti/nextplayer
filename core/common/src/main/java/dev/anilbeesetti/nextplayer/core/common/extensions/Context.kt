@@ -35,6 +35,13 @@ import org.mozilla.universalchardet.UniversalDetector
 
 val VIDEO_COLLECTION_URI: Uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
+val Context.isTelevision: Boolean
+    get() {
+        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
+        if (uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) return true
+        return packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+    }
+
 /**
  * get path from uri
  * @param uri uri of the file
