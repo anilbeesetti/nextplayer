@@ -28,6 +28,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
@@ -47,11 +48,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var mediaOperationsService: MediaOperationsService
 
+    @Inject
+    lateinit var systemService: SystemService
+
     private val viewModel: MainViewModel by viewModels()
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        systemService.initialize(this@MainActivity)
         mediaOperationsService.initialize(this@MainActivity)
         synchronizer.startSync()
 
