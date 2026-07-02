@@ -26,8 +26,10 @@ import java.io.InputStream
 import java.net.URL
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.mozilla.universalchardet.UniversalDetector
 
@@ -202,7 +204,13 @@ fun Context.getMediaContentUri(uri: Uri): Uri? {
     return null
 }
 
-suspend fun Context.scanPaths(paths: List<String>): Boolean = suspendCoroutine { continuation ->
+suspend fun Context.scanPaths(paths: List<String>): Boolean = suspendCancellableCoroutine { continuation ->
+    if (paths.isEmpty()) {
+        continuation.resumeWith(Result.success(true))
+        return@suspendCancellableCoroutine
+    }
+    // scanFile invokes the callback once per path, so only resume after the last one.
+    val remaining = AtomicInteger(paths.size)
     try {
         MediaScannerConnection.scanFile(
             this@scanPaths,
@@ -210,7 +218,9 @@ suspend fun Context.scanPaths(paths: List<String>): Boolean = suspendCoroutine {
             arrayOf("video/*"),
         ) { path, uri ->
             Log.d("ScanPath", "scanPaths: path=$path, uri=$uri")
-            continuation.resumeWith(Result.success(true))
+            if (remaining.decrementAndGet() == 0) {
+                continuation.resumeWith(Result.success(true))
+            }
         }
     } catch (e: Exception) {
         continuation.resumeWith(Result.failure(e))

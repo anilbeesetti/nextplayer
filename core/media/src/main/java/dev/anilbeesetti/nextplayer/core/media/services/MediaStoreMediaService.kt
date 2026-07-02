@@ -223,7 +223,7 @@ class MediaStoreMediaService @Inject constructor(
         return MediaVideo(
             id = id,
             path = path,
-            title = file.nameWithoutExtension,
+            title = file.name,
             parentPath = file.parent ?: "/",
             uri = ContentUris.withAppendedId(VIDEO_COLLECTION_URI, id),
             displayName = getString(displayNameIndex) ?: file.name,

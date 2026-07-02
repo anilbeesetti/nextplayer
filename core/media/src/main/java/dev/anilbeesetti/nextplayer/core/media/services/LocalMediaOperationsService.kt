@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -14,15 +16,23 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteMedia
+import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.updateMedia
 import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -92,6 +102,150 @@ class LocalMediaOperationsService @Inject constructor(
             val destFile = File(targetDir, sourceFile.name)
             if (sourceFile.renameTo(destFile)) destFile else null
         }
+    }
+
+    override fun transferMedia(
+        uris: List<Uri>,
+        folderUri: Uri,
+        mode: TransferMode,
+    ): Flow<TransferEvent> = flow {
+        val destinationDir = folderUri.toTreeDocumentUri()
+
+        // Moving a file into the folder it already lives in is a no-op, so keep those aside.
+        val (sameFolder, sources) = if (mode == TransferMode.MOVE) {
+            uris.partition { isInFolder(it, destinationDir) }
+        } else {
+            emptyList<Uri>() to uris
+        }
+
+        val sizes = sources.map { sizeOf(it) }
+        val overallTotal = sizes.sum()
+
+        val createdPaths = mutableListOf<String>()
+        val movedSources = mutableListOf<Uri>()
+        var overallCopied = 0L
+        var succeeded = 0
+
+        sources.forEachIndexed { index, source ->
+            val name = context.getFilenameFromUri(source).takeIf { it.isNotBlank() }
+            val currentTotal = sizes[index]
+
+            fun progress(copied: Long) = TransferProgress(
+                totalFiles = sources.size,
+                currentIndex = index,
+                currentName = name,
+                currentBytesCopied = copied,
+                currentBytesTotal = currentTotal,
+                overallBytesCopied = overallCopied + copied,
+                overallBytesTotal = overallTotal,
+            )
+
+            emit(TransferEvent.Progress(progress(0)))
+            if (name == null) return@forEachIndexed
+
+            val copied = copyToDocument(source, destinationDir, name, currentTotal) { copiedSoFar ->
+                emit(TransferEvent.Progress(progress(copiedSoFar)))
+            } ?: return@forEachIndexed
+
+            succeeded++
+            overallCopied += copied.bytes
+            context.getPath(copied.uri)?.let { createdPaths.add(it) }
+            if (mode == TransferMode.MOVE) movedSources.add(source)
+        }
+
+        if (createdPaths.isNotEmpty()) context.scanPaths(createdPaths)
+
+        // The copies are already in place, so a failed deletion still counts as a move;
+        // the originals are just left behind, which we report separately.
+        val originalsNotDeleted = mode == TransferMode.MOVE &&
+            movedSources.isNotEmpty() &&
+            !deleteMedia(movedSources)
+
+        emit(
+            TransferEvent.Completed(
+                TransferResult(
+                    succeeded = succeeded,
+                    failed = sources.size - succeeded,
+                    sameFolderSkipped = sameFolder.size,
+                    originalsNotDeleted = originalsNotDeleted,
+                ),
+            ),
+        )
+    }.flowOn(Dispatchers.IO)
+
+    private fun isInFolder(uri: Uri, folderDocUri: Uri): Boolean {
+        val folderPath = runCatching { context.getPath(folderDocUri) }.getOrNull() ?: return false
+        val filePath = runCatching { context.getPath(uri) }.getOrNull() ?: return false
+        return File(filePath).parent == folderPath
+    }
+
+    private data class CopyResult(val uri: Uri, val bytes: Long)
+
+    private suspend fun copyToDocument(
+        source: Uri,
+        destinationDir: Uri,
+        name: String,
+        expectedSize: Long,
+        onProgress: suspend (Long) -> Unit,
+    ): CopyResult? {
+        val mimeType = MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(File(name).extension.lowercase()) ?: "video/*"
+        val destUri = runCatching {
+            DocumentsContract.createDocument(contentResolver, destinationDir, mimeType, name)
+        }.getOrNull() ?: return null
+
+        return try {
+            val bytes = contentResolver.openInputStream(source)?.use { input ->
+                contentResolver.openOutputStream(destUri)?.use { output ->
+                    copyStream(input, output, expectedSize, onProgress)
+                } ?: error("Unable to open output stream for $destUri")
+            } ?: error("Unable to open input stream for $source")
+            CopyResult(destUri, bytes)
+        } catch (e: CancellationException) {
+            deleteDocumentQuietly(destUri)
+            throw e
+        } catch (e: Exception) {
+            deleteDocumentQuietly(destUri)
+            null
+        }
+    }
+
+    private fun deleteDocumentQuietly(uri: Uri) {
+        runCatching { DocumentsContract.deleteDocument(contentResolver, uri) }
+    }
+
+    private fun Uri.toTreeDocumentUri(): Uri = DocumentsContract.buildDocumentUriUsingTree(
+        this,
+        DocumentsContract.getTreeDocumentId(this),
+    )
+
+    private fun sizeOf(uri: Uri): Long = runCatching {
+        contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize.coerceAtLeast(0) }
+    }.getOrNull() ?: 0L
+
+    private suspend fun copyStream(
+        input: InputStream,
+        output: OutputStream,
+        expectedTotal: Long,
+        onCopied: suspend (Long) -> Unit,
+    ): Long {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        val reportThreshold = maxOf(expectedTotal / 100, 64L * 1024)
+        var copied = 0L
+        var lastReported = 0L
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            output.write(buffer, 0, read)
+            copied += read
+            if (copied - lastReported >= reportThreshold) {
+                onCopied(copied)
+                lastReported = copied
+            }
+        }
+        output.flush()
+        onCopied(copied)
+        return copied
     }
 
     @RequiresApi(Build.VERSION_CODES.R)

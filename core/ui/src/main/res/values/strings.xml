@@ -342,4 +342,32 @@
     <string name="forgot_pin">Forgot PIN?</string>
     <string name="reset_vault_pin_confirmation">Resetting your PIN will permanently delete all videos currently in the vault, since they can no longer be unlocked. Continue?</string>
     <string name="reset_pin_and_delete_all">Reset PIN &amp; delete all</string>
+
+    <!-- Copy / Move -->
+    <string name="copy">Copy</string>
+    <string name="move">Move</string>
+    <string name="copying_videos_in_progress">Copying…</string>
+    <string name="moving_videos_in_progress">Moving…</string>
+    <string name="transfer_file_progress">File %1$d of %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">Copied 1 video</item>
+        <item quantity="other">Copied %1$d videos</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">Moved 1 video</item>
+        <item quantity="other">Moved %1$d videos</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Couldn\'t copy 1 video</item>
+        <item quantity="other">Couldn\'t copy %1$d videos</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Couldn\'t move 1 video</item>
+        <item quantity="other">Couldn\'t move %1$d videos</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Moved 1 video, but couldn\'t remove the original</item>
+        <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
 </resources>

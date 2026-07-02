@@ -1,10 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -41,6 +45,7 @@ import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -74,6 +79,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -88,6 +94,9 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
+import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
+import dev.anilbeesetti.nextplayer.core.media.services.TransferProgress
+import dev.anilbeesetti.nextplayer.core.media.services.TransferResult
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -118,6 +127,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultPr
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -134,10 +144,15 @@ fun MediaPickerRoute(
     onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val context = LocalContext.current
 
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
             is MediaPickerEvent.PlayVideos -> onPlayVideos(event.uris)
+            is MediaPickerEvent.TransferComplete -> {
+                val message = transferCompleteMessage(context, event.mode, event.result)
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -326,6 +341,14 @@ internal fun MediaPickerScreen(
                 },
                 onShareAction = {
                     onAction(MediaPickerAction.ShareSelectedItems(selectionManager.selectionItems))
+                },
+                onCopyAction = {
+                    onAction(MediaPickerAction.CopySelectedItems(selectionManager.selectionItems))
+                    selectionManager.exitSelectionMode()
+                },
+                onMoveAction = {
+                    onAction(MediaPickerAction.MoveSelectedItems(selectionManager.selectionItems))
+                    selectionManager.exitSelectionMode()
                 },
                 onHideAction = {
                     onAction(MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems))
@@ -546,6 +569,150 @@ internal fun MediaPickerScreen(
         onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(it)) },
         onDismiss = { onAction(MediaPickerAction.DismissHideFlow) },
     )
+
+    (uiState.transferFlow as? TransferFlowState.Processing)?.let { transfer ->
+        TransferProgressDialog(
+            mode = transfer.mode,
+            progress = transfer.progress,
+            onCancel = { onAction(MediaPickerAction.CancelTransfer) },
+        )
+    }
+}
+
+private fun transferCompleteMessage(
+    context: Context,
+    mode: TransferMode,
+    result: TransferResult,
+): String {
+    val resources = context.resources
+    return when {
+        result.sameFolderSkipped > 0 && result.succeeded == 0 && result.failed == 0 ->
+            context.getString(R.string.cannot_move_to_same_folder)
+
+        result.failed > 0 -> resources.getQuantityString(
+            if (mode == TransferMode.MOVE) R.plurals.move_failed else R.plurals.copy_failed,
+            result.failed,
+            result.failed,
+        )
+
+        result.originalsNotDeleted -> resources.getQuantityString(
+            R.plurals.moved_videos_originals_remain,
+            result.succeeded,
+            result.succeeded,
+        )
+
+        mode == TransferMode.MOVE -> resources.getQuantityString(
+            R.plurals.moved_videos_result,
+            result.succeeded,
+            result.succeeded,
+        )
+
+        else -> resources.getQuantityString(
+            R.plurals.copied_videos_result,
+            result.succeeded,
+            result.succeeded,
+        )
+    }
+}
+
+@Composable
+private fun TransferProgressDialog(
+    mode: TransferMode,
+    progress: TransferProgress,
+    onCancel: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onCancel,
+        properties = DialogProperties(dismissOnClickOutside = false),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                Text(
+                    text = when (mode) {
+                        TransferMode.COPY -> stringResource(R.string.copying_videos_in_progress)
+                        TransferMode.MOVE -> stringResource(R.string.moving_videos_in_progress)
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                ProgressSection(
+                    label = progress.currentName.orEmpty(),
+                    fraction = progress.currentFraction,
+                )
+
+                if (progress.totalFiles > 1) {
+                    ProgressSection(
+                        label = stringResource(
+                            R.string.transfer_file_progress,
+                            progress.currentIndex + 1,
+                            progress.totalFiles,
+                        ),
+                        fraction = progress.overallFraction,
+                    )
+                }
+
+                TextButton(
+                    onClick = onCancel,
+                    modifier = Modifier.align(Alignment.End),
+                ) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A labelled progress bar. A null [fraction] renders an indeterminate bar with no percentage.
+ */
+@Composable
+private fun ProgressSection(
+    label: String,
+    fraction: Float?,
+) {
+    val animatedFraction by animateFloatAsState(targetValue = fraction ?: 0f, label = "progress")
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            if (fraction != null) {
+                Text(
+                    text = "${(fraction * 100).roundToInt()}%",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        val barModifier = Modifier
+            .fillMaxWidth()
+            .clip(CircleShape)
+        if (fraction != null) {
+            LinearProgressIndicator(progress = { animatedFraction }, modifier = barModifier)
+        } else {
+            LinearProgressIndicator(modifier = barModifier)
+        }
+    }
 }
 
 @Composable
@@ -807,6 +974,8 @@ private fun SelectionActionsSheet(
     onPlayAction: () -> Unit,
     onRenameAction: () -> Unit,
     onShareAction: () -> Unit,
+    onCopyAction: () -> Unit,
+    onMoveAction: () -> Unit,
     onInfoAction: () -> Unit,
     onHideAction: () -> Unit,
     onDeleteAction: () -> Unit,
@@ -859,6 +1028,16 @@ private fun SelectionActionsSheet(
                     imageVector = NextIcons.Share,
                     title = stringResource(R.string.share),
                     onClick = onShareAction,
+                )
+                SelectionAction(
+                    imageVector = NextIcons.Copy,
+                    title = stringResource(R.string.copy),
+                    onClick = onCopyAction,
+                )
+                SelectionAction(
+                    imageVector = NextIcons.Move,
+                    title = stringResource(R.string.move),
+                    onClick = onMoveAction,
                 )
                 if (showInfoAction) {
                     SelectionAction(
