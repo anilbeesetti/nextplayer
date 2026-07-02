@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
+import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -62,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -86,6 +89,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
+import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -132,10 +136,31 @@ fun MediaPickerRoute(
     onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
+    val context = LocalContext.current
 
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
             is MediaPickerEvent.PlayVideos -> onPlayVideos(event.uris)
+            is MediaPickerEvent.TransferComplete -> {
+                val message = when {
+                    event.failed > 0 -> context.resources.getQuantityString(
+                        R.plurals.copy_move_failed,
+                        event.failed,
+                        event.failed,
+                    )
+                    event.mode == TransferMode.MOVE -> context.resources.getQuantityString(
+                        R.plurals.moved_videos_result,
+                        event.succeeded,
+                        event.succeeded,
+                    )
+                    else -> context.resources.getQuantityString(
+                        R.plurals.copied_videos_result,
+                        event.succeeded,
+                        event.succeeded,
+                    )
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -168,6 +193,7 @@ internal fun MediaPickerScreen(
     onVaultClick: () -> Unit = {},
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
+    val context = LocalContext.current
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(
         permission = storagePermission,
@@ -181,6 +207,31 @@ internal fun MediaPickerScreen(
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { it?.let { onPlayVideo(it) } },
+    )
+
+    var pendingTransferMode: TransferMode? by rememberSaveable { mutableStateOf(null) }
+    val pickDestinationFolderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+        onResult = { treeUri ->
+            val mode = pendingTransferMode
+            pendingTransferMode = null
+            if (treeUri != null && mode != null) {
+                runCatching {
+                    context.contentResolver.takePersistableUriPermission(
+                        treeUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                    )
+                }
+                onAction(
+                    MediaPickerAction.TransferSelectedItems(
+                        selectionItems = selectionManager.selectionItems,
+                        treeUri = treeUri,
+                        mode = mode,
+                    ),
+                )
+                selectionManager.exitSelectionMode()
+            }
+        },
     )
 
     var isFabExpanded by rememberSaveable { mutableStateOf(false) }
@@ -322,6 +373,14 @@ internal fun MediaPickerScreen(
                 },
                 onShareAction = {
                     onAction(MediaPickerAction.ShareSelectedItems(selectionManager.selectionItems))
+                },
+                onCopyAction = {
+                    pendingTransferMode = TransferMode.COPY
+                    pickDestinationFolderLauncher.launch(null)
+                },
+                onMoveAction = {
+                    pendingTransferMode = TransferMode.MOVE
+                    pickDestinationFolderLauncher.launch(null)
                 },
                 onHideAction = {
                     onAction(MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems))
@@ -532,6 +591,24 @@ internal fun MediaPickerScreen(
         onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(it)) },
         onDismiss = { onAction(MediaPickerAction.DismissHideFlow) },
     )
+
+    (uiState.transferFlow as? TransferFlowState.Processing)?.let { transfer ->
+        val current = (transfer.progress.completed + 1).coerceAtMost(transfer.progress.total)
+        VaultProgressDialog(
+            message = when (transfer.mode) {
+                TransferMode.COPY -> stringResource(
+                    R.string.copying_videos_in_progress,
+                    current,
+                    transfer.progress.total,
+                )
+                TransferMode.MOVE -> stringResource(
+                    R.string.moving_videos_in_progress,
+                    current,
+                    transfer.progress.total,
+                )
+            },
+        )
+    }
 }
 
 @Composable
@@ -793,6 +870,8 @@ private fun SelectionActionsSheet(
     onPlayAction: () -> Unit,
     onRenameAction: () -> Unit,
     onShareAction: () -> Unit,
+    onCopyAction: () -> Unit,
+    onMoveAction: () -> Unit,
     onInfoAction: () -> Unit,
     onHideAction: () -> Unit,
     onDeleteAction: () -> Unit,
@@ -845,6 +924,16 @@ private fun SelectionActionsSheet(
                     imageVector = NextIcons.Share,
                     title = stringResource(R.string.share),
                     onClick = onShareAction,
+                )
+                SelectionAction(
+                    imageVector = NextIcons.Copy,
+                    title = stringResource(R.string.copy),
+                    onClick = onCopyAction,
+                )
+                SelectionAction(
+                    imageVector = NextIcons.Move,
+                    title = stringResource(R.string.move),
+                    onClick = onMoveAction,
                 )
                 if (showInfoAction) {
                     SelectionAction(

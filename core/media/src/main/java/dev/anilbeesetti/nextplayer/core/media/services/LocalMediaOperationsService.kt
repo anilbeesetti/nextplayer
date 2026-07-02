@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -14,7 +16,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteMedia
+import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
+import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.updateMedia
 import java.io.File
 import javax.inject.Inject
@@ -92,6 +96,65 @@ class LocalMediaOperationsService @Inject constructor(
             val destFile = File(targetDir, sourceFile.name)
             if (sourceFile.renameTo(destFile)) destFile else null
         }
+    }
+
+    override suspend fun transferMedia(
+        uris: List<Uri>,
+        treeUri: Uri,
+        mode: TransferMode,
+        onProgress: (TransferProgress) -> Unit,
+    ): TransferResult = withContext(Dispatchers.IO) {
+        val parentDocUri = DocumentsContract.buildDocumentUriUsingTree(
+            treeUri,
+            DocumentsContract.getTreeDocumentId(treeUri),
+        )
+
+        val total = uris.size
+        val createdPaths = mutableListOf<String>()
+        val movedSources = mutableListOf<Uri>()
+        var succeeded = 0
+
+        uris.forEachIndexed { index, uri ->
+            val name = context.getFilenameFromUri(uri).takeIf { it.isNotBlank() }
+            onProgress(TransferProgress(completed = index, total = total, currentName = name))
+            if (name == null) return@forEachIndexed
+
+            val mimeType = MimeTypeMap.getSingleton()
+                .getMimeTypeFromExtension(File(name).extension.lowercase()) ?: "video/*"
+
+            val destUri = runCatching {
+                DocumentsContract.createDocument(contentResolver, parentDocUri, mimeType, name)
+            }.getOrNull() ?: return@forEachIndexed
+
+            val copied = runCatching {
+                contentResolver.openInputStream(uri)?.use { input ->
+                    contentResolver.openOutputStream(destUri)?.use { output ->
+                        input.copyTo(output)
+                    } ?: error("Unable to open output stream for $destUri")
+                } ?: error("Unable to open input stream for $uri")
+                true
+            }.getOrDefault(false)
+
+            if (copied) {
+                succeeded++
+                context.getPath(destUri)?.let { createdPaths.add(it) }
+                if (mode == TransferMode.MOVE) movedSources.add(uri)
+            } else {
+                runCatching { DocumentsContract.deleteDocument(contentResolver, destUri) }
+            }
+        }
+
+        onProgress(TransferProgress(completed = total, total = total, currentName = null))
+
+        // Register the newly created files with MediaStore so they surface in the app.
+        if (createdPaths.isNotEmpty()) context.scanPaths(createdPaths)
+
+        // For a move, remove the originals now that their copies are in place.
+        if (mode == TransferMode.MOVE && movedSources.isNotEmpty()) {
+            deleteMedia(movedSources)
+        }
+
+        TransferResult(succeeded = succeeded, failed = total - succeeded)
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
