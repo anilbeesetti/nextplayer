@@ -15,13 +15,9 @@ import javax.inject.Singleton
 class LocalSystemService @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : SystemService {
-    private lateinit var activity: ComponentActivity
-
-    private var pickDocumentTreeLauncher : SuspendActivityResultLauncher<Uri?, Uri?>? = null
+    private var pickDocumentTreeLauncher: SuspendActivityResultLauncher<Uri?, Uri?>? = null
 
     override fun initialize(activity: ComponentActivity) {
-        this.activity = activity
-
         pickDocumentTreeLauncher = activity.registerForSuspendActivityResult(ActivityResultContracts.OpenDocumentTree())
     }
 

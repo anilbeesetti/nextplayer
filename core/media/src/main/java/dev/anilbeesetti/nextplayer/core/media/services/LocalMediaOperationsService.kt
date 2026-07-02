@@ -147,25 +147,24 @@ class LocalMediaOperationsService @Inject constructor(
                 DocumentsContract.createDocument(contentResolver, parentDocUri, mimeType, name)
             }.getOrNull() ?: return@forEachIndexed
 
-            val copied = try {
+            val copiedBytes: Long? = try {
                 contentResolver.openInputStream(uri)?.use { input ->
                     contentResolver.openOutputStream(destUri)?.use { output ->
-                        copyStream(input, output, currentTotal) { copiedBytes ->
-                            emit(TransferEvent.Progress(progress(copiedBytes)))
+                        copyStream(input, output, currentTotal) { copiedSoFar ->
+                            emit(TransferEvent.Progress(progress(copiedSoFar)))
                         }
                     } ?: error("Unable to open output stream for $destUri")
                 } ?: error("Unable to open input stream for $uri")
-                true
             } catch (e: CancellationException) {
                 runCatching { DocumentsContract.deleteDocument(contentResolver, destUri) }
                 throw e
             } catch (e: Exception) {
-                false
+                null
             }
 
-            if (copied) {
+            if (copiedBytes != null) {
                 succeeded++
-                overallCopied += currentTotal
+                overallCopied += copiedBytes
                 context.getPath(destUri)?.let { createdPaths.add(it) }
                 if (mode == TransferMode.MOVE) movedSources.add(uri)
             } else {
@@ -176,12 +175,22 @@ class LocalMediaOperationsService @Inject constructor(
         // Register the newly created files with MediaStore so they surface in the app.
         if (createdPaths.isNotEmpty()) context.scanPaths(createdPaths)
 
-        // For a move, remove the originals now that their copies are in place.
+        // For a move, remove the originals now that their copies are in place. If the
+        // deletion is cancelled or fails, those files were copied but not moved, so they
+        // must not be reported as successfully moved.
+        var deleteFailed = 0
         if (mode == TransferMode.MOVE && movedSources.isNotEmpty()) {
-            deleteMedia(movedSources)
+            if (!deleteMedia(movedSources)) deleteFailed = movedSources.size
         }
 
-        emit(TransferEvent.Completed(TransferResult(succeeded = succeeded, failed = total - succeeded)))
+        emit(
+            TransferEvent.Completed(
+                TransferResult(
+                    succeeded = succeeded - deleteFailed,
+                    failed = total - succeeded + deleteFailed,
+                ),
+            ),
+        )
     }.flowOn(Dispatchers.IO)
 
     private fun sizeOf(uri: Uri): Long = runCatching {
@@ -193,7 +202,7 @@ class LocalMediaOperationsService @Inject constructor(
         output: OutputStream,
         expectedTotal: Long,
         onCopied: suspend (Long) -> Unit,
-    ) = withContext(Dispatchers.IO) {
+    ): Long {
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
         val step = maxOf(expectedTotal / 100, 64L * 1024)
         var copied = 0L
@@ -210,6 +219,7 @@ class LocalMediaOperationsService @Inject constructor(
         }
         output.flush()
         onCopied(copied)
+        return copied
     }
 
     @RequiresApi(Build.VERSION_CODES.R)

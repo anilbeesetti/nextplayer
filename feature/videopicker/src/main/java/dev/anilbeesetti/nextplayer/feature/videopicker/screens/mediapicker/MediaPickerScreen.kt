@@ -148,7 +148,7 @@ fun MediaPickerRoute(
             is MediaPickerEvent.TransferComplete -> {
                 val message = when {
                     event.failed > 0 -> context.resources.getQuantityString(
-                        R.plurals.copy_move_failed,
+                        if (event.mode == TransferMode.MOVE) R.plurals.move_failed else R.plurals.copy_failed,
                         event.failed,
                         event.failed,
                     )
@@ -571,7 +571,11 @@ internal fun MediaPickerScreen(
     )
 
     (uiState.transferFlow as? TransferFlowState.Processing)?.let { transfer ->
-        TransferProgressDialog(mode = transfer.mode, progress = transfer.progress)
+        TransferProgressDialog(
+            mode = transfer.mode,
+            progress = transfer.progress,
+            onCancel = { onAction(MediaPickerAction.CancelTransfer) },
+        )
     }
 }
 
@@ -579,6 +583,7 @@ internal fun MediaPickerScreen(
 private fun TransferProgressDialog(
     mode: TransferMode,
     progress: TransferProgress,
+    onCancel: () -> Unit,
 ) {
     val overallFraction by animateFloatAsState(
         targetValue = progress.overallFraction,
@@ -590,7 +595,7 @@ private fun TransferProgressDialog(
         label = "currentProgress",
     )
 
-    Dialog(onDismissRequest = {}) {
+    Dialog(onDismissRequest = onCancel) {
         Surface(
             shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -676,6 +681,13 @@ private fun TransferProgressDialog(
                             .fillMaxWidth()
                             .clip(CircleShape),
                     )
+                }
+
+                TextButton(
+                    onClick = onCancel,
+                    modifier = Modifier.align(Alignment.End),
+                ) {
+                    Text(text = stringResource(R.string.cancel))
                 }
             }
         }
