@@ -109,13 +109,16 @@ class LocalMediaOperationsService @Inject constructor(
         folderUri: Uri,
         mode: TransferMode,
     ): Flow<TransferEvent> = flow {
-        val parentDocUri = DocumentsContract.buildDocumentUriUsingTree(
-            folderUri,
-            DocumentsContract.getTreeDocumentId(folderUri),
-        )
+        val destinationDir = folderUri.toTreeDocumentUri()
 
-        val total = uris.size
-        val sizes = uris.map { sizeOf(it) }
+        // Moving a file into the folder it already lives in is a no-op, so keep those aside.
+        val (sameFolder, sources) = if (mode == TransferMode.MOVE) {
+            uris.partition { isInFolder(it, destinationDir) }
+        } else {
+            emptyList<Uri>() to uris
+        }
+
+        val sizes = sources.map { sizeOf(it) }
         val overallTotal = sizes.sum()
 
         val createdPaths = mutableListOf<String>()
@@ -123,75 +126,98 @@ class LocalMediaOperationsService @Inject constructor(
         var overallCopied = 0L
         var succeeded = 0
 
-        uris.forEachIndexed { index, uri ->
-            val name = context.getFilenameFromUri(uri).takeIf { it.isNotBlank() }
+        sources.forEachIndexed { index, source ->
+            val name = context.getFilenameFromUri(source).takeIf { it.isNotBlank() }
             val currentTotal = sizes[index]
 
-            fun progress(currentCopied: Long) = TransferProgress(
+            fun progress(copied: Long) = TransferProgress(
+                totalFiles = sources.size,
                 currentIndex = index,
-                totalFiles = total,
                 currentName = name,
-                currentBytesCopied = currentCopied,
+                currentBytesCopied = copied,
                 currentBytesTotal = currentTotal,
-                overallBytesCopied = overallCopied + currentCopied,
+                overallBytesCopied = overallCopied + copied,
                 overallBytesTotal = overallTotal,
             )
 
             emit(TransferEvent.Progress(progress(0)))
             if (name == null) return@forEachIndexed
 
-            val mimeType = MimeTypeMap.getSingleton()
-                .getMimeTypeFromExtension(File(name).extension.lowercase()) ?: "video/*"
+            val copied = copyToDocument(source, destinationDir, name, currentTotal) { copiedSoFar ->
+                emit(TransferEvent.Progress(progress(copiedSoFar)))
+            } ?: return@forEachIndexed
 
-            val destUri = runCatching {
-                DocumentsContract.createDocument(contentResolver, parentDocUri, mimeType, name)
-            }.getOrNull() ?: return@forEachIndexed
-
-            val copiedBytes: Long? = try {
-                contentResolver.openInputStream(uri)?.use { input ->
-                    contentResolver.openOutputStream(destUri)?.use { output ->
-                        copyStream(input, output, currentTotal) { copiedSoFar ->
-                            emit(TransferEvent.Progress(progress(copiedSoFar)))
-                        }
-                    } ?: error("Unable to open output stream for $destUri")
-                } ?: error("Unable to open input stream for $uri")
-            } catch (e: CancellationException) {
-                runCatching { DocumentsContract.deleteDocument(contentResolver, destUri) }
-                throw e
-            } catch (e: Exception) {
-                null
-            }
-
-            if (copiedBytes != null) {
-                succeeded++
-                overallCopied += copiedBytes
-                context.getPath(destUri)?.let { createdPaths.add(it) }
-                if (mode == TransferMode.MOVE) movedSources.add(uri)
-            } else {
-                runCatching { DocumentsContract.deleteDocument(contentResolver, destUri) }
-            }
+            succeeded++
+            overallCopied += copied.bytes
+            context.getPath(copied.uri)?.let { createdPaths.add(it) }
+            if (mode == TransferMode.MOVE) movedSources.add(source)
         }
 
-        // Register the newly created files with MediaStore so they surface in the app.
         if (createdPaths.isNotEmpty()) context.scanPaths(createdPaths)
 
-        // For a move, remove the originals now that their copies are in place. If the
-        // deletion is cancelled or fails, those files were copied but not moved, so they
-        // must not be reported as successfully moved.
-        var deleteFailed = 0
-        if (mode == TransferMode.MOVE && movedSources.isNotEmpty()) {
-            if (!deleteMedia(movedSources)) deleteFailed = movedSources.size
-        }
+        // The copies are already in place, so a failed deletion still counts as a move;
+        // the originals are just left behind, which we report separately.
+        val originalsNotDeleted = mode == TransferMode.MOVE &&
+            movedSources.isNotEmpty() &&
+            !deleteMedia(movedSources)
 
         emit(
             TransferEvent.Completed(
                 TransferResult(
-                    succeeded = succeeded - deleteFailed,
-                    failed = total - succeeded + deleteFailed,
+                    succeeded = succeeded,
+                    failed = sources.size - succeeded,
+                    sameFolderSkipped = sameFolder.size,
+                    originalsNotDeleted = originalsNotDeleted,
                 ),
             ),
         )
     }.flowOn(Dispatchers.IO)
+
+    private fun isInFolder(uri: Uri, folderDocUri: Uri): Boolean {
+        val folderPath = runCatching { context.getPath(folderDocUri) }.getOrNull() ?: return false
+        val filePath = runCatching { context.getPath(uri) }.getOrNull() ?: return false
+        return File(filePath).parent == folderPath
+    }
+
+    private data class CopyResult(val uri: Uri, val bytes: Long)
+
+    private suspend fun copyToDocument(
+        source: Uri,
+        destinationDir: Uri,
+        name: String,
+        expectedSize: Long,
+        onProgress: suspend (Long) -> Unit,
+    ): CopyResult? {
+        val mimeType = MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(File(name).extension.lowercase()) ?: "video/*"
+        val destUri = runCatching {
+            DocumentsContract.createDocument(contentResolver, destinationDir, mimeType, name)
+        }.getOrNull() ?: return null
+
+        return try {
+            val bytes = contentResolver.openInputStream(source)?.use { input ->
+                contentResolver.openOutputStream(destUri)?.use { output ->
+                    copyStream(input, output, expectedSize, onProgress)
+                } ?: error("Unable to open output stream for $destUri")
+            } ?: error("Unable to open input stream for $source")
+            CopyResult(destUri, bytes)
+        } catch (e: CancellationException) {
+            deleteDocumentQuietly(destUri)
+            throw e
+        } catch (e: Exception) {
+            deleteDocumentQuietly(destUri)
+            null
+        }
+    }
+
+    private fun deleteDocumentQuietly(uri: Uri) {
+        runCatching { DocumentsContract.deleteDocument(contentResolver, uri) }
+    }
+
+    private fun Uri.toTreeDocumentUri(): Uri = DocumentsContract.buildDocumentUriUsingTree(
+        this,
+        DocumentsContract.getTreeDocumentId(this),
+    )
 
     private fun sizeOf(uri: Uri): Long = runCatching {
         contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize.coerceAtLeast(0) }
@@ -204,7 +230,7 @@ class LocalMediaOperationsService @Inject constructor(
         onCopied: suspend (Long) -> Unit,
     ): Long {
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        val step = maxOf(expectedTotal / 100, 64L * 1024)
+        val reportThreshold = maxOf(expectedTotal / 100, 64L * 1024)
         var copied = 0L
         var lastReported = 0L
         while (true) {
@@ -212,7 +238,7 @@ class LocalMediaOperationsService @Inject constructor(
             if (read < 0) break
             output.write(buffer, 0, read)
             copied += read
-            if (copied - lastReported >= step) {
+            if (copied - lastReported >= reportThreshold) {
                 onCopied(copied)
                 lastReported = copied
             }

@@ -36,13 +36,13 @@ sealed interface TransferEvent {
 }
 
 data class TransferProgress(
-    val currentIndex: Int,
     val totalFiles: Int,
-    val currentName: String?,
-    val currentBytesCopied: Long,
-    val currentBytesTotal: Long,
-    val overallBytesCopied: Long,
-    val overallBytesTotal: Long,
+    val currentIndex: Int = 0,
+    val currentName: String? = null,
+    val currentBytesCopied: Long = 0,
+    val currentBytesTotal: Long = 0,
+    val overallBytesCopied: Long = 0,
+    val overallBytesTotal: Long = 0,
 ) {
     val currentFraction: Float?
         get() = if (currentBytesTotal > 0) (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(0f, 1f) else null
@@ -60,4 +60,6 @@ data class TransferProgress(
 data class TransferResult(
     val succeeded: Int,
     val failed: Int,
+    val sameFolderSkipped: Int = 0,
+    val originalsNotDeleted: Boolean = false,
 )

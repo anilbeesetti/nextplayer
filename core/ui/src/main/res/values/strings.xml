@@ -365,4 +365,9 @@
         <item quantity="one">Couldn\'t move 1 video</item>
         <item quantity="other">Couldn\'t move %1$d videos</item>
     </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Moved 1 video, but couldn\'t remove the original</item>
+        <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
 </resources>

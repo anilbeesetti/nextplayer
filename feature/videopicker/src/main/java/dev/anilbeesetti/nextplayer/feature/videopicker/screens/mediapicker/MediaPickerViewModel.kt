@@ -21,6 +21,7 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.TransferEvent
 import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
 import dev.anilbeesetti.nextplayer.core.media.services.TransferProgress
+import dev.anilbeesetti.nextplayer.core.media.services.TransferResult
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
@@ -164,15 +165,7 @@ class MediaPickerViewModel @Inject constructor(
                 it.copy(
                     transferFlow = TransferFlowState.Processing(
                         mode = mode,
-                        progress = TransferProgress(
-                            currentIndex = 0,
-                            totalFiles = videoUris.size,
-                            currentName = null,
-                            currentBytesCopied = 0,
-                            currentBytesTotal = 0,
-                            overallBytesCopied = 0,
-                            overallBytesTotal = 0,
-                        ),
+                        progress = TransferProgress(totalFiles = videoUris.size),
                     ),
                 )
             }
@@ -191,13 +184,7 @@ class MediaPickerViewModel @Inject constructor(
 
                     is TransferEvent.Completed -> {
                         uiStateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
-                        eventsInternal.send(
-                            MediaPickerEvent.TransferComplete(
-                                mode = mode,
-                                succeeded = event.result.succeeded,
-                                failed = event.result.failed,
-                            ),
-                        )
+                        eventsInternal.send(MediaPickerEvent.TransferComplete(mode, event.result))
                     }
                 }
             }
@@ -356,7 +343,6 @@ sealed interface MediaPickerEvent {
     data class PlayVideos(val uris: List<Uri>) : MediaPickerEvent
     data class TransferComplete(
         val mode: TransferMode,
-        val succeeded: Int,
-        val failed: Int,
+        val result: TransferResult,
     ) : MediaPickerEvent
 }

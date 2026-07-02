@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -78,6 +79,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -93,6 +95,7 @@ import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
 import dev.anilbeesetti.nextplayer.core.media.services.TransferProgress
+import dev.anilbeesetti.nextplayer.core.media.services.TransferResult
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -146,23 +149,7 @@ fun MediaPickerRoute(
         when (event) {
             is MediaPickerEvent.PlayVideos -> onPlayVideos(event.uris)
             is MediaPickerEvent.TransferComplete -> {
-                val message = when {
-                    event.failed > 0 -> context.resources.getQuantityString(
-                        if (event.mode == TransferMode.MOVE) R.plurals.move_failed else R.plurals.copy_failed,
-                        event.failed,
-                        event.failed,
-                    )
-                    event.mode == TransferMode.MOVE -> context.resources.getQuantityString(
-                        R.plurals.moved_videos_result,
-                        event.succeeded,
-                        event.succeeded,
-                    )
-                    else -> context.resources.getQuantityString(
-                        R.plurals.copied_videos_result,
-                        event.succeeded,
-                        event.succeeded,
-                    )
-                }
+                val message = transferCompleteMessage(context, event.mode, event.result)
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }
@@ -579,23 +566,52 @@ internal fun MediaPickerScreen(
     }
 }
 
+private fun transferCompleteMessage(
+    context: Context,
+    mode: TransferMode,
+    result: TransferResult,
+): String {
+    val resources = context.resources
+    return when {
+        result.sameFolderSkipped > 0 && result.succeeded == 0 && result.failed == 0 ->
+            context.getString(R.string.cannot_move_to_same_folder)
+
+        result.failed > 0 -> resources.getQuantityString(
+            if (mode == TransferMode.MOVE) R.plurals.move_failed else R.plurals.copy_failed,
+            result.failed,
+            result.failed,
+        )
+
+        result.originalsNotDeleted -> resources.getQuantityString(
+            R.plurals.moved_videos_originals_remain,
+            result.succeeded,
+            result.succeeded,
+        )
+
+        mode == TransferMode.MOVE -> resources.getQuantityString(
+            R.plurals.moved_videos_result,
+            result.succeeded,
+            result.succeeded,
+        )
+
+        else -> resources.getQuantityString(
+            R.plurals.copied_videos_result,
+            result.succeeded,
+            result.succeeded,
+        )
+    }
+}
+
 @Composable
 private fun TransferProgressDialog(
     mode: TransferMode,
     progress: TransferProgress,
     onCancel: () -> Unit,
 ) {
-    val overallFraction by animateFloatAsState(
-        targetValue = progress.overallFraction,
-        label = "overallProgress",
-    )
-    val currentFraction = progress.currentFraction
-    val animatedCurrentFraction by animateFloatAsState(
-        targetValue = currentFraction ?: 0f,
-        label = "currentProgress",
-    )
-
-    Dialog(onDismissRequest = onCancel) {
+    Dialog(
+        onDismissRequest = onCancel,
+        properties = DialogProperties(dismissOnClickOutside = false),
+    ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -615,71 +631,19 @@ private fun TransferProgressDialog(
                     fontWeight = FontWeight.Bold,
                 )
 
-                // Current file
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = progress.currentName.orEmpty(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        if (currentFraction != null) {
-                            Text(
-                                text = "${(currentFraction * 100).roundToInt()}%",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    if (currentFraction != null) {
-                        LinearProgressIndicator(
-                            progress = { animatedCurrentFraction },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(CircleShape),
-                        )
-                    } else {
-                        LinearProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(CircleShape),
-                        )
-                    }
-                }
+                ProgressSection(
+                    label = progress.currentName.orEmpty(),
+                    fraction = progress.currentFraction,
+                )
 
-                // Overall
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(
-                                R.string.transfer_file_progress,
-                                (progress.currentIndex + 1).coerceAtMost(progress.totalFiles),
-                                progress.totalFiles,
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "${(overallFraction * 100).roundToInt()}%",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    LinearProgressIndicator(
-                        progress = { overallFraction },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(CircleShape),
+                if (progress.totalFiles > 1) {
+                    ProgressSection(
+                        label = stringResource(
+                            R.string.transfer_file_progress,
+                            progress.currentIndex + 1,
+                            progress.totalFiles,
+                        ),
+                        fraction = progress.overallFraction,
                     )
                 }
 
@@ -690,6 +654,50 @@ private fun TransferProgressDialog(
                     Text(text = stringResource(R.string.cancel))
                 }
             }
+        }
+    }
+}
+
+/**
+ * A labelled progress bar. A null [fraction] renders an indeterminate bar with no percentage.
+ */
+@Composable
+private fun ProgressSection(
+    label: String,
+    fraction: Float?,
+) {
+    val animatedFraction by animateFloatAsState(targetValue = fraction ?: 0f, label = "progress")
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            if (fraction != null) {
+                Text(
+                    text = "${(fraction * 100).roundToInt()}%",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        val barModifier = Modifier
+            .fillMaxWidth()
+            .clip(CircleShape)
+        if (fraction != null) {
+            LinearProgressIndicator(progress = { animatedFraction }, modifier = barModifier)
+        } else {
+            LinearProgressIndicator(modifier = barModifier)
         }
     }
 }
