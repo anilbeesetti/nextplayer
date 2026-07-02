@@ -339,4 +339,40 @@
     <string name="forgot_pin">Забыли PIN-код?</string>
     <string name="reset_vault_pin_confirmation">Сброс PIN-кода приведёт к безвозвратному удалению всех видео в секретной папке, так как их больше нельзя будет разблокировать. Продолжить?</string>
     <string name="reset_pin_and_delete_all">Сбросить PIN-код и удалить всё</string>
+    <string name="copy">Скопировать</string>
+    <string name="move">Переместить</string>
+    <string name="copying_videos_in_progress">Копирование…</string>
+    <string name="moving_videos_in_progress">Перемещение…</string>
+    <string name="transfer_file_progress">Файл %1$d из %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">Скопировано %1$d видео</item>
+        <item quantity="few">Скопировано %1$d видео</item>
+        <item quantity="many">Скопировано %1$d видео</item>
+        <item quantity="other">Скопировано %1$d видео</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">Перемещено 1 видео</item>
+        <item quantity="few">Перемещено %1$d видео</item>
+        <item quantity="many">Перемещено %1$d видео</item>
+        <item quantity="other">Перемещено %1$d видео</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Не удалось скопировать 1 видео</item>
+        <item quantity="few">Не удалось скопировать %1$d видео</item>
+        <item quantity="many">Не удалось скопировать %1$d видео</item>
+        <item quantity="other">Не удалось скопировать %1$d видео</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Не удалось переместить 1 видео</item>
+        <item quantity="few">Не удалось переместить %1$d видео</item>
+        <item quantity="many">Не удалось переместить %1$d видео</item>
+        <item quantity="other">Не удалось переместить %1$d видео</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Перемещено 1 видео, но не удалось удалить оригинал</item>
+        <item quantity="few">Перемещено %1$d видео, но не удалось удалить оригиналы</item>
+        <item quantity="many">Перемещено %1$d видео, но не удалось удалить оригиналы</item>
+        <item quantity="other">Перемещено %1$d видео, но не удалось удалить оригиналы</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Невозможно переместить в ту же папку</string>
 </resources>
