@@ -336,4 +336,20 @@
     <string name="date_hidden">隐藏日期</string>
     <string name="forgot_pin">忘了 PIN 码吗？</string>
     <string name="reset_pin_and_delete_all">重置 PIN 码并删除所有视频</string>
+    <string name="copy">复制</string>
+    <string name="move">移动</string>
+    <string name="copying_videos_in_progress">正在复制…</string>
+    <string name="moving_videos_in_progress">正在移动…</string>
+    <plurals name="copied_videos_result">
+        <item quantity="other">已复制 %1$d 个视频</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="other">已移动 %1$d 个视频</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="other">无法复制 %1$d 个视频</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="other">无法移动 %1$d 个视频</item>
+    </plurals>
 </resources>
