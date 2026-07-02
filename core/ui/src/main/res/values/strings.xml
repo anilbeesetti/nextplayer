@@ -18,6 +18,7 @@
     <string name="grant_permission">Grant Permission</string>
     <string name="group_videos">Group videos by folder</string>
     <string name="duration">Duration</string>
+    <string name="folder_duration">Folder duration</string>
     <string name="location">Location</string>
     <string name="menu">Menu</string>
     <string name="navigate_up">Navigate up</string>

@@ -16,6 +16,7 @@ data class ApplicationPreferences(
 
     // Fields
     val showDurationField: Boolean = true,
+    val showFolderDurationField: Boolean = true,
     val showExtensionField: Boolean = false,
     val showPathField: Boolean = true,
     val showResolutionField: Boolean = false,
