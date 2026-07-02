@@ -121,7 +121,7 @@ private fun FolderListItem(
                         .aspectRatio(20 / 17f),
                 )
 
-                if (preferences.showDurationField) {
+                if (preferences.showFolderDurationField) {
                     InfoChip(
                         text = Utils.formatDurationMillis(folder.totalDuration),
                         modifier = Modifier
@@ -231,7 +231,7 @@ private fun FolderGridItem(
                             .aspectRatio(20 / 17f),
                     )
 
-                    if (preferences.showDurationField) {
+                    if (preferences.showFolderDurationField) {
                         InfoChip(
                             text = Utils.formatDurationMillis(folder.totalDuration),
                             modifier = Modifier
