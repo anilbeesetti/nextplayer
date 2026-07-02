@@ -13,6 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -30,6 +35,19 @@ fun PreferenceSwitchWithDivider(
     isLastItem: Boolean = false,
 ) {
     PreferenceItem(
+        // On a TV the row (not the trailing switch) takes focus and center opens the dialog, so map
+        // the D-pad left/right to the toggle — otherwise the switch would be unreachable.
+        modifier = Modifier.onPreviewKeyEvent { event ->
+            if (enabled &&
+                event.type == KeyEventType.KeyDown &&
+                (event.key == Key.DirectionLeft || event.key == Key.DirectionRight)
+            ) {
+                onChecked()
+                true
+            } else {
+                false
+            }
+        },
         title = title,
         description = description,
         icon = icon,

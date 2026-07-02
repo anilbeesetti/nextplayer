@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -40,7 +41,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +61,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
@@ -85,6 +95,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
@@ -174,12 +185,61 @@ fun MediaPlayerScreen(
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
+    // Android TV / D-pad support: on a TV we drive the player with remote key events instead of
+    // touch gestures, keep a focusable root so keys arrive while controls are hidden, and move
+    // focus onto the play/pause button whenever the controls appear.
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val rootFocusRequester = remember { FocusRequester() }
+    val seekBarFocusRequester = remember { FocusRequester() }
+    val seekIncrementMs = playerPreferences.seekIncrement.seconds.inWholeMilliseconds
+
+    if (isTv) {
+        LaunchedEffect(Unit) {
+            runCatching { rootFocusRequester.requestFocus() }
+        }
+        // When the controls appear, move focus to the seek bar so the D-pad left/right scrubs the
+        // timeline. When they hide, hand focus back to the root so key events keep arriving.
+        LaunchedEffect(controlsVisibilityState.controlsVisible, controlsVisibilityState.controlsLocked, overlayView) {
+            if (overlayView != null) return@LaunchedEffect
+            if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
+                repeat(times = 5) {
+                    if (runCatching { seekBarFocusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
+                    delay(50)
+                }
+            } else {
+                runCatching { rootFocusRequester.requestFocus() }
+            }
+        }
+    }
+
     CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
         Box {
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .background(Color.Black),
+                    .background(Color.Black)
+                    .then(
+                        if (isTv) {
+                            Modifier
+                                .focusRequester(rootFocusRequester)
+                                .focusable()
+                                .onPreviewKeyEvent { keyEvent ->
+                                    if (overlayView != null) {
+                                        false
+                                    } else {
+                                        handlePlayerKeyEvent(
+                                            keyEvent = keyEvent,
+                                            player = player,
+                                            controls = controlsVisibilityState,
+                                            seekIncrementMs = seekIncrementMs,
+                                        )
+                                    }
+                                }
+                        } else {
+                            Modifier
+                        },
+                    ),
             ) {
                 PlayerContentFrame(
                     player = player,
@@ -316,6 +376,7 @@ fun MediaPlayerScreen(
                                     },
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                     isPipSupported = pictureInPictureState.isPipSupported,
+                                    seekBarModifier = if (isTv) Modifier.focusRequester(seekBarFocusRequester) else Modifier,
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onRotateClick = rotationState::rotate,
@@ -467,6 +528,87 @@ fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player) {
         PreviousButton(player = player)
         PlayPauseButton(player = player)
         NextButton(player = player)
+    }
+}
+
+/**
+ * Handles a hardware/remote key event for the player on Android TV. Returns `true` when the event
+ * was consumed. D-pad navigation keys are only consumed while the controls are hidden, so that once
+ * controls are visible the focus system can move between the on-screen buttons normally.
+ */
+@OptIn(UnstableApi::class)
+private fun handlePlayerKeyEvent(
+    keyEvent: KeyEvent,
+    player: Player,
+    controls: ControlsVisibilityState,
+    seekIncrementMs: Long,
+): Boolean {
+    if (keyEvent.type != KeyEventType.KeyDown) return false
+    if (controls.controlsLocked) {
+        controls.showControls()
+        return false
+    }
+
+    fun seekBy(deltaMs: Long) {
+        val duration = player.duration
+        val target = (player.currentPosition + deltaMs).coerceAtLeast(0)
+        player.seekTo(if (duration > 0) target.coerceAtMost(duration) else target)
+    }
+
+    fun togglePlayPause() {
+        if (player.isPlaying) player.pause() else player.play()
+    }
+
+    return when (keyEvent.key) {
+        Key.MediaPlayPause, Key.Spacebar -> { togglePlayPause(); controls.showControls(); true }
+        Key.MediaPlay -> { player.play(); controls.showControls(); true }
+        Key.MediaPause -> { player.pause(); controls.showControls(); true }
+        Key.MediaFastForward -> { seekBy(seekIncrementMs); controls.showControls(); true }
+        Key.MediaRewind -> { seekBy(-seekIncrementMs); controls.showControls(); true }
+        Key.MediaNext -> { player.seekToNext(); controls.showControls(); true }
+        Key.MediaPrevious -> { player.seekToPrevious(); controls.showControls(); true }
+        Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+            if (!controls.controlsVisible) {
+                // Quick play/pause from a bare screen, and reveal the controls.
+                togglePlayPause()
+                controls.showControls()
+                true
+            } else {
+                // Controls are up: let the focused control (button/seek bar) handle it.
+                false
+            }
+        }
+        Key.DirectionLeft -> {
+            if (!controls.controlsVisible) {
+                seekBy(-seekIncrementMs)
+                controls.showControls()
+                true
+            } else {
+                // Keep controls up; the focused seek bar scrubs, other rows navigate.
+                controls.showControls()
+                false
+            }
+        }
+        Key.DirectionRight -> {
+            if (!controls.controlsVisible) {
+                seekBy(seekIncrementMs)
+                controls.showControls()
+                true
+            } else {
+                controls.showControls()
+                false
+            }
+        }
+        Key.DirectionUp, Key.DirectionDown -> {
+            if (!controls.controlsVisible) {
+                controls.showControls()
+                true
+            } else {
+                controls.showControls()
+                false
+            }
+        }
+        else -> false
     }
 }
 

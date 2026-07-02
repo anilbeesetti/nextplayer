@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -54,12 +57,16 @@ private fun FolderPreferencesContent(
     onNavigateUp: () -> Unit,
     onEvent: (FolderPreferencesUiEvent) -> Unit,
 ) {
+    val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.manage_folders),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -83,7 +90,9 @@ private fun FolderPreferencesContent(
 
             is DataState.Success -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .tvListFocus(listFocusRequester),
                     contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                 ) {

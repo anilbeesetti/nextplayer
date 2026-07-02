@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -62,12 +65,13 @@ private fun PlayerPreferencesContent(
     onEvent: (PlayerPreferencesUiEvent) -> Unit,
     onNavigateUp: () -> Unit = {},
 ) {
+    val listFocusRequester = rememberTvListFocusRequester()
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = stringResource(id = R.string.player_name),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -82,6 +86,7 @@ private fun PlayerPreferencesContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
+                .tvListFocus(listFocusRequester)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
@@ -104,6 +109,7 @@ private fun PlayerPreferencesContent(
                     value = uiState.preferences.controllerAutoHideTimeout.toFloat(),
                     valueRange = 1.0f..60.0f,
                     onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt())) },
+                    onReset = { onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT)) },
                     isLastItem = true,
                     trailingContent = {
                         FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT)) }) {
@@ -134,6 +140,7 @@ private fun PlayerPreferencesContent(
                     value = uiState.preferences.defaultPlaybackSpeed,
                     valueRange = 0.2f..4.0f,
                     onValueChange = { onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(it)) },
+                    onReset = { onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f)) },
                     trailingContent = {
                         FilledIconButton(onClick = { onEvent(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(1f)) }) {
                             Icon(
