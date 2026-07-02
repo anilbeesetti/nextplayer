@@ -21,12 +21,18 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.updateMedia
 import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -98,25 +104,40 @@ class LocalMediaOperationsService @Inject constructor(
         }
     }
 
-    override suspend fun transferMedia(
+    override fun transferMedia(
         uris: List<Uri>,
-        treeUri: Uri,
+        folderUri: Uri,
         mode: TransferMode,
-        onProgress: (TransferProgress) -> Unit,
-    ): TransferResult = withContext(Dispatchers.IO) {
+    ): Flow<TransferEvent> = flow {
         val parentDocUri = DocumentsContract.buildDocumentUriUsingTree(
-            treeUri,
-            DocumentsContract.getTreeDocumentId(treeUri),
+            folderUri,
+            DocumentsContract.getTreeDocumentId(folderUri),
         )
 
         val total = uris.size
+        val sizes = uris.map { sizeOf(it) }
+        val overallTotal = sizes.sum()
+
         val createdPaths = mutableListOf<String>()
         val movedSources = mutableListOf<Uri>()
+        var overallCopied = 0L
         var succeeded = 0
 
         uris.forEachIndexed { index, uri ->
             val name = context.getFilenameFromUri(uri).takeIf { it.isNotBlank() }
-            onProgress(TransferProgress(completed = index, total = total, currentName = name))
+            val currentTotal = sizes[index]
+
+            fun progress(currentCopied: Long) = TransferProgress(
+                currentIndex = index,
+                totalFiles = total,
+                currentName = name,
+                currentBytesCopied = currentCopied,
+                currentBytesTotal = currentTotal,
+                overallBytesCopied = overallCopied + currentCopied,
+                overallBytesTotal = overallTotal,
+            )
+
+            emit(TransferEvent.Progress(progress(0)))
             if (name == null) return@forEachIndexed
 
             val mimeType = MimeTypeMap.getSingleton()
@@ -126,25 +147,31 @@ class LocalMediaOperationsService @Inject constructor(
                 DocumentsContract.createDocument(contentResolver, parentDocUri, mimeType, name)
             }.getOrNull() ?: return@forEachIndexed
 
-            val copied = runCatching {
+            val copied = try {
                 contentResolver.openInputStream(uri)?.use { input ->
                     contentResolver.openOutputStream(destUri)?.use { output ->
-                        input.copyTo(output)
+                        copyStream(input, output, currentTotal) { copiedBytes ->
+                            emit(TransferEvent.Progress(progress(copiedBytes)))
+                        }
                     } ?: error("Unable to open output stream for $destUri")
                 } ?: error("Unable to open input stream for $uri")
                 true
-            }.getOrDefault(false)
+            } catch (e: CancellationException) {
+                runCatching { DocumentsContract.deleteDocument(contentResolver, destUri) }
+                throw e
+            } catch (e: Exception) {
+                false
+            }
 
             if (copied) {
                 succeeded++
+                overallCopied += currentTotal
                 context.getPath(destUri)?.let { createdPaths.add(it) }
                 if (mode == TransferMode.MOVE) movedSources.add(uri)
             } else {
                 runCatching { DocumentsContract.deleteDocument(contentResolver, destUri) }
             }
         }
-
-        onProgress(TransferProgress(completed = total, total = total, currentName = null))
 
         // Register the newly created files with MediaStore so they surface in the app.
         if (createdPaths.isNotEmpty()) context.scanPaths(createdPaths)
@@ -154,7 +181,35 @@ class LocalMediaOperationsService @Inject constructor(
             deleteMedia(movedSources)
         }
 
-        TransferResult(succeeded = succeeded, failed = total - succeeded)
+        emit(TransferEvent.Completed(TransferResult(succeeded = succeeded, failed = total - succeeded)))
+    }.flowOn(Dispatchers.IO)
+
+    private fun sizeOf(uri: Uri): Long = runCatching {
+        contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize.coerceAtLeast(0) }
+    }.getOrNull() ?: 0L
+
+    private suspend fun copyStream(
+        input: InputStream,
+        output: OutputStream,
+        expectedTotal: Long,
+        onCopied: suspend (Long) -> Unit,
+    ) = withContext(Dispatchers.IO) {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        val step = maxOf(expectedTotal / 100, 64L * 1024)
+        var copied = 0L
+        var lastReported = 0L
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            output.write(buffer, 0, read)
+            copied += read
+            if (copied - lastReported >= step) {
+                onCopied(copied)
+                lastReported = copied
+            }
+        }
+        output.flush()
+        onCopied(copied)
     }
 
     @RequiresApi(Build.VERSION_CODES.R)

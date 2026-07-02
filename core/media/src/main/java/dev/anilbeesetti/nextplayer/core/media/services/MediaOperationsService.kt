@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.annotation.ChecksSdkIntAtLeast
 import java.io.File
+import kotlinx.coroutines.flow.Flow
 
 interface MediaOperationsService {
     fun initialize(activity: ComponentActivity)
@@ -13,19 +14,11 @@ interface MediaOperationsService {
     suspend fun shareMedia(uris: List<Uri>)
     suspend fun moveMedia(uris: List<Uri>, targetDir: File): Map<Uri, File?>
 
-    /**
-     * Copies (or moves, when [mode] is [TransferMode.MOVE]) the given [uris] into the
-     * user-picked SAF folder [treeUri]. Progress is reported per-file via [onProgress].
-     *
-     * On [TransferMode.MOVE], the originals are deleted once copied — on Android R+ this
-     * surfaces the system delete-confirmation dialog for files the app doesn't own.
-     */
-    suspend fun transferMedia(
+    fun transferMedia(
         uris: List<Uri>,
-        treeUri: Uri,
+        folderUri: Uri,
         mode: TransferMode,
-        onProgress: (TransferProgress) -> Unit,
-    ): TransferResult
+    ): Flow<TransferEvent>
 
     companion object {
         @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
@@ -37,14 +30,33 @@ interface MediaOperationsService {
 
 enum class TransferMode { COPY, MOVE }
 
-/** Per-file progress of a [MediaOperationsService.transferMedia] operation. */
-data class TransferProgress(
-    val completed: Int,
-    val total: Int,
-    val currentName: String?,
-)
+sealed interface TransferEvent {
+    data class Progress(val progress: TransferProgress) : TransferEvent
+    data class Completed(val result: TransferResult) : TransferEvent
+}
 
-/** Outcome of a [MediaOperationsService.transferMedia] operation. */
+data class TransferProgress(
+    val currentIndex: Int,
+    val totalFiles: Int,
+    val currentName: String?,
+    val currentBytesCopied: Long,
+    val currentBytesTotal: Long,
+    val overallBytesCopied: Long,
+    val overallBytesTotal: Long,
+) {
+    val currentFraction: Float?
+        get() = if (currentBytesTotal > 0) (currentBytesCopied.toFloat() / currentBytesTotal).coerceIn(0f, 1f) else null
+
+    val overallFraction: Float
+        get() = if (overallBytesTotal > 0) {
+            (overallBytesCopied.toFloat() / overallBytesTotal).coerceIn(0f, 1f)
+        } else if (totalFiles > 0) {
+            (currentIndex.toFloat() / totalFiles).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+}
+
 data class TransferResult(
     val succeeded: Int,
     val failed: Int,

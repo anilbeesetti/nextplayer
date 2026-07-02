@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -43,6 +44,7 @@ import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -90,6 +92,7 @@ import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
+import dev.anilbeesetti.nextplayer.core.media.services.TransferProgress
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -120,6 +123,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultPr
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -193,7 +197,6 @@ internal fun MediaPickerScreen(
     onVaultClick: () -> Unit = {},
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
-    val context = LocalContext.current
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(
         permission = storagePermission,
@@ -207,31 +210,6 @@ internal fun MediaPickerScreen(
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { it?.let { onPlayVideo(it) } },
-    )
-
-    var pendingTransferMode: TransferMode? by rememberSaveable { mutableStateOf(null) }
-    val pickDestinationFolderLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocumentTree(),
-        onResult = { treeUri ->
-            val mode = pendingTransferMode
-            pendingTransferMode = null
-            if (treeUri != null && mode != null) {
-                runCatching {
-                    context.contentResolver.takePersistableUriPermission(
-                        treeUri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                    )
-                }
-                onAction(
-                    MediaPickerAction.TransferSelectedItems(
-                        selectionItems = selectionManager.selectionItems,
-                        treeUri = treeUri,
-                        mode = mode,
-                    ),
-                )
-                selectionManager.exitSelectionMode()
-            }
-        },
     )
 
     var isFabExpanded by rememberSaveable { mutableStateOf(false) }
@@ -375,12 +353,12 @@ internal fun MediaPickerScreen(
                     onAction(MediaPickerAction.ShareSelectedItems(selectionManager.selectionItems))
                 },
                 onCopyAction = {
-                    pendingTransferMode = TransferMode.COPY
-                    pickDestinationFolderLauncher.launch(null)
+                    onAction(MediaPickerAction.CopySelectedItems(selectionManager.selectionItems))
+                    selectionManager.exitSelectionMode()
                 },
                 onMoveAction = {
-                    pendingTransferMode = TransferMode.MOVE
-                    pickDestinationFolderLauncher.launch(null)
+                    onAction(MediaPickerAction.MoveSelectedItems(selectionManager.selectionItems))
+                    selectionManager.exitSelectionMode()
                 },
                 onHideAction = {
                     onAction(MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems))
@@ -593,21 +571,114 @@ internal fun MediaPickerScreen(
     )
 
     (uiState.transferFlow as? TransferFlowState.Processing)?.let { transfer ->
-        val current = (transfer.progress.completed + 1).coerceAtMost(transfer.progress.total)
-        VaultProgressDialog(
-            message = when (transfer.mode) {
-                TransferMode.COPY -> stringResource(
-                    R.string.copying_videos_in_progress,
-                    current,
-                    transfer.progress.total,
+        TransferProgressDialog(mode = transfer.mode, progress = transfer.progress)
+    }
+}
+
+@Composable
+private fun TransferProgressDialog(
+    mode: TransferMode,
+    progress: TransferProgress,
+) {
+    val overallFraction by animateFloatAsState(
+        targetValue = progress.overallFraction,
+        label = "overallProgress",
+    )
+    val currentFraction = progress.currentFraction
+    val animatedCurrentFraction by animateFloatAsState(
+        targetValue = currentFraction ?: 0f,
+        label = "currentProgress",
+    )
+
+    Dialog(onDismissRequest = {}) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                Text(
+                    text = when (mode) {
+                        TransferMode.COPY -> stringResource(R.string.copying_videos_in_progress)
+                        TransferMode.MOVE -> stringResource(R.string.moving_videos_in_progress)
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
                 )
-                TransferMode.MOVE -> stringResource(
-                    R.string.moving_videos_in_progress,
-                    current,
-                    transfer.progress.total,
-                )
-            },
-        )
+
+                // Current file
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = progress.currentName.orEmpty(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (currentFraction != null) {
+                            Text(
+                                text = "${(currentFraction * 100).roundToInt()}%",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    if (currentFraction != null) {
+                        LinearProgressIndicator(
+                            progress = { animatedCurrentFraction },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(CircleShape),
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(CircleShape),
+                        )
+                    }
+                }
+
+                // Overall
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(
+                                R.string.transfer_file_progress,
+                                (progress.currentIndex + 1).coerceAtMost(progress.totalFiles),
+                                progress.totalFiles,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = "${(overallFraction * 100).roundToInt()}%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    LinearProgressIndicator(
+                        progress = { overallFraction },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(CircleShape),
+                    )
+                }
+            }
+        }
     }
 }
 

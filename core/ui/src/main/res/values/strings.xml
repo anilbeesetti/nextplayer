@@ -346,8 +346,9 @@
     <!-- Copy / Move -->
     <string name="copy">Copy</string>
     <string name="move">Move</string>
-    <string name="copying_videos_in_progress">Copying %1$d of %2$d…</string>
-    <string name="moving_videos_in_progress">Moving %1$d of %2$d…</string>
+    <string name="copying_videos_in_progress">Copying…</string>
+    <string name="moving_videos_in_progress">Moving…</string>
+    <string name="transfer_file_progress">File %1$d of %2$d</string>
     <plurals name="copied_videos_result">
         <item quantity="one">Copied 1 video</item>
         <item quantity="other">Copied %1$d videos</item>

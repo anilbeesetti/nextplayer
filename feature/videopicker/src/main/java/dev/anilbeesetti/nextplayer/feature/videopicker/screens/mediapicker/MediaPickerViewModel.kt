@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
+import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
@@ -17,6 +18,7 @@ import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedVideosUseCase
 import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
+import dev.anilbeesetti.nextplayer.core.media.services.TransferEvent
 import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
 import dev.anilbeesetti.nextplayer.core.media.services.TransferProgress
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
@@ -52,6 +54,7 @@ class MediaPickerViewModel @Inject constructor(
     private val mediaSynchronizer: MediaSynchronizer,
     private val vaultRepository: VaultRepository,
     private val vaultPinRepository: VaultPinRepository,
+    private val systemService: SystemService,
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
@@ -86,7 +89,8 @@ class MediaPickerViewModel @Inject constructor(
             is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
             is MediaPickerAction.ShowMediaInfo -> showMediaInfo(action.video)
             MediaPickerAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
-            is MediaPickerAction.TransferSelectedItems -> transferSelectedItems(action.selectionItems, action.treeUri, action.mode)
+            is MediaPickerAction.CopySelectedItems -> transferSelectedItems(action.selectionItems, TransferMode.COPY)
+            is MediaPickerAction.MoveSelectedItems -> transferSelectedItems(action.selectionItems, TransferMode.MOVE)
             is MediaPickerAction.RequestHideSelectedItems -> requestHideSelectedItems(action.selectionItems)
             is MediaPickerAction.SetVaultPinAndHide -> setVaultPinAndHide(action.pin)
             MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
@@ -148,8 +152,9 @@ class MediaPickerViewModel @Inject constructor(
         }
     }
 
-    private fun transferSelectedItems(selectedItems: Set<SelectionItem>, treeUri: Uri, mode: TransferMode) {
+    private fun transferSelectedItems(selectedItems: Set<SelectionItem>, mode: TransferMode) {
         viewModelScope.launch {
+            val treeUri = systemService.pickFolder() ?: return@launch
             val videoUris = selectedItems.toVideoUris()
             if (videoUris.isEmpty()) return@launch
 
@@ -157,32 +162,43 @@ class MediaPickerViewModel @Inject constructor(
                 it.copy(
                     transferFlow = TransferFlowState.Processing(
                         mode = mode,
-                        progress = TransferProgress(completed = 0, total = videoUris.size, currentName = null),
+                        progress = TransferProgress(
+                            currentIndex = 0,
+                            totalFiles = videoUris.size,
+                            currentName = null,
+                            currentBytesCopied = 0,
+                            currentBytesTotal = 0,
+                            overallBytesCopied = 0,
+                            overallBytesTotal = 0,
+                        ),
                     ),
                 )
             }
 
-            val result = mediaOperationsService.transferMedia(
+            mediaOperationsService.transferMedia(
                 uris = videoUris,
-                treeUri = treeUri,
+                folderUri = treeUri,
                 mode = mode,
-                onProgress = { progress ->
-                    uiStateInternal.update {
+            ).collect { event ->
+                when (event) {
+                    is TransferEvent.Progress -> uiStateInternal.update {
                         (it.transferFlow as? TransferFlowState.Processing)?.let { state ->
-                            it.copy(transferFlow = state.copy(progress = progress))
+                            it.copy(transferFlow = state.copy(progress = event.progress))
                         } ?: it
                     }
-                },
-            )
 
-            uiStateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
-            eventsInternal.send(
-                MediaPickerEvent.TransferComplete(
-                    mode = mode,
-                    succeeded = result.succeeded,
-                    failed = result.failed,
-                ),
-            )
+                    is TransferEvent.Completed -> {
+                        uiStateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
+                        eventsInternal.send(
+                            MediaPickerEvent.TransferComplete(
+                                mode = mode,
+                                succeeded = event.result.succeeded,
+                                failed = event.result.failed,
+                            ),
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -317,11 +333,8 @@ sealed interface MediaPickerAction {
     data class PlaySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class DeleteSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class ShareSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
-    data class TransferSelectedItems(
-        val selectionItems: Set<SelectionItem>,
-        val treeUri: Uri,
-        val mode: TransferMode,
-    ) : MediaPickerAction
+    data class CopySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class MoveSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class ShowMediaInfo(val video: Video): MediaPickerAction
     data object DismissMediaInfo : MediaPickerAction
     data class RequestHideSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
