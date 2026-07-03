@@ -33,11 +33,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun BoxScope.OverlayView(
@@ -47,6 +50,8 @@ fun BoxScope.OverlayView(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
     val layoutDirection = LocalLayoutDirection.current
     val endPadding = WindowInsets.safeDrawing
         .asPaddingValues()
@@ -54,10 +59,10 @@ fun BoxScope.OverlayView(
 
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(show) {
-        if (show) {
+        if (show && isTv) {
             repeat(times = 5) {
                 if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-                delay(50)
+                delay(50.milliseconds)
             }
         }
     }
