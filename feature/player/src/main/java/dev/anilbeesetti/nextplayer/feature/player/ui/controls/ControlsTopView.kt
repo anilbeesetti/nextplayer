@@ -39,11 +39,14 @@ fun ControlsTopView(
     onBackClick: () -> Unit,
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
+    // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
+    val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
     Row(
         modifier = modifier
             .padding(systemBarsPadding.copy(bottom = 0.dp))
             .padding(horizontal = 8.dp)
-            .padding(bottom = 16.dp),
+            .padding(bottom = 16.dp)
+            .padding(top = extraTopPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {

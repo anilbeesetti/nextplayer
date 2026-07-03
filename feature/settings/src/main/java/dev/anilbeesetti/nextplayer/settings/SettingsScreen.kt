@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.settings
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,18 +15,28 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -33,7 +44,21 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit,
     onItemClick: (Setting) -> Unit,
 ) {
-    val listFocusRequester = rememberTvListFocusRequester()
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val settingRows = remember { SettingRow.entries }
+
+    // Remember which row was focused so returning from a sub-screen restores focus to it instead
+    // of jumping back to the first item. Survives navigation because it is saveable.
+    var focusedIndex by rememberSaveable { mutableIntStateOf(0) }
+    val itemFocusRequester = remember { FocusRequester() }
+
+    if (isTv) {
+        LaunchedEffect(Unit) {
+            itemFocusRequester.requestFocusUntilLanded()
+        }
+    }
+
     Scaffold(
         topBar = {
             NextTopAppBar(
@@ -41,7 +66,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                        modifier = Modifier.tvFocusDown(itemFocusRequester),
                     ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
@@ -53,19 +78,22 @@ fun SettingsScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
-        val settingRows = remember { SettingRow.entries }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .tvListFocus(listFocusRequester)
+                .thenIf(isTv) { focusGroup() }
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp),
+                .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
             settingRows.forEachIndexed { index, row ->
                 ClickablePreferenceItem(
+                    modifier = Modifier.thenIf(isTv) {
+                        thenIf(index == focusedIndex) { focusRequester(itemFocusRequester) }
+                            .onFocusChanged { if (it.isFocused) focusedIndex = index }
+                    },
                     title = stringResource(id = row.titleResId),
                     description = stringResource(id = row.descriptionResId),
                     icon = row.icon,

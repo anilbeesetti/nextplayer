@@ -20,12 +20,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 
 /**
@@ -82,6 +93,18 @@ fun PinKeypad(
     onBackspace: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val firstKeyFocusRequester = remember { FocusRequester() }
+    var isFirstKeyFocused by remember { mutableStateOf(false) }
+
+    // On a TV, focus the first key when the pad appears so it's usable with a D-pad immediately.
+    if (isTv) {
+        LaunchedEffect(Unit) {
+            firstKeyFocusRequester.requestFocusUntilLanded(attempts = 20) { isFirstKeyFocused }
+        }
+    }
+
     val rows = listOf(
         listOf('1', '2', '3'),
         listOf('4', '5', '6'),
@@ -91,14 +114,20 @@ fun PinKeypad(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        rows.forEach { row ->
+        rows.forEachIndexed { rowIndex, row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                row.forEach { digit ->
+                row.forEachIndexed { colIndex, digit ->
                     PinKey(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .thenIf(rowIndex == 0 && colIndex == 0) {
+                                focusRequester(firstKeyFocusRequester)
+                                    .onFocusChanged { isFirstKeyFocused = it.hasFocus }
+                            },
+                        isTv = isTv,
                         label = digit.toString(),
                         onClick = { onDigit(digit) },
                     )
@@ -112,11 +141,13 @@ fun PinKeypad(
             Spacer(modifier = Modifier.weight(1f))
             PinKey(
                 modifier = Modifier.weight(1f),
+                isTv = isTv,
                 label = "0",
                 onClick = { onDigit('0') },
             )
             PinKeyIcon(
                 modifier = Modifier.weight(1f),
+                isTv = isTv,
                 onClick = onBackspace,
             )
         }
@@ -126,12 +157,14 @@ fun PinKeypad(
 @Composable
 private fun PinKey(
     modifier: Modifier = Modifier,
+    isTv: Boolean = false,
     label: String,
     onClick: () -> Unit,
 ) {
     Column(
         modifier = modifier
             .aspectRatio(1.4f)
+            .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick),
@@ -150,11 +183,13 @@ private fun PinKey(
 @Composable
 private fun PinKeyIcon(
     modifier: Modifier = Modifier,
+    isTv: Boolean = false,
     onClick: () -> Unit,
 ) {
     Column(
         modifier = modifier
             .aspectRatio(1.4f)
+            .tvFocusRing(isTv, shape = MaterialTheme.shapes.large)
             .clip(MaterialTheme.shapes.large)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,

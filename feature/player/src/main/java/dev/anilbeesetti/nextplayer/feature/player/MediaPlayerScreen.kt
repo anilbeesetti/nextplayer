@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -36,13 +37,18 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -65,6 +71,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
@@ -84,6 +92,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
+import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
@@ -94,8 +103,10 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
@@ -188,24 +199,44 @@ fun MediaPlayerScreen(
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
+    val playPauseFocusRequester = remember { FocusRequester() }
     val seekBarFocusRequester = remember { FocusRequester() }
+    val unlockFocusRequester = remember { FocusRequester() }
+    var isPlayPauseFocused by remember { mutableStateOf(false) }
+    var isUnlockFocused by remember { mutableStateOf(false) }
     val seekIncrementMs = playerPreferences.seekIncrement.seconds.inWholeMilliseconds
 
     if (isTv) {
-        LaunchedEffect(Unit) {
-            runCatching { rootFocusRequester.requestFocus() }
-        }
         LaunchedEffect(controlsVisibilityState.controlsVisible, controlsVisibilityState.controlsLocked, overlayView) {
             if (overlayView != null) return@LaunchedEffect
-            if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
-                repeat(times = 5) {
-                    if (runCatching { seekBarFocusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-                    delay(50)
-                }
-            } else {
+            if (!controlsVisibilityState.controlsVisible) {
                 runCatching { rootFocusRequester.requestFocus() }
+                return@LaunchedEffect
             }
+            val locked = controlsVisibilityState.controlsLocked
+            val target = if (locked) unlockFocusRequester else playPauseFocusRequester
+            target.requestFocusUntilLanded(attempts = 20) { if (locked) isUnlockFocused else isPlayPauseFocused }
         }
+    }
+
+    // D-pad seeking (controls hidden): accumulate the skipped amount and briefly show it.
+    var dpadSeekOffsetMs by remember { mutableLongStateOf(0L) }
+    var dpadSeekTargetMs by remember { mutableLongStateOf(0L) }
+    var dpadSeekActive by remember { mutableStateOf(false) }
+    var dpadSeekTick by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(dpadSeekTick) {
+        if (!dpadSeekActive) return@LaunchedEffect
+        delay(1.seconds)
+        dpadSeekActive = false
+    }
+
+    val showDpadSeekFeedback: (Long) -> Unit = { deltaMs ->
+        if (!dpadSeekActive) dpadSeekOffsetMs = 0L
+        dpadSeekOffsetMs += deltaMs
+        dpadSeekTargetMs = player.currentPosition
+        dpadSeekActive = true
+        dpadSeekTick++
     }
 
     CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
@@ -228,6 +259,8 @@ fun MediaPlayerScreen(
                                             player = player,
                                             controls = controlsVisibilityState,
                                             seekIncrementMs = seekIncrementMs,
+                                            isPlayPauseFocused = isPlayPauseFocused,
+                                            onDpadSeek = showDpadSeekFeedback,
                                         )
                                     }
                                 }
@@ -276,6 +309,12 @@ fun MediaPlayerScreen(
 
                 DoubleTapIndicator(tapGestureState = tapGestureState)
 
+                DpadSeekIndicator(
+                    visible = dpadSeekActive && dpadSeekOffsetMs != 0L,
+                    offsetMs = dpadSeekOffsetMs,
+                    positionMs = dpadSeekTargetMs,
+                )
+
                 AnimatedVisibility(
                     modifier = Modifier
                         .padding(top = 24.dp)
@@ -307,6 +346,10 @@ fun MediaPlayerScreen(
                             .padding(top = 24.dp),
                     ) {
                         PlayerButton(
+                            modifier = Modifier.thenIf(isTv) {
+                                focusRequester(unlockFocusRequester)
+                                    .onFocusChanged { isUnlockFocused = it.hasFocus }
+                            },
                             containerColor = Color.Black.copy(0.5f),
                             onClick = { controlsVisibilityState.unlockControls() }
                         ) {
@@ -351,7 +394,13 @@ fun MediaPlayerScreen(
                                 seekGestureState.seekAmount != null -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
                                 videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
                                 videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()))
-                                controlsVisibilityState.controlsVisible -> ControlsMiddleView(player = player)
+                                controlsVisibilityState.controlsVisible -> ControlsMiddleView(
+                                    player = player,
+                                    playPauseModifier = Modifier.thenIf(isTv) {
+                                        focusRequester(playPauseFocusRequester)
+                                            .onFocusChanged { isPlayPauseFocused = it.hasFocus }
+                                    },
+                                )
                                 else -> Unit
                             }
                         },
@@ -371,7 +420,10 @@ fun MediaPlayerScreen(
                                     },
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                     isPipSupported = pictureInPictureState.isPipSupported,
-                                    seekBarModifier = if (isTv) Modifier.focusRequester(seekBarFocusRequester) else Modifier,
+                                    seekBarModifier = Modifier.thenIf(isTv) {
+                                        focusRequester(seekBarFocusRequester)
+                                            .focusProperties { up = playPauseFocusRequester }
+                                    },
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onRotateClick = rotationState::rotate,
@@ -513,15 +565,70 @@ fun InfoView(
     }
 }
 
+/**
+ * Shows the cumulative amount skipped by repeated D-pad left/right seeks while the controls are
+ * hidden, along with the resulting position. Fades out shortly after the last seek.
+ */
 @Composable
-fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player) {
+fun BoxScope.DpadSeekIndicator(
+    visible: Boolean,
+    offsetMs: Long,
+    positionMs: Long,
+) {
+    AnimatedVisibility(
+        modifier = Modifier.align(Alignment.Center),
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Black.copy(alpha = 0.6f),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_fast),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .rotate(if (offsetMs < 0) 180f else 0f),
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "${if (offsetMs >= 0) "+" else "-"}${abs(offsetMs).milliseconds.inWholeSeconds}s",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = positionMs.milliseconds.formatted(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ControlsMiddleView(
+    modifier: Modifier = Modifier,
+    player: Player,
+    playPauseModifier: Modifier = Modifier,
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PreviousButton(player = player)
-        PlayPauseButton(player = player)
+        PlayPauseButton(player = player, modifier = playPauseModifier)
         NextButton(player = player)
     }
 }
@@ -532,11 +639,21 @@ private fun handlePlayerKeyEvent(
     player: Player,
     controls: ControlsVisibilityState,
     seekIncrementMs: Long,
+    isPlayPauseFocused: Boolean,
+    onDpadSeek: (deltaMs: Long) -> Unit,
 ): Boolean {
     if (keyEvent.type != KeyEventType.KeyDown) return false
     if (controls.controlsLocked) {
-        controls.showControls()
-        return false
+        return when (keyEvent.key) {
+            Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                if (controls.controlsVisible) controls.unlockControls() else controls.showControls()
+                true
+            }
+            else -> {
+                controls.showControls()
+                false
+            }
+        }
     }
 
     fun seekBy(deltaMs: Long) {
@@ -558,18 +675,23 @@ private fun handlePlayerKeyEvent(
         Key.MediaNext -> { player.seekToNext(); controls.showControls(); true }
         Key.MediaPrevious -> { player.seekToPrevious(); controls.showControls(); true }
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-            if (!controls.controlsVisible) {
-                togglePlayPause()
-                controls.showControls()
-                true
-            } else {
-                false
+            when {
+                !controls.controlsVisible -> {
+                    controls.showControls()
+                    true
+                }
+                isPlayPauseFocused -> {
+                    togglePlayPause()
+                    controls.showControls()
+                    true
+                }
+                else -> false
             }
         }
         Key.DirectionLeft -> {
             if (!controls.controlsVisible) {
                 seekBy(-seekIncrementMs)
-                controls.showControls()
+                onDpadSeek(-seekIncrementMs)
                 true
             } else {
                 controls.showControls()
@@ -579,7 +701,7 @@ private fun handlePlayerKeyEvent(
         Key.DirectionRight -> {
             if (!controls.controlsVisible) {
                 seekBy(seekIncrementMs)
-                controls.showControls()
+                onDpadSeek(seekIncrementMs)
                 true
             } else {
                 controls.showControls()

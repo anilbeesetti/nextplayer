@@ -32,6 +32,7 @@ kotlin {
 dependencies {
 
     implementation(project(":core:model"))
+    implementation(project(":core:common"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

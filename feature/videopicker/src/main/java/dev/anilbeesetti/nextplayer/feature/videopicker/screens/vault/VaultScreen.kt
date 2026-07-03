@@ -25,9 +25,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +47,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +56,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -64,6 +70,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Sort
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -71,6 +78,10 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
@@ -183,7 +194,10 @@ private fun VaultPinScreen(
             NextTopAppBar(
                 title = "",
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.tvFocusRing(),
+                    ) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(id = R.string.navigate_up),
@@ -221,13 +235,89 @@ private fun PinEntryContent(
     // showError is true whenever there has been at least one error, resets when pinErrorCount resets to 0
     var showError by rememberSaveable(pinErrorCount) { mutableStateOf(pinErrorCount > 0) }
 
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+
+    val onDigit: (Char) -> Unit = { digit ->
+        if (pin.length < VAULT_PIN_LENGTH) {
+            showError = false
+            pin += digit
+            if (pin.length == VAULT_PIN_LENGTH) {
+                onSubmit(pin)
+            }
+        }
+    }
+    val onBackspace: () -> Unit = {
+        if (pin.isNotEmpty()) pin = pin.dropLast(1)
+    }
+
+    if (isTv) {
+        // Landscape two-pane layout: the info sits on the left, the keypad (kept at a comfortable
+        // width so the keys don't stretch across the screen) on the right.
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 48.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            PinEntryHeader(
+                modifier = Modifier.weight(1f),
+                icon = icon,
+                title = title,
+                description = description,
+                filledCount = pin.length,
+                showError = showError,
+                errorMessage = errorMessage,
+            )
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                PinKeypad(
+                    modifier = Modifier.widthIn(max = 360.dp),
+                    onDigit = onDigit,
+                    onBackspace = onBackspace,
+                )
+            }
+        }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(modifier = Modifier.size(16.dp))
+            PinEntryHeader(
+                icon = icon,
+                title = title,
+                description = description,
+                filledCount = pin.length,
+                showError = showError,
+                errorMessage = errorMessage,
+            )
+            Spacer(modifier = Modifier.size(32.dp))
+            PinKeypad(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                onDigit = onDigit,
+                onBackspace = onBackspace,
+            )
+            Spacer(modifier = Modifier.size(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun PinEntryHeader(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    filledCount: Int,
+    showError: Boolean,
+    errorMessage: String,
+    modifier: Modifier = Modifier,
+) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.size(16.dp))
         Box(
             modifier = Modifier
                 .clip(MaterialTheme.shapes.large)
@@ -257,7 +347,7 @@ private fun PinEntryContent(
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.size(32.dp))
-        PinDotsIndicator(filledCount = pin.length, error = showError)
+        PinDotsIndicator(filledCount = filledCount, error = showError)
         Spacer(modifier = Modifier.size(8.dp))
         if (showError && errorMessage.isNotEmpty()) {
             Text(
@@ -267,23 +357,6 @@ private fun PinEntryContent(
                 textAlign = TextAlign.Center,
             )
         }
-        Spacer(modifier = Modifier.size(32.dp))
-        PinKeypad(
-            modifier = Modifier.padding(horizontal = 24.dp),
-            onDigit = { digit ->
-                if (pin.length < VAULT_PIN_LENGTH) {
-                    showError = false
-                    pin += digit
-                    if (pin.length == VAULT_PIN_LENGTH) {
-                        onSubmit(pin)
-                    }
-                }
-            },
-            onBackspace = {
-                if (pin.isNotEmpty()) pin = pin.dropLast(1)
-            },
-        )
-        Spacer(modifier = Modifier.size(16.dp))
     }
 }
 
@@ -310,6 +383,12 @@ private fun VaultGalleryScreen(
     onAction: (VaultAction) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val firstActionFocusRequester = remember { FocusRequester() }
+    val firstItemRequester = remember { FocusRequester() }
+    val restoreRequester = remember { FocusRequester() }
+    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
     val selectionManager = rememberSelectionManager()
     var showSortMenu by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
@@ -317,6 +396,17 @@ private fun VaultGalleryScreen(
 
     val selectedCount = selectionManager.selectionItems.size
     val totalCount = uiState.hiddenVideos.size
+
+    var hasRequestedInitialFocus by remember { mutableStateOf(false) }
+    if (isTv) {
+        LaunchedEffect(uiState.hiddenVideos.size) {
+            if (hasRequestedInitialFocus || uiState.hiddenVideos.isEmpty()) return@LaunchedEffect
+            val hasRestore = restoredFocusKey != null && uiState.hiddenVideos.any { it.uriString == restoredFocusKey }
+            // Prefer restoring the previously focused item; fall back to the first item.
+            val targets = if (hasRestore) listOf(restoreRequester, firstItemRequester) else listOf(firstItemRequester)
+            hasRequestedInitialFocus = targets.any { it.requestFocusUntilLanded() }
+        }
+    }
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
@@ -356,7 +446,10 @@ private fun VaultGalleryScreen(
                             )
                         }
                     } else {
-                        FilledTonalIconButton(onClick = onNavigateUp) {
+                        FilledTonalIconButton(
+                            onClick = onNavigateUp,
+                            modifier = Modifier.tvFocusRing(),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.ArrowBack,
                                 contentDescription = stringResource(id = R.string.navigate_up),
@@ -374,6 +467,7 @@ private fun VaultGalleryScreen(
                                     selectionManager.clearSelection()
                                 }
                             },
+                            modifier = Modifier.tvFocusRing(),
                         ) {
                             Icon(
                                 imageVector = if (selectedCount != totalCount) NextIcons.SelectAll else NextIcons.DeselectAll,
@@ -385,7 +479,10 @@ private fun VaultGalleryScreen(
                             )
                         }
                     } else {
-                        IconButton(onClick = { showSortMenu = true }) {
+                        IconButton(
+                            onClick = { showSortMenu = true },
+                            modifier = Modifier.tvFocusRing(),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.Sensitivity,
                                 contentDescription = stringResource(R.string.sort_by),
@@ -398,6 +495,7 @@ private fun VaultGalleryScreen(
         bottomBar = {
             VaultSelectionActionsSheet(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
+                firstActionFocusRequester = firstActionFocusRequester,
                 onPlayAction = {
                     onAction(VaultAction.PlaySelected(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
@@ -453,13 +551,29 @@ private fun VaultGalleryScreen(
                             bottom = updatedPadding.calculateBottomPadding() + 8.dp,
                         ),
                     ) {
-                        items(
+                        itemsIndexed(
                             items = uiState.hiddenVideos,
-                            key = { it.uriString },
-                        ) { video ->
+                            key = { _, video -> video.uriString },
+                        ) { index, video ->
                             val selected = selectionManager.isVideoSelected(video)
                             VideoItem(
-                                modifier = Modifier.padding(2.dp),
+                                modifier = Modifier
+                                    .padding(2.dp)
+                                    .thenIf(isTv && index == 0) { focusRequester(firstItemRequester) }
+                                    // Down from the last item reaches the selection action bar.
+                                    .thenIf(
+                                        isTv && selectionManager.isInSelectionMode &&
+                                            index == uiState.hiddenVideos.lastIndex,
+                                    ) {
+                                        focusProperties { down = firstActionFocusRequester }
+                                    }
+                                    .restorableFocusItem(
+                                        isTv = isTv,
+                                        key = video.uriString,
+                                        restoredKey = restoredFocusKey,
+                                        restoreRequester = restoreRequester,
+                                        onFocused = { restoredFocusKey = it },
+                                    ),
                                 video = video,
                                 isRecentlyPlayedVideo = false,
                                 preferences = uiState.preferences,
@@ -665,12 +779,16 @@ private fun VaultSortDialog(
 private fun VaultSelectionActionsSheet(
     modifier: Modifier = Modifier,
     show: Boolean,
+    firstActionFocusRequester: FocusRequester,
     onPlayAction: () -> Unit,
     onInfoAction: () -> Unit,
     showInfoAction: Boolean,
     onUnhideAction: () -> Unit,
     onDeleteAction: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+
     AnimatedVisibility(
         modifier = modifier.padding(
             start = WindowInsets.displayCutout.asPaddingValues()
@@ -704,23 +822,28 @@ private fun VaultSelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 VaultSelectionAction(
+                    modifier = Modifier.focusRequester(firstActionFocusRequester),
+                    isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
                     onClick = onPlayAction,
                 )
                 if (showInfoAction) {
                     VaultSelectionAction(
+                        isTv = isTv,
                         imageVector = NextIcons.Info,
                         title = stringResource(R.string.info),
                         onClick = onInfoAction,
                     )
                 }
                 VaultSelectionAction(
+                    isTv = isTv,
                     imageVector = NextIcons.Lock,
                     title = stringResource(R.string.unhide),
                     onClick = onUnhideAction,
                 )
                 VaultSelectionAction(
+                    isTv = isTv,
                     imageVector = NextIcons.Delete,
                     title = stringResource(R.string.delete),
                     onClick = onDeleteAction,
@@ -735,13 +858,16 @@ private fun VaultSelectionAction(
     imageVector: ImageVector,
     title: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isTv: Boolean = false,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .defaultMinSize(
                 minWidth = 75.dp,
                 minHeight = 64.dp,
             )
+            .tvFocusRing(isTv, shape = RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(

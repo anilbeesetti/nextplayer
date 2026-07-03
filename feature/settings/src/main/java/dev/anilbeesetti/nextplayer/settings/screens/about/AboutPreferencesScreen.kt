@@ -107,7 +107,8 @@ fun AboutPreferencesScreen(
                 .verticalScroll(rememberScrollState())
                 .tvListFocus(listFocusRequester)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(vertical = 16.dp),
         ) {
             AboutApp(
                 onGithubClick = {

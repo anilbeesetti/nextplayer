@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -16,7 +17,7 @@ fun DoneButton(
     TextButton(
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
     ) {
         Text(text = stringResource(R.string.done))
     }
@@ -31,7 +32,7 @@ fun CancelButton(
     TextButton(
         enabled = enabled,
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
     ) {
         Text(text = stringResource(R.string.cancel))
     }

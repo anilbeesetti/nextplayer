@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -66,6 +67,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -108,6 +112,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
@@ -187,6 +193,20 @@ internal fun MediaPickerScreen(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val firstItemFocusRequester = remember { FocusRequester() }
+    val lastItemFocusRequester = remember { FocusRequester() }
+    val fabFocusRequester = remember { FocusRequester() }
+    val firstActionFocusRequester = remember { FocusRequester() }
+    var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val hasMedia = (uiState.mediaDataState as? DataState.Success)?.value
+        ?.let { it.folders.isNotEmpty() || it.videos.isNotEmpty() } == true
+
+    // On TV, pressing down from any top-bar button lands on the first list item.
+    val topBarDownModifier = if (isTv && hasMedia) {
+        Modifier.focusProperties { down = firstItemFocusRequester }
+    } else {
+        Modifier
+    }
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(
         permission = storagePermission,
@@ -258,7 +278,10 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else if (uiState.folderName != null) {
-                        FilledTonalIconButton(onClick = onNavigateUp) {
+                        FilledTonalIconButton(
+                            onClick = onNavigateUp,
+                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.ArrowBack,
                                 contentDescription = stringResource(id = R.string.navigate_up),
@@ -279,6 +302,7 @@ internal fun MediaPickerScreen(
                                     selectionManager.clearSelection()
                                 }
                             },
+                            modifier = topBarDownModifier.tvFocusRing(isTv),
                         ) {
                             Icon(
                                 imageVector = if (selectedItemsSize != totalItemsSize) {
@@ -294,19 +318,28 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else {
-                        IconButton(onClick = onSearchClick) {
+                        IconButton(
+                            onClick = onSearchClick,
+                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.Search,
                                 contentDescription = stringResource(id = R.string.search),
                             )
                         }
-                        IconButton(onClick = { showQuickSettingsDialog = true }) {
+                        IconButton(
+                            onClick = { showQuickSettingsDialog = true },
+                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.DashBoard,
                                 contentDescription = stringResource(id = R.string.menu),
                             )
                         }
-                        IconButton(onClick = onSettingsClick) {
+                        IconButton(
+                            onClick = onSettingsClick,
+                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.Settings,
                                 contentDescription = stringResource(id = R.string.settings),
@@ -319,6 +352,8 @@ internal fun MediaPickerScreen(
         bottomBar = {
             SelectionActionsSheet(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
+                firstActionFocusRequester = firstActionFocusRequester,
+                lastItemFocusRequester = lastItemFocusRequester,
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
                 showHideAction = selectionManager.selectionItems.isNotEmpty(),
@@ -373,6 +408,21 @@ internal fun MediaPickerScreen(
                     ToggleFloatingActionButton(
                         checked = isFabExpanded,
                         onCheckedChange = { isFabExpanded = !isFabExpanded },
+                        modifier = Modifier
+                            // Match the ring to the FAB's own shape: a 16.dp rounded square while
+                            // collapsed, morphing to a circle once expanded.
+                            .tvFocusRing(
+                                isTv = isTv,
+                                shape = if (isFabExpanded) CircleShape else RoundedCornerShape(16.dp),
+                            )
+                            .thenIf(isTv && hasMedia) {
+                                // Redirect up to the list only while collapsed; when expanded, up must
+                                // reach the menu options above the button.
+                                focusRequester(fabFocusRequester)
+                                    .thenIf(!isFabExpanded) {
+                                        focusProperties { up = lastItemFocusRequester }
+                                    }
+                            },
                     ) {
                         val icon by remember {
                             derivedStateOf {
@@ -388,6 +438,12 @@ internal fun MediaPickerScreen(
                 },
             ) {
                 FloatingActionButtonMenuItem(
+                    // Top-most menu item: up exits the menu back to the last media item.
+                    modifier = Modifier
+                        .tvFocusRing(isTv)
+                        .thenIf(isTv && hasMedia) {
+                            focusProperties { up = lastItemFocusRequester }
+                        },
                     onClick = {
                         isFabExpanded = false
                         showUrlDialog = true
@@ -403,6 +459,7 @@ internal fun MediaPickerScreen(
                     },
                 )
                 FloatingActionButtonMenuItem(
+                    modifier = Modifier.tvFocusRing(isTv),
                     onClick = {
                         isFabExpanded = false
                         selectVideoFileLauncher.launch("video/*")
@@ -419,6 +476,7 @@ internal fun MediaPickerScreen(
                 )
                 if (uiState.recentlyPlayedVideo != null) {
                     FloatingActionButtonMenuItem(
+                        modifier = Modifier.tvFocusRing(isTv),
                         onClick = {
                             isFabExpanded = false
                             onPlayVideo(uiState.recentlyPlayedVideo.uriString.toUri())
@@ -477,6 +535,17 @@ internal fun MediaPickerScreen(
                             onVideoClick = { onPlayVideo(it) },
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
+                            firstItemFocusRequester = if (isTv) firstItemFocusRequester else null,
+                            lastItemFocusRequester = if (isTv) lastItemFocusRequester else null,
+                            restoredFocusKey = restoredFocusKey,
+                            onItemFocused = { restoredFocusKey = it },
+                            // Down from the last item goes to the FAB normally, or to the selection
+                            // action bar while selecting (the FAB is hidden then).
+                            lastItemDownFocusRequester = when {
+                                !isTv -> null
+                                selectionManager.isInSelectionMode -> firstActionFocusRequester
+                                else -> fabFocusRequester
+                            },
                             contentPadding = updatedScaffoldPadding,
                         )
                     }
@@ -837,97 +906,152 @@ private fun SetupVaultPinDialog(
     val isConfirmStep = firstPin != null
     val showError = errorCount > 0
 
-    Dialog(onDismissRequest = onDismiss) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+
+    val onDigit: (Char) -> Unit = { digit ->
+        if (currentPin.length < VAULT_PIN_LENGTH) {
+            currentPin += digit
+            if (currentPin.length == VAULT_PIN_LENGTH) {
+                val pinJustEntered = currentPin
+                if (!isConfirmStep) {
+                    firstPin = pinJustEntered
+                    currentPin = ""
+                    errorCount = 0
+                } else if (pinJustEntered == firstPin) {
+                    onPinConfirmed(pinJustEntered)
+                } else {
+                    errorCount++
+                    currentPin = ""
+                }
+            }
+        }
+    }
+    val onBackspace: () -> Unit = {
+        if (currentPin.isNotEmpty()) currentPin = currentPin.dropLast(1)
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = !isTv),
+    ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = if (isTv) Modifier.fillMaxWidth(0.72f) else Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainer,
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                // Lock icon — matches the vault PIN screen's icon box
-                Box(
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.large)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center,
+            if (isTv) {
+                // Landscape TV: info on the left, keypad on the right so it fits a short screen.
+                Row(
+                    modifier = Modifier.padding(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = NextIcons.Lock,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp),
+                    SetupPinHeader(
+                        modifier = Modifier.weight(1f),
+                        isConfirmStep = isConfirmStep,
+                        filledCount = currentPin.length,
+                        showError = showError,
                     )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        PinKeypad(
+                            modifier = Modifier.widthIn(max = 300.dp),
+                            onDigit = onDigit,
+                            onBackspace = onBackspace,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        CancelButton(onClick = onDismiss)
+                    }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text = if (isConfirmStep) {
-                        stringResource(R.string.confirm_vault_pin)
-                    } else {
-                        stringResource(R.string.set_vault_pin)
-                    },
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (isConfirmStep) {
-                        stringResource(R.string.confirm_vault_pin_description)
-                    } else {
-                        stringResource(R.string.set_vault_pin_description)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                PinDotsIndicator(
-                    filledCount = currentPin.length,
-                    error = showError,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                if (showError) {
-                    Text(
-                        text = stringResource(R.string.pins_do_not_match),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 28.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    SetupPinHeader(
+                        isConfirmStep = isConfirmStep,
+                        filledCount = currentPin.length,
+                        showError = showError,
                     )
+                    Spacer(modifier = Modifier.height(32.dp))
+                    PinKeypad(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        onDigit = onDigit,
+                        onBackspace = onBackspace,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    CancelButton(onClick = onDismiss)
                 }
-                Spacer(modifier = Modifier.height(32.dp))
-                PinKeypad(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    onDigit = { digit ->
-                        if (currentPin.length < VAULT_PIN_LENGTH) {
-                            currentPin += digit
-                            if (currentPin.length == VAULT_PIN_LENGTH) {
-                                val pinJustEntered = currentPin
-                                if (!isConfirmStep) {
-                                    firstPin = pinJustEntered
-                                    currentPin = ""
-                                    errorCount = 0
-                                } else if (pinJustEntered == firstPin) {
-                                    onPinConfirmed(pinJustEntered)
-                                } else {
-                                    errorCount++
-                                    currentPin = ""
-                                }
-                            }
-                        }
-                    },
-                    onBackspace = {
-                        if (currentPin.isNotEmpty()) currentPin = currentPin.dropLast(1)
-                    },
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                CancelButton(onClick = onDismiss)
             }
+        }
+    }
+}
+
+@Composable
+private fun SetupPinHeader(
+    isConfirmStep: Boolean,
+    filledCount: Int,
+    showError: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // Lock icon — matches the vault PIN screen's icon box
+        Box(
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .padding(20.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = NextIcons.Lock,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp),
+            )
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = if (isConfirmStep) {
+                stringResource(R.string.confirm_vault_pin)
+            } else {
+                stringResource(R.string.set_vault_pin)
+            },
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = if (isConfirmStep) {
+                stringResource(R.string.confirm_vault_pin_description)
+            } else {
+                stringResource(R.string.set_vault_pin_description)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        PinDotsIndicator(
+            filledCount = filledCount,
+            error = showError,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        if (showError) {
+            Text(
+                text = stringResource(R.string.pins_do_not_match),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -966,6 +1090,8 @@ private fun NetworkUrlDialog(
 private fun SelectionActionsSheet(
     modifier: Modifier = Modifier,
     show: Boolean,
+    firstActionFocusRequester: FocusRequester,
+    lastItemFocusRequester: FocusRequester,
     showRenameAction: Boolean,
     showInfoAction: Boolean,
     showHideAction: Boolean,
@@ -978,6 +1104,15 @@ private fun SelectionActionsSheet(
     onHideAction: () -> Unit,
     onDeleteAction: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    // Pressing up from any action lands on the last list item.
+    val actionUpModifier = if (isTv) {
+        Modifier.focusProperties { up = lastItemFocusRequester }
+    } else {
+        Modifier
+    }
+
     AnimatedVisibility(
         modifier = modifier.padding(
             start = WindowInsets.displayCutout.asPaddingValues()
@@ -1011,34 +1146,46 @@ private fun SelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 SelectionAction(
+                    modifier = actionUpModifier.focusRequester(firstActionFocusRequester),
+                    isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
                     onClick = onPlayAction,
                 )
                 if (showRenameAction) {
                     SelectionAction(
+                        modifier = actionUpModifier,
+                        isTv = isTv,
                         imageVector = NextIcons.Edit,
                         title = stringResource(R.string.rename),
                         onClick = onRenameAction,
                     )
                 }
                 SelectionAction(
+                    modifier = actionUpModifier,
+                    isTv = isTv,
                     imageVector = NextIcons.Share,
                     title = stringResource(R.string.share),
                     onClick = onShareAction,
                 )
                 SelectionAction(
+                    modifier = actionUpModifier,
+                    isTv = isTv,
                     imageVector = NextIcons.Copy,
                     title = stringResource(R.string.copy),
                     onClick = onCopyAction,
                 )
                 SelectionAction(
+                    modifier = actionUpModifier,
+                    isTv = isTv,
                     imageVector = NextIcons.Move,
                     title = stringResource(R.string.move),
                     onClick = onMoveAction,
                 )
                 if (showInfoAction) {
                     SelectionAction(
+                        modifier = actionUpModifier,
+                        isTv = isTv,
                         imageVector = NextIcons.Info,
                         title = stringResource(id = R.string.info),
                         onClick = onInfoAction,
@@ -1046,12 +1193,16 @@ private fun SelectionActionsSheet(
                 }
                 if (showHideAction) {
                     SelectionAction(
+                        modifier = actionUpModifier,
+                        isTv = isTv,
                         imageVector = NextIcons.HideSource,
                         title = stringResource(id = R.string.hide),
                         onClick = onHideAction,
                     )
                 }
                 SelectionAction(
+                    modifier = actionUpModifier,
+                    isTv = isTv,
                     imageVector = NextIcons.Delete,
                     title = stringResource(id = R.string.delete),
                     onClick = onDeleteAction,
@@ -1066,13 +1217,16 @@ private fun SelectionAction(
     imageVector: ImageVector,
     title: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isTv: Boolean = false,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .defaultMinSize(
                 minWidth = 75.dp,
                 minHeight = 64.dp,
             )
+            .tvFocusRing(isTv, shape = RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(

@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -8,6 +9,7 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 @Composable
 fun PreferenceSwitch(
     title: String,
+    modifier: Modifier = Modifier,
     description: String? = null,
     icon: ImageVector? = null,
     enabled: Boolean = true,
@@ -17,6 +19,7 @@ fun PreferenceSwitch(
     isLastItem: Boolean = false,
 ) {
     PreferenceItem(
+        modifier = modifier,
         title = title,
         description = description,
         icon = icon,

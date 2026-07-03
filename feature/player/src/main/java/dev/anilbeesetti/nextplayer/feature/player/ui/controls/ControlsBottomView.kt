@@ -1,8 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.player.ui.controls
 
 import androidx.annotation.OptIn
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -46,12 +49,14 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
@@ -86,6 +91,8 @@ fun ControlsBottomView(
     onSeekEnd: () -> Unit,
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
     Column(
         modifier = modifier
             .padding(systemBarsPadding.copy(top = 0.dp))
@@ -102,8 +109,12 @@ fun ControlsBottomView(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.noRippleClickable {
-                    showPendingPosition = !showPendingPosition
+                modifier = if (isTv) {
+                    Modifier
+                } else {
+                    Modifier.noRippleClickable {
+                        showPendingPosition = !showPendingPosition
+                    }
                 },
             ) {
                 Text(
@@ -127,15 +138,17 @@ fun ControlsBottomView(
             }
 
             Spacer(modifier = Modifier.weight(1f))
-            PlayerButton(
-                modifier = modifier.size(30.dp),
-                onClick = onRotateClick,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_screen_rotation),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                )
+            if (!isTv) {
+                PlayerButton(
+                    modifier = modifier.size(30.dp),
+                    onClick = onRotateClick,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_screen_rotation),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
         PlayerSeekbar(
@@ -196,10 +209,15 @@ private fun PlayerSeekbar(
     onSeek: (Float) -> Unit,
     onSeekFinished: () -> Unit,
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+    val focusModifier = modifier
+        .fillMaxWidth()
+        .onFocusChanged { isFocused = it.isFocused }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         if (LocalUseMaterialYouControls.current) {
             MaterialYouSlider(
-                modifier = modifier.fillMaxWidth(),
+                modifier = focusModifier,
+                isFocused = isFocused,
                 value = position,
                 valueRange = 0f..duration,
                 onValueChange = onSeek,
@@ -207,7 +225,8 @@ private fun PlayerSeekbar(
             )
         } else {
             SimpleSlider(
-                modifier = modifier.fillMaxWidth(),
+                modifier = focusModifier,
+                isFocused = isFocused,
                 value = position,
                 valueRange = 0f..duration,
                 onValueChange = onSeek,
@@ -224,13 +243,16 @@ private fun MaterialYouSlider(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
-    onValueChangeFinished: () -> Unit
+    onValueChangeFinished: () -> Unit,
+    isFocused: Boolean = false,
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val interactionSource = remember { MutableInteractionSource() }
     val trackHeight = 8.dp
     val thumbWidth = 4.dp
     val trackThumbGapWidth = 12.dp
+    val focusedThumbWidth by animateDpAsState(if (isFocused) 10.dp else thumbWidth, label = "thumbWidth")
+    val focusedThumbHeight by animateDpAsState(if (isFocused) 24.dp else 20.dp, label = "thumbHeight")
 
     Slider(
         value = value,
@@ -296,9 +318,16 @@ private fun MaterialYouSlider(
         thumb = {
             Box(
                 modifier = Modifier
-                    .width(thumbWidth)
-                    .height(20.dp)
-                    .background(primaryColor, CircleShape),
+                    .width(focusedThumbWidth)
+                    .height(focusedThumbHeight)
+                    .background(primaryColor, CircleShape)
+                    .then(
+                        if (isFocused) {
+                            Modifier.border(2.dp, Color.White, CircleShape)
+                        } else {
+                            Modifier
+                        },
+                    ),
             )
         },
     )
@@ -335,19 +364,28 @@ private fun SimpleSlider(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
-    onValueChangeFinished: () -> Unit
+    onValueChangeFinished: () -> Unit,
+    isFocused: Boolean = false,
 ) {
+    val thumbSize by animateDpAsState(if (isFocused) 22.dp else 16.dp, label = "thumbSize")
     Slider(
         value = value,
         valueRange = valueRange,
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
-        modifier = modifier.height(20.dp),
+        modifier = modifier.height(24.dp),
         thumb = {
             Box(
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(thumbSize)
                     .shadow(4.dp, CircleShape)
                     .background(Color.White)
+                    .then(
+                        if (isFocused) {
+                            Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        } else {
+                            Modifier
+                        },
+                    ),
             )
         },
         track = {
