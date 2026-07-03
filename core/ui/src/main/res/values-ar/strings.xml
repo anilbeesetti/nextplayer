@@ -387,4 +387,5 @@
         <item quantity="other">تم نقل %1$d فيديو ، لكن تعذّر إزالة النسخ الأصلية</item>
     </plurals>
     <string name="cannot_move_to_same_folder">لا يمكن النقل إلى نفس المجلد</string>
+    <string name="folder_duration">مدة المجلد</string>
 </resources>
