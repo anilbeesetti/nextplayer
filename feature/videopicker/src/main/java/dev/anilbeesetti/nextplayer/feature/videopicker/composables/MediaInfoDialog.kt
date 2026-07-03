@@ -1,5 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.composables
 
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,20 +14,47 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.Utils
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import kotlinx.coroutines.launch
 
 @Composable
 fun MediaInfoDialog(
     mediaInfo: MediaInfo,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+
+    // On a TV the info panel has no focusable rows, so make it focusable and scroll it with the
+    // D-pad. Focus escapes to the OK button once there's nothing left to scroll.
+    if (isTv) {
+        LaunchedEffect(Unit) {
+            runCatching { focusRequester.requestFocus() }
+        }
+    }
+
     NextDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -39,7 +68,36 @@ fun MediaInfoDialog(
             HorizontalDivider()
             Column(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+                modifier = Modifier
+                    .verticalScroll(scrollState)
+                    .then(
+                        if (isTv) {
+                            Modifier
+                                .focusRequester(focusRequester)
+                                .focusable()
+                                .onKeyEvent { event ->
+                                    if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                                    val amount = (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
+                                    when (event.key) {
+                                        Key.DirectionDown -> if (scrollState.canScrollForward) {
+                                            scope.launch { scrollState.animateScrollBy(amount) }
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                        Key.DirectionUp -> if (scrollState.canScrollBackward) {
+                                            scope.launch { scrollState.animateScrollBy(-amount) }
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                        else -> false
+                                    }
+                                }
+                        } else {
+                            Modifier
+                        },
+                    ),
             ) {
                 MediaInfoTitle(text = stringResource(R.string.file))
                 MediaInfoText(
