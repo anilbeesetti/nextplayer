@@ -16,10 +16,16 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onFirstVisible
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +49,7 @@ import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlin.math.abs
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -55,6 +62,8 @@ fun MediaView(
     contentPadding: PaddingValues = PaddingValues(),
     selectionManager: SelectionManager = rememberSelectionManager(),
     lazyGridState: LazyGridState = rememberLazyGridState(),
+    lastItemFocusRequester: FocusRequester? = null,
+    fabFocusRequester: FocusRequester? = null,
     onFolderClick: (String) -> Unit,
     onVideoClick: (Uri) -> Unit,
 ) {
@@ -64,6 +73,23 @@ fun MediaView(
     val isTv = remember { context.isTelevision }
     val folderMinWidth = if (isTv) 160.dp else 90.dp
     val videoMinWidth = if (isTv) 240.dp else 130.dp
+
+    val firstItemFocusRequester = remember { FocusRequester() }
+    var hasRequestedInitialFocus by remember { mutableStateOf(false) }
+    if (isTv) {
+        LaunchedEffect(mediaHolder.folders.size, mediaHolder.videos.size) {
+            if (hasRequestedInitialFocus) return@LaunchedEffect
+            if (mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) return@LaunchedEffect
+            repeat(times = 5) {
+                if (runCatching { firstItemFocusRequester.requestFocus() }.isSuccess) {
+                    hasRequestedInitialFocus = true
+                    return@LaunchedEffect
+                }
+                delay(50)
+            }
+        }
+    }
+
     BoxWithConstraints {
         val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
             MediaLayoutMode.LIST -> 8.dp
@@ -113,6 +139,31 @@ fun MediaView(
                     folder = folder,
                     isRecentlyPlayedFolder = folder.path == recentlyPlayedFolder?.path,
                     preferences = preferences,
+                    modifier = Modifier
+                        .then(
+                            if (isTv && index == 0) {
+                                Modifier.focusRequester(firstItemFocusRequester)
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .then(
+                            if (isTv && lastItemFocusRequester != null &&
+                                mediaHolder.videos.isEmpty() && index == mediaHolder.folders.lastIndex
+                            ) {
+                                Modifier
+                                    .focusRequester(lastItemFocusRequester)
+                                    .then(
+                                        if (fabFocusRequester != null) {
+                                            Modifier.focusProperties { down = fabFocusRequester }
+                                        } else {
+                                            Modifier
+                                        },
+                                    )
+                            } else {
+                                Modifier
+                            },
+                        ),
                     selected = selected,
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.folders.lastIndex,
@@ -153,6 +204,29 @@ fun MediaView(
                     video = video,
                     preferences = preferences,
                     isRecentlyPlayedVideo = video.path == recentlyPlayedVideo?.path,
+                    modifier = Modifier
+                        .then(
+                            if (isTv && index == 0 && mediaHolder.folders.isEmpty()) {
+                                Modifier.focusRequester(firstItemFocusRequester)
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .then(
+                            if (isTv && lastItemFocusRequester != null && index == mediaHolder.videos.lastIndex) {
+                                Modifier
+                                    .focusRequester(lastItemFocusRequester)
+                                    .then(
+                                        if (fabFocusRequester != null) {
+                                            Modifier.focusProperties { down = fabFocusRequester }
+                                        } else {
+                                            Modifier
+                                        },
+                                    )
+                            } else {
+                                Modifier
+                            },
+                        ),
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.videos.lastIndex,
                     selected = selected,

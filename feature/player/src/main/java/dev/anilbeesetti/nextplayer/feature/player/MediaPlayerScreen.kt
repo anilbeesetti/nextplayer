@@ -42,7 +42,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -96,6 +98,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
@@ -188,22 +191,28 @@ fun MediaPlayerScreen(
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
+    val playPauseFocusRequester = remember { FocusRequester() }
     val seekBarFocusRequester = remember { FocusRequester() }
+    val unlockFocusRequester = remember { FocusRequester() }
+    var isPlayPauseFocused by remember { mutableStateOf(false) }
+    var isUnlockFocused by remember { mutableStateOf(false) }
     val seekIncrementMs = playerPreferences.seekIncrement.seconds.inWholeMilliseconds
 
     if (isTv) {
-        LaunchedEffect(Unit) {
-            runCatching { rootFocusRequester.requestFocus() }
-        }
         LaunchedEffect(controlsVisibilityState.controlsVisible, controlsVisibilityState.controlsLocked, overlayView) {
             if (overlayView != null) return@LaunchedEffect
-            if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
-                repeat(times = 5) {
-                    if (runCatching { seekBarFocusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-                    delay(50)
-                }
-            } else {
+            if (!controlsVisibilityState.controlsVisible) {
                 runCatching { rootFocusRequester.requestFocus() }
+                return@LaunchedEffect
+            }
+            // requestFocus() only throws if the target isn't attached; it can silently no-op while
+            // the control is still being placed, so keep re-requesting until focus actually lands.
+            val target = if (controlsVisibilityState.controlsLocked) unlockFocusRequester else playPauseFocusRequester
+            repeat(times = 20) {
+                runCatching { target.requestFocus() }
+                delay(50.milliseconds)
+                val focused = if (controlsVisibilityState.controlsLocked) isUnlockFocused else isPlayPauseFocused
+                if (focused) return@LaunchedEffect
             }
         }
     }
@@ -228,6 +237,7 @@ fun MediaPlayerScreen(
                                             player = player,
                                             controls = controlsVisibilityState,
                                             seekIncrementMs = seekIncrementMs,
+                                            isPlayPauseFocused = isPlayPauseFocused,
                                         )
                                     }
                                 }
@@ -307,6 +317,13 @@ fun MediaPlayerScreen(
                             .padding(top = 24.dp),
                     ) {
                         PlayerButton(
+                            modifier = if (isTv) {
+                                Modifier
+                                    .focusRequester(unlockFocusRequester)
+                                    .onFocusChanged { isUnlockFocused = it.hasFocus }
+                            } else {
+                                Modifier
+                            },
                             containerColor = Color.Black.copy(0.5f),
                             onClick = { controlsVisibilityState.unlockControls() }
                         ) {
@@ -351,7 +368,16 @@ fun MediaPlayerScreen(
                                 seekGestureState.seekAmount != null -> InfoView(info = "${seekGestureState.seekAmountFormatted}\n[${seekGestureState.seekToPositionFormated}]")
                                 videoZoomAndContentScaleState.isZooming -> InfoView(info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%")
                                 videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()))
-                                controlsVisibilityState.controlsVisible -> ControlsMiddleView(player = player)
+                                controlsVisibilityState.controlsVisible -> ControlsMiddleView(
+                                    player = player,
+                                    playPauseModifier = if (isTv) {
+                                        Modifier
+                                            .focusRequester(playPauseFocusRequester)
+                                            .onFocusChanged { isPlayPauseFocused = it.hasFocus }
+                                    } else {
+                                        Modifier
+                                    },
+                                )
                                 else -> Unit
                             }
                         },
@@ -371,7 +397,13 @@ fun MediaPlayerScreen(
                                     },
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                     isPipSupported = pictureInPictureState.isPipSupported,
-                                    seekBarModifier = if (isTv) Modifier.focusRequester(seekBarFocusRequester) else Modifier,
+                                    seekBarModifier = if (isTv) {
+                                        Modifier
+                                            .focusRequester(seekBarFocusRequester)
+                                            .focusProperties { up = playPauseFocusRequester }
+                                    } else {
+                                        Modifier
+                                    },
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,
                                     onRotateClick = rotationState::rotate,
@@ -514,14 +546,18 @@ fun InfoView(
 }
 
 @Composable
-fun ControlsMiddleView(modifier: Modifier = Modifier, player: Player) {
+fun ControlsMiddleView(
+    modifier: Modifier = Modifier,
+    player: Player,
+    playPauseModifier: Modifier = Modifier,
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(40.dp, alignment = Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PreviousButton(player = player)
-        PlayPauseButton(player = player)
+        PlayPauseButton(player = player, modifier = playPauseModifier)
         NextButton(player = player)
     }
 }
@@ -532,11 +568,20 @@ private fun handlePlayerKeyEvent(
     player: Player,
     controls: ControlsVisibilityState,
     seekIncrementMs: Long,
+    isPlayPauseFocused: Boolean,
 ): Boolean {
     if (keyEvent.type != KeyEventType.KeyDown) return false
     if (controls.controlsLocked) {
-        controls.showControls()
-        return false
+        return when (keyEvent.key) {
+            Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                if (controls.controlsVisible) controls.unlockControls() else controls.showControls()
+                true
+            }
+            else -> {
+                controls.showControls()
+                false
+            }
+        }
     }
 
     fun seekBy(deltaMs: Long) {
@@ -558,18 +603,22 @@ private fun handlePlayerKeyEvent(
         Key.MediaNext -> { player.seekToNext(); controls.showControls(); true }
         Key.MediaPrevious -> { player.seekToPrevious(); controls.showControls(); true }
         Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-            if (!controls.controlsVisible) {
-                togglePlayPause()
-                controls.showControls()
-                true
-            } else {
-                false
+            when {
+                !controls.controlsVisible -> {
+                    controls.showControls()
+                    true
+                }
+                isPlayPauseFocused -> {
+                    togglePlayPause()
+                    controls.showControls()
+                    true
+                }
+                else -> false
             }
         }
         Key.DirectionLeft -> {
             if (!controls.controlsVisible) {
                 seekBy(-seekIncrementMs)
-                controls.showControls()
                 true
             } else {
                 controls.showControls()
@@ -579,7 +628,6 @@ private fun handlePlayerKeyEvent(
         Key.DirectionRight -> {
             if (!controls.controlsVisible) {
                 seekBy(seekIncrementMs)
-                controls.showControls()
                 true
             } else {
                 controls.showControls()

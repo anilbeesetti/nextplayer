@@ -66,6 +66,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -187,6 +190,10 @@ internal fun MediaPickerScreen(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val lastItemFocusRequester = remember { FocusRequester() }
+    val fabFocusRequester = remember { FocusRequester() }
+    val hasMedia = (uiState.mediaDataState as? DataState.Success)?.value
+        ?.let { it.folders.isNotEmpty() || it.videos.isNotEmpty() } == true
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(
         permission = storagePermission,
@@ -373,6 +380,21 @@ internal fun MediaPickerScreen(
                     ToggleFloatingActionButton(
                         checked = isFabExpanded,
                         onCheckedChange = { isFabExpanded = !isFabExpanded },
+                        modifier = if (isTv && hasMedia) {
+                            Modifier
+                                .focusRequester(fabFocusRequester)
+                                // Only redirect up to the list while collapsed; when expanded, up must
+                                // reach the menu options above the button.
+                                .then(
+                                    if (isFabExpanded) {
+                                        Modifier
+                                    } else {
+                                        Modifier.focusProperties { up = lastItemFocusRequester }
+                                    },
+                                )
+                        } else {
+                            Modifier
+                        },
                     ) {
                         val icon by remember {
                             derivedStateOf {
@@ -388,6 +410,12 @@ internal fun MediaPickerScreen(
                 },
             ) {
                 FloatingActionButtonMenuItem(
+                    // Top-most menu item: up exits the menu back to the last media item.
+                    modifier = if (isTv && hasMedia) {
+                        Modifier.focusProperties { up = lastItemFocusRequester }
+                    } else {
+                        Modifier
+                    },
                     onClick = {
                         isFabExpanded = false
                         showUrlDialog = true
@@ -477,6 +505,8 @@ internal fun MediaPickerScreen(
                             onVideoClick = { onPlayVideo(it) },
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
+                            lastItemFocusRequester = if (isTv) lastItemFocusRequester else null,
+                            fabFocusRequester = if (isTv) fabFocusRequester else null,
                             contentPadding = updatedScaffoldPadding,
                         )
                     }
