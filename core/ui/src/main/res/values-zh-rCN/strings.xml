@@ -357,4 +357,5 @@
         <item quantity="other">已移动 %1$d 个视频，但无法移除原始视频</item>
     </plurals>
     <string name="cannot_move_to_same_folder">无法移动到相同文件夹</string>
+    <string name="folder_duration">文件夹总时长</string>
 </resources>
