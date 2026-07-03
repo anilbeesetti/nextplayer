@@ -71,6 +71,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
@@ -211,15 +213,9 @@ fun MediaPlayerScreen(
                 runCatching { rootFocusRequester.requestFocus() }
                 return@LaunchedEffect
             }
-            // requestFocus() only throws if the target isn't attached; it can silently no-op while
-            // the control is still being placed, so keep re-requesting until focus actually lands.
-            val target = if (controlsVisibilityState.controlsLocked) unlockFocusRequester else playPauseFocusRequester
-            repeat(times = 20) {
-                runCatching { target.requestFocus() }
-                delay(50.milliseconds)
-                val focused = if (controlsVisibilityState.controlsLocked) isUnlockFocused else isPlayPauseFocused
-                if (focused) return@LaunchedEffect
-            }
+            val locked = controlsVisibilityState.controlsLocked
+            val target = if (locked) unlockFocusRequester else playPauseFocusRequester
+            target.requestFocusUntilLanded(attempts = 20) { if (locked) isUnlockFocused else isPlayPauseFocused }
         }
     }
 
@@ -350,12 +346,9 @@ fun MediaPlayerScreen(
                             .padding(top = 24.dp),
                     ) {
                         PlayerButton(
-                            modifier = if (isTv) {
-                                Modifier
-                                    .focusRequester(unlockFocusRequester)
+                            modifier = Modifier.thenIf(isTv) {
+                                focusRequester(unlockFocusRequester)
                                     .onFocusChanged { isUnlockFocused = it.hasFocus }
-                            } else {
-                                Modifier
                             },
                             containerColor = Color.Black.copy(0.5f),
                             onClick = { controlsVisibilityState.unlockControls() }
@@ -403,12 +396,9 @@ fun MediaPlayerScreen(
                                 videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()))
                                 controlsVisibilityState.controlsVisible -> ControlsMiddleView(
                                     player = player,
-                                    playPauseModifier = if (isTv) {
-                                        Modifier
-                                            .focusRequester(playPauseFocusRequester)
+                                    playPauseModifier = Modifier.thenIf(isTv) {
+                                        focusRequester(playPauseFocusRequester)
                                             .onFocusChanged { isPlayPauseFocused = it.hasFocus }
-                                    } else {
-                                        Modifier
                                     },
                                 )
                                 else -> Unit
@@ -430,12 +420,9 @@ fun MediaPlayerScreen(
                                     },
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                                     isPipSupported = pictureInPictureState.isPipSupported,
-                                    seekBarModifier = if (isTv) {
-                                        Modifier
-                                            .focusRequester(seekBarFocusRequester)
+                                    seekBarModifier = Modifier.thenIf(isTv) {
+                                        focusRequester(seekBarFocusRequester)
                                             .focusProperties { up = playPauseFocusRequester }
-                                    } else {
-                                        Modifier
                                     },
                                     onSeek = seekGestureState::onSeek,
                                     onSeekEnd = seekGestureState::onSeekEnd,

@@ -15,13 +15,13 @@ import androidx.compose.ui.focus.onFocusChanged
  */
 fun Modifier.restorableFocusItem(
     isTv: Boolean,
-    key: Any,
-    restoredKey: Any?,
+    key: String,
+    restoredKey: String?,
     restoreRequester: FocusRequester,
-    onFocused: (Any) -> Unit,
+    onFocused: (String) -> Unit,
 ): Modifier {
     if (!isTv) return this
     return this
-        .then(if (key == restoredKey) Modifier.focusRequester(restoreRequester) else Modifier)
+        .thenIf(key == restoredKey) { focusRequester(restoreRequester) }
         .onFocusChanged { if (it.isFocused) onFocused(key) }
 }

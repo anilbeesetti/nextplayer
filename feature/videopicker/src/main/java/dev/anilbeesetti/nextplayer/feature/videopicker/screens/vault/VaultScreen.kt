@@ -78,7 +78,9 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
@@ -91,7 +93,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.ObserveAsEvents
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
-import kotlinx.coroutines.delay
 
 @Composable
 fun VaultRoute(
@@ -403,15 +404,7 @@ private fun VaultGalleryScreen(
             val hasRestore = restoredFocusKey != null && uiState.hiddenVideos.any { it.uriString == restoredFocusKey }
             // Prefer restoring the previously focused item; fall back to the first item.
             val targets = if (hasRestore) listOf(restoreRequester, firstItemRequester) else listOf(firstItemRequester)
-            for (target in targets) {
-                repeat(times = 10) {
-                    if (runCatching { target.requestFocus() }.isSuccess) {
-                        hasRequestedInitialFocus = true
-                        return@LaunchedEffect
-                    }
-                    delay(50)
-                }
-            }
+            hasRequestedInitialFocus = targets.any { it.requestFocusUntilLanded() }
         }
     }
 
@@ -566,29 +559,20 @@ private fun VaultGalleryScreen(
                             VideoItem(
                                 modifier = Modifier
                                     .padding(2.dp)
-                                    .then(
-                                        if (isTv && index == 0) {
-                                            Modifier.focusRequester(firstItemRequester)
-                                        } else {
-                                            Modifier
-                                        },
-                                    )
-                                    .then(
-                                        // Down from the last item reaches the selection action bar.
-                                        if (isTv && selectionManager.isInSelectionMode &&
-                                            index == uiState.hiddenVideos.lastIndex
-                                        ) {
-                                            Modifier.focusProperties { down = firstActionFocusRequester }
-                                        } else {
-                                            Modifier
-                                        },
-                                    )
+                                    .thenIf(isTv && index == 0) { focusRequester(firstItemRequester) }
+                                    // Down from the last item reaches the selection action bar.
+                                    .thenIf(
+                                        isTv && selectionManager.isInSelectionMode &&
+                                            index == uiState.hiddenVideos.lastIndex,
+                                    ) {
+                                        focusProperties { down = firstActionFocusRequester }
+                                    }
                                     .restorableFocusItem(
                                         isTv = isTv,
                                         key = video.uriString,
                                         restoredKey = restoredFocusKey,
                                         restoreRequester = restoreRequester,
-                                        onFocused = { restoredFocusKey = it as String },
+                                        onFocused = { restoredFocusKey = it },
                                     ),
                                 video = video,
                                 isRecentlyPlayedVideo = false,

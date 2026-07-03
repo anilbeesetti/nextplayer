@@ -112,6 +112,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -414,23 +415,14 @@ internal fun MediaPickerScreen(
                                 isTv = isTv,
                                 shape = if (isFabExpanded) CircleShape else RoundedCornerShape(16.dp),
                             )
-                            .then(
-                                if (isTv && hasMedia) {
-                                    Modifier
-                                        .focusRequester(fabFocusRequester)
-                                        // Only redirect up to the list while collapsed; when expanded,
-                                        // up must reach the menu options above the button.
-                                        .then(
-                                            if (isFabExpanded) {
-                                                Modifier
-                                            } else {
-                                                Modifier.focusProperties { up = lastItemFocusRequester }
-                                            },
-                                        )
-                                } else {
-                                    Modifier
-                                },
-                            ),
+                            .thenIf(isTv && hasMedia) {
+                                // Redirect up to the list only while collapsed; when expanded, up must
+                                // reach the menu options above the button.
+                                focusRequester(fabFocusRequester)
+                                    .thenIf(!isFabExpanded) {
+                                        focusProperties { up = lastItemFocusRequester }
+                                    }
+                            },
                     ) {
                         val icon by remember {
                             derivedStateOf {
@@ -449,13 +441,9 @@ internal fun MediaPickerScreen(
                     // Top-most menu item: up exits the menu back to the last media item.
                     modifier = Modifier
                         .tvFocusRing(isTv)
-                        .then(
-                            if (isTv && hasMedia) {
-                                Modifier.focusProperties { up = lastItemFocusRequester }
-                            } else {
-                                Modifier
-                            },
-                        ),
+                        .thenIf(isTv && hasMedia) {
+                            focusProperties { up = lastItemFocusRequester }
+                        },
                     onClick = {
                         isFabExpanded = false
                         showUrlDialog = true

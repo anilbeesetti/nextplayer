@@ -34,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import kotlinx.coroutines.launch
 
 @Composable
@@ -70,34 +71,29 @@ fun MediaInfoDialog(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier
                     .verticalScroll(scrollState)
-                    .then(
-                        if (isTv) {
-                            Modifier
-                                .focusRequester(focusRequester)
-                                .focusable()
-                                .onKeyEvent { event ->
-                                    if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-                                    val amount = (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
-                                    when (event.key) {
-                                        Key.DirectionDown -> if (scrollState.canScrollForward) {
-                                            scope.launch { scrollState.animateScrollBy(amount) }
-                                            true
-                                        } else {
-                                            false
-                                        }
-                                        Key.DirectionUp -> if (scrollState.canScrollBackward) {
-                                            scope.launch { scrollState.animateScrollBy(-amount) }
-                                            true
-                                        } else {
-                                            false
-                                        }
-                                        else -> false
+                    .thenIf(isTv) {
+                        focusRequester(focusRequester)
+                            .focusable()
+                            .onKeyEvent { event ->
+                                if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                                val amount = (scrollState.viewportSize * 0.8f).takeIf { it > 0f } ?: 400f
+                                when (event.key) {
+                                    Key.DirectionDown -> if (scrollState.canScrollForward) {
+                                        scope.launch { scrollState.animateScrollBy(amount) }
+                                        true
+                                    } else {
+                                        false
                                     }
+                                    Key.DirectionUp -> if (scrollState.canScrollBackward) {
+                                        scope.launch { scrollState.animateScrollBy(-amount) }
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                    else -> false
                                 }
-                        } else {
-                            Modifier
-                        },
-                    ),
+                            }
+                    },
             ) {
                 MediaInfoTitle(text = stringResource(R.string.file))
                 MediaInfoText(

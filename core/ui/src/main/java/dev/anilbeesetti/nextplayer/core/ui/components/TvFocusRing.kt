@@ -34,7 +34,7 @@ fun Modifier.tvFocusRing(
     var focused by remember { mutableStateOf(false) }
     return this
         .onFocusChanged { focused = it.hasFocus }
-        .then(if (focused) Modifier.border(width = width, color = color, shape = shape) else Modifier)
+        .thenIf(focused) { border(width = width, color = color, shape = shape) }
 }
 
 /**

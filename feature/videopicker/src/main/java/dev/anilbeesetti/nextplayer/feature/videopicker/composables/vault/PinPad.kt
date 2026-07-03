@@ -34,9 +34,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
-import kotlinx.coroutines.delay
 
 /**
  * Row of dots indicating how many PIN digits have been entered so far, out of [length].
@@ -98,15 +99,9 @@ fun PinKeypad(
     var isFirstKeyFocused by remember { mutableStateOf(false) }
 
     // On a TV, focus the first key when the pad appears so it's usable with a D-pad immediately.
-    // requestFocus() can report success without actually moving focus while the key is still being
-    // placed, so keep re-requesting until focus really lands.
     if (isTv) {
         LaunchedEffect(Unit) {
-            repeat(times = 20) {
-                runCatching { firstKeyFocusRequester.requestFocus() }
-                delay(50)
-                if (isFirstKeyFocused) return@LaunchedEffect
-            }
+            firstKeyFocusRequester.requestFocusUntilLanded(attempts = 20) { isFirstKeyFocused }
         }
     }
 
@@ -128,15 +123,10 @@ fun PinKeypad(
                     PinKey(
                         modifier = Modifier
                             .weight(1f)
-                            .then(
-                                if (rowIndex == 0 && colIndex == 0) {
-                                    Modifier
-                                        .focusRequester(firstKeyFocusRequester)
-                                        .onFocusChanged { isFirstKeyFocused = it.hasFocus }
-                                } else {
-                                    Modifier
-                                },
-                            ),
+                            .thenIf(rowIndex == 0 && colIndex == 0) {
+                                focusRequester(firstKeyFocusRequester)
+                                    .onFocusChanged { isFirstKeyFocused = it.hasFocus }
+                            },
                         isTv = isTv,
                         label = digit.toString(),
                         onClick = { onDigit(digit) },

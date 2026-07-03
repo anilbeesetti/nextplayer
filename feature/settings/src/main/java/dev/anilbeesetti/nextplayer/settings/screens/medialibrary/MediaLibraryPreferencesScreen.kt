@@ -37,11 +37,12 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import kotlinx.coroutines.delay
 
 @Composable
 fun MediaLibraryPreferencesScreen(
@@ -85,25 +86,20 @@ private fun MediaLibraryPreferencesContent(
             } else {
                 listOf(firstItemRequester)
             }
-            for (target in targets) {
-                repeat(times = 10) {
-                    if (runCatching { target.requestFocus() }.isSuccess) return@LaunchedEffect
-                    delay(50)
-                }
-            }
+            targets.any { it.requestFocusUntilLanded() }
         }
     }
 
     fun restorableModifier(key: String, isFirst: Boolean): Modifier {
         if (!isTv) return Modifier
         return Modifier
-            .then(if (isFirst) Modifier.focusRequester(firstItemRequester) else Modifier)
+            .thenIf(isFirst) { focusRequester(firstItemRequester) }
             .restorableFocusItem(
                 isTv = true,
                 key = key,
                 restoredKey = restoredFocusKey,
                 restoreRequester = restoreRequester,
-                onFocused = { restoredFocusKey = it as String },
+                onFocused = { restoredFocusKey = it },
             )
     }
 
@@ -127,7 +123,7 @@ private fun MediaLibraryPreferencesContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .then(if (isTv) Modifier.focusGroup() else Modifier)
+                .thenIf(isTv) { focusGroup() }
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {

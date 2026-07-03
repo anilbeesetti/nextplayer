@@ -33,9 +33,10 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -54,10 +55,7 @@ fun SettingsScreen(
 
     if (isTv) {
         LaunchedEffect(Unit) {
-            repeat(times = 10) {
-                if (runCatching { itemFocusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-                delay(50)
-            }
+            itemFocusRequester.requestFocusUntilLanded()
         }
     }
 
@@ -84,7 +82,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .then(if (isTv) Modifier.focusGroup() else Modifier)
+                .thenIf(isTv) { focusGroup() }
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .padding(vertical = 16.dp),
@@ -92,14 +90,9 @@ fun SettingsScreen(
         ) {
             settingRows.forEachIndexed { index, row ->
                 ClickablePreferenceItem(
-                    modifier = if (isTv) {
-                        Modifier
-                            .then(
-                                if (index == focusedIndex) Modifier.focusRequester(itemFocusRequester) else Modifier,
-                            )
+                    modifier = Modifier.thenIf(isTv) {
+                        thenIf(index == focusedIndex) { focusRequester(itemFocusRequester) }
                             .onFocusChanged { if (it.isFocused) focusedIndex = index }
-                    } else {
-                        Modifier
                     },
                     title = stringResource(id = row.titleResId),
                     description = stringResource(id = row.descriptionResId),

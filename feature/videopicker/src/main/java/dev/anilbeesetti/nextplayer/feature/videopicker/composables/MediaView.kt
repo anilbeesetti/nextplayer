@@ -45,12 +45,13 @@ import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.model.recentPlayed
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.restorableFocusItem
+import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.extensions.plus
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlin.math.abs
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -78,7 +79,7 @@ fun MediaView(
     val folderMinWidth = if (isTv) 160.dp else 90.dp
     val videoMinWidth = if (isTv) 240.dp else 130.dp
 
-    val firstItemRequester = firstItemFocusRequester ?: remember { FocusRequester() }
+    val firstItemRequester = remember { firstItemFocusRequester ?: FocusRequester() }
     val restoreRequester = remember { FocusRequester() }
     var hasRequestedInitialFocus by remember { mutableStateOf(false) }
     if (isTv) {
@@ -91,17 +92,27 @@ fun MediaView(
                 )
             // Prefer restoring the previously focused item; fall back to the first item.
             val targets = if (hasRestore) listOf(restoreRequester, firstItemRequester) else listOf(firstItemRequester)
-            for (target in targets) {
-                repeat(times = 10) {
-                    if (runCatching { target.requestFocus() }.isSuccess) {
-                        hasRequestedInitialFocus = true
-                        return@LaunchedEffect
-                    }
-                    delay(50)
-                }
-            }
+            hasRequestedInitialFocus = targets.any { it.requestFocusUntilLanded() }
         }
     }
+
+    // Wires a grid item into TV focus: the first item is the initial focus target, the last item
+    // hands focus down to [lastItemDownFocusRequester], and every item participates in restoration.
+    fun Modifier.tvItemFocus(isFirst: Boolean, isLast: Boolean, key: String): Modifier = this
+        .thenIf(isTv && isFirst) { focusRequester(firstItemRequester) }
+        .thenIf(isTv && isLast && lastItemFocusRequester != null) {
+            focusRequester(lastItemFocusRequester!!)
+                .thenIf(lastItemDownFocusRequester != null) {
+                    focusProperties { down = lastItemDownFocusRequester!! }
+                }
+        }
+        .restorableFocusItem(
+            isTv = isTv,
+            key = key,
+            restoredKey = restoredFocusKey,
+            restoreRequester = restoreRequester,
+            onFocused = { onItemFocused?.invoke(it) },
+        )
 
     BoxWithConstraints {
         val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
@@ -152,38 +163,11 @@ fun MediaView(
                     folder = folder,
                     isRecentlyPlayedFolder = folder.path == recentlyPlayedFolder?.path,
                     preferences = preferences,
-                    modifier = Modifier
-                        .then(
-                            if (isTv && index == 0) {
-                                Modifier.focusRequester(firstItemRequester)
-                            } else {
-                                Modifier
-                            },
-                        )
-                        .then(
-                            if (isTv && lastItemFocusRequester != null &&
-                                mediaHolder.videos.isEmpty() && index == mediaHolder.folders.lastIndex
-                            ) {
-                                Modifier
-                                    .focusRequester(lastItemFocusRequester)
-                                    .then(
-                                        if (lastItemDownFocusRequester != null) {
-                                            Modifier.focusProperties { down = lastItemDownFocusRequester }
-                                        } else {
-                                            Modifier
-                                        },
-                                    )
-                            } else {
-                                Modifier
-                            },
-                        )
-                        .restorableFocusItem(
-                            isTv = isTv,
-                            key = folder.path,
-                            restoredKey = restoredFocusKey,
-                            restoreRequester = restoreRequester,
-                            onFocused = { onItemFocused?.invoke(it as String) },
-                        ),
+                    modifier = Modifier.tvItemFocus(
+                        isFirst = index == 0,
+                        isLast = mediaHolder.videos.isEmpty() && index == mediaHolder.folders.lastIndex,
+                        key = folder.path,
+                    ),
                     selected = selected,
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.folders.lastIndex,
@@ -224,36 +208,11 @@ fun MediaView(
                     video = video,
                     preferences = preferences,
                     isRecentlyPlayedVideo = video.path == recentlyPlayedVideo?.path,
-                    modifier = Modifier
-                        .then(
-                            if (isTv && index == 0 && mediaHolder.folders.isEmpty()) {
-                                Modifier.focusRequester(firstItemRequester)
-                            } else {
-                                Modifier
-                            },
-                        )
-                        .then(
-                            if (isTv && lastItemFocusRequester != null && index == mediaHolder.videos.lastIndex) {
-                                Modifier
-                                    .focusRequester(lastItemFocusRequester)
-                                    .then(
-                                        if (lastItemDownFocusRequester != null) {
-                                            Modifier.focusProperties { down = lastItemDownFocusRequester }
-                                        } else {
-                                            Modifier
-                                        },
-                                    )
-                            } else {
-                                Modifier
-                            },
-                        )
-                        .restorableFocusItem(
-                            isTv = isTv,
-                            key = video.uriString,
-                            restoredKey = restoredFocusKey,
-                            restoreRequester = restoreRequester,
-                            onFocused = { onItemFocused?.invoke(it as String) },
-                        ),
+                    modifier = Modifier.tvItemFocus(
+                        isFirst = index == 0 && mediaHolder.folders.isEmpty(),
+                        isLast = index == mediaHolder.videos.lastIndex,
+                        key = video.uriString,
+                    ),
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.videos.lastIndex,
                     selected = selected,
