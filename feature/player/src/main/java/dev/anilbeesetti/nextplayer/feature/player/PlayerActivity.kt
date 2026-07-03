@@ -12,7 +12,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -33,9 +32,11 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
+import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
@@ -75,7 +76,7 @@ class PlayerActivity : ComponentActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
 
-    private val subtitleFileSuspendLauncher = registerForSuspendActivityResult(OpenDocument())
+    private val subtitleFileSuspendLauncher = registerForSuspendActivityResult(OpenDocumentAtInitialUri())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,14 +108,21 @@ class PlayerActivity : ComponentActivity() {
                         playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
                         onSelectSubtitleClick = {
                             lifecycleScope.launch {
+                                val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
+                                val initialUri = videoUri?.let { video ->
+                                    withContext(Dispatchers.IO) { getInitialDirectoryUri(video) }
+                                }
                                 val uri = subtitleFileSuspendLauncher.launch(
-                                    arrayOf(
-                                        MimeTypes.APPLICATION_SUBRIP,
-                                        MimeTypes.APPLICATION_TTML,
-                                        MimeTypes.TEXT_VTT,
-                                        MimeTypes.TEXT_SSA,
-                                        MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
-                                        MimeTypes.BASE_TYPE_TEXT + "/*",
+                                    OpenDocumentAtInitialUri.Input(
+                                        mimeTypes = arrayOf(
+                                            MimeTypes.APPLICATION_SUBRIP,
+                                            MimeTypes.APPLICATION_TTML,
+                                            MimeTypes.TEXT_VTT,
+                                            MimeTypes.TEXT_SSA,
+                                            MimeTypes.BASE_TYPE_APPLICATION + "/octet-stream",
+                                            MimeTypes.BASE_TYPE_TEXT + "/*",
+                                        ),
+                                        initialUri = initialUri,
                                     ),
                                 ) ?: return@launch
                                 contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
