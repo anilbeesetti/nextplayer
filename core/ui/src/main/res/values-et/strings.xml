@@ -298,4 +298,7 @@
     <string name="reset_brightness_gesture_sensitivity">Lähtesta ereduse viipe tundlikkus</string>
     <string name="material_you_controls">Juhtnupud Material You stiilis</string>
     <string name="material_you_controls_description">Kasuta Material You stiilis juhtnuppe</string>
+    <string name="folder_duration">Kausta kestus</string>
+    <string name="hide">Peida</string>
+    <string name="unhide">Näida peidetud</string>
 </resources>
