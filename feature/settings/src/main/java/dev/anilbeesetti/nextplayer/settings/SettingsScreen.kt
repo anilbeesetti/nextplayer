@@ -61,7 +61,7 @@ fun SettingsScreen(
                 .tvListFocus(listFocusRequester)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp),
+                .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
             settingRows.forEachIndexed { index, row ->

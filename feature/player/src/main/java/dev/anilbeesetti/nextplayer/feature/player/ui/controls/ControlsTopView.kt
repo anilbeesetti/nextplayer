@@ -43,7 +43,8 @@ fun ControlsTopView(
         modifier = modifier
             .padding(systemBarsPadding.copy(bottom = 0.dp))
             .padding(horizontal = 8.dp)
-            .padding(bottom = 16.dp),
+            .padding(bottom = 16.dp)
+            .padding(top = 16.dp.takeIf { systemBarsPadding.calculateTopPadding() == 0.dp } ?: 0.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {

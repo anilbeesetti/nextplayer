@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -36,11 +37,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -86,6 +90,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
+import dev.anilbeesetti.nextplayer.feature.player.extensions.formatted
 import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
@@ -96,6 +101,7 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -217,6 +223,26 @@ fun MediaPlayerScreen(
         }
     }
 
+    // D-pad seeking (controls hidden): accumulate the skipped amount and briefly show it.
+    var dpadSeekOffsetMs by remember { mutableLongStateOf(0L) }
+    var dpadSeekTargetMs by remember { mutableLongStateOf(0L) }
+    var dpadSeekActive by remember { mutableStateOf(false) }
+    var dpadSeekTick by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(dpadSeekTick) {
+        if (!dpadSeekActive) return@LaunchedEffect
+        delay(1.seconds)
+        dpadSeekActive = false
+    }
+
+    val showDpadSeekFeedback: (Long) -> Unit = { deltaMs ->
+        if (!dpadSeekActive) dpadSeekOffsetMs = 0L
+        dpadSeekOffsetMs += deltaMs
+        dpadSeekTargetMs = player.currentPosition
+        dpadSeekActive = true
+        dpadSeekTick++
+    }
+
     CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
         Box {
             Box(
@@ -238,6 +264,7 @@ fun MediaPlayerScreen(
                                             controls = controlsVisibilityState,
                                             seekIncrementMs = seekIncrementMs,
                                             isPlayPauseFocused = isPlayPauseFocused,
+                                            onDpadSeek = showDpadSeekFeedback,
                                         )
                                     }
                                 }
@@ -285,6 +312,12 @@ fun MediaPlayerScreen(
                 }
 
                 DoubleTapIndicator(tapGestureState = tapGestureState)
+
+                DpadSeekIndicator(
+                    visible = dpadSeekActive && dpadSeekOffsetMs != 0L,
+                    offsetMs = dpadSeekOffsetMs,
+                    positionMs = dpadSeekTargetMs,
+                )
 
                 AnimatedVisibility(
                     modifier = Modifier
@@ -545,6 +578,57 @@ fun InfoView(
     }
 }
 
+/**
+ * Shows the cumulative amount skipped by repeated D-pad left/right seeks while the controls are
+ * hidden, along with the resulting position. Fades out shortly after the last seek.
+ */
+@Composable
+fun BoxScope.DpadSeekIndicator(
+    visible: Boolean,
+    offsetMs: Long,
+    positionMs: Long,
+) {
+    AnimatedVisibility(
+        modifier = Modifier.align(Alignment.Center),
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Black.copy(alpha = 0.6f),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_fast),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .rotate(if (offsetMs < 0) 180f else 0f),
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "${if (offsetMs >= 0) "+" else "-"}${abs(offsetMs).milliseconds.inWholeSeconds}s",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = positionMs.milliseconds.formatted(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun ControlsMiddleView(
     modifier: Modifier = Modifier,
@@ -569,6 +653,7 @@ private fun handlePlayerKeyEvent(
     controls: ControlsVisibilityState,
     seekIncrementMs: Long,
     isPlayPauseFocused: Boolean,
+    onDpadSeek: (deltaMs: Long) -> Unit,
 ): Boolean {
     if (keyEvent.type != KeyEventType.KeyDown) return false
     if (controls.controlsLocked) {
@@ -619,6 +704,7 @@ private fun handlePlayerKeyEvent(
         Key.DirectionLeft -> {
             if (!controls.controlsVisible) {
                 seekBy(-seekIncrementMs)
+                onDpadSeek(-seekIncrementMs)
                 true
             } else {
                 controls.showControls()
@@ -628,6 +714,7 @@ private fun handlePlayerKeyEvent(
         Key.DirectionRight -> {
             if (!controls.controlsVisible) {
                 seekBy(seekIncrementMs)
+                onDpadSeek(seekIncrementMs)
                 true
             } else {
                 controls.showControls()
