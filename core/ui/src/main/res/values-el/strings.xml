@@ -325,4 +325,43 @@
     <string name="open_vault">Άνοιγμα κρύπτης</string>
     <string name="vault_empty_title">Κανένα κρυφό βίντεο</string>
     <string name="vault_empty_description">Τα βίντεο που αποκρύπτετε θα εμφανίζονται εδώ. Πατήστε παρατεταμένα ένα βίντεο και πατήστε Απόκρυψη για να το προσθέσετε στο αρχείο καταγραφής.</string>
+    <string name="folder_duration">Διάρκεια φακέλου</string>
+    <string name="got_it">Κατάλαβα</string>
+    <string name="unhide_one_video_confirmation">Επανεμφάνιση αυτού του βίντεο; Θα μετακινηθεί πίσω στην αρχική του θέση.</string>
+    <string name="unhide_videos_confirmation">Επανεμφάνιση %1$d βίντεο; Θα μετακινηθούν πίσω στην αρχική τους θέση.</string>
+    <string name="delete_one_video_from_vault">Μόνιμη διαγραφή του βίντεο;</string>
+    <string name="delete_videos_from_vault">Να διαγραφούν οριστικά %1$d βίντεο;</string>
+    <string name="delete_from_vault_info">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Το βίντεο θα διαγραφεί οριστικά από τη συσκευή σας.</string>
+    <string name="sort_by">Ταξινόμηση κατά</string>
+    <string name="name">Όνομα</string>
+    <string name="date_hidden">Ημέρα απόκρυψης</string>
+    <string name="forgot_pin">Ξεχάσατε το PIN;</string>
+    <string name="reset_vault_pin_confirmation">Η επαναφορά του PIN σας θα διαγράψει οριστικά όλα τα βίντεο που βρίσκονται αυτήν τη στιγμή στην κρύπτη, καθώς δεν είναι πλέον δυνατό το ξεκλείδωμα τους. Θέλετε να συνεχίσετε;</string>
+    <string name="reset_pin_and_delete_all">Επαναφορά PIN &amp; διαγραφή όλων</string>
+    <string name="copy">Αντιγραφή</string>
+    <string name="move">Μετακίνηση</string>
+    <string name="copying_videos_in_progress">Αντιγραφή…</string>
+    <string name="moving_videos_in_progress">Μετακίνηση…</string>
+    <string name="transfer_file_progress">Αρχείο %1$d από %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">Αντιγράφηκε 1 αρχείο</item>
+        <item quantity="other">Αντιγράφηκαν %1$d βίντεο</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">Μετακινήθηκα 1 βίντεο</item>
+        <item quantity="other">Μετακινήθηκαν %1$d βίντεο</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Αδυναμία αντιγραφής 1 βίντεο</item>
+        <item quantity="other">Αδυναμία αντιγραφής %1$d βίντεο</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Αδυναμία μετακίνησης 1 βίντεο</item>
+        <item quantity="other">Αδυναμία μετακίνησης %1$d βίντεο</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Μετακινήθηκε 1 βίντεο, αλλά δεν διαγράφηκε το πρωτότυπο</item>
+        <item quantity="other">Μετακινήθηκαν %1$d βίντεο, αλλά δεν διαγράφηκαν τα πρωτότυπα</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Δεν είναι δυνατή η μετακίνηση στον ίδιο φάκελο</string>
 </resources>
