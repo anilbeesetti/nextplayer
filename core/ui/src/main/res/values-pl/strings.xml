@@ -375,4 +375,5 @@
         <item quantity="other">Przeniesiono %1$d wideo, ale nie udało się usunąć oryginałów</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Nie można przenieść do tego samego katalogu</string>
+    <string name="folder_duration">Czas trwania katalogu</string>
 </resources>
