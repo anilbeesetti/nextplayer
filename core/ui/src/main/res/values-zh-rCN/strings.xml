@@ -354,7 +354,7 @@
     </plurals>
     <string name="transfer_file_progress">第 %1$d 个文件，共 %2$d 个</string>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="other">移动了 %1$d 个视频，但无法移动原始文件</item>
+        <item quantity="other">已移动 %1$d 个视频，但无法移除原始视频</item>
     </plurals>
-    <string name="cannot_move_to_same_folder">无法移动到同一个文件夹</string>
+    <string name="cannot_move_to_same_folder">无法移动到相同文件夹</string>
 </resources>
