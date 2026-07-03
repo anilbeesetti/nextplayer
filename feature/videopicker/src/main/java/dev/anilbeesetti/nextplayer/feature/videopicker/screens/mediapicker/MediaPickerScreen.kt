@@ -111,6 +111,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
@@ -265,7 +266,10 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else if (uiState.folderName != null) {
-                        FilledTonalIconButton(onClick = onNavigateUp) {
+                        FilledTonalIconButton(
+                            onClick = onNavigateUp,
+                            modifier = Modifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.ArrowBack,
                                 contentDescription = stringResource(id = R.string.navigate_up),
@@ -286,6 +290,7 @@ internal fun MediaPickerScreen(
                                     selectionManager.clearSelection()
                                 }
                             },
+                            modifier = Modifier.tvFocusRing(isTv),
                         ) {
                             Icon(
                                 imageVector = if (selectedItemsSize != totalItemsSize) {
@@ -301,19 +306,28 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else {
-                        IconButton(onClick = onSearchClick) {
+                        IconButton(
+                            onClick = onSearchClick,
+                            modifier = Modifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.Search,
                                 contentDescription = stringResource(id = R.string.search),
                             )
                         }
-                        IconButton(onClick = { showQuickSettingsDialog = true }) {
+                        IconButton(
+                            onClick = { showQuickSettingsDialog = true },
+                            modifier = Modifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.DashBoard,
                                 contentDescription = stringResource(id = R.string.menu),
                             )
                         }
-                        IconButton(onClick = onSettingsClick) {
+                        IconButton(
+                            onClick = onSettingsClick,
+                            modifier = Modifier.tvFocusRing(isTv),
+                        ) {
                             Icon(
                                 imageVector = NextIcons.Settings,
                                 contentDescription = stringResource(id = R.string.settings),
@@ -380,21 +394,30 @@ internal fun MediaPickerScreen(
                     ToggleFloatingActionButton(
                         checked = isFabExpanded,
                         onCheckedChange = { isFabExpanded = !isFabExpanded },
-                        modifier = if (isTv && hasMedia) {
-                            Modifier
-                                .focusRequester(fabFocusRequester)
-                                // Only redirect up to the list while collapsed; when expanded, up must
-                                // reach the menu options above the button.
-                                .then(
-                                    if (isFabExpanded) {
-                                        Modifier
-                                    } else {
-                                        Modifier.focusProperties { up = lastItemFocusRequester }
-                                    },
-                                )
-                        } else {
-                            Modifier
-                        },
+                        modifier = Modifier
+                            // Match the ring to the FAB's own shape: a 16.dp rounded square while
+                            // collapsed, morphing to a circle once expanded.
+                            .tvFocusRing(
+                                isTv = isTv,
+                                shape = if (isFabExpanded) CircleShape else RoundedCornerShape(16.dp),
+                            )
+                            .then(
+                                if (isTv && hasMedia) {
+                                    Modifier
+                                        .focusRequester(fabFocusRequester)
+                                        // Only redirect up to the list while collapsed; when expanded,
+                                        // up must reach the menu options above the button.
+                                        .then(
+                                            if (isFabExpanded) {
+                                                Modifier
+                                            } else {
+                                                Modifier.focusProperties { up = lastItemFocusRequester }
+                                            },
+                                        )
+                                } else {
+                                    Modifier
+                                },
+                            ),
                     ) {
                         val icon by remember {
                             derivedStateOf {
@@ -411,11 +434,15 @@ internal fun MediaPickerScreen(
             ) {
                 FloatingActionButtonMenuItem(
                     // Top-most menu item: up exits the menu back to the last media item.
-                    modifier = if (isTv && hasMedia) {
-                        Modifier.focusProperties { up = lastItemFocusRequester }
-                    } else {
-                        Modifier
-                    },
+                    modifier = Modifier
+                        .tvFocusRing(isTv)
+                        .then(
+                            if (isTv && hasMedia) {
+                                Modifier.focusProperties { up = lastItemFocusRequester }
+                            } else {
+                                Modifier
+                            },
+                        ),
                     onClick = {
                         isFabExpanded = false
                         showUrlDialog = true
@@ -431,6 +458,7 @@ internal fun MediaPickerScreen(
                     },
                 )
                 FloatingActionButtonMenuItem(
+                    modifier = Modifier.tvFocusRing(isTv),
                     onClick = {
                         isFabExpanded = false
                         selectVideoFileLauncher.launch("video/*")
@@ -447,6 +475,7 @@ internal fun MediaPickerScreen(
                 )
                 if (uiState.recentlyPlayedVideo != null) {
                     FloatingActionButtonMenuItem(
+                        modifier = Modifier.tvFocusRing(isTv),
                         onClick = {
                             isFabExpanded = false
                             onPlayVideo(uiState.recentlyPlayedVideo.uriString.toUri())

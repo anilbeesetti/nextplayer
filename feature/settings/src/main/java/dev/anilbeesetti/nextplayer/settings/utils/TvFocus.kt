@@ -10,6 +10,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -36,5 +37,6 @@ fun Modifier.tvListFocus(focusRequester: FocusRequester): Modifier {
 fun Modifier.tvFocusDown(target: FocusRequester): Modifier {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
-    return if (isTv) this.focusProperties { down = target } else this
+    // This is applied to the top-bar back button, so also give it a visible focus ring on TV.
+    return if (isTv) this.tvFocusRing(isTv).focusProperties { down = target } else this
 }
