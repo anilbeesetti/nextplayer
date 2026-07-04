@@ -87,7 +87,16 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun fileSize(path: String): Long = withContext(Dispatchers.IO) {
         runCatching {
             val client = ftpClient ?: error("Not connected")
-            client.listFiles(path).firstOrNull { !it.isDirectory }?.size ?: -1L
+            // `SIZE` (RFC 3659) is a single round-trip and works in binary mode. Listing the file
+            // path directly is unreliable — many servers only LIST directories, returning nothing.
+            if (client.sendCommand("SIZE", path) == FTPReply.FILE_STATUS) {
+                client.replyString.trim().substringAfterLast(' ').toLongOrNull() ?: -1L
+            } else {
+                // Fallback: find the entry in its parent directory listing.
+                val parent = path.substringBeforeLast('/', "").ifEmpty { "/" }
+                val name = path.substringAfterLast('/')
+                client.listFiles(parent).firstOrNull { it.name == name && !it.isDirectory }?.size ?: -1L
+            }
         }.getOrDefault(-1L)
     }
 
