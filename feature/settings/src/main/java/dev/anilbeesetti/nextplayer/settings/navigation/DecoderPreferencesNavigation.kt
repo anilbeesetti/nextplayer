@@ -1,20 +1,20 @@
 package dev.anilbeesetti.nextplayer.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.screens.decoder.DecoderPreferencesScreen
+import kotlinx.serialization.Serializable
 
-const val decoderPreferencesNavigationRoute = "decoder_preferences_route"
+@Serializable
+object DecoderPreferencesRoute : NavKey
 
-fun NavController.navigateToDecoderPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(decoderPreferencesNavigationRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToDecoderPreferences() {
+    add(DecoderPreferencesRoute)
 }
 
-fun NavGraphBuilder.decoderPreferencesScreen(onNavigateUp: () -> Unit) {
-    composable(route = decoderPreferencesNavigationRoute) {
+fun EntryProviderScope<NavKey>.decoderPreferencesEntry(onNavigateUp: () -> Unit) {
+    entry<DecoderPreferencesRoute> {
         DecoderPreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }

@@ -1,20 +1,20 @@
 package dev.anilbeesetti.nextplayer.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.screens.gesture.GesturePreferencesScreen
+import kotlinx.serialization.Serializable
 
-const val gesturePreferencesNavigationRoute = "gesture_preferences_route"
+@Serializable
+object GesturePreferencesRoute : NavKey
 
-fun NavController.navigateToGesturePreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(gesturePreferencesNavigationRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToGesturePreferences() {
+    add(GesturePreferencesRoute)
 }
 
-fun NavGraphBuilder.gesturePreferencesScreen(onNavigateUp: () -> Unit) {
-    composable(route = gesturePreferencesNavigationRoute) {
+fun EntryProviderScope<NavKey>.gesturePreferencesEntry(onNavigateUp: () -> Unit) {
+    entry<GesturePreferencesRoute> {
         GesturePreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }

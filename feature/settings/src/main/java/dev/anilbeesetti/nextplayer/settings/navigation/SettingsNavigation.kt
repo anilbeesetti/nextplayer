@@ -1,21 +1,21 @@
 package dev.anilbeesetti.nextplayer.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.Setting
 import dev.anilbeesetti.nextplayer.settings.SettingsScreen
+import kotlinx.serialization.Serializable
 
-const val settingsNavigationRoute = "settings_route"
+@Serializable
+object SettingsRoute : NavKey
 
-fun NavController.navigateToSettings(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(settingsNavigationRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToSettings() {
+    add(SettingsRoute)
 }
 
-fun NavGraphBuilder.settingsScreen(onNavigateUp: () -> Unit, onItemClick: (Setting) -> Unit) {
-    composable(route = settingsNavigationRoute) {
+fun EntryProviderScope<NavKey>.settingsEntry(onNavigateUp: () -> Unit, onItemClick: (Setting) -> Unit) {
+    entry<SettingsRoute> {
         SettingsScreen(onNavigateUp = onNavigateUp, onItemClick = onItemClick)
     }
 }
