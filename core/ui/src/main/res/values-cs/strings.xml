@@ -219,9 +219,9 @@
     <string name="volume_gesture_description">Měňte hlasitost posouváním nahoru a dolů</string>
     <string name="brightness_gesture">Gesto jasu</string>
     <string name="brightness_gesture_description">Měňte jas posouváním nahoru a dolů</string>
-    <string name="delete_one_video">Odstranit 1 video?</string>
+    <string name="delete_one_video">Odstranit jedno video?</string>
     <string name="delete_videos">Odstranit %1$d videa/jí?</string>
-    <string name="delete_one_folder">Odstranit 1 složku?</string>
+    <string name="delete_one_folder">Odstranit jednu složku?</string>
     <string name="delete_folders">Odstranit %1$d složky/ek?</string>
     <string name="delete_items">Odstranit %1$d položky/ek?</string>
     <string name="delete_item_info">Tuto akci nelze vrátit zpět. Vybraná položka bude nenávratně odstraněna</string>
@@ -330,4 +330,43 @@
     <string name="forgot_pin">Zapoměl jste PIN?</string>
     <string name="reset_vault_pin_confirmation">Resetování vašeho PINu nenávratně odstraní všechny videa uloženy v sejfu, protože nemohou být odemčeny. Pokračovat?</string>
     <string name="reset_pin_and_delete_all">Resetovat PIN a odstranit vše</string>
+    <string name="copy">Kopírovat</string>
+    <string name="move">Přesunout</string>
+    <string name="copying_videos_in_progress">Kopírování…</string>
+    <string name="moving_videos_in_progress">Přesouvání…</string>
+    <string name="transfer_file_progress">Soubor %1$d z(e) %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">Jedno video zkopírováno</item>
+        <item quantity="few">%1$d videa zkopírované</item>
+        <item quantity="many">%1$d videí zkopírované</item>
+        <item quantity="other">%1$d videí zkopírované</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">Jedno video přesunuto</item>
+        <item quantity="few">%1$d videa přesunuty</item>
+        <item quantity="many">%1$d videí přesunuty</item>
+        <item quantity="other">%1$d videí přesunuty</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Jedno video nešlo kopírovat</item>
+        <item quantity="few">%1$d videa nešlo kopírovat</item>
+        <item quantity="many">%1$d videí nešlo kopírovat</item>
+        <item quantity="other">%1$d videí nešlo kopírovat</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Jedno video nešlo přesunout</item>
+        <item quantity="few">%1$d videa nešlo přesunout</item>
+        <item quantity="many">%1$d videí nešlo přesunout</item>
+        <item quantity="other">%1$d videí nešlo přesunout</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Jedno video přesunuto, ale původní nešlo odebrat</item>
+        <item quantity="few">%1$d videa přesunuty, ale původní nešly odebrat</item>
+        <item quantity="many">%1$d videí přesunuty, ale původní nešly odebrat</item>
+        <item quantity="other">%1$d videí přesunuty, ale původní nešly odebrat</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Nelze přesunout do stejné složky</string>
+    <string name="folder_duration">Délka složky</string>
+    <string name="pan_gesture_description">Přibližovat a posouvat obraz ve videu</string>
+    <string name="pan_gesture">Gesto přiblížení/posouvání obrazu</string>
 </resources>
