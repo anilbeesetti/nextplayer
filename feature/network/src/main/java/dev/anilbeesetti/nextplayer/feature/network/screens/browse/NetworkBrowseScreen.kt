@@ -46,6 +46,9 @@ import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
+import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import dev.anilbeesetti.nextplayer.feature.network.R
@@ -86,7 +89,7 @@ internal fun NetworkBrowseScreen(
             NextTopAppBar(
                 title = uiState.title,
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onBack) {
+                    FilledTonalIconButton(onClick = onBack, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
                             contentDescription = stringResource(CoreUiR.string.navigate_up),
@@ -144,7 +147,9 @@ internal fun NetworkBrowseScreen(
                         }
                     } else {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .tvListFocus(rememberTvListFocusRequester()),
                             contentPadding = PaddingValues(
                                 start = 8.dp,
                                 end = 8.dp,

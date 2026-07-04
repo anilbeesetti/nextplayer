@@ -20,9 +20,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -138,6 +141,7 @@ fun NextNavigationBar(state: TopLevelNavState) {
                 onClick = { state.switchTo(dest.route) },
                 icon = { Icon(imageVector = dest.icon, contentDescription = null) },
                 label = { Text(text = stringResource(dest.labelRes)) },
+                modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(24.dp)),
             )
         }
     }
@@ -152,6 +156,7 @@ fun NextNavigationRail(state: TopLevelNavState) {
                 onClick = { state.switchTo(dest.route) },
                 icon = { Icon(imageVector = dest.icon, contentDescription = null) },
                 label = { Text(text = stringResource(dest.labelRes)) },
+                modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(24.dp)),
             )
         }
     }

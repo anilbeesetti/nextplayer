@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import dev.anilbeesetti.nextplayer.feature.network.R
@@ -136,7 +137,7 @@ internal fun AddConnectionScreen(
             NextTopAppBar(
                 title = stringResource(if (isEdit) R.string.edit_connection else R.string.add_connection),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp) {
+                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.Close,
                             contentDescription = stringResource(dev.anilbeesetti.nextplayer.core.ui.R.string.navigate_up),
@@ -175,6 +176,7 @@ internal fun AddConnectionScreen(
                             }
                         },
                         shape = SegmentedButtonDefaults.itemShape(index, protocols.size),
+                        modifier = Modifier.tvFocusRing(shape = SegmentedButtonDefaults.itemShape(index, protocols.size)),
                     ) {
                         Text(entry.name)
                     }
@@ -265,7 +267,9 @@ internal fun AddConnectionScreen(
             Button(
                 onClick = { submit() },
                 enabled = canSave,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .tvFocusRing(shape = MaterialTheme.shapes.large),
             ) {
                 if (isTesting) {
                     CircularProgressIndicator(

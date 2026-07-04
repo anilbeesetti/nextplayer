@@ -132,7 +132,6 @@ class MainActivity : ComponentActivity() {
 
                         val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
                             isTopLevel = { contentKey -> navState.topLevelContentKeys.contains(contentKey) },
-                            sharedTransitionScope = sharedTransitionScope,
                             navBar = { NextNavigationBar(navState) },
                             navRail = { NextNavigationRail(navState) },
                         )

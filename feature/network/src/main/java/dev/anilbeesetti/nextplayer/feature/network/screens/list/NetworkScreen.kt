@@ -48,6 +48,9 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
+import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.network.R
@@ -89,7 +92,7 @@ internal fun NetworkScreen(
                 title = stringResource(R.string.network),
                 fontWeight = FontWeight.Bold,
                 actions = {
-                    IconButton(onClick = onSettingsClick) {
+                    IconButton(onClick = onSettingsClick, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(CoreUiR.string.settings),
@@ -103,6 +106,7 @@ internal fun NetworkScreen(
                 onClick = onAddConnection,
                 icon = { Icon(NextIcons.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.add_connection)) },
+                modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(16.dp)),
             )
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -119,7 +123,9 @@ internal fun NetworkScreen(
                 NetworkEmptyState(modifier = Modifier.fillMaxSize())
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .tvListFocus(rememberTvListFocusRequester()),
                     contentPadding = PaddingValues(
                         start = 8.dp,
                         end = 8.dp,
