@@ -1,10 +1,17 @@
 package dev.anilbeesetti.nextplayer.feature.network.navigation
 
 import android.net.Uri
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.metadata
+import androidx.navigation3.ui.NavDisplay
 import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConnectionScreenRoute
 import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConnectionViewModel
 import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseScreenRoute
@@ -48,7 +55,19 @@ fun EntryProviderScope<NavKey>.networkEntry(
 fun EntryProviderScope<NavKey>.addConnectionEntry(
     onNavigateUp: () -> Unit,
 ) {
-    entry<AddConnectionRoute> { key ->
+    entry<AddConnectionRoute>(
+        metadata = metadata {
+            put(NavDisplay.TransitionKey) {
+                slideInVertically { it } togetherWith scaleOut(targetScale = 0.95f)
+            }
+            put(NavDisplay.PopTransitionKey) {
+                scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
+            }
+            put(NavDisplay.PredictivePopTransitionKey) {
+                scaleIn(initialScale = 0.95f) togetherWith slideOutVertically { it }
+            }
+        }
+    ) { key ->
         AddConnectionScreenRoute(
             onNavigateUp = onNavigateUp,
             viewModel = hiltViewModel<AddConnectionViewModel, AddConnectionViewModel.Factory>(
