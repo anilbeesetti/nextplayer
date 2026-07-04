@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
-import dev.anilbeesetti.nextplayer.core.ui.components.LocalBottomBarPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -147,7 +146,7 @@ internal fun NetworkBrowseScreen(
                                 start = 8.dp,
                                 end = 8.dp,
                                 top = 8.dp,
-                                bottom = padding.calculateBottomPadding() + 16.dp + LocalBottomBarPadding.current,
+                                bottom = padding.calculateBottomPadding() + 16.dp,
                             ),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {

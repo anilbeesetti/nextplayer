@@ -43,7 +43,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
-import dev.anilbeesetti.nextplayer.core.ui.components.LocalBottomBarPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -102,7 +101,6 @@ internal fun NetworkScreen(
                 onClick = onAddConnection,
                 icon = { Icon(NextIcons.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.add_connection)) },
-                modifier = Modifier.padding(bottom = LocalBottomBarPadding.current),
             )
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -123,7 +121,7 @@ internal fun NetworkScreen(
                         start = 8.dp,
                         end = 8.dp,
                         top = 8.dp,
-                        bottom = padding.calculateBottomPadding() + 96.dp + LocalBottomBarPadding.current,
+                        bottom = padding.calculateBottomPadding() + 96.dp,
                     ),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
