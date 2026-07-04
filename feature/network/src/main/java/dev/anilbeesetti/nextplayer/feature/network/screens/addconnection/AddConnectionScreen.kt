@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -32,7 +34,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -43,6 +48,13 @@ import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
 import dev.anilbeesetti.nextplayer.feature.network.R
+
+/**
+ * Default path per protocol: SMB expects a bare share name (no leading slash), while FTP and WebDAV
+ * are rooted at "/".
+ */
+private fun defaultPathFor(protocol: NetworkProtocol): String =
+    if (protocol == NetworkProtocol.SMB) "" else "/"
 
 @Composable
 fun AddConnectionScreenRoute(
@@ -78,10 +90,12 @@ internal fun AddConnectionScreen(
     var name by rememberSaveable { mutableStateOf("") }
     var host by rememberSaveable { mutableStateOf("") }
     var port by rememberSaveable { mutableStateOf("") }
-    var path by rememberSaveable { mutableStateOf("") }
+    var path by rememberSaveable { mutableStateOf(defaultPathFor(NetworkProtocol.SMB)) }
     var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var useHttps by rememberSaveable { mutableStateOf(false) }
+
+    val focusManager = LocalFocusManager.current
 
     // Prefill when editing an existing connection (fires once it loads).
     LaunchedEffect(existing) {
@@ -137,6 +151,7 @@ internal fun AddConnectionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -151,7 +166,14 @@ internal fun AddConnectionScreen(
                 protocols.forEachIndexed { index, entry ->
                     SegmentedButton(
                         selected = protocol == entry,
-                        onClick = { onChange { protocol = entry } },
+                        onClick = {
+                            onChange {
+                                // Keep the path in sync with the protocol's default unless the user
+                                // has customized it (SMB wants a bare share name, others a "/" root).
+                                if (path == defaultPathFor(protocol)) path = defaultPathFor(entry)
+                                protocol = entry
+                            }
+                        },
                         shape = SegmentedButtonDefaults.itemShape(index, protocols.size),
                     ) {
                         Text(entry.name)
@@ -159,11 +181,15 @@ internal fun AddConnectionScreen(
                 }
             }
 
+            val moveToNext = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { onChange { name = it } },
                 label = { Text(stringResource(R.string.connection_name)) },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
@@ -171,7 +197,8 @@ internal fun AddConnectionScreen(
                 onValueChange = { onChange { host = it } },
                 label = { Text(stringResource(R.string.host)) },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+                keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
@@ -179,7 +206,8 @@ internal fun AddConnectionScreen(
                 onValueChange = { new -> onChange { port = new.filter { it.isDigit() } } },
                 label = { Text(stringResource(R.string.port_hint, protocol.defaultPort)) },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
@@ -187,6 +215,8 @@ internal fun AddConnectionScreen(
                 onValueChange = { onChange { path = it } },
                 label = { Text(stringResource(R.string.path_share)) },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
@@ -194,6 +224,8 @@ internal fun AddConnectionScreen(
                 onValueChange = { onChange { username = it } },
                 label = { Text(stringResource(R.string.username)) },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = moveToNext,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
@@ -202,7 +234,13 @@ internal fun AddConnectionScreen(
                 label = { Text(stringResource(R.string.password)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        if (canSave) submit()
+                    },
+                ),
                 modifier = Modifier.fillMaxWidth(),
             )
             if (protocol == NetworkProtocol.WEBDAV) {
