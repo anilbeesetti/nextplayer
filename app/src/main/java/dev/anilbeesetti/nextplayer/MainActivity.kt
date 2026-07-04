@@ -18,13 +18,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -32,6 +32,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import androidx.window.core.layout.WindowSizeClass
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
@@ -49,9 +50,6 @@ import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-/** Below this width the app shows a bottom navigation bar; at or above it, a side navigation rail. */
-private const val NAV_RAIL_MIN_WIDTH_DP = 600
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -121,7 +119,10 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         val sharedTransitionScope = this
                         val navState = rememberTopLevelNavState()
-                        val useNavRail = LocalConfiguration.current.screenWidthDp >= NAV_RAIL_MIN_WIDTH_DP
+                        // Show a side nav rail once the window is at least medium width (>= 600dp);
+                        // a bottom bar on compact widths.
+                        val useNavRail = currentWindowAdaptiveInfo().windowSizeClass
+                            .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
                         val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
                             useNavRail = useNavRail,
