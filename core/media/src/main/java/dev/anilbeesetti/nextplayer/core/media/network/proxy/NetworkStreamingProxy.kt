@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.media.network.proxy
 
+import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.networkVideoMimeType
@@ -9,15 +10,21 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
  * A local HTTP server on `127.0.0.1` that bridges network protocols (SMB/FTP/WebDAV) to plain HTTP
  * so the Media3 player can stream and seek remote files without a custom data source.
  *
- * A caller [registerStream]s a remote file and receives a `http://127.0.0.1:<port>/<id>` URL to
- * hand to the player. Incoming HTTP range requests are translated into offset reads on the
+ * A caller [registerStream]s a remote file and receives a `http://127.0.0.1:<port>/<id>/<name>` URL
+ * to hand to the player. Incoming HTTP range requests are translated into offset reads on the
  * appropriate [NetworkClient].
+ *
+ * Only one network stream is played at a time, so [registerStream] releases any previously
+ * registered stream (and its connection) instead of accumulating them for the app's lifetime.
  *
  * The NanoHTTPD server is composed (not inherited) so the dependency does not leak to callers.
  */
@@ -48,19 +55,36 @@ class NetworkStreamingProxy @Inject constructor() {
     @Synchronized
     fun registerStream(connection: NetworkConnection, filePath: String, fileName: String): String {
         val port = ensureStarted()
+        releasePreviousStreams()
         val id = idCounter.incrementAndGet().toString()
         streams[id] = StreamInfo(
             client = NetworkClientFactory.create(connection),
             filePath = filePath,
             mimeType = networkVideoMimeType(fileName),
         )
-        return "http://127.0.0.1:$port/$id"
+        // The stream id is the first path segment; the (encoded) file name is appended only so the
+        // player can derive a proper title from the URL's last segment instead of the id.
+        return "http://127.0.0.1:$port/$id/${Uri.encode(fileName)}"
     }
 
-    fun unregisterStream(url: String) {
-        val id = url.substringAfterLast('/')
-        streams.remove(id)?.let { info ->
-            runBlocking { runCatching { info.client.disconnect() } }
+    /**
+     * Stops the local server and releases every stream and connection. Call when the app is being
+     * destroyed. The proxy stays reusable — a later [registerStream] lazily starts a new server.
+     */
+    @Synchronized
+    fun release() {
+        releasePreviousStreams()
+        server?.stop()
+        server = null
+    }
+
+    /** Drops all registered streams and closes their connections off the caller's thread. */
+    private fun releasePreviousStreams() {
+        if (streams.isEmpty()) return
+        val previous = streams.values.toList()
+        streams.clear()
+        CoroutineScope(Dispatchers.IO).launch {
+            previous.forEach { runCatching { it.client.disconnect() } }
         }
     }
 

@@ -510,7 +510,7 @@ internal fun MediaPickerScreen(
                 val containerModifier = Modifier
                     .fillMaxSize()
                     .padding(top = scaffoldPadding.calculateTopPadding())
-                    .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current))
+                    .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current) + 2.dp)
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .background(MaterialTheme.colorScheme.background)
 

@@ -6,7 +6,12 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationRailDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,11 +78,11 @@ data class ResponsiveNavigationScene<T : Any>(
                         ) {
                             if (isMovableContentCaller) navRailContent()
                         }
-                        Box(Modifier.weight(1f)) { scene.content() }
+                        Box(Modifier.weight(1f).consumeWindowInsets(NavigationRailDefaults.windowInsets.only(WindowInsetsSides.Start))) { scene.content() }
                     }
                 } else {
                     Column(Modifier.fillMaxSize()) {
-                        Box(Modifier.weight(1f)) { scene.content() }
+                        Box(Modifier.weight(1f).consumeWindowInsets(NavigationBarDefaults.windowInsets.only(WindowInsetsSides.Bottom))) { scene.content() }
                         Box(
                             modifier = Modifier
                                 .cacheSize(!isMovableContentCaller)
