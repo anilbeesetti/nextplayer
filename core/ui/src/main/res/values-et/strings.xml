@@ -301,4 +301,11 @@
     <string name="folder_duration">Kausta kestus</string>
     <string name="hide">Peida</string>
     <string name="unhide">Näida peidetud</string>
+    <string name="vault">Turvakaust</string>
+    <string name="hidden_videos">Peidetud videod</string>
+    <string name="hide_one_video_confirmation">Kas peidad selle video?</string>
+    <string name="hide_videos_confirmation">Kas peidad %1$d videot?</string>
+    <string name="hide_video_info">Peidetud videod eemaldatakse sinu tavagaleriist ja tõstetakse privaatsesse turvakausta, mille avamiseks vajad PIN-koodi.</string>
+    <string name="hiding_videos_in_progress">Peidan…</string>
+    <string name="unhiding_videos_in_progress">Lõpetan peitmise…</string>
 </resources>
