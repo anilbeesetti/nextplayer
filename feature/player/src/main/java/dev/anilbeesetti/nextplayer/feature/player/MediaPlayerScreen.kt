@@ -537,10 +537,10 @@ fun MediaPlayerScreen(
     }
 
     BackHandler {
-        if (overlayView != null) {
-            overlayView = null
-        } else {
-            onBackClick()
+        when {
+            overlayView != null -> overlayView = null
+            isTv && controlsVisibilityState.controlsVisible -> controlsVisibilityState.hideControls()
+            else -> onBackClick()
         }
     }
 }
