@@ -1,39 +1,41 @@
 package dev.anilbeesetti.nextplayer.feature.network.navigation
 
 import android.net.Uri
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConnectionScreenRoute
+import dev.anilbeesetti.nextplayer.feature.network.screens.addconnection.AddConnectionViewModel
 import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseScreenRoute
+import dev.anilbeesetti.nextplayer.feature.network.screens.browse.NetworkBrowseViewModel
 import dev.anilbeesetti.nextplayer.feature.network.screens.list.NetworkScreenRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object NetworkRoute
+object NetworkRoute : NavKey
 
 @Serializable
-data class AddConnectionRoute(val connectionId: Long? = null)
+data class AddConnectionRoute(val connectionId: Long? = null) : NavKey
 
 @Serializable
-data class NetworkBrowseRoute(val connectionId: Long, val path: String? = null)
+data class NetworkBrowseRoute(val connectionId: Long, val path: String? = null) : NavKey
 
-fun NavController.navigateToNetwork(navOptions: NavOptions? = null) = navigate(NetworkRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToAddConnection(connectionId: Long? = null) {
+    add(AddConnectionRoute(connectionId))
+}
 
-fun NavController.navigateToAddConnection(connectionId: Long? = null) =
-    navigate(AddConnectionRoute(connectionId))
+fun NavBackStack<NavKey>.navigateToNetworkBrowse(connectionId: Long, path: String? = null) {
+    add(NetworkBrowseRoute(connectionId, path))
+}
 
-fun NavController.navigateToNetworkBrowse(connectionId: Long, path: String? = null) =
-    navigate(NetworkBrowseRoute(connectionId, path?.let { Uri.encode(it) }))
-
-fun NavGraphBuilder.networkScreen(
+fun EntryProviderScope<NavKey>.networkEntry(
     onAddConnection: () -> Unit,
     onEditConnection: (connectionId: Long) -> Unit,
     onOpenConnection: (connectionId: Long) -> Unit,
     onSettingsClick: () -> Unit,
 ) {
-    composable<NetworkRoute> {
+    entry<NetworkRoute> {
         NetworkScreenRoute(
             onAddConnection = onAddConnection,
             onEditConnection = onEditConnection,
@@ -43,24 +45,32 @@ fun NavGraphBuilder.networkScreen(
     }
 }
 
-fun NavGraphBuilder.addConnectionScreen(
+fun EntryProviderScope<NavKey>.addConnectionEntry(
     onNavigateUp: () -> Unit,
 ) {
-    composable<AddConnectionRoute> {
-        AddConnectionScreenRoute(onNavigateUp = onNavigateUp)
+    entry<AddConnectionRoute> { key ->
+        AddConnectionScreenRoute(
+            onNavigateUp = onNavigateUp,
+            viewModel = hiltViewModel<AddConnectionViewModel, AddConnectionViewModel.Factory>(
+                creationCallback = { factory -> factory.create(key.connectionId) },
+            ),
+        )
     }
 }
 
-fun NavGraphBuilder.networkBrowseScreen(
+fun EntryProviderScope<NavKey>.networkBrowseEntry(
     onNavigateUp: () -> Unit,
     onPlayVideo: (uri: Uri) -> Unit,
     onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
 ) {
-    composable<NetworkBrowseRoute> {
+    entry<NetworkBrowseRoute> { key ->
         NetworkBrowseScreenRoute(
             onNavigateUp = onNavigateUp,
             onPlayVideo = onPlayVideo,
             onNavigateToFolder = onNavigateToFolder,
+            viewModel = hiltViewModel<NetworkBrowseViewModel, NetworkBrowseViewModel.Factory>(
+                creationCallback = { factory -> factory.create(key.connectionId, key.path) },
+            ),
         )
     }
 }

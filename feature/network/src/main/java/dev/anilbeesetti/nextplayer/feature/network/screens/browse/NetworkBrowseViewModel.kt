@@ -2,10 +2,11 @@ package dev.anilbeesetti.nextplayer.feature.network.screens.browse
 
 import android.net.Uri
 import androidx.core.net.toUri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
@@ -14,8 +15,6 @@ import dev.anilbeesetti.nextplayer.core.media.network.isNetworkVideoFile
 import dev.anilbeesetti.nextplayer.core.media.network.proxy.NetworkStreamingProxy
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
-import dev.anilbeesetti.nextplayer.feature.network.navigation.NetworkBrowseRoute
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -36,20 +35,20 @@ data class NetworkBrowseUiState(
  * Browses a single folder on a network connection. Each folder is its own navigation destination
  * (like the media picker), so back navigation returns to the already-loaded parent instantly.
  */
-@HiltViewModel
-class NetworkBrowseViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = NetworkBrowseViewModel.Factory::class)
+class NetworkBrowseViewModel @AssistedInject constructor(
+    /** The connection being browsed; exposed so the screen can build child-folder routes. */
+    @Assisted val connectionId: Long,
+    /** The folder path to list; `null` means the connection's root. */
+    @Assisted private val path: String?,
     private val repository: NetworkConnectionRepository,
     private val streamingProxy: NetworkStreamingProxy,
-    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val route = savedStateHandle.toRoute<NetworkBrowseRoute>()
-
-    /** The connection being browsed; exposed so the screen can build child-folder routes. */
-    val connectionId: Long = route.connectionId
-
-    /** The folder path to list; `null` means the connection's root. */
-    private val path: String? = route.path?.let { Uri.decode(it) }
+    @AssistedFactory
+    interface Factory {
+        fun create(connectionId: Long, path: String?): NetworkBrowseViewModel
+    }
 
     private var connection: NetworkConnection? = null
     private var client: NetworkClient? = null

@@ -1,15 +1,14 @@
 package dev.anilbeesetti.nextplayer.feature.network.screens.addconnection
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
-import dev.anilbeesetti.nextplayer.feature.network.navigation.AddConnectionRoute
-import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,13 +22,16 @@ sealed interface SaveState {
     data class Error(val message: String?) : SaveState
 }
 
-@HiltViewModel
-class AddConnectionViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = AddConnectionViewModel.Factory::class)
+class AddConnectionViewModel @AssistedInject constructor(
+    @Assisted private val connectionId: Long?,
     private val repository: NetworkConnectionRepository,
-    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val connectionId: Long? = savedStateHandle.toRoute<AddConnectionRoute>().connectionId
+    @AssistedFactory
+    interface Factory {
+        fun create(connectionId: Long?): AddConnectionViewModel
+    }
 
     val isEdit: Boolean = connectionId != null
 

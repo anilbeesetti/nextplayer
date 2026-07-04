@@ -113,6 +113,25 @@ fun Context.getPath(uri: Uri): String? {
 }
 
 /**
+ * Builds a document Uri pointing at the parent folder of [fileUri], suitable for seeding a
+ * document picker via [DocumentsContract.EXTRA_INITIAL_URI] so it opens at the file's folder.
+ *
+ * Only primary external storage is supported; returns null for other volumes or when the real
+ * path cannot be resolved (in which case the picker opens at its default location).
+ */
+fun Context.getInitialDirectoryUri(fileUri: Uri): Uri? {
+    val path = getPath(fileUri) ?: return null
+    val parent = File(path).parent ?: return null
+    val externalRoot = Environment.getExternalStorageDirectory().path
+    if (parent != externalRoot && !parent.startsWith("$externalRoot/")) return null
+    val relativePath = parent.removePrefix(externalRoot).trim('/')
+    return DocumentsContract.buildDocumentUri(
+        "com.android.externalstorage.documents",
+        "primary:$relativePath",
+    )
+}
+
+/**
  * get data column from uri
  * @param uri uri of the file
  * @param selection selection

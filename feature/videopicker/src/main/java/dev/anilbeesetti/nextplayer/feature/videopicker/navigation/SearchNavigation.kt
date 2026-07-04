@@ -1,26 +1,25 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
 import android.net.Uri
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.search.SearchRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
-object SearchRoute
+object SearchRoute : NavKey
 
-fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
-    this.navigate(SearchRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToSearch() {
+    add(SearchRoute)
 }
 
-fun NavGraphBuilder.searchScreen(
+fun EntryProviderScope<NavKey>.searchEntry(
     onNavigateUp: () -> Unit,
     onPlayVideo: (uri: Uri) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
 ) {
-    composable<SearchRoute> {
+    entry<SearchRoute> {
         SearchRoute(
             onPlayVideo = onPlayVideo,
             onNavigateUp = onNavigateUp,

@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
@@ -48,7 +47,7 @@ import dev.anilbeesetti.nextplayer.feature.network.R
 @Composable
 fun AddConnectionScreenRoute(
     onNavigateUp: () -> Unit,
-    viewModel: AddConnectionViewModel = hiltViewModel(),
+    viewModel: AddConnectionViewModel,
 ) {
     val saveState by viewModel.saveState.collectAsStateWithLifecycle()
     val existing by viewModel.existingConnection.collectAsStateWithLifecycle()

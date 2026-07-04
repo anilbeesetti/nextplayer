@@ -39,7 +39,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -57,7 +56,7 @@ fun NetworkBrowseScreenRoute(
     onNavigateUp: () -> Unit,
     onPlayVideo: (Uri) -> Unit,
     onNavigateToFolder: (connectionId: Long, path: String) -> Unit,
-    viewModel: NetworkBrowseViewModel = hiltViewModel(),
+    viewModel: NetworkBrowseViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

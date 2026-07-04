@@ -1,20 +1,20 @@
 package dev.anilbeesetti.nextplayer.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.screens.audio.AudioPreferencesScreen
+import kotlinx.serialization.Serializable
 
-const val audioPreferencesNavigationRoute = "audio_preferences_route"
+@Serializable
+object AudioPreferencesRoute : NavKey
 
-fun NavController.navigateToAudioPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(audioPreferencesNavigationRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToAudioPreferences() {
+    add(AudioPreferencesRoute)
 }
 
-fun NavGraphBuilder.audioPreferencesScreen(onNavigateUp: () -> Unit) {
-    composable(route = audioPreferencesNavigationRoute) {
+fun EntryProviderScope<NavKey>.audioPreferencesEntry(onNavigateUp: () -> Unit) {
+    entry<AudioPreferencesRoute> {
         AudioPreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }

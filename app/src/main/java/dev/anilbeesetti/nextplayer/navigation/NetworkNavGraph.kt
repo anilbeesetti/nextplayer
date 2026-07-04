@@ -1,41 +1,34 @@
 package dev.anilbeesetti.nextplayer.navigation
 
 import android.content.Context
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
-import androidx.navigation.navigation
-import dev.anilbeesetti.nextplayer.feature.network.navigation.NetworkRoute
-import dev.anilbeesetti.nextplayer.feature.network.navigation.addConnectionScreen
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import dev.anilbeesetti.nextplayer.feature.network.navigation.addConnectionEntry
 import dev.anilbeesetti.nextplayer.feature.network.navigation.navigateToAddConnection
 import dev.anilbeesetti.nextplayer.feature.network.navigation.navigateToNetworkBrowse
-import dev.anilbeesetti.nextplayer.feature.network.navigation.networkBrowseScreen
-import dev.anilbeesetti.nextplayer.feature.network.navigation.networkScreen
+import dev.anilbeesetti.nextplayer.feature.network.navigation.networkBrowseEntry
+import dev.anilbeesetti.nextplayer.feature.network.navigation.networkEntry
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
-import kotlinx.serialization.Serializable
 
-@Serializable
-data object NetworkRootRoute
-
-fun NavGraphBuilder.networkNavGraph(
+fun EntryProviderScope<NavKey>.networkNavGraph(
     context: Context,
-    navController: NavHostController,
+    backStack: NavBackStack<NavKey>,
 ) {
-    navigation<NetworkRootRoute>(startDestination = NetworkRoute) {
-        networkScreen(
-            onAddConnection = { navController.navigateToAddConnection() },
-            onEditConnection = { id -> navController.navigateToAddConnection(id) },
-            onOpenConnection = { id -> navController.navigateToNetworkBrowse(id) },
-            onSettingsClick = navController::navigateToSettings,
-        )
+    networkEntry(
+        onAddConnection = { backStack.navigateToAddConnection() },
+        onEditConnection = { id -> backStack.navigateToAddConnection(id) },
+        onOpenConnection = { id -> backStack.navigateToNetworkBrowse(id) },
+        onSettingsClick = backStack::navigateToSettings,
+    )
 
-        addConnectionScreen(
-            onNavigateUp = navController::navigateUp,
-        )
+    addConnectionEntry(
+        onNavigateUp = { backStack.removeLastOrNull() },
+    )
 
-        networkBrowseScreen(
-            onNavigateUp = navController::navigateUp,
-            onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
-            onNavigateToFolder = { id, path -> navController.navigateToNetworkBrowse(id, path) },
-        )
-    }
+    networkBrowseEntry(
+        onNavigateUp = { backStack.removeLastOrNull() },
+        onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
+        onNavigateToFolder = { id, path -> backStack.navigateToNetworkBrowse(id, path) },
+    )
 }

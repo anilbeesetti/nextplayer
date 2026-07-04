@@ -1,22 +1,20 @@
 package dev.anilbeesetti.nextplayer.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.screens.player.PlayerPreferencesScreen
+import kotlinx.serialization.Serializable
 
-const val playerPreferencesNavigationRoute = "player_preferences_route"
+@Serializable
+object PlayerPreferencesRoute : NavKey
 
-fun NavController.navigateToPlayerPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(playerPreferencesNavigationRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToPlayerPreferences() {
+    add(PlayerPreferencesRoute)
 }
 
-fun NavGraphBuilder.playerPreferencesScreen(onNavigateUp: () -> Unit) {
-    composable(route = playerPreferencesNavigationRoute) {
-        PlayerPreferencesScreen(
-            onNavigateUp = onNavigateUp,
-        )
+fun EntryProviderScope<NavKey>.playerPreferencesEntry(onNavigateUp: () -> Unit) {
+    entry<PlayerPreferencesRoute> {
+        PlayerPreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }
