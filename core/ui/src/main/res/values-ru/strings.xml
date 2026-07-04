@@ -375,4 +375,5 @@
         <item quantity="other">Перемещено %1$d видео, но не удалось удалить оригиналы</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Невозможно переместить в ту же папку</string>
+    <string name="folder_duration">Общая длительность</string>
 </resources>
