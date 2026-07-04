@@ -3,9 +3,11 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
@@ -41,11 +43,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
-import javax.inject.Inject
 
-@HiltViewModel
-class MediaPickerViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+@HiltViewModel(assistedFactory = MediaPickerViewModel.Factory::class)
+class MediaPickerViewModel @AssistedInject constructor(
+    @Assisted private val folderArgs: FolderArgs,
     private val getSortedMediaUseCase: GetSortedMediaUseCase,
     private val getRecentlyPlayedVideoUseCase: GetRecentlyPlayedVideoUseCase,
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
@@ -58,7 +59,11 @@ class MediaPickerViewModel @Inject constructor(
     private val systemService: SystemService,
 ) : ViewModel() {
 
-    private val folderArgs = FolderArgs(savedStateHandle)
+    @AssistedFactory
+    interface Factory {
+        fun create(folderArgs: FolderArgs): MediaPickerViewModel
+    }
+
     val folderPath = folderArgs.folderId
 
     private val uiStateInternal = MutableStateFlow(

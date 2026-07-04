@@ -1,29 +1,31 @@
 package dev.anilbeesetti.nextplayer.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.screens.about.AboutPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.screens.about.LibrariesScreen
+import kotlinx.serialization.Serializable
 
-const val aboutPreferencesNavigationRoute = "about_preferences_route"
-const val librariesNavigationRoute = "libraries_route"
+@Serializable
+object AboutPreferencesRoute : NavKey
 
-fun NavController.navigateToAboutPreferences(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(aboutPreferencesNavigationRoute, navOptions)
+@Serializable
+object LibrariesRoute : NavKey
+
+fun NavBackStack<NavKey>.navigateToAboutPreferences() {
+    add(AboutPreferencesRoute)
 }
 
-fun NavController.navigateToLibraries(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(librariesNavigationRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToLibraries() {
+    add(LibrariesRoute)
 }
 
-fun NavGraphBuilder.aboutPreferencesScreen(
+fun EntryProviderScope<NavKey>.aboutPreferencesEntry(
     onLibrariesClick: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    composable(route = aboutPreferencesNavigationRoute) {
+    entry<AboutPreferencesRoute> {
         AboutPreferencesScreen(
             onLibrariesClick = onLibrariesClick,
             onNavigateUp = onNavigateUp,
@@ -31,12 +33,8 @@ fun NavGraphBuilder.aboutPreferencesScreen(
     }
 }
 
-fun NavGraphBuilder.librariesScreen(
-    onNavigateUp: () -> Unit,
-) {
-    composable(route = librariesNavigationRoute) {
-        LibrariesScreen(
-            onNavigateUp = onNavigateUp,
-        )
+fun EntryProviderScope<NavKey>.librariesEntry(onNavigateUp: () -> Unit) {
+    entry<LibrariesRoute> {
+        LibrariesScreen(onNavigateUp = onNavigateUp)
     }
 }

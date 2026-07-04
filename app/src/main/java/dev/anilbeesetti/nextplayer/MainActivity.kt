@@ -7,9 +7,11 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -24,8 +26,11 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
@@ -33,7 +38,7 @@ import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.navigation.MediaRootRoute
+import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRoute
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import kotlinx.coroutines.launch
@@ -104,56 +109,50 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface,
                 ) {
-                    val mainNavController = rememberNavController()
+                    val backStack = rememberNavBackStack(MediaPickerRoute())
 
-                    NavHost(
-                        navController = mainNavController,
-                        startDestination = MediaRootRoute,
-                        enterTransition = {
-                            slideIntoContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
+                    NavDisplay(
+                        backStack = backStack,
+                        onBack = { backStack.removeLastOrNull() },
+                        entryDecorators = listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator(),
+                        ),
+                        transitionSpec = {
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                            ) togetherWith slideOutHorizontally(
+                                targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
                             )
                         },
-                        exitTransition = {
-                            slideOutOfContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                                targetOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
+                        popTransitionSpec = {
+                            slideInHorizontally(
+                                initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                            ) togetherWith slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
                             )
                         },
-                        popEnterTransition = {
-                            slideIntoContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                                initialOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
+                        predictivePopTransitionSpec = {
+                            slideInHorizontally(
+                                initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                            ) togetherWith slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
                             )
                         },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
+                        entryProvider = entryProvider {
+                            mediaNavGraph(
+                                context = this@MainActivity,
+                                backStack = backStack,
                             )
+                            settingsNavGraph(backStack = backStack)
                         },
-                    ) {
-                        mediaNavGraph(
-                            context = this@MainActivity,
-                            navController = mainNavController,
-                        )
-                        settingsNavGraph(navController = mainNavController)
-                    }
+                    )
                 }
             }
         }

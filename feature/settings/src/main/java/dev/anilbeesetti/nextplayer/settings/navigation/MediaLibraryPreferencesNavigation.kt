@@ -1,30 +1,32 @@
 package dev.anilbeesetti.nextplayer.settings.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.FolderPreferencesScreen
 import dev.anilbeesetti.nextplayer.settings.screens.medialibrary.MediaLibraryPreferencesScreen
+import kotlinx.serialization.Serializable
 
-const val mediaLibraryPreferencesNavigationRoute = "media_library_preferences_route"
-const val folderPreferencesNavigationRoute = "folder_preferences_route"
+@Serializable
+object MediaLibraryPreferencesRoute : NavKey
 
-fun NavController.navigateToMediaLibraryPreferencesScreen(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(mediaLibraryPreferencesNavigationRoute, navOptions)
+@Serializable
+object FolderPreferencesRoute : NavKey
+
+fun NavBackStack<NavKey>.navigateToMediaLibraryPreferencesScreen() {
+    add(MediaLibraryPreferencesRoute)
 }
 
-fun NavController.navigateToFolderPreferencesScreen(navOptions: NavOptions? = navOptions { launchSingleTop = true }) {
-    this.navigate(folderPreferencesNavigationRoute, navOptions)
+fun NavBackStack<NavKey>.navigateToFolderPreferencesScreen() {
+    add(FolderPreferencesRoute)
 }
 
-fun NavGraphBuilder.mediaLibraryPreferencesScreen(
+fun EntryProviderScope<NavKey>.mediaLibraryPreferencesEntry(
     onNavigateUp: () -> Unit,
     onFolderSettingClick: () -> Unit,
     onThumbnailSettingClick: () -> Unit,
 ) {
-    composable(route = mediaLibraryPreferencesNavigationRoute) {
+    entry<MediaLibraryPreferencesRoute> {
         MediaLibraryPreferencesScreen(
             onNavigateUp = onNavigateUp,
             onFolderSettingClick = onFolderSettingClick,
@@ -33,8 +35,8 @@ fun NavGraphBuilder.mediaLibraryPreferencesScreen(
     }
 }
 
-fun NavGraphBuilder.folderPreferencesScreen(onNavigateUp: () -> Unit) {
-    composable(route = folderPreferencesNavigationRoute) {
+fun EntryProviderScope<NavKey>.folderPreferencesEntry(onNavigateUp: () -> Unit) {
+    entry<FolderPreferencesRoute> {
         FolderPreferencesScreen(onNavigateUp = onNavigateUp)
     }
 }
