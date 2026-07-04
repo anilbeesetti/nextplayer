@@ -6,15 +6,18 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
+import dev.anilbeesetti.nextplayer.core.database.dao.NetworkConnectionDao
 import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.NetworkConnectionEntity
 
 @Database(
     entities = [
         MediumStateEntity::class,
         HiddenVideoEntity::class,
+        NetworkConnectionEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -22,6 +25,8 @@ abstract class MediaDatabase : RoomDatabase() {
     abstract fun mediumStateDao(): MediumStateDao
 
     abstract fun hiddenVideoDao(): HiddenVideoDao
+
+    abstract fun networkConnectionDao(): NetworkConnectionDao
 
     companion object {
         const val DATABASE_NAME = "media_db"
@@ -204,6 +209,29 @@ abstract class MediaDatabase : RoomDatabase() {
                 db.execSQL(
                     """
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_hidden_video_vault_path` ON `hidden_video` (`vault_path`)
+                    """,
+                )
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Column definitions (order, types, nullability) must match the schema Room
+                // generates from NetworkConnectionEntity exactly, or migration validation fails.
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `network_connection` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `protocol` TEXT NOT NULL,
+                        `host` TEXT NOT NULL,
+                        `port` INTEGER,
+                        `path` TEXT NOT NULL,
+                        `username` TEXT NOT NULL,
+                        `password` TEXT NOT NULL,
+                        `use_https` INTEGER NOT NULL,
+                        `created_at` INTEGER NOT NULL
+                    )
                     """,
                 )
             }

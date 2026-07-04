@@ -52,7 +52,7 @@ fun NavGraphBuilder.mediaNavGraph(
     }
 }
 
-private fun Context.startPlayback(uris: List<Uri>, grantReadPermission: Boolean = false) {
+internal fun Context.startPlayback(uris: List<Uri>, grantReadPermission: Boolean = false) {
     if (grantReadPermission) {
         uris.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
     }

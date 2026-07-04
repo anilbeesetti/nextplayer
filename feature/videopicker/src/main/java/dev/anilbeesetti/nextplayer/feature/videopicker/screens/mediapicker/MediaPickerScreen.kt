@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -81,6 +82,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -110,6 +112,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.LocalBottomBarPadding
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
@@ -192,6 +195,7 @@ internal fun MediaPickerScreen(
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
     val context = LocalContext.current
+    val bottomBarPadding = LocalBottomBarPadding.current
     val isTv = remember { context.isTelevision }
     val firstItemFocusRequester = remember { FocusRequester() }
     val lastItemFocusRequester = remember { FocusRequester() }
@@ -403,6 +407,7 @@ internal fun MediaPickerScreen(
             if (selectionManager.isInSelectionMode) return@Scaffold
 
             FloatingActionButtonMenu(
+                modifier = Modifier.padding(bottom = if (uiState.folderName == null) bottomBarPadding else 0.dp),
                 expanded = isFabExpanded,
                 button = {
                     ToggleFloatingActionButton(
@@ -513,7 +518,11 @@ internal fun MediaPickerScreen(
                     .background(MaterialTheme.colorScheme.background)
 
                 val successContent: @Composable () -> Unit = {
-                    val updatedScaffoldPadding = scaffoldPadding.copy(top = 0.dp, start = 0.dp)
+                    val updatedScaffoldPadding = scaffoldPadding.copy(
+                        top = 0.dp,
+                        start = 0.dp,
+                        bottom = scaffoldPadding.calculateBottomPadding() + bottomBarPadding,
+                    )
                     PermissionMissingView(
                         isGranted = permissionState.status.isGranted,
                         showRationale = permissionState.status.shouldShowRationale,
