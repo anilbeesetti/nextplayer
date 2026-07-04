@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneDecoratorStrategy
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import androidx.window.core.layout.WindowSizeClass
 
 /**
  * Wraps a [Scene] so that top-level destinations are shown alongside the app's navigation UI: a
@@ -42,7 +44,7 @@ import androidx.navigation3.ui.LocalNavAnimatedContentScope
 data class ResponsiveNavigationScene<T : Any>(
     private val scene: Scene<T>,
     private val sharedTransitionScope: SharedTransitionScope,
-    private val useNavRail: Boolean,
+    private val windowSizeClass: WindowSizeClass,
     private val isTopLevel: (contentKey: Any) -> Boolean,
     private val navBarContent: @Composable () -> Unit,
     private val navRailContent: @Composable () -> Unit,
@@ -51,20 +53,15 @@ data class ResponsiveNavigationScene<T : Any>(
     override val key = scene::class to scene.key
 
     override val content: @Composable () -> Unit = {
-        // NavEntry.key is private, so identify the destination by its (public) contentKey, which
-        // defaults to the route's toString().
         val currentKey = scene.entries.lastOrNull()?.contentKey
         if (currentKey == null || !isTopLevel(currentKey)) {
             scene.content()
         } else {
             val animatedContentScope = LocalNavAnimatedContentScope.current
-            // Only the scene transitioning *in* renders the (movable) nav UI; the outgoing scene
-            // just reserves its cached size so the content doesn't jump mid-animation.
-            val isMovableContentCaller =
-                animatedContentScope.transition.targetState == EnterExitState.Visible
+            val isMovableContentCaller = animatedContentScope.transition.targetState == EnterExitState.Visible
 
             with(sharedTransitionScope) {
-                if (useNavRail) {
+                if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
                     Row(Modifier.fillMaxSize()) {
                         Box(
                             modifier = Modifier
@@ -100,9 +97,9 @@ data class ResponsiveNavigationScene<T : Any>(
 
 @Composable
 fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
-    useNavRail: Boolean,
     isTopLevel: (contentKey: Any) -> Boolean,
     sharedTransitionScope: SharedTransitionScope,
+    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
     navBar: @Composable () -> Unit,
     navRail: @Composable () -> Unit,
 ): SceneDecoratorStrategy<T> {
@@ -114,12 +111,12 @@ fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
     val movableNavBar = remember { movableContentOf { currentNavBar() } }
     val movableNavRail = remember { movableContentOf { currentNavRail() } }
 
-    return remember(useNavRail, sharedTransitionScope) {
+    return remember(windowSizeClass, sharedTransitionScope) {
         SceneDecoratorStrategy { scene ->
             ResponsiveNavigationScene(
                 scene = scene,
                 sharedTransitionScope = sharedTransitionScope,
-                useNavRail = useNavRail,
+                windowSizeClass = windowSizeClass,
                 isTopLevel = { currentIsTopLevel(it) },
                 navBarContent = movableNavBar,
                 navRailContent = movableNavRail,

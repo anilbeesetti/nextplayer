@@ -11,6 +11,8 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -18,7 +20,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +33,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import androidx.window.core.layout.WindowSizeClass
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
@@ -43,6 +43,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationRail
 import dev.anilbeesetti.nextplayer.navigation.TopLevelDestination
+import dev.anilbeesetti.nextplayer.navigation.isNavigationBetweenTopLevelDestinations
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
 import dev.anilbeesetti.nextplayer.navigation.rememberResponsiveNavigationSceneDecoratorStrategy
@@ -119,13 +120,8 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         val sharedTransitionScope = this
                         val navState = rememberTopLevelNavState()
-                        // Show a side nav rail once the window is at least medium width (>= 600dp);
-                        // a bottom bar on compact widths.
-                        val useNavRail = currentWindowAdaptiveInfo().windowSizeClass
-                            .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
                         val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
-                            useNavRail = useNavRail,
                             isTopLevel = { contentKey -> navState.topLevelContentKeys.contains(contentKey) },
                             sharedTransitionScope = sharedTransitionScope,
                             navBar = { NextNavigationBar(navState) },
@@ -149,31 +145,73 @@ class MainActivity : ComponentActivity() {
                             sceneDecoratorStrategies = listOf(sceneDecorator),
                             sharedTransitionScope = sharedTransitionScope,
                             transitionSpec = {
-                                slideInHorizontally(
-                                    initialOffsetX = { it },
-                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                ) togetherWith slideOutHorizontally(
-                                    targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                )
+                                if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                    fadeIn(
+                                        animationSpec = tween(
+                                            durationMillis = 200,
+                                            easing = LinearEasing,
+                                        ),
+                                    ) togetherWith fadeOut(
+                                        animationSpec = tween(
+                                            durationMillis = 200,
+                                            easing = LinearEasing,
+                                        ),
+                                    )
+                                } else {
+                                    slideInHorizontally(
+                                        initialOffsetX = { it },
+                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                    ) togetherWith slideOutHorizontally(
+                                        targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                    )
+                                }
                             },
                             popTransitionSpec = {
-                                slideInHorizontally(
-                                    initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                ) togetherWith slideOutHorizontally(
-                                    targetOffsetX = { it },
-                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                )
+                                if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                    fadeIn(
+                                        animationSpec = tween(
+                                            durationMillis = 200,
+                                            easing = LinearEasing,
+                                        ),
+                                    ) togetherWith fadeOut(
+                                        animationSpec = tween(
+                                            durationMillis = 200,
+                                            easing = LinearEasing,
+                                        ),
+                                    )
+                                } else {
+                                    slideInHorizontally(
+                                        initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                    ) togetherWith slideOutHorizontally(
+                                        targetOffsetX = { it },
+                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                    )
+                                }
                             },
                             predictivePopTransitionSpec = {
-                                slideInHorizontally(
-                                    initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                ) togetherWith slideOutHorizontally(
-                                    targetOffsetX = { it },
-                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                )
+                                if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                    fadeIn(
+                                        animationSpec = tween(
+                                            durationMillis = 200,
+                                            easing = LinearEasing,
+                                        ),
+                                    ) togetherWith fadeOut(
+                                        animationSpec = tween(
+                                            durationMillis = 200,
+                                            easing = LinearEasing,
+                                        ),
+                                    )
+                                } else {
+                                    slideInHorizontally(
+                                        initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                    ) togetherWith slideOutHorizontally(
+                                        targetOffsetX = { it },
+                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                    )
+                                }
                             },
                         )
                     }

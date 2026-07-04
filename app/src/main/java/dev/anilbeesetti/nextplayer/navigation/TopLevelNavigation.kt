@@ -26,6 +26,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.Scene
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.network.R
 import dev.anilbeesetti.nextplayer.feature.network.navigation.NetworkRoute
@@ -120,6 +121,9 @@ class TopLevelNavState(
         return stacksInUse.flatMap { decoratedByRoute.getValue(it) }.toMutableStateList()
     }
 }
+
+fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene<NavKey>, targetState: Scene<NavKey>): Boolean =
+    topLevelContentKeys.run { contains(initialState.entries.lastOrNull()?.contentKey) && contains(targetState.entries.lastOrNull()?.contentKey) }
 
 @Composable
 fun NextNavigationBar(state: TopLevelNavState) {
