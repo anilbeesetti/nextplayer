@@ -7,8 +7,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -75,7 +73,7 @@ class MainActivity : ComponentActivity() {
         if (isFinishing) networkStreamingProxy.release()
     }
 
-    @OptIn(ExperimentalPermissionsApi::class, ExperimentalSharedTransitionApi::class)
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         systemService.initialize(this@MainActivity)
@@ -126,103 +124,99 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface,
                 ) {
-                    SharedTransitionLayout {
-                        val sharedTransitionScope = this
-                        val navState = rememberTopLevelNavState()
+                    val navState = rememberTopLevelNavState()
 
-                        val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
-                            isTopLevel = { contentKey -> navState.topLevelContentKeys.contains(contentKey) },
-                            navBar = { NextNavigationBar(navState) },
-                            navRail = { NextNavigationRail(navState) },
-                        )
+                    val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
+                        isTopLevel = { contentKey -> navState.topLevelContentKeys.contains(contentKey) },
+                        navBar = { NextNavigationBar(navState) },
+                        navRail = { NextNavigationRail(navState) },
+                    )
 
-                        val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
-                        val networkStack = navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
+                    val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
+                    val networkStack = navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
 
-                        // Media and network entries navigate within their own tab's stack; settings is
-                        // shared, so it navigates within whichever tab it was opened from (the current one).
-                        val provider = entryProvider {
-                            mediaNavGraph(context = this@MainActivity, backStack = mediaStack)
-                            networkNavGraph(context = this@MainActivity, backStack = networkStack)
-                            settingsNavGraph(backStack = navState.currentStack)
-                        }
-
-                        NavDisplay(
-                            entries = navState.rememberEntries(provider),
-                            onBack = { navState.goBack() },
-                            sceneDecoratorStrategies = listOf(sceneDecorator),
-                            sharedTransitionScope = sharedTransitionScope,
-                            transitionSpec = {
-                                if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                    fadeIn(
-                                        animationSpec = tween(
-                                            durationMillis = 200,
-                                            easing = LinearEasing,
-                                        ),
-                                    ) togetherWith fadeOut(
-                                        animationSpec = tween(
-                                            durationMillis = 200,
-                                            easing = LinearEasing,
-                                        ),
-                                    )
-                                } else {
-                                    slideInHorizontally(
-                                        initialOffsetX = { it },
-                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                    ) togetherWith slideOutHorizontally(
-                                        targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                    )
-                                }
-                            },
-                            popTransitionSpec = {
-                                if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                    fadeIn(
-                                        animationSpec = tween(
-                                            durationMillis = 200,
-                                            easing = LinearEasing,
-                                        ),
-                                    ) togetherWith fadeOut(
-                                        animationSpec = tween(
-                                            durationMillis = 200,
-                                            easing = LinearEasing,
-                                        ),
-                                    )
-                                } else {
-                                    slideInHorizontally(
-                                        initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                    ) togetherWith slideOutHorizontally(
-                                        targetOffsetX = { it },
-                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                    )
-                                }
-                            },
-                            predictivePopTransitionSpec = {
-                                if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
-                                    fadeIn(
-                                        animationSpec = tween(
-                                            durationMillis = 200,
-                                            easing = LinearEasing,
-                                        ),
-                                    ) togetherWith fadeOut(
-                                        animationSpec = tween(
-                                            durationMillis = 200,
-                                            easing = LinearEasing,
-                                        ),
-                                    )
-                                } else {
-                                    slideInHorizontally(
-                                        initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                    ) togetherWith slideOutHorizontally(
-                                        targetOffsetX = { it },
-                                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                                    )
-                                }
-                            },
-                        )
+                    // Media and network entries navigate within their own tab's stack; settings is
+                    // shared, so it navigates within whichever tab it was opened from (the current one).
+                    val provider = entryProvider {
+                        mediaNavGraph(context = this@MainActivity, backStack = mediaStack)
+                        networkNavGraph(context = this@MainActivity, backStack = networkStack)
+                        settingsNavGraph(backStack = navState.currentStack)
                     }
+
+                    NavDisplay(
+                        entries = navState.rememberEntries(provider),
+                        onBack = { navState.goBack() },
+                        sceneDecoratorStrategies = listOf(sceneDecorator),
+                        transitionSpec = {
+                            if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                ) togetherWith fadeOut(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                )
+                            } else {
+                                slideInHorizontally(
+                                    initialOffsetX = { it },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                ) togetherWith slideOutHorizontally(
+                                    targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                )
+                            }
+                        },
+                        popTransitionSpec = {
+                            if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                ) togetherWith fadeOut(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                )
+                            } else {
+                                slideInHorizontally(
+                                    initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                ) togetherWith slideOutHorizontally(
+                                    targetOffsetX = { it },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                )
+                            }
+                        },
+                        predictivePopTransitionSpec = {
+                            if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                ) togetherWith fadeOut(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                )
+                            } else {
+                                slideInHorizontally(
+                                    initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                ) togetherWith slideOutHorizontally(
+                                    targetOffsetX = { it },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                )
+                            }
+                        },
+                    )
                 }
             }
         }
