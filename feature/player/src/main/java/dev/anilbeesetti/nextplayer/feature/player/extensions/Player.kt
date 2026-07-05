@@ -73,10 +73,15 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
         return
     }
 
+    val textTracks = currentTracks.groups.filter {
+        it.type == C.TRACK_TYPE_TEXT && it.isSupported
+    }
+
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()
         .setSubtitleConfigurations(existingSubConfigurations + listOf(subtitle))
         .build()
+        .copy(subtitleTrackIndex = textTracks.size)
 
     val index = currentMediaItemIndex
     addMediaItem(index + 1, updateMediaItem)
