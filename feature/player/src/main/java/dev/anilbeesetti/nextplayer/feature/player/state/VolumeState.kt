@@ -78,6 +78,15 @@ class VolumeState(
     var volumePercentage: Int by mutableIntStateOf(calculateVolumePercentage())
         private set
 
+    fun syncWithSystem() {
+        if (currentVolume > systemMaxVolume) return
+        val systemVolume = audioManager.currentStreamVolume
+        if (systemVolume != currentVolume) {
+            currentVolume = systemVolume
+            volumePercentage = calculateVolumePercentage()
+        }
+    }
+
     fun updateVolumePercentage(percentage: Int) {
         val maxPercentage = maxVolumePercentage
         val clampedPercentage = percentage.coerceIn(0, maxPercentage)

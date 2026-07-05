@@ -73,6 +73,7 @@ class VolumeAndBrightnessGestureState(
             else -> VerticalGesture.VOLUME.takeIf { enableVolumeGesture }
         }
         startingY = offset.y
+        volumeState.syncWithSystem()
         startVolumePercentage = volumeState.volumePercentage
         startBrightnessPercentage = brightnessState.brightnessPercentage
     }
