@@ -13,6 +13,7 @@ androidxComposeBom = "2026.06.01"
 androidxMaterial3 = "1.5.0-alpha17"
 androidxConstraintLayout = "2.2.1"
 androidxCore = "1.19.0"
+androidxCorePip = "1.0.0-alpha03"
 androidxCoreSplashscreen = "1.2.0"
 androidxDataStore = "1.2.1"
 androidxEspresso = "3.7.0"
@@ -53,6 +54,7 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidxConstraintLayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-core-pip = { group = "androidx.core", name = "core-pip", version.ref = "androidxCorePip" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxCoreSplashscreen" }
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }

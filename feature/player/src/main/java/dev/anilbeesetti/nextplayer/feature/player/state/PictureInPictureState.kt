@@ -2,13 +2,12 @@ package dev.anilbeesetti.nextplayer.feature.player.state
 
 import android.app.AppOpsManager
 import android.app.PendingIntent
-import android.app.PictureInPictureParams
 import android.app.RemoteAction
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -28,11 +27,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.app.PictureInPictureParamsCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.net.toUri
-import androidx.core.util.Consumer
+import androidx.core.pip.PictureInPictureDelegate
+import androidx.core.pip.VideoPlaybackPictureInPicture
 import androidx.media3.common.Player
 import androidx.media3.common.listen
 import dev.anilbeesetti.nextplayer.core.common.extensions.isPipFeatureSupported
@@ -56,6 +56,13 @@ fun rememberPictureInPictureState(
     return pictureInPictureState
 }
 
+/**
+ * Wraps the AndroidX Picture-in-Picture Jetpack library ([androidx.core.pip]) so the rest of the
+ * player can drive PiP through a single state object. The library handles the OS-version
+ * differences: [PictureInPictureParamsCompat.Builder.setEnabled] arms auto-enter via
+ * `setAutoEnterEnabled` on Android 12+ and `onUserLeaveHint` on older versions, and
+ * [PictureInPictureDelegate] delivers unified enter/exit callbacks.
+ */
 @Stable
 class PictureInPictureState(
     private val player: Player,
@@ -84,54 +91,42 @@ class PictureInPictureState(
     var isInPictureInPictureMode: Boolean by mutableStateOf(false)
         private set
 
-    private var lastAppliedSourceRectHint: Rect? = null
-    private var lastAppliedAspectRatio: Rational? = null
-    private var lastAppliedAutoEnterEnabled: Boolean? = null
-    private var lastAppliedActionsPlaybackState: Boolean? = null
-
-    private val pictureInPictureParamsBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        PictureInPictureParams.Builder().apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                setSeamlessResizeEnabled(true)
-            }
-        }
+    private val pictureInPicture: VideoPlaybackPictureInPicture? = if (isPipSupported) {
+        VideoPlaybackPictureInPicture(activity, ContextCompat.getMainExecutor(activity))
     } else {
         null
     }
 
+    private var aspectRatio: Rational? = null
+    private var sourceRectHint: Rect? = null
+    private var actions: List<RemoteAction> = emptyList()
+
     fun setVideoViewRect(rect: Rect) {
-        if (pictureInPictureParamsBuilder == null) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (pictureInPicture == null) return
         if (rect.width() <= 0 || rect.height() <= 0) return
 
-        val sourceRectHint = Rect(rect)
-        val aspectRatio = Rational(sourceRectHint.width(), sourceRectHint.height())
+        val newSourceRectHint = Rect(rect)
+        val newAspectRatio = Rational(newSourceRectHint.width(), newSourceRectHint.height())
             .takeIf { it.toFloat() in 0.5f..2.39f }
 
-        var pictureInPictureParamsChanged = false
-
-        if (aspectRatio != null && aspectRatio != lastAppliedAspectRatio) {
-            pictureInPictureParamsBuilder.setAspectRatio(aspectRatio)
-            lastAppliedAspectRatio = aspectRatio
-            pictureInPictureParamsChanged = true
+        var changed = false
+        if (newAspectRatio != null && newAspectRatio != aspectRatio) {
+            aspectRatio = newAspectRatio
+            changed = true
         }
-        if (sourceRectHint != lastAppliedSourceRectHint) {
-            pictureInPictureParamsBuilder.setSourceRectHint(sourceRectHint)
-            lastAppliedSourceRectHint = sourceRectHint
-            pictureInPictureParamsChanged = true
+        if (newSourceRectHint != sourceRectHint) {
+            sourceRectHint = newSourceRectHint
+            changed = true
         }
 
-        if (pictureInPictureParamsChanged) {
-            applyPictureInPictureParams()
-        }
+        if (changed) applyPictureInPictureParams()
     }
 
     fun enterPictureInPictureMode(): Boolean {
-        if (pictureInPictureParamsBuilder == null) return false
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
-        if (isInPictureInPictureMode) return false
-
-        return activity.enterPictureInPictureMode(pictureInPictureParamsBuilder.build())
+        if (pictureInPicture == null || isInPictureInPictureMode) return false
+        return runCatching {
+            activity.enterPictureInPictureMode(buildPictureInPictureParams())
+        }.isSuccess
     }
 
     fun openPictureInPictureSettings() {
@@ -154,74 +149,64 @@ class PictureInPictureState(
             }
         }
 
-        val pictureInPictureModeChangedListener: Consumer<PictureInPictureModeChangedInfo> = Consumer {
-            updateIsInPictureInPictureMode(pipBroadcastReceiver)
+        val eventListener = object : PictureInPictureDelegate.OnPictureInPictureEventListener {
+            override fun onPictureInPictureEvent(event: PictureInPictureDelegate.Event, config: Configuration?) {
+                when (event) {
+                    PictureInPictureDelegate.Event.ENTER_ANIMATION_START -> onEnterPictureInPictureMode(pipBroadcastReceiver)
+                    PictureInPictureDelegate.Event.EXITED -> onExitPictureInPictureMode(pipBroadcastReceiver)
+                    else -> Unit
+                }
+            }
         }
 
-        updateIsInPictureInPictureMode(pipBroadcastReceiver)
-        activity.addOnPictureInPictureModeChangedListener(pictureInPictureModeChangedListener)
+        pictureInPicture?.addOnPictureInPictureEventListener(ContextCompat.getMainExecutor(activity), eventListener)
 
         return onDispose {
+            pictureInPicture?.removeOnPictureInPictureEventListener(eventListener)
+            pictureInPicture?.close()
             runCatching { activity.unregisterReceiver(pipBroadcastReceiver) }
-            activity.removeOnPictureInPictureModeChangedListener(pictureInPictureModeChangedListener)
         }
     }
 
     suspend fun observe() {
-        updateAutoEnterEnabled()
         updatePictureInPictureActions()
+        applyPictureInPictureParams()
 
         player.listen { events ->
             if (events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
-                updateAutoEnterEnabled()
                 updatePictureInPictureActions()
+                applyPictureInPictureParams()
             }
         }
     }
 
-    private fun updateIsInPictureInPictureMode(pipBroadcastReceiver: BroadcastReceiver) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-
-        isInPictureInPictureMode = activity.isInPictureInPictureMode
-        if (isInPictureInPictureMode) {
-            ContextCompat.registerReceiver(
-                activity,
-                pipBroadcastReceiver,
-                IntentFilter(PIP_INTENT_ACTION),
-                ContextCompat.RECEIVER_NOT_EXPORTED,
-            )
-        } else {
-            runCatching { activity.unregisterReceiver(pipBroadcastReceiver) }
-        }
+    private fun onEnterPictureInPictureMode(receiver: BroadcastReceiver) {
+        isInPictureInPictureMode = true
+        ContextCompat.registerReceiver(
+            activity,
+            receiver,
+            IntentFilter(PIP_INTENT_ACTION),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
     }
 
-    private fun updateAutoEnterEnabled() {
-        if (pictureInPictureParamsBuilder == null) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-
-        val autoEnterEnabled = autoEnter && player.isPlaying
-        if (autoEnterEnabled == lastAppliedAutoEnterEnabled) return
-
-        pictureInPictureParamsBuilder.setAutoEnterEnabled(autoEnterEnabled)
-        lastAppliedAutoEnterEnabled = autoEnterEnabled
-        applyPictureInPictureParams()
+    private fun onExitPictureInPictureMode(receiver: BroadcastReceiver) {
+        isInPictureInPictureMode = false
+        runCatching { activity.unregisterReceiver(receiver) }
     }
 
     private fun updatePictureInPictureActions() {
-        if (pictureInPictureParamsBuilder == null) return
+        if (pictureInPicture == null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
-        val isPlaying = player.isPlaying
-        if (isPlaying == lastAppliedActionsPlaybackState) return
-
-        val actions = listOf(
+        actions = listOf(
             createPipAction(
                 context = activity,
                 title = "skip to previous",
                 icon = coreUiR.drawable.ic_skip_prev,
                 actionCode = PIP_ACTION_PREVIOUS,
             ),
-            if (isPlaying) {
+            if (player.isPlaying) {
                 createPipAction(
                     context = activity,
                     title = "pause",
@@ -243,18 +228,21 @@ class PictureInPictureState(
                 actionCode = PIP_ACTION_NEXT,
             ),
         )
-
-        pictureInPictureParamsBuilder.setActions(actions)
-        lastAppliedActionsPlaybackState = isPlaying
-        applyPictureInPictureParams()
     }
 
-    private fun applyPictureInPictureParams() {
-        if (pictureInPictureParamsBuilder == null) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+    private fun buildPictureInPictureParams(): PictureInPictureParamsCompat =
+        PictureInPictureParamsCompat.Builder().apply {
+            setActions(actions)
+            setSeamlessResizeEnabled(true)
+            setEnabled(autoEnter && player.isPlaying)
+            aspectRatio?.let { setAspectRatio(it) }
+            sourceRectHint?.let { setSourceRectHint(it) }
+        }.build()
 
+    private fun applyPictureInPictureParams() {
+        val pictureInPicture = pictureInPicture ?: return
         try {
-            activity.setPictureInPictureParams(pictureInPictureParamsBuilder.build())
+            pictureInPicture.setPictureInPictureParams(buildPictureInPictureParams())
         } catch (e: IllegalStateException) {
             e.printStackTrace()
         }
