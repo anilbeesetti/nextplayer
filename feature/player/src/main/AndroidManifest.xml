@@ -734,6 +734,32 @@
                 <data android:pathPattern="/.*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.WEBM" />
                 <data android:pathPattern="/.*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.WEBM" />
             </intent-filter>
+     <intent-filter android:label="Play with Next Player">
+    <action android:name="android.intent.action.SEND" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <data android:mimeType="video/*" />
+</intent-filter>
+            <intent-filter android:label="Play with Next Player">
+    <action android:name="android.intent.action.SEND_MULTIPLE" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <data android:mimeType="video/*" />
+</intent-filter>
+            <!-- Some OEM galleries (Realme/ColorOS, and others) share videos with a
+                 generic "*/*" mimeType instead of "video/*". Android's intent-filter
+                 matching won't match "video/*" against an Intent typed "*/*", so
+                 without this the app is silently left out of those share sheets.
+                 isLikelyVideo() in PlayerActivity filters out non-video uris that
+                 slip through this wider filter. -->
+            <intent-filter android:label="Play with Next Player">
+    <action android:name="android.intent.action.SEND" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <data android:mimeType="*/*" />
+</intent-filter>
+            <intent-filter android:label="Play with Next Player">
+    <action android:name="android.intent.action.SEND_MULTIPLE" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <data android:mimeType="*/*" />
+</intent-filter>
         </activity>
 
         <service

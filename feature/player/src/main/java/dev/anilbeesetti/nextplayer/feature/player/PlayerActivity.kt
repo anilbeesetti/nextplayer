@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -34,6 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
@@ -63,6 +65,9 @@ class PlayerActivity : ComponentActivity() {
     private var isPlaybackFinished = false
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
+
+    /** Extra videos from a multi-video share (ACTION_SEND_MULTIPLE), if any. */
+    private var sharedPlaylistUris: List<Uri> = emptyList()
 
     /**
      * Player
@@ -140,7 +145,9 @@ class PlayerActivity : ComponentActivity() {
             }
         }
 
+        // playerApi must be set before this, since a non-video share calls finish() early.
         playerApi = PlayerApi(this)
+        consumeShareIntentIfNeeded()
     }
 
     override fun onStart() {
@@ -188,6 +195,68 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Normalizes a share (`ACTION_SEND`/`_MULTIPLE`) into `ACTION_VIEW`, stashing extra
+     * URIs in [sharedPlaylistUris]. Call once per fresh intent, it mutates the intent.
+     */
+    private fun consumeShareIntentIfNeeded() {
+        val isShareIntent = intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_SEND_MULTIPLE
+        if (!isShareIntent) return
+
+        val rawUris: List<Uri> = when (intent.action) {
+            Intent.ACTION_SEND -> intent.getParcelableExtraCompat<Uri>(Intent.EXTRA_STREAM)?.let { listOf(it) }
+            Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtraCompat<Uri>(Intent.EXTRA_STREAM)
+            else -> null
+        }.orEmpty()
+
+        val sharedUris = rawUris.filter { it.isLikelyVideo() }
+
+        // Non-video share caught by our "*/*" filter - bail out instead of showing a blank player.
+        if (sharedUris.isEmpty()) {
+            Toast.makeText(this, getString(R.string.shared_file_not_a_video), Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        sharedUris.forEach(::tryTakePersistableReadPermission)
+
+        sharedPlaylistUris = sharedUris
+        intent.action = Intent.ACTION_VIEW
+        intent.data = sharedUris.first()
+    }
+
+    private fun Uri.isLikelyVideo(): Boolean {
+        // No mime type from sender - let it through rather than block a real video.
+        val mimeType = contentResolver.getType(this) ?: return true
+        return mimeType.startsWith("video/")
+    }
+
+    private fun tryTakePersistableReadPermission(uri: Uri) {
+        try {
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } catch (e: SecurityException) {
+            // Sender didn't grant a persistable permission - fine, temporary grant still works.
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private inline fun <reified T : android.os.Parcelable> Intent.getParcelableExtraCompat(name: String): T? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableExtra(name, T::class.java)
+        } else {
+            getParcelableExtra(name)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private inline fun <reified T : android.os.Parcelable> Intent.getParcelableArrayListExtraCompat(name: String): ArrayList<T>? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableArrayListExtra(name, T::class.java)
+        } else {
+            getParcelableArrayListExtra(name)
+        }
+    }
+
     private fun startPlayback() {
         val uri = intent.data ?: return
 
@@ -209,7 +278,9 @@ class PlayerActivity : ComponentActivity() {
 
     private suspend fun playVideo(uri: Uri) = withContext(Dispatchers.Default) {
         val mediaContentUri = getMediaContentUri(uri)
+        // Shared videos (single or multiple) only ever play what was shared, never the folder.
         val playlist = playerApi.getPlaylist().takeIf { it.isNotEmpty() }
+            ?: sharedPlaylistUris.takeIf { it.isNotEmpty() }?.map { it.toString() }
             ?: mediaContentUri?.let { mediaUri ->
                 viewModel.getPlaylistFromUri(mediaUri)
                     .map { it.uriString }
@@ -292,6 +363,11 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun finish() {
+        // Guard in case finish() is ever called before playerApi is set.
+        if (!::playerApi.isInitialized) {
+            super.finish()
+            return
+        }
         if (playerApi.shouldReturnResult) {
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
@@ -305,8 +381,11 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.data != null) {
+        val isShareIntent = intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_SEND_MULTIPLE
+        if (intent.data != null || isShareIntent) {
             setIntent(intent)
+            consumeShareIntentIfNeeded()
+            if (isFinishing) return
             isIntentNew = true
             if (mediaController != null) {
                 startPlayback()

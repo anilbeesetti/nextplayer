@@ -285,6 +285,7 @@
     <string name="search_results">Search results</string>
     <string name="now_playing">Now playing</string>
     <string name="no_videos_in_queue">No videos in queue</string>
+    <string name="shared_file_not_a_video">This isn\'t a video file</string>
     <string name="reorder">Reorder</string>
     <string name="remove">Remove</string>
     <string name="unknown">Unknown</string>
