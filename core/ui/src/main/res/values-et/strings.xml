@@ -298,4 +298,70 @@
     <string name="reset_brightness_gesture_sensitivity">Lähtesta ereduse viipe tundlikkus</string>
     <string name="material_you_controls">Juhtnupud Material You stiilis</string>
     <string name="material_you_controls_description">Kasuta Material You stiilis juhtnuppe</string>
+    <string name="folder_duration">Kausta kestus</string>
+    <string name="hide">Peida</string>
+    <string name="unhide">Näida peidetud</string>
+    <string name="vault">Turvakaust</string>
+    <string name="hidden_videos">Peidetud videod</string>
+    <string name="hide_one_video_confirmation">Kas peidad selle video?</string>
+    <string name="hide_videos_confirmation">Kas peidad %1$d videot?</string>
+    <string name="hide_video_info">Peidetud videod eemaldatakse sinu tavagaleriist ja tõstetakse privaatsesse turvakausta, mille avamiseks vajad PIN-koodi.</string>
+    <string name="hiding_videos_in_progress">Peidan…</string>
+    <string name="unhiding_videos_in_progress">Lõpetan peitmise…</string>
+    <string name="hiding_videos">Peidan…</string>
+    <string name="set_vault_pin">Seadista turvakausta PIN-kood</string>
+    <string name="confirm_vault_pin">Kinnita PIN-kood</string>
+    <string name="set_vault_pin_description">Oma peidetud videote kaitsmiseks loo 4-kohaline PIN-kood</string>
+    <string name="confirm_vault_pin_description">Kinnitamiseks sisesta PIN-kood uuesti</string>
+    <string name="enter_vault_pin">Sisesta PIN-kood</string>
+    <string name="enter_vault_pin_description">Ligipääsuks oma peidetud videotele sisesta PIN-kood</string>
+    <string name="pins_do_not_match">PIN-koodid ei klapi. Proovi uuesti</string>
+    <string name="incorrect_pin">Vigane PIN-kood</string>
+    <string name="how_to_find_hidden_videos_title">Kuidas saad leida oma peidetud videoid</string>
+    <string name="got_it">Selge</string>
+    <string name="open_vault">Ava turvakaust</string>
+    <string name="vault_empty_title">Peidetud videoid pole</string>
+    <string name="sort_by">Järjestus</string>
+    <string name="name">Nimi</string>
+    <string name="date_hidden">Peitmise aeg</string>
+    <string name="forgot_pin">Kas unustasid PIN-koodi?</string>
+    <string name="copy">Kopeeri</string>
+    <string name="move">Teiselda</string>
+    <string name="moving_videos_in_progress">Teiseldan…</string>
+    <string name="copying_videos_in_progress">Kopeerin…</string>
+    <string name="transfer_file_progress">Fail %1$d / %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">1 video on kopeeritud</item>
+        <item quantity="other">%1$d videot on kopeeritud</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">1 video on teisaldatud</item>
+        <item quantity="other">%1$d videot on teisaldatud</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">1 video kopeerimine ei õnnestunud</item>
+        <item quantity="other">%1$d video kopeerimine ei õnnestunud</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">1 video teisaldamine ei õnnestunud</item>
+        <item quantity="other">%1$d video teisaldamine ei õnnestunud</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">1 video on teisaldatud, kuid algfaili kustutamine ei õnnestunud</item>
+        <item quantity="other">%1$d videot on teisaldatud, kuid algfaili kustutamine ei õnnestunud</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Samasse kausta teisaldamine pole võimalik</string>
+    <string name="reset_pin_and_delete_all">Lähtesta PIN-kood ja kustuta kõik</string>
+    <string name="reset_vault_pin_confirmation">Sinu PIN-koodi lähtestamine kustutab kõik turvakaustas hetkel leiduvad videod - nende lukustust pole lihtsalt võimalik avada. Kas jätkad?</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">Video taastamine tema algkausta ei õnnestunud, selle asemel tõstsin kausta „Movies/“</item>
+        <item quantity="other">%1$d video taastamine nende algkausta ei õnnestunud, selle asemel tõstsin kausta „Movies/“</item>
+    </plurals>
+    <string name="how_to_find_hidden_videos_description">Peidetud videoid hoitakse turvaliselt sinu turvakaustas. Uuesti avamiseks vajuta NextPlayeri pealkirja ekraani ülaosas ja hoia all ning siis sisesta oma turvakausta PIN-kood.</string>
+    <string name="vault_empty_description">Sinu peidetavad videod saavad olema nähtavad siin. Turvakausta lisamiseks vajuta videot pikalt ja vali „Peida“.</string>
+    <string name="unhide_one_video_confirmation">Kas lõpetad selle video peitmine? Ta tõstetakse tagasi oma algsesse kausta.</string>
+    <string name="unhide_videos_confirmation">Kas lõpetad %1$d video peitmine? Nad tõstetakse tagasi oma algse(te)sse kausta(desse).</string>
+    <string name="delete_one_video_from_vault">Kas kustutad selle video jäädavalt?</string>
+    <string name="delete_videos_from_vault">Kas kustutad %1$d videot jäädavalt?</string>
+    <string name="delete_from_vault_info">Seda tegevust ei saa tagasi pöörata. See video kustutatakse jäädavalt sinu nutiseadmest.</string>
 </resources>

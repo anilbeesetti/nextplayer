@@ -298,4 +298,81 @@
     <string name="reset_brightness_gesture_sensitivity">Скинути чутливість жестів яскравості</string>
     <string name="material_you_controls">Керування Material You</string>
     <string name="material_you_controls_description">Використовувати елементи керування в стилі Material You</string>
+    <string name="hide">Приховати</string>
+    <string name="unhide">Показати</string>
+    <string name="vault">Сховище</string>
+    <string name="hidden_videos">Приховані відео</string>
+    <string name="hide_one_video_confirmation">Приховати це відео?</string>
+    <string name="hide_videos_confirmation">Приховати %1$d відео?</string>
+    <string name="hide_video_info">Приховані відео переміщуються в особисте сховище, захищене PIN-кодом, і видаляються з вашої галереї.</string>
+    <string name="hiding_videos_in_progress">Приховування…</string>
+    <string name="unhiding_videos_in_progress">Показування…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">Не вдалося відновити в початкову теку: переміщено до Movies/</item>
+        <item quantity="few">Не вдалося відновити %1$d відео в початкову теку: переміщено до Movies/</item>
+        <item quantity="many">Не вдалося відновити %1$d відео в початкову теку: переміщено до Movies/</item>
+        <item quantity="other">Не вдалося відновити %1$d відео в початкову теку: переміщено до Movies/</item>
+    </plurals>
+    <string name="hiding_videos">Приховування…</string>
+    <string name="set_vault_pin">Встановити PIN-код сховища</string>
+    <string name="set_vault_pin_description">Створіть 4-значний PIN-код, щоб захистити свої приховані відео</string>
+    <string name="confirm_vault_pin">Підвердьте PIN-код</string>
+    <string name="confirm_vault_pin_description">Повторно введіть PIN-код для підтвердження</string>
+    <string name="enter_vault_pin">Уведіть PIN-код</string>
+    <string name="enter_vault_pin_description">Введіть PIN-код для перегляду прихованих відео</string>
+    <string name="pins_do_not_match">PIN-коди не збігаються. Спробуйте ще раз</string>
+    <string name="incorrect_pin">Неправильний PIN-код</string>
+    <string name="how_to_find_hidden_videos_title">Як знайти ваші приховані відео</string>
+    <string name="how_to_find_hidden_videos_description">Приховані відео надійно зберігаються у вашому сховищі. Щоб знову відкрити їх, натисніть і утримуйте заголовок «NextPlayer» у верхній частині головного екрана та введіть PIN-код.</string>
+    <string name="got_it">Зрозуміло</string>
+    <string name="open_vault">Відкрити сховище</string>
+    <string name="vault_empty_title">Немає прихованих відео</string>
+    <string name="vault_empty_description">Відео, які ви приховаєте, з’являтимуться тут. Натисніть і утримуйте відео, а потім виберіть «Приховати», щоби додати його до сховища.</string>
+    <string name="unhide_one_video_confirmation">Показати це відео? Його буде повернуто на початкове місце.</string>
+    <string name="unhide_videos_confirmation">Показати %1$d відео? Вони повернуться на свої початкові місця.</string>
+    <string name="delete_one_video_from_vault">Остаточно видалити це відео?</string>
+    <string name="delete_videos_from_vault">Остаточно видалити %1$d відео?</string>
+    <string name="delete_from_vault_info">Цю дію неможливо скасувати. Відео буде назавжди видалено з вашого пристрою.</string>
+    <string name="sort_by">Сортувати за</string>
+    <string name="name">Назвою</string>
+    <string name="date_hidden">Датою приховання</string>
+    <string name="forgot_pin">Забули PIN-код?</string>
+    <string name="reset_vault_pin_confirmation">Скидання PIN-коду призведе до безповоротного видалення всіх відео, що зараз знаходяться у сховищі, оскільки їх більше неможливо буде розблокувати. Продовжити?</string>
+    <string name="reset_pin_and_delete_all">Скинути PIN-код і видалити все</string>
+    <string name="copy">Копіювати</string>
+    <string name="move">Перемістити</string>
+    <string name="copying_videos_in_progress">Копіювання…</string>
+    <string name="moving_videos_in_progress">Переміщення…</string>
+    <string name="transfer_file_progress">Файл %1$d з %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">Скопійовано 1 відео</item>
+        <item quantity="few">Скопійовано %1$d відео</item>
+        <item quantity="many">Скопійовано %1$d відео</item>
+        <item quantity="other">Скопійовано %1$d відео</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">Переміщено 1 відео</item>
+        <item quantity="few">Переміщено %1$d відео</item>
+        <item quantity="many">Переміщено %1$d відео</item>
+        <item quantity="other">Переміщено %1$d відео</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Не вдалося скопіювати 1 відео</item>
+        <item quantity="few">Не вдалося скопіювати %1$d відео</item>
+        <item quantity="many">Не вдалося скопіювати %1$d відео</item>
+        <item quantity="other">Не вдалося скопіювати %1$d відео</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Не вдалося перемістити 1 відео</item>
+        <item quantity="few">Не вдалося перемістити %1$d відео</item>
+        <item quantity="many">Не вдалося перемістити %1$d відео</item>
+        <item quantity="other">Не вдалося перемістити %1$d відео</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Переміщено 1 відео, проте оригінал залишився</item>
+        <item quantity="few">Переміщено %1$d відео, проте оригінали залишилися</item>
+        <item quantity="many">Переміщено %1$d відео, проте оригінали залишилися</item>
+        <item quantity="other">Переміщено %1$d відео, проте оригінали залишилися</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Не вдалося перемістити в ту саму теку</string>
 </resources>

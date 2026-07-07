@@ -298,4 +298,70 @@
     <string name="reset_brightness_gesture_sensitivity">Επαναφορά ευαισθησίας χειρονομίας φωτεινότητας</string>
     <string name="material_you_controls">Χειριστήρια Material You</string>
     <string name="material_you_controls_description">Χρήση χειριστηρίων στυλ Material You</string>
+    <string name="hide">Απόκρυψη</string>
+    <string name="unhide">Εμφάνιση</string>
+    <string name="vault">Κρύπτη</string>
+    <string name="hidden_videos">Κρυμμένα βίντεο</string>
+    <string name="hide_one_video_confirmation">Απόκρυψη του βίντεο;</string>
+    <string name="hide_videos_confirmation">Απόκρυψη %1$d βίντεο;</string>
+    <string name="hide_video_info">Τα κρυφά βίντεο μετακινούνται σε μια κρύπτη που προστατεύεται από PIN και αφαιρούνται από τη συλλογή σας.</string>
+    <string name="hiding_videos_in_progress">Απόκρυψη…</string>
+    <string name="unhiding_videos_in_progress">Εμφάνιση…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">Δεν ήταν δυνατή η επαναφορά στον αρχικό φάκελο — μετακινήθηκε στο Movies/</item>
+        <item quantity="other">Δεν ήταν δυνατή η επαναφορά %1$d βίντεο στους αρχικούς τους φακέλους — μετακινήθηκαν στο Movies/</item>
+    </plurals>
+    <string name="hiding_videos">Απόκρυψη…</string>
+    <string name="set_vault_pin">Ορισμός PIN κρύπτης</string>
+    <string name="set_vault_pin_description">Δημιουργήστε έναν τετραψήφιο κωδικό PIN για να προστατεύσετε τα κρυμμένα βίντεό σας</string>
+    <string name="confirm_vault_pin">Επιβεβαίωση PIN</string>
+    <string name="confirm_vault_pin_description">Εισάγετε ξανά τον κωδικό PIN σας για επιβεβαίωση</string>
+    <string name="enter_vault_pin">Εισάγετε το PIN</string>
+    <string name="enter_vault_pin_description">Εισάγετε το PIN σας για να αποκτήσετε πρόσβαση στα κρυφά βίντεο</string>
+    <string name="pins_do_not_match">Τα PIN δεν ταιριάζουν. Δοκιμάστε ξανά</string>
+    <string name="incorrect_pin">Λανθασμένο PIN</string>
+    <string name="how_to_find_hidden_videos_title">Πώς να βρείτε τα κρυφά σας βίντεο</string>
+    <string name="how_to_find_hidden_videos_description">Τα κρυμμένα βίντεο φυλάσσονται με ασφάλεια στην κρύπτη σας. Για να την ανοίξετε ξανά, πατήστε παρατεταμένα τον τίτλο \"NextPlayer\" στο επάνω μέρος της αρχικής οθόνης και εισάγετε τον κωδικό PIN σας.</string>
+    <string name="open_vault">Άνοιγμα κρύπτης</string>
+    <string name="vault_empty_title">Κανένα κρυφό βίντεο</string>
+    <string name="vault_empty_description">Τα βίντεο που αποκρύπτετε θα εμφανίζονται εδώ. Πατήστε παρατεταμένα ένα βίντεο και πατήστε Απόκρυψη για να το προσθέσετε στο αρχείο καταγραφής.</string>
+    <string name="folder_duration">Διάρκεια φακέλου</string>
+    <string name="got_it">Κατάλαβα</string>
+    <string name="unhide_one_video_confirmation">Επανεμφάνιση αυτού του βίντεο; Θα μετακινηθεί πίσω στην αρχική του θέση.</string>
+    <string name="unhide_videos_confirmation">Επανεμφάνιση %1$d βίντεο; Θα μετακινηθούν πίσω στην αρχική τους θέση.</string>
+    <string name="delete_one_video_from_vault">Μόνιμη διαγραφή του βίντεο;</string>
+    <string name="delete_videos_from_vault">Να διαγραφούν οριστικά %1$d βίντεο;</string>
+    <string name="delete_from_vault_info">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Το βίντεο θα διαγραφεί οριστικά από τη συσκευή σας.</string>
+    <string name="sort_by">Ταξινόμηση κατά</string>
+    <string name="name">Όνομα</string>
+    <string name="date_hidden">Ημέρα απόκρυψης</string>
+    <string name="forgot_pin">Ξεχάσατε το PIN;</string>
+    <string name="reset_vault_pin_confirmation">Η επαναφορά του PIN σας θα διαγράψει οριστικά όλα τα βίντεο που βρίσκονται αυτήν τη στιγμή στην κρύπτη, καθώς δεν είναι πλέον δυνατό το ξεκλείδωμα τους. Θέλετε να συνεχίσετε;</string>
+    <string name="reset_pin_and_delete_all">Επαναφορά PIN &amp; διαγραφή όλων</string>
+    <string name="copy">Αντιγραφή</string>
+    <string name="move">Μετακίνηση</string>
+    <string name="copying_videos_in_progress">Αντιγραφή…</string>
+    <string name="moving_videos_in_progress">Μετακίνηση…</string>
+    <string name="transfer_file_progress">Αρχείο %1$d από %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">Αντιγράφηκε 1 αρχείο</item>
+        <item quantity="other">Αντιγράφηκαν %1$d βίντεο</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">Μετακινήθηκα 1 βίντεο</item>
+        <item quantity="other">Μετακινήθηκαν %1$d βίντεο</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Αδυναμία αντιγραφής 1 βίντεο</item>
+        <item quantity="other">Αδυναμία αντιγραφής %1$d βίντεο</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Αδυναμία μετακίνησης 1 βίντεο</item>
+        <item quantity="other">Αδυναμία μετακίνησης %1$d βίντεο</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">Μετακινήθηκε 1 βίντεο, αλλά δεν διαγράφηκε το πρωτότυπο</item>
+        <item quantity="other">Μετακινήθηκαν %1$d βίντεο, αλλά δεν διαγράφηκαν τα πρωτότυπα</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Δεν είναι δυνατή η μετακίνηση στον ίδιο φάκελο</string>
 </resources>
