@@ -180,7 +180,7 @@
     <string name="volume_boost_desc">将音量增强到最大 200%</string>
     <string name="volume_boost">音量增强</string>
     <string name="pip_settings">画中画模式</string>
-    <string name="pip_settings_description">点按主屏幕按钮时自动切换到迷你播放器</string>
+    <string name="pip_settings_description">返回主屏幕时自动切换到迷你播放器</string>
     <string name="open_subtitle">打开本地字幕</string>
     <string name="no_subtitle_tracks_found">此视频的字幕不可用或不受支持</string>
     <string name="no_audio_tracks_found">此视频的音轨不可用或不受支持</string>
@@ -201,7 +201,7 @@
     <string name="control_buttons_alignment_left">左</string>
     <string name="control_buttons_alignment_right">右</string>
     <string name="control_buttons_alignment">控制按钮对齐</string>
-    <string name="background_play_description">点按主屏幕按钮或屏幕锁定时在后台播放</string>
+    <string name="background_play_description">返回主屏幕或屏幕锁定时在后台播放</string>
     <string name="stop_player_session">停止播放器会话</string>
     <string name="background_play">后台播放</string>
     <string name="enable_pip_from_settings">已停用画中画。在设置中启用它可使用此功能。</string>
@@ -352,7 +352,7 @@
     <plurals name="move_failed">
         <item quantity="other">无法移动 %1$d 个视频</item>
     </plurals>
-    <string name="transfer_file_progress">第 %1$d 个文件，共 %2$d 个</string>
+    <string name="transfer_file_progress">文件 %1$d/%2$d</string>
     <plurals name="moved_videos_originals_remain">
         <item quantity="other">已移动 %1$d 个视频，但无法移除原始视频</item>
     </plurals>
