@@ -351,19 +351,19 @@
         <item quantity="other">Скопировано %1$d видео</item>
     </plurals>
     <plurals name="moved_videos_result">
-        <item quantity="one">Перемещено 1 видео</item>
+        <item quantity="one">Перемещено %1$d видео</item>
         <item quantity="few">Перемещено %1$d видео</item>
         <item quantity="many">Перемещено %1$d видео</item>
         <item quantity="other">Перемещено %1$d видео</item>
     </plurals>
     <plurals name="copy_failed">
-        <item quantity="one">Не удалось скопировать 1 видео</item>
+        <item quantity="one">Не удалось скопировать %1$d видео</item>
         <item quantity="few">Не удалось скопировать %1$d видео</item>
         <item quantity="many">Не удалось скопировать %1$d видео</item>
         <item quantity="other">Не удалось скопировать %1$d видео</item>
     </plurals>
     <plurals name="move_failed">
-        <item quantity="one">Не удалось переместить 1 видео</item>
+        <item quantity="one">Не удалось переместить %1$d видео</item>
         <item quantity="few">Не удалось переместить %1$d видео</item>
         <item quantity="many">Не удалось переместить %1$d видео</item>
         <item quantity="other">Не удалось переместить %1$d видео</item>
