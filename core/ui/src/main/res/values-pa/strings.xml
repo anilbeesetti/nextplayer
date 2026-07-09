@@ -28,7 +28,7 @@
     <string name="remember_brightness_level">ਚਮਕ ਦਾ ਪੱਧਰ ਯਾਦ ਰੱਖੋ</string>
     <string name="remember_brightness_level_description">ਪਲੇਬੈਕ ਸੈਸ਼ਨਾਂ ਵਿਚਕਾਰ ਚਮਕ ਦਾ ਪੱਧਰ ਯਾਦ ਰੱਖੋ</string>
     <string name="appearance_name">ਦਿਖਾਵਟ</string>
-    <string name="about_description">ਸੰਸਕਰਣ, ਆਭਾਰ</string>
+    <string name="about_description">ਸੰਸਕਰਣ, ਸਹਾਇਤਾ, ਆਭਾਰ</string>
     <string name="about_name">ਐਪ ਦੇ ਬਾਰੇ</string>
     <string name="group_videos">ਵੀਡੀਓਜ਼ ਨੂੰ ਫ਼ੋਲਡਰ ਅਨੁਸਾਰ ਗਰੁੱਪ ਕਰੋ</string>
     <string name="permission_info">ਨੈਕਸਟ ਪਲੇਅਰ ਐਪ ਨੂੰ ਮੀਡੀਆ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਅਤੇ ਚਲਾਉਣ ਲਈ \"%1$s\" ਅਨੁਮਤੀ ਦੀ ਲੋੜ ਹੈ। ਇਸ ਤੋਂ ਬਿਨਾਂ, ਮੀਡੀਆ ਪਹੁੰਚ ਅਤੇ ਪਲੇਬੈਕ ਕੰਮ ਨਹੀਂ ਕਰਨਗੇ। ਐਪ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਵਰਤਣ ਲਈ, ਪਰਮਿਸ਼ਨ ਦਿਓ।</string>
@@ -38,7 +38,7 @@
     <string name="permission_settings">ਨੈਕਸਟ ਪਲੇਅਰ ਐਪ ਨੂੰ ਮੀਡੀਆ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਅਤੇ ਚਲਾਉਣ ਲਈ \"%1$s\" ਪਰਮਿਸ਼ਨ ਦੀ ਲੋੜ ਹੈ। ਇਸ ਤੋਂ ਬਿਨਾਂ, ਮੀਡੀਆ ਪਹੁੰਚ ਅਤੇ ਪਲੇਬੈਕ ਕੰਮ ਨਹੀਂ ਕਰਨਗੇ। ਐਪ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਵਰਤਣ ਲਈ, ਸੈਟਿੰਗਾਂ ਤੋਂ ਇਜਾਜ਼ਤ ਦਿਓ ਕਿਉਂਕਿ ਇਸਨੂੰ ਸਥਾਈ ਤੌਰ \'ਤੇ ਅਸਵੀਕਾਰ ਕੀਤਾ ਗਿਆ ਸੀ।</string>
     <string name="resume">ਰਿਜ਼ਿਊਮ</string>
     <string name="resume_description">ਚੁਣੋ ਕਿ ਚਲਾਏ ਵੀਡੀਓ ਨੂੰ ਜਿੱਥੋਂ ਰੁਕਿਆ ਸੀ ਉਸੇ ਥਾਂ ਤੋਂ ਮੁੜ-ਚਾਲੂ ਕਰਨਾ ਹੈ ਜਾਂ ਨਹੀਂ</string>
-    <string name="remember_selections_description">ਹਰੇਕ ਫਾਈਲ ਲਈ ਚੋਣ ਯਾਦ ਰੱਖੋ ਜਿਵੇਂ ਆਡੀਓ ਟਰੈਕ, ਉਪਸਿਰਲੇਖ ਟਰੈਕ, ਆਦਿ</string>
+    <string name="remember_selections_description">ਹਰੇਕ ਫਾਈਲ ਲਈ ਚੋਣ ਯਾਦ ਰੱਖੋ ਜਿਵੇਂ ਆਡੀਓ ਟਰੈਕ, ਉਪਸਿਰਲੇਖ ਟਰੈਕ, ਆਦਿ।</string>
     <string name="seek_gesture">ਸੀਕ ਸੰਕੇਤ</string>
     <string name="select_audio_track">ਆਡੀਓ ਟਰੈਕ ਚੁਣੋ</string>
     <string name="seek_gesture_description">ਅੱਗੇ ਜਾਂ ਪਿੱਛੇ ਜਾਣ ਲਈ ਹੌਰੀਜੌਂਟਲ ਸਵਾਈਪ ਕਰੋ</string>
@@ -308,4 +308,60 @@
     <string name="hide_video_info">ਲੁਕਵੇਂ ਵੀਡੀਓ ਇੱਕ ਪਿੰਨ ਦੁਆਰਾ ਸੁਰੱਖਿਅਤ ਇੱਕ ਨਿੱਜੀ ਵਾਲਟ ਵਿੱਚ ਭੇਜੇ ਜਾਂਦੇ ਹਨ ਅਤੇ ਤੁਹਾਡੀ ਗੈਲਰੀ ਵਿੱਚੋਂ ਹਟਾ ਦਿੱਤੇ ਜਾਂਦੇ ਹਨ।</string>
     <string name="hiding_videos_in_progress">ਲੁਕਾਇਆ ਜਾ ਰਿਹਾ ਹੈ…</string>
     <string name="unhiding_videos_in_progress">ਦਿਖਾਇਆ ਜਾ ਰਿਹਾ ਹੈ…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">ਇਸਦੇ ਮੂਲ ਫ਼ੋਲਡਰ ਵਿੱਚ ਰੀਸਟੋਰ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ — ਮੂਵੀਜ਼/ ਵਿੱਚ ਭੇਜਿਆ ਗਿਆ</item>
+        <item quantity="other">%1$d ਵੀਡੀਓਜ਼ ਨੂੰ ਉਹਨਾਂ ਦੇ ਅਸਲ ਫ਼ੋਲਡਰਾਂ ਵਿੱਚ ਰੀਸਟੋਰ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ — ਮੂਵੀਜ਼/ ਵਿੱਚ ਭੇਜਿਆ ਗਿਆ</item>
+    </plurals>
+    <string name="hiding_videos">ਲੁਕਾਇਆ ਜਾ ਰਿਹਾ ਹੈ…</string>
+    <string name="set_vault_pin">ਵਾਲਟ ਪਿੰਨ ਸੈੱਟ ਕਰੋ</string>
+    <string name="set_vault_pin_description">ਆਪਣੇ ਲੁਕਵੇਂ ਵੀਡੀਓਜ਼ ਨੂੰ ਸੁਰੱਖਿਅਤ ਰੱਖਣ ਲਈ 4-ਅੰਕਾਂ ਦਾ ਪਿੰਨ ਬਣਾਓ</string>
+    <string name="confirm_vault_pin">ਪਿੰਨ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ</string>
+    <string name="confirm_vault_pin_description">ਪੁਸ਼ਟੀ ਕਰਨ ਲਈ ਆਪਣਾ ਪਿੰਨ ਦੁਬਾਰਾ ਦਰਜ ਕਰੋ</string>
+    <string name="enter_vault_pin">ਪਿੰਨ ਦਰਜ ਕਰੋ</string>
+    <string name="enter_vault_pin_description">ਲੁਕੇ ਹੋਏ ਵੀਡੀਓ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਲਈ ਆਪਣਾ ਪਿੰਨ ਦਰਜ ਕਰੋ</string>
+    <string name="pins_do_not_match">ਪਿੰਨ ਮੇਲ ਨਹੀਂ ਖਾਂਦੇ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
+    <string name="incorrect_pin">ਗਲਤ ਪਿੰਨ</string>
+    <string name="how_to_find_hidden_videos_title">ਆਪਣੇ ਲੁਕਵੇਂ ਵੀਡੀਓ ਕਿਵੇਂ ਲੱਭਣੇ ਹਨ</string>
+    <string name="how_to_find_hidden_videos_description">ਲੁਕੇ ਹੋਏ ਵੀਡੀਓ ਤੁਹਾਡੇ ਵਾਲਟ ਵਿੱਚ ਸੁਰੱਖਿਅਤ ਰੱਖੇ ਜਾਂਦੇ ਹਨ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਖੋਲ੍ਹਣ ਲਈ, ਹੋਮ ਸਕ੍ਰੀਨ ਦੇ ਸਿਖਰ \'ਤੇ \"NextPlayer\" ਸਿਰਲੇਖ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ ਅਤੇ ਆਪਣਾ PIN ਦਰਜ ਕਰੋ।</string>
+    <string name="got_it">ਮਿਲ ਗਿਆ</string>
+    <string name="open_vault">ਖੁੱਲ੍ਹਾ ਵਾਲਟ</string>
+    <string name="vault_empty_title">ਕੋਈ ਲੁਕਵੇਂ ਵੀਡੀਓ ਨਹੀਂ</string>
+    <string name="vault_empty_description">ਤੁਹਾਡੇ ਵੱਲੋਂ ਲੁਕਾਏ ਗਏ ਵੀਡੀਓ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ। ਕਿਸੇ ਵੀਡੀਓ ਨੂੰ ਦੇਰ ਤੱਕ ਦਬਾਓ ਅਤੇ ਇਸਨੂੰ ਵਾਲਟ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰਨ ਲਈ ਲੁਕਾਓ \'ਤੇ ਟੈਪ ਕਰੋ।</string>
+    <string name="unhide_one_video_confirmation">ਕੀ ਇਸ ਵੀਡੀਓ ਨੂੰ ਦਿਸਦਾ ਕਰਨਾ ਹੈ? ਇਸਨੂੰ ਇਸਦੇ ਅਸਲ ਸਥਾਨ \'ਤੇ ਵਾਪਸ ਭੇਜ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
+    <string name="unhide_videos_confirmation">ਕੀ %1$d ਵੀਡੀਓਜ਼ ਨੂੰ ਅਣਲੁਕਾਉਣਾ ਹੈ? ਉਹਨਾਂ ਨੂੰ ਉਹਨਾਂ ਦੇ ਅਸਲ ਸਥਾਨ \'ਤੇ ਵਾਪਸ ਭੇਜ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
+    <string name="delete_one_video_from_vault">ਕੀ ਇਸ ਵੀਡੀਓ ਨੂੰ ਪੱਕੇ ਤੌਰ \'ਤੇ ਮਿਟਾਉਣਾ ਹੈ?</string>
+    <string name="delete_videos_from_vault">ਕੀ %1$d ਵੀਡੀਓ ਨੂੰ ਸਥਾਈ ਤੌਰ \'ਤੇ ਮਿਟਾਉਣਾ ਹੈ?</string>
+    <string name="delete_from_vault_info">ਇਸ ਕਾਰਵਾਈ ਨੂੰ ਅਣਕੀਤਾ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ। ਵੀਡੀਓ ਨੂੰ ਤੁਹਾਡੇ ਡੀਵਾਈਸ ਤੋਂ ਸਥਾਈ ਤੌਰ \'ਤੇ ਮਿਟਾ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
+    <string name="sort_by">ਦੇ ਨਾਲ ਕ੍ਰਮਬੱਧ</string>
+    <string name="name">ਨਾਮ</string>
+    <string name="date_hidden">ਲੁਕਾਉਣ ਦੀ ਤਾਰੀਖ</string>
+    <string name="forgot_pin">ਪਿੰਨ ਭੁੱਲ ਗਏ ਹੋ?</string>
+    <string name="reset_vault_pin_confirmation">ਆਪਣਾ ਪਿੰਨ ਰੀਸੈੱਟ ਕਰਨ ਨਾਲ ਵਾਲਟ ਵਿੱਚ ਮੌਜੂਦ ਸਾਰੇ ਵੀਡੀਓ ਸਥਾਈ ਤੌਰ \'ਤੇ ਮਿਟਾ ਦਿੱਤੇ ਜਾਣਗੇ, ਕਿਉਂਕਿ ਉਹਨਾਂ ਨੂੰ ਹੁਣ ਅਨਲੌਕ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ। ਕੀ ਜਾਰੀ ਰੱਖਣਾ ਹੈ?</string>
+    <string name="reset_pin_and_delete_all">ਪਿੰਨ ਰੀਸੈਟ ਕਰੋ ਅਤੇ ਸਾਰੇ ਮਿਟਾਓ</string>
+    <string name="copy">ਕਾਪੀ ਕਰੋ</string>
+    <string name="move">ਤਬਦੀਲ ਕਰੋ</string>
+    <string name="copying_videos_in_progress">ਕਾਪੀ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…</string>
+    <string name="moving_videos_in_progress">ਤਬਦੀਲ ਹੋ ਰਿਹਾ ਹੈ…</string>
+    <string name="transfer_file_progress">%2$d ਵਿੱਚੋਂ %1$d ਫਾਈਲ</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">1 ਵੀਡੀਓ ਕਾਪੀ ਕੀਤਾ ਗਿਆ</item>
+        <item quantity="other">%1$d ਵੀਡੀਓ ਕਾਪੀ ਕੀਤੇ ਗਏ</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">1 ਵੀਡੀਓ ਤਬਦੀਲ ਕੀਤਾ ਗਿਆ</item>
+        <item quantity="other">%1$d ਵੀਡੀਓ ਤਬਦੀਲ ਕੀਤੇ ਗਏ</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">1 ਵੀਡੀਓ ਕਾਪੀ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ</item>
+        <item quantity="other">%1$d ਵੀਡੀਓ ਕਾਪੀ ਨਹੀਂ ਕੀਤੇ ਜਾ ਸਕੇ</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">1 ਵੀਡੀਓ ਨੂੰ ਤਬਦੀਲ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ</item>
+        <item quantity="other">%1$d ਵੀਡੀਓਜ਼ ਨੂੰ ਤਬਦੀਲ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">1 ਵੀਡੀਓ ਨੂੰ ਤਬਦੀਲ ਕੀਤਾ ਗਿਆ, ਪਰ ਅਸਲੀ ਨੂੰ ਹਟਾਇਆ ਨਹੀਂ ਜਾ ਸਕਿਆ</item>
+        <item quantity="other">%1$d ਵੀਡੀਓ ਤਬਦੀਲ ਕੀਤੇ ਗਏ, ਪਰ ਅਸਲੀ ਵੀਡੀਓ ਹਟਾਏ ਨਹੀਂ ਜਾ ਸਕੇ</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">ਉਸੇ ਫੋਲਡਰ ਵਿੱਚ ਤਬਦੀਲ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ</string>
 </resources>
