@@ -73,7 +73,7 @@
     <string name="preferred_audio_lang_description">Bahasa trek audio yang ingin Anda gunakan secara default</string>
     <string name="system_default">Bawaan Sistem</string>
     <string name="preferred_subtitle_lang_description">Bahasa trek subtitle yang ingin Anda gunakan secara default</string>
-    <string name="subtitle">Subtitle</string>
+    <string name="subtitle">Subjudul</string>
     <string name="preferred_subtitle_lang">Bahasa subtitle yang dipilih</string>
     <string name="off">Nonaktif</string>
     <string name="on">Aktif</string>
@@ -298,4 +298,28 @@
     <string name="material_you_controls">Kontrol Material You</string>
     <string name="material_you_controls_description">Gunakan kontrol bergaya Material You</string>
     <string name="gestures_name">Gestur</string>
+    <string name="forgot_pin">Lupa PIN?</string>
+    <string name="reset_vault_pin_confirmation">Mengatur ulang PIN Anda akan menghapus secara permanen semua video yang saat ini ada di brankas, karena video-video tersebut tidak dapat dibuka lagi. Lanjutkan?</string>
+    <string name="reset_pin_and_delete_all">Mengatur ulang PIN &amp; hapus semua</string>
+    <string name="copy">Salin</string>
+    <string name="move">Pindahkan</string>
+    <string name="copying_videos_in_progress">Menyalin…</string>
+    <string name="moving_videos_in_progress">Memindahkan…</string>
+    <string name="transfer_file_progress">Berkas %1$d dari %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="other">%1$d video disalin</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="other">Memindahkan %1$d video</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="other">Gagal menyalin %1$d video</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="other">Gagal memindahkan %1$d video</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="other">Video %1$d telah dipindahkan, tetapi video aslinya tidak dapat dihapus.</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Tidak dapat memindahkan ke folder yang sama</string>
 </resources>
