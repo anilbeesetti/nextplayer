@@ -304,7 +304,7 @@
     <string name="hidden_videos">隐藏的视频</string>
     <string name="hide_one_video_confirmation">隐藏此视频吗？</string>
     <string name="hide_videos_confirmation">隐藏 %1$d 个视频吗？</string>
-    <string name="hide_video_info">隐藏的视频会移入由 PIN 码保护的私密保险箱并从图库中移除</string>
+    <string name="hide_video_info">隐藏的视频会移入由 PIN 码保护的私密保险箱并从图库移除</string>
     <string name="hiding_videos_in_progress">正在隐藏…</string>
     <string name="unhiding_videos_in_progress">正在取消隐藏…</string>
     <plurals name="videos_relocated_to_movies">
@@ -316,7 +316,7 @@
     <string name="confirm_vault_pin">确认 PIN 码</string>
     <string name="confirm_vault_pin_description">再次输入 PIN 码以确认</string>
     <string name="enter_vault_pin">输入 PIN 码</string>
-    <string name="enter_vault_pin_description">输入 PIN 码以访问隐藏的视频</string>
+    <string name="enter_vault_pin_description">输入 PIN 码可访问隐藏的视频</string>
     <string name="pins_do_not_match">PIN 码不匹配。请重试。</string>
     <string name="incorrect_pin">PIN 码错误</string>
     <string name="reset_vault_pin_confirmation">重置 PIN 码会永久删除当前在保险箱中的所有视频，因为已无法再将其解锁。继续吗？</string>
