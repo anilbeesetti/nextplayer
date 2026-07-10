@@ -12,6 +12,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
@@ -20,7 +21,6 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
@@ -42,7 +42,6 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -63,7 +62,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.toDecoderMode
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import java.io.File
@@ -106,6 +106,12 @@ class PlayerService : MediaSessionService() {
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var currentVolumeGain: Int = 0
+
+    private lateinit var decoderSwitcher: DecoderSwitcher
+    private lateinit var trackSelector: DefaultTrackSelector
+
+    /** Prevents the decoder reset's temporary idle state from clearing track preferences. */
+    private var isVideoDecoderResetInProgress = false
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -239,12 +245,16 @@ class PlayerService : MediaSessionService() {
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
 
-            if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
+            if (
+                !isVideoDecoderResetInProgress &&
+                (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE)
+            ) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
 
             if (playbackState == Player.STATE_READY) {
+                isVideoDecoderResetInProgress = false
                 mediaSession?.player?.let {
                     serviceScope.launch {
                         mediaRepository.updateMediumLastPlayedTime(
@@ -254,6 +264,10 @@ class PlayerService : MediaSessionService() {
                     }
                 }
             }
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            isVideoDecoderResetInProgress = false
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -467,6 +481,26 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
+                CustomCommands.SET_DECODER_MODE -> {
+                    val mode = DecoderMode.from(args.getString(CustomCommands.DECODER_MODE_KEY))
+                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
+                    val player = mediaSession?.player as? ExoPlayer
+                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                    isVideoDecoderResetInProgress =
+                        player.mediaItemCount > 0 && decoderSwitcher.requiresDecoderReset(mode)
+                    decoderSwitcher.switchTo(mode, player, trackSelector)
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_DECODER_MODE -> {
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putString(CustomCommands.DECODER_MODE_KEY, decoderSwitcher.mode.name)
+                        },
+                    )
+                }
+
                 CustomCommands.GET_SUBTITLE_DELAY -> {
                     val subtitleDelay = mediaSession?.player?.playerSpecificSubtitleDelayMilliseconds ?: 0
                     return@future SessionResult(
@@ -523,17 +557,10 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        val renderersFactory = NextRenderersFactory(applicationContext)
-            .setEnableDecoderFallback(true)
-            .setExtensionRendererMode(
-                when (playerPreferences.decoderPriority) {
-                    DecoderPriority.DEVICE_ONLY -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderPriority.PREFER_DEVICE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderPriority.PREFER_APP -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-                },
-            )
+        decoderSwitcher = DecoderSwitcher(playerPreferences.decoderPriority.toDecoderMode())
+        val renderersFactory = decoderSwitcher.createRenderersFactory(applicationContext)
 
-        val trackSelector = DefaultTrackSelector(applicationContext).apply {
+        trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(
                 buildUponParameters()
                     .setPreferredAudioLanguage(playerPreferences.preferredAudioLanguage)
@@ -562,6 +589,8 @@ class PlayerService : MediaSessionService() {
                     LoopMode.ALL -> Player.REPEAT_MODE_ALL
                 }
             }
+
+        decoderSwitcher.apply(trackSelector)
 
         try {
             mediaSession = MediaSession.Builder(this, player).apply {

@@ -4,6 +4,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
@@ -19,6 +21,8 @@ enum class CustomCommands(val customAction: String) {
     IS_LOUDNESS_GAIN_SUPPORTED(customAction = "IS_LOUDNESS_GAIN_SUPPORTED"),
     SET_LOUDNESS_GAIN(customAction = "SET_LOUDNESS_GAIN"),
     GET_LOUDNESS_GAIN(customAction = "GET_LOUDNESS_GAIN"),
+    SET_DECODER_MODE(customAction = "SET_DECODER_MODE"),
+    GET_DECODER_MODE(customAction = "GET_DECODER_MODE"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
@@ -39,6 +43,7 @@ enum class CustomCommands(val customAction: String) {
         const val SUBTITLE_SPEED_KEY = "subtitle_speed"
         const val LOUDNESS_GAIN_KEY = "loudness_gain"
         const val IS_LOUDNESS_GAIN_SUPPORTED_KEY = "is_loudness_gain_supported"
+        const val DECODER_MODE_KEY = "decoder_mode"
     }
 }
 
@@ -111,4 +116,17 @@ suspend fun MediaController.getLoudnessGain(): Int {
 suspend fun MediaController.getIsLoudnessGainSupported(): Boolean {
     val result = sendCustomCommand(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED_KEY, false)
+}
+
+suspend fun MediaController.setDecoderMode(mode: DecoderMode): Boolean {
+    val args = Bundle().apply {
+        putString(CustomCommands.DECODER_MODE_KEY, mode.name)
+    }
+    val result = sendCustomCommand(CustomCommands.SET_DECODER_MODE.sessionCommand, args).await()
+    return result.resultCode == SessionResult.RESULT_SUCCESS
+}
+
+suspend fun MediaController.getDecoderMode(): DecoderMode? {
+    val result = sendCustomCommand(CustomCommands.GET_DECODER_MODE.sessionCommand, Bundle.EMPTY).await()
+    return DecoderMode.from(result.extras.getString(CustomCommands.DECODER_MODE_KEY))
 }

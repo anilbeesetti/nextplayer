@@ -136,6 +136,10 @@
     <string name="prefer_device_decoders">Prefer device decoders</string>
     <string name="prefer_app_decoders">Prefer app decoders</string>
     <string name="device_decoders_only">Device decoders only</string>
+    <string name="select_decoder">Select decoder</string>
+    <string name="decoder_hw_plus_description">Hardware and system software decoders</string>
+    <string name="decoder_hw_description">Hardware decoders only</string>
+    <string name="decoder_sw_description">App software decoders</string>
     <string name="embedded_styles">Embedded styles</string>
     <string name="embedded_styles_desc">Apply the embedded styles that are present in subtitle files, such as ASS and so on</string>
     <string name="controller_timeout">Controller timeout</string>
