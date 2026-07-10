@@ -83,7 +83,7 @@ Contributions are welcome!
 
 ### Developer documentation
 
-- [Runtime video decoder switching](feature/player/DECODER_SWITCHING.md)
+- [Runtime decoder switching](feature/player/DECODER_SWITCHING.md)
 
 ### Translating
 

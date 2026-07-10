@@ -4,12 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
-import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -25,16 +21,15 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
-import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
-import dev.anilbeesetti.nextplayer.settings.extensions.name
+import dev.anilbeesetti.nextplayer.settings.utils.rememberTvListFocusRequester
+import dev.anilbeesetti.nextplayer.settings.utils.tvFocusDown
+import dev.anilbeesetti.nextplayer.settings.utils.tvListFocus
 
 @Composable
 fun DecoderPreferencesScreen(
@@ -84,40 +79,19 @@ private fun DecoderPreferencesContent(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
-            ListSectionTitle(text = stringResource(id = R.string.playback))
+            ListSectionTitle(text = stringResource(id = R.string.hardware_decoder))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
-                ClickablePreferenceItem(
-                    title = stringResource(R.string.decoder_priority),
-                    description = preferences.decoderPriority.name(),
-                    icon = NextIcons.Priority,
-                    onClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(DecoderPreferenceDialog.DecoderPriorityDialog)) },
+                PreferenceSwitch(
+                    title = stringResource(R.string.hw_plus_audio_on_sw_video),
+                    description = stringResource(R.string.hw_plus_audio_on_sw_video_description),
+                    icon = NextIcons.Decoder,
+                    isChecked = preferences.useHwPlusAudioOnSwVideo,
+                    onClick = { onEvent(DecoderPreferencesUiEvent.ToggleHwPlusAudioOnSwVideo) },
                     isFirstItem = true,
                     isLastItem = true,
                 )
-            }
-        }
-
-        uiState.showDialog?.let { showDialog ->
-            when (showDialog) {
-                DecoderPreferenceDialog.DecoderPriorityDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.decoder_priority),
-                        onDismissClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(null)) },
-                    ) {
-                        items(DecoderPriority.entries.toTypedArray()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = it == preferences.decoderPriority,
-                                onClick = {
-                                    onEvent(DecoderPreferencesUiEvent.UpdateDecoderPriority(it))
-                                    onEvent(DecoderPreferencesUiEvent.ShowDialog(null))
-                                },
-                            )
-                        }
-                    }
-                }
             }
         }
     }

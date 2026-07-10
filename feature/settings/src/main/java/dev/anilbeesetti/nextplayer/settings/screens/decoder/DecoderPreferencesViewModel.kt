@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,21 +36,14 @@ class DecoderPreferencesViewModel @Inject constructor(
 
     fun onEvent(event: DecoderPreferencesUiEvent) {
         when (event) {
-            is DecoderPreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is DecoderPreferencesUiEvent.UpdateDecoderPriority -> updateDecoderPriority(event.value)
+            DecoderPreferencesUiEvent.ToggleHwPlusAudioOnSwVideo -> toggleHwPlusAudioOnSwVideo()
         }
     }
 
-    private fun showDialog(value: DecoderPreferenceDialog?) {
-        uiStateInternal.update {
-            it.copy(showDialog = value)
-        }
-    }
-
-    private fun updateDecoderPriority(value: DecoderPriority) {
+    private fun toggleHwPlusAudioOnSwVideo() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(decoderPriority = value)
+                it.copy(useHwPlusAudioOnSwVideo = !it.useHwPlusAudioOnSwVideo)
             }
         }
     }
@@ -59,15 +51,9 @@ class DecoderPreferencesViewModel @Inject constructor(
 
 @Stable
 data class DecoderPreferencesUiState(
-    val showDialog: DecoderPreferenceDialog? = null,
     val preferences: PlayerPreferences = PlayerPreferences(),
 )
 
-sealed interface DecoderPreferenceDialog {
-    data object DecoderPriorityDialog : DecoderPreferenceDialog
-}
-
 sealed interface DecoderPreferencesUiEvent {
-    data class ShowDialog(val value: DecoderPreferenceDialog?) : DecoderPreferencesUiEvent
-    data class UpdateDecoderPriority(val value: DecoderPriority) : DecoderPreferencesUiEvent
+    data object ToggleHwPlusAudioOnSwVideo : DecoderPreferencesUiEvent
 }

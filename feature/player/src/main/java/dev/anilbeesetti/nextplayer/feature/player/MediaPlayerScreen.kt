@@ -79,7 +79,7 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
-import dev.anilbeesetti.nextplayer.feature.player.model.toDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
@@ -174,7 +174,7 @@ fun MediaPlayerScreen(
     val errorState = rememberErrorState(player = player)
     val decoderState = rememberDecoderState(
         controller = player,
-        initialMode = playerPreferences.decoderPriority.toDecoderMode(),
+        initialMode = DecoderMode.HW_PLUS,
     )
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {

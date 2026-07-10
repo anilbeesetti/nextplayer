@@ -1,15 +1,16 @@
-# Runtime video decoder switching
+# Runtime decoder switching
 
-The player exposes three video decoder modes:
+The player exposes three decoder modes:
 
-| Mode | Video renderer | Codec selection |
+| Mode | Video renderer | Audio renderer |
 | --- | --- | --- |
-| HW+ | `MediaCodecVideoRenderer` | Hardware and Android system software codecs |
-| HW | `MediaCodecVideoRenderer` | Codecs reported as hardware accelerated |
-| SW | `FfmpegVideoRenderer` | App-bundled FFmpeg codecs |
+| HW+ | `MediaCodecVideoRenderer`, using hardware and Android system software codecs | `MediaCodecAudioRenderer` |
+| HW | `MediaCodecVideoRenderer`, using hardware-accelerated codecs | `MediaCodecAudioRenderer` |
+| SW | `FfmpegVideoRenderer` | `FfmpegAudioRenderer` |
 
-Changing this mode affects video only. The audio renderer is selected from the decoder preference
-when the player service starts and remains unchanged for that player session.
+Video and audio follow the selected mode. The **HW+ audio on SW video** setting changes only SW
+mode: FFmpeg audio stays first, while `MediaCodecAudioRenderer` is kept second as a fallback when
+FFmpeg does not support the audio format.
 
 ## Request flow
 
@@ -17,11 +18,11 @@ when the player service starts and remains unchanged for that player session.
 2. `DecoderState` sends `SET_DECODER_MODE` through the activity's `MediaController`.
 3. `PlayerService` validates the command and delegates it to `DecoderSwitcher`.
 4. `DecoderSwitcher` updates renderer capabilities and `DefaultTrackSelector` parameters.
-5. Media3 remaps the video track to the enabled system or FFmpeg renderer.
+5. Media3 remaps video and audio tracks to the enabled system or FFmpeg renderers.
 6. `DecoderState` updates the UI after the service reports success.
 
-The selected mode is session-scoped. It does not overwrite the decoder preference in DataStore.
-That preference only determines the initial video and audio renderer choices for a new service.
+The selected video mode is session-scoped and starts as HW+ for every new player service. It is not
+written to DataStore. The audio fallback setting is read when the player service is created.
 
 ## Why both capabilities and disabled renderers change
 
@@ -30,6 +31,11 @@ renderer alone can therefore leave a video track mapped to a renderer that canno
 `ModeAwareRenderer` makes inactive renderers report the format as unsupported, while the track
 selector flags provide a second explicit guard. Updating the track selector parameters triggers a
 fresh mapping pass without creating another `ExoPlayer`.
+
+FFmpeg extension renderers are ordered before system renderers. In SW mode, when both audio
+renderers are enabled, `FfmpegAudioRenderer` is therefore selected first and
+`MediaCodecAudioRenderer` remains available for unsupported formats. In HW and HW+ modes, FFmpeg
+audio is disabled and system audio is selected directly.
 
 `ModeAwareRenderer` extends Media3's `ForwardingRenderer`. This is important because every renderer
 lifecycle and timing method, including Java interface default methods, must reach the actual
@@ -53,6 +59,7 @@ Run the focused checks with:
 ./gradlew :feature:player:ktlintCheck :feature:player:testDebugUnitTest :app:assembleDebug
 ```
 
-On-device verification should confirm that video decoder initialization changes after selecting a
-new mode, audio decoder initialization does not repeat, playback position advances, and only one
-`ExoPlayer` instance is initialized per session.
+On-device verification should confirm that both video and audio follow the selected mode, playback
+position advances, and only one `ExoPlayer` instance is initialized per session. In SW mode, also
+verify an audio format unsupported by FFmpeg uses the system audio renderer only when HW+ audio
+fallback is enabled.

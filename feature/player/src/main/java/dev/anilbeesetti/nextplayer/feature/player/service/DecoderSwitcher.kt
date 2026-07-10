@@ -24,15 +24,17 @@ import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
  * Switches video decoders without replacing the [ExoPlayer] instance.
  *
  * All system and FFmpeg renderers are created once. A mode change updates their reported
- * capabilities and disabled state so Media3 remaps the video track to the requested renderer.
- * Audio keeps the mode selected when this switcher is created and is never changed at runtime.
+ * capabilities and disabled state so Media3 remaps video and audio to the requested decoder.
+ * In SW mode, audio is FFmpeg-first and can optionally fall back to the system audio renderer.
  */
 @UnstableApi
-internal class DecoderSwitcher(initialMode: DecoderMode) {
+internal class DecoderSwitcher(
+    initialMode: DecoderMode,
+    private val useHwPlusAudioFallback: Boolean,
+) {
 
     private val mediaCodecSelector = SwitchableMediaCodecSelector(initialMode)
     private val managedRenderers = mutableListOf<ManagedRenderer>()
-    private val fixedAudioMode = initialMode
 
     @Volatile
     var mode: DecoderMode = initialMode
@@ -45,7 +47,7 @@ internal class DecoderSwitcher(initialMode: DecoderMode) {
             wrapRenderer = ::wrapRenderer,
         ).apply {
             setEnableDecoderFallback(true)
-            setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+            setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
         }
     }
 
@@ -54,7 +56,7 @@ internal class DecoderSwitcher(initialMode: DecoderMode) {
     }
 
     /**
-     * Applies [newMode] to video while preserving the playlist, position, and audio renderer.
+     * Applies [newMode] while preserving the playlist and playback position.
      *
      * HW+ to HW also stops and prepares the same player so MediaCodec drops a possible system
      * software codec and queries the hardware-only codec list again.
@@ -90,7 +92,7 @@ internal class DecoderSwitcher(initialMode: DecoderMode) {
         managedRenderers.forEach { renderer ->
             parameters.setRendererDisabled(
                 renderer.index,
-                !renderer.type.isEnabled(mode, fixedAudioMode),
+                !renderer.type.isEnabled(mode, useHwPlusAudioFallback),
             )
         }
         trackSelector.setParameters(parameters)
@@ -101,7 +103,7 @@ internal class DecoderSwitcher(initialMode: DecoderMode) {
         managedRenderers += ManagedRenderer(index, rendererType)
         return ModeAwareRenderer(
             delegate = renderer,
-            isEnabled = { rendererType.isEnabled(mode, fixedAudioMode) },
+            isEnabled = { rendererType.isEnabled(mode, useHwPlusAudioFallback) },
         )
     }
 }
@@ -118,12 +120,12 @@ internal enum class DecoderRendererType(val rendererName: String) {
     FFMPEG_AUDIO(FFMPEG_AUDIO_RENDERER),
     ;
 
-    fun isEnabled(videoMode: DecoderMode, audioMode: DecoderMode): Boolean {
+    fun isEnabled(videoMode: DecoderMode, useHwPlusAudioFallback: Boolean): Boolean {
         return when (this) {
             MEDIA_CODEC_VIDEO -> videoMode != DecoderMode.SW
             FFMPEG_VIDEO -> videoMode == DecoderMode.SW
-            MEDIA_CODEC_AUDIO -> audioMode != DecoderMode.SW
-            FFMPEG_AUDIO -> audioMode == DecoderMode.SW
+            MEDIA_CODEC_AUDIO -> videoMode != DecoderMode.SW || useHwPlusAudioFallback
+            FFMPEG_AUDIO -> videoMode == DecoderMode.SW
         }
     }
 

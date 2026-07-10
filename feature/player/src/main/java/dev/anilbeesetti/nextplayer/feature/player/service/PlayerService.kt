@@ -63,7 +63,6 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
-import dev.anilbeesetti.nextplayer.feature.player.model.toDecoderMode
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import java.io.File
@@ -557,7 +556,10 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        decoderSwitcher = DecoderSwitcher(playerPreferences.decoderPriority.toDecoderMode())
+        decoderSwitcher = DecoderSwitcher(
+            initialMode = DecoderMode.HW_PLUS,
+            useHwPlusAudioFallback = playerPreferences.useHwPlusAudioOnSwVideo,
+        )
         val renderersFactory = decoderSwitcher.createRenderersFactory(applicationContext)
 
         trackSelector = DefaultTrackSelector(applicationContext).apply {

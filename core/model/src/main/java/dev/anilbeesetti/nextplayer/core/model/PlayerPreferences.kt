@@ -57,7 +57,7 @@ data class PlayerPreferences(
     val applyEmbeddedStyles: Boolean = true,
 
     // Decoder Preferences
-    val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE,
+    val useHwPlusAudioOnSwVideo: Boolean = true,
 ) {
 
     companion object {
