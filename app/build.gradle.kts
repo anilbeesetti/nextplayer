@@ -104,6 +104,7 @@ dependencies {
     implementation(project(":feature:videopicker"))
     implementation(project(":feature:player"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:iptv"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

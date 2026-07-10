@@ -230,6 +230,9 @@ class PlayerActivity : ComponentActivity() {
                 setUri(uri)
                 setMediaId(uri)
                 if (index == mediaItemIndexToPlay) {
+                    // For extension-less live/IPTV streams ExoPlayer can't infer the container from
+                    // the url, so honour an explicit mime-type hint (e.g. application/x-mpegURL).
+                    playerApi.mimeType?.let { setMimeType(it) }
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(playerApi.title)

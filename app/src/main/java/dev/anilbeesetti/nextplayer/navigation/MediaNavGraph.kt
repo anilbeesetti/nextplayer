@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import dev.anilbeesetti.nextplayer.feature.iptv.navigation.navigateToIptv
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerEntry
@@ -28,6 +29,7 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
         onSettingsClick = backStack::navigateToSettings,
         onSearchClick = backStack::navigateToSearch,
         onVaultClick = backStack::navigateToVault,
+        onIptvClick = backStack::navigateToIptv,
     )
 
     searchEntry(

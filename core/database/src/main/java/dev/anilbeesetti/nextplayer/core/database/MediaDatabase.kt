@@ -5,16 +5,21 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
+import dev.anilbeesetti.nextplayer.core.database.dao.IptvDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.IptvChannelEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.IptvPlaylistEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 
 @Database(
     entities = [
         MediumStateEntity::class,
         HiddenVideoEntity::class,
+        IptvPlaylistEntity::class,
+        IptvChannelEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -22,6 +27,8 @@ abstract class MediaDatabase : RoomDatabase() {
     abstract fun mediumStateDao(): MediumStateDao
 
     abstract fun hiddenVideoDao(): HiddenVideoDao
+
+    abstract fun iptvDao(): IptvDao
 
     companion object {
         const val DATABASE_NAME = "media_db"
@@ -204,6 +211,47 @@ abstract class MediaDatabase : RoomDatabase() {
                 db.execSQL(
                     """
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_hidden_video_vault_path` ON `hidden_video` (`vault_path`)
+                    """,
+                )
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `iptv_playlist` (
+                        `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        `name` TEXT NOT NULL,
+                        `source` TEXT NOT NULL,
+                        `source_type` TEXT NOT NULL,
+                        `added_at` INTEGER NOT NULL
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS `index_iptv_playlist_source` ON `iptv_playlist` (`source`)
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `iptv_channel` (
+                        `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        `playlist_id` INTEGER NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `url` TEXT NOT NULL,
+                        `logo_url` TEXT,
+                        `group_title` TEXT,
+                        `tvg_id` TEXT,
+                        `is_live` INTEGER NOT NULL DEFAULT 1,
+                        FOREIGN KEY(`playlist_id`) REFERENCES `iptv_playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_iptv_channel_playlist_id` ON `iptv_channel` (`playlist_id`)
                     """,
                 )
             }

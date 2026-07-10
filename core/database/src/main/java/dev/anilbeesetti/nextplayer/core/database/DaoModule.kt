@@ -13,4 +13,7 @@ object DaoModule {
 
     @Provides
     fun provideHiddenVideoDao(db: MediaDatabase) = db.hiddenVideoDao()
+
+    @Provides
+    fun provideIptvDao(db: MediaDatabase) = db.iptvDao()
 }

@@ -4,11 +4,13 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.anilbeesetti.nextplayer.core.data.repository.LocalIptvRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalMediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalPreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalSearchHistoryRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalVaultPinRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalVaultRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.IptvRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.SearchHistoryRepository
@@ -48,4 +50,10 @@ interface DataModule {
     fun bindsVaultPinRepository(
         vaultPinRepository: LocalVaultPinRepository,
     ): VaultPinRepository
+
+    @Binds
+    @Singleton
+    fun bindsIptvRepository(
+        iptvRepository: LocalIptvRepository,
+    ): IptvRepository
 }

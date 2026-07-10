@@ -371,4 +371,27 @@
         <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
+
+    <!-- IPTV -->
+    <string name="iptv">IPTV</string>
+    <string name="iptv_channels">Channels</string>
+    <string name="live">LIVE</string>
+    <string name="add_playlist">Add playlist</string>
+    <string name="import_playlist">Import playlist</string>
+    <string name="playlist_url">Playlist URL</string>
+    <string name="playlist_url_hint">http://example.com/playlist.m3u8</string>
+    <string name="playlist_name_optional">Name (optional)</string>
+    <string name="import_from_url">Import from URL</string>
+    <string name="upload_m3u_file">Upload M3U file</string>
+    <string name="import_">Import</string>
+    <string name="importing">Importing…</string>
+    <string name="all_channels">All channels</string>
+    <string name="select_quality">Select quality</string>
+    <string name="delete_playlist">Delete playlist</string>
+    <string name="refresh_playlist">Refresh</string>
+    <string name="no_iptv_playlists">No playlists yet</string>
+    <string name="no_iptv_playlists_desc">Import an M3U/M3U8 playlist from a URL or a local file to start watching live channels.</string>
+    <string name="no_channels_found">No channels found</string>
+    <string name="iptv_import_success">Imported %1$d channels</string>
+    <string name="iptv_import_failed">Import failed: %1$s</string>
 </resources>

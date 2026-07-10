@@ -65,6 +65,7 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 - Media picker with tree, folder and file view modes
 - Play videos from url
 - Play videos from storage access framework (Android Document picker)
+- IPTV: import M3U/M3U8 playlists from a URL or a local file, browse live channels with a red [LIVE] badge, and pick a stream quality (SD/HD/FHD/4K)
 - Control playback speed
 - External Subtitle support
 - Zoom gesture

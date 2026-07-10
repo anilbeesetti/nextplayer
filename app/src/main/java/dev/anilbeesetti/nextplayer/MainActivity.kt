@@ -39,6 +39,7 @@ import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRoute
+import dev.anilbeesetti.nextplayer.navigation.iptvNavGraph
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import kotlinx.coroutines.launch
@@ -151,6 +152,10 @@ class MainActivity : ComponentActivity() {
                                 backStack = backStack,
                             )
                             settingsNavGraph(backStack = backStack)
+                            iptvNavGraph(
+                                context = this@MainActivity,
+                                backStack = backStack,
+                            )
                         },
                     )
                 }

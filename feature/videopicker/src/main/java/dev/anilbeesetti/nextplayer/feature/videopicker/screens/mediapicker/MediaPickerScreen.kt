@@ -147,6 +147,7 @@ fun MediaPickerRoute(
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,
     onVaultClick: () -> Unit,
+    onIptvClick: () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
@@ -170,6 +171,7 @@ fun MediaPickerRoute(
         onSettingsClick = onSettingsClick,
         onVaultClick = onVaultClick,
         onSearchClick = onSearchClick,
+        onIptvClick = onIptvClick,
         onAction = viewModel::onAction,
     )
 }
@@ -189,6 +191,7 @@ internal fun MediaPickerScreen(
     onSettingsClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     onVaultClick: () -> Unit = {},
+    onIptvClick: () -> Unit = {},
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -318,6 +321,15 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else {
+                        IconButton(
+                            onClick = onIptvClick,
+                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.LiveTv,
+                                contentDescription = stringResource(id = R.string.iptv),
+                            )
+                        }
                         IconButton(
                             onClick = onSearchClick,
                             modifier = topBarDownModifier.tvFocusRing(isTv),

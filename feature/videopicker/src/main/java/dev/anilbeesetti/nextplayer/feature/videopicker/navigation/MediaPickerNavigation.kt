@@ -28,6 +28,7 @@ fun EntryProviderScope<NavKey>.mediaPickerEntry(
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,
     onVaultClick: () -> Unit,
+    onIptvClick: () -> Unit,
 ) {
     entry<MediaPickerRoute> { key ->
         MediaPickerRoute(
@@ -41,6 +42,7 @@ fun EntryProviderScope<NavKey>.mediaPickerEntry(
             onSettingsClick = onSettingsClick,
             onSearchClick = onSearchClick,
             onVaultClick = onVaultClick,
+            onIptvClick = onIptvClick,
         )
     }
 }

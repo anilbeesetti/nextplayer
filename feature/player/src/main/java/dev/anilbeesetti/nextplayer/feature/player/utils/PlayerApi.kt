@@ -16,6 +16,7 @@ class PlayerApi(val activity: PlayerActivity) {
     val shouldReturnResult: Boolean get() = extras?.containsKey(API_RETURN_RESULT) == true
     val position: Int? get() = if (hasPosition) extras?.getInt(API_POSITION) else null
     val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
+    val mimeType: String? get() = extras?.getString(API_MIME_TYPE)
 
     fun getSubs(): List<Subtitle> {
         if (extras == null) return emptyList()
@@ -67,6 +68,7 @@ class PlayerApi(val activity: PlayerActivity) {
         const val API_SUBS_ENABLE = "subs.enable"
         const val API_SUBS_NAME = "subs.name"
         const val API_PLAYLIST = "video_list"
+        const val API_MIME_TYPE = "mime_type"
 
         const val API_RESULT_INTENT = "com.mxtech.intent.result.VIEW"
 
