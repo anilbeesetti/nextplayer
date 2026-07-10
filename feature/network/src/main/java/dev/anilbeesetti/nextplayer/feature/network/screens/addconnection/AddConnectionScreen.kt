@@ -57,6 +57,12 @@ import dev.anilbeesetti.nextplayer.feature.network.R
 private fun defaultPathFor(protocol: NetworkProtocol): String =
     if (protocol == NetworkProtocol.SMB) "" else "/"
 
+private fun normalizedPathFor(protocol: NetworkProtocol, path: String): String {
+    val trimmed = path.trim()
+    if (protocol == NetworkProtocol.SMB) return trimmed
+    return trimmed.trim('/').let { if (it.isEmpty()) "/" else "/$it" }
+}
+
 @Composable
 fun AddConnectionScreenRoute(
     onNavigateUp: () -> Unit,
@@ -105,7 +111,7 @@ internal fun AddConnectionScreen(
             name = it.name
             host = it.host
             port = it.port?.toString() ?: ""
-            path = it.path
+            path = normalizedPathFor(it.protocol, it.path)
             username = it.username
             password = it.password
             useHttps = it.useHttps
@@ -122,7 +128,7 @@ internal fun AddConnectionScreen(
                 protocol = protocol,
                 host = host.trim(),
                 port = port.toIntOrNull(),
-                path = path.trim(),
+                path = normalizedPathFor(protocol, path),
                 username = username.trim(),
                 password = password,
                 useHttps = protocol == NetworkProtocol.WEBDAV && useHttps,

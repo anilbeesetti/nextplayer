@@ -9,6 +9,8 @@ import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 /**
  * FTP client backed by Apache commons-net. Browse paths are absolute paths on the server.
@@ -18,13 +20,16 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
 
     private var ftpClient: FTPClient? = null
 
-    override val rootPath: String = connection.path.ifBlank { "/" }
+    override val rootPath: String = connection.path
+        .trim()
+        .trim('/')
+        .let { path -> if (path.isEmpty()) "/" else "/$path" }
 
     private fun newClient(): FTPClient = FTPClient().apply {
         controlEncoding = "UTF-8"
         connectTimeout = 15_000
-        setDataTimeout(java.time.Duration.ofSeconds(120))
-        setDefaultTimeout(120_000)
+        dataTimeout = 120.seconds.toJavaDuration()
+        defaultTimeout = 120_000
     }
 
     private fun FTPClient.loginAndPrepare(): Boolean {
@@ -48,8 +53,13 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun connect(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val client = newClient()
-            check(client.loginAndPrepare()) { "FTP login failed" }
-            ftpClient = client
+            try {
+                check(client.loginAndPrepare()) { "FTP login failed" }
+                ftpClient = client
+            } catch (error: Throwable) {
+                runCatching { if (client.isConnected) client.disconnect() }
+                throw error
+            }
         }
     }
 
@@ -71,7 +81,11 @@ class FtpClient(private val connection: NetworkConnection) : NetworkClient {
         runCatching {
             val client = ftpClient ?: error("Not connected")
             val dir = path.ifBlank { rootPath }
-            client.listFiles(dir).mapNotNull { file ->
+            val files = client.listFiles(dir)
+            check(FTPReply.isPositiveCompletion(client.replyCode)) {
+                client.replyString.trim().ifEmpty { "Failed to list FTP directory: $dir" }
+            }
+            files.mapNotNull { file ->
                 if (file.name == "." || file.name == "..") return@mapNotNull null
                 NetworkFile(
                     name = file.name,
