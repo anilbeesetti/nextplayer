@@ -298,4 +298,64 @@
     <string name="reset_brightness_gesture_sensitivity">重設亮度手勢靈敏度</string>
     <string name="material_you_controls">Material You 控制</string>
     <string name="material_you_controls_description">使用 Material You 樣式控制</string>
+    <string name="folder_duration">資料夾總長度</string>
+    <string name="hide">隱藏</string>
+    <string name="unhide">取消隱藏</string>
+    <string name="vault">保險箱</string>
+    <string name="hidden_videos">隱藏影片</string>
+    <string name="hide_one_video_confirmation">隱藏這部影片？</string>
+    <string name="hide_videos_confirmation">隱藏 %1$d 部影片？</string>
+    <string name="hide_video_info">您隱藏的影片將會移至保險箱加密，並從媒體庫中移除。</string>
+    <string name="hiding_videos_in_progress">正在隱藏…</string>
+    <string name="unhiding_videos_in_progress">正在取消隱藏…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="other">無法將 %1$d 部影片還原至起始資料夾 — 已移至 Movies/</item>
+    </plurals>
+    <string name="hiding_videos">正在隱藏…</string>
+    <string name="set_vault_pin">設定 PIN 碼</string>
+    <string name="set_vault_pin_description">請輸入 4 位數字密碼以保護您的影片</string>
+    <string name="confirm_vault_pin">確認 PIN 碼</string>
+    <string name="confirm_vault_pin_description">請再次輸入並確認密碼</string>
+    <string name="enter_vault_pin">輸入 PIN 碼</string>
+    <string name="enter_vault_pin_description">請輸入密碼以存取您的影片</string>
+    <string name="pins_do_not_match">PIN 碼不符，請再試一次</string>
+    <string name="incorrect_pin">錯誤的 PIN 碼</string>
+    <string name="how_to_find_hidden_videos_title">如何尋找您隱藏的影片</string>
+    <string name="how_to_find_hidden_videos_description">您隱藏的影片皆妥善存放於保險箱。\n如要再次開啟，請輕觸並按住首頁頂端「NextPlayer」並輸入密碼。</string>
+    <string name="got_it">知道了</string>
+    <string name="open_vault">開啟保險箱</string>
+    <string name="vault_empty_title">沒有隱藏的影片</string>
+    <string name="vault_empty_description">您隱藏的影片將會顯示在這裡。\n按住影片並選擇「隱藏」即可加入保險箱。</string>
+    <string name="unhide_one_video_confirmation">取消隱藏這部影片？將會返回原始檔案位置。</string>
+    <string name="unhide_videos_confirmation">取消隱藏 %1$d 部影片？將會返回原始檔案位置。</string>
+    <string name="delete_one_video_from_vault">永久刪除這部影片？</string>
+    <string name="delete_videos_from_vault">永久刪除 %1$d 部影片？</string>
+    <string name="delete_from_vault_info">將會永久從裝置中刪除這部影片，這個動作無法復原。</string>
+    <string name="sort_by">排序依據</string>
+    <string name="name">名稱</string>
+    <string name="date_hidden">隱藏日期</string>
+    <string name="forgot_pin">忘記 PIN 碼？</string>
+    <string name="reset_vault_pin_confirmation">由於無法解鎖，重設密碼將會永久刪除保險箱中的所有影片。\n要繼續嗎？</string>
+    <string name="reset_pin_and_delete_all">重設密碼並清除</string>
+    <string name="copy">複製</string>
+    <string name="move">移動</string>
+    <string name="copying_videos_in_progress">正在複製…</string>
+    <string name="moving_videos_in_progress">正在移動…</string>
+    <string name="transfer_file_progress">%2$d 中的 %1$d 個檔案</string>
+    <plurals name="copied_videos_result">
+        <item quantity="other">已複製 %1$d 部影片</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="other">已移動 %1$d 部影片</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="other">無法複製 %1$d 部影片</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="other">無法移動 %1$d 部影片</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="other">已移動 %1$d 部影片，但無法刪除原始檔案</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">無法移至相同資料夾</string>
 </resources>
