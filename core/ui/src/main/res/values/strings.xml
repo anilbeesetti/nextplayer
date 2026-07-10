@@ -143,6 +143,7 @@
     <string name="decoder_hw_plus_description">Hardware and system software decoders</string>
     <string name="decoder_hw_description">Hardware decoders only</string>
     <string name="decoder_sw_description">App software decoders</string>
+    <string name="decoder_mode_not_supported">%1$s is not supported</string>
     <string name="embedded_styles">Embedded styles</string>
     <string name="embedded_styles_desc">Apply the embedded styles that are present in subtitle files, such as ASS and so on</string>
     <string name="controller_timeout">Controller timeout</string>

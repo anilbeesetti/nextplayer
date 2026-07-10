@@ -515,6 +515,28 @@ fun MediaPlayerScreen(
         }
     }
 
+    errorState.unsupportedDecoderMode?.let { unsupportedMode ->
+        AlertDialog(
+            onDismissRequest = { },
+            title = {
+                Text(text = stringResource(coreUiR.string.decoder))
+            },
+            text = {
+                Text(
+                    text = stringResource(
+                        coreUiR.string.decoder_mode_not_supported,
+                        unsupportedMode.label,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = errorState::tryDecoderFallback) {
+                    Text(text = stringResource(coreUiR.string.okay))
+                }
+            },
+        )
+    }
+
     errorState.error?.let { error ->
         AlertDialog(
             onDismissRequest = { },

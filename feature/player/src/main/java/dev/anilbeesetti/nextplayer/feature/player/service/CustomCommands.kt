@@ -6,6 +6,8 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryState
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
@@ -23,6 +25,8 @@ enum class CustomCommands(val customAction: String) {
     GET_LOUDNESS_GAIN(customAction = "GET_LOUDNESS_GAIN"),
     SET_DECODER_MODE(customAction = "SET_DECODER_MODE"),
     GET_DECODER_MODE(customAction = "GET_DECODER_MODE"),
+    GET_DECODER_RECOVERY_STATE(customAction = "GET_DECODER_RECOVERY_STATE"),
+    TRY_DECODER_FALLBACK(customAction = "TRY_DECODER_FALLBACK"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
@@ -44,6 +48,8 @@ enum class CustomCommands(val customAction: String) {
         const val LOUDNESS_GAIN_KEY = "loudness_gain"
         const val IS_LOUDNESS_GAIN_SUPPORTED_KEY = "is_loudness_gain_supported"
         const val DECODER_MODE_KEY = "decoder_mode"
+        const val DECODER_RECOVERY_STATUS_KEY = "decoder_recovery_status"
+        const val UNSUPPORTED_DECODER_MODE_KEY = "unsupported_decoder_mode"
     }
 }
 
@@ -129,4 +135,20 @@ suspend fun MediaController.setDecoderMode(mode: DecoderMode): Boolean {
 suspend fun MediaController.getDecoderMode(): DecoderMode? {
     val result = sendCustomCommand(CustomCommands.GET_DECODER_MODE.sessionCommand, Bundle.EMPTY).await()
     return DecoderMode.from(result.extras.getString(CustomCommands.DECODER_MODE_KEY))
+}
+
+suspend fun MediaController.getDecoderRecoveryState(): DecoderRecoveryState {
+    val result = sendCustomCommand(CustomCommands.GET_DECODER_RECOVERY_STATE.sessionCommand, Bundle.EMPTY).await()
+    val status = result.extras.getString(CustomCommands.DECODER_RECOVERY_STATUS_KEY)
+        ?.let { value -> DecoderRecoveryStatus.entries.find { it.name == value } }
+        ?: DecoderRecoveryStatus.NONE
+    return DecoderRecoveryState(
+        status = status,
+        unsupportedMode = DecoderMode.from(result.extras.getString(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY)),
+    )
+}
+
+suspend fun MediaController.tryDecoderFallback(): Boolean {
+    val result = sendCustomCommand(CustomCommands.TRY_DECODER_FALLBACK.sessionCommand, Bundle.EMPTY).await()
+    return result.resultCode == SessionResult.RESULT_SUCCESS
 }

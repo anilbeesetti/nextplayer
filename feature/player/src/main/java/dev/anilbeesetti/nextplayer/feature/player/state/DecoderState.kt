@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.media3.common.Player
+import androidx.media3.common.listen
 import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
@@ -22,7 +24,7 @@ fun rememberDecoderState(
 ): DecoderState {
     val scope = rememberCoroutineScope()
     val state = remember(controller) { DecoderState(controller, initialMode, scope) }
-    LaunchedEffect(controller) { state.sync() }
+    LaunchedEffect(controller) { state.observe() }
     return state
 }
 
@@ -36,7 +38,6 @@ class DecoderState(
         private set
 
     fun switchTo(newMode: DecoderMode) {
-        if (newMode == mode) return
         scope.launch {
             if (controller.setDecoderMode(newMode)) {
                 mode = newMode
@@ -44,7 +45,19 @@ class DecoderState(
         }
     }
 
-    suspend fun sync() {
+    suspend fun observe() {
+        sync()
+        controller.listen { events ->
+            if (
+                events.contains(Player.EVENT_PLAYER_ERROR) ||
+                events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)
+            ) {
+                scope.launch { sync() }
+            }
+        }
+    }
+
+    private suspend fun sync() {
         mode = controller.getDecoderMode() ?: mode
     }
 }

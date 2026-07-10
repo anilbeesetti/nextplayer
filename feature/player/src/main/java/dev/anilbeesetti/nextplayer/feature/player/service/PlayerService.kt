@@ -22,6 +22,7 @@ import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -35,6 +36,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getLocalSubtitles
@@ -108,6 +110,43 @@ class PlayerService : MediaSessionService() {
 
     private lateinit var decoderSwitcher: DecoderSwitcher
     private lateinit var trackSelector: DefaultTrackSelector
+    private val decoderRecoveryManager = DecoderRecoveryManager()
+    private var decoderMediaId: String? = null
+
+    private val decoderAnalyticsListener = object : AnalyticsListener {
+        override fun onVideoDecoderInitialized(
+            eventTime: AnalyticsListener.EventTime,
+            decoderName: String,
+            initializedTimestampMs: Long,
+            initializationDurationMs: Long,
+        ) {
+            Logger.logInfo("DecoderSwitcher", "Video decoder initialized: $decoderName")
+        }
+
+        override fun onAudioDecoderInitialized(
+            eventTime: AnalyticsListener.EventTime,
+            decoderName: String,
+            initializedTimestampMs: Long,
+            initializationDurationMs: Long,
+        ) {
+            Logger.logInfo("DecoderSwitcher", "Audio decoder initialized: $decoderName")
+        }
+
+        override fun onRenderedFirstFrame(
+            eventTime: AnalyticsListener.EventTime,
+            output: Any,
+            renderTimeMs: Long,
+        ) {
+            Logger.logInfo("DecoderSwitcher", "Rendered first frame in ${decoderSwitcher.mode.label}")
+        }
+
+        override fun onPlayerError(
+            eventTime: AnalyticsListener.EventTime,
+            error: PlaybackException,
+        ) {
+            Logger.logError("DecoderSwitcher", "Player error in ${decoderSwitcher.mode.label}: ${error.message}")
+        }
+    }
 
     /** Prevents the decoder reset's temporary idle state from clearing track preferences. */
     private var isVideoDecoderResetInProgress = false
@@ -116,6 +155,14 @@ class PlayerService : MediaSessionService() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
+            mediaItem?.mediaId?.takeIf { it != decoderMediaId }?.let { mediaId ->
+                decoderMediaId = mediaId
+                decoderRecoveryManager.onNewMediaItem()
+                val player = mediaSession?.player as? ExoPlayer
+                if (player != null && decoderSwitcher.mode != DecoderMode.HW_PLUS) {
+                    decoderSwitcher.switchTo(DecoderMode.HW_PLUS, player, trackSelector)
+                }
+            }
             isMediaItemReady = false
             loadArtworkForCurrentMediaItem()
             mediaItem?.mediaMetadata?.let { metadata ->
@@ -244,16 +291,21 @@ class PlayerService : MediaSessionService() {
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
 
-            if (
-                !isVideoDecoderResetInProgress &&
-                (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE)
-            ) {
+            val player = mediaSession?.player
+            val shouldResetPlaybackParameters = playbackState == Player.STATE_ENDED ||
+                (
+                    playbackState == Player.STATE_IDLE &&
+                        player?.playerError == null &&
+                        !isVideoDecoderResetInProgress
+                )
+            if (shouldResetPlaybackParameters) {
                 mediaSession?.player?.trackSelectionParameters = TrackSelectionParameters.DEFAULT
                 mediaSession?.player?.setPlaybackSpeed(playerPreferences.defaultPlaybackSpeed)
             }
 
             if (playbackState == Player.STATE_READY) {
                 isVideoDecoderResetInProgress = false
+                decoderRecoveryManager.onPlayerReady()
                 mediaSession?.player?.let {
                     serviceScope.launch {
                         mediaRepository.updateMediumLastPlayedTime(
@@ -267,6 +319,20 @@ class PlayerService : MediaSessionService() {
 
         override fun onPlayerError(error: PlaybackException) {
             isVideoDecoderResetInProgress = false
+            if (!error.isDecoderFailure) {
+                decoderRecoveryManager.onNonDecoderError()
+                return
+            }
+
+            when (val action = decoderRecoveryManager.onDecoderError(decoderSwitcher.mode)) {
+                is DecoderRecoveryAction.Retry -> serviceScope.launch {
+                    retryDecoderWith(action.mode)
+                }
+
+                DecoderRecoveryAction.AwaitUserConfirmation,
+                DecoderRecoveryAction.ShowPlayerError,
+                -> Unit
+            }
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -485,6 +551,7 @@ class PlayerService : MediaSessionService() {
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
                     val player = mediaSession?.player as? ExoPlayer
                         ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                    decoderRecoveryManager.onUserSelection()
                     isVideoDecoderResetInProgress =
                         player.mediaItemCount > 0 && decoderSwitcher.requiresDecoderReset(mode)
                     decoderSwitcher.switchTo(mode, player, trackSelector)
@@ -498,6 +565,29 @@ class PlayerService : MediaSessionService() {
                             putString(CustomCommands.DECODER_MODE_KEY, decoderSwitcher.mode.name)
                         },
                     )
+                }
+
+                CustomCommands.GET_DECODER_RECOVERY_STATE -> {
+                    val state = decoderRecoveryManager.state
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putString(CustomCommands.DECODER_RECOVERY_STATUS_KEY, state.status.name)
+                            state.unsupportedMode?.let {
+                                putString(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY, it.name)
+                            }
+                        },
+                    )
+                }
+
+                CustomCommands.TRY_DECODER_FALLBACK -> {
+                    val mode = decoderRecoveryManager.confirmFallback()
+                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                    if (!retryDecoderWith(mode)) {
+                        decoderRecoveryManager.onNonDecoderError()
+                        return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
                 CustomCommands.GET_SUBTITLE_DELAY -> {
@@ -584,6 +674,7 @@ class PlayerService : MediaSessionService() {
             .build()
             .also {
                 it.addListener(playbackStateListener)
+                it.addAnalyticsListener(decoderAnalyticsListener)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
                 it.repeatMode = when (playerPreferences.loopMode) {
                     LoopMode.OFF -> Player.REPEAT_MODE_OFF
@@ -703,7 +794,14 @@ class PlayerService : MediaSessionService() {
             }
         }.awaitAll()
     }
-    
+
+    private fun retryDecoderWith(mode: DecoderMode): Boolean {
+        val player = mediaSession?.player as? ExoPlayer ?: return false
+        isVideoDecoderResetInProgress = player.mediaItemCount > 0
+        decoderSwitcher.retryWith(mode, player, trackSelector)
+        return true
+    }
+
     private fun getDefaultArtworkUri(): Uri = Uri.Builder().apply {
         val defaultArtwork = R.drawable.artwork_default
         scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
@@ -755,6 +853,19 @@ class PlayerService : MediaSessionService() {
         )
         .build()
 }
+
+internal val PlaybackException.isDecoderFailure: Boolean
+    get() = when (errorCode) {
+        PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
+        PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,
+        PlaybackException.ERROR_CODE_DECODING_FAILED,
+        PlaybackException.ERROR_CODE_DECODING_FORMAT_EXCEEDS_CAPABILITIES,
+        PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED,
+        PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED,
+        -> true
+
+        else -> false
+    }
 
 @get:UnstableApi
 @set:UnstableApi

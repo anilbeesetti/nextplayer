@@ -21,8 +21,24 @@ FFmpeg does not support the audio format.
 5. Media3 remaps video and audio tracks to the enabled system or FFmpeg renderers.
 6. `DecoderState` updates the UI after the service reports success.
 
-The selected video mode is session-scoped and starts as HW+ for every new player service. It is not
-written to DataStore. The audio fallback setting is read when the player service is created.
+The decoder mode is not written to DataStore. The audio fallback setting is read when the player
+service is created.
+
+## Decoder error recovery
+
+Each new media item starts in HW+ mode. `DecoderRecoveryManager` distinguishes the initial automatic
+selection from a mode explicitly selected in the player controls:
+
+1. If the default HW+ decoder reports a Media3 decoder error, the service silently retries with SW.
+2. If an explicitly selected HW+, HW, or SW mode fails, the player shows that the selected mode is
+   unsupported and waits for confirmation.
+3. Pressing **OK** retries with SW after an HW+/HW failure, or HW+ after an SW failure.
+4. If the fallback also fails, recovery stops and the existing player error dialog is shown.
+
+Retries call `prepare()` after changing renderer capabilities on the existing `ExoPlayer`. The
+playlist, playback position, and `playWhenReady` value are retained; no player instance is recreated.
+The recovery state is exposed through media-session commands so the UI can suppress the generic
+error during a silent retry and show the unsupported-mode dialog only for explicit selections.
 
 ## Why both capabilities and disabled renderers change
 
@@ -62,4 +78,5 @@ Run the focused checks with:
 On-device verification should confirm that both video and audio follow the selected mode, playback
 position advances, and only one `ExoPlayer` instance is initialized per session. In SW mode, also
 verify an audio format unsupported by FFmpeg uses the system audio renderer only when HW+ audio
-fallback is enabled.
+fallback is enabled. Decoder recovery branches are covered by `DecoderRecoveryManagerTest`; a device
+with unsupported media should additionally confirm the dialog and fallback behavior end to end.

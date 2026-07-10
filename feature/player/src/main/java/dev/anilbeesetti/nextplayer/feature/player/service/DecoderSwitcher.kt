@@ -71,8 +71,7 @@ internal class DecoderSwitcher(
         val playWhenReady = player.playWhenReady
         val shouldResetDecoder = requiresDecoderReset(newMode)
 
-        mode = newMode
-        mediaCodecSelector.mode = newMode
+        updateMode(newMode)
 
         if (shouldResetDecoder) {
             val shouldPrepare = player.mediaItemCount > 0
@@ -84,6 +83,22 @@ internal class DecoderSwitcher(
             }
         } else {
             apply(trackSelector)
+        }
+    }
+
+    /** Retries a failed playback using [newMode] on the same player instance. */
+    fun retryWith(
+        newMode: DecoderMode,
+        player: ExoPlayer,
+        trackSelector: DefaultTrackSelector,
+    ) {
+        val playWhenReady = player.playWhenReady
+        updateMode(newMode)
+        apply(trackSelector)
+
+        if (player.mediaItemCount > 0) {
+            player.prepare()
+            player.playWhenReady = playWhenReady
         }
     }
 
@@ -105,6 +120,11 @@ internal class DecoderSwitcher(
             delegate = renderer,
             isEnabled = { rendererType.isEnabled(mode, useHwPlusAudioFallback) },
         )
+    }
+
+    private fun updateMode(newMode: DecoderMode) {
+        mode = newMode
+        mediaCodecSelector.mode = newMode
     }
 }
 
