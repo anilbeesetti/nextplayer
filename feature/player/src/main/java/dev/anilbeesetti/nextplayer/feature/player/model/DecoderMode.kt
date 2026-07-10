@@ -1,6 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.model
 
-/** Video decoder modes shown in the player controls. */
+/** Decoder modes shown in the player controls. */
 enum class DecoderMode(val label: String) {
     HW_PLUS("HW+"),
     HW("HW"),

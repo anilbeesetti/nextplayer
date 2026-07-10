@@ -50,7 +50,8 @@ class DecoderState(
         controller.listen { events ->
             if (
                 events.contains(Player.EVENT_PLAYER_ERROR) ||
-                events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)
+                events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) ||
+                events.contains(Player.EVENT_TRACKS_CHANGED)
             ) {
                 scope.launch { sync() }
             }

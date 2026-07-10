@@ -537,14 +537,23 @@ fun MediaPlayerScreen(
         )
     }
 
-    errorState.error?.let { error ->
+    if (errorState.showPlayerError) {
         AlertDialog(
             onDismissRequest = { },
             title = {
                 Text(text = stringResource(coreUiR.string.error_playing_video))
             },
             text = {
-                Text(text = error.message ?: stringResource(coreUiR.string.unknown_error))
+                Text(
+                    text = errorState.playbackError?.message
+                        ?: stringResource(
+                            if (errorState.allDecoderModesFailed) {
+                                coreUiR.string.no_supported_decoder
+                            } else {
+                                coreUiR.string.unknown_error
+                            },
+                        ),
+                )
             },
             confirmButton = {
                 if (player.hasNextMediaItem()) {

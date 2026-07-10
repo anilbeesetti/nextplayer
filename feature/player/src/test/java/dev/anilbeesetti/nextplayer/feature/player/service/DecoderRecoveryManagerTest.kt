@@ -3,7 +3,9 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DecoderRecoveryManagerTest {
@@ -14,7 +16,7 @@ class DecoderRecoveryManagerTest {
 
         assertEquals(
             DecoderRecoveryAction.Retry(DecoderMode.SW),
-            manager.onDecoderError(DecoderMode.HW_PLUS),
+            manager.onDecoderFailure(DecoderMode.HW_PLUS),
         )
         assertEquals(DecoderRecoveryStatus.RECOVERING, manager.state.status)
         assertNull(manager.state.unsupportedMode)
@@ -27,7 +29,7 @@ class DecoderRecoveryManagerTest {
 
         assertEquals(
             DecoderRecoveryAction.AwaitUserConfirmation,
-            manager.onDecoderError(DecoderMode.HW),
+            manager.onDecoderFailure(DecoderMode.HW),
         )
         assertEquals(DecoderRecoveryStatus.AWAITING_CONFIRMATION, manager.state.status)
         assertEquals(DecoderMode.HW, manager.state.unsupportedMode)
@@ -39,7 +41,7 @@ class DecoderRecoveryManagerTest {
     fun explicitSwFailure_fallsBackToHwPlusAfterConfirmation() {
         val manager = DecoderRecoveryManager()
         manager.onUserSelection()
-        manager.onDecoderError(DecoderMode.SW)
+        manager.onDecoderFailure(DecoderMode.SW)
 
         assertEquals(DecoderMode.HW_PLUS, manager.confirmFallback())
     }
@@ -47,24 +49,53 @@ class DecoderRecoveryManagerTest {
     @Test
     fun fallbackFailure_exposesPlayerError() {
         val manager = DecoderRecoveryManager()
-        manager.onDecoderError(DecoderMode.HW_PLUS)
+        manager.onDecoderFailure(DecoderMode.HW_PLUS)
+        manager.onDecoderInitialized()
 
         assertEquals(
             DecoderRecoveryAction.ShowPlayerError,
-            manager.onDecoderError(DecoderMode.SW),
+            manager.onDecoderFailure(DecoderMode.SW),
         )
-        assertEquals(DecoderRecoveryStatus.NONE, manager.state.status)
+        assertEquals(DecoderRecoveryStatus.FAILED, manager.state.status)
     }
 
     @Test
     fun newMediaItem_restoresSilentDefaultRecovery() {
         val manager = DecoderRecoveryManager()
+        assertTrue(manager.onMediaItemChanged("video"))
         manager.onUserSelection()
-        manager.onNewMediaItem()
+        assertTrue(manager.onMediaItemChanged("next-video"))
 
         assertEquals(
             DecoderRecoveryAction.Retry(DecoderMode.SW),
-            manager.onDecoderError(DecoderMode.HW_PLUS),
+            manager.onDecoderFailure(DecoderMode.HW_PLUS),
+        )
+    }
+
+    @Test
+    fun clearedMedia_allowsSameMediaToStartFresh() {
+        val manager = DecoderRecoveryManager()
+        assertTrue(manager.onMediaItemChanged("video"))
+        manager.onUserSelection()
+
+        assertFalse(manager.onMediaItemChanged(null))
+        assertTrue(manager.onMediaItemChanged("video"))
+        assertEquals(
+            DecoderRecoveryAction.Retry(DecoderMode.SW),
+            manager.onDecoderFailure(DecoderMode.HW_PLUS),
+        )
+    }
+
+    @Test
+    fun metadataUpdate_doesNotResetExplicitSelection() {
+        val manager = DecoderRecoveryManager()
+        manager.onMediaItemChanged("video")
+        manager.onUserSelection()
+
+        assertFalse(manager.onMediaItemChanged("video"))
+        assertEquals(
+            DecoderRecoveryAction.AwaitUserConfirmation,
+            manager.onDecoderFailure(DecoderMode.HW_PLUS),
         )
     }
 }

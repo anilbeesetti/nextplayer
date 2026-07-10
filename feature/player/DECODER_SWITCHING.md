@@ -24,21 +24,25 @@ FFmpeg does not support the audio format.
 The decoder mode is not written to DataStore. The audio fallback setting is read when the player
 service is created.
 
-## Decoder error recovery
+## Decoder recovery
 
 Each new media item starts in HW+ mode. `DecoderRecoveryManager` distinguishes the initial automatic
 selection from a mode explicitly selected in the player controls:
 
-1. If the default HW+ decoder reports a Media3 decoder error, the service silently retries with SW.
+1. If the default HW+ decoder reports an error or no video renderer supports the track, the service
+   silently retries with SW.
 2. If an explicitly selected HW+, HW, or SW mode fails, the player shows that the selected mode is
    unsupported and waits for confirmation.
 3. Pressing **OK** retries with SW after an HW+/HW failure, or HW+ after an SW failure.
 4. If the fallback also fails, recovery stops and the existing player error dialog is shown.
 
-Retries call `prepare()` after changing renderer capabilities on the existing `ExoPlayer`. The
-playlist, playback position, and `playWhenReady` value are retained; no player instance is recreated.
-The recovery state is exposed through media-session commands so the UI can suppress the generic
-error during a silent retry and show the unsupported-mode dialog only for explicit selections.
+Decoder-error retries call `prepare()` after changing renderer capabilities. Unsupported tracks are
+remapped directly through the track selector. Both paths retain the playlist, playback position,
+and `playWhenReady` value on the existing `ExoPlayer`; no player instance is recreated. The recovery
+state is exposed through media-session commands so the UI can suppress the generic error during a
+silent retry and show the unsupported-mode dialog only for explicit selections.
+`decoderAnalyticsListener` clears recovery when a video decoder initializes and logs the actual
+video/audio decoders used by each mode.
 
 ## Why both capabilities and disabled renderers change
 

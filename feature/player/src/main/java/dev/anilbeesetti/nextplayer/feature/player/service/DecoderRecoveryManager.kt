@@ -4,16 +4,26 @@ import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryState
 import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
 
-/** Decides whether a decoder error is retried silently, confirmed by the user, or exposed. */
+/** Decides whether a decoder failure is retried silently, confirmed by the user, or exposed. */
 internal class DecoderRecoveryManager {
 
+    private var currentMediaId: String? = null
     private var userSelectedMode = false
     private var fallbackAttempted = false
 
     var state: DecoderRecoveryState = DecoderRecoveryState()
         private set
 
-    fun onNewMediaItem() {
+    /** Returns true when the current media identity changes to a non-null item. */
+    fun onMediaItemChanged(mediaId: String?): Boolean {
+        if (mediaId == currentMediaId) return false
+
+        currentMediaId = mediaId
+        resetForMediaItem()
+        return mediaId != null
+    }
+
+    private fun resetForMediaItem() {
         userSelectedMode = false
         fallbackAttempted = false
         state = DecoderRecoveryState()
@@ -25,9 +35,9 @@ internal class DecoderRecoveryManager {
         state = DecoderRecoveryState()
     }
 
-    fun onDecoderError(mode: DecoderMode): DecoderRecoveryAction {
+    fun onDecoderFailure(mode: DecoderMode): DecoderRecoveryAction {
         if (fallbackAttempted) {
-            state = DecoderRecoveryState()
+            state = DecoderRecoveryState(status = DecoderRecoveryStatus.FAILED)
             return DecoderRecoveryAction.ShowPlayerError
         }
 
@@ -51,7 +61,7 @@ internal class DecoderRecoveryManager {
         return unsupportedMode.fallbackMode()
     }
 
-    fun onPlayerReady() {
+    fun onDecoderInitialized() {
         state = DecoderRecoveryState()
     }
 

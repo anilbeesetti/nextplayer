@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 @Composable
-fun rememberErrorState(player: Player): ErrorState {
+fun rememberErrorState(player: MediaController): ErrorState {
     val scope = rememberCoroutineScope()
     val errorState = remember(player) { ErrorState(player, scope) }
     LaunchedEffect(player) { errorState.observe() }
@@ -29,74 +29,76 @@ fun rememberErrorState(player: Player): ErrorState {
 }
 
 class ErrorState(
-    private val player: Player,
+    private val player: MediaController,
     private val scope: CoroutineScope,
 ) {
-    var error: PlaybackException? by mutableStateOf(null)
+    var playbackError: PlaybackException? by mutableStateOf(null)
         private set
 
     var unsupportedDecoderMode: DecoderMode? by mutableStateOf(null)
         private set
 
+    var allDecoderModesFailed: Boolean by mutableStateOf(false)
+        private set
+
+    val showPlayerError: Boolean
+        get() = playbackError != null || allDecoderModesFailed
+
     fun dismiss() {
-        error = null
+        playbackError = null
+        allDecoderModesFailed = false
     }
 
     fun tryDecoderFallback() {
-        val controller = player as? MediaController ?: return
         unsupportedDecoderMode = null
         scope.launch {
-            val fallbackStarted = runCatching { controller.tryDecoderFallback() }.getOrDefault(false)
+            val fallbackStarted = runCatching { player.tryDecoderFallback() }.getOrDefault(false)
             if (!fallbackStarted) {
-                updateError()
+                sync()
             }
         }
     }
 
     suspend fun observe() {
-        updateError()
+        sync()
         player.listen { events ->
-            if (events.contains(Player.EVENT_PLAYER_ERROR)) {
-                scope.launch { updateError() }
-            }
             if (
-                events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) &&
-                player.playbackState == Player.STATE_READY
+                events.contains(Player.EVENT_PLAYER_ERROR) ||
+                events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) ||
+                events.contains(Player.EVENT_TRACKS_CHANGED)
             ) {
-                error = null
-                unsupportedDecoderMode = null
+                scope.launch { sync() }
             }
         }
     }
 
-    private suspend fun updateError() {
-        val playbackError = player.playerError
-        if (playbackError == null) {
-            error = null
-            unsupportedDecoderMode = null
-            return
-        }
-
-        val recoveryState = (player as? MediaController)?.let { controller ->
-            runCatching { controller.getDecoderRecoveryState() }.getOrNull()
-        }
+    private suspend fun sync() {
+        val recoveryState = runCatching { player.getDecoderRecoveryState() }.getOrNull()
         when (recoveryState?.status) {
             DecoderRecoveryStatus.RECOVERING -> {
-                error = null
+                playbackError = null
                 unsupportedDecoderMode = null
+                allDecoderModesFailed = false
             }
 
             DecoderRecoveryStatus.AWAITING_CONFIRMATION -> {
-                val unsupportedMode = recoveryState.unsupportedMode
-                error = playbackError.takeIf { unsupportedMode == null }
-                unsupportedDecoderMode = unsupportedMode
+                playbackError = null
+                unsupportedDecoderMode = recoveryState.unsupportedMode
+                allDecoderModesFailed = false
+            }
+
+            DecoderRecoveryStatus.FAILED -> {
+                playbackError = player.playerError
+                unsupportedDecoderMode = null
+                allDecoderModesFailed = true
             }
 
             DecoderRecoveryStatus.NONE,
             null,
             -> {
+                playbackError = player.playerError
                 unsupportedDecoderMode = null
-                error = playbackError
+                allDecoderModesFailed = false
             }
         }
     }
