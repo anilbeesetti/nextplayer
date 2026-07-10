@@ -38,9 +38,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun BoxScope.OverlayView(
@@ -60,10 +59,7 @@ fun BoxScope.OverlayView(
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(show) {
         if (show && isTv) {
-            repeat(times = 5) {
-                if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-                delay(50.milliseconds)
-            }
+            focusRequester.requestFocusUntilLanded(attempts = 5)
         }
     }
 
