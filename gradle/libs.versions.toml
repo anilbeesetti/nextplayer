@@ -37,7 +37,7 @@ room = "2.8.4"
 nextlib = "1.10.1-0.13.0"
 universalChardet = "2.5.0"
 smbj = "0.14.0"
-commonsNet = "3.11.1"
+commonsNet = "3.13.0"
 sardineAndroid = "0.9"
 nanohttpd = "2.3.1"
 
