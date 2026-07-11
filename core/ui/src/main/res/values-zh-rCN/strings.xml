@@ -180,7 +180,7 @@
     <string name="volume_boost_desc">将音量增强到最大 200%</string>
     <string name="volume_boost">音量增强</string>
     <string name="pip_settings">画中画模式</string>
-    <string name="pip_settings_description">点按主屏幕按钮时自动切换到迷你播放器</string>
+    <string name="pip_settings_description">返回主屏幕时自动切换到迷你播放器</string>
     <string name="open_subtitle">打开本地字幕</string>
     <string name="no_subtitle_tracks_found">此视频的字幕不可用或不受支持</string>
     <string name="no_audio_tracks_found">此视频的音轨不可用或不受支持</string>
@@ -201,7 +201,7 @@
     <string name="control_buttons_alignment_left">左</string>
     <string name="control_buttons_alignment_right">右</string>
     <string name="control_buttons_alignment">控制按钮对齐</string>
-    <string name="background_play_description">点按主屏幕按钮或屏幕锁定时在后台播放</string>
+    <string name="background_play_description">返回主屏幕或屏幕锁定时在后台播放</string>
     <string name="stop_player_session">停止播放器会话</string>
     <string name="background_play">后台播放</string>
     <string name="enable_pip_from_settings">已停用画中画。在设置中启用它可使用此功能。</string>
@@ -304,7 +304,7 @@
     <string name="hidden_videos">隐藏的视频</string>
     <string name="hide_one_video_confirmation">隐藏此视频吗？</string>
     <string name="hide_videos_confirmation">隐藏 %1$d 个视频吗？</string>
-    <string name="hide_video_info">隐藏的视频会移入由 PIN 码保护的私密保险箱并从图库中移除</string>
+    <string name="hide_video_info">隐藏的视频会移入由 PIN 码保护的私密保险箱并从图库移除</string>
     <string name="hiding_videos_in_progress">正在隐藏…</string>
     <string name="unhiding_videos_in_progress">正在取消隐藏…</string>
     <plurals name="videos_relocated_to_movies">
@@ -316,7 +316,7 @@
     <string name="confirm_vault_pin">确认 PIN 码</string>
     <string name="confirm_vault_pin_description">再次输入 PIN 码以确认</string>
     <string name="enter_vault_pin">输入 PIN 码</string>
-    <string name="enter_vault_pin_description">输入 PIN 码以访问隐藏的视频</string>
+    <string name="enter_vault_pin_description">输入 PIN 码可访问隐藏的视频</string>
     <string name="pins_do_not_match">PIN 码不匹配。请重试。</string>
     <string name="incorrect_pin">PIN 码错误</string>
     <string name="reset_vault_pin_confirmation">重置 PIN 码会永久删除当前在保险箱中的所有视频，因为已无法再将其解锁。继续吗？</string>
@@ -352,7 +352,7 @@
     <plurals name="move_failed">
         <item quantity="other">无法移动 %1$d 个视频</item>
     </plurals>
-    <string name="transfer_file_progress">第 %1$d 个文件，共 %2$d 个</string>
+    <string name="transfer_file_progress">文件 %1$d/%2$d</string>
     <plurals name="moved_videos_originals_remain">
         <item quantity="other">已移动 %1$d 个视频，但无法移除原始视频</item>
     </plurals>
