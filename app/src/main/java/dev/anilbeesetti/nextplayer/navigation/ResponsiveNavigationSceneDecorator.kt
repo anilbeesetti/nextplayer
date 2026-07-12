@@ -1,15 +1,13 @@
 package dev.anilbeesetti.nextplayer.navigation
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationRailDefaults
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldLayout
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -43,32 +41,46 @@ data class ResponsiveNavigationScene<T : Any>(
 
     override val content: @Composable () -> Unit = {
         val currentKey = scene.entries.lastOrNull()?.contentKey
-        when {
-            currentKey == null || !isTopLevel(currentKey) -> scene.content()
 
-            windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> {
-                Row(Modifier.fillMaxSize()) {
-                    navRailContent()
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .consumeWindowInsets(NavigationRailDefaults.windowInsets.only(WindowInsetsSides.Start)),
-                    ) {
-                        scene.content()
-                    }
+        if (currentKey == null || !isTopLevel(currentKey)) {
+            scene.content()
+        } else {
+
+            val navLayoutType = when {
+                windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> {
+                    NavigationSuiteType.NavigationRail
                 }
+
+                else -> NavigationSuiteType.NavigationBar
             }
 
-            else -> {
-                Column(Modifier.fillMaxSize()) {
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .consumeWindowInsets(NavigationBarDefaults.windowInsets.only(WindowInsetsSides.Bottom)),
-                    ) {
-                        scene.content()
+
+            NavigationSuiteScaffoldLayout(
+                layoutType = navLayoutType,
+                navigationSuite = {
+                    when (navLayoutType) {
+                        NavigationSuiteType.NavigationBar -> {
+                            navBarContent()
+                        }
+
+                        NavigationSuiteType.NavigationRail -> {
+                            navRailContent()
+                        }
                     }
-                    navBarContent()
+                },
+            ) {
+                Box(
+                    modifier = Modifier.consumeWindowInsets(
+                        NavigationRailDefaults.windowInsets.only(
+                            when (navLayoutType) {
+                                NavigationSuiteType.NavigationBar -> WindowInsetsSides.Bottom
+                                NavigationSuiteType.NavigationRail -> WindowInsetsSides.Start
+                                else -> WindowInsetsSides.Bottom
+                            }
+                        )
+                    )
+                ) {
+                    scene.content()
                 }
             }
         }
@@ -78,7 +90,7 @@ data class ResponsiveNavigationScene<T : Any>(
 @Composable
 fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
     isTopLevel: (contentKey: Any) -> Boolean,
-    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
     navBar: @Composable () -> Unit,
     navRail: @Composable () -> Unit,
 ): SceneDecoratorStrategy<T> {
