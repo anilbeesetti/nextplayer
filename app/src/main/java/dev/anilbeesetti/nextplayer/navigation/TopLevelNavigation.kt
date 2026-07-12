@@ -1,14 +1,21 @@
 package dev.anilbeesetti.nextplayer.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailDefaults
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
@@ -20,12 +27,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -34,6 +43,7 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
+import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.network.R
 import dev.anilbeesetti.nextplayer.feature.network.navigation.NetworkRoute
@@ -113,8 +123,6 @@ class TopLevelNavState(
     @Composable
     fun rememberEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): SnapshotStateList<NavEntry<NavKey>> {
         val decoratedByRoute = LinkedHashMap<NavKey, List<NavEntry<NavKey>>>()
-        // A for-loop (not a lambda) keeps these @Composable calls legal; the destination count is
-        // fixed, so the call sites are stable across recompositions.
         for (dest in destinations) {
             decoratedByRoute[dest.route] = rememberDecoratedNavEntries(
                 backStack = backStacks.getValue(dest.route),
@@ -149,15 +157,44 @@ fun NextNavigationBar(state: TopLevelNavState) {
 
 @Composable
 fun NextNavigationRail(state: TopLevelNavState) {
-    NavigationRail {
-        state.destinations.forEach { dest ->
-            NavigationRailItem(
-                selected = state.topLevelRoute == dest.route,
-                onClick = { state.switchTo(dest.route) },
-                icon = { Icon(imageVector = dest.icon, contentDescription = null) },
-                label = { Text(text = stringResource(dest.labelRes)) },
-                modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(24.dp)),
-            )
+    NavigationRail(
+        modifier = Modifier.fillMaxHeight(),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+        ) {
+            state.destinations.forEach { dest ->
+                val selected = state.topLevelRoute == dest.route
+                Box(
+                    Modifier
+                        .tvFocusRing(shape = RoundedCornerShape(99.dp))
+                        .clip(CircleShape)
+                        .selectable(
+                            selected = state.topLevelRoute == dest.route,
+                            onClick = { state.switchTo(dest.route) },
+                            role = Role.Tab,
+                        )
+                        .background(
+                            if (selected) {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            } else {
+                                Color.Transparent
+                            }
+                        )
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                    propagateMinConstraints = true,
+                ) {
+                    Icon(
+                        imageVector = dest.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
         }
     }
 }

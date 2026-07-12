@@ -11,7 +11,7 @@ androidxActivity = "1.13.0"
 androidxAppCompat = "1.7.1"
 androidxComposeBom = "2026.06.01"
 androidxMaterial3 = "1.5.0-alpha17"
-androidxMaterial3Adaptive = "1.2.0"
+androidxMaterial3Adaptive = "1.3.0-rc01"
 androidxConstraintLayout = "2.2.1"
 androidxCore = "1.19.0"
 androidxCorePip = "1.0.0-alpha03"
@@ -53,6 +53,7 @@ androidx-compose-icons = { module = "androidx.compose.material:material-icons-ex
 androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidxMaterial3" }
 androidx-compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "androidxMaterial3Adaptive" }
+androidx-compose-material3-adaptive-navigationsuite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite", version.ref = "androidxMaterial3Adaptive" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }

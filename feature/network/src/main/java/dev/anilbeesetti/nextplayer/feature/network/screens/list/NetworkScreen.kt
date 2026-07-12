@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,11 +47,13 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
@@ -86,6 +92,18 @@ internal fun NetworkScreen(
 ) {
     var connectionToDelete by remember { mutableStateOf<NetworkConnection?>(null) }
 
+    val context = LocalContext.current
+    val isTv = remember { context.isTelevision }
+    val showEmptyState = uiState.connections.isEmpty() && !uiState.isLoading
+    // The connection list grabs D-pad focus via tvListFocus, but the empty state has nothing
+    // focusable, so focus would fall back to the Home tab. Land it on the Add-connection button.
+    val addConnectionFocusRequester = remember { FocusRequester() }
+    if (isTv) {
+        LaunchedEffect(showEmptyState) {
+            if (showEmptyState) addConnectionFocusRequester.requestFocusUntilLanded()
+        }
+    }
+
     Scaffold(
         topBar = {
             NextTopAppBar(
@@ -106,7 +124,9 @@ internal fun NetworkScreen(
                 onClick = onAddConnection,
                 icon = { Icon(NextIcons.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.add_connection)) },
-                modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(16.dp)),
+                modifier = Modifier
+                    .focusRequester(addConnectionFocusRequester)
+                    .tvFocusRing(shape = RoundedCornerShape(16.dp)),
             )
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -119,7 +139,7 @@ internal fun NetworkScreen(
             .background(MaterialTheme.colorScheme.background)
 
         Box(modifier = containerModifier) {
-            if (uiState.connections.isEmpty() && !uiState.isLoading) {
+            if (showEmptyState) {
                 NetworkEmptyState(modifier = Modifier.fillMaxSize())
             } else {
                 LazyColumn(

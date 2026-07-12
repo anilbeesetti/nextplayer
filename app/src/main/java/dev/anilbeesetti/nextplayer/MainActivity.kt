@@ -122,7 +122,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
                     val navState = rememberTopLevelNavState()
 
