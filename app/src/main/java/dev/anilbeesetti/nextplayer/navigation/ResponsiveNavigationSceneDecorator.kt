@@ -29,7 +29,14 @@ import androidx.window.core.layout.WindowSizeClass
  *
  * Adapted from the AndroidX nav3-recipes `navscenedecorator` recipe.
  */
-data class ResponsiveNavigationScene<T : Any>(
+// Intentionally NOT a `data class`. A generated equals/hashCode would include the lambda parameters,
+// and the decorator strategy hands each decoration fresh lambda instances, so two wrappers of the
+// same destination would never be equal. NavDisplay compares scenes by value equality to drive its
+// predictive-back handshake (e.g. `predictiveBackCompleted = transition.targetState == scene`); if
+// that comparison is always false, a completed system/predictive back is mistaken for a cancelled
+// one and NavDisplay animates back toward the already-popped entry, leaving the exiting screen blank.
+// Equality therefore keys off the wrapped [scene] (and window size) only — the lambdas are ignored.
+class ResponsiveNavigationScene<T : Any>(
     private val scene: Scene<T>,
     private val windowSizeClass: WindowSizeClass,
     private val isTopLevel: (contentKey: Any) -> Boolean,
@@ -38,6 +45,14 @@ data class ResponsiveNavigationScene<T : Any>(
 ) : Scene<T> by scene {
 
     override val key = scene::class to scene.key
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ResponsiveNavigationScene<*>) return false
+        return scene == other.scene && windowSizeClass == other.windowSizeClass
+    }
+
+    override fun hashCode(): Int = 31 * scene.hashCode() + windowSizeClass.hashCode()
 
     override val content: @Composable () -> Unit = {
         val currentKey = scene.entries.lastOrNull()?.contentKey
