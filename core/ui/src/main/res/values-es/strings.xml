@@ -226,9 +226,9 @@
     <string name="recently_played">Reproducido recientemente</string>
     <string name="delete_one_video">¿Eliminar 1 vídeo?</string>
     <string name="delete_videos">¿Eliminar %1$d vídeos?</string>
-    <string name="delete_one_folder">¿Eliminar carpeta?</string>
+    <string name="delete_one_folder">¿Eliminar 1 carpeta?</string>
     <string name="delete_folders">¿Eliminar %1$d carpetas?</string>
-    <string name="delete_items">¿Eliminar %1$d elemento?</string>
+    <string name="delete_items">¿Eliminar %1$d elementos?</string>
     <string name="delete_item_info">Esta acción no puede deshacerse. El elemento seleccionado se eliminará permanentemente</string>
     <string name="delete_items_info">Esta acción no puede deshacerse. Los elementos seleccionados se eliminarán permanentemente</string>
     <string name="gestures">Gestos</string>
@@ -282,7 +282,7 @@
     <string name="now_playing">Reproduciendo ahora</string>
     <string name="no_videos_in_queue">No hay videos en cola</string>
     <string name="reorder">Reordenar</string>
-    <string name="remove">Remover</string>
+    <string name="remove">Eliminar</string>
     <string name="unknown">Desconocido</string>
     <string name="thumbnail_generation">Generación de miniaturas</string>
     <string name="thumbnail_generation_strategy">Estrategia de generación de miniaturas</string>
