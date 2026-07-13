@@ -22,6 +22,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -544,6 +545,9 @@ class PlayerService : MediaSessionService() {
         val player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
+            .setMediaSourceFactory(
+                ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(applicationContext)),
+            )
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
@@ -665,6 +669,7 @@ class PlayerService : MediaSessionService() {
                                 subtitleTrackIndex = subtitleTrackIndex,
                                 subtitleDelayMilliseconds = subtitleDelay,
                                 subtitleSpeed = subtitleSpeed,
+                                externalAudioTrackUris = videoState?.externalAudioTracks.orEmpty(),
                             )
                         }.build(),
                     )
