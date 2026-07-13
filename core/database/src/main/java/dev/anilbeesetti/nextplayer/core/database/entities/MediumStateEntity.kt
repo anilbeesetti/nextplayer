@@ -27,6 +27,8 @@ data class MediumStateEntity(
     val lastPlayedTime: Long? = null,
     @ColumnInfo(name = "external_subs")
     val externalSubs: String = "",
+    @ColumnInfo(name = "external_audio_tracks")
+    val externalAudioTracks: String = "",
     @ColumnInfo(name = "video_scale")
     val videoScale: Float = 1f,
     @ColumnInfo(name = "subtitle_delay")

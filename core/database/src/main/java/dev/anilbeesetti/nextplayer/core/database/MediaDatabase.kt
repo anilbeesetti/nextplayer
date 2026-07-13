@@ -17,7 +17,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.NetworkConnectionEntit
         HiddenVideoEntity::class,
         NetworkConnectionEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -233,6 +233,14 @@ abstract class MediaDatabase : RoomDatabase() {
                         `created_at` INTEGER NOT NULL
                     )
                     """,
+                )
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `media_state` ADD COLUMN `external_audio_tracks` TEXT NOT NULL DEFAULT ''",
                 )
             }
         }

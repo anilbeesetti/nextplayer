@@ -63,6 +63,9 @@ class FakeMediaRepository : MediaRepository {
     override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
     }
 
+    override suspend fun addExternalAudioTrackToMedium(uri: String, audioUri: Uri) {
+    }
+
     override suspend fun updateSubtitleDelay(uri: String, delay: Long) {
     }
 
