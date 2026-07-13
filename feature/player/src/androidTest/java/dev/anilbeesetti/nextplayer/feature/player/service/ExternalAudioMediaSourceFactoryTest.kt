@@ -6,6 +6,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.ClippingMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
@@ -74,6 +75,25 @@ class ExternalAudioMediaSourceFactoryTest {
             recordingFactory.createdItems.map { it.localConfiguration!!.uri },
         )
         assertTrue(result is MergingMediaSource)
+    }
+
+    @Test
+    fun externalAudioIsClippedToPrimaryMediaDuration() {
+        val audioUri = Uri.parse("content://audio/longer-than-video")
+        val mediaItem = MediaItem.Builder()
+            .setUri("content://video/thirty-seconds")
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setDurationMs(30_000)
+                    .setExtras(externalAudioTrackUris = listOf(audioUri))
+                    .build(),
+            )
+            .build()
+        val factory = ExternalAudioMediaSourceFactory(RecordingMediaSourceFactory())
+
+        val result = factory.createMediaSource(mediaItem)
+
+        assertTrue(result is ClippingMediaSource)
     }
 
     private class RecordingMediaSourceFactory : MediaSource.Factory {

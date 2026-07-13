@@ -696,6 +696,8 @@ class PlayerService : MediaSessionService() {
                 val artworkUri = getDefaultArtworkUri()
 
                 val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
+                val durationMs = mediaItem.mediaMetadata.durationMs?.takeIf { it > 0 }
+                    ?: video?.duration?.takeIf { it > 0 }
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
                 val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
                 val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
@@ -709,6 +711,7 @@ class PlayerService : MediaSessionService() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(title)
+                            setDurationMs(durationMs)
                             setArtworkUri(artworkUri)
                             setExtras(
                                 positionMs = positionMs,

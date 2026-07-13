@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.ClippingMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
@@ -21,7 +22,14 @@ class ExternalAudioMediaSourceFactory(
         return if (audioSources.isEmpty()) {
             primary
         } else {
-            MergingMediaSource(primary, *audioSources.toTypedArray())
+            val mergedSource = MergingMediaSource(primary, *audioSources.toTypedArray())
+            mediaItem.mediaMetadata.durationMs
+                ?.takeIf { it > 0 }
+                ?.let { primaryDurationMs ->
+                    ClippingMediaSource.Builder(mergedSource)
+                        .setEndPositionMs(primaryDurationMs)
+                        .build()
+                } ?: mergedSource
         }
     }
 
