@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -33,6 +34,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -226,9 +228,20 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun Uri.isLikelyVideo(): Boolean {
-        // No mime type from sender - let it through rather than block a real video.
-        val mimeType = contentResolver.getType(this) ?: return true
-        return mimeType.startsWith("video/")
+        contentResolver.getType(this)?.let { mimeType ->
+            return mimeType.startsWith("video/")
+        }
+
+        // getType() can return null for shared files (couldn't reproduce this myself
+        // locally, but @anilbeesetti hit it in review - null was being treated as
+        // "it's a video" before, which let non-videos through to a broken player
+        // instead of the toast). Fixed it to guess from the file extension instead,
+        // and if even that fails, just treat it as not-a-video to be safe.
+        val extension = getFilenameFromUri(this).substringAfterLast('.', "")
+        if (extension.isEmpty()) return false
+
+        val guessedMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase())
+        return guessedMimeType?.startsWith("video/") == true
     }
 
     private fun tryTakePersistableReadPermission(uri: Uri) {
