@@ -232,11 +232,8 @@ class PlayerActivity : ComponentActivity() {
             return mimeType.startsWith("video/")
         }
 
-        // getType() can return null for shared files (couldn't reproduce this myself
-        // locally, but @anilbeesetti hit it in review - null was being treated as
-        // "it's a video" before, which let non-videos through to a broken player
-        // instead of the toast). Fixed it to guess from the file extension instead,
-        // and if even that fails, just treat it as not-a-video to be safe.
+    // null mimeType used to be treated as "it's a video" - switched to guessing
+    // from file extension instead, falls back to not-a-video if that fails too.
         val extension = getFilenameFromUri(this).substringAfterLast('.', "")
         if (extension.isEmpty()) return false
 
