@@ -44,7 +44,7 @@
     <string name="permission_request">अनुमति अनुरोध</string>
     <string name="player_controls_exit">ऊपर जाएं</string>
     <string name="player_controls_next">प्लेयर अगला</string>
-    <string name="about_description">संस्करण, आभार</string>
+    <string name="about_description">संस्करण, समर्थन, आभार</string>
     <string name="player_controls_play_pause">प्लेयर चलाएं विराम</string>
     <string name="player_controls_previous">प्लेयर पिछला</string>
     <string name="player_controls_progress">प्लेयर प्रोग्रेस बार</string>
@@ -54,7 +54,7 @@
     <string name="remember_brightness_level">चमक स्तर याद रखें</string>
     <string name="remember_brightness_level_description">प्लेबैक सत्रों के बीच चमक स्तर याद रखें</string>
     <string name="remember_selections">सिलेक्शन याद रखें</string>
-    <string name="remember_selections_description">प्रत्येक फाइल के लिए सिलेक्शन याद रखें जैसे कि ऑडियो ट्रैक, सबटाइटल ट्रैक आदि</string>
+    <string name="remember_selections_description">प्रत्येक फाइल के लिए सिलेक्शन याद रखें जैसे कि ऑडियो ट्रैक, सबटाइटल ट्रैक आदि।</string>
     <string name="resume">रिज्यूम</string>
     <string name="resume_description">चुनें कि क्या चलाए गए वीडियो को उस बिंदु से फिर से शुरू करना है जहां आपने रोका था</string>
     <string name="seek_gesture">सीक जेस्चर</string>
@@ -113,7 +113,7 @@
     <string name="video_software_decoders">सॉफ्टवेयर वीडियो डिकोडर्स</string>
     <string name="device_decoders_only">केवल डिवाइस डिकोडर्स</string>
     <string name="play_file">चलाने के लिए वीडियो फ़ाइल खोलें</string>
-    <string name="play_url">चलाने के लिए वीडियो URL दर्ज करें</string>
+    <string name="play_url">चलाने के लिए वीडियो url दर्ज करें</string>
     <string name="monospace">मोनोस्पेस</string>
     <string name="default_name">डिफॉल्ट</string>
     <string name="sans_serif">सेरिफ के बिना</string>
