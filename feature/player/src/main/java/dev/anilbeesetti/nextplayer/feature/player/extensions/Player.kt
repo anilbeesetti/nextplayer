@@ -99,11 +99,12 @@ fun Player.addAdditionalAudioTrack(uri: Uri) {
     val position = currentPosition
     val shouldPlayWhenReady = playWhenReady
 
-    replaceMediaItem(
-        index,
+    addMediaItem(
+        index + 1,
         currentItem.copy(externalAudioTrackUris = existingAudioTrackUris + uri),
     )
-    seekTo(index, position)
+    seekTo(index + 1, position)
+    removeMediaItem(index)
     playWhenReady = shouldPlayWhenReady
 }
 

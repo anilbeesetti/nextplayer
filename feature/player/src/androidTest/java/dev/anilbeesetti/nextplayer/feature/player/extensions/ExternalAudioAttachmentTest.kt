@@ -4,10 +4,16 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.test.utils.TestExoPlayerBuilder
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.anilbeesetti.nextplayer.feature.player.service.ExternalAudioMediaSourceFactory
 import dev.anilbeesetti.nextplayer.feature.player.service.audioTrackUriOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -63,6 +69,36 @@ class ExternalAudioAttachmentTest {
         }
     }
 
+    @UnstableApi
+    @Test
+    fun addAdditionalAudioTrackRecreatesCurrentMediaSource() {
+        runOnMainThread {
+            val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+            val recordingFactory = RecordingMediaSourceFactory(
+                ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(context)),
+            )
+            val player = TestExoPlayerBuilder(context)
+                .setMediaSourceFactory(recordingFactory)
+                .build()
+            val audioUri = Uri.parse("content://audio/new")
+
+            try {
+                player.setMediaItem(mediaItem("content://video/current"))
+                assertEquals(1, recordingFactory.createdItems.size)
+
+                player.addAdditionalAudioTrack(audioUri)
+
+                assertEquals(2, recordingFactory.createdItems.size)
+                assertEquals(
+                    listOf(audioUri),
+                    recordingFactory.createdItems.last().mediaMetadata.externalAudioTrackUris,
+                )
+            } finally {
+                player.release()
+            }
+        }
+    }
+
     @Test
     fun addAdditionalAudioTrackDoesNothingWhenUriAlreadyExists() {
         runOnMainThread {
@@ -100,5 +136,33 @@ class ExternalAudioAttachmentTest {
 
     private fun runOnMainThread(block: () -> Unit) {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(block)
+    }
+
+    @UnstableApi
+    private class RecordingMediaSourceFactory(
+        private val delegate: MediaSource.Factory,
+    ) : MediaSource.Factory {
+        val createdItems = mutableListOf<MediaItem>()
+
+        override fun createMediaSource(mediaItem: MediaItem): MediaSource {
+            createdItems += mediaItem
+            return delegate.createMediaSource(mediaItem)
+        }
+
+        override fun getSupportedTypes(): IntArray = delegate.supportedTypes
+
+        override fun setDrmSessionManagerProvider(
+            drmSessionManagerProvider: DrmSessionManagerProvider,
+        ): MediaSource.Factory {
+            delegate.setDrmSessionManagerProvider(drmSessionManagerProvider)
+            return this
+        }
+
+        override fun setLoadErrorHandlingPolicy(
+            loadErrorHandlingPolicy: LoadErrorHandlingPolicy,
+        ): MediaSource.Factory {
+            delegate.setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
+            return this
+        }
     }
 }
