@@ -642,6 +642,11 @@ private fun handlePlayerKeyEvent(
     isPlayPauseFocused: Boolean,
     onDpadSeek: (deltaMs: Long) -> Unit,
 ): Boolean {
+    if (keyEvent.key == Key.Back && !controls.controlsLocked) {
+        if (!controls.controlsVisible) return false // controls already hidden: let BACK exit
+        if (keyEvent.type == KeyEventType.KeyUp) controls.hideControls()
+        return true
+    }
     if (keyEvent.type != KeyEventType.KeyDown) return false
     if (controls.controlsLocked) {
         return when (keyEvent.key) {

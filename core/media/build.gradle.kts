@@ -33,6 +33,19 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil.compose)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Network protocols + local streaming proxy
+    implementation(libs.smbj)
+    implementation(libs.commons.net)
+    implementation(libs.sardine.android) {
+        // xpp3/stax bundle org.xmlpull.v1, which conflicts with the classes
+        // already provided by the Android platform and breaks R8 minification.
+        exclude(group = "xpp3", module = "xpp3")
+        exclude(group = "stax", module = "stax")
+        exclude(group = "stax", module = "stax-api")
+    }
+    implementation(libs.nanohttpd)
 
     // Hilt
     implementation(libs.hilt.android)

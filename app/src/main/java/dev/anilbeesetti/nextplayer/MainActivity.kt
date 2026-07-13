@@ -9,6 +9,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -26,20 +28,25 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
+import dev.anilbeesetti.nextplayer.core.media.network.proxy.NetworkStreamingProxy
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRoute
+import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
+import dev.anilbeesetti.nextplayer.navigation.NextNavigationRail
+import dev.anilbeesetti.nextplayer.navigation.TopLevelDestination
+import dev.anilbeesetti.nextplayer.navigation.isNavigationBetweenTopLevelDestinations
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
+import dev.anilbeesetti.nextplayer.navigation.networkNavGraph
+import dev.anilbeesetti.nextplayer.navigation.rememberResponsiveNavigationSceneDecoratorStrategy
+import dev.anilbeesetti.nextplayer.navigation.rememberTopLevelNavState
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -56,7 +63,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var systemService: SystemService
 
+    @Inject
+    lateinit var networkStreamingProxy: NetworkStreamingProxy
+
     private val viewModel: MainViewModel by viewModels()
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isFinishing) networkStreamingProxy.release()
+    }
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,50 +122,99 @@ class MainActivity : ComponentActivity() {
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
-                    val backStack = rememberNavBackStack(MediaPickerRoute())
+                    val navState = rememberTopLevelNavState()
+
+                    val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
+                        isTopLevel = { contentKey -> navState.topLevelContentKeys.contains(contentKey) },
+                        navBar = { NextNavigationBar(navState) },
+                        navRail = { NextNavigationRail(navState) },
+                    )
+
+                    val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
+                    val networkStack = navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
+
+                    // Media and network entries navigate within their own tab's stack; settings is
+                    // shared, so it navigates within whichever tab it was opened from (the current one).
+                    val provider = entryProvider {
+                        mediaNavGraph(context = this@MainActivity, backStack = mediaStack)
+                        networkNavGraph(context = this@MainActivity, backStack = networkStack)
+                        settingsNavGraph(backStack = navState.currentStack)
+                    }
 
                     NavDisplay(
-                        backStack = backStack,
-                        onBack = { backStack.removeLastOrNull() },
-                        entryDecorators = listOf(
-                            rememberSaveableStateHolderNavEntryDecorator(),
-                            rememberViewModelStoreNavEntryDecorator(),
-                        ),
+                        entries = navState.rememberEntries(provider),
+                        onBack = { navState.goBack() },
+                        sceneDecoratorStrategies = listOf(sceneDecorator),
                         transitionSpec = {
-                            slideInHorizontally(
-                                initialOffsetX = { it },
-                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                            ) togetherWith slideOutHorizontally(
-                                targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                            )
+                            if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                ) togetherWith fadeOut(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                )
+                            } else {
+                                slideInHorizontally(
+                                    initialOffsetX = { it },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                ) togetherWith slideOutHorizontally(
+                                    targetOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                )
+                            }
                         },
                         popTransitionSpec = {
-                            slideInHorizontally(
-                                initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                            ) togetherWith slideOutHorizontally(
-                                targetOffsetX = { it },
-                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                            )
+                            if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                ) togetherWith fadeOut(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                )
+                            } else {
+                                slideInHorizontally(
+                                    initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                ) togetherWith slideOutHorizontally(
+                                    targetOffsetX = { it },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                )
+                            }
                         },
                         predictivePopTransitionSpec = {
-                            slideInHorizontally(
-                                initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
-                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                            ) togetherWith slideOutHorizontally(
-                                targetOffsetX = { it },
-                                animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-                            )
-                        },
-                        entryProvider = entryProvider {
-                            mediaNavGraph(
-                                context = this@MainActivity,
-                                backStack = backStack,
-                            )
-                            settingsNavGraph(backStack = backStack)
+                            if (navState.isNavigationBetweenTopLevelDestinations(initialState, targetState)) {
+                                fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                ) togetherWith fadeOut(
+                                    animationSpec = tween(
+                                        durationMillis = 200,
+                                        easing = LinearEasing,
+                                    ),
+                                )
+                            } else {
+                                slideInHorizontally(
+                                    initialOffsetX = { fullOffset -> -(fullOffset * 0.3f).toInt() },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                ) togetherWith slideOutHorizontally(
+                                    targetOffsetX = { it },
+                                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                                )
+                            }
                         },
                     )
                 }

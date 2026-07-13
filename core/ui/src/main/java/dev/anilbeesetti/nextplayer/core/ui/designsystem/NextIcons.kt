@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
 import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AppSettingsAlt
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
@@ -41,7 +42,12 @@ import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material.icons.rounded.HeadsetOff
 import androidx.compose.material.icons.rounded.HideSource
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lan
+import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.Dns
+import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
@@ -79,6 +85,7 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Update
 
 object NextIcons {
+    val Add = Icons.Rounded.Add
     val Appearance = Icons.Rounded.Palette
     val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
     val ArrowDownward = Icons.Rounded.ArrowDownward
@@ -109,6 +116,11 @@ object NextIcons {
     val Headset = Icons.Rounded.Headset
     val HeadsetOff = Icons.Rounded.HeadsetOff
     val Info = Icons.Rounded.Info
+    val Home = Icons.Rounded.Home
+    val Network = Icons.Rounded.Lan
+    val Cloud = Icons.Rounded.Cloud
+    val Dns = Icons.Rounded.Dns
+    val Storage = Icons.Rounded.Storage
     val Language = Icons.Rounded.Translate
     val Length = Icons.Rounded.Straighten
     val Link = Icons.Rounded.Link

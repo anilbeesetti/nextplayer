@@ -375,4 +375,5 @@
         <item quantity="other">Переміщено %1$d відео, проте оригінали залишилися</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Не вдалося перемістити в ту саму теку</string>
+    <string name="folder_duration">Тривалість теки</string>
 </resources>

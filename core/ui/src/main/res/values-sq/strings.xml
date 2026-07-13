@@ -298,4 +298,70 @@
     <string name="material_you_controls">Kontrolle Material You</string>
     <string name="material_you_controls_description">Përdor kontrolle në stilin material you</string>
     <string name="none">Asnjë</string>
+    <string name="folder_duration">Kohëzgjatja e dosjes</string>
+    <string name="hide">Fshih</string>
+    <string name="unhide">Çfshih</string>
+    <string name="vault">Kasafortë</string>
+    <string name="hidden_videos">Video të fshehura</string>
+    <string name="hide_one_video_confirmation">Ta fshehësh këtë video?</string>
+    <string name="hide_videos_confirmation">Të fshehësh %1$d video?</string>
+    <string name="hide_video_info">Videot e fshehura zhvendosen në një kasafortë private të mbrojtur nga një PIN dhe hiqen nga galeria jote.</string>
+    <string name="hiding_videos_in_progress">Po fshihet…</string>
+    <string name="unhiding_videos_in_progress">Po çfshihet…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">Nuk u rikthye dot te dosja e saj origjinale — u zhvendos te Movies/</item>
+        <item quantity="other">Nuk u rikthyen dot %1$d video te dosjet e tyre origjinale — u zhvendosën te Movies/</item>
+    </plurals>
+    <string name="hiding_videos">Po fshihet…</string>
+    <string name="set_vault_pin">Cakto PIN-in e kasafortës</string>
+    <string name="set_vault_pin_description">Krijo një PIN me 4 shifra për të mbrojtur videot e tua të fshehura</string>
+    <string name="confirm_vault_pin">Konfirmo PIN-in</string>
+    <string name="confirm_vault_pin_description">Rivendos PIN-in tënd për ta konfirmuar</string>
+    <string name="enter_vault_pin">Vendos PIN-in</string>
+    <string name="enter_vault_pin_description">Vendos PIN-in tënd për të hyrë te videot e fshehura</string>
+    <string name="pins_do_not_match">PIN-et nuk përputhen. Provo përsëri</string>
+    <string name="incorrect_pin">PIN i gabuar</string>
+    <string name="how_to_find_hidden_videos_title">Si t\'i gjesh videot e tua të fshehura</string>
+    <string name="how_to_find_hidden_videos_description">Videot e fshehura mbahen të sigurta në Kasafortën tënde. Për ta hapur përsëri, shtyp dhe mbaj titullin \"NextPlayer\" në krye të ekranit kryesor dhe vendos PIN-in tënd.</string>
+    <string name="got_it">E kuptova</string>
+    <string name="open_vault">Hap kasafortën</string>
+    <string name="vault_empty_title">Nuk ka video të fshehura</string>
+    <string name="vault_empty_description">Videot që fsheh do të shfaqen këtu. Shtyp gjatë një video dhe trokit \'Fshih\' për ta shtuar te kasaforta.</string>
+    <string name="unhide_one_video_confirmation">Ta çfshehësh këtë video? Do të zhvendoset përsëri te vendndodhja e saj origjinale.</string>
+    <string name="unhide_videos_confirmation">Të çfshehësh %1$d video? Do të zhvendosen përsëri te vendndodhja e tyre origjinale.</string>
+    <string name="delete_one_video_from_vault">Ta fshish përgjithmonë këtë video?</string>
+    <string name="delete_videos_from_vault">Të fshish përgjithmonë %1$d video?</string>
+    <string name="delete_from_vault_info">Ky veprim nuk mund të zhbëhet. Videoja do të fshihet përgjithmonë nga pajisja jote.</string>
+    <string name="sort_by">Rendit sipas</string>
+    <string name="name">Emri</string>
+    <string name="date_hidden">Data e fshehjes</string>
+    <string name="forgot_pin">Harrove PIN-in?</string>
+    <string name="reset_vault_pin_confirmation">Rivendosja e PIN-it tënd do të fshijë përgjithmonë të gjitha videot që janë aktualisht në kasafortë, pasi ato nuk mund të shkyçen më. Të vazhdohet?</string>
+    <string name="reset_pin_and_delete_all">Rivendos PIN-in &amp; fshij të gjitha</string>
+    <string name="copy">Kopjo</string>
+    <string name="move">Zhvendos</string>
+    <string name="copying_videos_in_progress">Po kopjohet…</string>
+    <string name="moving_videos_in_progress">Po zhvendoset…</string>
+    <string name="transfer_file_progress">Skedari %1$d nga %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">U kopjua 1 video</item>
+        <item quantity="other">U kopjuan %1$d video</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">U zhvendos 1 video</item>
+        <item quantity="other">U zhvendosën %1$d video</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">Nuk u kopjua dot 1 video</item>
+        <item quantity="other">Nuk u kopjuan dot %1$d video</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">Nuk u zhvendos dot 1 video</item>
+        <item quantity="other">Nuk u zhvendosën dot %1$d video</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">U zhvendos 1 video, por nuk u hoq dot origjinali</item>
+        <item quantity="other">U zhvendosën %1$d video, por nuk u hoqën dot origjinalet</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Nuk mund të zhvendoset te e njëjta dosje</string>
 </resources>

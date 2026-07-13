@@ -19,3 +19,25 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-dontwarn org.xmlpull.v1.**
+-dontnote org.xmlpull.v1.**
+
+# SMBJ ProGuard Rules
+# Keep SMBJ classes
+-keep class com.hierynomus.smbj.** { *; }
+-keep class com.hierynomus.mssmb2.** { *; }
+-keep class com.hierynomus.msdtyp.** { *; }
+-keep class com.hierynomus.msfscc.** { *; }
+-keep class com.hierynomus.protocol.** { *; }
+-keep class com.hierynomus.spnego.** { *; }
+-keep class com.hierynomus.ntlm.** { *; }
+-keep class com.hierynomus.security.** { *; }
+
+# Optional runtime dependencies of the network libraries (smbj, mbassador,
+# okhttp/bouncycastle) that are not present on Android. Safe to ignore.
+-dontwarn javax.el.**
+-dontwarn org.bouncycastle.jsse.**
+-dontwarn org.conscrypt.**
+-dontwarn org.ietf.jgss.**
+-dontwarn org.openjsse.**
