@@ -35,7 +35,7 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
             .setTrackTypeDisabled(trackType, true)
             .build()
     } else {
-        val tracks = currentTracks.groups.filter { it.type == trackType }
+        val tracks = currentTracks.groups.filter { it.type == trackType && it.isSupported }
 
         if (tracks.isEmpty() || trackIndex >= tracks.size) {
             Logger.logError("Player", "Operation failed: Invalid track index: $trackIndex")
@@ -61,7 +61,7 @@ fun Player.getManuallySelectedTrackIndex(trackType: @C.TrackType Int): Int? {
 
     val trackOverrides = trackSelectionParameters.overrides.values.map { it.mediaTrackGroup }
     val trackOverride = trackOverrides.firstOrNull { it.type == trackType } ?: return null
-    val tracks = currentTracks.groups.filter { it.type == trackType }
+    val tracks = currentTracks.groups.filter { it.type == trackType && it.isSupported }
 
     return tracks.indexOfFirst { it.mediaTrackGroup == trackOverride }.takeIf { it != -1 }
 }

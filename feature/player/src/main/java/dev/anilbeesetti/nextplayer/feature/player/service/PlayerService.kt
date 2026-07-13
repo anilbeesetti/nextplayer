@@ -83,6 +83,41 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
+internal suspend fun handleAddAudioTrackCommand(
+    args: Bundle,
+    player: Player?,
+    mediaRepository: MediaRepository,
+): SessionResult {
+    val audioUri = args.audioTrackUriOrNull()
+        ?: return SessionResult(SessionError.ERROR_BAD_VALUE)
+
+    val currentPlayer = player ?: return SessionResult(SessionError.ERROR_INVALID_STATE)
+    val currentMediaItem = currentPlayer.currentMediaItem
+        ?: return SessionResult(SessionError.ERROR_INVALID_STATE)
+    if (audioUri in currentMediaItem.mediaMetadata.externalAudioTrackUris) {
+        return SessionResult(SessionResult.RESULT_SUCCESS)
+    }
+
+    val audioTracks = currentPlayer.currentTracks.groups.filter {
+        it.type == C.TRACK_TYPE_AUDIO && it.isSupported
+    }
+
+    mediaRepository.updateMediumPosition(
+        uri = currentMediaItem.mediaId,
+        position = currentPlayer.currentPosition,
+    )
+    mediaRepository.updateMediumAudioTrack(
+        uri = currentMediaItem.mediaId,
+        audioTrackIndex = audioTracks.size,
+    )
+    mediaRepository.addExternalAudioTrackToMedium(
+        uri = currentMediaItem.mediaId,
+        audioUri = audioUri,
+    )
+    currentPlayer.addAdditionalAudioTrack(audioUri)
+    return SessionResult(SessionResult.RESULT_SUCCESS)
+}
+
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class PlayerService : MediaSessionService() {
@@ -390,32 +425,7 @@ class PlayerService : MediaSessionService() {
 
             when (command) {
                 CustomCommands.ADD_AUDIO_TRACK -> {
-                    val audioUri = args.audioTrackUriOrNull()
-                        ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
-
-                    mediaSession?.player?.let { player ->
-                        val currentMediaItem = player.currentMediaItem ?: return@let
-                        if (audioUri in currentMediaItem.mediaMetadata.externalAudioTrackUris) return@let
-
-                        val audioTracks = player.currentTracks.groups.filter {
-                            it.type == C.TRACK_TYPE_AUDIO && it.isSupported
-                        }
-
-                        mediaRepository.updateMediumPosition(
-                            uri = currentMediaItem.mediaId,
-                            position = player.currentPosition,
-                        )
-                        mediaRepository.updateMediumAudioTrack(
-                            uri = currentMediaItem.mediaId,
-                            audioTrackIndex = audioTracks.size,
-                        )
-                        mediaRepository.addExternalAudioTrackToMedium(
-                            uri = currentMediaItem.mediaId,
-                            audioUri = audioUri,
-                        )
-                        player.addAdditionalAudioTrack(audioUri)
-                    }
-                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                    return@future handleAddAudioTrackCommand(args, mediaSession?.player, mediaRepository)
                 }
 
                 CustomCommands.ADD_SUBTITLE_TRACK -> {

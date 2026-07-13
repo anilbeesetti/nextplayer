@@ -51,11 +51,12 @@ internal fun Bundle.audioTrackUriOrNull(): Uri? {
         ?.toUri()
 }
 
+internal fun audioTrackArguments(uri: Uri) = Bundle().apply {
+    putString(CustomCommands.AUDIO_TRACK_URI_KEY, uri.toString())
+}
+
 fun MediaController.addAudioTrack(uri: Uri) {
-    val args = Bundle().apply {
-        putString(CustomCommands.AUDIO_TRACK_URI_KEY, uri.toString())
-    }
-    sendCustomCommand(CustomCommands.ADD_AUDIO_TRACK.sessionCommand, args)
+    sendCustomCommand(CustomCommands.ADD_AUDIO_TRACK.sessionCommand, audioTrackArguments(uri))
 }
 
 fun MediaController.addSubtitleTrack(uri: Uri) {
