@@ -25,6 +25,8 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,6 +34,74 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class AddAudioTrackCommandTest {
+
+    @Test
+    fun externalControllerIsNotOfferedAddAudioTrackWhileOtherCommandsRemainAvailable() {
+        val commands = commandsForController(
+            controllerPackageName = "com.example.external",
+            applicationPackageName = "dev.anilbeesetti.nextplayer",
+        )
+
+        assertFalse(CustomCommands.ADD_AUDIO_TRACK.sessionCommand in commands)
+        assertTrue(
+            commands.containsAll(
+                CustomCommands.entries
+                    .filterNot { it == CustomCommands.ADD_AUDIO_TRACK }
+                    .map { it.sessionCommand },
+            ),
+        )
+    }
+
+    @Test
+    fun applicationControllerIsOfferedAddAudioTrack() {
+        val applicationPackageName = "dev.anilbeesetti.nextplayer"
+
+        val commands = commandsForController(
+            controllerPackageName = applicationPackageName,
+            applicationPackageName = applicationPackageName,
+        )
+
+        assertTrue(CustomCommands.ADD_AUDIO_TRACK.sessionCommand in commands)
+        assertNull(
+            commandPermissionError(
+                controllerPackageName = applicationPackageName,
+                applicationPackageName = applicationPackageName,
+                command = CustomCommands.ADD_AUDIO_TRACK,
+            ),
+        )
+    }
+
+    @Test
+    fun externalControllerAddAudioTrackIsDeniedBeforeCommandHandling() = runOnMainThread {
+        val repository = RecordingMediaRepository()
+        val permissionError = commandPermissionError(
+            controllerPackageName = "com.example.external",
+            applicationPackageName = "dev.anilbeesetti.nextplayer",
+            command = CustomCommands.ADD_AUDIO_TRACK,
+        )
+
+        val result = permissionError ?: runBlocking {
+            handleAddAudioTrackCommand(
+                audioTrackArgs("content://audio/external"),
+                player = null,
+                repository,
+            )
+        }
+
+        assertEquals(SessionResult.RESULT_ERROR_PERMISSION_DENIED, result.resultCode)
+        assertTrue(repository.calls.isEmpty())
+    }
+
+    @Test
+    fun externalControllerOtherCustomCommandsRemainAuthorized() {
+        assertNull(
+            commandPermissionError(
+                controllerPackageName = "com.example.external",
+                applicationPackageName = "dev.anilbeesetti.nextplayer",
+                command = CustomCommands.ADD_SUBTITLE_TRACK,
+            ),
+        )
+    }
 
     @Test
     fun controllerCommandUsesAddAudioTrackActionAndUriArgument() {

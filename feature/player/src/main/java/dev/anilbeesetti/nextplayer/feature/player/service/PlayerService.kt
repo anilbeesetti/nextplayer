@@ -138,8 +138,6 @@ class PlayerService : MediaSessionService() {
     private val playerPreferences: PlayerPreferences
         get() = preferencesRepository.playerPreferences.value
 
-    private val customCommands = CustomCommands.asSessionCommands()
-
     private var isMediaItemReady = false
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
@@ -388,7 +386,12 @@ class PlayerService : MediaSessionService() {
             return MediaSession.ConnectionResult.accept(
                 connectionResult.availableSessionCommands
                     .buildUpon()
-                    .addSessionCommands(customCommands)
+                    .addSessionCommands(
+                        commandsForController(
+                            controllerPackageName = controller.packageName,
+                            applicationPackageName = applicationContext.packageName,
+                        ),
+                    )
                     .build(),
                 connectionResult.availablePlayerCommands,
             )
@@ -422,6 +425,11 @@ class PlayerService : MediaSessionService() {
         ): ListenableFuture<SessionResult> = serviceScope.future {
             val command = CustomCommands.fromSessionCommand(customCommand)
                 ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+            commandPermissionError(
+                controllerPackageName = controller.packageName,
+                applicationPackageName = applicationContext.packageName,
+                command = command,
+            )?.let { return@future it }
 
             when (command) {
                 CustomCommands.ADD_AUDIO_TRACK -> {

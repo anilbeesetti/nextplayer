@@ -101,7 +101,10 @@ fun Player.addAdditionalAudioTrack(uri: Uri) {
 
     addMediaItem(
         index + 1,
-        currentItem.copy(externalAudioTrackUris = existingAudioTrackUris + uri),
+        currentItem.copy(
+            positionMs = position,
+            externalAudioTrackUris = existingAudioTrackUris + uri,
+        ),
     )
     seekTo(index + 1, position)
     removeMediaItem(index)

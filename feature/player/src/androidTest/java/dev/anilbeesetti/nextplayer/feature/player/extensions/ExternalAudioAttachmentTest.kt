@@ -39,7 +39,12 @@ class ExternalAudioAttachmentTest {
         runOnMainThread {
             val firstSibling = mediaItem("content://video/first")
             val firstAudioUri = Uri.parse("content://audio/one")
-            val currentItem = mediaItem("content://video/current", listOf(firstAudioUri))
+            val stalePosition = 1_234L
+            val currentItem = mediaItem(
+                mediaId = "content://video/current",
+                externalAudioTrackUris = listOf(firstAudioUri),
+                positionMs = stalePosition,
+            )
             val lastSibling = mediaItem("content://video/last")
             val secondAudioUri = Uri.parse("content://audio/two")
             val player = TestExoPlayerBuilder(ApplicationProvider.getApplicationContext()).build()
@@ -61,6 +66,7 @@ class ExternalAudioAttachmentTest {
                     listOf(firstAudioUri, secondAudioUri),
                     player.currentMediaItem!!.mediaMetadata.externalAudioTrackUris,
                 )
+                assertEquals(positionBefore, player.currentMediaItem!!.mediaMetadata.positionMs)
                 assertEquals(firstSibling, player.getMediaItemAt(0))
                 assertEquals(lastSibling, player.getMediaItemAt(2))
             } finally {
@@ -122,13 +128,20 @@ class ExternalAudioAttachmentTest {
         }
     }
 
-    private fun mediaItem(mediaId: String, externalAudioTrackUris: List<Uri> = emptyList()): MediaItem {
+    private fun mediaItem(
+        mediaId: String,
+        externalAudioTrackUris: List<Uri> = emptyList(),
+        positionMs: Long? = null,
+    ): MediaItem {
         return MediaItem.Builder()
             .setMediaId(mediaId)
             .setUri(mediaId)
             .setMediaMetadata(
                 MediaMetadata.Builder()
-                    .setExtras(externalAudioTrackUris = externalAudioTrackUris)
+                    .setExtras(
+                        positionMs = positionMs,
+                        externalAudioTrackUris = externalAudioTrackUris,
+                    )
                     .build(),
             )
             .build()

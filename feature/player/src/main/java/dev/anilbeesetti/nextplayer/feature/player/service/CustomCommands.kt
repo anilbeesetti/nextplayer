@@ -2,9 +2,13 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.annotation.OptIn
 import androidx.core.net.toUri
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
@@ -42,6 +46,29 @@ enum class CustomCommands(val customAction: String) {
         const val SUBTITLE_SPEED_KEY = "subtitle_speed"
         const val LOUDNESS_GAIN_KEY = "loudness_gain"
         const val IS_LOUDNESS_GAIN_SUPPORTED_KEY = "is_loudness_gain_supported"
+    }
+}
+
+internal fun commandsForController(
+    controllerPackageName: String,
+    applicationPackageName: String,
+): List<SessionCommand> = CustomCommands.asSessionCommands().filterNot {
+    it == CustomCommands.ADD_AUDIO_TRACK.sessionCommand && controllerPackageName != applicationPackageName
+}
+
+@OptIn(UnstableApi::class)
+internal fun commandPermissionError(
+    controllerPackageName: String,
+    applicationPackageName: String,
+    command: CustomCommands,
+): SessionResult? {
+    return if (
+        command == CustomCommands.ADD_AUDIO_TRACK &&
+        controllerPackageName != applicationPackageName
+    ) {
+        SessionResult(SessionError.ERROR_PERMISSION_DENIED)
+    } else {
+        null
     }
 }
 
