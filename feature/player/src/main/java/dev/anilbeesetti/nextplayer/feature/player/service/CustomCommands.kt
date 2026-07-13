@@ -2,11 +2,13 @@ package dev.anilbeesetti.nextplayer.feature.player.service
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
+    ADD_AUDIO_TRACK(customAction = "ADD_AUDIO_TRACK"),
     ADD_SUBTITLE_TRACK(customAction = "ADD_SUBTITLE_TRACK"),
     SET_SKIP_SILENCE_ENABLED(customAction = "SET_SKIP_SILENCE_ENABLED"),
     GET_SKIP_SILENCE_ENABLED(customAction = "GET_SKIP_SILENCE_ENABLED"),
@@ -32,6 +34,7 @@ enum class CustomCommands(val customAction: String) {
             return entries.map { it.sessionCommand }
         }
 
+        const val AUDIO_TRACK_URI_KEY = "audio_track_uri"
         const val SUBTITLE_TRACK_URI_KEY = "subtitle_track_uri"
         const val SKIP_SILENCE_ENABLED_KEY = "skip_silence_enabled"
         const val IS_SCRUBBING_MODE_ENABLED_KEY = "is_scrubbing_mode_enabled"
@@ -40,6 +43,19 @@ enum class CustomCommands(val customAction: String) {
         const val LOUDNESS_GAIN_KEY = "loudness_gain"
         const val IS_LOUDNESS_GAIN_SUPPORTED_KEY = "is_loudness_gain_supported"
     }
+}
+
+internal fun Bundle.audioTrackUriOrNull(): Uri? {
+    return getString(CustomCommands.AUDIO_TRACK_URI_KEY)
+        ?.takeIf(String::isNotBlank)
+        ?.toUri()
+}
+
+fun MediaController.addAudioTrack(uri: Uri) {
+    val args = Bundle().apply {
+        putString(CustomCommands.AUDIO_TRACK_URI_KEY, uri.toString())
+    }
+    sendCustomCommand(CustomCommands.ADD_AUDIO_TRACK.sessionCommand, args)
 }
 
 fun MediaController.addSubtitleTrack(uri: Uri) {

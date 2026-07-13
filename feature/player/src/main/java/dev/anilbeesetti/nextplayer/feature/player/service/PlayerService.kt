@@ -50,9 +50,11 @@ import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
+import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioTrackUris
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
@@ -387,6 +389,35 @@ class PlayerService : MediaSessionService() {
                 ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
 
             when (command) {
+                CustomCommands.ADD_AUDIO_TRACK -> {
+                    val audioUri = args.audioTrackUriOrNull()
+                        ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+
+                    mediaSession?.player?.let { player ->
+                        val currentMediaItem = player.currentMediaItem ?: return@let
+                        if (audioUri in currentMediaItem.mediaMetadata.externalAudioTrackUris) return@let
+
+                        val audioTracks = player.currentTracks.groups.filter {
+                            it.type == C.TRACK_TYPE_AUDIO && it.isSupported
+                        }
+
+                        mediaRepository.updateMediumPosition(
+                            uri = currentMediaItem.mediaId,
+                            position = player.currentPosition,
+                        )
+                        mediaRepository.updateMediumAudioTrack(
+                            uri = currentMediaItem.mediaId,
+                            audioTrackIndex = audioTracks.size,
+                        )
+                        mediaRepository.addExternalAudioTrackToMedium(
+                            uri = currentMediaItem.mediaId,
+                            audioUri = audioUri,
+                        )
+                        player.addAdditionalAudioTrack(audioUri)
+                    }
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
                 CustomCommands.ADD_SUBTITLE_TRACK -> {
                     val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)?.toUri()
                         ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)

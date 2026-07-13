@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -87,6 +88,23 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     addMediaItem(index + 1, updateMediaItem)
     seekTo(index + 1, currentPosition)
     removeMediaItem(index)
+}
+
+fun Player.addAdditionalAudioTrack(uri: Uri) {
+    val currentItem = currentMediaItem ?: return
+    val existingAudioTrackUris = currentItem.mediaMetadata.externalAudioTrackUris
+    if (uri in existingAudioTrackUris) return
+
+    val index = currentMediaItemIndex
+    val position = currentPosition
+    val shouldPlayWhenReady = playWhenReady
+
+    replaceMediaItem(
+        index,
+        currentItem.copy(externalAudioTrackUris = existingAudioTrackUris + uri),
+    )
+    seekTo(index, position)
+    playWhenReady = shouldPlayWhenReady
 }
 
 @OptIn(UnstableApi::class)
