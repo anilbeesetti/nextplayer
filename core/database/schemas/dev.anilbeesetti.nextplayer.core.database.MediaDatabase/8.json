@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "6076acf44ef32642fda1b19b27be8f3f",
+    "identityHash": "68c75a2bac4279eea855b2c1000affec",
     "entities": [
       {
         "tableName": "media_state",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uri` TEXT NOT NULL, `playback_position` INTEGER NOT NULL, `audio_track_index` INTEGER, `subtitle_track_index` INTEGER, `playback_speed` REAL, `last_played_time` INTEGER, `external_subs` TEXT NOT NULL, `external_audio_tracks` TEXT NOT NULL, `video_scale` REAL NOT NULL, `subtitle_delay` INTEGER NOT NULL, `subtitle_speed` REAL NOT NULL, PRIMARY KEY(`uri`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uri` TEXT NOT NULL, `playback_position` INTEGER NOT NULL, `audio_track_index` INTEGER, `subtitle_track_index` INTEGER, `playback_speed` REAL, `last_played_time` INTEGER, `external_subs` TEXT NOT NULL, `external_audio_tracks` TEXT NOT NULL DEFAULT '', `video_scale` REAL NOT NULL, `subtitle_delay` INTEGER NOT NULL, `subtitle_speed` REAL NOT NULL, PRIMARY KEY(`uri`))",
         "fields": [
           {
             "fieldPath": "uriString",
@@ -50,7 +50,8 @@
             "fieldPath": "externalAudioTracks",
             "columnName": "external_audio_tracks",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "videoScale",
@@ -240,7 +241,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6076acf44ef32642fda1b19b27be8f3f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '68c75a2bac4279eea855b2c1000affec')"
     ]
   }
 }

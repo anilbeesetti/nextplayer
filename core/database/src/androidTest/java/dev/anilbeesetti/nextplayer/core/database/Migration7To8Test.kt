@@ -47,6 +47,23 @@ class Migration7To8Test {
         }
     }
 
+    @Test
+    fun freshVersion8SchemaGivesExternalAudioTracksAnEmptyDefault() {
+        helper.createDatabase(FRESH_DATABASE, 8).use { database ->
+            database.query("PRAGMA table_info(`media_state`)").use { cursor ->
+                val nameIndex = cursor.getColumnIndexOrThrow("name")
+                val defaultValueIndex = cursor.getColumnIndexOrThrow("dflt_value")
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(nameIndex) == "external_audio_tracks") {
+                        assertEquals("''", cursor.getString(defaultValueIndex))
+                        return
+                    }
+                }
+            }
+        }
+        error("external_audio_tracks column not found")
+    }
+
     private fun SupportSQLiteDatabase.insertState() {
         execSQL(
             """
@@ -67,5 +84,6 @@ class Migration7To8Test {
 
     private companion object {
         const val TEST_DATABASE = "migration-7-8-test"
+        const val FRESH_DATABASE = "fresh-8-test"
     }
 }
