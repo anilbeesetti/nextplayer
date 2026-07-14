@@ -299,4 +299,69 @@
     <string name="thumbnail_setting_change_confirmation">इस सेटिंग को बदलने से थंमनेल कैश साफ़ हो जाएगा। मीडिया लिस्ट खुलने पर थंमनेल फिर से बनेंगे। जारी रखें?</string>
     <string name="material_you_controls">मटेरियल यू कंट्रोलस</string>
     <string name="material_you_controls_description">मटेरियल यू कंट्रोलस का इस्तेमाल करें</string>
+    <string name="hide">छिपाएं</string>
+    <string name="vault">वॉल्ट</string>
+    <string name="hidden_videos">छिपाए हुए वीडियो</string>
+    <string name="hide_one_video_confirmation">यह वीडियो छिपाएँ?</string>
+    <string name="hide_videos_confirmation">%1$d वीडियो छिपाएँ?</string>
+    <string name="hide_video_info">छिपे हुए वीडियो को पिन से सुरक्षित प्राइवेट वॉल्ट में ले जाया जाता है और आपकी गैलरी से हटा दिया जाता है।</string>
+    <string name="unhide">सामने लाएँ</string>
+    <string name="hiding_videos_in_progress">छुपाया जा रहा है…</string>
+    <string name="unhiding_videos_in_progress">दिखाया जा रहा है…</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">अपने ओरिजिनल फ़ोल्डर में रीस्टोर नहीं किया जा सका — Movies/ में ले जाया गया</item>
+        <item quantity="other">%1$d वीडियो को उनके ओरिजिनल फ़ोल्डर में रीस्टोर नहीं किया जा सका — Movies/ में ले जाया गया</item>
+    </plurals>
+    <string name="hiding_videos">छुपाया जा रहा है…</string>
+    <string name="set_vault_pin">वॉल्ट पिन सेट करें</string>
+    <string name="set_vault_pin_description">अपने छिपे हुए वीडियो को सुरक्षित रखने के लिए 4 अंकों का पिन बनाएं</string>
+    <string name="confirm_vault_pin">पिन की पुष्टि करें</string>
+    <string name="confirm_vault_pin_description">कन्फर्म करने के लिए अपना पिन दोबारा डालें</string>
+    <string name="enter_vault_pin">पिन दर्ज करें</string>
+    <string name="enter_vault_pin_description">छिपे हुए वीडियोज़ तक पहुंच करने के लिए अपना पिन डालें</string>
+    <string name="pins_do_not_match">पिन मैच नहीं कर रहे हैं। फिर से कोशिश करें</string>
+    <string name="incorrect_pin">गलत पिन</string>
+    <string name="how_to_find_hidden_videos_title">अपने छिपे हुए वीडियो कैसे ढूंढने हैं</string>
+    <string name="how_to_find_hidden_videos_description">छिपे हुए वीडियो आपके वॉल्ट में सुरक्षित रहते हैं। इसे फिर से खोलने के लिए, होम स्क्रीन के ऊपर \"NextPlayer\" टाइटल को दबाकर रखें और अपना पिन डालें।</string>
+    <string name="got_it">समझ गया</string>
+    <string name="open_vault">वॉल्ट खोलें</string>
+    <string name="vault_empty_title">कोई छिपा हुआ वीडियो नहीं</string>
+    <string name="vault_empty_description">आपके छिपाए हुए वीडियो यहां दिखेंगे। किसी वीडियो को देर तक दबाकर रखें और उसे वॉल्ट में जोड़ने के लिए छिपाएं पर टैप करें।</string>
+    <string name="unhide_one_video_confirmation">क्या आप इस वीडियो को दिखाना चाहते हैं? इसे वापस इसकी असली जगह पर ले जाया जाएगा।</string>
+    <string name="unhide_videos_confirmation">%1$d वीडियो छिपाना बंद करें? उन्हें उनकी असली जगह पर वापस ले जाया जाएगा।</string>
+    <string name="delete_one_video_from_vault">इस वीडियो को हमेशा के लिए डिलीट करें?</string>
+    <string name="delete_videos_from_vault">%1$d वीडियो हमेशा के लिए डिलीट करें?</string>
+    <string name="delete_from_vault_info">यह कारवाई अनडू नहीं किया जा सकती। वीडियो आपके डिवाइस से हमेशा के लिए डिलीट हो जाएगा।</string>
+    <string name="sort_by">इसके अनुसार क्रमबद्ध</string>
+    <string name="name">नाम</string>
+    <string name="date_hidden">छिपाये गये दिनांक</string>
+    <string name="forgot_pin">पिन भूल गए?</string>
+    <string name="reset_vault_pin_confirmation">अपना पिन रीसेट करने से वॉल्ट में मौजूद सभी वीडियो हमेशा के लिए डिलीट हो जाएंगे, क्योंकि अब उन्हें अनलॉक नहीं किया जा सकता। जारी रखें?</string>
+    <string name="reset_pin_and_delete_all">पिन रीसेट करें और सभी को हटा दें</string>
+    <string name="copy">कॉपी करें</string>
+    <string name="move">मूव करें</string>
+    <string name="copying_videos_in_progress">कॉपी किया जा रहा है…</string>
+    <string name="moving_videos_in_progress">मूव हो रहा है…</string>
+    <string name="transfer_file_progress">%2$d में से %1$d फ़ाइल</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">1 वीडियो कॉपी किया</item>
+        <item quantity="other">%1$d वीडियो कॉपी किए गए</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">1 वीडियो मूव किया गया</item>
+        <item quantity="other">%1$d वीडियो मूव किए गए</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">1 वीडियो कॉपी नहीं किया जा सका</item>
+        <item quantity="other">%1$d वीडियो कॉपी नहीं किए जा सके</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">1 वीडियो मूव नहीं किया जा सका</item>
+        <item quantity="other">%1$d वीडियो मूव नहीं किए जा सके</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">1 वीडियो मूव किया गया, लेकिन ओरिजिनल वीडियो नहीं हटाया जा सका</item>
+        <item quantity="other">%1$d वीडियो मूव किए गये, लेकिन ओरिजिनल वीडियो नहीं हटा पाए</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">एक ही फ़ोल्डर में मूव नहीं कर सकते</string>
 </resources>
