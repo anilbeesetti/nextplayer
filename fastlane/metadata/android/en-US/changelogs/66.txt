@@ -1,0 +1,5 @@
+- Hidden video vault with PIN lock and hide/unhide support
+- Copy and move actions for media files
+- Initial Android TV support
+- Improved media scanning
+- Some more fixes and improvements
