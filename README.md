@@ -24,8 +24,6 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 
 ## Screenshots
 
-Screenshots are captured with demo videos such as Big Buck Bunny and Sintel, with dynamic color disabled for consistent theming.
-
 ### Phone
 
 <div style="width:100%; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
