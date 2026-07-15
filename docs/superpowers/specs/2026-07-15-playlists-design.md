@@ -13,11 +13,12 @@ This first version includes:
 - linked M3U/M3U8 playlist creation from an HTTP(S) URL or an Android document;
 - ordered playlist details and playback from any item;
 - manual addition of selected media to editable playlists;
+- persisted reordering of editable playlist entries;
 - pull-to-refresh for linked playlists;
 - playlist deletion; and
 - local caching of linked playlist contents.
 
-Renaming playlists, manually reordering entries, editing linked playlist contents, and removing individual entries are outside this version.
+Renaming playlists, editing linked playlist contents, and removing individual entries are outside this version.
 
 ## Persistence Model
 
@@ -47,16 +48,19 @@ The composite key deduplicates media within one playlist. Insertions preserve th
 
 ## Domain and Repository Boundaries
 
-`PlaylistRepository` is the feature-facing boundary. It observes playlist summaries and details, creates editable or linked playlists, adds ordered items, refreshes linked playlists, and deletes playlists.
+`PlaylistRepository` is the feature-facing boundary. It observes playlist summaries and details, creates editable or linked playlists, adds ordered items, reorders editable items, refreshes linked playlists, and deletes playlists.
 
 Repository rules enforce that:
 
 - only editable playlists accept manually added items;
+- only editable playlists accept manual reordering;
 - playlist names are normalized and unique;
 - duplicate media URIs are ignored without changing existing order;
 - linked sources remain connected to their URL or document URI;
 - refresh cannot run concurrently for the same playlist; and
 - a failed refresh never deletes the last successful cache.
+
+Reordering updates the affected positions in one transaction and compacts them back to a contiguous zero-based sequence. The operation identifies the moved entry by URI and uses its destination index, so an observed list refresh cannot silently move the wrong item.
 
 The repository accepts domain-level playlist item inputs rather than video-picker selection types. The video-picker ViewModel resolves selected folders and videos with its existing delete/play conversion behavior before calling the repository. In folder view this includes videos directly in the selected folder; in list view it follows the existing recursive sorted-video result. This keeps “Add to playlist” consistent with delete as requested.
 
@@ -84,6 +88,8 @@ The new `feature:playlist` module owns playlist navigation, screens, ViewModels,
 `TopLevelDestination` gains Playlists between Home and Network. Like the other tabs, it has an independent remembered back stack. The top-level screen shows playlist name, type/source status, item count, and last refresh state. An empty state explains how to create the first playlist.
 
 Tapping a playlist opens its ordered details. Play All starts at the first item. Tapping an item passes the complete URI list plus that item as the intent data, allowing the existing player to start at the selected index. Linked details use Material 3 pull-to-refresh; editable details do not. A linked playlist shows its last successful refresh time and retains cached items while a refresh is in progress or after it fails.
+
+Editable details reuse the app's existing `sh.calvin.reorderable` drag-handle pattern. A long press on the drag handle moves an item and persists the final order when the drag ends. TV and keyboard users receive focused Move up and Move down actions for the same repository operation. Linked M3U details expose neither interaction because their order is controlled by the source and would be replaced on refresh.
 
 An overflow action deletes a playlist after confirmation. This deletes its items through the cascading foreign key.
 
@@ -118,6 +124,7 @@ Implementation follows test-driven development. Automated coverage includes:
 - M3U/M3U8 parsing, `#EXTINF`, comments, duplicates, and relative URI resolution;
 - normalized unique names;
 - stable item ordering and deduplication;
+- persisted editable reordering, contiguous positions, and rejection of linked reordering;
 - rejection of manual additions to linked playlists;
 - transactional replacement and cache retention on refresh failure;
 - Room migration from schema 7 to 8;
@@ -131,10 +138,11 @@ Final acceptance uses a newly created Android emulator. The app will be installe
 2. create an editable playlist;
 3. long-press a video and add it to the playlist;
 4. open and play the playlist from the added item;
-5. create a linked M3U playlist from a controlled test source;
-6. pull to refresh it and confirm updated cached contents;
-7. confirm linked playlists are absent from manual-add targets;
-8. delete the test playlists; and
-9. shut down and delete the newly created emulator.
+5. reorder the editable playlist and confirm the order survives leaving and reopening it;
+6. create a linked M3U playlist from a controlled test source;
+7. pull to refresh it and confirm updated cached contents;
+8. confirm linked playlists are absent from manual-add targets and cannot be reordered;
+9. delete the test playlists; and
+10. shut down and delete the newly created emulator.
 
 If host networking or the Android SDK prevents a controlled URL source, the file-linked flow will exercise the same parser/refresh pipeline and the limitation will be reported explicitly. No pre-existing emulator will be modified or deleted.
