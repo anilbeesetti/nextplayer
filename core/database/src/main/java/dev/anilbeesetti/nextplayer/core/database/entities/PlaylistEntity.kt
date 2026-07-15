@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
@@ -36,5 +37,8 @@ data class PlaylistWithItems(
         parentColumn = "id",
         entityColumn = "playlist_id",
     )
-    val items: List<PlaylistItemEntity>,
-)
+    private val relatedItems: List<PlaylistItemEntity>,
+) {
+    @Ignore
+    val items = relatedItems.sortedBy(PlaylistItemEntity::position)
+}

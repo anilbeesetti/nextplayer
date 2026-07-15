@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
 import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -69,6 +70,40 @@ class PlaylistDaoTest {
         dao.deletePlaylist(id)
 
         assertEquals(emptyList<PlaylistItemEntity>(), dao.getItems(id))
+    }
+
+    @Test
+    fun getPlaylistOrdersItemsByPersistedPosition() = runTest {
+        val id = insertPlaylistWithItemsInNonPositionOrder()
+
+        assertEquals(
+            listOf("content://first", "content://second", "content://third"),
+            dao.getPlaylist(id)?.items?.map { it.uri },
+        )
+    }
+
+    @Test
+    fun observePlaylistOrdersItemsByPersistedPosition() = runTest {
+        val id = insertPlaylistWithItemsInNonPositionOrder()
+
+        assertEquals(
+            listOf("content://first", "content://second", "content://third"),
+            dao.observePlaylist(id).first()?.items?.map { it.uri },
+        )
+    }
+
+    private suspend fun insertPlaylistWithItemsInNonPositionOrder(): Long {
+        val id = dao.insertPlaylist(
+            PlaylistEntity(name = "Movies", normalizedName = "movies", type = "EDITABLE"),
+        )
+        dao.insertItemsIgnore(
+            listOf(
+                item(id, "content://third", 2),
+                item(id, "content://first", 0),
+                item(id, "content://second", 1),
+            ),
+        )
+        return id
     }
 
     private fun item(playlistId: Long, uri: String, position: Int) = PlaylistItemEntity(
