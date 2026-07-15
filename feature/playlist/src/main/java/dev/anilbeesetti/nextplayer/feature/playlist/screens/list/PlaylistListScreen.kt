@@ -34,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,8 +76,11 @@ import dev.anilbeesetti.nextplayer.feature.playlist.composables.AddM3uUrlDialog
 import dev.anilbeesetti.nextplayer.feature.playlist.composables.PlaylistNameDialog
 import java.util.Date
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -84,6 +88,86 @@ data class M3uDocument(
     val uri: String,
     val displayName: String,
 )
+
+internal enum class CreationDialog { NONE, CHOOSER, EMPTY, URL, FILE }
+
+@JvmInline
+internal value class M3uFileRequest internal constructor(internal val token: Long)
+
+internal class PlaylistCreationCoordinator(
+    private val coroutineScope: CoroutineScope,
+    private val onPreparationError: () -> Unit,
+) {
+    var dialog by mutableStateOf(CreationDialog.NONE)
+        private set
+
+    var fileDocument by mutableStateOf<M3uDocument?>(null)
+        private set
+
+    private var activePreparation: Job? = null
+    private var requestToken = 0L
+
+    fun openChooser() {
+        invalidateFilePreparation()
+        fileDocument = null
+        dialog = CreationDialog.CHOOSER
+    }
+
+    fun chooseEmpty() {
+        invalidateFilePreparation()
+        fileDocument = null
+        dialog = CreationDialog.EMPTY
+    }
+
+    fun chooseUrl() {
+        invalidateFilePreparation()
+        fileDocument = null
+        dialog = CreationDialog.URL
+    }
+
+    fun chooseFile(onPickM3uFile: (M3uFileRequest) -> Unit) {
+        invalidateFilePreparation()
+        fileDocument = null
+        dialog = CreationDialog.NONE
+        onPickM3uFile(M3uFileRequest(requestToken))
+    }
+
+    fun dismiss() {
+        invalidateFilePreparation()
+        fileDocument = null
+        dialog = CreationDialog.NONE
+    }
+
+    fun prepareFile(
+        request: M3uFileRequest,
+        prepare: suspend () -> M3uDocument?,
+    ) {
+        if (request.token != requestToken) return
+        activePreparation?.cancel()
+        activePreparation = coroutineScope.launch {
+            val document = prepare()
+            if (!isActive || request.token != requestToken) return@launch
+
+            activePreparation = null
+            if (document == null) {
+                onPreparationError()
+            } else {
+                fileDocument = document
+                dialog = CreationDialog.FILE
+            }
+        }
+    }
+
+    fun cancel() {
+        invalidateFilePreparation()
+    }
+
+    private fun invalidateFilePreparation() {
+        requestToken++
+        activePreparation?.cancel()
+        activePreparation = null
+    }
+}
 
 @Composable
 fun PlaylistListScreenRoute(
@@ -94,8 +178,15 @@ fun PlaylistListScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var pendingDocument by remember { mutableStateOf<M3uDocument?>(null) }
+    val creationCoordinator = remember(coroutineScope, context) {
+        PlaylistCreationCoordinator(coroutineScope) {
+            Toast.makeText(context, R.string.document_permission_error, Toast.LENGTH_LONG).show()
+        }
+    }
+    var fileRequest by remember { mutableStateOf<M3uFileRequest?>(null) }
     val openDocumentLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        val request = fileRequest ?: return@rememberLauncherForActivityResult
+        fileRequest = null
         uri ?: return@rememberLauncherForActivityResult
         val documentPreparer = M3uDocumentPreparer(
             ioDispatcher = Dispatchers.IO,
@@ -109,16 +200,11 @@ fun PlaylistListScreenRoute(
             },
             queryDisplayName = { context.contentResolver.queryDisplayName(uri) },
         )
-        coroutineScope.launch {
-            val document = documentPreparer.prepare(
+        creationCoordinator.prepareFile(request) {
+            documentPreparer.prepare(
                 uri = uri.toString(),
                 fallbackDisplayName = uri.lastPathSegment.orEmpty(),
             )
-            if (document == null) {
-                Toast.makeText(context, R.string.document_permission_error, Toast.LENGTH_LONG).show()
-            } else {
-                pendingDocument = document
-            }
         }
     }
 
@@ -131,9 +217,9 @@ fun PlaylistListScreenRoute(
 
     PlaylistListScreen(
         uiState = uiState,
-        pendingDocument = pendingDocument,
-        onDocumentConsumed = { pendingDocument = null },
-        onPickM3uFile = {
+        creationCoordinator = creationCoordinator,
+        onPickM3uFile = { request ->
+            fileRequest = request
             openDocumentLauncher.launch(
                 arrayOf(
                     "application/vnd.apple.mpegurl",
@@ -152,35 +238,28 @@ fun PlaylistListScreenRoute(
     )
 }
 
-private enum class CreationDialog { NONE, EMPTY, URL, FILE }
-
 @Composable
 internal fun PlaylistListScreen(
     uiState: PlaylistListUiState,
-    pendingDocument: M3uDocument? = null,
-    onDocumentConsumed: () -> Unit = {},
-    onPickM3uFile: () -> Unit = {},
+    creationCoordinator: PlaylistCreationCoordinator? = null,
+    onPickM3uFile: (M3uFileRequest) -> Unit = {},
     onPlaylistClick: (Long) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onAction: (PlaylistListAction) -> Unit = {},
 ) {
-    var showCreationChooser by rememberSaveable { mutableStateOf(false) }
-    var creationDialog by rememberSaveable { mutableStateOf(CreationDialog.NONE) }
-    var fileSource by rememberSaveable { mutableStateOf("") }
-    var fileDisplayName by rememberSaveable { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
+    val ownedCreationCoordinator = remember(coroutineScope) {
+        PlaylistCreationCoordinator(coroutineScope) {}
+    }
+    val coordinator = creationCoordinator ?: ownedCreationCoordinator
     var playlistToDelete by remember { mutableStateOf<PlaylistSummary?>(null) }
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
     val showEmptyState = uiState.playlists.isEmpty() && !uiState.isLoading
     val createFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(pendingDocument) {
-        pendingDocument?.let { document ->
-            fileSource = document.uri
-            fileDisplayName = document.displayName
-            creationDialog = CreationDialog.FILE
-            onDocumentConsumed()
-        }
+    DisposableEffect(coordinator) {
+        onDispose(coordinator::cancel)
     }
     if (isTv) {
         LaunchedEffect(showEmptyState) {
@@ -204,7 +283,7 @@ internal fun PlaylistListScreen(
             ExtendedFloatingActionButton(
                 onClick = {
                     onAction(PlaylistListAction.ClearFormError)
-                    showCreationChooser = true
+                    coordinator.openChooser()
                 },
                 icon = {
                     Icon(NextIcons.Add, contentDescription = stringResource(R.string.create_playlist))
@@ -254,37 +333,29 @@ internal fun PlaylistListScreen(
         }
     }
 
-    if (showCreationChooser) {
+    if (coordinator.dialog == CreationDialog.CHOOSER) {
         CreationChooserDialog(
-            onDismissRequest = { showCreationChooser = false },
-            onCreateEmpty = {
-                showCreationChooser = false
-                creationDialog = CreationDialog.EMPTY
-            },
-            onCreateUrl = {
-                showCreationChooser = false
-                creationDialog = CreationDialog.URL
-            },
-            onCreateFile = {
-                showCreationChooser = false
-                onPickM3uFile()
-            },
+            onDismissRequest = coordinator::dismiss,
+            onCreateEmpty = coordinator::chooseEmpty,
+            onCreateUrl = coordinator::chooseUrl,
+            onCreateFile = { coordinator.chooseFile(onPickM3uFile) },
         )
     }
 
-    when (creationDialog) {
+    when (coordinator.dialog) {
+        CreationDialog.CHOOSER -> Unit
         CreationDialog.EMPTY -> PlaylistNameDialog(
             title = stringResource(R.string.create_empty_playlist),
             isSaving = uiState.isSaving,
             error = uiState.formError,
-            onDismissRequest = { dismissCreationDialog(onAction) { creationDialog = CreationDialog.NONE } },
+            onDismissRequest = { dismissCreationDialog(onAction, coordinator::dismiss) },
             onConfirm = { onAction(PlaylistListAction.CreateEditable(it)) },
             onClearError = { onAction(PlaylistListAction.ClearFormError) },
         )
         CreationDialog.URL -> AddM3uUrlDialog(
             isSaving = uiState.isSaving,
             error = uiState.formError,
-            onDismissRequest = { dismissCreationDialog(onAction) { creationDialog = CreationDialog.NONE } },
+            onDismissRequest = { dismissCreationDialog(onAction, coordinator::dismiss) },
             onConfirm = { name, url ->
                 onAction(PlaylistListAction.CreateLinked(name, PlaylistType.M3U_URL, url))
             },
@@ -292,13 +363,15 @@ internal fun PlaylistListScreen(
         )
         CreationDialog.FILE -> PlaylistNameDialog(
             title = stringResource(R.string.add_m3u_file_playlist),
-            initialName = fileDisplayName.withoutM3uExtension(),
-            chosenDocument = fileDisplayName,
+            initialName = coordinator.fileDocument?.displayName.orEmpty().withoutM3uExtension(),
+            chosenDocument = coordinator.fileDocument?.displayName,
             isSaving = uiState.isSaving,
             error = uiState.formError,
-            onDismissRequest = { dismissCreationDialog(onAction) { creationDialog = CreationDialog.NONE } },
+            onDismissRequest = { dismissCreationDialog(onAction, coordinator::dismiss) },
             onConfirm = { name ->
-                onAction(PlaylistListAction.CreateLinked(name, PlaylistType.M3U_FILE, fileSource))
+                coordinator.fileDocument?.let { document ->
+                    onAction(PlaylistListAction.CreateLinked(name, PlaylistType.M3U_FILE, document.uri))
+                }
             },
             onClearError = { onAction(PlaylistListAction.ClearFormError) },
         )
