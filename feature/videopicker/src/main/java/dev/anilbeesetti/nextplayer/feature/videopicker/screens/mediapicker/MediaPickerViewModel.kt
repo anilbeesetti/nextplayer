@@ -452,6 +452,7 @@ internal class PlaylistSelectionController(
 
     fun showAddToPlaylist(selectionItems: Set<SelectionItem>) {
         if (stateInternal.value.isSaving) return
+        pendingItems = emptyList()
         pendingCreatedPlaylist = null
         stateInternal.update { it.copy(isVisible = true, isSaving = true, error = null) }
         scope.launch(dispatcher) {
@@ -469,6 +470,7 @@ internal class PlaylistSelectionController(
                     )
                 }
             } catch (cancellation: CancellationException) {
+                stateInternal.update { it.copy(isSaving = false, error = null) }
                 throw cancellation
             } catch (failure: Throwable) {
                 stateInternal.update {
@@ -538,6 +540,7 @@ internal class PlaylistSelectionController(
                 }
                 eventsInternal.trySend(MediaPickerEvent.PlaylistItemsAdded(addedCount))
             } catch (cancellation: CancellationException) {
+                stateInternal.update { it.copy(isSaving = false, error = null) }
                 throw cancellation
             } catch (failure: Throwable) {
                 stateInternal.update {

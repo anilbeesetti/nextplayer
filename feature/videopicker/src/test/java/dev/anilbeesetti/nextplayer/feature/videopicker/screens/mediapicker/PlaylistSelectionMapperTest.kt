@@ -215,10 +215,16 @@ class PlaylistSelectionMapperTest {
 
     @Test
     fun resolutionCancellationIsNotRenderedAsAnError() = runTest {
+        var resolutionAttempts = 0
+        val resolvedVideo = video("content://1", "/Movies")
         val controller = controller(
             repository = FakePlaylistRepository(),
             resolver = PlaylistSelectionMapper(
-                findVideoByUri = { throw CancellationException("cancelled") },
+                findVideoByUri = {
+                    resolutionAttempts++
+                    if (resolutionAttempts == 1) throw CancellationException("cancelled")
+                    resolvedVideo
+                },
                 videosInFolder = { emptyList() },
             ),
         )
@@ -227,22 +233,65 @@ class PlaylistSelectionMapperTest {
         advanceUntilIdle()
 
         assertNull(controller.state.value.error)
+        assertFalse(controller.state.value.isSaving)
+        assertTrue(controller.state.value.isVisible)
+
+        controller.showAddToPlaylist(selection())
+        advanceUntilIdle()
+
+        assertEquals(2, resolutionAttempts)
+        assertFalse(controller.state.value.isSaving)
+        assertNull(controller.state.value.error)
     }
 
     @Test
-    fun addCancellationIsNotRenderedAsAnError() = runTest {
+    fun createAndAddCancellationRetainsCreatedPlaylistForRetry() = runTest {
         val repository = FakePlaylistRepository().apply {
-            playlists.value = listOf(summary(7, "Editable", PlaylistType.EDITABLE))
+            editableId = 42
             addFailure = CancellationException("cancelled")
         }
         val controller = controller(repository)
         controller.showAddToPlaylist(selection())
         advanceUntilIdle()
 
-        controller.addSelectionToPlaylist(7)
+        controller.createPlaylistAndAddSelection(" Road Trip ")
         advanceUntilIdle()
 
         assertNull(controller.state.value.error)
+        assertFalse(controller.state.value.isSaving)
+        assertTrue(controller.state.value.isVisible)
+
+        repository.addFailure = null
+        controller.createPlaylistAndAddSelection("road trip")
+        advanceUntilIdle()
+
+        assertEquals(listOf(" Road Trip "), repository.createdNames)
+        assertEquals(listOf(42L, 42L), repository.addCalls.map { it.playlistId })
+        assertFalse(controller.state.value.isVisible)
+    }
+
+    @Test
+    fun dismissAndNewSelectionClearPartialCreateRetryIdentity() = runTest {
+        val repository = FakePlaylistRepository().apply {
+            editableId = 42
+            addFailure = IOException("disk full")
+        }
+        val controller = controller(repository)
+        controller.showAddToPlaylist(selection())
+        advanceUntilIdle()
+        controller.createPlaylistAndAddSelection("Road Trip")
+        advanceUntilIdle()
+
+        controller.dismiss()
+        controller.showAddToPlaylist(selection())
+        advanceUntilIdle()
+        repository.editableId = 43
+        repository.addFailure = null
+        controller.createPlaylistAndAddSelection("Favorites")
+        advanceUntilIdle()
+
+        assertEquals(listOf("Road Trip", "Favorites"), repository.createdNames)
+        assertEquals(listOf(42L, 43L), repository.addCalls.map { it.playlistId })
     }
 
     private fun kotlinx.coroutines.test.TestScope.controller(
