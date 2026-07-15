@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playlists">Playlists</string>
+    <string name="create_playlist">Create playlist</string>
+    <string name="choose_playlist_type">Create a playlist</string>
+    <string name="create_empty_playlist">Create empty playlist</string>
+    <string name="add_m3u_url_playlist">Add M3U playlist from URL</string>
+    <string name="add_m3u_file_playlist">Add M3U playlist from file</string>
+    <string name="playlist_name">Playlist name</string>
+    <string name="playlist_url">M3U URL</string>
+    <string name="chosen_document">Chosen document: %1$s</string>
+    <string name="document_permission_error">Couldn\'t keep access to this document. Choose it again or use another file.</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
+    <string name="creating_playlist">Creating playlist…</string>
+    <string name="name_required">Enter a playlist name.</string>
+    <string name="url_required">Enter an M3U URL.</string>
+    <string name="invalid_url">Enter a valid HTTP or HTTPS URL.</string>
+    <string name="playlist_name_conflict">A playlist with this name already exists.</string>
+    <string name="no_playlists_title">No playlists yet</string>
+    <string name="no_playlists_description">Create an empty playlist or link an M3U source to start watching.</string>
+    <string name="editable_playlist">Editable</string>
+    <string name="m3u_url_playlist">M3U URL</string>
+    <string name="m3u_file_playlist">M3U file</string>
+    <string name="not_refreshed">Not loaded yet</string>
+    <string name="last_refreshed">Last loaded %1$s</string>
+    <string name="delete_playlist">Delete playlist</string>
+    <string name="delete_playlist_confirmation">Remove "%1$s"?</string>
+    <string name="delete">Delete</string>
+    <string name="playlist_actions">Playlist actions</string>
+    <string name="create_new_playlist">Create new playlist</string>
+    <string name="choose_playlist">Choose a playlist</string>
+    <string name="no_editable_playlists">No editable playlists yet.</string>
+
+    <plurals name="playlist_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+</resources>
