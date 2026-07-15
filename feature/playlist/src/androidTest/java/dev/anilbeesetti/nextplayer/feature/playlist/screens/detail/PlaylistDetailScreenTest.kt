@@ -79,7 +79,7 @@ class PlaylistDetailScreenTest {
     }
 
     @Test
-    fun moveInProgressRemovesTouchAndTvReorderAffordances() {
+    fun moveInProgressRemovesTouchReorderAffordances() {
         val editable = playlist(
             items = listOf(item("content://one", 0), item("content://two", 1)),
         )
@@ -87,6 +87,13 @@ class PlaylistDetailScreenTest {
         setDetailContent(playlist = editable, isMoving = true)
 
         composeRule.onAllNodesWithContentDescription("Reorder playlist item").assertCountEquals(0)
+    }
+
+    @Test
+    fun moveInProgressRemovesTvReorderAffordances() {
+        val editable = playlist(
+            items = listOf(item("content://one", 0), item("content://two", 1)),
+        )
 
         setDetailContent(playlist = editable, isMoving = true, isTv = true)
 
@@ -114,7 +121,7 @@ class PlaylistDetailScreenTest {
         setDetailContent(playlist = playlist(), onAction = { actions += it })
 
         composeRule.onNodeWithContentDescription("Delete playlist").performClick()
-        composeRule.onNodeWithText("Remove \"Movies\"?").assertIsDisplayed()
+        composeRule.onNodeWithText("Remove Movies?").assertIsDisplayed()
         assertEquals(emptyList<PlaylistDetailAction>(), actions)
 
         composeRule.onNodeWithText("Delete").performClick()
