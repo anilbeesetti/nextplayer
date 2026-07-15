@@ -90,4 +90,26 @@ class M3uParserTest {
         )
         assertEquals(2, result.skippedEntries)
     }
+
+    @Test
+    fun countsMalformedAndUnsupportedEntriesRejectedByResolver() {
+        val text = """video.mp4
+            http:video.mp4
+            https:/video.mp4
+            content:media/external/1
+            file:relative.mp4
+            ftp://example.test/video.mp4
+        """.trimIndent()
+        val resolver = PlaylistEntryResolver()
+
+        val result = parser.parse(text) { entry ->
+            resolver.resolveRemote("https://example.test/playlists/list.m3u", entry)
+        }
+
+        assertEquals(
+            listOf("https://example.test/playlists/video.mp4"),
+            result.entries.map { it.uriString },
+        )
+        assertEquals(5, result.skippedEntries)
+    }
 }
