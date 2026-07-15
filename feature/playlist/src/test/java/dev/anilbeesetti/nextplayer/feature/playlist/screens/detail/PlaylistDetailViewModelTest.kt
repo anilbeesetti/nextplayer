@@ -373,14 +373,14 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
-    fun successfulMoveWithoutRepositoryEmissionEventuallyReleasesOwnership() = runTest(dispatcher) {
+    fun timedOutSuccessfulMoveKeepsExpectedOrderUntilLateRepositoryEmission() = runTest(dispatcher) {
         collectUiState()
-        val repositoryItems = listOf(
+        val initialItems = listOf(
             item("content://1", 0),
             item("content://2", 1),
             item("content://3", 2),
         )
-        repository.playlist.value = playlist(items = repositoryItems)
+        repository.playlist.value = playlist(items = initialItems)
         runCurrent()
 
         viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
@@ -394,7 +394,61 @@ class PlaylistDetailViewModelTest {
         runCurrent()
 
         assertFalse(viewModel.uiState.value.isMoving)
-        assertEquals(repositoryItems, viewModel.uiState.value.playlist?.items)
+        assertEquals(
+            listOf("content://3", "content://1", "content://2"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+
+        repository.playlist.value = playlist(
+            items = listOf(item("content://2", 0), item("content://3", 1), item("content://1", 2)),
+        )
+        runCurrent()
+
+        assertEquals(
+            listOf("content://2", "content://3", "content://1"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+    }
+
+    @Test
+    fun emissionDuringPersistenceCannotConfirmUntilLaterPostSuccessEmission() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(
+            items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
+        )
+        repository.moveGate = CompletableDeferred()
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 2, toIndex = 0))
+        viewModel.onAction(PlaylistDetailAction.StopMoveDrag)
+        runCurrent()
+
+        repository.playlist.value = playlist(
+            items = listOf(item("content://2", 0), item("content://1", 1), item("content://3", 2)),
+        )
+        runCurrent()
+        assertTrue(viewModel.uiState.value.isMoving)
+
+        repository.moveGate?.complete(Unit)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.isMoving)
+        assertEquals(
+            listOf("content://3", "content://1", "content://2"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+
+        repository.playlist.value = playlist(
+            items = listOf(item("content://3", 0), item("content://2", 1), item("content://1", 2)),
+        )
+        runCurrent()
+
+        assertFalse(viewModel.uiState.value.isMoving)
+        assertEquals(
+            listOf("content://3", "content://2", "content://1"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
     }
 
     @Test

@@ -16,24 +16,36 @@ internal data class PlaylistReorderSnapshot(
     val isMoving: Boolean = false,
 )
 
+/**
+ * Owns the displayed order across drag, repository persistence, and observable repository handoff.
+ *
+ * Invariants:
+ * 1. Drag or move ownership prevents repository emissions from replacing the displayed order.
+ * 2. Persistence success records an emission-generation boundary; only a later emission may confirm
+ *    or supersede that move and restore repository ownership.
+ * 3. A handoff timeout releases move ownership to the expected persisted order, never to a snapshot
+ *    captured before the success boundary. Any later idle emission remains authoritative.
+ */
 internal class PlaylistReorderState {
     private val mutableState = MutableStateFlow(PlaylistReorderSnapshot())
     val state: StateFlow<PlaylistReorderSnapshot> = mutableState.asStateFlow()
 
     private var repositoryItems: List<PlaylistItem> = emptyList()
     private var pendingMove: PlaylistMove? = null
-    private var expectedRepositoryOrder: List<String>? = null
-    private var repositoryOrderAtMoveStart: List<String>? = null
-    private var isAwaitingRepository = false
+    private var expectedRepositoryItems: List<PlaylistItem>? = null
+    private var repositoryGeneration = 0L
+    private var successGeneration: Long? = null
 
     fun updateRepositoryItems(items: List<PlaylistItem>): Boolean {
+        repositoryGeneration += 1
         repositoryItems = items
         val current = mutableState.value
         if (!current.isDragging && !current.isMoving) {
             mutableState.value = current.copy(displayedItems = items)
             return false
         }
-        if (current.isMoving && isAwaitingRepository && repositoryConfirmsOrDiverges()) {
+        val boundary = successGeneration
+        if (current.isMoving && boundary != null && repositoryGeneration > boundary) {
             reconcileToRepository()
             return true
         }
@@ -69,7 +81,7 @@ internal class PlaylistReorderState {
         mutableState.value = if (move == null) {
             current.copy(displayedItems = repositoryItems, isDragging = false)
         } else {
-            beginRepositoryHandoff(expectedOrder = current.displayedItems.map(PlaylistItem::uriString))
+            beginRepositoryHandoff(expectedItems = current.displayedItems)
             current.copy(isDragging = false, isMoving = true)
         }
         return move
@@ -85,18 +97,14 @@ internal class PlaylistReorderState {
         val expectedItems = current.displayedItems.toMutableList()
         expectedItems.add(targetIndex, expectedItems.removeAt(currentIndex))
         val move = PlaylistMove(uri, targetIndex)
-        beginRepositoryHandoff(expectedOrder = expectedItems.map(PlaylistItem::uriString))
+        beginRepositoryHandoff(expectedItems = expectedItems)
         mutableState.value = current.copy(isMoving = true)
         return move
     }
 
     fun moveSucceeded(): Boolean {
         if (!mutableState.value.isMoving) return false
-        isAwaitingRepository = true
-        if (repositoryConfirmsOrDiverges()) {
-            reconcileToRepository()
-            return false
-        }
+        successGeneration = repositoryGeneration
         return true
     }
 
@@ -105,27 +113,25 @@ internal class PlaylistReorderState {
     }
 
     fun reconcileTimedOut() {
-        if (mutableState.value.isMoving && isAwaitingRepository) {
-            reconcileToRepository()
-        }
+        val expectedItems = expectedRepositoryItems ?: return
+        if (!mutableState.value.isMoving || successGeneration == null) return
+        clearHandoff()
+        mutableState.value = PlaylistReorderSnapshot(displayedItems = expectedItems)
     }
 
-    private fun beginRepositoryHandoff(expectedOrder: List<String>) {
-        expectedRepositoryOrder = expectedOrder
-        repositoryOrderAtMoveStart = repositoryItems.map(PlaylistItem::uriString)
-        isAwaitingRepository = false
-    }
-
-    private fun repositoryConfirmsOrDiverges(): Boolean {
-        val repositoryOrder = repositoryItems.map(PlaylistItem::uriString)
-        return repositoryOrder == expectedRepositoryOrder || repositoryOrder != repositoryOrderAtMoveStart
+    private fun beginRepositoryHandoff(expectedItems: List<PlaylistItem>) {
+        expectedRepositoryItems = expectedItems
+        successGeneration = null
     }
 
     private fun reconcileToRepository() {
-        pendingMove = null
-        expectedRepositoryOrder = null
-        repositoryOrderAtMoveStart = null
-        isAwaitingRepository = false
+        clearHandoff()
         mutableState.value = PlaylistReorderSnapshot(displayedItems = repositoryItems)
+    }
+
+    private fun clearHandoff() {
+        pendingMove = null
+        expectedRepositoryItems = null
+        successGeneration = null
     }
 }
