@@ -4,6 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.anilbeesetti.nextplayer.core.data.playlist.LocalPlaylistSourceReader
+import dev.anilbeesetti.nextplayer.core.data.playlist.PlaylistSourceReader
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalMediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalNetworkConnectionRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.LocalPreferencesRepository
@@ -21,6 +23,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 interface DataModule {
+
+    @Binds
+    fun bindsPlaylistSourceReader(
+        sourceReader: LocalPlaylistSourceReader,
+    ): PlaylistSourceReader
 
     @Binds
     fun bindsMediaRepository(
