@@ -64,6 +64,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -77,6 +78,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -158,6 +160,7 @@ fun MediaPickerRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
@@ -167,8 +170,8 @@ fun MediaPickerRoute(
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
             is MediaPickerEvent.PlaylistItemsAdded -> {
-                val message = context.resources.getQuantityString(
-                    VideoPickerR.plurals.added_videos_to_playlist,
+                val message = resources.getQuantityString(
+                    VideoPickerR.plurals.videopicker_playlist_added_videos,
                     event.count,
                     event.count,
                 )
@@ -224,7 +227,7 @@ internal fun MediaPickerScreen(
     }
     val selectionManager = rememberSelectionManager()
     var observedCompletionToken by rememberSaveable {
-        mutableStateOf(uiState.addToPlaylistState.completionToken)
+        mutableLongStateOf(uiState.addToPlaylistState.completionToken)
     }
     LaunchedEffect(uiState.addToPlaylistState.completionToken) {
         val completionToken = uiState.addToPlaylistState.completionToken
@@ -1142,7 +1145,7 @@ private fun PlaylistTargetDialog(
         val trimmedName = name.trim()
         NextDialog(
             onDismissRequest = { if (!state.isSaving) showCreateDialog = false },
-            title = { Text(stringResource(VideoPickerR.string.create_new_playlist)) },
+            title = { Text(stringResource(VideoPickerR.string.videopicker_playlist_create_new_playlist)) },
             content = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
@@ -1150,7 +1153,7 @@ private fun PlaylistTargetDialog(
                         onValueChange = { name = it },
                         enabled = !state.isSaving,
                         singleLine = true,
-                        label = { Text(stringResource(VideoPickerR.string.playlist_name)) },
+                        label = { Text(stringResource(VideoPickerR.string.videopicker_playlist_name)) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     state.error?.let { error ->
@@ -1168,7 +1171,7 @@ private fun PlaylistTargetDialog(
                     enabled = !state.isSaving && trimmedName.isNotEmpty(),
                     modifier = Modifier.tvFocusRing(),
                 ) {
-                    Text(stringResource(VideoPickerR.string.create))
+                    Text(stringResource(VideoPickerR.string.videopicker_playlist_create))
                 }
             },
             dismissButton = {
@@ -1182,13 +1185,13 @@ private fun PlaylistTargetDialog(
 
     NextDialog(
         onDismissRequest = { if (!state.isSaving) onDismissRequest() },
-        title = { Text(stringResource(VideoPickerR.string.choose_playlist)) },
+        title = { Text(stringResource(VideoPickerR.string.videopicker_playlist_choose_playlist)) },
         content = {
             LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
                 if (playlists.isEmpty()) {
                     item {
                         Text(
-                            text = stringResource(VideoPickerR.string.no_editable_playlists),
+                            text = stringResource(VideoPickerR.string.videopicker_playlist_no_editable_playlists),
                             modifier = Modifier.padding(12.dp),
                         )
                     }
@@ -1212,7 +1215,7 @@ private fun PlaylistTargetDialog(
                             .fillMaxWidth()
                             .tvFocusRing(),
                     ) {
-                        Text(stringResource(VideoPickerR.string.create_new_playlist))
+                        Text(stringResource(VideoPickerR.string.videopicker_playlist_create_new_playlist))
                     }
                 }
                 state.error?.let { error ->
@@ -1308,7 +1311,7 @@ private fun SelectionActionsSheet(
                     modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.PlaylistAdd,
-                    title = stringResource(VideoPickerR.string.add_to_playlist),
+                    title = stringResource(VideoPickerR.string.videopicker_playlist_add_to_playlist),
                     onClick = onAddToPlaylistAction,
                 )
                 if (showRenameAction) {

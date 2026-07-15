@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.playlist
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.Dispatcher
 import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
@@ -63,7 +63,7 @@ class LocalPlaylistSourceReader @Inject constructor(
     }
 
     private fun readDocument(source: String): PlaylistSourceContent {
-        val sourceUri = Uri.parse(source)
+        val sourceUri = source.toUri()
         val text = context.contentResolver.openInputStream(sourceUri)?.bufferedReader(Charsets.UTF_8)
             ?.use { reader -> reader.readText() }
             ?: throw IOException("Unable to open playlist source: $source")
