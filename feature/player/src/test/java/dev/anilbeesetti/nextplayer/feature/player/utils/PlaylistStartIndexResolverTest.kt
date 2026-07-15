@@ -5,6 +5,49 @@ import org.junit.Test
 
 class PlaylistStartIndexResolverTest {
     @Test
+    fun secondPlaybackReadsCurrentApiPlaylistAndSelectedIndex() {
+        var currentData = PlayerApiData(
+            hasPosition = true,
+            position = 100,
+            hasTitle = true,
+            title = "Playlist A",
+            playlist = listOf("https://example.test/a-1.mp4", "https://example.test/a-2.mp4"),
+        )
+        val api = PlayerApi { currentData }
+
+        assertEquals(
+            listOf("https://example.test/a-1.mp4", "https://example.test/a-2.mp4"),
+            api.getPlaylist(),
+        )
+
+        currentData = PlayerApiData(
+            hasPosition = true,
+            position = 200,
+            hasTitle = true,
+            title = "Playlist B",
+            shouldReturnResult = true,
+            playlist = listOf("https://example.test/b-1.mp4", "https://example.test/b-2.mp4"),
+        )
+        val secondPlaylist = api.getPlaylist()
+
+        assertEquals(
+            listOf("https://example.test/b-1.mp4", "https://example.test/b-2.mp4"),
+            secondPlaylist,
+        )
+        assertEquals(200, api.position)
+        assertEquals("Playlist B", api.title)
+        assertEquals(true, api.shouldReturnResult)
+        assertEquals(
+            1,
+            resolvePlaylistStartIndex(
+                playlist = secondPlaylist,
+                originalSelectedUri = "https://example.test/b-2.mp4",
+                normalizedSelectedUri = null,
+            ),
+        )
+    }
+
+    @Test
     fun originalSelectedUriWinsWhenItsNormalizedFormAppearsEarlier() {
         val original = "file:///storage/emulated/0/Movies/second.mp4"
         val normalized = "content://media/external/video/media/42"

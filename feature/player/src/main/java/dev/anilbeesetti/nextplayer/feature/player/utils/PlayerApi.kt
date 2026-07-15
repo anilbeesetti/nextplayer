@@ -7,43 +7,35 @@ import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getParcelableUriArray
 import dev.anilbeesetti.nextplayer.feature.player.model.Subtitle
 
-class PlayerApi(val activity: PlayerActivity) {
+internal data class PlayerApiData(
+    val hasPosition: Boolean = false,
+    val position: Int? = null,
+    val hasTitle: Boolean = false,
+    val title: String? = null,
+    val shouldReturnResult: Boolean = false,
+    val subtitles: List<Subtitle> = emptyList(),
+    val playlist: List<String> = emptyList(),
+)
 
-    private val extras = activity.intent.extras
-    val isApiAccess: Boolean get() = extras != null
-    val hasPosition: Boolean get() = extras?.containsKey(API_POSITION) == true
-    val hasTitle: Boolean get() = extras?.containsKey(API_TITLE) == true
-    val shouldReturnResult: Boolean get() = extras?.containsKey(API_RETURN_RESULT) == true
-    val position: Int? get() = if (hasPosition) extras?.getInt(API_POSITION) else null
-    val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
+class PlayerApi internal constructor(
+    private val currentDataProvider: () -> PlayerApiData?,
+) {
+    constructor(activity: PlayerActivity) : this(
+        currentDataProvider = { activity.intent.toPlayerApiData() },
+    )
 
-    fun getSubs(): List<Subtitle> {
-        if (extras == null) return emptyList()
-        if (!extras.containsKey(API_SUBS)) return emptyList()
+    val isApiAccess: Boolean get() = snapshot() != null
+    val hasPosition: Boolean get() = snapshot()?.hasPosition == true
+    val hasTitle: Boolean get() = snapshot()?.hasTitle == true
+    val shouldReturnResult: Boolean get() = snapshot()?.shouldReturnResult == true
+    val position: Int? get() = snapshot()?.position
+    val title: String? get() = snapshot()?.title
 
-        val subs = extras.getParcelableUriArray(API_SUBS) ?: return emptyList()
-        val subsName = extras.getStringArray(API_SUBS_NAME)
+    fun getSubs(): List<Subtitle> = snapshot()?.subtitles.orEmpty()
 
-        val subsEnable = extras.getParcelableUriArray(API_SUBS_ENABLE)
-        val defaultSub = if (!subsEnable.isNullOrEmpty()) subsEnable[0] as Uri else null
+    fun getPlaylist(): List<String> = snapshot()?.playlist.orEmpty()
 
-        return subs.mapIndexed { index, parcelable ->
-            val subtitleUri = parcelable as Uri
-            val subtitleName = subsName?.let { if (it.size > index) it[index] else null }
-            Subtitle(
-                name = subtitleName,
-                uri = subtitleUri,
-                isSelected = subtitleUri == defaultSub,
-            )
-        }
-    }
-
-    fun getPlaylist(): List<String> {
-        if (extras == null) return emptyList()
-        if (!extras.containsKey(API_PLAYLIST)) return emptyList()
-        val playlist = extras.getParcelableUriArray(API_PLAYLIST) ?: return emptyList()
-        return playlist.map { (it as Uri).toString() }
-    }
+    internal fun snapshot(): PlayerApiData? = currentDataProvider()
 
     fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent {
         return Intent(API_RESULT_INTENT).apply {
@@ -73,4 +65,34 @@ class PlayerApi(val activity: PlayerActivity) {
         private const val API_END_BY_USER = "user"
         private const val API_END_BY_COMPLETION = "playback_completion"
     }
+}
+
+private fun Intent.toPlayerApiData(): PlayerApiData? {
+    val extras = extras ?: return null
+    val hasPosition = extras.containsKey(PlayerApi.API_POSITION)
+    val hasTitle = extras.containsKey(PlayerApi.API_TITLE)
+    val subtitleNames = extras.getStringArray(PlayerApi.API_SUBS_NAME)
+    val defaultSubtitle = extras.getParcelableUriArray(PlayerApi.API_SUBS_ENABLE)
+        ?.firstOrNull() as? Uri
+    val subtitles = extras.getParcelableUriArray(PlayerApi.API_SUBS).orEmpty()
+        .mapIndexed { index, parcelable ->
+            val subtitleUri = parcelable as Uri
+            Subtitle(
+                name = subtitleNames?.getOrNull(index),
+                uri = subtitleUri,
+                isSelected = subtitleUri == defaultSubtitle,
+            )
+        }
+    val playlist = extras.getParcelableUriArray(PlayerApi.API_PLAYLIST).orEmpty()
+        .map { (it as Uri).toString() }
+
+    return PlayerApiData(
+        hasPosition = hasPosition,
+        position = if (hasPosition) extras.getInt(PlayerApi.API_POSITION) else null,
+        hasTitle = hasTitle,
+        title = if (hasTitle) extras.getString(PlayerApi.API_TITLE) else null,
+        shouldReturnResult = extras.containsKey(PlayerApi.API_RETURN_RESULT),
+        subtitles = subtitles,
+        playlist = playlist,
+    )
 }

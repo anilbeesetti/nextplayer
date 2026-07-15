@@ -43,6 +43,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApiData
 import dev.anilbeesetti.nextplayer.feature.player.utils.resolvePlaylistStartIndex
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
@@ -202,15 +203,19 @@ class PlayerActivity : ComponentActivity() {
         }
 
         isIntentNew = false
+        val apiData = playerApi.snapshot()
 
         lifecycleScope.launch {
-            playVideo(uri)
+            playVideo(uri, apiData)
         }
     }
 
-    private suspend fun playVideo(uri: Uri) = withContext(Dispatchers.Default) {
+    private suspend fun playVideo(
+        uri: Uri,
+        apiData: PlayerApiData?,
+    ) = withContext(Dispatchers.Default) {
         val mediaContentUri = getMediaContentUri(uri)
-        val playlist = playerApi.getPlaylist().takeIf { it.isNotEmpty() }
+        val playlist = apiData?.playlist?.takeIf { it.isNotEmpty() }
             ?: mediaContentUri?.let { mediaUri ->
                 viewModel.getPlaylistFromUri(mediaUri)
                     .map { it.uriString }
@@ -235,11 +240,11 @@ class PlayerActivity : ComponentActivity() {
                 if (index == mediaItemIndexToPlay) {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
-                            setTitle(playerApi.title)
-                            setExtras(positionMs = playerApi.position?.toLong())
+                            setTitle(apiData?.title)
+                            setExtras(positionMs = apiData?.position?.toLong())
                         }.build(),
                     )
-                    val apiSubs = playerApi.getSubs().map { subtitle ->
+                    val apiSubs = apiData?.subtitles.orEmpty().map { subtitle ->
                         uriToSubtitleConfiguration(
                             uri = subtitle.uri,
                             subtitleEncoding = playerPreferences?.subtitleTextEncoding ?: "",
@@ -253,7 +258,7 @@ class PlayerActivity : ComponentActivity() {
 
         withContext(Dispatchers.Main) {
             mediaController?.run {
-                setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
+                setMediaItems(mediaItems, mediaItemIndexToPlay, apiData?.position?.toLong() ?: C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
                 prepare()
             }
