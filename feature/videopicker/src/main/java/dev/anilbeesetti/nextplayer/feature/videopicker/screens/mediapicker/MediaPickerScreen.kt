@@ -133,6 +133,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettings
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.R as VideoPickerR
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
@@ -167,7 +168,7 @@ fun MediaPickerRoute(
             }
             is MediaPickerEvent.PlaylistItemsAdded -> {
                 val message = context.resources.getQuantityString(
-                    R.plurals.added_videos_to_playlist,
+                    VideoPickerR.plurals.added_videos_to_playlist,
                     event.count,
                     event.count,
                 )
@@ -1141,7 +1142,7 @@ private fun PlaylistTargetDialog(
         val trimmedName = name.trim()
         NextDialog(
             onDismissRequest = { if (!state.isSaving) showCreateDialog = false },
-            title = { Text(stringResource(R.string.create_new_playlist)) },
+            title = { Text(stringResource(VideoPickerR.string.create_new_playlist)) },
             content = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
@@ -1149,7 +1150,7 @@ private fun PlaylistTargetDialog(
                         onValueChange = { name = it },
                         enabled = !state.isSaving,
                         singleLine = true,
-                        label = { Text(stringResource(R.string.playlist_name)) },
+                        label = { Text(stringResource(VideoPickerR.string.playlist_name)) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     state.error?.let { error ->
@@ -1167,7 +1168,7 @@ private fun PlaylistTargetDialog(
                     enabled = !state.isSaving && trimmedName.isNotEmpty(),
                     modifier = Modifier.tvFocusRing(),
                 ) {
-                    Text(stringResource(R.string.create))
+                    Text(stringResource(VideoPickerR.string.create))
                 }
             },
             dismissButton = {
@@ -1181,13 +1182,13 @@ private fun PlaylistTargetDialog(
 
     NextDialog(
         onDismissRequest = { if (!state.isSaving) onDismissRequest() },
-        title = { Text(stringResource(R.string.choose_playlist)) },
+        title = { Text(stringResource(VideoPickerR.string.choose_playlist)) },
         content = {
             LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
                 if (playlists.isEmpty()) {
                     item {
                         Text(
-                            text = stringResource(R.string.no_editable_playlists),
+                            text = stringResource(VideoPickerR.string.no_editable_playlists),
                             modifier = Modifier.padding(12.dp),
                         )
                     }
@@ -1211,7 +1212,7 @@ private fun PlaylistTargetDialog(
                             .fillMaxWidth()
                             .tvFocusRing(),
                     ) {
-                        Text(stringResource(R.string.create_new_playlist))
+                        Text(stringResource(VideoPickerR.string.create_new_playlist))
                     }
                 }
                 state.error?.let { error ->
@@ -1307,7 +1308,7 @@ private fun SelectionActionsSheet(
                     modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.PlaylistAdd,
-                    title = stringResource(R.string.add_to_playlist),
+                    title = stringResource(VideoPickerR.string.add_to_playlist),
                     onClick = onAddToPlaylistAction,
                 )
                 if (showRenameAction) {

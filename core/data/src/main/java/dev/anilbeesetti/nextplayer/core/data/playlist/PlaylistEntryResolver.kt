@@ -92,11 +92,11 @@ class PlaylistEntryResolver @Inject constructor() {
     private fun String.toUriOrNull(): URI? = runCatching { URI(this) }.getOrNull()
 
     private fun String.decodePathSegmentOrNull(): String? = runCatching {
-        URLDecoder.decode(replace("+", "%2B"), Charsets.UTF_8)
+        URLDecoder.decode(replace("+", "%2B"), Charsets.UTF_8.name())
     }.getOrNull()
 
     private fun String.encodePathSegment(): String =
-        URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")
+        URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")
 
     private data class TreeDocumentSource(
         val authority: String,

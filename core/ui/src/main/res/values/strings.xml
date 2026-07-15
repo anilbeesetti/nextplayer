@@ -372,15 +372,4 @@
     </plurals>
     <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
 
-    <!-- Add to playlist -->
-    <string name="add_to_playlist">Add to playlist</string>
-    <string name="choose_playlist">Choose a playlist</string>
-    <string name="no_editable_playlists">No editable playlists yet</string>
-    <string name="create_new_playlist">Create new playlist</string>
-    <string name="playlist_name">Playlist name</string>
-    <string name="create">Create</string>
-    <plurals name="added_videos_to_playlist">
-        <item quantity="one">Added 1 video to playlist</item>
-        <item quantity="other">Added %1$d videos to playlist</item>
-    </plurals>
 </resources>
