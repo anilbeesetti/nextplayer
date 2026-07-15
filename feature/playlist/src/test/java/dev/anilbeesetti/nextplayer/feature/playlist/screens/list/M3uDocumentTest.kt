@@ -1,7 +1,9 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistFileGrant
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -17,9 +19,40 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class M3uDocumentTest {
     @Test
+    fun dismissReleasesPreparedGrant() = runTest {
+        val released = mutableListOf<PlaylistFileGrant>()
+        val coordinator = PlaylistCreationCoordinator(this, {}, released::add)
+        var request: M3uFileRequest? = null
+        coordinator.chooseFile { request = it }
+        val document = document("content://documents/news.m3u")
+        coordinator.prepareFile(checkNotNull(request)) { document }
+        advanceUntilIdle()
+
+        coordinator.dismiss()
+
+        assertEquals(listOf(document.grant), released)
+    }
+
+    @Test
+    fun replacementPickerReleasesPreparedGrant() = runTest {
+        val released = mutableListOf<PlaylistFileGrant>()
+        val coordinator = PlaylistCreationCoordinator(this, {}, released::add)
+        var request: M3uFileRequest? = null
+        coordinator.chooseFile { request = it }
+        val document = document("content://documents/old.m3u")
+        coordinator.prepareFile(checkNotNull(request)) { document }
+        advanceUntilIdle()
+
+        coordinator.chooseFile {}
+
+        assertEquals(listOf(document.grant), released)
+    }
+
+    @Test
     fun delayedFileResultDoesNotReplaceNewerEmptyInteraction() = runTest {
         val delayedResult = CompletableDeferred<M3uDocument?>()
-        val coordinator = PlaylistCreationCoordinator(this) {}
+        val released = mutableListOf<PlaylistFileGrant>()
+        val coordinator = PlaylistCreationCoordinator(this, {}, released::add)
         var request: M3uFileRequest? = null
         coordinator.chooseFile { request = it }
         coordinator.prepareFile(checkNotNull(request)) {
@@ -28,18 +61,19 @@ class M3uDocumentTest {
         runCurrent()
 
         coordinator.chooseEmpty()
-        delayedResult.complete(M3uDocument("content://documents/old.m3u", "Old.m3u"))
+        delayedResult.complete(document("content://documents/old.m3u"))
         advanceUntilIdle()
 
         assertEquals(CreationDialog.EMPTY, coordinator.dialog)
         assertNull(coordinator.fileDocument)
+        assertEquals(1, released.size)
     }
 
     @Test
     fun delayedFileFailureDoesNotReportErrorAfterNewerUrlInteraction() = runTest {
         val delayedResult = CompletableDeferred<M3uDocument?>()
         var errorCount = 0
-        val coordinator = PlaylistCreationCoordinator(this) { errorCount++ }
+        val coordinator = PlaylistCreationCoordinator(this, { errorCount++ }, {})
         var request: M3uFileRequest? = null
         coordinator.chooseFile { request = it }
         coordinator.prepareFile(checkNotNull(request)) {
@@ -59,7 +93,7 @@ class M3uDocumentTest {
     fun onlyLatestSuccessfulFileRequestOpensFileDialog() = runTest {
         val oldResult = CompletableDeferred<M3uDocument?>()
         val latestResult = CompletableDeferred<M3uDocument?>()
-        val coordinator = PlaylistCreationCoordinator(this) {}
+        val coordinator = PlaylistCreationCoordinator(this, {}, {})
         var oldRequest: M3uFileRequest? = null
         coordinator.chooseFile { oldRequest = it }
         coordinator.prepareFile(checkNotNull(oldRequest)) {
@@ -71,13 +105,13 @@ class M3uDocumentTest {
         coordinator.chooseFile { latestRequest = it }
         coordinator.prepareFile(checkNotNull(latestRequest)) { latestResult.await() }
         runCurrent()
-        oldResult.complete(M3uDocument("content://documents/old.m3u", "Old.m3u"))
+        oldResult.complete(document("content://documents/old.m3u"))
         advanceUntilIdle()
 
         assertEquals(CreationDialog.NONE, coordinator.dialog)
         assertNull(coordinator.fileDocument)
 
-        val latestDocument = M3uDocument("content://documents/latest.m3u", "Latest.m3u")
+        val latestDocument = document("content://documents/latest.m3u")
         latestResult.complete(latestDocument)
         advanceUntilIdle()
 
@@ -89,8 +123,8 @@ class M3uDocumentTest {
     fun failedPersistablePermissionWithExistingReadableGrantCreatesDocument() = runTest {
         val preparer = M3uDocumentPreparer(
             ioDispatcher = StandardTestDispatcher(testScheduler),
-            persistPermission = { throw SecurityException("Permission denied") },
-            hasPersistedReadPermission = { true },
+            acquirePermission = { PlaylistFileGrant("content://documents/news.m3u", 1) },
+            releasePermission = {},
             queryDisplayName = { "News.m3u" },
         )
         val document = preparer.prepare(
@@ -98,7 +132,7 @@ class M3uDocumentTest {
             fallbackDisplayName = "news.m3u",
         )
 
-        assertEquals(M3uDocument("content://documents/news.m3u", "News.m3u"), document)
+        assertEquals("News.m3u", document?.displayName)
     }
 
     @Test
@@ -111,8 +145,8 @@ class M3uDocumentTest {
             var queryThreadName: String? = null
             val preparer = M3uDocumentPreparer(
                 ioDispatcher = dispatcher,
-                persistPermission = {},
-                hasPersistedReadPermission = { false },
+                acquirePermission = { PlaylistFileGrant("content://documents/news.m3u", 1) },
+                releasePermission = {},
                 queryDisplayName = {
                     queryThreadName = Thread.currentThread().name
                     "News.m3u"
@@ -135,8 +169,8 @@ class M3uDocumentTest {
     fun failedPersistablePermissionWithoutExistingReadableGrantDoesNotCreateDocument() = runTest {
         val preparer = M3uDocumentPreparer(
             ioDispatcher = StandardTestDispatcher(testScheduler),
-            persistPermission = { throw SecurityException("Permission denied") },
-            hasPersistedReadPermission = { false },
+            acquirePermission = { null },
+            releasePermission = {},
             queryDisplayName = { "News.m3u" },
         )
         val document = preparer.prepare(
@@ -151,8 +185,8 @@ class M3uDocumentTest {
     fun persistedDocumentUsesFallbackWhenDisplayNameQueryFails() = runTest {
         val preparer = M3uDocumentPreparer(
             ioDispatcher = StandardTestDispatcher(testScheduler),
-            persistPermission = {},
-            hasPersistedReadPermission = { false },
+            acquirePermission = { PlaylistFileGrant("content://documents/news.m3u", 1) },
+            releasePermission = {},
             queryDisplayName = { error("Provider failure") },
         )
         val document = preparer.prepare(
@@ -160,6 +194,32 @@ class M3uDocumentTest {
             fallbackDisplayName = "news.m3u",
         )
 
-        assertEquals(M3uDocument("content://documents/news.m3u", "news.m3u"), document)
+        assertEquals("news.m3u", document?.displayName)
     }
+
+    @Test
+    fun cancelledMetadataPreparationReleasesAcquiredGrant() = runTest {
+        val grant = PlaylistFileGrant("content://documents/news.m3u", 9)
+        val released = mutableListOf<PlaylistFileGrant>()
+        val preparer = M3uDocumentPreparer(
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+            acquirePermission = { grant },
+            releasePermission = released::add,
+            queryDisplayName = { throw CancellationException("cancelled") },
+        )
+
+        try {
+            preparer.prepare(grant.uri, "news.m3u")
+            org.junit.Assert.fail("Expected cancellation")
+        } catch (_: CancellationException) {
+            // Expected.
+        }
+        assertEquals(listOf(grant), released)
+    }
+
+    private fun document(uri: String) = M3uDocument(
+        uri = uri,
+        displayName = uri.substringAfterLast('/'),
+        grant = PlaylistFileGrant(uri, uri.hashCode().toLong()),
+    )
 }

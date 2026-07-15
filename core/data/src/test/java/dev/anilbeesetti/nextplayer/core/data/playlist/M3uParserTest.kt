@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.data.playlist
 import java.net.URI
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.test.assertFailsWith
 
 class M3uParserTest {
     private val parser = M3uParser()
@@ -111,5 +112,26 @@ class M3uParserTest {
             result.entries.map { it.uriString },
         )
         assertEquals(5, result.skippedEntries)
+    }
+
+    @Test
+    fun rejectsMoreThanMaximumParsedEntries() {
+        val text = buildString {
+            repeat(ENTRY_LIMIT + 1) { index ->
+                append("https://example.test/video/")
+                append(index)
+                append('\n')
+            }
+        }
+
+        val error = assertFailsWith<PlaylistEntryLimitExceededException> {
+            parser.parse(text) { it }
+        }
+
+        assertEquals("Playlist contains more than $ENTRY_LIMIT entries", error.message)
+    }
+
+    private companion object {
+        const val ENTRY_LIMIT = 10_000
     }
 }

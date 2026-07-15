@@ -18,15 +18,18 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 class LocalPlaylistRepository @Inject constructor(
     private val playlistDao: PlaylistDao,
     private val parser: M3uParser,
     private val sourceReader: PlaylistSourceReader,
+    private val fileGrantRepository: PlaylistFileGrantRepository,
 ) : PlaylistRepository {
     private val refreshMutexes = ConcurrentHashMap<Long, Mutex>()
 
@@ -114,8 +117,14 @@ class LocalPlaylistRepository @Inject constructor(
     }
 
     override suspend fun delete(id: Long) {
-        playlistDao.deletePlaylist(id)
-        refreshMutexes.remove(id)
+        val playlist = playlistDao.getPlaylist(id)?.playlist
+        withContext(NonCancellable) {
+            playlistDao.deletePlaylist(id)
+            refreshMutexes.remove(id)
+            if (playlist?.type == PlaylistType.M3U_FILE.name) {
+                playlist.source?.let { fileGrantRepository.releaseIfUnused(it) }
+            }
+        }
     }
 
     private suspend fun readAndParse(type: PlaylistType, source: String): M3uParseResult = try {

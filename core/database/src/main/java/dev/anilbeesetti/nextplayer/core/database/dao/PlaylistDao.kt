@@ -53,6 +53,9 @@ interface PlaylistDao {
     @Query("DELETE FROM playlist WHERE id = :playlistId")
     suspend fun deletePlaylist(playlistId: Long)
 
+    @Query("SELECT COUNT(*) FROM playlist WHERE type = :type AND source = :source")
+    suspend fun countPlaylistsByTypeAndSource(type: String, source: String): Int
+
     @Update
     suspend fun updateItems(items: List<PlaylistItemEntity>)
 

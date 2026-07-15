@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistNameConflictException
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistFileGrant
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistFileGrantRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRefreshResult
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistSourceException
@@ -39,13 +41,15 @@ import org.junit.Test
 class PlaylistListViewModelTest {
     private val dispatcher: TestDispatcher = StandardTestDispatcher()
     private lateinit var repository: FakePlaylistRepository
+    private lateinit var grantRepository: FakePlaylistFileGrantRepository
     private lateinit var viewModel: PlaylistListViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         repository = FakePlaylistRepository()
-        viewModel = PlaylistListViewModel(repository)
+        grantRepository = FakePlaylistFileGrantRepository()
+        viewModel = PlaylistListViewModel(repository, grantRepository)
     }
 
     @After
@@ -119,10 +123,62 @@ class PlaylistListViewModelTest {
         repository.createLinkedHandler = { _, _, _ -> PlaylistRefreshResult(15, 2, 0) }
         val source = "content://documents/playlist.m3u8"
 
-        viewModel.onAction(PlaylistListAction.CreateLinked("Playlist", PlaylistType.M3U_FILE, source))
+        val grant = PlaylistFileGrant(source, 1)
+        viewModel.onAction(PlaylistListAction.CreateLinked("Playlist", PlaylistType.M3U_FILE, source, grant))
         advanceUntilIdle()
 
         assertEquals(LinkedCreateCall("Playlist", PlaylistType.M3U_FILE, source), repository.linkedCalls.single())
+        assertEquals(listOf(grantRepository.reservations.single(), grant), grantRepository.retained)
+        assertTrue(grantRepository.released.isEmpty())
+    }
+
+    @Test
+    fun failedFileCreationReleasesPreparedGrant() = runTest(dispatcher) {
+        collectUiState()
+        val source = "content://documents/playlist.m3u8"
+        val grant = PlaylistFileGrant(source, 2)
+        repository.createLinkedHandler = { _, _, _ -> throw IOException("broken") }
+        val event = async { viewModel.events.first() }
+
+        viewModel.onAction(PlaylistListAction.CreateLinked("Playlist", PlaylistType.M3U_FILE, source, grant))
+        advanceUntilIdle()
+
+        assertEquals(listOf(grantRepository.reservations.single(), grant), grantRepository.released)
+        assertTrue(grantRepository.retained.isEmpty())
+        assertEquals(PlaylistListEvent.FileCreationFailed("broken"), event.await())
+        assertEquals(null, viewModel.uiState.value.formError)
+    }
+
+    @Test
+    fun cancelledFileCreationReleasesPreparedGrant() = runTest(dispatcher) {
+        collectUiState()
+        val source = "content://documents/playlist.m3u8"
+        val grant = PlaylistFileGrant(source, 3)
+        val started = CompletableDeferred<Unit>()
+        repository.createLinkedHandler = { _, _, _ ->
+            started.complete(Unit)
+            CompletableDeferred<PlaylistRefreshResult>().await()
+        }
+
+        viewModel.onAction(PlaylistListAction.CreateLinked("Playlist", PlaylistType.M3U_FILE, source, grant))
+        started.await()
+        viewModel.cancelCreation()
+        advanceUntilIdle()
+
+        assertEquals(listOf(grantRepository.reservations.single(), grant), grantRepository.released)
+    }
+
+    @Test
+    fun urlAndEditableCreationDoNotTouchFileGrants() = runTest(dispatcher) {
+        collectUiState()
+
+        viewModel.onAction(PlaylistListAction.CreateEditable("Movies"))
+        advanceUntilIdle()
+        viewModel.onAction(PlaylistListAction.CreateLinked("News", PlaylistType.M3U_URL, "https://example.test/list.m3u"))
+        advanceUntilIdle()
+
+        assertTrue(grantRepository.retained.isEmpty())
+        assertTrue(grantRepository.released.isEmpty())
     }
 
     @Test
@@ -149,6 +205,19 @@ class PlaylistListViewModelTest {
     private fun TestScope.collectUiState() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
     }
+}
+
+private class FakePlaylistFileGrantRepository : PlaylistFileGrantRepository {
+    val retained = mutableListOf<PlaylistFileGrant>()
+    val released = mutableListOf<PlaylistFileGrant>()
+    val reservations = mutableListOf<PlaylistFileGrant>()
+
+    override suspend fun acquire(uri: String): PlaylistFileGrant? = PlaylistFileGrant(uri, 1)
+    override suspend fun reserve(grant: PlaylistFileGrant): PlaylistFileGrant =
+        grant.copy(token = grant.token + 10_000).also(reservations::add)
+    override suspend fun retain(grant: PlaylistFileGrant) { retained += grant }
+    override suspend fun release(grant: PlaylistFileGrant) { released += grant }
+    override suspend fun releaseIfUnused(uri: String) = Unit
 }
 
 private data class LinkedCreateCall(val name: String, val type: PlaylistType, val source: String)

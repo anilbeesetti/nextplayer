@@ -8,29 +8,29 @@ import android.os.Build.VERSION.SDK_INT
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.get
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
 import coil3.decode.ContentMetadata
 import coil3.decode.DecodeResult
+import coil3.decode.DecodeUtils
 import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.disk.DiskCache
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
-import coil3.toAndroidUri
-import okio.FileSystem
-import androidx.core.graphics.get
-import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
-import kotlin.math.abs
-import coil3.decode.DecodeUtils
 import coil3.request.maxBitmapSize
 import coil3.size.Precision
 import coil3.size.Size
 import coil3.size.pxOrElse
+import coil3.toAndroidUri
 import coil3.util.component1
 import coil3.util.component2
+import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
+import kotlin.math.abs
 import kotlin.math.roundToInt
+import okio.FileSystem
 
 class VideoThumbnailDecoder(
     private val source: ImageSource,
@@ -53,6 +53,7 @@ class VideoThumbnailDecoder(
     override suspend fun decode(): DecodeResult {
         readFromDiskCache()?.use { snapshot ->
             val file = snapshot.data.toFile()
+            if (file.length() !in 1..MAX_CACHED_THUMBNAIL_BYTES) return@use
 
             // Read cached image dimensions (no pixel allocation)
             val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -60,21 +61,35 @@ class VideoThumbnailDecoder(
             val cachedWidth = boundsOpts.outWidth
             val cachedHeight = boundsOpts.outHeight
 
+            if (!isSafeCachedThumbnail(file.length(), cachedWidth, cachedHeight)) return@use
+
             // Determine what size the caller actually wants
             val requestedWidth = options.size.width.pxOrElse { 0 }
             val requestedHeight = options.size.height.pxOrElse { 0 }
 
             // Cache is sufficient only if requested size <= cached size (or size is unspecified)
             val cacheIsSufficient = (requestedWidth == 0 || requestedWidth <= cachedWidth) &&
-                    (requestedHeight == 0 || requestedHeight <= cachedHeight)
+                (requestedHeight == 0 || requestedHeight <= cachedHeight)
 
             if (cacheIsSufficient) {
                 val dstSize = computeDstSize(cachedWidth, cachedHeight)
-                val sampledBitmap = file.inputStream().use { BitmapFactory.decodeStream(it) }
+                val targetWidth = dstSize.width.pxOrElse { cachedWidth }
+                val targetHeight = dstSize.height.pxOrElse { cachedHeight }
+                val decodeOptions = BitmapFactory.Options().apply {
+                    inSampleSize = calculateThumbnailInSampleSize(
+                        sourceWidth = cachedWidth,
+                        sourceHeight = cachedHeight,
+                        targetWidth = targetWidth,
+                        targetHeight = targetHeight,
+                    )
+                }
+                val sampledBitmap = file.inputStream().use {
+                    BitmapFactory.decodeStream(it, null, decodeOptions)
+                } ?: return@use
                 val normalizedBitmap = normalizeBitmap(
                     inBitmap = sampledBitmap,
-                    srcWidth = cachedWidth,
-                    srcHeight = cachedHeight,
+                    srcWidth = sampledBitmap.width,
+                    srcHeight = sampledBitmap.height,
                     dstSize = dstSize,
                 )
                 return DecodeResult(
@@ -99,9 +114,7 @@ class VideoThumbnailDecoder(
 
                 // First, try to get embedded picture (album art/metadata thumbnail)
                 val embeddedPicture = nativeRetriever.embeddedPicture ?: ffmpegRetriever.getEmbeddedPicture()
-                val embeddedPictureBitmap = embeddedPicture?.let { pictureBytes ->
-                    BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size)
-                }
+                val embeddedPictureBitmap = embeddedPicture?.let(::decodeEmbeddedPicture)
 
                 if (embeddedPictureBitmap != null) return@use embeddedPictureBitmap
 
@@ -206,6 +219,31 @@ class VideoThumbnailDecoder(
         } catch (_: Exception) {
             runCatching { editor.abort() }
         }
+    }
+
+    private fun decodeEmbeddedPicture(pictureBytes: ByteArray): Bitmap? {
+        val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size, boundsOptions)
+        if (
+            !isSafeCachedThumbnail(
+                encodedByteCount = pictureBytes.size.toLong(),
+                width = boundsOptions.outWidth,
+                height = boundsOptions.outHeight,
+            )
+        ) {
+            return null
+        }
+
+        val dstSize = computeDstSize(boundsOptions.outWidth, boundsOptions.outHeight)
+        val decodeOptions = BitmapFactory.Options().apply {
+            inSampleSize = calculateThumbnailInSampleSize(
+                sourceWidth = boundsOptions.outWidth,
+                sourceHeight = boundsOptions.outHeight,
+                targetWidth = dstSize.width.pxOrElse { boundsOptions.outWidth },
+                targetHeight = dstSize.height.pxOrElse { boundsOptions.outHeight },
+            )
+        }
+        return BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.size, decodeOptions)
     }
 
     private fun normalizeBitmap(inBitmap: Bitmap, srcWidth: Int, srcHeight: Int, dstSize: Size): Bitmap {
@@ -358,8 +396,8 @@ private fun isSolidColor(bitmap: Bitmap, threshold: Float = 0.7f): Boolean {
         val b = color and 0xFF
 
         abs(r - referenceR) <= tolerance &&
-                abs(g - referenceG) <= tolerance &&
-                abs(b - referenceB) <= tolerance
+            abs(g - referenceG) <= tolerance &&
+            abs(b - referenceB) <= tolerance
     }
 
     val similarityRatio = similarCount.toFloat() / sampledColors.size

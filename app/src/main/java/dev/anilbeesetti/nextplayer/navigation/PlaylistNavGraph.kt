@@ -20,6 +20,8 @@ fun EntryProviderScope<NavKey>.playlistNavGraph(
 
     playlistDetailEntry(
         onNavigateUp = { backStack.removeLastOrNull() },
-        onPlayPlaylist = { uris, startUri -> context.startPlayback(uris, startUri) },
+        onPlayPlaylist = { uris, startUri ->
+            context.startPlayback(uris, startUri, forcePlaylistExtra = true)
+        },
     )
 }

@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.extensions
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import dev.anilbeesetti.nextplayer.feature.player.service.MAX_PUBLISHED_ARTWORK_BYTES
 
 private const val MEDIA_METADATA_POSITION_KEY = "media_metadata_position"
 private const val MEDIA_METADATA_PLAYBACK_SPEED_KEY = "media_metadata_playback_speed"
@@ -120,11 +121,16 @@ fun MediaItem.copy(
 /**
  * Publishes compressed artwork without exposing an app-private cache URI to media controllers.
  */
-fun MediaItem.withPublishedArtwork(artworkData: ByteArray): MediaItem = buildUpon()
-    .setMediaMetadata(
-        mediaMetadata.buildUpon()
-            .setArtworkUri(null)
-            .setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-            .build(),
-    )
-    .build()
+fun MediaItem.withPublishedArtwork(artworkData: ByteArray): MediaItem {
+    require(artworkData.size <= MAX_PUBLISHED_ARTWORK_BYTES) {
+        "Published artwork must not exceed $MAX_PUBLISHED_ARTWORK_BYTES bytes"
+    }
+    return buildUpon()
+        .setMediaMetadata(
+            mediaMetadata.buildUpon()
+                .setArtworkUri(null)
+                .setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                .build(),
+        )
+        .build()
+}

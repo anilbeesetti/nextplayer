@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3uParser
+import dev.anilbeesetti.nextplayer.core.data.playlist.PlaylistEntryLimitExceededException
 import dev.anilbeesetti.nextplayer.core.data.playlist.PlaylistSourceContent
 import dev.anilbeesetti.nextplayer.core.data.playlist.PlaylistSourceReader
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
@@ -32,13 +33,15 @@ import org.junit.Test
 class LocalPlaylistRepositoryTest {
     private lateinit var dao: FakePlaylistDao
     private lateinit var sourceReader: FakePlaylistSourceReader
+    private lateinit var fileGrantRepository: FakePlaylistFileGrantRepository
     private lateinit var repository: LocalPlaylistRepository
 
     @Before
     fun setUp() {
         dao = FakePlaylistDao()
         sourceReader = FakePlaylistSourceReader()
-        repository = LocalPlaylistRepository(dao, M3uParser(), sourceReader)
+        fileGrantRepository = FakePlaylistFileGrantRepository()
+        repository = LocalPlaylistRepository(dao, M3uParser(), sourceReader, fileGrantRepository)
     }
 
     @Test
@@ -206,6 +209,23 @@ class LocalPlaylistRepositoryTest {
     }
 
     @Test
+    fun entryLimitFailureKeepsCachedItems() = runTest {
+        val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
+        sourceReader.content = buildString {
+            repeat(10_001) { index -> append("https://example.test/$index.mp4\n") }
+        }
+
+        val failure = assertFailsWith<PlaylistSourceException> { repository.refresh(id) }
+
+        assertTrue(failure.cause is PlaylistEntryLimitExceededException)
+        assertEquals("Playlist contains more than 10000 entries", failure.cause?.message)
+        assertEquals(
+            listOf("https://example.test/one.mp4"),
+            dao.getItems(id).map { it.uri },
+        )
+    }
+
+    @Test
     fun databaseFailureDuringRefreshKeepsCachedItems() = runTest {
         val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
         sourceReader.content = "https://example.test/two.mp4"
@@ -338,8 +358,46 @@ class LocalPlaylistRepositoryTest {
         assertNull(repository.observePlaylist(id).first())
     }
 
+    @Test
+    fun deletingM3uFileChecksGrantAfterDatabaseDeletion() = runTest {
+        val id = repository.createLinked("File", PlaylistType.M3U_FILE, "content://documents/news.m3u").playlistId
+        fileGrantRepository.onReleaseIfUnused = { uri ->
+            assertEquals("content://documents/news.m3u", uri)
+            assertNull(dao.getPlaylist(id))
+        }
+
+        repository.delete(id)
+
+        assertEquals(listOf("content://documents/news.m3u"), fileGrantRepository.releaseIfUnusedUris)
+    }
+
+    @Test
+    fun deletingUrlAndEditablePlaylistsDoesNotTouchFileGrants() = runTest {
+        val editableId = repository.createEditable("Movies")
+        val urlId = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
+
+        repository.delete(editableId)
+        repository.delete(urlId)
+
+        assertTrue(fileGrantRepository.releaseIfUnusedUris.isEmpty())
+    }
+
     private companion object {
         const val SOURCE = "https://example.test/list.m3u"
+    }
+}
+
+private class FakePlaylistFileGrantRepository : PlaylistFileGrantRepository {
+    val releaseIfUnusedUris = mutableListOf<String>()
+    var onReleaseIfUnused: suspend (String) -> Unit = {}
+
+    override suspend fun acquire(uri: String): PlaylistFileGrant? = error("Not used")
+    override suspend fun reserve(grant: PlaylistFileGrant): PlaylistFileGrant? = error("Not used")
+    override suspend fun retain(grant: PlaylistFileGrant) = error("Not used")
+    override suspend fun release(grant: PlaylistFileGrant) = error("Not used")
+    override suspend fun releaseIfUnused(uri: String) {
+        releaseIfUnusedUris += uri
+        onReleaseIfUnused(uri)
     }
 }
 
@@ -464,6 +522,9 @@ private class FakePlaylistDao : PlaylistDao {
         items.remove(playlistId)
         emit(playlistId)
     }
+
+    override suspend fun countPlaylistsByTypeAndSource(type: String, source: String): Int =
+        playlists.values.count { it.type == type && it.source == source }
 
     override suspend fun updateItems(items: List<PlaylistItemEntity>) {
         items.groupBy { it.playlistId }.forEach { (playlistId, updated) ->

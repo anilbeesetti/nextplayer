@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,6 +45,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApiData
+import dev.anilbeesetti.nextplayer.feature.player.utils.resolvePlaybackQueue
 import dev.anilbeesetti.nextplayer.feature.player.utils.resolvePlaylistStartIndex
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
@@ -215,17 +217,14 @@ class PlayerActivity : ComponentActivity() {
         apiData: PlayerApiData?,
     ) = withContext(Dispatchers.Default) {
         val mediaContentUri = getMediaContentUri(uri)
-        val playlist = apiData?.playlist?.takeIf { it.isNotEmpty() }
-            ?: mediaContentUri?.let { mediaUri ->
-                viewModel.getPlaylistFromUri(mediaUri)
-                    .map { it.uriString }
-                    .toMutableList()
-                    .apply {
-                        if (!contains(mediaUri.toString())) {
-                            add(index = 0, element = mediaUri.toString())
-                        }
-                    }
-            } ?: listOf(uri.toString())
+        val playlist = resolvePlaybackQueue(
+            selectedUri = uri.toString(),
+            normalizedSelectedUri = mediaContentUri?.toString(),
+            explicitPlaylist = apiData?.playlist.orEmpty(),
+            getLocalPlaylist = { mediaUri ->
+                viewModel.getPlaylistFromUri(mediaUri.toUri()).map { it.uriString }
+            },
+        )
 
         val mediaItemIndexToPlay = resolvePlaylistStartIndex(
             playlist = playlist,

@@ -31,8 +31,9 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import coil3.ImageLoader
-import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
@@ -281,7 +282,7 @@ class PlayerService : MediaSessionService() {
             // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
+                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0)),
             )
         }
 
@@ -673,7 +674,7 @@ class PlayerService : MediaSessionService() {
             }
         }.awaitAll()
     }
-    
+
     private fun getDefaultArtworkUri(): Uri = Uri.Builder().apply {
         val defaultArtwork = R.drawable.artwork_default
         scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
@@ -707,13 +708,11 @@ class PlayerService : MediaSessionService() {
             val request = ImageRequest.Builder(this@PlayerService)
                 .data(uri)
                 .size(512, 512)
+                .allowHardware(false)
                 .build()
-            imageLoader.execute(request)
-            val diskCache = imageLoader.diskCache ?: return@withContext null
-            return@withContext diskCache.openSnapshot(uri.toString())?.use { snapshot ->
-                snapshot.data.toFile().readBytes()
-            }
-        } catch (_: Throwable) {
+            val result = imageLoader.execute(request) as? SuccessResult ?: return@withContext null
+            encodePublishedArtwork(result.image)
+        } catch (_: Exception) {
             null
         }
     }

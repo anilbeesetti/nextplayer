@@ -49,15 +49,39 @@ internal fun Context.startPlayback(
     uris: List<Uri>,
     startUri: Uri = uris.first(),
     grantReadPermission: Boolean = false,
+    forcePlaylistExtra: Boolean = false,
 ) {
-    if (grantReadPermission) {
+    val spec = playbackLaunchSpec(
+        items = uris,
+        startItem = startUri,
+        grantReadPermission = grantReadPermission,
+        forcePlaylistExtra = forcePlaylistExtra,
+    )
+    if (spec.grantReadPermission) {
         uris.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
     }
     val intent = Intent(this, PlayerActivity::class.java).apply {
         action = Intent.ACTION_VIEW
-        data = startUri
-        if (uris.size > 1) putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
-        if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        data = spec.startItem
+        spec.playlistExtra?.let { putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, it) }
+        if (spec.grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     startActivity(intent)
 }
+
+internal data class PlaybackLaunchSpec<T>(
+    val startItem: T,
+    val playlistExtra: ArrayList<T>?,
+    val grantReadPermission: Boolean,
+)
+
+internal fun <T> playbackLaunchSpec(
+    items: List<T>,
+    startItem: T = items.first(),
+    grantReadPermission: Boolean = false,
+    forcePlaylistExtra: Boolean = false,
+): PlaybackLaunchSpec<T> = PlaybackLaunchSpec(
+    startItem = startItem,
+    playlistExtra = items.takeIf { it.size > 1 || forcePlaylistExtra }?.let { ArrayList(it) },
+    grantReadPermission = grantReadPermission,
+)

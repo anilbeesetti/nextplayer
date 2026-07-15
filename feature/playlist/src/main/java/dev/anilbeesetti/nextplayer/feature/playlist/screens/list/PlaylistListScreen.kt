@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 
-import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -61,6 +60,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistFileGrant
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
@@ -76,9 +76,11 @@ import dev.anilbeesetti.nextplayer.feature.playlist.composables.AddM3uUrlDialog
 import dev.anilbeesetti.nextplayer.feature.playlist.composables.PlaylistNameDialog
 import java.util.Date
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -87,6 +89,7 @@ import kotlinx.coroutines.withContext
 data class M3uDocument(
     val uri: String,
     val displayName: String,
+    val grant: PlaylistFileGrant,
 )
 
 internal enum class CreationDialog { NONE, CHOOSER, EMPTY, URL, FILE }
@@ -97,6 +100,7 @@ internal value class M3uFileRequest internal constructor(internal val token: Lon
 internal class PlaylistCreationCoordinator(
     private val coroutineScope: CoroutineScope,
     private val onPreparationError: () -> Unit,
+    private val onReleaseGrant: (PlaylistFileGrant) -> Unit,
 ) {
     var dialog by mutableStateOf(CreationDialog.NONE)
         private set
@@ -109,32 +113,32 @@ internal class PlaylistCreationCoordinator(
 
     fun openChooser() {
         invalidateFilePreparation()
-        fileDocument = null
+        clearFileDocument()
         dialog = CreationDialog.CHOOSER
     }
 
     fun chooseEmpty() {
         invalidateFilePreparation()
-        fileDocument = null
+        clearFileDocument()
         dialog = CreationDialog.EMPTY
     }
 
     fun chooseUrl() {
         invalidateFilePreparation()
-        fileDocument = null
+        clearFileDocument()
         dialog = CreationDialog.URL
     }
 
     fun chooseFile(onPickM3uFile: (M3uFileRequest) -> Unit) {
         invalidateFilePreparation()
-        fileDocument = null
+        clearFileDocument()
         dialog = CreationDialog.NONE
         onPickM3uFile(M3uFileRequest(requestToken))
     }
 
     fun dismiss() {
         invalidateFilePreparation()
-        fileDocument = null
+        clearFileDocument()
         dialog = CreationDialog.NONE
     }
 
@@ -145,21 +149,34 @@ internal class PlaylistCreationCoordinator(
         if (request.token != requestToken) return
         activePreparation?.cancel()
         activePreparation = coroutineScope.launch {
-            val document = prepare()
-            if (!isActive || request.token != requestToken) return@launch
+            var document: M3uDocument? = null
+            var accepted = false
+            try {
+                document = prepare()
+                if (!isActive || request.token != requestToken) return@launch
 
-            activePreparation = null
-            if (document == null) {
-                onPreparationError()
-            } else {
-                fileDocument = document
-                dialog = CreationDialog.FILE
+                activePreparation = null
+                if (document == null) {
+                    onPreparationError()
+                } else {
+                    fileDocument = document
+                    dialog = CreationDialog.FILE
+                    accepted = true
+                }
+            } finally {
+                if (!accepted) document?.grant?.let(onReleaseGrant)
             }
         }
     }
 
     fun cancel() {
         invalidateFilePreparation()
+        clearFileDocument()
+    }
+
+    private fun clearFileDocument() {
+        fileDocument?.grant?.let(onReleaseGrant)
+        fileDocument = null
     }
 
     private fun invalidateFilePreparation() {
@@ -178,10 +195,14 @@ fun PlaylistListScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val creationCoordinator = remember(coroutineScope, context) {
-        PlaylistCreationCoordinator(coroutineScope) {
-            Toast.makeText(context, R.string.document_permission_error, Toast.LENGTH_LONG).show()
-        }
+    val creationCoordinator = remember(coroutineScope, context, viewModel) {
+        PlaylistCreationCoordinator(
+            coroutineScope = coroutineScope,
+            onPreparationError = {
+                Toast.makeText(context, R.string.document_permission_error, Toast.LENGTH_LONG).show()
+            },
+            onReleaseGrant = viewModel::releaseFileGrant,
+        )
     }
     var fileRequest by remember { mutableStateOf<M3uFileRequest?>(null) }
     val openDocumentLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -190,14 +211,8 @@ fun PlaylistListScreenRoute(
         uri ?: return@rememberLauncherForActivityResult
         val documentPreparer = M3uDocumentPreparer(
             ioDispatcher = Dispatchers.IO,
-            persistPermission = {
-                context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            },
-            hasPersistedReadPermission = {
-                context.contentResolver.persistedUriPermissions.any { permission ->
-                    permission.uri == uri && permission.isReadPermission
-                }
-            },
+            acquirePermission = { viewModel.acquireFileGrant(uri.toString()) },
+            releasePermission = { grant -> viewModel.releaseFileGrant(grant) },
             queryDisplayName = { context.contentResolver.queryDisplayName(uri) },
         )
         creationCoordinator.prepareFile(request) {
@@ -212,6 +227,10 @@ fun PlaylistListScreenRoute(
         when (event) {
             is PlaylistListEvent.Created -> onPlaylistClick(event.playlistId)
             is PlaylistListEvent.Message -> Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+            is PlaylistListEvent.FileCreationFailed -> {
+                creationCoordinator.dismiss()
+                Toast.makeText(context, event.text, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -249,7 +268,7 @@ internal fun PlaylistListScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val ownedCreationCoordinator = remember(coroutineScope) {
-        PlaylistCreationCoordinator(coroutineScope) {}
+        PlaylistCreationCoordinator(coroutineScope, {}, {})
     }
     val coordinator = creationCoordinator ?: ownedCreationCoordinator
     var playlistToDelete by remember { mutableStateOf<PlaylistSummary?>(null) }
@@ -370,7 +389,14 @@ internal fun PlaylistListScreen(
             onDismissRequest = { dismissCreationDialog(onAction, coordinator::dismiss) },
             onConfirm = { name ->
                 coordinator.fileDocument?.let { document ->
-                    onAction(PlaylistListAction.CreateLinked(name, PlaylistType.M3U_FILE, document.uri))
+                    onAction(
+                        PlaylistListAction.CreateLinked(
+                            name,
+                            PlaylistType.M3U_FILE,
+                            document.uri,
+                            document.grant,
+                        ),
+                    )
                 }
             },
             onClearError = { onAction(PlaylistListAction.ClearFormError) },
@@ -573,19 +599,25 @@ internal fun String.withoutM3uExtension(): String = replace(Regex("(?i)\\.m3u8?$
 
 internal class M3uDocumentPreparer(
     private val ioDispatcher: CoroutineDispatcher,
-    private val persistPermission: () -> Unit,
-    private val hasPersistedReadPermission: () -> Boolean,
+    private val acquirePermission: suspend () -> PlaylistFileGrant?,
+    private val releasePermission: suspend (PlaylistFileGrant) -> Unit,
     private val queryDisplayName: () -> String?,
 ) {
     suspend fun prepare(uri: String, fallbackDisplayName: String): M3uDocument? = withContext(ioDispatcher) {
-        val hasReadPermission = runCatching(persistPermission).isSuccess ||
-            runCatching(hasPersistedReadPermission).getOrDefault(false)
-        if (!hasReadPermission) return@withContext null
-
-        val displayName = runCatching(queryDisplayName).getOrNull()
-            ?.takeIf(String::isNotBlank)
-            ?: fallbackDisplayName
-        M3uDocument(uri = uri, displayName = displayName)
+        val grant = acquirePermission() ?: return@withContext null
+        try {
+            val displayName = try {
+                queryDisplayName()
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                null
+            }?.takeIf(String::isNotBlank) ?: fallbackDisplayName
+            M3uDocument(uri = uri, displayName = displayName, grant = grant)
+        } catch (cancellation: CancellationException) {
+            withContext(NonCancellable) { releasePermission(grant) }
+            throw cancellation
+        }
     }
 }
 

@@ -17,6 +17,7 @@ class M3uParser @Inject constructor() {
         val seenUris = mutableSetOf<String>()
         var nextTitle: String? = null
         var skippedEntries = 0
+        var parsedEntries = 0
 
         content.removePrefix("\uFEFF").lineSequence().forEach { line ->
             val value = line.trim()
@@ -29,6 +30,10 @@ class M3uParser @Inject constructor() {
                 }
                 value.startsWith('#') -> Unit
                 else -> {
+                    parsedEntries++
+                    if (parsedEntries > PlaylistLimits.MAX_ENTRIES) {
+                        throw PlaylistEntryLimitExceededException(PlaylistLimits.MAX_ENTRIES)
+                    }
                     val resolvedUri = resolveEntry(value)
                     if (resolvedUri == null) {
                         skippedEntries++
