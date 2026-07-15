@@ -27,6 +27,16 @@
     <string name="delete_playlist">Delete playlist</string>
     <string name="delete_playlist_confirmation">Remove "%1$s"?</string>
     <string name="delete">Delete</string>
+    <string name="play_all">Play all</string>
+    <string name="refresh_playlist">Refresh playlist</string>
+    <string name="refreshing_playlist">Refreshing playlist</string>
+    <string name="reorder_playlist_item">Reorder playlist item</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="unknown_playlist_item">Unknown item</string>
+    <string name="empty_playlist_title">This playlist is empty</string>
+    <string name="empty_playlist_description">There are no videos to play yet.</string>
+    <string name="playlist_unavailable">This playlist is no longer available.</string>
     <string name="playlist_actions">Playlist actions</string>
     <string name="create_new_playlist">Create new playlist</string>
     <string name="choose_playlist">Choose a playlist</string>
