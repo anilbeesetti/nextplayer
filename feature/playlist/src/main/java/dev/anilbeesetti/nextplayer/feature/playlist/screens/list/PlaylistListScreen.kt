@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -73,8 +74,10 @@ import dev.anilbeesetti.nextplayer.feature.playlist.R
 import dev.anilbeesetti.nextplayer.feature.playlist.composables.AddM3uUrlDialog
 import dev.anilbeesetti.nextplayer.feature.playlist.composables.PlaylistNameDialog
 import java.util.Date
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class M3uDocument(
@@ -90,22 +93,33 @@ fun PlaylistListScreenRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var pendingDocument by remember { mutableStateOf<M3uDocument?>(null) }
     val openDocumentLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        val document = persistM3uDocument(
-            uri = uri.toString(),
-            fallbackDisplayName = uri.lastPathSegment.orEmpty(),
+        val documentPreparer = M3uDocumentPreparer(
+            ioDispatcher = Dispatchers.IO,
             persistPermission = {
                 context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             },
+            hasPersistedReadPermission = {
+                context.contentResolver.persistedUriPermissions.any { permission ->
+                    permission.uri == uri && permission.isReadPermission
+                }
+            },
             queryDisplayName = { context.contentResolver.queryDisplayName(uri) },
         )
-        if (document == null) {
-            Toast.makeText(context, R.string.document_permission_error, Toast.LENGTH_LONG).show()
-            return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            val document = documentPreparer.prepare(
+                uri = uri.toString(),
+                fallbackDisplayName = uri.lastPathSegment.orEmpty(),
+            )
+            if (document == null) {
+                Toast.makeText(context, R.string.document_permission_error, Toast.LENGTH_LONG).show()
+            } else {
+                pendingDocument = document
+            }
         }
-        pendingDocument = document
     }
 
     ObservePlaylistEvents(viewModel.events) { event ->
@@ -484,17 +498,22 @@ private fun dismissCreationDialog(
 
 internal fun String.withoutM3uExtension(): String = replace(Regex("(?i)\\.m3u8?$"), "")
 
-internal fun persistM3uDocument(
-    uri: String,
-    fallbackDisplayName: String,
-    persistPermission: () -> Unit,
-    queryDisplayName: () -> String?,
-): M3uDocument? {
-    runCatching(persistPermission).getOrElse { return null }
-    val displayName = runCatching(queryDisplayName).getOrNull()
-        ?.takeIf(String::isNotBlank)
-        ?: fallbackDisplayName
-    return M3uDocument(uri = uri, displayName = displayName)
+internal class M3uDocumentPreparer(
+    private val ioDispatcher: CoroutineDispatcher,
+    private val persistPermission: () -> Unit,
+    private val hasPersistedReadPermission: () -> Boolean,
+    private val queryDisplayName: () -> String?,
+) {
+    suspend fun prepare(uri: String, fallbackDisplayName: String): M3uDocument? = withContext(ioDispatcher) {
+        val hasReadPermission = runCatching(persistPermission).isSuccess ||
+            runCatching(hasPersistedReadPermission).getOrDefault(false)
+        if (!hasReadPermission) return@withContext null
+
+        val displayName = runCatching(queryDisplayName).getOrNull()
+            ?.takeIf(String::isNotBlank)
+            ?: fallbackDisplayName
+        M3uDocument(uri = uri, displayName = displayName)
+    }
 }
 
 private fun android.content.ContentResolver.queryDisplayName(uri: Uri): String? {
