@@ -68,15 +68,15 @@ Initial result:
 Database coverage included migration 7→8 plus five DAO cases. The two playlist failures were test-harness expectations, not failures observed in the real app:
 
 1. `moveInProgressRemovesTouchAndTvReorderAffordances` called `composeRule.setContent` twice in one test, which Compose rejects with “Activity has already set content.” The smallest correction is separate touch/TV tests or one content tree driven by mutable state.
-2. `deleteRequiresConfirmationBeforeDispatchingAction` expected `Remove "Movies"?`. On the real app the confirmation is visible as `Remove Movies?`; the unescaped quote delimiters in the Android string resource do not render. The smallest correction is to assert the compiled text, unless quoted UX is intentionally required.
+2. `deleteRequiresConfirmationBeforeDispatchingAction` expected `Remove "Movies"?`. On the real app the confirmation was visible as `Remove Movies?` because the quote delimiters were not escaped in the Android string resource. Review determined that the intended quoted copy should be explicit: the resource now escapes the quotes and the instrumentation expectation is restored. A fresh-emulator regression of that corrected resource is still required.
 
-Final playlist instrumentation rerun after harness fix `9543ea45`:
+Playlist instrumentation rerun after harness fix `9543ea45` (before the later quoted-copy correction):
 
 | Module | Tests | Passed | Failed | Errors | Skipped |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `feature:playlist` | 10 | 10 | 0 | 0 | 0 |
 
-Together with the unchanged database XML, final connected coverage was 16 tests, 16 passed, zero failures/errors/skips. The final playlist XML timestamp was `2026-07-15T14:38:28`, and the suite completed in 20.739 seconds.
+Together with the unchanged database XML, that connected coverage was 16 tests, 16 passed, zero failures/errors/skips. The playlist XML timestamp was `2026-07-15T14:38:28`, and the suite completed in 20.739 seconds. The restored quoted-copy assertion has host-compiled but has not yet been rerun on a fresh emulator.
 
 ## Manual journeys
 
@@ -99,7 +99,7 @@ All tap/long-press/drag/swipe coordinates came from the current `android layout`
 | Linked playlist initially caches one item and exposes refresh, not reorder | PASS with host-alias fallback | `10-linked-initial-layout.json`, `10-linked-initial-ui.xml`, `10-linked-initial.png` |
 | Pull-to-refresh replaces cache with both fixture entries | PASS | `11-linked-refreshed-layout.json`, `11-linked-refreshed-ui.xml`, `11-linked-refreshed.png`, `11-linked-refresh-logcat.txt` |
 | Linked playlist is absent from Add to playlist targets | PASS | `12-linked-excluded-from-add-layout.json`, `12-linked-excluded-from-add-ui.xml`, `12-linked-excluded-from-add.png` |
-| Editable delete requires a visible confirmation before dispatch | PASS | `13-editable-delete-confirmation-layout.json`, `13-editable-delete-confirmation-ui.xml`, `13-editable-delete-confirmation.png` |
+| Editable delete requires a visible confirmation before dispatch | PASS for confirmation behavior; quoted-copy regression pending | `13-editable-delete-confirmation-layout.json`, `13-editable-delete-confirmation-ui.xml`, `13-editable-delete-confirmation.png` |
 | Editable and linked playlists delete through UI; empty state returns | PASS | `14-empty-after-deletes-layout.json`, `14-empty-after-deletes-ui.xml`, `14-empty-after-deletes.png` |
 
 ### Playback dispatch evidence
@@ -129,14 +129,17 @@ The linked playlist was then created from `http://127.0.0.1:8765/Linked.m3u`. (`
 
 ## Log review and limitations
 
-The final captured log scan found no `FATAL EXCEPTION`, Room/SQLite failure, permission denial, `SecurityException`, StrictMode network-on-main-thread violation, or `NetworkOnMainThreadException` (`14-final-log-scan.txt`). The final dedicated-emulator crash buffer was empty (`15-crash-buffer.txt`, zero lines).
+The post-deletion scan found no `FATAL EXCEPTION`, Room/SQLite failure, permission denial, `SecurityException`, StrictMode network-on-main-thread violation, or `NetworkOnMainThreadException` (`14-final-log-scan.txt`). That narrow final scan does not supersede an earlier playback failure preserved in `08-second-item-logcat.txt`: SystemUI tried to open the app-private `file:///data/user/0/dev.anilbeesetti.nextplayer.debug/files/thumbnails/...` artwork URI and received `EACCES (Permission denied)` three times. Root-cause tracing found that `PlayerService` published a private Coil cache file as `MediaMetadata.artworkUri`. The source now publishes the same compressed thumbnail as in-process `artworkData`, and a host unit test verifies no artwork URI remains, but resolution of the cross-process permission failure is pending a fresh-emulator playback/logcat regression. The final dedicated-emulator crash buffer was empty (`15-crash-buffer.txt`, zero lines).
+
+All 12 retained `*-ui.xml` files have had UI Automator's non-XML `UI hierchary dumped to: /dev/tty` suffix removed and now validate with `xmllint`.
 
 Known environment/fixture limitations:
 
 1. The API 37 image available from the SDK was the Google APIs 16 KB ARM64 variant (`google_apis_ps16k`), not a non-16 KB image.
 2. The one-frame screen-recorded MP4 reached `PlayerActivity` and populated a two-item media queue, but API 37’s emulator MediaCodec rejected its AVC input. `08-second-item-player.png` and `08-second-item-logcat.txt` preserve that fixture/emulator decoder error. Playlist playback dispatch itself was verified through the activity Intent and media-session queue.
 3. The emulator could not connect to the conventional `10.0.2.2:8765` host alias, so linked creation/refresh used the scoped `adb reverse` fallback described above.
-4. Two initial playlist instrumentation assertions required harness correction; the corrected suite passed 10/10 on the same dedicated AVD.
+4. Two initial playlist instrumentation assertions required harness correction; that suite passed 10/10 on the same dedicated AVD. The later restoration of intentionally quoted delete copy still requires a fresh-emulator rerun.
+5. The original playback evidence contains the SystemUI thumbnail permission failure described above. The source-level artwork-data correction is host-tested; runtime resolution is not claimed until fresh-emulator regression evidence is captured.
 
 ## Cleanup
 

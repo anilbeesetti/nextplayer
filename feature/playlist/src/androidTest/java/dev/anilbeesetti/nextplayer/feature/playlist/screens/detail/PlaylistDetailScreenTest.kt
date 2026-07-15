@@ -121,7 +121,7 @@ class PlaylistDetailScreenTest {
         setDetailContent(playlist = playlist(), onAction = { actions += it })
 
         composeRule.onNodeWithContentDescription("Delete playlist").performClick()
-        composeRule.onNodeWithText("Remove Movies?").assertIsDisplayed()
+        composeRule.onNodeWithText("Remove \"Movies\"?").assertIsDisplayed()
         assertEquals(emptyList<PlaylistDetailAction>(), actions)
 
         composeRule.onNodeWithText("Delete").performClick()

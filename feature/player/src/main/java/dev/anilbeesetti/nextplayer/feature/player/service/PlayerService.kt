@@ -63,6 +63,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
+import dev.anilbeesetti.nextplayer.feature.player.extensions.withPublishedArtwork
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
@@ -688,7 +689,7 @@ class PlayerService : MediaSessionService() {
             val currentMediaItem = player.currentMediaItem ?: return@launch
             if (currentMediaItem.mediaMetadata.artworkData != null) return@launch
 
-            val artworkUri = loadArtworkForMediaItem(currentMediaItem) ?: return@launch
+            val artworkData = loadArtworkForMediaItem(currentMediaItem) ?: return@launch
 
             val updatedPlayer = mediaSession?.player ?: return@launch
             val updatedMediaItem = updatedPlayer.currentMediaItem ?: return@launch
@@ -696,11 +697,11 @@ class PlayerService : MediaSessionService() {
 
             updatedPlayer.replaceMediaItem(
                 updatedPlayer.currentMediaItemIndex,
-                updatedMediaItem.withArtwork(artworkUri),
+                updatedMediaItem.withPublishedArtwork(artworkData),
             )
         }
     }
-    private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? = withContext(Dispatchers.IO) {
+    private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): ByteArray? = withContext(Dispatchers.IO) {
         val uri = mediaItem.mediaId.toUri()
         return@withContext try {
             val request = ImageRequest.Builder(this@PlayerService)
@@ -710,19 +711,12 @@ class PlayerService : MediaSessionService() {
             imageLoader.execute(request)
             val diskCache = imageLoader.diskCache ?: return@withContext null
             return@withContext diskCache.openSnapshot(uri.toString())?.use { snapshot ->
-                snapshot.data.toFile().toUri()
+                snapshot.data.toFile().readBytes()
             }
         } catch (_: Throwable) {
             null
         }
     }
-    private fun MediaItem.withArtwork(uri: Uri): MediaItem = buildUpon()
-        .setMediaMetadata(
-            mediaMetadata.buildUpon()
-                .setArtworkUri(uri)
-                .build(),
-        )
-        .build()
 }
 
 @get:UnstableApi

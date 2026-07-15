@@ -25,7 +25,7 @@
     <string name="not_refreshed">Not loaded yet</string>
     <string name="last_refreshed">Last loaded %1$s</string>
     <string name="delete_playlist">Delete playlist</string>
-    <string name="delete_playlist_confirmation">Remove "%1$s"?</string>
+    <string name="delete_playlist_confirmation">Remove \"%1$s\"?</string>
     <string name="delete">Delete</string>
     <string name="play_all">Play all</string>
     <string name="refresh_playlist">Refresh playlist</string>

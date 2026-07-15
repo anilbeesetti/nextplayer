@@ -116,3 +116,15 @@ fun MediaItem.copy(
             ),
         ).build(),
 ).build()
+
+/**
+ * Publishes compressed artwork without exposing an app-private cache URI to media controllers.
+ */
+fun MediaItem.withPublishedArtwork(artworkData: ByteArray): MediaItem = buildUpon()
+    .setMediaMetadata(
+        mediaMetadata.buildUpon()
+            .setArtworkUri(null)
+            .setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+            .build(),
+    )
+    .build()
