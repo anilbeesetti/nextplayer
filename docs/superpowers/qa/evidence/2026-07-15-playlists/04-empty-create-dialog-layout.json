@@ -1,0 +1,46 @@
+[
+  {
+    "text": "Create empty playlist",
+    "center": "[398,1012]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable",
+      "long-clickable"
+    ],
+    "center": "[539,1201]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable"
+    ],
+    "center": "[888,1433]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[692,1433]",
+    "key": 3506402
+  },
+  {
+    "text": "Playlist name",
+    "center": "[281,1190]",
+    "key": 3506402
+  },
+  {
+    "text": "Create",
+    "center": "[888,1432]",
+    "key": 3506402
+  },
+  {
+    "text": "Cancel",
+    "center": "[692,1432]",
+    "key": 3506402
+  }
+]

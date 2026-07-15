@@ -1,0 +1,83 @@
+[
+  {
+    "text": "Last loaded Jul 15, 2026",
+    "center": "[227,349]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "checkable",
+      "clickable",
+      "focusable"
+    ],
+    "center": "[542,496]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[96,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[734,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[860,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[986,213]",
+    "key": 3506402
+  },
+  {
+    "text": "Playlist QA One",
+    "center": "[208,475]",
+    "key": 3506402
+  },
+  {
+    "text": "http://10.0.2.2:8765/playlist-qa-one.mp4",
+    "center": "[356,528]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Navigate up",
+    "center": "[95,212]",
+    "key": 3506402
+  },
+  {
+    "text": "QA Linked",
+    "center": "[300,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Play all",
+    "center": "[733,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Refresh playlist",
+    "center": "[859,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Delete playlist",
+    "center": "[985,212]",
+    "key": 3506402
+  }
+]

@@ -1,0 +1,59 @@
+[
+  {
+    "text": "Create a playlist",
+    "center": "[328,928]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[539,1076]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[539,1202]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[539,1328]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[885,1517]",
+    "key": 3506402
+  },
+  {
+    "text": "Create empty playlist",
+    "center": "[581,1075]",
+    "key": 3506402
+  },
+  {
+    "text": "Add M3U playlist from URL",
+    "center": "[581,1201]",
+    "key": 3506402
+  },
+  {
+    "text": "Add M3U playlist from file",
+    "center": "[581,1327]",
+    "key": 3506402
+  },
+  {
+    "text": "Cancel",
+    "center": "[885,1516]",
+    "key": 3506402
+  }
+]

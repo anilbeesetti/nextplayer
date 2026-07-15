@@ -1,0 +1,94 @@
+[
+  {
+    "interactions": [
+      "checkable",
+      "clickable",
+      "focusable"
+    ],
+    "center": "[542,390]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "checkable",
+      "clickable",
+      "focusable"
+    ],
+    "center": "[542,542]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[96,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[860,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[986,213]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Reorder playlist item",
+    "center": "[110,390]",
+    "key": 3506402
+  },
+  {
+    "text": "playlist-qa-one",
+    "center": "[340,369]",
+    "key": 3506402
+  },
+  {
+    "text": "content://media/external/video/media/17",
+    "center": "[502,422]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Reorder playlist item",
+    "center": "[110,542]",
+    "key": 3506402
+  },
+  {
+    "text": "playlist-qa-two",
+    "center": "[340,521]",
+    "key": 3506402
+  },
+  {
+    "text": "content://media/external/video/media/18",
+    "center": "[502,574]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Navigate up",
+    "center": "[95,212]",
+    "key": 3506402
+  },
+  {
+    "text": "QA Editable",
+    "center": "[318,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Play all",
+    "center": "[859,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Delete playlist",
+    "center": "[985,212]",
+    "key": 3506402
+  }
+]

@@ -1,0 +1,3 @@
+Source: adb -s emulator-5556 logcat -d after both UI deletions
+Scan expression: FATAL EXCEPTION|Room.*(fail|error)|SQLiteException|SecurityException|permission denial|NetworkOnMainThread|StrictMode
+Matches: 0

@@ -1,0 +1,61 @@
+[
+  {
+    "interactions": [
+      "focusable"
+    ],
+    "center": "[540,1232]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable"
+    ],
+    "center": "[540,1232]",
+    "resource-id": "grant_singleton",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable"
+    ],
+    "center": "[540,1232]",
+    "resource-id": "grant_dialog",
+    "key": 3506402
+  },
+  {
+    "text": "Allow limited access",
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[540,1306]",
+    "resource-id": "permission_allow_selected_button",
+    "key": 3506402
+  },
+  {
+    "text": "Allow all",
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[540,1453]",
+    "resource-id": "permission_allow_all_button",
+    "key": 3506402
+  },
+  {
+    "text": "Don’t allow",
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[540,1600]",
+    "resource-id": "permission_deny_button",
+    "key": 3506402
+  },
+  {
+    "text": "Allow Next Player Debug to access photos and videos on this device?",
+    "center": "[540,1053]",
+    "resource-id": "permission_message",
+    "key": 3506402
+  }
+]

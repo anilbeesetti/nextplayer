@@ -1,0 +1,3 @@
+#EXTM3U
+#EXTINF:-1,Playlist QA One
+http://10.0.2.2:8765/playlist-qa-one.mp4

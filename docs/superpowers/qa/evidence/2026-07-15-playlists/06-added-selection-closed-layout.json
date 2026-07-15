@@ -1,0 +1,118 @@
+[
+  {
+    "interactions": [
+      "checkable",
+      "clickable",
+      "focusable"
+    ],
+    "center": "[922,2179]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "checkable",
+      "clickable",
+      "focusable",
+      "long-clickable"
+    ],
+    "center": "[542,456]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "checkable",
+      "clickable",
+      "focusable",
+      "long-clickable"
+    ],
+    "center": "[542,739]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[96,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[734,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[860,213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[986,213]",
+    "key": 3506402
+  },
+  {
+    "text": "playlist-qa-one",
+    "center": "[602,429]",
+    "key": 3506402
+  },
+  {
+    "text": "/storage/emulated/0/Movies",
+    "center": "[671,482]",
+    "key": 3506402
+  },
+  {
+    "text": "playlist-qa-two",
+    "center": "[602,712]",
+    "key": 3506402
+  },
+  {
+    "text": "/storage/emulated/0/Movies",
+    "center": "[671,765]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Navigate up",
+    "center": "[95,212]",
+    "key": 3506402
+  },
+  {
+    "text": "Movies",
+    "center": "[261,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Search",
+    "center": "[733,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Menu",
+    "center": "[859,212]",
+    "key": 3506402
+  },
+  {
+    "content-desc": "Settings",
+    "center": "[985,212]",
+    "key": 3506402
+  },
+  {
+    "text": "00:00",
+    "center": "[365,537]",
+    "key": 3506402
+  },
+  {
+    "text": "00:00",
+    "center": "[365,820]",
+    "key": 3506402
+  }
+]

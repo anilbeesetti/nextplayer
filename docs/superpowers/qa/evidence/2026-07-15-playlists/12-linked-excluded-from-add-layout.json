@@ -1,0 +1,46 @@
+[
+  {
+    "text": "Choose a playlist",
+    "center": "[344,991]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[885,1454]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[539,1139]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[539,1265]",
+    "key": 3506402
+  },
+  {
+    "text": "Cancel",
+    "center": "[885,1453]",
+    "key": 3506402
+  },
+  {
+    "text": "QA Editable",
+    "center": "[540,1138]",
+    "key": 3506402
+  },
+  {
+    "text": "Create new playlist",
+    "center": "[539,1264]",
+    "key": 3506402
+  }
+]
