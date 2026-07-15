@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -268,7 +269,10 @@ class PlaylistDetailViewModelTest {
     @Test
     fun editableMoveDelegatesUriAndDestination() = runTest(dispatcher) {
         collectUiState()
-        repository.playlist.value = playlist(type = PlaylistType.EDITABLE)
+        repository.playlist.value = playlist(
+            type = PlaylistType.EDITABLE,
+            items = listOf(item("content://1", 0), item("content://2", 1)),
+        )
         runCurrent()
 
         viewModel.onAction(PlaylistDetailAction.MoveItem("content://2", 0))
@@ -303,6 +307,91 @@ class PlaylistDetailViewModelTest {
 
         repository.moveGate?.complete(Unit)
         advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isMoving)
+        assertEquals(repositoryItems, viewModel.uiState.value.playlist?.items)
+    }
+
+    @Test
+    fun successfulMoveKeepsOptimisticOrderAndOwnershipUntilMatchingRepositoryEmission() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(
+            items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
+        )
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 2, toIndex = 0))
+        viewModel.onAction(PlaylistDetailAction.StopMoveDrag)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.isMoving)
+        assertEquals(
+            listOf("content://3", "content://1", "content://2"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+
+        viewModel.onAction(PlaylistDetailAction.MoveItem("content://1", 2))
+        runCurrent()
+        assertEquals(listOf(MoveCall(42, "content://3", 0)), repository.moveCalls)
+
+        repository.playlist.value = playlist(
+            items = listOf(item("content://3", 0), item("content://1", 1), item("content://2", 2)),
+        )
+        runCurrent()
+
+        assertFalse(viewModel.uiState.value.isMoving)
+        assertEquals(
+            listOf("content://3", "content://1", "content://2"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+    }
+
+    @Test
+    fun divergentRepositoryEmissionReleasesSuccessfulMoveToRepositoryOrder() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(
+            items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
+        )
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 2, toIndex = 0))
+        viewModel.onAction(PlaylistDetailAction.StopMoveDrag)
+        runCurrent()
+
+        repository.playlist.value = playlist(
+            items = listOf(item("content://2", 0), item("content://1", 1), item("content://3", 2)),
+        )
+        runCurrent()
+
+        assertFalse(viewModel.uiState.value.isMoving)
+        assertEquals(
+            listOf("content://2", "content://1", "content://3"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+    }
+
+    @Test
+    fun successfulMoveWithoutRepositoryEmissionEventuallyReleasesOwnership() = runTest(dispatcher) {
+        collectUiState()
+        val repositoryItems = listOf(
+            item("content://1", 0),
+            item("content://2", 1),
+            item("content://3", 2),
+        )
+        repository.playlist.value = playlist(items = repositoryItems)
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 2, toIndex = 0))
+        viewModel.onAction(PlaylistDetailAction.StopMoveDrag)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.isMoving)
+
+        advanceTimeBy(2_000)
+        runCurrent()
 
         assertFalse(viewModel.uiState.value.isMoving)
         assertEquals(repositoryItems, viewModel.uiState.value.playlist?.items)

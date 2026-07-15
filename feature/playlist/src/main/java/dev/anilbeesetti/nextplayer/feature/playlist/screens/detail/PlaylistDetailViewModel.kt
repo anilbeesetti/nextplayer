@@ -14,6 +14,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +27,7 @@ import kotlinx.coroutines.launch
 internal const val EDITABLE_REFRESH_MESSAGE = "Editable playlists don't have a linked source."
 internal const val LINKED_MOVE_MESSAGE = "Linked playlists use their source order."
 private const val PLAYLIST_ACTION_ERROR_MESSAGE = "Couldn't update playlist. Try again."
+private const val MOVE_RECONCILIATION_TIMEOUT_MILLIS = 2_000L
 
 data class PlaylistDetailUiState(
     val playlist: Playlist? = null,
@@ -75,6 +77,7 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     val events = eventChannel.receiveAsFlow()
     private var refreshJob: Job? = null
     private var moveJob: Job? = null
+    private var moveReconciliationJob: Job? = null
     private val repositoryPlaylist = MutableStateFlow<Playlist?>(null)
     private val hasLoaded = MutableStateFlow(false)
     private val reorderState = PlaylistReorderState()
@@ -100,7 +103,10 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             repository.observePlaylist(playlistId).collect { playlist ->
-                reorderState.updateRepositoryItems(playlist?.items.orEmpty())
+                if (reorderState.updateRepositoryItems(playlist?.items.orEmpty())) {
+                    moveReconciliationJob?.cancel()
+                    moveReconciliationJob = null
+                }
                 repositoryPlaylist.value = playlist
                 hasLoaded.value = true
             }
@@ -186,18 +192,37 @@ class PlaylistDetailViewModel @AssistedInject constructor(
         if (moveJob != null) return
         lateinit var job: Job
         job = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            var succeeded = false
             try {
                 repository.moveItem(playlistId, move.uri, move.toIndex)
+                succeeded = true
+                if (moveJob === job) moveJob = null
+                if (reorderState.moveSucceeded()) startMoveReconciliationTimeout()
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 eventChannel.send(PlaylistDetailEvent.Message(error.userMessage()))
             } finally {
-                if (moveJob === job) moveJob = null
-                reorderState.finishMove()
+                if (!succeeded) {
+                    if (moveJob === job) moveJob = null
+                    reorderState.finishMove()
+                }
             }
         }
         moveJob = job
+        job.start()
+    }
+
+    private fun startMoveReconciliationTimeout() {
+        lateinit var job: Job
+        job = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            delay(MOVE_RECONCILIATION_TIMEOUT_MILLIS)
+            if (moveReconciliationJob === job) {
+                moveReconciliationJob = null
+                reorderState.reconcileTimedOut()
+            }
+        }
+        moveReconciliationJob = job
         job.start()
     }
 
