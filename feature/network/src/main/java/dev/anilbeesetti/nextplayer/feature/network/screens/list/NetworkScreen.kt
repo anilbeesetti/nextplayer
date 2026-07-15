@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
@@ -59,8 +60,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
-import dev.anilbeesetti.nextplayer.feature.network.R
-import dev.anilbeesetti.nextplayer.core.ui.R as CoreUiR
 
 @Composable
 fun NetworkScreenRoute(
@@ -113,7 +112,7 @@ internal fun NetworkScreen(
                     IconButton(onClick = onSettingsClick, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.Settings,
-                            contentDescription = stringResource(CoreUiR.string.settings),
+                            contentDescription = stringResource(R.string.settings),
                         )
                     }
                 },
@@ -187,7 +186,7 @@ internal fun NetworkScreen(
             },
             dismissButton = {
                 TextButton(onClick = { connectionToDelete = null }) {
-                    Text(stringResource(CoreUiR.string.cancel))
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )

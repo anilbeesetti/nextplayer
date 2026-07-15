@@ -44,11 +44,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
-import dev.anilbeesetti.nextplayer.feature.network.R
 
 /**
  * Default path per protocol: SMB expects a bare share name (no leading slash), while FTP and WebDAV
@@ -146,7 +146,7 @@ internal fun AddConnectionScreen(
                     FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.Close,
-                            contentDescription = stringResource(dev.anilbeesetti.nextplayer.core.ui.R.string.navigate_up),
+                            contentDescription = stringResource(R.string.navigate_up),
                         )
                     }
                 },

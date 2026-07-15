@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
@@ -51,9 +52,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.network.ObserveAsEvents
-import dev.anilbeesetti.nextplayer.feature.network.R
 import java.util.Date
-import dev.anilbeesetti.nextplayer.core.ui.R as CoreUiR
 
 @Composable
 fun NetworkBrowseScreenRoute(
@@ -92,7 +91,7 @@ internal fun NetworkBrowseScreen(
                     FilledTonalIconButton(onClick = onBack, modifier = Modifier.tvFocusRing()) {
                         Icon(
                             imageVector = NextIcons.ArrowBack,
-                            contentDescription = stringResource(CoreUiR.string.navigate_up),
+                            contentDescription = stringResource(R.string.navigate_up),
                         )
                     }
                 },
@@ -196,7 +195,7 @@ private fun NetworkFileItem(
             if (file.isDirectory) {
                 Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(id = CoreUiR.drawable.folder_thumb),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumb),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.surfaceContainerHigh,
                         modifier = Modifier
