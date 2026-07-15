@@ -38,6 +38,8 @@ import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
+import java.util.Locale
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -438,6 +440,7 @@ internal class PlaylistSelectionController(
     val events = eventsInternal.receiveAsFlow()
 
     private var pendingItems: List<PlaylistItemInput> = emptyList()
+    private var pendingCreatedPlaylist: PendingCreatedPlaylist? = null
 
     init {
         scope.launch(dispatcher) {
@@ -449,18 +452,29 @@ internal class PlaylistSelectionController(
 
     fun showAddToPlaylist(selectionItems: Set<SelectionItem>) {
         if (stateInternal.value.isSaving) return
+        pendingCreatedPlaylist = null
         stateInternal.update { it.copy(isVisible = true, isSaving = true, error = null) }
         scope.launch(dispatcher) {
-            runCatching { resolver.resolve(selectionItems, mediaViewMode()) }
-                .onSuccess { videos ->
-                    pendingItems = videos.map { PlaylistItemInput(it.uriString, it.displayName) }
-                    stateInternal.update { it.copy(isSaving = false) }
+            try {
+                val videos = resolver.resolve(selectionItems, mediaViewMode())
+                pendingItems = videos.map { PlaylistItemInput(it.uriString, it.displayName) }
+                stateInternal.update {
+                    it.copy(
+                        isSaving = false,
+                        error = if (pendingItems.isEmpty()) {
+                            "No videos were found in this selection."
+                        } else {
+                            null
+                        },
+                    )
                 }
-                .onFailure { failure ->
-                    stateInternal.update {
-                        it.copy(isSaving = false, error = failure.playlistActionMessage())
-                    }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (failure: Throwable) {
+                stateInternal.update {
+                    it.copy(isSaving = false, error = failure.playlistActionMessage())
                 }
+            }
         }
     }
 
@@ -473,8 +487,25 @@ internal class PlaylistSelectionController(
     }
 
     fun createPlaylistAndAddSelection(name: String) {
+        val normalizedName = name.trim().lowercase(Locale.ROOT)
+        val createdPlaylist = pendingCreatedPlaylist
+        if (createdPlaylist != null && createdPlaylist.normalizedName != normalizedName) {
+            stateInternal.update {
+                it.copy(
+                    error = "Playlist \"${createdPlaylist.displayName}\" was already created. " +
+                        "Retry with that name or choose it from the playlist list.",
+                )
+            }
+            return
+        }
         save {
-            val playlistId = repository.createEditable(name)
+            val playlistId = createdPlaylist?.id ?: repository.createEditable(name).also { playlistId ->
+                pendingCreatedPlaylist = PendingCreatedPlaylist(
+                    id = playlistId,
+                    normalizedName = normalizedName,
+                    displayName = name.trim(),
+                )
+            }
             repository.addItems(playlistId, pendingItems)
         }
     }
@@ -482,6 +513,7 @@ internal class PlaylistSelectionController(
     fun dismiss() {
         if (stateInternal.value.isSaving) return
         pendingItems = emptyList()
+        pendingCreatedPlaylist = null
         stateInternal.update { it.copy(isVisible = false, error = null) }
     }
 
@@ -492,27 +524,35 @@ internal class PlaylistSelectionController(
         if (stateInternal.value.isSaving || pendingItems.isEmpty()) return
         stateInternal.update { it.copy(isSaving = true, error = null) }
         scope.launch(dispatcher) {
-            runCatching { block() }
-                .onSuccess { addedCount ->
-                    pendingItems = emptyList()
-                    stateInternal.update {
-                        it.copy(
-                            isVisible = false,
-                            isSaving = false,
-                            error = null,
-                            completionToken = it.completionToken + 1,
-                        )
-                    }
-                    eventsInternal.trySend(MediaPickerEvent.PlaylistItemsAdded(addedCount))
+            try {
+                val addedCount = block()
+                pendingItems = emptyList()
+                pendingCreatedPlaylist = null
+                stateInternal.update {
+                    it.copy(
+                        isVisible = false,
+                        isSaving = false,
+                        error = null,
+                        completionToken = it.completionToken + 1,
+                    )
                 }
-                .onFailure { failure ->
-                    stateInternal.update {
-                        it.copy(isSaving = false, error = failure.playlistActionMessage())
-                    }
+                eventsInternal.trySend(MediaPickerEvent.PlaylistItemsAdded(addedCount))
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (failure: Throwable) {
+                stateInternal.update {
+                    it.copy(isSaving = false, error = failure.playlistActionMessage())
                 }
+            }
         }
     }
 }
+
+private data class PendingCreatedPlaylist(
+    val id: Long,
+    val normalizedName: String,
+    val displayName: String,
+)
 
 private fun Throwable.playlistActionMessage(): String = when (this) {
     is PlaylistNameConflictException -> "A playlist with this name already exists."
