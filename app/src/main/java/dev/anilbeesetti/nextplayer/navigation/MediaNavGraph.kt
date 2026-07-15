@@ -45,13 +45,17 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
     )
 }
 
-internal fun Context.startPlayback(uris: List<Uri>, grantReadPermission: Boolean = false) {
+internal fun Context.startPlayback(
+    uris: List<Uri>,
+    startUri: Uri = uris.first(),
+    grantReadPermission: Boolean = false,
+) {
     if (grantReadPermission) {
         uris.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
     }
     val intent = Intent(this, PlayerActivity::class.java).apply {
         action = Intent.ACTION_VIEW
-        data = uris.first()
+        data = startUri
         if (uris.size > 1) putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(uris))
         if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }

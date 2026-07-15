@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
 import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AppSettingsAlt
@@ -132,6 +133,7 @@ object NextIcons {
     val Play = Icons.Rounded.PlayArrow
     val Player = Icons.Rounded.PlayCircle
     val PlaylistAdd = Icons.AutoMirrored.Rounded.PlaylistAdd
+    val Playlist = Icons.AutoMirrored.Rounded.QueueMusic
     val Priority = Icons.Rounded.PriorityHigh
     val Replay = Icons.Rounded.Replay10
     val Resume = Icons.Rounded.ResetTv

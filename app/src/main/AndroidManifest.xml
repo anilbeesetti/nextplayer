@@ -30,6 +30,7 @@
         android:banner="@drawable/tv_banner"
         android:supportsRtl="true"
         android:theme="@style/Theme.NextPlayer.Splash"
+        android:usesCleartextTraffic="true"
         tools:targetApi="s">
         <activity
             android:name=".MainActivity"
