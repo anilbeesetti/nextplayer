@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="10" failures="0" errors="0" skipped="0" time="23.326" timestamp="2026-07-15T14:59:28" hostname="localhost">
+  <testsuite name="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" tests="8" failures="0" errors="0" skipped="0" time="14.966" timestamp="2026-07-15T14:59:28" hostname="localhost">
+    <properties>
+      <property name="device" value="nextplayer_playlist_qa_api37_regression(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":feature:playlist" />
+    </properties>
+    <testcase name="moveInProgressRemovesTvReorderAffordances" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="2.39" />
+    <testcase name="refreshProgressKeepsLinkedItemsVisible" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="2.252" />
+    <testcase name="deleteRequiresConfirmationBeforeDispatchingAction" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="2.866" />
+    <testcase name="linkedPlaylistOffersRefreshWithoutReorderControls" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="1.553" />
+    <testcase name="editableTouchPlaylistShowsDragHandles" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="1.57" />
+    <testcase name="playAllDispatchesPlaybackAction" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="1.565" />
+    <testcase name="moveInProgressRemovesTouchReorderAffordances" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="1.022" />
+    <testcase name="editableTvPlaylistShowsFocusableEdgeAwareMoveButtons" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenTest" time="1.748" />
+  </testsuite>
+  <testsuite name="dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListScreenTest" tests="2" failures="0" errors="0" skipped="0" time="5.246" timestamp="2026-07-15T14:59:28" hostname="localhost">
+    <properties>
+      <property name="device" value="nextplayer_playlist_qa_api37_regression(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":feature:playlist" />
+    </properties>
+    <testcase name="createPlaylistFabShowsAllThreeCreationChoices" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListScreenTest" time="1.587" />
+    <testcase name="submittedNameConflictRemainsVisibleInCreationDialog" classname="dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListScreenTest" time="3.659" />
+  </testsuite>
+</testsuites>
