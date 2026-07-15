@@ -12,6 +12,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistNameConflictException
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
@@ -28,14 +30,21 @@ import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
+import dev.anilbeesetti.nextplayer.core.model.PlaylistItemInput
+import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -52,6 +61,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val mediaOperationsService: MediaOperationsService,
     private val mediaRepository: MediaRepository,
+    private val playlistRepository: PlaylistRepository,
     private val preferencesRepository: PreferencesRepository,
     private val mediaSynchronizer: MediaSynchronizer,
     private val vaultRepository: VaultRepository,
@@ -79,10 +89,20 @@ class MediaPickerViewModel @AssistedInject constructor(
 
     private var mediaCollectJob: Job? = null
     private var transferJob: Job? = null
+    private val playlistSelectionController = PlaylistSelectionController(
+        repository = playlistRepository,
+        resolver = PlaylistSelectionMapper(
+            findVideoByUri = mediaRepository::getVideoByUri,
+            videosInFolder = { path -> getSortedVideosUseCase(path).first() },
+        ),
+        mediaViewMode = { uiStateInternal.value.preferences.mediaViewMode },
+        scope = viewModelScope,
+    )
 
     init {
         collectMedia()
         collectPreferences()
+        collectPlaylistSelectionState()
     }
 
     fun onAction(action: MediaPickerAction) {
@@ -103,6 +123,28 @@ class MediaPickerViewModel @AssistedInject constructor(
             is MediaPickerAction.SetVaultPinAndHide -> setVaultPinAndHide(action.pin)
             MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
             MediaPickerAction.DismissHideFlow -> uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            is MediaPickerAction.ShowAddToPlaylist -> playlistSelectionController.showAddToPlaylist(action.selectionItems)
+            is MediaPickerAction.AddSelectionToPlaylist ->
+                playlistSelectionController.addSelectionToPlaylist(action.playlistId)
+            is MediaPickerAction.CreatePlaylistAndAddSelection ->
+                playlistSelectionController.createPlaylistAndAddSelection(action.name)
+            MediaPickerAction.DismissAddToPlaylist -> playlistSelectionController.dismiss()
+        }
+    }
+
+    private fun collectPlaylistSelectionState() {
+        viewModelScope.launch {
+            playlistSelectionController.editablePlaylists.collect { playlists ->
+                uiStateInternal.update { it.copy(editablePlaylists = playlists) }
+            }
+        }
+        viewModelScope.launch {
+            playlistSelectionController.state.collect { state ->
+                uiStateInternal.update { it.copy(addToPlaylistState = state) }
+            }
+        }
+        viewModelScope.launch {
+            playlistSelectionController.events.collect(eventsInternal::send)
         }
     }
 
@@ -276,21 +318,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     }
 
     private suspend fun Set<SelectionItem>.toVideos(): List<Video> {
-        val preferences = uiStateInternal.value.preferences
-        return flatMap { selectionItem ->
-            when (selectionItem) {
-                is SelectionItem.Video -> listOfNotNull(mediaRepository.getVideoByUri(selectionItem.uriString))
-                is SelectionItem.Folder -> {
-                    val videos = getSortedVideosUseCase(selectionItem.path).first()
-                    val filteredVideos = if (preferences.mediaViewMode == MediaViewMode.FOLDERS) {
-                        videos.filter { it.parentPath == selectionItem.path }
-                    } else {
-                        videos
-                    }
-                    filteredVideos
-                }
-            }
-        }
+        return playlistSelectionController.resolve(this)
     }
 
     private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> {
@@ -309,6 +337,16 @@ data class MediaPickerUiState(
     val mediaInfo: dev.anilbeesetti.nextplayer.core.model.MediaInfo? = null,
     val hideFlow: HideFlowState = HideFlowState.Idle,
     val transferFlow: TransferFlowState = TransferFlowState.Idle,
+    val editablePlaylists: List<PlaylistSummary> = emptyList(),
+    val addToPlaylistState: AddToPlaylistState = AddToPlaylistState(),
+)
+
+@Stable
+data class AddToPlaylistState(
+    val isVisible: Boolean = false,
+    val isSaving: Boolean = false,
+    val error: String? = null,
+    val completionToken: Long = 0,
 )
 
 sealed interface TransferFlowState {
@@ -342,6 +380,10 @@ sealed interface MediaPickerAction {
     data class SetVaultPinAndHide(val pin: String) : MediaPickerAction
     data object ConfirmHidePendingItems : MediaPickerAction
     data object DismissHideFlow : MediaPickerAction
+    data class ShowAddToPlaylist(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class AddSelectionToPlaylist(val playlistId: Long) : MediaPickerAction
+    data class CreatePlaylistAndAddSelection(val name: String) : MediaPickerAction
+    data object DismissAddToPlaylist : MediaPickerAction
 }
 
 sealed interface MediaPickerEvent {
@@ -350,4 +392,129 @@ sealed interface MediaPickerEvent {
         val mode: TransferMode,
         val result: TransferResult,
     ) : MediaPickerEvent
+    data class PlaylistItemsAdded(val count: Int) : MediaPickerEvent
+}
+
+internal class PlaylistSelectionMapper(
+    private val findVideoByUri: suspend (String) -> Video?,
+    private val videosInFolder: suspend (String) -> List<Video>,
+) {
+    suspend fun resolve(
+        selectedItems: Set<SelectionItem>,
+        mediaViewMode: MediaViewMode,
+    ): List<Video> = buildList {
+        selectedItems.forEach { selectionItem ->
+            when (selectionItem) {
+                is SelectionItem.Video -> findVideoByUri(selectionItem.uriString)?.let(::add)
+                is SelectionItem.Folder -> {
+                    val videos = videosInFolder(selectionItem.path)
+                    addAll(
+                        if (mediaViewMode == MediaViewMode.FOLDERS) {
+                            videos.filter { it.parentPath == selectionItem.path }
+                        } else {
+                            videos
+                        },
+                    )
+                }
+            }
+        }
+    }.distinctBy(Video::uriString)
+}
+
+internal class PlaylistSelectionController(
+    private val repository: PlaylistRepository,
+    private val resolver: PlaylistSelectionMapper,
+    private val mediaViewMode: () -> MediaViewMode,
+    private val scope: CoroutineScope,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
+) {
+    private val editablePlaylistsInternal = MutableStateFlow<List<PlaylistSummary>>(emptyList())
+    val editablePlaylists: StateFlow<List<PlaylistSummary>> = editablePlaylistsInternal.asStateFlow()
+
+    private val stateInternal = MutableStateFlow(AddToPlaylistState())
+    val state: StateFlow<AddToPlaylistState> = stateInternal.asStateFlow()
+
+    private val eventsInternal = Channel<MediaPickerEvent>(Channel.BUFFERED)
+    val events = eventsInternal.receiveAsFlow()
+
+    private var pendingItems: List<PlaylistItemInput> = emptyList()
+
+    init {
+        scope.launch(dispatcher) {
+            repository.observePlaylists().collect { playlists ->
+                editablePlaylistsInternal.value = playlists.filter { it.type == PlaylistType.EDITABLE }
+            }
+        }
+    }
+
+    fun showAddToPlaylist(selectionItems: Set<SelectionItem>) {
+        if (stateInternal.value.isSaving) return
+        stateInternal.update { it.copy(isVisible = true, isSaving = true, error = null) }
+        scope.launch(dispatcher) {
+            runCatching { resolver.resolve(selectionItems, mediaViewMode()) }
+                .onSuccess { videos ->
+                    pendingItems = videos.map { PlaylistItemInput(it.uriString, it.displayName) }
+                    stateInternal.update { it.copy(isSaving = false) }
+                }
+                .onFailure { failure ->
+                    stateInternal.update {
+                        it.copy(isSaving = false, error = failure.playlistActionMessage())
+                    }
+                }
+        }
+    }
+
+    fun addSelectionToPlaylist(playlistId: Long) {
+        if (editablePlaylistsInternal.value.none { it.id == playlistId }) {
+            stateInternal.update { it.copy(error = "This playlist can't be edited.") }
+            return
+        }
+        save { repository.addItems(playlistId, pendingItems) }
+    }
+
+    fun createPlaylistAndAddSelection(name: String) {
+        save {
+            val playlistId = repository.createEditable(name)
+            repository.addItems(playlistId, pendingItems)
+        }
+    }
+
+    fun dismiss() {
+        if (stateInternal.value.isSaving) return
+        pendingItems = emptyList()
+        stateInternal.update { it.copy(isVisible = false, error = null) }
+    }
+
+    suspend fun resolve(selectionItems: Set<SelectionItem>): List<Video> =
+        resolver.resolve(selectionItems, mediaViewMode())
+
+    private fun save(block: suspend () -> Int) {
+        if (stateInternal.value.isSaving || pendingItems.isEmpty()) return
+        stateInternal.update { it.copy(isSaving = true, error = null) }
+        scope.launch(dispatcher) {
+            runCatching { block() }
+                .onSuccess { addedCount ->
+                    pendingItems = emptyList()
+                    stateInternal.update {
+                        it.copy(
+                            isVisible = false,
+                            isSaving = false,
+                            error = null,
+                            completionToken = it.completionToken + 1,
+                        )
+                    }
+                    eventsInternal.trySend(MediaPickerEvent.PlaylistItemsAdded(addedCount))
+                }
+                .onFailure { failure ->
+                    stateInternal.update {
+                        it.copy(isSaving = false, error = failure.playlistActionMessage())
+                    }
+                }
+        }
+    }
+}
+
+private fun Throwable.playlistActionMessage(): String = when (this) {
+    is PlaylistNameConflictException -> "A playlist with this name already exists."
+    else -> message?.takeIf(String::isNotBlank) ?: "Couldn't update playlist. Try again."
 }
