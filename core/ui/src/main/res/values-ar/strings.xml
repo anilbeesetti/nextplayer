@@ -388,4 +388,28 @@
     </plurals>
     <string name="cannot_move_to_same_folder">لا يمكن النقل إلى نفس المجلد</string>
     <string name="folder_duration">مدة المجلد</string>
+    <string name="home">الرئيسية</string>
+    <string name="network">الشبكة</string>
+    <string name="add_connection">أضف اتصال</string>
+    <string name="edit_connection">حرِّر الاتصال</string>
+    <string name="delete_connection">احذف الاتصال</string>
+    <string name="delete_connection_confirmation">أزِل \"%1$s\"؟</string>
+    <string name="connection_name">الاسم</string>
+    <string name="protocol">البروتوكول</string>
+    <string name="host">المضيف</string>
+    <string name="port">المنفذ</string>
+    <string name="port_hint">المنفذ (الافتراضي %1$d)</string>
+    <string name="path_share">المسار / اسم المشاركة</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="password">كلمة السر</string>
+    <string name="use_https">استخدم HTTPS</string>
+    <string name="test_and_save">اختبر و احفظ</string>
+    <string name="connecting">يتصل…</string>
+    <string name="connection_failed">تعذّر الاتصال. تحقق من التفاصيل وحاول مجددًا.</string>
+    <string name="no_connections_title">لا اتصالات بعد</string>
+    <string name="no_connections_description">أضف اتصالاً عبر SMB أو FTP أو WebDAV لتصفح مقاطع الفيديو وتشغيلها من شبكتك.</string>
+    <string name="empty_folder">هذا المجلد فارغ</string>
+    <string name="failed_to_load_folder">تعذّر تحميل هذا المكان</string>
+    <string name="retry">حاول مجددًا</string>
+    <string name="edit">حرِّر</string>
 </resources>
