@@ -11,12 +11,14 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,6 +31,7 @@ data class PlaylistDetailUiState(
     val playlist: Playlist? = null,
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
+    val isMoving: Boolean = false,
 )
 
 sealed interface PlaylistDetailAction {
@@ -39,6 +42,12 @@ sealed interface PlaylistDetailAction {
     data object Refresh : PlaylistDetailAction
 
     data class MoveItem(val uri: String, val toIndex: Int) : PlaylistDetailAction
+
+    data object StartMoveDrag : PlaylistDetailAction
+
+    data class PreviewMove(val fromIndex: Int, val toIndex: Int) : PlaylistDetailAction
+
+    data object StopMoveDrag : PlaylistDetailAction
 
     data object Delete : PlaylistDetailAction
 }
@@ -62,32 +71,59 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     }
 
     private val refreshState = MutableStateFlow(false)
-    private val eventChannel = Channel<PlaylistDetailEvent>()
+    private val eventChannel = Channel<PlaylistDetailEvent>(Channel.BUFFERED)
     val events = eventChannel.receiveAsFlow()
+    private var refreshJob: Job? = null
+    private var moveJob: Job? = null
+    private val repositoryPlaylist = MutableStateFlow<Playlist?>(null)
+    private val hasLoaded = MutableStateFlow(false)
+    private val reorderState = PlaylistReorderState()
 
-    private val playlistState = repository.observePlaylist(playlistId)
-        .map { playlist -> PlaylistDetailUiState(playlist = playlist, isLoading = false) }
-
-    val uiState: StateFlow<PlaylistDetailUiState> = combine(playlistState, refreshState) { playlist, refreshing ->
-        playlist.copy(isRefreshing = refreshing)
+    val uiState: StateFlow<PlaylistDetailUiState> = combine(
+        repositoryPlaylist,
+        hasLoaded,
+        refreshState,
+        reorderState.state,
+    ) { playlist, loaded, refreshing, reorder ->
+        PlaylistDetailUiState(
+            playlist = playlist?.copy(items = reorder.displayedItems),
+            isLoading = !loaded,
+            isRefreshing = refreshing,
+            isMoving = reorder.isMoving,
+        )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.Eagerly,
         initialValue = PlaylistDetailUiState(),
     )
 
+    init {
+        viewModelScope.launch {
+            repository.observePlaylist(playlistId).collect { playlist ->
+                reorderState.updateRepositoryItems(playlist?.items.orEmpty())
+                repositoryPlaylist.value = playlist
+                hasLoaded.value = true
+            }
+        }
+    }
+
     fun onAction(action: PlaylistDetailAction) {
         when (action) {
-            PlaylistDetailAction.PlayAll -> play(startUri = uiState.value.playlist?.items?.firstOrNull()?.uriString)
+            PlaylistDetailAction.PlayAll -> play(
+                startUri = reorderState.state.value.displayedItems.firstOrNull()?.uriString,
+            )
             is PlaylistDetailAction.PlayItem -> play(startUri = action.uri)
             PlaylistDetailAction.Refresh -> refresh()
             is PlaylistDetailAction.MoveItem -> moveItem(action.uri, action.toIndex)
+            PlaylistDetailAction.StartMoveDrag -> startMoveDrag()
+            is PlaylistDetailAction.PreviewMove -> previewMove(action.fromIndex, action.toIndex)
+            PlaylistDetailAction.StopMoveDrag -> stopMoveDrag()
             PlaylistDetailAction.Delete -> delete()
         }
     }
 
     private fun play(startUri: String?) {
-        val uris = uiState.value.playlist?.items?.map { it.uriString }.orEmpty()
+        val uris = reorderState.state.value.displayedItems.map { it.uriString }
         if (startUri == null || startUri !in uris) return
         viewModelScope.launch {
             eventChannel.send(PlaylistDetailEvent.Play(uris = uris, startUri = startUri))
@@ -95,15 +131,16 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     }
 
     private fun refresh() {
-        val playlist = uiState.value.playlist ?: return
+        val playlist = repositoryPlaylist.value ?: return
         if (playlist.type == PlaylistType.EDITABLE) {
             sendMessage(EDITABLE_REFRESH_MESSAGE)
             return
         }
-        if (refreshState.value) return
+        if (refreshJob != null) return
 
-        viewModelScope.launch {
-            refreshState.value = true
+        refreshState.value = true
+        lateinit var job: Job
+        job = viewModelScope.launch(start = CoroutineStart.LAZY) {
             try {
                 val result = repository.refresh(playlistId)
                 eventChannel.send(PlaylistDetailEvent.Message(result.userMessage()))
@@ -112,27 +149,56 @@ class PlaylistDetailViewModel @AssistedInject constructor(
             } catch (error: Throwable) {
                 eventChannel.send(PlaylistDetailEvent.Message(error.userMessage()))
             } finally {
+                if (refreshJob === job) refreshJob = null
                 refreshState.value = false
             }
         }
+        refreshJob = job
+        job.start()
     }
 
     private fun moveItem(uri: String, toIndex: Int) {
-        val playlist = uiState.value.playlist ?: return
+        val playlist = repositoryPlaylist.value ?: return
         if (playlist.type != PlaylistType.EDITABLE) {
             sendMessage(LINKED_MOVE_MESSAGE)
             return
         }
+        val move = reorderState.startMove(uri, toIndex) ?: return
+        persistMove(move)
+    }
 
-        viewModelScope.launch {
+    private fun startMoveDrag() {
+        if (repositoryPlaylist.value?.type != PlaylistType.EDITABLE) return
+        reorderState.startDrag()
+    }
+
+    private fun previewMove(fromIndex: Int, toIndex: Int) {
+        if (repositoryPlaylist.value?.type != PlaylistType.EDITABLE) return
+        reorderState.move(fromIndex, toIndex)
+    }
+
+    private fun stopMoveDrag() {
+        val move = reorderState.stopDragAndStartMove() ?: return
+        persistMove(move)
+    }
+
+    private fun persistMove(move: PlaylistMove) {
+        if (moveJob != null) return
+        lateinit var job: Job
+        job = viewModelScope.launch(start = CoroutineStart.LAZY) {
             try {
-                repository.moveItem(playlistId, uri, toIndex)
+                repository.moveItem(playlistId, move.uri, move.toIndex)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 eventChannel.send(PlaylistDetailEvent.Message(error.userMessage()))
+            } finally {
+                if (moveJob === job) moveJob = null
+                reorderState.finishMove()
             }
         }
+        moveJob = job
+        job.start()
     }
 
     private fun delete() {

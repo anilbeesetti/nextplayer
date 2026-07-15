@@ -36,7 +36,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -148,7 +147,7 @@ internal fun PlaylistDetailScreen(
                 actions = {
                     IconButton(
                         onClick = { onAction(PlaylistDetailAction.PlayAll) },
-                        enabled = playlist?.items?.isNotEmpty() == true,
+                        enabled = playlist?.items?.isNotEmpty() == true && !uiState.isMoving,
                         modifier = Modifier.tvFocusRing(),
                     ) {
                         Icon(
@@ -211,10 +210,10 @@ internal fun PlaylistDetailScreen(
                 onRefresh = { onAction(PlaylistDetailAction.Refresh) },
                 modifier = containerModifier,
             ) {
-                PlaylistDetailContent(playlist, isTv, padding, onAction)
+                PlaylistDetailContent(playlist, isTv, uiState.isMoving, padding, onAction)
             }
             else -> Box(containerModifier) {
-                PlaylistDetailContent(playlist, isTv, padding, onAction)
+                PlaylistDetailContent(playlist, isTv, uiState.isMoving, padding, onAction)
             }
         }
     }
@@ -247,30 +246,16 @@ internal fun PlaylistDetailScreen(
 private fun PlaylistDetailContent(
     playlist: Playlist,
     isTv: Boolean,
+    isMoving: Boolean,
     scaffoldPadding: PaddingValues,
     onAction: (PlaylistDetailAction) -> Unit,
 ) {
-    val repositoryItems = playlist.items
-    val displayedItems = remember { mutableStateListOf<PlaylistItem>() }
-    var pendingMove by remember { mutableStateOf<Pair<String, Int>?>(null) }
+    val displayedItems = playlist.items
     val lazyListState = rememberLazyListState()
     val hapticFeedback = LocalHapticFeedback.current
 
-    LaunchedEffect(repositoryItems) {
-        if (displayedItems != repositoryItems) {
-            displayedItems.clear()
-            displayedItems.addAll(repositoryItems)
-            pendingMove = null
-        }
-    }
-
     val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        if (from.index !in displayedItems.indices || to.index !in displayedItems.indices) {
-            return@rememberReorderableLazyListState
-        }
-        val moved = displayedItems.removeAt(from.index)
-        displayedItems.add(to.index, moved)
-        pendingMove = moved.uriString to to.index
+        onAction(PlaylistDetailAction.PreviewMove(from.index, to.index))
         hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
     }
 
@@ -305,7 +290,7 @@ private fun PlaylistDetailContent(
                     items = displayedItems,
                     key = { _, item -> item.uriString },
                 ) { index, item ->
-                    if (playlist.type == PlaylistType.EDITABLE && !isTv) {
+                    if (playlist.type == PlaylistType.EDITABLE && !isTv && !isMoving) {
                         ReorderableItem(state = reorderState, key = item.uriString) {
                             PlaylistItemRow(
                                 item = item,
@@ -320,15 +305,13 @@ private fun PlaylistDetailContent(
                                             .draggableHandle(
                                                 dragGestureDetector = DragGestureDetector.LongPress,
                                                 onDragStarted = {
+                                                    onAction(PlaylistDetailAction.StartMoveDrag)
                                                     hapticFeedback.performHapticFeedback(
                                                         HapticFeedbackType.GestureThresholdActivate,
                                                     )
                                                 },
                                                 onDragStopped = {
-                                                    pendingMove?.let { (uri, finalIndex) ->
-                                                        onAction(PlaylistDetailAction.MoveItem(uri, finalIndex))
-                                                    }
-                                                    pendingMove = null
+                                                    onAction(PlaylistDetailAction.StopMoveDrag)
                                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
                                                 },
                                             )
@@ -343,14 +326,15 @@ private fun PlaylistDetailContent(
                             item = item,
                             isFirstItem = index == 0,
                             isLastItem = index == displayedItems.lastIndex,
-                            canMoveUp = playlist.type == PlaylistType.EDITABLE && index > 0,
-                            canMoveDown = playlist.type == PlaylistType.EDITABLE && index < displayedItems.lastIndex,
-                            showMoveButtons = playlist.type == PlaylistType.EDITABLE && isTv,
+                            canMoveUp = playlist.type == PlaylistType.EDITABLE && !isMoving && index > 0,
+                            canMoveDown = playlist.type == PlaylistType.EDITABLE && !isMoving &&
+                                index < displayedItems.lastIndex,
+                            showMoveButtons = playlist.type == PlaylistType.EDITABLE && isTv && !isMoving,
                             onMoveUp = {
-                                moveItem(displayedItems, index, index - 1, onAction)
+                                onAction(PlaylistDetailAction.MoveItem(item.uriString, index - 1))
                             },
                             onMoveDown = {
-                                moveItem(displayedItems, index, index + 1, onAction)
+                                onAction(PlaylistDetailAction.MoveItem(item.uriString, index + 1))
                             },
                             onClick = { onAction(PlaylistDetailAction.PlayItem(item.uriString)) },
                         )
@@ -432,18 +416,6 @@ private fun PlaylistItemRow(
             null
         },
     )
-}
-
-private fun moveItem(
-    items: MutableList<PlaylistItem>,
-    fromIndex: Int,
-    toIndex: Int,
-    onAction: (PlaylistDetailAction) -> Unit,
-) {
-    if (fromIndex !in items.indices || toIndex !in items.indices) return
-    val moved = items.removeAt(fromIndex)
-    items.add(toIndex, moved)
-    onAction(PlaylistDetailAction.MoveItem(moved.uriString, toIndex))
 }
 
 @Composable

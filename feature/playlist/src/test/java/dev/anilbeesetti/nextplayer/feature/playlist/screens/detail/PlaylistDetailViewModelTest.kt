@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
@@ -101,6 +102,67 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
+    fun emptyAndNotFoundPlaybackDoNotEmitEvents() = runTest(dispatcher) {
+        collectUiState()
+        val events = mutableListOf<PlaylistDetailEvent>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.events.toList(events)
+        }
+        repository.playlist.value = playlist(items = emptyList())
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.PlayAll)
+        viewModel.onAction(PlaylistDetailAction.PlayItem("content://missing"))
+        runCurrent()
+
+        assertEquals(emptyList<PlaylistDetailEvent>(), events)
+    }
+
+    @Test
+    fun playbackUsesDisplayedOrderDuringPendingDrag() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(
+            items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
+        )
+        runCurrent()
+        val event = async { viewModel.events.first() }
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 0, toIndex = 1))
+        viewModel.onAction(PlaylistDetailAction.PlayItem("content://1"))
+
+        assertEquals(
+            PlaylistDetailEvent.Play(
+                uris = listOf("content://2", "content://1", "content://3"),
+                startUri = "content://1",
+            ),
+            event.await(),
+        )
+    }
+
+    @Test
+    fun playAllUsesFinalDisplayedOrderAndFirstUriDuringPendingDrag() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(
+            items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
+        )
+        runCurrent()
+        val event = async { viewModel.events.first() }
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 0, toIndex = 2))
+        viewModel.onAction(PlaylistDetailAction.PlayAll)
+
+        assertEquals(
+            PlaylistDetailEvent.Play(
+                uris = listOf("content://2", "content://3", "content://1"),
+                startUri = "content://2",
+            ),
+            event.await(),
+        )
+    }
+
+    @Test
     fun refreshIsRejectedForEditablePlaylist() = runTest(dispatcher) {
         collectUiState()
         repository.playlist.value = playlist(type = PlaylistType.EDITABLE)
@@ -137,6 +199,40 @@ class PlaylistDetailViewModelTest {
         assertFalse(viewModel.uiState.value.isRefreshing)
         assertEquals(cached, viewModel.uiState.value.playlist?.items)
         assertEquals(PlaylistDetailEvent.Message("Source unavailable"), event.await())
+    }
+
+    @Test
+    fun linkedRefreshResetsProgressWithoutEventCollector() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(type = PlaylistType.M3U_URL)
+        repository.refreshFailure = IOException("Source unavailable")
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.Refresh)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isRefreshing)
+        assertEquals(
+            PlaylistDetailEvent.Message("Source unavailable"),
+            viewModel.events.first(),
+        )
+    }
+
+    @Test
+    fun concurrentRefreshRequestsMakeOneRepositoryCall() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(type = PlaylistType.M3U_URL)
+        repository.refreshGate = CompletableDeferred()
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.Refresh)
+        viewModel.onAction(PlaylistDetailAction.Refresh)
+        runCurrent()
+
+        assertEquals(listOf(42L), repository.refreshedIds)
+
+        repository.refreshGate?.complete(Unit)
+        advanceUntilIdle()
     }
 
     @Test
@@ -182,6 +278,89 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
+    fun failedOptimisticMoveRollsDisplayedItemsBackToRepositoryOrder() = runTest(dispatcher) {
+        collectUiState()
+        val repositoryItems = listOf(
+            item("content://1", 0),
+            item("content://2", 1),
+            item("content://3", 2),
+        )
+        repository.playlist.value = playlist(items = repositoryItems)
+        repository.moveGate = CompletableDeferred()
+        repository.moveFailure = IOException("Move failed")
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 2, toIndex = 0))
+        viewModel.onAction(PlaylistDetailAction.StopMoveDrag)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.isMoving)
+        assertEquals(
+            listOf("content://3", "content://1", "content://2"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+
+        repository.moveGate?.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isMoving)
+        assertEquals(repositoryItems, viewModel.uiState.value.playlist?.items)
+    }
+
+    @Test
+    fun repositoryEmissionDuringPendingDragKeepsFinalUriAndIndex() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(
+            items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
+        )
+        repository.moveGate = CompletableDeferred()
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 0, toIndex = 1))
+        repository.playlist.value = playlist(
+            items = listOf(item("content://3", 0), item("content://2", 1), item("content://1", 2)),
+        )
+        runCurrent()
+
+        assertEquals(
+            listOf("content://2", "content://1", "content://3"),
+            viewModel.uiState.value.playlist?.items?.map(PlaylistItem::uriString),
+        )
+
+        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 1, toIndex = 2))
+        viewModel.onAction(PlaylistDetailAction.StopMoveDrag)
+        runCurrent()
+
+        assertEquals(listOf(MoveCall(42, "content://1", 2)), repository.moveCalls)
+
+        repository.moveGate?.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun rapidMoveRequestsMakeOneRepositoryCall() = runTest(dispatcher) {
+        collectUiState()
+        repository.playlist.value = playlist(
+            items = listOf(item("content://1", 0), item("content://2", 1)),
+        )
+        repository.moveGate = CompletableDeferred()
+        runCurrent()
+
+        viewModel.onAction(PlaylistDetailAction.MoveItem("content://1", 1))
+        viewModel.onAction(PlaylistDetailAction.MoveItem("content://2", 0))
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.isMoving)
+        assertEquals(listOf(MoveCall(42, "content://1", 1)), repository.moveCalls)
+
+        repository.moveGate?.complete(Unit)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isMoving)
+    }
+
+    @Test
     fun deleteDelegatesIdAndEmitsDeleted() = runTest(dispatcher) {
         val event = async { viewModel.events.first() }
 
@@ -207,6 +386,8 @@ private class FakeDetailPlaylistRepository : PlaylistRepository {
     var refreshGate: CompletableDeferred<Unit>? = null
     var refreshFailure: Throwable? = null
     var refreshResult = PlaylistRefreshResult(42, 0, 0)
+    var moveGate: CompletableDeferred<Unit>? = null
+    var moveFailure: Throwable? = null
 
     override fun observePlaylists(): Flow<List<PlaylistSummary>> = MutableStateFlow(emptyList())
 
@@ -224,6 +405,8 @@ private class FakeDetailPlaylistRepository : PlaylistRepository {
 
     override suspend fun moveItem(id: Long, uriString: String, toIndex: Int) {
         moveCalls += MoveCall(id, uriString, toIndex)
+        moveGate?.await()
+        moveFailure?.let { throw it }
     }
 
     override suspend fun refresh(id: Long): PlaylistRefreshResult {

@@ -79,6 +79,22 @@ class PlaylistDetailScreenTest {
     }
 
     @Test
+    fun moveInProgressRemovesTouchAndTvReorderAffordances() {
+        val editable = playlist(
+            items = listOf(item("content://one", 0), item("content://two", 1)),
+        )
+
+        setDetailContent(playlist = editable, isMoving = true)
+
+        composeRule.onAllNodesWithContentDescription("Reorder playlist item").assertCountEquals(0)
+
+        setDetailContent(playlist = editable, isMoving = true, isTv = true)
+
+        composeRule.onAllNodesWithContentDescription("Move up").assertCountEquals(0)
+        composeRule.onAllNodesWithContentDescription("Move down").assertCountEquals(0)
+    }
+
+    @Test
     fun refreshProgressKeepsLinkedItemsVisible() {
         setDetailContent(
             playlist = playlist(
@@ -109,6 +125,7 @@ class PlaylistDetailScreenTest {
     private fun setDetailContent(
         playlist: Playlist,
         isRefreshing: Boolean = false,
+        isMoving: Boolean = false,
         isTv: Boolean = false,
         onAction: (PlaylistDetailAction) -> Unit = {},
     ) {
@@ -119,6 +136,7 @@ class PlaylistDetailScreenTest {
                         playlist = playlist,
                         isLoading = false,
                         isRefreshing = isRefreshing,
+                        isMoving = isMoving,
                     ),
                     isTv = isTv,
                     onBack = {},
