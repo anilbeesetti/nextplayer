@@ -43,6 +43,7 @@ import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
+import dev.anilbeesetti.nextplayer.feature.player.utils.resolvePlaylistStartIndex
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
@@ -221,9 +222,11 @@ class PlayerActivity : ComponentActivity() {
                     }
             } ?: listOf(uri.toString())
 
-        val mediaItemIndexToPlay = playlist.indexOfFirst {
-            it == (mediaContentUri ?: uri).toString()
-        }.takeIf { it >= 0 } ?: 0
+        val mediaItemIndexToPlay = resolvePlaylistStartIndex(
+            playlist = playlist,
+            originalSelectedUri = uri.toString(),
+            normalizedSelectedUri = mediaContentUri?.toString(),
+        )
 
         val mediaItems = playlist.mapIndexed { index, uri ->
             MediaItem.Builder().apply {
