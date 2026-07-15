@@ -90,12 +90,11 @@ class LocalPlaylistRepository @Inject constructor(
     }
 
     override suspend fun refresh(id: Long): PlaylistRefreshResult {
+        requireLinkedPlaylist(id)
         val mutex = refreshMutexes.getOrPut(id) { Mutex() }
         return mutex.withLock {
-            val playlist = playlistDao.getPlaylist(id)?.playlist
-                ?: throw IllegalArgumentException("Playlist $id does not exist")
+            val playlist = requireLinkedPlaylist(id)
             val type = playlist.type.toPlaylistType()
-            require(type.isLinked) { "Editable playlists do not have a linked source" }
             val source = requireNotNull(playlist.source) { "Linked playlist must have a source" }
             val parsed = readAndParse(type, source)
             playlistDao.replaceItems(
@@ -105,6 +104,13 @@ class LocalPlaylistRepository @Inject constructor(
             )
             parsed.toRefreshResult(id)
         }
+    }
+
+    private suspend fun requireLinkedPlaylist(id: Long): PlaylistEntity {
+        val playlist = playlistDao.getPlaylist(id)?.playlist
+            ?: throw IllegalArgumentException("Playlist $id does not exist")
+        require(playlist.type.toPlaylistType().isLinked) { "Editable playlists do not have a linked source" }
+        return playlist
     }
 
     override suspend fun delete(id: Long) {
@@ -123,8 +129,9 @@ class LocalPlaylistRepository @Inject constructor(
 
     private suspend fun <T> mapNameConflict(block: suspend () -> T): T = try {
         block()
-    } catch (_: SQLiteConstraintException) {
-        throw PlaylistNameConflictException()
+    } catch (error: SQLiteConstraintException) {
+        if (error.isPlaylistNameConflict()) throw PlaylistNameConflictException()
+        throw error
     }
 
     private fun PlaylistEntity.requireEditable() {
@@ -136,6 +143,14 @@ private val PlaylistType.isLinked: Boolean
     get() = this == PlaylistType.M3U_URL || this == PlaylistType.M3U_FILE
 
 private fun String.normalizedName(): String = lowercase(Locale.ROOT)
+
+private fun SQLiteConstraintException.isPlaylistNameConflict(): Boolean {
+    val uniqueConstraint = message.orEmpty()
+        .substringAfter("UNIQUE constraint failed: ", missingDelimiterValue = "")
+        .substringBefore(" (code ")
+    return uniqueConstraint == "playlist.normalized_name" ||
+        uniqueConstraint == "index_playlist_normalized_name"
+}
 
 private fun String.toPlaylistType(): PlaylistType = PlaylistType.valueOf(this)
 

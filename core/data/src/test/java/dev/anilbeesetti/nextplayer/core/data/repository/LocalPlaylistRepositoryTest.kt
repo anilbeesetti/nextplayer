@@ -134,6 +134,31 @@ class LocalPlaylistRepositoryTest {
     }
 
     @Test
+    fun linkedCreationMapsNormalizedNameConstraint() = runTest {
+        dao.linkedInsertFailure = FakeSQLiteConstraintException(
+            "UNIQUE constraint failed: playlist.normalized_name",
+        )
+
+        assertFailsWith<PlaylistNameConflictException> {
+            repository.createLinked("News", PlaylistType.M3U_URL, SOURCE)
+        }
+    }
+
+    @Test
+    fun linkedCreationRethrowsNonNameConstraint() = runTest {
+        val databaseFailure = FakeSQLiteConstraintException(
+            "UNIQUE constraint failed: playlist_item.playlist_id, playlist_item.position",
+        )
+        dao.linkedInsertFailure = databaseFailure
+
+        val failure = assertFailsWith<SQLiteConstraintException> {
+            repository.createLinked("News", PlaylistType.M3U_URL, SOURCE)
+        }
+
+        assertSame(databaseFailure, failure)
+    }
+
+    @Test
     fun refreshReplacesCachedItemsAndReportsSkippedEntries() = runTest {
         val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
         sourceReader.content = """
@@ -197,6 +222,53 @@ class LocalPlaylistRepositoryTest {
     }
 
     @Test
+    fun missingPlaylistRefreshesValidateBeforeSerializationAndSourceRead() = runTest {
+        val firstLookup = dao.pauseNextPlaylistLookup()
+        val firstRefresh = async {
+            assertFailsWith<IllegalArgumentException> { repository.refresh(404) }
+        }
+        firstLookup.started.await()
+
+        val secondRefresh = async {
+            assertFailsWith<IllegalArgumentException> { repository.refresh(404) }
+        }
+        runCurrent()
+
+        try {
+            assertEquals(2, dao.maxConcurrentPlaylistLookups)
+            assertEquals(0, sourceReader.readCount)
+        } finally {
+            firstLookup.release.complete(Unit)
+        }
+        firstRefresh.await()
+        secondRefresh.await()
+    }
+
+    @Test
+    fun editablePlaylistRefreshesValidateBeforeSerializationAndSourceRead() = runTest {
+        val id = repository.createEditable("Movies")
+        val firstLookup = dao.pauseNextPlaylistLookup()
+        val firstRefresh = async {
+            assertFailsWith<IllegalArgumentException> { repository.refresh(id) }
+        }
+        firstLookup.started.await()
+
+        val secondRefresh = async {
+            assertFailsWith<IllegalArgumentException> { repository.refresh(id) }
+        }
+        runCurrent()
+
+        try {
+            assertEquals(2, dao.maxConcurrentPlaylistLookups)
+            assertEquals(0, sourceReader.readCount)
+        } finally {
+            firstLookup.release.complete(Unit)
+        }
+        firstRefresh.await()
+        secondRefresh.await()
+    }
+
+    @Test
     fun samePlaylistRefreshesAreSerialized() = runTest {
         val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
         val firstRead = sourceReader.pauseNextRead("https://example.test/two.mp4")
@@ -237,6 +309,27 @@ class LocalPlaylistRepositoryTest {
     }
 
     @Test
+    fun waitingRefreshRevalidatesPlaylistBeforeSourceRead() = runTest {
+        val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
+        val firstRead = sourceReader.pauseNextRead("https://example.test/two.mp4")
+        val firstRefresh = async { repository.refresh(id) }
+        firstRead.started.await()
+
+        val waitingRefresh = async {
+            assertFailsWith<IllegalArgumentException> { repository.refresh(id) }
+        }
+        runCurrent()
+        assertEquals(3, dao.playlistLookupCount)
+
+        repository.delete(id)
+        firstRead.release.complete(Unit)
+        firstRefresh.await()
+        waitingRefresh.await()
+
+        assertEquals(2, sourceReader.readCount)
+    }
+
+    @Test
     fun deleteRemovesPlaylist() = runTest {
         val id = repository.createEditable("Movies")
 
@@ -256,12 +349,15 @@ private class FakePlaylistSourceReader : PlaylistSourceReader {
     var failure: Throwable? = null
     var maxConcurrentReads = 0
         private set
+    var readCount = 0
+        private set
     private var activeReads = 0
     private var pausedRead: PausedRead? = null
 
     fun pauseNextRead(content: String): PausedRead = PausedRead(content).also { pausedRead = it }
 
     override suspend fun read(type: PlaylistType, source: String): PlaylistSourceContent {
+        readCount++
         failure?.let { throw it }
         activeReads++
         maxConcurrentReads = maxOf(maxConcurrentReads, activeReads)
@@ -292,22 +388,46 @@ private class FakePlaylistDao : PlaylistDao {
     private val summaries = MutableStateFlow(emptyList<PlaylistSummaryEntity>())
     private val details = mutableMapOf<Long, MutableStateFlow<PlaylistWithItems?>>()
     private var nextId = 1L
+    private var activePlaylistLookups = 0
+    private var pausedPlaylistLookup: PausedPlaylistLookup? = null
 
     var replaceFailure: Throwable? = null
+    var linkedInsertFailure: Throwable? = null
+    var maxConcurrentPlaylistLookups = 0
+        private set
+    var playlistLookupCount = 0
+        private set
+
+    fun pauseNextPlaylistLookup(): PausedPlaylistLookup =
+        PausedPlaylistLookup().also { pausedPlaylistLookup = it }
 
     override fun observeSummaries(): Flow<List<PlaylistSummaryEntity>> = summaries
 
     override fun observePlaylist(id: Long): Flow<PlaylistWithItems?> =
         details.getOrPut(id) { MutableStateFlow(snapshot(id)) }
 
-    override suspend fun getPlaylist(id: Long): PlaylistWithItems? = snapshot(id)
+    override suspend fun getPlaylist(id: Long): PlaylistWithItems? {
+        playlistLookupCount++
+        activePlaylistLookups++
+        maxConcurrentPlaylistLookups = maxOf(maxConcurrentPlaylistLookups, activePlaylistLookups)
+        return try {
+            val pause = pausedPlaylistLookup.also { pausedPlaylistLookup = null }
+            if (pause != null) {
+                pause.started.complete(Unit)
+                pause.release.await()
+            }
+            snapshot(id)
+        } finally {
+            activePlaylistLookups--
+        }
+    }
 
     override suspend fun getItems(playlistId: Long): List<PlaylistItemEntity> =
         items[playlistId].orEmpty().sortedBy { it.position }
 
     override suspend fun insertPlaylist(playlist: PlaylistEntity): Long {
         if (playlists.values.any { it.normalizedName == playlist.normalizedName }) {
-            throw SQLiteConstraintException("UNIQUE constraint failed: playlist.normalized_name")
+            throw FakeSQLiteConstraintException("UNIQUE constraint failed: playlist.normalized_name")
         }
         val id = nextId++
         playlists[id] = playlist.copy(id = id)
@@ -363,6 +483,7 @@ private class FakePlaylistDao : PlaylistDao {
         playlist: PlaylistEntity,
         items: List<PlaylistItemEntity>,
     ): Long {
+        linkedInsertFailure?.let { throw it }
         val id = insertPlaylist(playlist)
         addItems(id, items)
         return id
@@ -419,4 +540,16 @@ private class FakePlaylistDao : PlaylistDao {
         }
         details.getOrPut(changedId) { MutableStateFlow(null) }.value = snapshot(changedId)
     }
+
+    data class PausedPlaylistLookup(
+        val started: CompletableDeferred<Unit> = CompletableDeferred(),
+        val release: CompletableDeferred<Unit> = CompletableDeferred(),
+    )
+}
+
+private class FakeSQLiteConstraintException(
+    private val constraintMessage: String,
+) : SQLiteConstraintException() {
+    override val message: String
+        get() = constraintMessage
 }
