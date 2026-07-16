@@ -8,6 +8,7 @@ import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -48,9 +49,12 @@ class SshKeyFilesTest {
         val store = createStore()
         committedDirectory().mkdirs()
         File(committedDirectory(), "feed.key").writeText("committed")
-        val staged = store.stage("staged".byteInputStream())
+        File(stagingDirectory(), "feed.key").apply {
+            parentFile?.mkdirs()
+            writeText("staged")
+        }
 
-        assertEquals("staged", store.resolve(staged).readText())
+        assertEquals("staged", store.resolve("feed.key").readText())
     }
 
     @Test
@@ -194,8 +198,91 @@ class SshKeyFilesTest {
     }
 
     @Test
+    fun `blocked import does not prevent resolving committed key`() {
+        committedDirectory().mkdirs()
+        File(committedDirectory(), "cafe.key").writeText("committed")
+        val importStarted = CountDownLatch(1)
+        val allowImport = CountDownLatch(1)
+        val blockingInput = object : InputStream() {
+            override fun read(): Int {
+                importStarted.countDown()
+                allowImport.await()
+                return -1
+            }
+        }
+        val store = createStore()
+        val executor = Executors.newFixedThreadPool(2)
+
+        try {
+            val import = executor.submit<String> { store.stage(blockingInput) }
+            assertTrue(importStarted.await(5, TimeUnit.SECONDS))
+
+            val resolved = executor.submit<String> {
+                store.resolve("cafe.key").readText()
+            }
+
+            try {
+                assertEquals("committed", resolved.get(1, TimeUnit.SECONDS))
+            } catch (error: TimeoutException) {
+                throw AssertionError("Resolving a committed key waited for the import stream", error)
+            }
+            allowImport.countDown()
+            assertEquals("feed.key", import.get(5, TimeUnit.SECONDS))
+        } finally {
+            allowImport.countDown()
+            executor.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `key being imported is not resolvable until import completes`() {
+        val importStarted = CountDownLatch(1)
+        val allowImport = CountDownLatch(1)
+        val blockingInput = object : InputStream() {
+            override fun read(): Int {
+                importStarted.countDown()
+                allowImport.await()
+                return -1
+            }
+        }
+        val store = createStore()
+        val executor = Executors.newSingleThreadExecutor()
+
+        try {
+            val import = executor.submit<String> { store.stage(blockingInput) }
+            assertTrue(importStarted.await(5, TimeUnit.SECONDS))
+
+            assertThrows(FileNotFoundException::class.java) {
+                store.resolve("feed.key")
+            }
+
+            allowImport.countDown()
+            assertEquals("feed.key", import.get(5, TimeUnit.SECONDS))
+            assertTrue(store.resolve("feed.key").isFile)
+        } finally {
+            allowImport.countDown()
+            executor.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `stage rejects generated filename collision without changing existing key`() {
+        val existing = File(stagingDirectory(), "feed.key").apply {
+            parentFile?.mkdirs()
+            writeText("existing")
+        }
+
+        val exception = assertThrows(IllegalStateException::class.java) {
+            createStore().stage("replacement".byteInputStream())
+        }
+
+        assertEquals("Private key filename is already in use", exception.message)
+        assertEquals("existing", existing.readText())
+    }
+
+    @Test
     fun `stage surfaces partial cleanup failure without masking import error`() {
-        File(stagingDirectory(), "feed.key").apply {
+        File(stagingDirectory(), ".feed.key.importing").apply {
             mkdirs()
             resolve("undeletable").writeText("content")
         }
@@ -248,6 +335,7 @@ class SshKeyFilesTest {
         }
         val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
         val stagedFile = File(stagingDirectory(), "feed.key")
+        val importingFile = File(stagingDirectory(), ".feed.key.importing")
 
         try {
             val import = launch(Dispatchers.Default) {
@@ -260,12 +348,14 @@ class SshKeyFilesTest {
             }
 
             assertTrue(copyCompleted.await(5, TimeUnit.SECONDS))
-            assertTrue(stagedFile.isFile)
+            assertTrue(importingFile.isFile)
+            assertFalse(stagedFile.exists())
             import.cancel()
             allowImportToReturn.countDown()
             import.join()
 
             assertTrue(import.isCancelled)
+            assertFalse(importingFile.exists())
             assertFalse(stagedFile.exists())
         } finally {
             allowImportToReturn.countDown()

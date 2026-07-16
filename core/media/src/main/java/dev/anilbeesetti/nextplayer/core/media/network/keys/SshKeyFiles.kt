@@ -16,6 +16,7 @@ class SshKeyFiles(
 
     private val lifecycleLock = Any()
     private val reconciliationComplete = CountDownLatch(if (reconciliationRequired) 1 else 0)
+    private val importsInProgress = mutableSetOf<String>()
 
     /**
      * Removes keys left behind by an interrupted save or delete. Passing null only releases the
@@ -34,34 +35,43 @@ class SshKeyFiles(
 
     fun stage(inputStream: InputStream): String {
         awaitReconciliation()
-        return synchronized(lifecycleLock) {
-            val generatedName = fileName().also(::requireValidName)
-            stagingDirectory.mkdirs()
-            val target = stagedFile(generatedName)
-            try {
-                inputStream.use { input ->
-                    target.outputStream().use { output ->
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        var bytesCopied = 0L
-                        while (true) {
-                            val read = input.read(buffer)
-                            if (read == -1) break
-                            bytesCopied += read
-                            if (bytesCopied > MAX_PRIVATE_KEY_BYTES) {
-                                throw IOException("Private key exceeds 1 MiB")
-                            }
-                            output.write(buffer, 0, read)
+        val pendingImport = synchronized(lifecycleLock, ::reserveImport)
+        try {
+            inputStream.use { input ->
+                pendingImport.temporaryFile.outputStream().use { output ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    var bytesCopied = 0L
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read == -1) break
+                        bytesCopied += read
+                        if (bytesCopied > MAX_PRIVATE_KEY_BYTES) {
+                            throw IOException("Private key exceeds 1 MiB")
                         }
+                        output.write(buffer, 0, read)
                     }
                 }
-            } catch (throwable: Throwable) {
-                if (!target.deleteIfPresent()) {
+            }
+            synchronized(lifecycleLock) {
+                val stagedFile = stagedFile(pendingImport.fileName)
+                check(!stagedFile.exists() && !committedFile(pendingImport.fileName).exists()) {
+                    "Private key filename is already in use"
+                }
+                check(pendingImport.temporaryFile.renameTo(stagedFile)) {
+                    "Couldn't publish private key"
+                }
+                importsInProgress -= pendingImport.fileName
+            }
+        } catch (throwable: Throwable) {
+            synchronized(lifecycleLock) {
+                importsInProgress -= pendingImport.fileName
+                if (!pendingImport.temporaryFile.deleteIfPresent()) {
                     throwable.addSuppressed(IOException("Couldn't delete partial private key"))
                 }
-                throw throwable
             }
-            generatedName
+            throw throwable
         }
+        return pendingImport.fileName
     }
 
     fun resolve(fileName: String): File {
@@ -109,6 +119,21 @@ class SshKeyFiles(
         check(stagedDeleted && committedDeleted) { "Couldn't reconcile private keys" }
     }
 
+    private fun reserveImport(): PendingImport {
+        val generatedName = fileName().also(::requireValidName)
+        check(
+            generatedName !in importsInProgress &&
+                !stagedFile(generatedName).exists() &&
+                !committedFile(generatedName).exists(),
+        ) { "Private key filename is already in use" }
+        stagingDirectory.mkdirs()
+        importsInProgress += generatedName
+        return PendingImport(
+            fileName = generatedName,
+            temporaryFile = File(stagingDirectory, ".$generatedName.importing"),
+        )
+    }
+
     private fun awaitReconciliation() = reconciliationComplete.await()
 
     private fun stagedFile(fileName: String) = File(stagingDirectory, validated(fileName))
@@ -126,4 +151,9 @@ class SshKeyFiles(
     private companion object {
         const val MAX_PRIVATE_KEY_BYTES = 1024L * 1024L
     }
+
+    private data class PendingImport(
+        val fileName: String,
+        val temporaryFile: File,
+    )
 }
