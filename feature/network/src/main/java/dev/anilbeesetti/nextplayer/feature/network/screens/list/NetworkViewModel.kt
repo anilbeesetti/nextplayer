@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.NetworkConnectionRepository
+import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +21,7 @@ data class NetworkUiState(
 @HiltViewModel
 class NetworkViewModel @Inject constructor(
     private val repository: NetworkConnectionRepository,
+    private val sshKeyStore: SshKeyStore,
 ) : ViewModel() {
 
     val uiState: StateFlow<NetworkUiState> = repository.getConnections()
@@ -31,6 +33,18 @@ class NetworkViewModel @Inject constructor(
         )
 
     fun deleteConnection(id: Long) {
-        viewModelScope.launch { repository.delete(id) }
+        viewModelScope.launch { deleteConnectionAndCleanup(id, repository, sshKeyStore) }
+    }
+}
+
+internal suspend fun deleteConnectionAndCleanup(
+    id: Long,
+    repository: NetworkConnectionRepository,
+    sshKeyStore: SshKeyStore,
+) {
+    val connection = repository.getConnection(id) ?: return
+    repository.delete(id)
+    if (connection.privateKeyFileName.isNotBlank()) {
+        sshKeyStore.delete(connection.privateKeyFileName)
     }
 }
