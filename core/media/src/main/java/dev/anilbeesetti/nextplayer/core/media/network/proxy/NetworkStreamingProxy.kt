@@ -37,8 +37,9 @@ class NetworkStreamingProxy @Inject constructor(
         val client: NetworkClient,
         val filePath: String,
         val mimeType: String,
-        var fileSize: Long = -1L,
-    )
+    ) {
+        val initializer = NetworkStreamInitializer(client, filePath)
+    }
 
     private val streams = ConcurrentHashMap<String, StreamInfo>()
     private val idCounter = AtomicLong(0)
@@ -99,14 +100,13 @@ class NetworkStreamingProxy @Inject constructor(
 
             return try {
                 runBlocking {
-                    if (!info.client.isConnected()) info.client.connect().getOrThrow()
-                    if (info.fileSize < 0) info.fileSize = info.client.fileSize(info.filePath)
+                    val fileSize = info.initializer.initialize()
 
                     val range = session.headers["range"]
-                    if (range != null && range.startsWith("bytes=") && info.fileSize > 0) {
-                        partialResponse(info, range)
+                    if (range != null && range.startsWith("bytes=") && fileSize > 0) {
+                        partialResponse(info, fileSize, range)
                     } else {
-                        fullResponse(info)
+                        fullResponse(info, fileSize)
                     }
                 }
             } catch (e: Exception) {
@@ -114,23 +114,23 @@ class NetworkStreamingProxy @Inject constructor(
             }
         }
 
-        private suspend fun partialResponse(info: StreamInfo, rangeHeader: String): Response {
+        private suspend fun partialResponse(info: StreamInfo, fileSize: Long, rangeHeader: String): Response {
             val parts = rangeHeader.removePrefix("bytes=").split("-")
             val start = parts.getOrNull(0)?.toLongOrNull() ?: 0L
-            val end = parts.getOrNull(1)?.takeIf { it.isNotEmpty() }?.toLongOrNull() ?: (info.fileSize - 1)
+            val end = parts.getOrNull(1)?.takeIf { it.isNotEmpty() }?.toLongOrNull() ?: (fileSize - 1)
             val contentLength = (end - start + 1).coerceAtLeast(0)
 
             val stream = info.client.openStream(info.filePath, start)
             return newFixedLengthResponse(Response.Status.PARTIAL_CONTENT, info.mimeType, stream, contentLength).apply {
                 addHeader("Accept-Ranges", "bytes")
-                addHeader("Content-Range", "bytes $start-$end/${info.fileSize}")
+                addHeader("Content-Range", "bytes $start-$end/$fileSize")
             }
         }
 
-        private suspend fun fullResponse(info: StreamInfo): Response {
+        private suspend fun fullResponse(info: StreamInfo, fileSize: Long): Response {
             val stream = info.client.openStream(info.filePath, 0L)
-            return if (info.fileSize >= 0) {
-                newFixedLengthResponse(Response.Status.OK, info.mimeType, stream, info.fileSize).apply {
+            return if (fileSize >= 0) {
+                newFixedLengthResponse(Response.Status.OK, info.mimeType, stream, fileSize).apply {
                     addHeader("Accept-Ranges", "bytes")
                 }
             } else {
