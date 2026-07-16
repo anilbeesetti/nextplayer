@@ -172,7 +172,20 @@ Verification commands:
 - `env ANDROID_HOME=/Users/anil/Library/Android/sdk ./gradlew ktlintCheck`
 - `env ANDROID_HOME=/Users/anil/Library/Android/sdk ./gradlew assembleDebug`
 
-If a local OpenSSH/SFTP server is available, additionally verify password login, unencrypted and encrypted private keys, fingerprint confirmation, directory browsing, playback, seeking, and host-key mismatch behavior end to end.
+Disposable-emulator QA is a required acceptance gate, not an optional manual check:
+
+1. Create a fresh task-specific Android Virtual Device from an installed Google APIs image at API 35 or newer. Start it with wiped data and do not reuse a developer's existing emulator.
+2. Start a disposable local OpenSSH/SFTP server with throwaway password credentials, unencrypted and encrypted client keys, a known media fixture, and a generated server host key. Expose it to the Android emulator through the emulator host gateway (`10.0.2.2`).
+3. Build and install the debug app on the disposable emulator, clear logcat, and confirm the package launches without a crash.
+4. Drive the UI with `adb`, deriving every tap coordinate from a `uiautomator` tree rather than from screenshots. Push imported test keys to the emulator's Downloads directory and select them through Android's document picker.
+5. Verify password authentication, an unencrypted private key, and an encrypted private key with its passphrase.
+6. Verify first-use fingerprint confirmation, rejection without saving, acceptance and successful retry, persistence across reconnect, and host-key mismatch after restarting the disposable server with a different host key.
+7. Verify root-directory browsing, nested navigation, video playback, and a seek that causes a non-zero range read from SFTP.
+8. Verify editing/replacing a key and deleting the connection leave no orphaned committed key files, using app-visible behavior plus focused test/log evidence rather than requiring a rooted emulator.
+9. Save step-specific UI trees, screenshots, and app-scoped logcat output as QA evidence. Confirm the crash buffer is empty.
+10. Stop and delete the task-specific AVD and disposable SFTP server, then remove all throwaway keys, credentials, and media fixtures. Preserve only the non-secret QA evidence needed for review.
+
+If the environment cannot create or boot a disposable emulator or server, report the exact missing SDK image, virtualization, container-runtime, or port-access prerequisite. Unit tests and a successful build do not replace this emulator gate.
 
 ## Documentation
 
@@ -188,3 +201,4 @@ Keep the README SFTP feature entry and update user-visible connection descriptio
 - SMB, FTP, and WebDAV behavior is unchanged.
 - Existing database rows migrate without data loss.
 - Unit tests, formatting checks, and the debug build complete successfully.
+- Disposable-emulator QA completes with retained non-secret evidence and full cleanup of the AVD, server, keys, credentials, and fixtures.
