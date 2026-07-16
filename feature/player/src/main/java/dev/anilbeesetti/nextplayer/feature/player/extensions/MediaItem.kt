@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import dev.anilbeesetti.nextplayer.feature.player.service.MAX_PUBLISHED_ARTWORK_BYTES
@@ -12,6 +14,14 @@ private const val MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY = "subtitle_track_inde
 private const val MEDIA_METADATA_VIDEO_ZOOM_KEY = "media_metadata_video_zoom"
 private const val MEDIA_METADATA_SUBTITLE_DELAY_KEY = "media_metadata_subtitle_delay"
 private const val MEDIA_METADATA_SUBTITLE_SPEED_KEY = "media_metadata_subtitle_speed"
+
+val MediaItem.artworkModel: Any
+    get() = mediaMetadata.artworkData
+        ?: mediaMetadata.artworkUri
+        ?: mediaId.toUri()
+
+val MediaItem.artworkRequestUri: Uri
+    get() = mediaMetadata.artworkUri ?: mediaId.toUri()
 
 private fun Bundle.setExtras(
     positionMs: Long?,

@@ -35,20 +35,28 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
-import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
+import dev.anilbeesetti.nextplayer.feature.player.utils.LatestPlaybackRequestRunner
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlaybackRequestIdentity
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApiData
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistMediaQueue
+import dev.anilbeesetti.nextplayer.feature.player.utils.PlaylistPlaybackContract
 import dev.anilbeesetti.nextplayer.feature.player.utils.resolvePlaybackQueue
 import dev.anilbeesetti.nextplayer.feature.player.utils.resolvePlaylistStartIndex
+import dev.anilbeesetti.nextplayer.feature.player.utils.toMediaQueue
 import java.util.concurrent.CopyOnWriteArrayList
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,6 +67,9 @@ val LocalUseMaterialYouControls = compositionLocalOf { false }
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var playlistRepository: PlaylistRepository
+
     private val viewModel: PlayerViewModel by viewModels()
     val playerPreferences get() = viewModel.uiState.value.playerPreferences
 
@@ -67,6 +78,8 @@ class PlayerActivity : ComponentActivity() {
     private var isPlaybackFinished = false
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
+    private var activePlaybackRequestIdentity: PlaybackRequestIdentity? = null
+    private val playbackRequestRunner by lazy { LatestPlaybackRequestRunner(lifecycleScope) }
 
     /**
      * Player
@@ -194,11 +207,15 @@ class PlayerActivity : ComponentActivity() {
 
     private fun startPlayback() {
         val uri = intent.data ?: return
+        val playlistId = intent.playlistIdOrNull()
+        val requestIdentity = PlaybackRequestIdentity(playlistId, uri.toString())
 
         val returningFromBackground = !isIntentNew && mediaController?.currentMediaItem != null
-        val isNewUriTheCurrentMediaItem = mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
+        val isRequestAlreadyActive = activePlaybackRequestIdentity == requestIdentity &&
+            mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
 
-        if (returningFromBackground || isNewUriTheCurrentMediaItem) {
+        if (returningFromBackground || isRequestAlreadyActive) {
+            isIntentNew = false
             mediaController?.prepare()
             mediaController?.playWhenReady = viewModel.playWhenReady
             return
@@ -207,15 +224,38 @@ class PlayerActivity : ComponentActivity() {
         isIntentNew = false
         val apiData = playerApi.snapshot()
 
-        lifecycleScope.launch {
-            playVideo(uri, apiData)
+        playbackRequestRunner.submit {
+            playVideo(uri, apiData, requestIdentity)
         }
     }
 
     private suspend fun playVideo(
         uri: Uri,
         apiData: PlayerApiData?,
+        requestIdentity: PlaybackRequestIdentity,
     ) = withContext(Dispatchers.Default) {
+        requestIdentity.playlistId?.let { playlistId ->
+            val queue = playlistRepository.observePlaylist(playlistId).first()
+                ?.toMediaQueue(uri.toString())
+                ?: PlaylistMediaQueue(
+                    mediaItems = listOf(
+                        MediaItem.Builder()
+                            .setUri(uri)
+                            .setMediaId(uri.toString())
+                            .build(),
+                    ),
+                    startIndex = 0,
+                )
+
+            applyPlaybackQueue(
+                mediaItems = queue.mediaItems,
+                startIndex = queue.startIndex,
+                startPositionMs = C.TIME_UNSET,
+                requestIdentity = requestIdentity,
+            )
+            return@withContext
+        }
+
         val mediaContentUri = getMediaContentUri(uri)
         val playlist = resolvePlaybackQueue(
             selectedUri = uri.toString(),
@@ -255,19 +295,36 @@ class PlayerActivity : ComponentActivity() {
             }.build()
         }
 
-        withContext(Dispatchers.Main) {
-            mediaController?.run {
-                setMediaItems(mediaItems, mediaItemIndexToPlay, apiData?.position?.toLong() ?: C.TIME_UNSET)
-                playWhenReady = viewModel.playWhenReady
-                prepare()
-            }
+        applyPlaybackQueue(
+            mediaItems = mediaItems,
+            startIndex = mediaItemIndexToPlay,
+            startPositionMs = apiData?.position?.toLong() ?: C.TIME_UNSET,
+            requestIdentity = requestIdentity,
+        )
+    }
+
+    private suspend fun applyPlaybackQueue(
+        mediaItems: List<MediaItem>,
+        startIndex: Int,
+        startPositionMs: Long,
+        requestIdentity: PlaybackRequestIdentity,
+    ) = withContext(Dispatchers.Main) {
+        mediaController?.run {
+            setMediaItems(mediaItems, startIndex, startPositionMs)
+            activePlaybackRequestIdentity = requestIdentity
+            playWhenReady = viewModel.playWhenReady
+            prepare()
         }
     }
 
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
-            intent.data = mediaItem?.localConfiguration?.uri
+            val uri = mediaItem?.localConfiguration?.uri ?: return
+            intent.data = uri
+            activePlaybackRequestIdentity = activePlaybackRequestIdentity?.copy(
+                selectedUriString = uri.toString(),
+            )
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -348,4 +405,9 @@ class PlayerActivity : ComponentActivity() {
     fun removeOnWindowAttributesChangedListener(listener: Consumer<WindowManager.LayoutParams?>) {
         onWindowAttributesChangedListener.remove(listener)
     }
+}
+
+private fun Intent.playlistIdOrNull(): Long? {
+    if (!hasExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID)) return null
+    return getLongExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID, 0L).takeIf { it > 0L }
 }

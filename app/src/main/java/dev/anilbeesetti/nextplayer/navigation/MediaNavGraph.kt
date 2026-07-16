@@ -49,13 +49,11 @@ internal fun Context.startPlayback(
     uris: List<Uri>,
     startUri: Uri = uris.first(),
     grantReadPermission: Boolean = false,
-    forcePlaylistExtra: Boolean = false,
 ) {
     val spec = playbackLaunchSpec(
         items = uris,
         startItem = startUri,
         grantReadPermission = grantReadPermission,
-        forcePlaylistExtra = forcePlaylistExtra,
     )
     if (spec.grantReadPermission) {
         uris.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
@@ -79,9 +77,8 @@ internal fun <T> playbackLaunchSpec(
     items: List<T>,
     startItem: T = items.first(),
     grantReadPermission: Boolean = false,
-    forcePlaylistExtra: Boolean = false,
 ): PlaybackLaunchSpec<T> = PlaybackLaunchSpec(
     startItem = startItem,
-    playlistExtra = items.takeIf { it.size > 1 || forcePlaylistExtra }?.let { ArrayList(it) },
+    playlistExtra = items.takeIf { it.size > 1 }?.let { ArrayList(it) },
     grantReadPermission = grantReadPermission,
 )

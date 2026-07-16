@@ -8,15 +8,13 @@ import org.junit.Test
 
 class PlaybackLaunchSpecTest {
     @Test
-    fun oneItemPlaylistLaunchIncludesExplicitPlaylistExtra() {
+    fun playlistLaunchUsesOnlyPlaylistIdAndSelectedItem() {
         val uri = "content://media/external/video/media/42"
 
-        val spec = playbackLaunchSpec(
-            items = listOf(uri),
-            forcePlaylistExtra = true,
-        )
+        val spec = playlistPlaybackLaunchSpec(playlistId = 42, startItem = uri)
 
-        assertEquals(listOf(uri), spec.playlistExtra)
+        assertEquals(42L, spec.playlistId)
+        assertEquals(uri, spec.startItem)
     }
 
     @Test

@@ -51,6 +51,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.artworkRequestUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
@@ -641,8 +642,8 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                // Use placeholder artwork initially - actual artwork will be loaded in background
-                val artworkUri = getDefaultArtworkUri()
+                // Preserve source artwork when supplied, otherwise use the local placeholder until loading completes.
+                val artworkUri = mediaItem.mediaMetadata.artworkUri ?: getDefaultArtworkUri()
 
                 val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
@@ -702,8 +703,9 @@ class PlayerService : MediaSessionService() {
             )
         }
     }
+
     private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): ByteArray? = withContext(Dispatchers.IO) {
-        val uri = mediaItem.mediaId.toUri()
+        val uri = mediaItem.artworkRequestUri
         return@withContext try {
             val request = ImageRequest.Builder(this@PlayerService)
                 .data(uri)

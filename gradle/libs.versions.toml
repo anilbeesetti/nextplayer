@@ -33,6 +33,7 @@ kotlinxSerializationJson = "1.11.0"
 ksp = "2.3.10"
 ktlint = "12.3.0"
 reorderable = "3.1.0"
+robolectric = "4.16.1"
 room = "2.8.4"
 nextlib = "1.10.1-0.13.0"
 universalChardet = "2.5.0"
@@ -86,6 +87,7 @@ androidx-room-testing = { group = "androidx.room", name = "room-testing", versio
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 github-albfernandez-juniversalchardet = { group="com.github.albfernandez", name = "juniversalchardet", version.ref="universalChardet" }
 github-anilbeesetti-nextlib-media3ext = { group = "io.github.anilbeesetti", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "io.github.anilbeesetti", name = "nextlib-mediainfo", version.ref = "nextlib" }
@@ -100,6 +102,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
 commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }
 sardine-android = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardineAndroid" }
