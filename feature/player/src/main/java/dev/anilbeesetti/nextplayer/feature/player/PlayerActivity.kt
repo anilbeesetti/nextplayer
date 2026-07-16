@@ -210,15 +210,32 @@ class PlayerActivity : ComponentActivity() {
         val playlistId = intent.playlistIdOrNull()
         val requestIdentity = PlaybackRequestIdentity(playlistId, uri.toString())
 
-        val returningFromBackground = !isIntentNew && mediaController?.currentMediaItem != null
         val isRequestAlreadyActive = activePlaybackRequestIdentity == requestIdentity &&
             mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()
 
-        if (returningFromBackground || isRequestAlreadyActive) {
-            isIntentNew = false
-            mediaController?.prepare()
-            mediaController?.playWhenReady = viewModel.playWhenReady
-            return
+        when (
+            playbackRequestDisposition(
+                isIntentNew = isIntentNew,
+                hasCurrentMediaItem = mediaController?.currentMediaItem != null,
+                isRequestAlreadyActive = isRequestAlreadyActive,
+            )
+        ) {
+            PlaybackRequestDisposition.RETURN_FROM_BACKGROUND -> {
+                isIntentNew = false
+                mediaController?.prepare()
+                mediaController?.playWhenReady = viewModel.playWhenReady
+                return
+            }
+
+            PlaybackRequestDisposition.ALREADY_ACTIVE -> {
+                playbackRequestRunner.cancel()
+                isIntentNew = false
+                mediaController?.prepare()
+                mediaController?.playWhenReady = viewModel.playWhenReady
+                return
+            }
+
+            PlaybackRequestDisposition.LOAD -> Unit
         }
 
         isIntentNew = false
@@ -410,4 +427,20 @@ class PlayerActivity : ComponentActivity() {
 private fun Intent.playlistIdOrNull(): Long? {
     if (!hasExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID)) return null
     return getLongExtra(PlaylistPlaybackContract.EXTRA_PLAYLIST_ID, 0L).takeIf { it > 0L }
+}
+
+internal enum class PlaybackRequestDisposition {
+    RETURN_FROM_BACKGROUND,
+    ALREADY_ACTIVE,
+    LOAD,
+}
+
+internal fun playbackRequestDisposition(
+    isIntentNew: Boolean,
+    hasCurrentMediaItem: Boolean,
+    isRequestAlreadyActive: Boolean,
+): PlaybackRequestDisposition = when {
+    !isIntentNew && hasCurrentMediaItem -> PlaybackRequestDisposition.RETURN_FROM_BACKGROUND
+    isRequestAlreadyActive -> PlaybackRequestDisposition.ALREADY_ACTIVE
+    else -> PlaybackRequestDisposition.LOAD
 }

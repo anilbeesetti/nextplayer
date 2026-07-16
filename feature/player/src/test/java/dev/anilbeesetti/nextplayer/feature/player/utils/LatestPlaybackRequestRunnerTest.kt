@@ -33,4 +33,26 @@ class LatestPlaybackRequestRunnerTest {
         firstCancelled.await()
         assertEquals(listOf("second"), completed)
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun cancelStopsBlockedRequest() = runTest {
+        val requestStarted = CompletableDeferred<Unit>()
+        val requestCancelled = CompletableDeferred<Unit>()
+        val runner = LatestPlaybackRequestRunner(backgroundScope)
+
+        runner.submit {
+            requestStarted.complete(Unit)
+            try {
+                awaitCancellation()
+            } finally {
+                requestCancelled.complete(Unit)
+            }
+        }
+        requestStarted.await()
+
+        runner.cancel()
+
+        requestCancelled.await()
+    }
 }
