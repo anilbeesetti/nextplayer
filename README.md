@@ -95,6 +95,10 @@ the [Issues](https://github.com/anilbeesetti/nextplayer/issues) section.**
 
 Contributions are welcome!
 
+### Developer documentation
+
+- [Runtime decoder switching](feature/player/DECODER_SWITCHING.md)
+
 ### Translating
 
 You can help translate Next Player on [Hosted Weblate](https://hosted.weblate.org/engage/next-player/).

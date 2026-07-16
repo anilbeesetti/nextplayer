@@ -67,6 +67,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
@@ -78,10 +79,12 @@ import dev.anilbeesetti.nextplayer.feature.player.buttons.NextButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayPauseButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PreviousButton
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
@@ -113,7 +116,7 @@ val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> 
 @OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerScreen(
-    player: Player?,
+    player: MediaController?,
     viewModel: PlayerViewModel,
     playerPreferences: PlayerPreferences,
     modifier: Modifier = Modifier,
@@ -169,6 +172,10 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
+    val decoderState = rememberDecoderState(
+        controller = player,
+        initialMode = DecoderMode.HW_PLUS,
+    )
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -369,6 +376,11 @@ fun MediaPlayerScreen(
                             ) {
                                 ControlsTopView(
                                     title = metadataState.title ?: "",
+                                    decoderMode = decoderState.mode,
+                                    onDecoderClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.DECODER_SELECTOR
+                                    },
                                     onAudioClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.AUDIO_SELECTOR
@@ -492,8 +504,10 @@ fun MediaPlayerScreen(
             OverlayShowView(
                 player = player,
                 overlayView = overlayView,
+                decoderMode = decoderState.mode,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                 onDismiss = { overlayView = null },
+                onDecoderModeSelected = decoderState::switchTo,
                 onSelectSubtitleClick = onSelectSubtitleClick,
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
@@ -501,14 +515,45 @@ fun MediaPlayerScreen(
         }
     }
 
-    errorState.error?.let { error ->
+    errorState.unsupportedDecoderMode?.let { unsupportedMode ->
+        AlertDialog(
+            onDismissRequest = { },
+            title = {
+                Text(text = stringResource(coreUiR.string.decoder))
+            },
+            text = {
+                Text(
+                    text = stringResource(
+                        coreUiR.string.decoder_mode_not_supported,
+                        unsupportedMode.label,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = errorState::tryDecoderFallback) {
+                    Text(text = stringResource(coreUiR.string.okay))
+                }
+            },
+        )
+    }
+
+    if (errorState.showPlayerError) {
         AlertDialog(
             onDismissRequest = { },
             title = {
                 Text(text = stringResource(coreUiR.string.error_playing_video))
             },
             text = {
-                Text(text = error.message ?: stringResource(coreUiR.string.unknown_error))
+                Text(
+                    text = errorState.playbackError?.message
+                        ?: stringResource(
+                            if (errorState.allDecoderModesFailed) {
+                                coreUiR.string.no_supported_decoder
+                            } else {
+                                coreUiR.string.unknown_error
+                            },
+                        ),
+                )
             },
             confirmButton = {
                 if (player.hasNextMediaItem()) {

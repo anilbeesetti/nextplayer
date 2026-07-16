@@ -26,12 +26,15 @@ import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 
 @OptIn(UnstableApi::class)
 @Composable
 fun ControlsTopView(
     modifier: Modifier = Modifier,
     title: String,
+    decoderMode: DecoderMode,
+    onDecoderClick: () -> Unit = {},
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaybackSpeedClick: () -> Unit = {},
@@ -69,6 +72,12 @@ fun ControlsTopView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            PlayerButton(onClick = onDecoderClick) {
+                Text(
+                    text = decoderMode.label,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_playlist),
