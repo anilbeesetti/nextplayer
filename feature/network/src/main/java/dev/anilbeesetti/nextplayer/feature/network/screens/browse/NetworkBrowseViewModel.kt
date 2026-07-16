@@ -13,6 +13,7 @@ import dev.anilbeesetti.nextplayer.core.media.network.NetworkClient
 import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.isNetworkVideoFile
 import dev.anilbeesetti.nextplayer.core.media.network.proxy.NetworkStreamingProxy
+import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +29,17 @@ data class NetworkBrowseUiState(
     val title: String = "",
     val files: List<NetworkFile> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null,
+    val error: NetworkBrowseError? = null,
+)
+
+data class NetworkBrowseHostKeyMismatch(
+    val trustedFingerprint: String,
+    val presentedFingerprint: String,
+)
+
+data class NetworkBrowseError(
+    val message: String?,
+    val hostKeyMismatch: NetworkBrowseHostKeyMismatch? = null,
 )
 
 /**
@@ -71,7 +82,10 @@ class NetworkBrowseViewModel @AssistedInject constructor(
         viewModelScope.launch {
             val conn = connection ?: repository.getConnection(connectionId)?.also { connection = it }
             if (conn == null) {
-                _uiState.value = NetworkBrowseUiState(isLoading = false, error = "Connection not found")
+                _uiState.value = NetworkBrowseUiState(
+                    isLoading = false,
+                    error = NetworkBrowseError("Connection not found"),
+                )
                 return@launch
             }
             val activeClient = client ?: clientFactory.create(conn).also { client = it }
@@ -81,7 +95,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
                     _uiState.value = NetworkBrowseUiState(
                         title = title(conn),
                         isLoading = false,
-                        error = connected.exceptionOrNull()?.message,
+                        error = connected.exceptionOrNull()?.toNetworkBrowseError(),
                     )
                     return@launch
                 }
@@ -109,7 +123,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
                     )
                 },
                 onFailure = { e ->
-                    _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = e.toNetworkBrowseError())
                 },
             )
         }
@@ -137,4 +151,19 @@ class NetworkBrowseViewModel @AssistedInject constructor(
         // Best-effort disconnect on a detached IO scope, since viewModelScope is already cancelled.
         CoroutineScope(Dispatchers.IO).launch { runCatching { client.disconnect() } }
     }
+}
+
+private fun Throwable.toNetworkBrowseError(): NetworkBrowseError {
+    val mismatch = generateSequence(this) { it.cause }
+        .filterIsInstance<HostKeyMismatch>()
+        .firstOrNull()
+    return NetworkBrowseError(
+        message = message,
+        hostKeyMismatch = mismatch?.let {
+            NetworkBrowseHostKeyMismatch(
+                trustedFingerprint = it.expectedFingerprint,
+                presentedFingerprint = it.presentedFingerprint,
+            )
+        },
+    )
 }
