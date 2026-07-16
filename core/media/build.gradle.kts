@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.smbj)
     implementation(libs.commons.net)
     implementation(libs.sshj)
+    implementation(libs.bouncycastle.provider)
     implementation(libs.sardine.android) {
         // xpp3/stax bundle org.xmlpull.v1, which conflicts with the classes
         // already provided by the Android platform and breaks R8 minification.

@@ -6,6 +6,7 @@ import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyConfirmationRe
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.SftpHostKeyVerifier
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.SftpOwnedInputStream
+import dev.anilbeesetti.nextplayer.core.media.network.sftp.SftpSecurityProvider
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -107,10 +108,13 @@ class SftpClient(
         }
     }
 
-    private fun newClient(): SSHClient = SSHClient().apply {
-        connectTimeout = CONNECT_TIMEOUT_MILLIS
-        timeout = SOCKET_TIMEOUT_MILLIS
-        addHostKeyVerifier(SftpHostKeyVerifier(this@SftpClient.connection.hostKeyFingerprint))
+    private fun newClient(): SSHClient {
+        SftpSecurityProvider.install()
+        return SSHClient().apply {
+            connectTimeout = CONNECT_TIMEOUT_MILLIS
+            timeout = SOCKET_TIMEOUT_MILLIS
+            addHostKeyVerifier(SftpHostKeyVerifier(this@SftpClient.connection.hostKeyFingerprint))
+        }
     }
 
     private fun SSHClient.connectAndAuthenticate() {

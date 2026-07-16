@@ -35,6 +35,7 @@ ktlint = "12.3.0"
 reorderable = "3.1.0"
 room = "2.8.4"
 sshj = "0.40.0"
+bouncyCastle = "1.80.2"
 nextlib = "1.10.1-0.13.0"
 universalChardet = "2.5.0"
 smbj = "0.14.0"
@@ -102,6 +103,7 @@ kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
 sshj = { group = "com.hierynomus", name = "sshj", version.ref = "sshj" }
+bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
 commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }
 sardine-android = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardineAndroid" }
 nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanohttpd" }
