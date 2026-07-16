@@ -158,9 +158,13 @@ class AddConnectionViewModel @AssistedInject constructor(
     fun testAndSave(connection: NetworkConnection) {
         if (cleanupRequested || activeOperation != null || activeKeyMutationJob?.isActive == true) return
         val selected = _selectedPrivateKey.value
+        val existingPrivateKeyFileName = _existingConnection.value
+            ?.takeIf { it.authentication == NetworkAuthentication.SSH_KEY }
+            ?.privateKeyFileName
+            .orEmpty()
         val draft = connection
             .copy(id = connectionId ?: 0)
-            .sanitizeForAuthentication(selected)
+            .sanitizeForAuthentication(selected, existingPrivateKeyFileName)
         val operation = SaveOperation(++nextOperationId, draft, selected)
         activeOperation = operation
         pendingOperation = null
@@ -366,6 +370,7 @@ class AddConnectionViewModel @AssistedInject constructor(
 
     private fun NetworkConnection.sanitizeForAuthentication(
         selected: SelectedPrivateKey?,
+        existingPrivateKeyFileName: String,
     ): NetworkConnection = when {
         protocol != NetworkProtocol.SFTP -> copy(
             authentication = NetworkAuthentication.PASSWORD,
@@ -379,7 +384,7 @@ class AddConnectionViewModel @AssistedInject constructor(
         )
         else -> copy(
             password = "",
-            privateKeyFileName = selected?.stagedFileName ?: privateKeyFileName,
+            privateKeyFileName = selected?.stagedFileName ?: existingPrivateKeyFileName,
         )
     }
 

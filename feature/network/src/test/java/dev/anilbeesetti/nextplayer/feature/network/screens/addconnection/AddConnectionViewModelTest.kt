@@ -17,6 +17,7 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkFile
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import dev.anilbeesetti.nextplayer.feature.network.MainDispatcherRule
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.InputStream
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -259,6 +260,88 @@ class AddConnectionViewModelTest {
             viewModel.cancel()
             advanceUntilIdle()
             assertEquals(listOf("staged.key"), keyStore.deleted)
+        }
+
+    @Test
+    fun `stale draft cannot reuse a staged filename after removal completes`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val keyStore = FakeSshKeyStore(
+                stagedKeys = ArrayDeque(listOf(StagedSshKey("removed-a.key", "a.pem"))),
+            )
+            val repository = FakeRepository()
+            val factory = FakeNetworkClientFactory(
+                ArrayDeque(
+                    listOf(
+                        FakeNetworkClient(Result.failure(FileNotFoundException("Private key is missing"))),
+                    ),
+                ),
+            )
+            val viewModel = viewModel(repository, factory, keyStore)
+            viewModel.stagePrivateKey(TestUri)
+            advanceUntilIdle()
+            viewModel.removeSelectedPrivateKey()
+            advanceUntilIdle()
+
+            viewModel.testAndSave(keyDraft(privateKeyFileName = "removed-a.key"))
+            advanceUntilIdle()
+
+            assertEquals("", factory.created.single().privateKeyFileName)
+            assertTrue(repository.upserted.isEmpty())
+            assertEquals(listOf("removed-a.key"), keyStore.deleted)
+        }
+
+    @Test
+    fun `edit without replacement uses only existing committed SSH key`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val repository = FakeRepository(
+                existing = keyDraft(id = 9, privateKeyFileName = "committed-existing.key"),
+            )
+            val factory = FakeNetworkClientFactory(
+                ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+            )
+            val viewModel = viewModel(
+                repository = repository,
+                factory = factory,
+                keyStore = FakeSshKeyStore(),
+                connectionId = 9,
+            )
+            advanceUntilIdle()
+
+            viewModel.testAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key"))
+            advanceUntilIdle()
+
+            assertEquals("committed-existing.key", factory.created.single().privateKeyFileName)
+            assertEquals("committed-existing.key", repository.upserted.single().privateKeyFileName)
+        }
+
+    @Test
+    fun `selected key snapshot overrides caller and existing filenames`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val repository = FakeRepository(
+                existing = keyDraft(id = 9, privateKeyFileName = "committed-existing.key"),
+            )
+            val keyStore = FakeSshKeyStore(
+                stagedKeys = ArrayDeque(listOf(StagedSshKey("selected-new.key", "new.pem"))),
+                committedName = "committed-new.key",
+            )
+            val factory = FakeNetworkClientFactory(
+                ArrayDeque(listOf(FakeNetworkClient(Result.success(Unit)))),
+            )
+            val viewModel = viewModel(
+                repository = repository,
+                factory = factory,
+                keyStore = keyStore,
+                connectionId = 9,
+            )
+            advanceUntilIdle()
+            viewModel.stagePrivateKey(TestUri)
+            advanceUntilIdle()
+
+            viewModel.testAndSave(keyDraft(privateKeyFileName = "untrusted-caller.key"))
+            advanceUntilIdle()
+
+            assertEquals("selected-new.key", factory.created.single().privateKeyFileName)
+            assertEquals("committed-new.key", repository.upserted.single().privateKeyFileName)
         }
 
     @Test
