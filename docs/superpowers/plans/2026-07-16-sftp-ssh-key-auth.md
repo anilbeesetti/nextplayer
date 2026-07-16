@@ -780,12 +780,16 @@ Create exact throwaway fixtures and start the server on localhost port `22222`, 
 
 ```bash
 mkdir -p /tmp/nextplayer-sftp-fixtures/keys /tmp/nextplayer-sftp-fixtures/upload/nested
+QA_PASSWORD="$(openssl rand -hex 12)"
+QA_KEY_PASSPHRASE="$(openssl rand -hex 12)"
+umask 077
+printf 'QA_PASSWORD=%s\nQA_KEY_PASSPHRASE=%s\n' "$QA_PASSWORD" "$QA_KEY_PASSPHRASE" > /tmp/nextplayer-sftp-fixtures/qa.env
 ssh-keygen -q -t ed25519 -N '' -f /tmp/nextplayer-sftp-fixtures/id_ed25519
-ssh-keygen -q -t ed25519 -N 'keypass' -f /tmp/nextplayer-sftp-fixtures/id_ed25519_encrypted
+ssh-keygen -q -t ed25519 -N "$QA_KEY_PASSPHRASE" -f /tmp/nextplayer-sftp-fixtures/id_ed25519_encrypted
 cp /tmp/nextplayer-sftp-fixtures/id_ed25519.pub /tmp/nextplayer-sftp-fixtures/keys/
 cp /tmp/nextplayer-sftp-fixtures/id_ed25519_encrypted.pub /tmp/nextplayer-sftp-fixtures/keys/
 ffmpeg -y -f lavfi -i color=c=blue:s=640x360:d=20 -c:v libx264 -pix_fmt yuv420p -movflags +faststart /tmp/nextplayer-sftp-fixtures/upload/nested/test.mp4
-docker run --rm -d --name nextplayer-sftp-qa -p 22222:22 -v /tmp/nextplayer-sftp-fixtures/upload:/home/test/upload -v /tmp/nextplayer-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine 'test:testpass:1001'
+docker run --rm -d --name nextplayer-sftp-qa -p 22222:22 -v /tmp/nextplayer-sftp-fixtures/upload:/home/test/upload -v /tmp/nextplayer-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine "test:$QA_PASSWORD:1001"
 ```
 
 - [ ] **Step 3: Install, launch, and capture clean startup evidence**
@@ -806,7 +810,8 @@ Rotate the server host key by recreating the ephemeral container, which generate
 
 ```bash
 docker stop nextplayer-sftp-qa
-docker run --rm -d --name nextplayer-sftp-qa -p 22222:22 -v /tmp/nextplayer-sftp-fixtures/upload:/home/test/upload -v /tmp/nextplayer-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine 'test:testpass:1001'
+. /tmp/nextplayer-sftp-fixtures/qa.env
+docker run --rm -d --name nextplayer-sftp-qa -p 22222:22 -v /tmp/nextplayer-sftp-fixtures/upload:/home/test/upload -v /tmp/nextplayer-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine "test:$QA_PASSWORD:1001"
 ```
 
 Push test keys only to emulator Downloads and select them through DocumentsUI:
