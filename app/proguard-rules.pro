@@ -34,6 +34,11 @@
 -keep class com.hierynomus.ntlm.** { *; }
 -keep class com.hierynomus.security.** { *; }
 
+# mbassador creates the default handler invocation through Class.getConstructor().
+-keepclassmembers,allowobfuscation class net.engio.mbassy.dispatch.ReflectiveHandlerInvocation {
+    public <init>(net.engio.mbassy.subscription.SubscriptionContext);
+}
+
 # Optional runtime dependencies of the network libraries (smbj, mbassador,
 # okhttp/bouncycastle) that are not present on Android. Safe to ignore.
 -dontwarn javax.el.**
