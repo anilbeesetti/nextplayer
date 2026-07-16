@@ -34,7 +34,7 @@ data class Sort(
 
             // If both chunks contain numeric characters, sort them numerically.
             val result: Int
-            if (thisChunk[0].isDigit() && thatChunk[0].isDigit()) {
+            if (thisChunk[0].isAsciiDigit() && thatChunk[0].isAsciiDigit()) {
                 // Simple chunk comparison by length.
                 val thisChunkLength = thisChunk.length
                 val lengthDiff = thisChunkLength - thatChunk.length
@@ -126,10 +126,10 @@ data class Sort(
         var c = string[current]
         chunk.append(c)
         current++
-        if (c.isDigit()) {
+        if (c.isAsciiDigit()) {
             while (current < length) {
                 c = string[current]
-                if (!c.isDigit()) {
+                if (!c.isAsciiDigit()) {
                     break
                 }
                 chunk.append(c)
@@ -138,7 +138,7 @@ data class Sort(
         } else {
             while (current < length) {
                 c = string[current]
-                if (c.isDigit()) {
+                if (c.isAsciiDigit()) {
                     break
                 }
                 chunk.append(c)
@@ -148,5 +148,8 @@ data class Sort(
         return chunk.toString()
     }
 }
+
+// The length-based numeric ordering is contract-safe only for the contiguous ASCII digit range.
+private fun Char.isAsciiDigit(): Boolean = this in '0'..'9'
 
 fun <T> Comparator<T>.reversedCompat(): Comparator<T> = kotlinReversed()
