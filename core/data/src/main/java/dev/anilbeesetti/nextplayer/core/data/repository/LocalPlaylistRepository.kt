@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
+import dev.anilbeesetti.nextplayer.core.common.Dispatcher
+import dev.anilbeesetti.nextplayer.core.common.NextDispatchers
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3uParseResult
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3uParser
 import dev.anilbeesetti.nextplayer.core.data.playlist.PlaylistSourceReader
@@ -18,8 +20,10 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,6 +34,7 @@ class LocalPlaylistRepository @Inject constructor(
     private val parser: M3uParser,
     private val sourceReader: PlaylistSourceReader,
     private val fileGrantRepository: PlaylistFileGrantRepository,
+    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
 ) : PlaylistRepository {
     private val refreshMutexes = ConcurrentHashMap<Long, Mutex>()
 
@@ -37,7 +42,9 @@ class LocalPlaylistRepository @Inject constructor(
         playlistDao.observeSummaries().map { summaries -> summaries.map(PlaylistSummaryEntity::toModel) }
 
     override fun observePlaylist(id: Long): Flow<Playlist?> =
-        playlistDao.observePlaylist(id).map { it?.toModel() }
+        playlistDao.observePlaylist(id)
+            .map { it?.toModel() }
+            .flowOn(defaultDispatcher)
 
     override suspend fun createEditable(name: String): Long {
         val trimmedName = name.trim().also { require(it.isNotEmpty()) { "Playlist name cannot be blank" } }
@@ -60,6 +67,7 @@ class LocalPlaylistRepository @Inject constructor(
         require(type.isLinked) { "Linked playlist type must be M3U_URL or M3U_FILE" }
         val trimmedName = name.trim().also { require(it.isNotEmpty()) { "Playlist name cannot be blank" } }
         val parsed = readAndParse(type, source)
+        val entities = parsed.toEntitiesOffMain()
         val refreshedAt = System.currentTimeMillis()
         val playlistId = mapNameConflict {
             playlistDao.insertLinkedPlaylist(
@@ -72,7 +80,7 @@ class LocalPlaylistRepository @Inject constructor(
                     updatedAt = refreshedAt,
                     lastRefreshedAt = refreshedAt,
                 ),
-                items = parsed.entries.toEntities(),
+                items = entities,
             )
         }
         return parsed.toRefreshResult(playlistId)
@@ -100,9 +108,10 @@ class LocalPlaylistRepository @Inject constructor(
             val type = playlist.type.toPlaylistType()
             val source = requireNotNull(playlist.source) { "Linked playlist must have a source" }
             val parsed = readAndParse(type, source)
+            val entities = parsed.toEntitiesOffMain(id)
             playlistDao.replaceItems(
                 playlistId = id,
-                items = parsed.entries.toEntities(id),
+                items = entities,
                 refreshedAt = System.currentTimeMillis(),
             )
             parsed.toRefreshResult(id)
@@ -128,13 +137,18 @@ class LocalPlaylistRepository @Inject constructor(
     }
 
     private suspend fun readAndParse(type: PlaylistType, source: String): M3uParseResult = try {
-        val content = sourceReader.read(type, source)
-        parser.parse(content.text, content.resolveEntry)
+        withContext(defaultDispatcher) {
+            val content = sourceReader.read(type, source)
+            parser.parse(content.text, content.resolveEntry)
+        }
     } catch (cancellation: CancellationException) {
         throw cancellation
     } catch (error: Exception) {
         throw PlaylistSourceException(error)
     }
+
+    private suspend fun M3uParseResult.toEntitiesOffMain(playlistId: Long = 0): List<PlaylistItemEntity> =
+        withContext(defaultDispatcher) { entries.toEntities(playlistId) }
 
     private suspend fun <T> mapNameConflict(block: suspend () -> T): T = try {
         block()

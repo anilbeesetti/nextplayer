@@ -13,15 +13,20 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistWithItems
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItemInput
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import java.io.IOException
+import java.util.concurrent.Executors
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -41,7 +46,13 @@ class LocalPlaylistRepositoryTest {
         dao = FakePlaylistDao()
         sourceReader = FakePlaylistSourceReader()
         fileGrantRepository = FakePlaylistFileGrantRepository()
-        repository = LocalPlaylistRepository(dao, M3uParser(), sourceReader, fileGrantRepository)
+        repository = LocalPlaylistRepository(
+            dao,
+            M3uParser(),
+            sourceReader,
+            fileGrantRepository,
+            Dispatchers.Unconfined,
+        )
     }
 
     @Test
@@ -96,6 +107,28 @@ class LocalPlaylistRepositoryTest {
     }
 
     @Test
+    fun observePlaylistMapsLargeItemListOnSuppliedDispatcher() = runTest {
+        val backgroundDispatcher = RecordingDispatcher()
+        val backgroundRepository = LocalPlaylistRepository(
+            dao,
+            M3uParser(),
+            sourceReader,
+            fileGrantRepository,
+            backgroundDispatcher,
+        )
+        val id = backgroundRepository.createEditable("Movies")
+        backgroundRepository.addItems(
+            id,
+            List(20_000) { index -> PlaylistItemInput("content://video/$index") },
+        )
+
+        val playlist = backgroundRepository.observePlaylist(id).first()
+
+        assertTrue(backgroundDispatcher.dispatchCount > 0)
+        assertEquals(20_000, playlist?.items?.size)
+    }
+
+    @Test
     fun editablePlaylistCanMoveItems() = runTest {
         val id = repository.createEditable("Movies")
         repository.addItems(
@@ -145,6 +178,42 @@ class LocalPlaylistRepositoryTest {
             playlist?.items?.map { it.uriString },
         )
         assertEquals("https://images.example/first.png", playlist?.items?.first()?.imageUrl)
+    }
+
+    @Test
+    fun linkedCreationReadsAndParsesOffTheCallerThread() = runTest {
+        val callerDispatcher = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "playlist-caller")
+        }.asCoroutineDispatcher()
+        val backgroundDispatcher = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "playlist-background")
+        }.asCoroutineDispatcher()
+        val backgroundRepository = LocalPlaylistRepository(
+            dao,
+            M3uParser(),
+            sourceReader,
+            fileGrantRepository,
+            backgroundDispatcher,
+        )
+        var readThreadName: String? = null
+        var parseThreadName: String? = null
+        sourceReader.onRead = { readThreadName = Thread.currentThread().name }
+        sourceReader.resolve = { raw ->
+            parseThreadName = Thread.currentThread().name
+            raw
+        }
+
+        try {
+            withContext(callerDispatcher) {
+                backgroundRepository.createLinked("News", PlaylistType.M3U_URL, SOURCE)
+            }
+        } finally {
+            callerDispatcher.close()
+            backgroundDispatcher.close()
+        }
+
+        assertEquals("playlist-background", readThreadName)
+        assertEquals("playlist-background", parseThreadName)
     }
 
     @Test
@@ -434,10 +503,21 @@ private class FakePlaylistFileGrantRepository : PlaylistFileGrantRepository {
     }
 }
 
+private class RecordingDispatcher : CoroutineDispatcher() {
+    var dispatchCount: Int = 0
+        private set
+
+    override fun dispatch(context: kotlin.coroutines.CoroutineContext, block: Runnable) {
+        dispatchCount++
+        block.run()
+    }
+}
+
 private class FakePlaylistSourceReader : PlaylistSourceReader {
     var content = "https://example.test/one.mp4"
     var resolve: (String) -> String? = { it }
     var failure: Throwable? = null
+    var onRead: () -> Unit = {}
     var maxConcurrentReads = 0
         private set
     var readCount = 0
@@ -448,6 +528,7 @@ private class FakePlaylistSourceReader : PlaylistSourceReader {
     fun pauseNextRead(content: String): PausedRead = PausedRead(content).also { pausedRead = it }
 
     override suspend fun read(type: PlaylistType, source: String): PlaylistSourceContent {
+        onRead()
         readCount++
         failure?.let { throw it }
         activeReads++

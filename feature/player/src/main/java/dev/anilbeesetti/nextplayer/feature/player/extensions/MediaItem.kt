@@ -23,6 +23,12 @@ val MediaItem.artworkModel: Any
 val MediaItem.artworkRequestUri: Uri
     get() = mediaMetadata.artworkUri ?: mediaId.toUri()
 
+fun MediaItem.artworkRequestUris(defaultArtworkUri: Uri): List<Uri> = buildList {
+    mediaMetadata.artworkUri?.let(::add)
+    add(localConfiguration?.uri ?: mediaId.toUri())
+    add(defaultArtworkUri)
+}.distinct()
+
 private fun Bundle.setExtras(
     positionMs: Long?,
     videoScale: Float?,
@@ -116,7 +122,7 @@ fun MediaItem.copy(
     mediaMetadata.buildUpon()
         .setDurationMs(durationMs)
         .setExtras(
-            Bundle(mediaMetadata.extras).setExtras(
+            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).setExtras(
                 positionMs = positionMs,
                 videoScale = videoZoom,
                 playbackSpeed = playbackSpeed,

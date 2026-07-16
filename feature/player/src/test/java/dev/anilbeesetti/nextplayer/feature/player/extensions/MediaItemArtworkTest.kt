@@ -39,6 +39,34 @@ class MediaItemArtworkTest {
     }
 
     @Test
+    fun `artwork request candidates try supplied artwork then media then default`() {
+        val artworkUri = Uri.parse("https://example.com/art.png")
+        val mediaUri = "content://media/external/video/media/42"
+        val defaultUri = Uri.parse("android.resource://app/drawable/artwork_default")
+
+        assertEquals(
+            listOf(artworkUri, Uri.parse(mediaUri), defaultUri),
+            mediaItem(mediaUri, artworkUri).artworkRequestUris(defaultUri),
+        )
+        assertEquals(
+            listOf(Uri.parse(mediaUri), defaultUri),
+            mediaItem(mediaUri).artworkRequestUris(defaultUri),
+        )
+    }
+
+    @Test
+    fun `artwork request candidates use configured media uri rather than stable media id`() {
+        val mediaUri = Uri.parse("content://media/external/video/media/42")
+        val defaultUri = Uri.parse("android.resource://app/drawable/artwork_default")
+        val item = MediaItem.Builder()
+            .setMediaId("playlist-item-42")
+            .setUri(mediaUri)
+            .build()
+
+        assertEquals(listOf(mediaUri, defaultUri), item.artworkRequestUris(defaultUri))
+    }
+
+    @Test
     fun `published artwork uses in-process data without exposing a private uri`() {
         val artworkData = byteArrayOf(1, 2, 3, 4)
         val mediaItem = MediaItem.Builder()

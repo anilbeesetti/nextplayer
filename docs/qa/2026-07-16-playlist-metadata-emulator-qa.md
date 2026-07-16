@@ -57,13 +57,26 @@
    - The confirmation named the selected playlist.
    - The list updated immediately and retained `IPTV Org`.
 
+## Post-review performance regression pass
+
+- Created a second disposable AVD, `NextPlayer_Playlist_Perf_QA_20260716`, from the same API 36 system image after the final code review identified large-queue performance risks.
+- Moved linked source parsing and 20,000-item relation mapping to the injected Default dispatcher.
+- Added a zero-local-work path for HTTP(S) queues and capped genuine local metadata enrichment at four workers while preserving order.
+- Added artwork loading candidates in source-artwork → configured media URI → app-default order.
+- Added focused tests for 20,000 network items, bounded local concurrency, dispatcher execution, artwork fallback order, and null metadata extras.
+- Re-ran connected tests on the second AVD: database 7/7 and playlist 13/13, with zero failures/errors.
+- Re-imported the supplied IPTV URL; 13,270 items and artwork loaded successfully.
+- Opening `00s Replay` immediately produced media-session title `00s Replay`, queue size 13,270, and bitmap notification artwork.
+- The first post-review playback run exposed an API 36 first-frame NPE because the network fast path correctly preserved a nullable metadata extras bundle while the existing `MediaItem.copy()` assumed it was non-null.
+- Added a red→green regression test and made extras copying null-safe. After rebuilding and reinstalling, the stream rendered its first video frame, the app process remained alive, and the crash/FATAL scan was empty.
+
 ## Runtime health
 
-- Android crash buffer was empty.
+- The original run's Android crash buffer was empty. The post-review run caught the first-frame NPE described above; the final fixed replay had an empty crash buffer and a live app process after rendering.
 - Final log scan found no app FATAL exception, ANR, `TransactionTooLarge`, Room migration/schema failure, maximum-size error, or out-of-memory error.
 - Individual public IPTV streams can become unavailable independently; one tested stream later returned a normal player `Source error` after metadata and initial playback were verified.
 
 ## Cleanup
 
-- The disposable AVD was stopped and deleted after QA.
+- Both disposable AVDs were stopped and deleted after their QA passes.
 - Post-run AVD inventory matched the four pre-existing AVDs exactly.
