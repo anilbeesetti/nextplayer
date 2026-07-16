@@ -5,54 +5,111 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
 
 class SshKeyFiles(
     private val stagingDirectory: File,
     private val committedDirectory: File,
     private val fileName: () -> String = { "${UUID.randomUUID()}.key" },
+    reconciliationRequired: Boolean = false,
 ) {
 
-    fun stage(inputStream: InputStream): String {
-        val generatedName = fileName().also(::requireValidName)
-        stagingDirectory.mkdirs()
-        val target = stagedFile(generatedName)
-        try {
-            inputStream.use { input ->
-                target.outputStream().use(input::copyTo)
+    private val lifecycleLock = Any()
+    private val reconciliationComplete = CountDownLatch(if (reconciliationRequired) 1 else 0)
+
+    /**
+     * Removes keys left behind by an interrupted save or delete. Passing null only releases the
+     * barrier: without a trustworthy database snapshot, deleting any key would risk data loss.
+     */
+    fun initialize(referencedFileNames: Set<String>?) {
+        synchronized(lifecycleLock) {
+            if (reconciliationComplete.count == 0L) return
+            try {
+                referencedFileNames?.let(::reconcile)
+            } finally {
+                reconciliationComplete.countDown()
             }
-        } catch (throwable: Throwable) {
-            if (!target.deleteIfPresent()) {
-                throwable.addSuppressed(IOException("Couldn't delete partial private key"))
-            }
-            throw throwable
         }
-        return generatedName
+    }
+
+    fun stage(inputStream: InputStream): String {
+        awaitReconciliation()
+        return synchronized(lifecycleLock) {
+            val generatedName = fileName().also(::requireValidName)
+            stagingDirectory.mkdirs()
+            val target = stagedFile(generatedName)
+            try {
+                inputStream.use { input ->
+                    target.outputStream().use { output ->
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var bytesCopied = 0L
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read == -1) break
+                            bytesCopied += read
+                            if (bytesCopied > MAX_PRIVATE_KEY_BYTES) {
+                                throw IOException("Private key exceeds 1 MiB")
+                            }
+                            output.write(buffer, 0, read)
+                        }
+                    }
+                }
+            } catch (throwable: Throwable) {
+                if (!target.deleteIfPresent()) {
+                    throwable.addSuppressed(IOException("Couldn't delete partial private key"))
+                }
+                throw throwable
+            }
+            generatedName
+        }
     }
 
     fun resolve(fileName: String): File {
-        val staged = stagedFile(fileName)
-        if (staged.isFile) return staged
+        awaitReconciliation()
+        return synchronized(lifecycleLock) {
+            val staged = stagedFile(fileName)
+            if (staged.isFile) return@synchronized staged
 
-        val committed = committedFile(fileName)
-        if (committed.isFile) return committed
+            val committed = committedFile(fileName)
+            if (committed.isFile) return@synchronized committed
 
-        throw FileNotFoundException("Private key is missing")
+            throw FileNotFoundException("Private key is missing")
+        }
     }
 
     fun commit(fileName: String): String {
-        val source = stagedFile(fileName)
-        require(source.isFile) { "Private key is missing" }
-        committedDirectory.mkdirs()
-        val target = committedFile(fileName)
-        check(source.renameTo(target)) { "Couldn't commit private key" }
-        return fileName
+        awaitReconciliation()
+        return synchronized(lifecycleLock) {
+            val source = stagedFile(fileName)
+            require(source.isFile) { "Private key is missing" }
+            committedDirectory.mkdirs()
+            val target = committedFile(fileName)
+            check(source.renameTo(target)) { "Couldn't commit private key" }
+            fileName
+        }
     }
 
     fun delete(fileName: String) {
-        val stagedDeleted = stagedFile(fileName).deleteIfPresent()
-        val committedDeleted = committedFile(fileName).deleteIfPresent()
-        check(stagedDeleted && committedDeleted) { "Couldn't delete private key" }
+        awaitReconciliation()
+        synchronized(lifecycleLock) {
+            val stagedDeleted = stagedFile(fileName).deleteIfPresent()
+            val committedDeleted = committedFile(fileName).deleteIfPresent()
+            check(stagedDeleted && committedDeleted) { "Couldn't delete private key" }
+        }
     }
+
+    private fun reconcile(referencedFileNames: Set<String>) {
+        val stagedDeleted = stagingDirectory.listFiles().orEmpty()
+            .map { file -> file.deleteIfPresent() }
+            .all { deleted -> deleted }
+        val committedDeleted = committedDirectory.listFiles().orEmpty()
+            .filterNot { it.name in referencedFileNames }
+            .map { file -> file.deleteIfPresent() }
+            .all { deleted -> deleted }
+        check(stagedDeleted && committedDeleted) { "Couldn't reconcile private keys" }
+    }
+
+    private fun awaitReconciliation() = reconciliationComplete.await()
 
     private fun stagedFile(fileName: String) = File(stagingDirectory, validated(fileName))
 
@@ -63,10 +120,10 @@ class SshKeyFiles(
     private fun validated(fileName: String) = fileName.also(::requireValidName)
 
     private fun requireValidName(fileName: String) {
-        require(VALID_NAME.matches(fileName)) { "Invalid private-key filename" }
+        require(SshKeyStore.isValidFileName(fileName)) { "Invalid private-key filename" }
     }
 
     private companion object {
-        val VALID_NAME = Regex("[0-9a-fA-F-]+\\.key")
+        const val MAX_PRIVATE_KEY_BYTES = 1024L * 1024L
     }
 }

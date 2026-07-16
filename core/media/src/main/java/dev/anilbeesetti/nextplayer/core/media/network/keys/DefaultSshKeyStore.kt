@@ -23,7 +23,12 @@ class DefaultSshKeyStore @Inject constructor(
     private val keyFiles = SshKeyFiles(
         stagingDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/staging"),
         committedDirectory = File(context.noBackupFilesDir, "$KEY_DIRECTORY/committed"),
+        reconciliationRequired = true,
     )
+
+    override suspend fun initialize(referencedFileNames: Set<String>?): Unit = withContext(Dispatchers.IO) {
+        keyFiles.initialize(referencedFileNames)
+    }
 
     override suspend fun stage(uri: Uri): StagedSshKey = stageSshKey(
         keyFiles = keyFiles,

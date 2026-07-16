@@ -8,6 +8,7 @@ import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -107,6 +108,92 @@ class SshKeyFilesTest {
     }
 
     @Test
+    fun `stage rejects key larger than one mebibyte and removes partial file`() {
+        val exception = assertThrows(IOException::class.java) {
+            createStore().stage(ByteArray(1024 * 1024 + 1).inputStream())
+        }
+
+        assertEquals("Private key exceeds 1 MiB", exception.message)
+        assertFalse(File(stagingDirectory(), "feed.key").exists())
+    }
+
+    @Test
+    fun `stage accepts key exactly one mebibyte`() {
+        val store = createStore()
+
+        val staged = store.stage(ByteArray(1024 * 1024).inputStream())
+
+        assertEquals(1024L * 1024L, store.resolve(staged).length())
+    }
+
+    @Test
+    fun `startup reconciliation removes staged and unreferenced committed keys`() {
+        File(stagingDirectory(), "staged.key").apply {
+            parentFile?.mkdirs()
+            writeText("staged")
+        }
+        File(committedDirectory(), "keep.key").apply {
+            parentFile?.mkdirs()
+            writeText("keep")
+        }
+        File(committedDirectory(), "orphan.key").writeText("orphan")
+
+        createStore(reconciliationRequired = true).initialize(setOf("keep.key"))
+
+        assertFalse(File(stagingDirectory(), "staged.key").exists())
+        assertTrue(File(committedDirectory(), "keep.key").isFile)
+        assertFalse(File(committedDirectory(), "orphan.key").exists())
+    }
+
+    @Test
+    fun `failed database enumeration releases barrier without deleting keys`() {
+        File(stagingDirectory(), "staged.key").apply {
+            parentFile?.mkdirs()
+            writeText("staged")
+        }
+        File(committedDirectory(), "committed.key").apply {
+            parentFile?.mkdirs()
+            writeText("committed")
+        }
+        val store = createStore(reconciliationRequired = true)
+
+        store.initialize(null)
+
+        assertTrue(File(stagingDirectory(), "staged.key").isFile)
+        assertTrue(File(committedDirectory(), "committed.key").isFile)
+        assertEquals("new", store.stage("new".byteInputStream()).let(store::resolve).readText())
+    }
+
+    @Test
+    fun `key operations wait until startup reconciliation completes`() {
+        val store = createStore(reconciliationRequired = true)
+        val stageStarted = CountDownLatch(1)
+        val stageFinished = CountDownLatch(1)
+        val stageSucceeded = AtomicBoolean(false)
+        val executor = Executors.newSingleThreadExecutor()
+
+        try {
+            executor.execute {
+                stageStarted.countDown()
+                store.stage("new".byteInputStream())
+                stageSucceeded.set(true)
+                stageFinished.countDown()
+            }
+
+            assertTrue(stageStarted.await(5, TimeUnit.SECONDS))
+            assertFalse(stageFinished.await(100, TimeUnit.MILLISECONDS))
+
+            store.initialize(emptySet())
+
+            assertTrue(stageFinished.await(5, TimeUnit.SECONDS))
+            assertTrue(stageSucceeded.get())
+            assertEquals("new", store.resolve("feed.key").readText())
+        } finally {
+            executor.shutdownNow()
+        }
+    }
+
+    @Test
     fun `stage surfaces partial cleanup failure without masking import error`() {
         File(stagingDirectory(), "feed.key").apply {
             mkdirs()
@@ -186,10 +273,11 @@ class SshKeyFilesTest {
         }
     }
 
-    private fun createStore() = SshKeyFiles(
+    private fun createStore(reconciliationRequired: Boolean = false) = SshKeyFiles(
         stagingDirectory = stagingDirectory(),
         committedDirectory = committedDirectory(),
         fileName = { "feed.key" },
+        reconciliationRequired = reconciliationRequired,
     )
 
     private fun stagingDirectory() = File(temporaryFolder.root, "staging")
