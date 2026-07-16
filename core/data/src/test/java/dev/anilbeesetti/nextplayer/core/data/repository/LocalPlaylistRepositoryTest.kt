@@ -127,7 +127,7 @@ class LocalPlaylistRepositoryTest {
     fun linkedCreationRetainsTypeSourceAndParsedItems() = runTest {
         sourceReader.content = """
             #EXTM3U
-            #EXTINF:-1,First
+            #EXTINF:-1 tvg-logo="https://images.example/first.png",First
             https://example.test/one.mp4
             https://example.test/two.mp4
             https://example.test/one.mp4
@@ -144,6 +144,7 @@ class LocalPlaylistRepositoryTest {
             listOf("https://example.test/one.mp4", "https://example.test/two.mp4"),
             playlist?.items?.map { it.uriString },
         )
+        assertEquals("https://images.example/first.png", playlist?.items?.first()?.imageUrl)
     }
 
     @Test
@@ -184,8 +185,17 @@ class LocalPlaylistRepositoryTest {
 
     @Test
     fun refreshReplacesCachedItemsAndReportsSkippedEntries() = runTest {
-        val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
         sourceReader.content = """
+            #EXTINF:-1 tvg-logo="https://images.example/original.png",Original
+            https://example.test/one.mp4
+        """.trimIndent()
+        val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
+        assertEquals(
+            "https://images.example/original.png",
+            repository.observePlaylist(id).first()?.items?.single()?.imageUrl,
+        )
+        sourceReader.content = """
+            #EXTINF:-1 tvg-logo="https://images.example/replacement.png",Replacement
             https://example.test/two.mp4
             unsupported-entry
             https://example.test/two.mp4
@@ -199,6 +209,10 @@ class LocalPlaylistRepositoryTest {
         assertEquals(
             listOf("https://example.test/two.mp4"),
             repository.observePlaylist(id).first()?.items?.map { it.uriString },
+        )
+        assertEquals(
+            "https://images.example/replacement.png",
+            repository.observePlaylist(id).first()?.items?.single()?.imageUrl,
         )
     }
 
@@ -231,13 +245,13 @@ class LocalPlaylistRepositoryTest {
     fun entryLimitFailureKeepsCachedItems() = runTest {
         val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
         sourceReader.content = buildString {
-            repeat(10_001) { index -> append("https://example.test/$index.mp4\n") }
+            repeat(20_001) { index -> append("https://example.test/$index.mp4\n") }
         }
 
         val failure = assertFailsWith<PlaylistSourceException> { repository.refresh(id) }
 
         assertTrue(failure.cause is PlaylistEntryLimitExceededException)
-        assertEquals("Playlist contains more than 10000 entries", failure.cause?.message)
+        assertEquals("Playlist contains more than 20000 entries", failure.cause?.message)
         assertEquals(
             listOf("https://example.test/one.mp4"),
             dao.getItems(id).map { it.uri },

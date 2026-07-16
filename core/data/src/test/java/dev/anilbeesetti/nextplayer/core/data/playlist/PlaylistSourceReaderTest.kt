@@ -182,6 +182,19 @@ class PlaylistSourceReaderTest {
     }
 
     @Test
+    fun acceptsSourceAtObservedIptvSize() = withServer(
+        status = 200,
+        response = "a".repeat(IPTV_OBSERVED_BYTES),
+    ) { source ->
+        runTest {
+            val content = remoteReader(StandardTestDispatcher(testScheduler))
+                .read(PlaylistType.M3U_URL, source)
+
+            assertEquals(IPTV_OBSERVED_BYTES, content.text.length)
+        }
+    }
+
+    @Test
     fun rejectsOversizedContentResolverStreamAndClosesIt() = runTest {
         val stream = CloseTrackingInputStream(
             ByteArrayInputStream(ByteArray(SOURCE_LIMIT_BYTES + 1) { 'a'.code.toByte() }),
@@ -302,7 +315,8 @@ class PlaylistSourceReaderTest {
     }
 
     private companion object {
-        const val SOURCE_LIMIT_BYTES = 1_048_576
+        const val SOURCE_LIMIT_BYTES = 4_194_304
+        const val IPTV_OBSERVED_BYTES = 2_822_004
         const val DOCUMENT_SOURCE =
             "content://com.example.documents/document/primary%3AMovies%2Fplaylists%2Flist.m3u"
         const val TREE_DOCUMENT_SOURCE =

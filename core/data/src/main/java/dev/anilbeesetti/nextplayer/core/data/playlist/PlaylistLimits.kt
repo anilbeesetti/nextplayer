@@ -3,9 +3,9 @@ package dev.anilbeesetti.nextplayer.core.data.playlist
 import java.io.IOException
 
 internal object PlaylistLimits {
-    const val MAX_SOURCE_BYTES = 1_048_576
-    const val MAX_SOURCE_CHARS = 1_048_576
-    const val MAX_ENTRIES = 10_000
+    const val MAX_SOURCE_BYTES = 4_194_304
+    const val MAX_SOURCE_CHARS = 4_194_304
+    const val MAX_ENTRIES = 20_000
 }
 
 sealed class PlaylistLimitExceededException protected constructor(message: String) : IOException(message)
