@@ -5,7 +5,13 @@ import java.io.Serializable
 enum class NetworkProtocol(val defaultPort: Int) {
     SMB(445),
     FTP(21),
+    SFTP(22),
     WEBDAV(80),
+}
+
+enum class NetworkAuthentication {
+    PASSWORD,
+    SSH_KEY,
 }
 
 /**
@@ -24,6 +30,10 @@ data class NetworkConnection(
     val username: String = "",
     val password: String = "",
     val useHttps: Boolean = false,
+    val authentication: NetworkAuthentication = NetworkAuthentication.PASSWORD,
+    val privateKeyFileName: String = "",
+    val privateKeyPassphrase: String = "",
+    val hostKeyFingerprint: String = "",
 ) : Serializable {
 
     val effectivePort: Int get() = port ?: protocol.defaultPort
