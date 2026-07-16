@@ -319,7 +319,7 @@
         <item quantity="other">Gagal memindahkan %1$d video</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="other">Video %1$d telah dipindahkan, tetapi video aslinya tidak dapat dihapus.</item>
+        <item quantity="other">Video %1$d telah dipindahkan, tetapi video aslinya tidak dapat dihapus</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Tidak dapat memindahkan ke folder yang sama</string>
 </resources>

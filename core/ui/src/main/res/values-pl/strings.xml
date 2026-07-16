@@ -376,4 +376,28 @@
     </plurals>
     <string name="cannot_move_to_same_folder">Nie można przenieść do tego samego katalogu</string>
     <string name="folder_duration">Czas trwania katalogu</string>
+    <string name="home">Domowa</string>
+    <string name="network">Sieć</string>
+    <string name="add_connection">Dodaj połączenie</string>
+    <string name="edit_connection">Edytuj połączenie</string>
+    <string name="delete_connection">Usuń połączenie</string>
+    <string name="delete_connection_confirmation">Usunąć \"%1$s\"?</string>
+    <string name="connection_name">Nazwa</string>
+    <string name="protocol">Protokół</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="port_hint">Port (domyślny %1$d)</string>
+    <string name="path_share">Ścieżka / Nazwa udziału</string>
+    <string name="username">Nazwa użytkownika</string>
+    <string name="password">Hasło</string>
+    <string name="use_https">Używaj HTTPS</string>
+    <string name="test_and_save">Przetestuj i zapisz</string>
+    <string name="connecting">Łączenie…</string>
+    <string name="connection_failed">Nie udało się nawiązać połączenia. Sprawdź szczegóły i spróbuj ponownie.</string>
+    <string name="no_connections_title">Jeszcze nie ma żadnych połączeń</string>
+    <string name="no_connections_description">Dodaj połączenie SMB, FTP lub WebDAV, aby przeglądać i odtwarzać filmy z sieci.</string>
+    <string name="empty_folder">Ten katalog jest pusty</string>
+    <string name="failed_to_load_folder">Nie udało się załadować tej lokalizacji</string>
+    <string name="retry">Ponów</string>
+    <string name="edit">Edytuj</string>
 </resources>

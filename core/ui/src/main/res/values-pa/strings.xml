@@ -271,7 +271,7 @@
     <string name="reset_settings_description">ਸਾਰੀਆਂ ਸੈਟਿੰਗਾਂ ਨੂੰ ਉਹਨਾਂ ਦੀ ਡਿਫ਼ੌਲਟ ਸਥਿਤੀ ਵਿੱਚ ਰੀਸੈਟ ਕਰੋ</string>
     <string name="reset_settings_confirmation">ਕੀ ਤੁਸੀਂ ਯਕੀਨਨ ਸਾਰੀਆਂ ਸੈਟਿੰਗਾਂ ਨੂੰ ਉਹਨਾਂ ਦੀ ਡਿਫ਼ੌਲਟ ਸਥਿਤੀ ਵਿੱਚ ਰੀਸੈਟ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?</string>
     <string name="reset">ਰੀਸੈੱਟ</string>
-    <string name="delay">ਦੇਰੀ</string>
+    <string name="delay">ਡਿਲੇਅ</string>
     <string name="speed">ਸਪੀਡ</string>
     <string name="search">ਖੋਜ</string>
     <string name="search_videos_and_folders">ਵੀਡੀਓ ਅਤੇ ਫ਼ੋਲਡਰਾਂ ਦੀ ਖੋਜ ਕਰੋ</string>
@@ -323,12 +323,12 @@
     <string name="incorrect_pin">ਗਲਤ ਪਿੰਨ</string>
     <string name="how_to_find_hidden_videos_title">ਆਪਣੇ ਲੁਕਵੇਂ ਵੀਡੀਓ ਕਿਵੇਂ ਲੱਭਣੇ ਹਨ</string>
     <string name="how_to_find_hidden_videos_description">ਲੁਕੇ ਹੋਏ ਵੀਡੀਓ ਤੁਹਾਡੇ ਵਾਲਟ ਵਿੱਚ ਸੁਰੱਖਿਅਤ ਰੱਖੇ ਜਾਂਦੇ ਹਨ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਖੋਲ੍ਹਣ ਲਈ, ਹੋਮ ਸਕ੍ਰੀਨ ਦੇ ਸਿਖਰ \'ਤੇ \"NextPlayer\" ਸਿਰਲੇਖ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ ਅਤੇ ਆਪਣਾ PIN ਦਰਜ ਕਰੋ।</string>
-    <string name="got_it">ਮਿਲ ਗਿਆ</string>
+    <string name="got_it">ਸਮਝ ਗਿਆ</string>
     <string name="open_vault">ਖੁੱਲ੍ਹਾ ਵਾਲਟ</string>
     <string name="vault_empty_title">ਕੋਈ ਲੁਕਵੇਂ ਵੀਡੀਓ ਨਹੀਂ</string>
-    <string name="vault_empty_description">ਤੁਹਾਡੇ ਵੱਲੋਂ ਲੁਕਾਏ ਗਏ ਵੀਡੀਓ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ। ਕਿਸੇ ਵੀਡੀਓ ਨੂੰ ਦੇਰ ਤੱਕ ਦਬਾਓ ਅਤੇ ਇਸਨੂੰ ਵਾਲਟ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰਨ ਲਈ ਲੁਕਾਓ \'ਤੇ ਟੈਪ ਕਰੋ।</string>
+    <string name="vault_empty_description">ਤੁਹਾਡੇ ਵੱਲੋਂ ਲੁਕਾਏ ਗਏ ਵੀਡੀਓ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ। ਕਿਸੇ ਵੀਡੀਓ ਨੂੰ ਦੇਰ ਤੱਕ ਦਬਾਓ ਅਤੇ ਇਸਨੂੰ ਵਾਲਟ ਵਿੱਚ ਸ਼ਾਮਿਲ ਕਰਨ ਲਈ ਲੁਕਾਓ \'ਤੇ ਟੈਪ ਕਰੋ।</string>
     <string name="unhide_one_video_confirmation">ਕੀ ਇਸ ਵੀਡੀਓ ਨੂੰ ਦਿਸਦਾ ਕਰਨਾ ਹੈ? ਇਸਨੂੰ ਇਸਦੇ ਅਸਲ ਸਥਾਨ \'ਤੇ ਵਾਪਸ ਭੇਜ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
-    <string name="unhide_videos_confirmation">ਕੀ %1$d ਵੀਡੀਓਜ਼ ਨੂੰ ਅਣਲੁਕਾਉਣਾ ਹੈ? ਉਹਨਾਂ ਨੂੰ ਉਹਨਾਂ ਦੇ ਅਸਲ ਸਥਾਨ \'ਤੇ ਵਾਪਸ ਭੇਜ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
+    <string name="unhide_videos_confirmation">ਕੀ %1$d ਵੀਡੀਓਜ਼ ਨੂੰ ਲੁਕਾਉਣਾ ਬੰਦ ਕਰਨਾ ਹੈ? ਉਹਨਾਂ ਨੂੰ ਉਹਨਾਂ ਦੇ ਅਸਲ ਸਥਾਨ \'ਤੇ ਵਾਪਸ ਭੇਜ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
     <string name="delete_one_video_from_vault">ਕੀ ਇਸ ਵੀਡੀਓ ਨੂੰ ਪੱਕੇ ਤੌਰ \'ਤੇ ਮਿਟਾਉਣਾ ਹੈ?</string>
     <string name="delete_videos_from_vault">ਕੀ %1$d ਵੀਡੀਓ ਨੂੰ ਸਥਾਈ ਤੌਰ \'ਤੇ ਮਿਟਾਉਣਾ ਹੈ?</string>
     <string name="delete_from_vault_info">ਇਸ ਕਾਰਵਾਈ ਨੂੰ ਅਣਕੀਤਾ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ। ਵੀਡੀਓ ਨੂੰ ਤੁਹਾਡੇ ਡੀਵਾਈਸ ਤੋਂ ਸਥਾਈ ਤੌਰ \'ਤੇ ਮਿਟਾ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
