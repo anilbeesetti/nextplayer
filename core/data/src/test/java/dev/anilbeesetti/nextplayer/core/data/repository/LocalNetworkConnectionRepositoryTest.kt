@@ -32,8 +32,31 @@ class LocalNetworkConnectionRepositoryTest {
         assertEquals(connection.copy(id = 1), repository.getConnection(1))
     }
 
+    @Test
+    fun `unknown stored authentication falls back to password`() = runTest {
+        dao.seed(
+            NetworkConnectionEntity(
+                id = 7,
+                name = "Legacy",
+                protocol = NetworkProtocol.SFTP.name,
+                host = "10.0.2.2",
+                port = 22,
+                authentication = "UNKNOWN",
+            ),
+        )
+
+        assertEquals(
+            NetworkAuthentication.PASSWORD,
+            repository.getConnection(7)?.authentication,
+        )
+    }
+
     private class FakeNetworkConnectionDao : NetworkConnectionDao {
         private val connections = MutableStateFlow<List<NetworkConnectionEntity>>(emptyList())
+
+        fun seed(connection: NetworkConnectionEntity) {
+            connections.value = connections.value + connection
+        }
 
         override suspend fun upsert(connection: NetworkConnectionEntity): Long {
             val id = connection.id.takeIf { it != 0L } ?: 1L

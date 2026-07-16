@@ -35,7 +35,16 @@ class MediaDatabaseMigrationTest {
         ).use { db ->
             db.query("SELECT * FROM network_connection WHERE id = 1").use { cursor ->
                 check(cursor.moveToFirst())
+                assertEquals(1L, cursor.getLong(cursor.getColumnIndexOrThrow("id")))
                 assertEquals("NAS", cursor.getString(cursor.getColumnIndexOrThrow("name")))
+                assertEquals("FTP", cursor.getString(cursor.getColumnIndexOrThrow("protocol")))
+                assertEquals("10.0.2.2", cursor.getString(cursor.getColumnIndexOrThrow("host")))
+                assertEquals(2121, cursor.getInt(cursor.getColumnIndexOrThrow("port")))
+                assertEquals("/media", cursor.getString(cursor.getColumnIndexOrThrow("path")))
+                assertEquals("alice", cursor.getString(cursor.getColumnIndexOrThrow("username")))
+                assertEquals("secret", cursor.getString(cursor.getColumnIndexOrThrow("password")))
+                assertEquals(0, cursor.getInt(cursor.getColumnIndexOrThrow("use_https")))
+                assertEquals(123L, cursor.getLong(cursor.getColumnIndexOrThrow("created_at")))
                 assertEquals(
                     "PASSWORD",
                     cursor.getString(cursor.getColumnIndexOrThrow("authentication")),
