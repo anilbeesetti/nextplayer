@@ -2,7 +2,7 @@
 <resources>
     <string name="videopicker_playlist_add_to_playlist">Add to playlist</string>
     <string name="videopicker_playlist_choose_playlist">Choose a playlist</string>
-    <string name="videopicker_playlist_no_editable_playlists">No editable playlists yet</string>
+    <string name="videopicker_playlist_no_editable_playlists">No local playlists yet</string>
     <string name="videopicker_playlist_create_new_playlist">Create new playlist</string>
     <string name="videopicker_playlist_name">Playlist name</string>
     <string name="videopicker_playlist_create">Create</string>

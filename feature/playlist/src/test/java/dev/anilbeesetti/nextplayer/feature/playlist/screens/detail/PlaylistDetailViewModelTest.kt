@@ -177,7 +177,10 @@ class PlaylistDetailViewModelTest {
         viewModel.onAction(PlaylistDetailAction.Refresh)
         advanceUntilIdle()
 
-        assertEquals(PlaylistDetailEvent.Message(EDITABLE_REFRESH_MESSAGE), event.await())
+        assertEquals(
+            PlaylistDetailEvent.Message("Local playlists don't have a linked source."),
+            event.await(),
+        )
         assertEquals(emptyList<Long>(), repository.refreshedIds)
         assertFalse(viewModel.uiState.value.isRefreshing)
     }

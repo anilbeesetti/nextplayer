@@ -40,7 +40,7 @@
     <string name="playlist_actions">Playlist actions</string>
     <string name="create_new_playlist">Create new playlist</string>
     <string name="choose_playlist">Choose a playlist</string>
-    <string name="no_editable_playlists">No editable playlists yet.</string>
+    <string name="no_editable_playlists">No local playlists yet.</string>
 
     <plurals name="playlist_item_count">
         <item quantity="one">%d item</item>

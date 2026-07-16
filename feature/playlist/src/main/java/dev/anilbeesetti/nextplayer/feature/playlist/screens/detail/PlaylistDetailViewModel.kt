@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-internal const val EDITABLE_REFRESH_MESSAGE = "Editable playlists don't have a linked source."
+internal const val EDITABLE_REFRESH_MESSAGE = "Local playlists don't have a linked source."
 internal const val LINKED_MOVE_MESSAGE = "Linked playlists use their source order."
 private const val PLAYLIST_ACTION_ERROR_MESSAGE = "Couldn't update playlist. Try again."
 private const val MOVE_RECONCILIATION_TIMEOUT_MILLIS = 2_000L
