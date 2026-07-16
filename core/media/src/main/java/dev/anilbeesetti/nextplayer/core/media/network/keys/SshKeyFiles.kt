@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.media.network.keys
 
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.io.InputStream
 import java.util.UUID
 
@@ -14,8 +15,16 @@ class SshKeyFiles(
     fun stage(inputStream: InputStream): String {
         val generatedName = fileName().also(::requireValidName)
         stagingDirectory.mkdirs()
-        inputStream.use { input ->
-            stagedFile(generatedName).outputStream().use(input::copyTo)
+        val target = stagedFile(generatedName)
+        try {
+            inputStream.use { input ->
+                target.outputStream().use(input::copyTo)
+            }
+        } catch (throwable: Throwable) {
+            if (!target.deleteIfPresent()) {
+                throwable.addSuppressed(IOException("Couldn't delete partial private key"))
+            }
+            throw throwable
         }
         return generatedName
     }
@@ -40,13 +49,16 @@ class SshKeyFiles(
     }
 
     fun delete(fileName: String) {
-        stagedFile(fileName).delete()
-        committedFile(fileName).delete()
+        val stagedDeleted = stagedFile(fileName).deleteIfPresent()
+        val committedDeleted = committedFile(fileName).deleteIfPresent()
+        check(stagedDeleted && committedDeleted) { "Couldn't delete private key" }
     }
 
     private fun stagedFile(fileName: String) = File(stagingDirectory, validated(fileName))
 
     private fun committedFile(fileName: String) = File(committedDirectory, validated(fileName))
+
+    private fun File.deleteIfPresent() = !exists() || delete() || !exists()
 
     private fun validated(fileName: String) = fileName.also(::requireValidName)
 
