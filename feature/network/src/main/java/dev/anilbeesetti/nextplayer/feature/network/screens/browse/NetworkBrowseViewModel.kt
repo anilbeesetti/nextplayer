@@ -43,6 +43,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
     @Assisted private val path: String?,
     private val repository: NetworkConnectionRepository,
     private val streamingProxy: NetworkStreamingProxy,
+    private val clientFactory: NetworkClientFactory,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -73,7 +74,7 @@ class NetworkBrowseViewModel @AssistedInject constructor(
                 _uiState.value = NetworkBrowseUiState(isLoading = false, error = "Connection not found")
                 return@launch
             }
-            val activeClient = client ?: NetworkClientFactory.create(conn).also { client = it }
+            val activeClient = client ?: clientFactory.create(conn).also { client = it }
             if (!activeClient.isConnected()) {
                 val connected = activeClient.connect()
                 if (connected.isFailure) {

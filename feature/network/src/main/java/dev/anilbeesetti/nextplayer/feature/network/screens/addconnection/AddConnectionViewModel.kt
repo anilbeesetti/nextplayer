@@ -26,6 +26,7 @@ sealed interface SaveState {
 class AddConnectionViewModel @AssistedInject constructor(
     @Assisted private val connectionId: Long?,
     private val repository: NetworkConnectionRepository,
+    private val clientFactory: NetworkClientFactory,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -56,7 +57,7 @@ class AddConnectionViewModel @AssistedInject constructor(
         _saveState.value = SaveState.Testing
         viewModelScope.launch {
             val toSave = connection.copy(id = connectionId ?: 0)
-            val client = NetworkClientFactory.create(toSave)
+            val client = clientFactory.create(toSave)
             val result = runCatching { client.connect().getOrThrow() }
             runCatching { client.disconnect() }
             if (result.isSuccess) {

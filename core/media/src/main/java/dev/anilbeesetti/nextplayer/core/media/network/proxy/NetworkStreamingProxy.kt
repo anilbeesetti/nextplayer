@@ -29,7 +29,9 @@ import kotlinx.coroutines.runBlocking
  * The NanoHTTPD server is composed (not inherited) so the dependency does not leak to callers.
  */
 @Singleton
-class NetworkStreamingProxy @Inject constructor() {
+class NetworkStreamingProxy @Inject constructor(
+    private val clientFactory: NetworkClientFactory,
+) {
 
     private data class StreamInfo(
         val client: NetworkClient,
@@ -58,7 +60,7 @@ class NetworkStreamingProxy @Inject constructor() {
         releasePreviousStreams()
         val id = idCounter.incrementAndGet().toString()
         streams[id] = StreamInfo(
-            client = NetworkClientFactory.create(connection),
+            client = clientFactory.create(connection),
             filePath = filePath,
             mimeType = networkVideoMimeType(fileName),
         )
