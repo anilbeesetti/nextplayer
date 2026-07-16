@@ -10,6 +10,7 @@ object NetworkClientFactory {
     fun create(connection: NetworkConnection): NetworkClient = when (connection.protocol) {
         NetworkProtocol.SMB -> SmbClient(connection)
         NetworkProtocol.FTP -> FtpClient(connection)
+        NetworkProtocol.SFTP -> error("SFTP client is not available yet")
         NetworkProtocol.WEBDAV -> WebDavClient(connection)
     }
 }
