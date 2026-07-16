@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -129,10 +131,10 @@ internal fun AddConnectionScreen(
     var port by rememberSaveable { mutableStateOf("") }
     var path by rememberSaveable { mutableStateOf(defaultPathFor(NetworkProtocol.SMB)) }
     var username by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var useHttps by rememberSaveable { mutableStateOf(false) }
     var authentication by rememberSaveable { mutableStateOf(NetworkAuthentication.PASSWORD) }
-    var privateKeyPassphrase by rememberSaveable { mutableStateOf("") }
+    var privateKeyPassphrase by remember { mutableStateOf("") }
     var hostKeyFingerprint by rememberSaveable { mutableStateOf("") }
     var existingPrivateKeyRemoved by rememberSaveable { mutableStateOf(false) }
 
@@ -251,6 +253,7 @@ internal fun AddConnectionScreen(
                 protocols.forEachIndexed { index, entry ->
                     SegmentedButton(
                         selected = protocol == entry,
+                        enabled = !isTesting,
                         onClick = {
                             onChange {
                                 // Keep the path in sync with the protocol's default unless the user
@@ -277,6 +280,7 @@ internal fun AddConnectionScreen(
 
             OutlinedTextField(
                 value = name,
+                enabled = !isTesting,
                 onValueChange = { onChange { name = it } },
                 label = { Text(stringResource(R.string.connection_name)) },
                 singleLine = true,
@@ -286,6 +290,7 @@ internal fun AddConnectionScreen(
             )
             OutlinedTextField(
                 value = host,
+                enabled = !isTesting,
                 onValueChange = { newHost ->
                     onChange {
                         hostKeyFingerprint = fingerprintAfterEndpointEdit(
@@ -305,6 +310,7 @@ internal fun AddConnectionScreen(
             )
             OutlinedTextField(
                 value = port,
+                enabled = !isTesting,
                 onValueChange = { input ->
                     onChange {
                         val newPort = input.filter { it.isDigit() }
@@ -325,6 +331,7 @@ internal fun AddConnectionScreen(
             )
             OutlinedTextField(
                 value = path,
+                enabled = !isTesting,
                 onValueChange = { onChange { path = it } },
                 label = { Text(stringResource(R.string.path_share)) },
                 singleLine = true,
@@ -334,6 +341,7 @@ internal fun AddConnectionScreen(
             )
             OutlinedTextField(
                 value = username,
+                enabled = !isTesting,
                 onValueChange = { onChange { username = it } },
                 label = { Text(stringResource(R.string.username)) },
                 singleLine = true,
@@ -353,6 +361,7 @@ internal fun AddConnectionScreen(
                         val shape = SegmentedButtonDefaults.itemShape(index, methods.size)
                         SegmentedButton(
                             selected = authentication == method,
+                            enabled = !isTesting,
                             onClick = {
                                 onChange {
                                     authentication = method
@@ -385,6 +394,7 @@ internal fun AddConnectionScreen(
             if (protocol != NetworkProtocol.SFTP || authentication == NetworkAuthentication.PASSWORD) {
                 OutlinedTextField(
                     value = password,
+                    enabled = !isTesting,
                     onValueChange = { onChange { password = it } },
                     label = { Text(stringResource(R.string.password)) },
                     singleLine = true,
@@ -406,6 +416,7 @@ internal fun AddConnectionScreen(
                 ) {
                     OutlinedButton(
                         onClick = onChoosePrivateKey,
+                        enabled = !isTesting,
                         modifier = Modifier.weight(1f),
                     ) {
                         Text(
@@ -420,6 +431,7 @@ internal fun AddConnectionScreen(
                     }
                     if (activeKeyName.isNotBlank()) {
                         TextButton(
+                            enabled = !isTesting,
                             onClick = {
                                 if (selectedPrivateKey != null) {
                                     onRemovePrivateKey()
@@ -443,6 +455,7 @@ internal fun AddConnectionScreen(
                 }
                 OutlinedTextField(
                     value = privateKeyPassphrase,
+                    enabled = !isTesting,
                     onValueChange = { onChange { privateKeyPassphrase = it } },
                     label = { Text(stringResource(R.string.private_key_passphrase)) },
                     singleLine = true,
@@ -463,7 +476,11 @@ internal fun AddConnectionScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(stringResource(R.string.use_https), modifier = Modifier.weight(1f))
-                    Switch(checked = useHttps, onCheckedChange = { onChange { useHttps = it } })
+                    Switch(
+                        checked = useHttps,
+                        onCheckedChange = { onChange { useHttps = it } },
+                        enabled = !isTesting,
+                    )
                 }
             }
 
@@ -506,8 +523,10 @@ internal fun AddConnectionScreen(
                 Text(stringResource(R.string.confirm_ssh_host_key_description))
                 Spacer(Modifier.size(12.dp))
                 Text("${confirmation.host}:${confirmation.port}")
-                Text(confirmation.algorithm)
-                Text(confirmation.fingerprint)
+                Text(stringResource(R.string.ssh_host_key_algorithm, confirmation.algorithm))
+                SelectionContainer {
+                    Text(stringResource(R.string.ssh_host_key_fingerprint, confirmation.fingerprint))
+                }
             },
             confirmButton = {
                 TextButton(onClick = onAcceptHostKey) {

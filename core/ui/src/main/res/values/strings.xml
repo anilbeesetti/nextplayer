@@ -369,6 +369,8 @@
     <string name="private_key_passphrase">Private key passphrase (optional)</string>
     <string name="confirm_ssh_host_key">Confirm SSH host key</string>
     <string name="confirm_ssh_host_key_description">Compare this fingerprint with your server before trusting it.</string>
+    <string name="ssh_host_key_algorithm">Algorithm: %1$s</string>
+    <string name="ssh_host_key_fingerprint">Fingerprint: %1$s</string>
     <string name="trust">Trust</string>
     <string name="reject">Reject</string>
     <string name="private_key_missing">The private key is missing. Choose it again.</string>

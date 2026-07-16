@@ -25,6 +25,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -59,6 +60,167 @@ class AddConnectionViewModelTest {
             assertEquals(SelectedPrivateKey("second.key", "second.pem"), viewModel.selectedPrivateKey.value)
             assertEquals(listOf("first.key"), keyStore.deleted)
         }
+
+    @Test
+    fun `replacement requested during test cannot replace the tested key snapshot`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val connectStarted = CompletableDeferred<Unit>()
+            val allowConnect = CompletableDeferred<Unit>()
+            val keyStore = FakeSshKeyStore(
+                stagedKeys = ArrayDeque(
+                    listOf(
+                        StagedSshKey("tested-a.key", "a.pem"),
+                        StagedSshKey("replacement-b.key", "b.pem"),
+                    ),
+                ),
+                committedName = "committed-a.key",
+            )
+            val repository = FakeRepository()
+            val viewModel = viewModel(
+                repository = repository,
+                clients = ArrayDeque(
+                    listOf(
+                        FakeNetworkClient(Result.success(Unit)) {
+                            connectStarted.complete(Unit)
+                            allowConnect.await()
+                        },
+                    ),
+                ),
+                keyStore = keyStore,
+            )
+            viewModel.stagePrivateKey(TestUri)
+            advanceUntilIdle()
+
+            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            connectStarted.await()
+            viewModel.stagePrivateKey(TestUri)
+            runCurrent()
+            allowConnect.complete(Unit)
+            advanceUntilIdle()
+
+            assertEquals(1, keyStore.stageCalls)
+            assertEquals(listOf("tested-a.key"), keyStore.committed)
+            assertEquals("committed-a.key", repository.upserted.single().privateKeyFileName)
+            assertFalse("tested-a.key" in keyStore.deleteAttempts)
+        }
+
+    @Test
+    fun `removal requested during test cannot delete the tested key`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val connectStarted = CompletableDeferred<Unit>()
+            val allowConnect = CompletableDeferred<Unit>()
+            val keyStore = FakeSshKeyStore(
+                stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
+                committedName = "committed-a.key",
+            )
+            val repository = FakeRepository()
+            val viewModel = viewModel(
+                repository = repository,
+                clients = ArrayDeque(
+                    listOf(
+                        FakeNetworkClient(Result.success(Unit)) {
+                            connectStarted.complete(Unit)
+                            allowConnect.await()
+                        },
+                    ),
+                ),
+                keyStore = keyStore,
+            )
+            viewModel.stagePrivateKey(TestUri)
+            advanceUntilIdle()
+
+            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            connectStarted.await()
+            viewModel.removeSelectedPrivateKey()
+            runCurrent()
+            allowConnect.complete(Unit)
+            advanceUntilIdle()
+
+            assertEquals(listOf("tested-a.key"), keyStore.committed)
+            assertEquals("committed-a.key", repository.upserted.single().privateKeyFileName)
+            assertFalse("tested-a.key" in keyStore.deleteAttempts)
+        }
+
+    @Test
+    fun `staging failure requested during test cannot replace Testing state`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val connectStarted = CompletableDeferred<Unit>()
+            val allowConnect = CompletableDeferred<Unit>()
+            val keyStore = FakeSshKeyStore(
+                stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
+                failStageAfterCalls = 1,
+            )
+            val viewModel = viewModel(
+                clients = ArrayDeque(
+                    listOf(
+                        FakeNetworkClient(Result.success(Unit)) {
+                            connectStarted.complete(Unit)
+                            allowConnect.await()
+                        },
+                    ),
+                ),
+                keyStore = keyStore,
+            )
+            viewModel.stagePrivateKey(TestUri)
+            advanceUntilIdle()
+
+            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            connectStarted.await()
+            viewModel.stagePrivateKey(TestUri)
+            runCurrent()
+
+            assertEquals(SaveState.Testing, viewModel.saveState.value)
+            assertEquals(1, keyStore.stageCalls)
+            allowConnect.complete(Unit)
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun `cancel during connection test deletes staged key only after save is invalidated`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val connectStarted = CompletableDeferred<Unit>()
+            val allowConnect = CompletableDeferred<Unit>()
+            val repository = FakeRepository()
+            val keyStore = FakeSshKeyStore(
+                stagedKeys = ArrayDeque(listOf(StagedSshKey("tested-a.key", "a.pem"))),
+            )
+            val viewModel = viewModel(
+                repository = repository,
+                clients = ArrayDeque(
+                    listOf(
+                        FakeNetworkClient(Result.success(Unit)) {
+                            connectStarted.complete(Unit)
+                            allowConnect.await()
+                        },
+                    ),
+                ),
+                keyStore = keyStore,
+            )
+            viewModel.stagePrivateKey(TestUri)
+            advanceUntilIdle()
+
+            viewModel.testAndSave(keyDraft(privateKeyFileName = "tested-a.key"))
+            connectStarted.await()
+            viewModel.cancel()
+            allowConnect.complete(Unit)
+            advanceUntilIdle()
+
+            assertTrue(repository.upserted.isEmpty())
+            assertTrue(keyStore.committed.isEmpty())
+            assertEquals(listOf("tested-a.key"), keyStore.deleted)
+        }
+
+    @Test
+    fun `connection screen never stores password fields with rememberSaveable`() {
+        val source = File(
+            "src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/AddConnectionScreen.kt",
+        ).readText()
+
+        assertFalse(source.contains("var password by rememberSaveable"))
+        assertFalse(source.contains("var privateKeyPassphrase by rememberSaveable"))
+        assertTrue(source.contains("var password by remember"))
+        assertTrue(source.contains("var privateKeyPassphrase by remember"))
+    }
 
     @Test
     fun `SFTP fingerprint is cleared only when its endpoint value changes`() {
@@ -143,6 +305,27 @@ class AddConnectionViewModelTest {
             assertTrue(repository.upserted.isEmpty())
             assertEquals(1, client.disconnectCount)
         }
+
+    @Test
+    fun `wrapped passphrase failure has actionable message`() =
+        assertConnectionError(
+            IllegalStateException("SSH failed", IllegalArgumentException("Incorrect private key passphrase")),
+            "The private key passphrase is incorrect or missing.",
+        )
+
+    @Test
+    fun `wrapped malformed key failure has actionable message`() =
+        assertConnectionError(
+            IllegalStateException("SSH failed", IllegalArgumentException("Invalid PEM key format")),
+            "The private key format isn't supported or the file is malformed.",
+        )
+
+    @Test
+    fun `wrapped authentication failure has actionable message`() =
+        assertConnectionError(
+            IllegalStateException("SSH failed", IllegalStateException("Exhausted available authentication methods")),
+            "Authentication was rejected. Check your credentials and try again.",
+        )
 
     @Test
     fun `rejecting host confirmation retains the staged key`() =
@@ -567,6 +750,18 @@ class AddConnectionViewModelTest {
         fingerprint = "SHA256:server-key",
     )
 
+    private fun assertConnectionError(error: Throwable, expected: String) =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val viewModel = viewModel(
+                clients = ArrayDeque(listOf(FakeNetworkClient(Result.failure(error)))),
+            )
+
+            viewModel.testAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD))
+            advanceUntilIdle()
+
+            assertEquals(expected, (viewModel.saveState.value as SaveState.Error).message)
+        }
+
     private fun keyDraft(
         id: Long = 0,
         authentication: NetworkAuthentication = NetworkAuthentication.SSH_KEY,
@@ -623,6 +818,7 @@ private class FakeNetworkClientFactory(
 private class FakeNetworkClient(
     private val connectResult: Result<Unit>,
     private val events: MutableList<String> = mutableListOf(),
+    private val beforeConnect: suspend () -> Unit = {},
 ) : NetworkClient {
     var disconnectCount = 0
 
@@ -630,6 +826,7 @@ private class FakeNetworkClient(
 
     override suspend fun connect(): Result<Unit> {
         events += "client.connect"
+        beforeConnect()
         return connectResult
     }
 
@@ -652,12 +849,19 @@ private class FakeSshKeyStore(
     private val committedName: String = "committed.key",
     private val events: MutableList<String> = mutableListOf(),
     private val deleteFailures: MutableMap<String, Int> = mutableMapOf(),
+    private val failStageAfterCalls: Int? = null,
 ) : SshKeyStore {
     val committed = mutableListOf<String>()
     val deleted = mutableListOf<String>()
     val deleteAttempts = mutableListOf<String>()
+    var stageCalls = 0
+        private set
 
-    override suspend fun stage(uri: Uri): StagedSshKey = stagedKeys.removeFirst()
+    override suspend fun stage(uri: Uri): StagedSshKey {
+        stageCalls++
+        if (failStageAfterCalls != null && stageCalls > failStageAfterCalls) error("staging failed")
+        return stagedKeys.removeFirst()
+    }
 
     override fun resolve(fileName: String): File = error("Not used")
 

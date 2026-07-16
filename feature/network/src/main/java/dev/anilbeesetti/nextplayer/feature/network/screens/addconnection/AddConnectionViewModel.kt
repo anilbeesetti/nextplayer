@@ -17,13 +17,16 @@ import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import java.io.FileNotFoundException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -74,7 +77,20 @@ class AddConnectionViewModel @AssistedInject constructor(
     private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
     val savedEvents = _savedEvents.receiveAsFlow()
 
-    private var pendingDraft: NetworkConnection? = null
+    private data class SaveOperation(
+        val id: Long,
+        val draft: NetworkConnection,
+        val selectedPrivateKey: SelectedPrivateKey?,
+    )
+
+    private var nextOperationId = 0L
+    private var activeOperation: SaveOperation? = null
+    private var pendingOperation: SaveOperation? = null
+    private var activeSaveJob: Job? = null
+    private var activeKeyMutationJob: Job? = null
+    private val lifecycleLock = Any()
+    private var lifecycleEpoch = 0L
+    private var cleanupRequested = false
     private val keyOwnershipLock = Any()
     private val sessionOwnedKeys = mutableSetOf<String>()
     private val keysBeingPersisted = mutableSetOf<String>()
@@ -89,8 +105,18 @@ class AddConnectionViewModel @AssistedInject constructor(
     }
 
     fun stagePrivateKey(uri: Uri) {
-        viewModelScope.launch {
-            runCatching { sshKeyStore.stage(uri) }
+        if (keyMutationBlocked()) return
+        val mutationEpoch = lifecycleEpoch
+        activeKeyMutationJob = viewModelScope.launch {
+            val result = runCatching { sshKeyStore.stage(uri) }
+            if (!keyMutationMayComplete(mutationEpoch)) {
+                result.getOrNull()?.let { staged ->
+                    trackSessionKey(staged.fileName)
+                    scheduleTrackedCleanup(staged.fileName)
+                }
+                return@launch
+            }
+            result
                 .onSuccess { staged ->
                     val previous = _selectedPrivateKey.value
                     trackSessionKey(staged.fileName)
@@ -109,41 +135,51 @@ class AddConnectionViewModel @AssistedInject constructor(
     }
 
     fun removeSelectedPrivateKey() {
+        if (keyMutationBlocked()) return
         val selected = _selectedPrivateKey.value ?: return
-        viewModelScope.launch {
+        val mutationEpoch = lifecycleEpoch
+        activeKeyMutationJob = viewModelScope.launch {
             runCatching { sshKeyStore.delete(selected.stagedFileName) }
                 .onSuccess {
                     untrackSessionKey(selected.stagedFileName)
-                    if (_selectedPrivateKey.value == selected) _selectedPrivateKey.value = null
+                    if (keyMutationMayComplete(mutationEpoch) && _selectedPrivateKey.value == selected) {
+                        _selectedPrivateKey.value = null
+                    }
                 }
-                .onFailure { _saveState.value = SaveState.Error(it.actionableMessage()) }
+                .onFailure {
+                    if (keyMutationMayComplete(mutationEpoch)) {
+                        _saveState.value = SaveState.Error(it.actionableMessage())
+                    }
+                }
         }
     }
 
     /** Tests [connection] by connecting, and persists it (with the existing id when editing) on success. */
     fun testAndSave(connection: NetworkConnection) {
-        if (_saveState.value == SaveState.Testing) return
+        if (cleanupRequested || activeOperation != null || activeKeyMutationJob?.isActive == true) return
+        val selected = _selectedPrivateKey.value
         val draft = connection
             .copy(id = connectionId ?: 0)
-            .sanitizeForAuthentication(_selectedPrivateKey.value)
-        pendingDraft = null
-        _saveState.value = SaveState.Testing
-        viewModelScope.launch { connectAndSave(draft) }
+            .sanitizeForAuthentication(selected)
+        val operation = SaveOperation(++nextOperationId, draft, selected)
+        activeOperation = operation
+        pendingOperation = null
+        startSave(operation)
     }
 
     fun acceptHostKey() {
         val confirmation = (_saveState.value as? SaveState.ConfirmHostKey)?.confirmation ?: return
-        val draft = pendingDraft ?: return
-        pendingDraft = null
-        _saveState.value = SaveState.Testing
-        viewModelScope.launch {
-            connectAndSave(draft.copy(hostKeyFingerprint = confirmation.fingerprint))
-        }
+        val pending = pendingOperation ?: return
+        val retry = pending.copy(draft = pending.draft.copy(hostKeyFingerprint = confirmation.fingerprint))
+        activeOperation = retry
+        pendingOperation = null
+        startSave(retry)
     }
 
     fun rejectHostKey() {
         if (_saveState.value !is SaveState.ConfirmHostKey) return
-        pendingDraft = null
+        pendingOperation = null
+        activeOperation = null
         _saveState.value = SaveState.Idle
     }
 
@@ -152,30 +188,36 @@ class AddConnectionViewModel @AssistedInject constructor(
     }
 
     fun cancel() {
-        _selectedPrivateKey.value = null
-        scheduleAllTrackedCleanup()
+        invalidateAndCleanup()
     }
 
     override fun onCleared() {
         isCleared = true
-        _selectedPrivateKey.value = null
-        scheduleAllTrackedCleanup()
+        invalidateAndCleanup()
         super.onCleared()
     }
 
-    private suspend fun connectAndSave(draft: NetworkConnection) {
+    private fun startSave(operation: SaveOperation) {
+        _saveState.value = SaveState.Testing
+        activeSaveJob = viewModelScope.launch { connectAndSave(operation) }
+    }
+
+    private suspend fun connectAndSave(operation: SaveOperation) {
         val result = runCatching {
-            val client = clientFactory.create(draft)
+            val client = clientFactory.create(operation.draft)
             try {
                 client.connect().getOrThrow()
             } finally {
-                runCatching { client.disconnect() }
+                withContext(NonCancellable) { runCatching { client.disconnect() } }
             }
-            withContext(NonCancellable) { persist(draft) }
+            if (!isCurrent(operation)) throw CancellationException("Save operation was cancelled")
+            withContext(NonCancellable) { persist(operation) }
         }
+        if (!isCurrent(operation)) return
         val error = result.exceptionOrNull()
         if (error == null) {
-            pendingDraft = null
+            pendingOperation = null
+            activeOperation = null
             _savedEvents.send(Unit)
             _saveState.value = SaveState.Idle
             return
@@ -183,7 +225,7 @@ class AddConnectionViewModel @AssistedInject constructor(
 
         val hostConfirmation = error.findCause<HostKeyConfirmationRequired>()
         if (hostConfirmation != null) {
-            pendingDraft = draft
+            pendingOperation = operation
             _saveState.value = SaveState.ConfirmHostKey(
                 HostKeyConfirmation(
                     host = hostConfirmation.host,
@@ -193,17 +235,19 @@ class AddConnectionViewModel @AssistedInject constructor(
                 ),
             )
         } else {
-            pendingDraft = null
+            pendingOperation = null
+            activeOperation = null
             _saveState.value = SaveState.Error(error.actionableMessage())
         }
     }
 
-    private suspend fun persist(draft: NetworkConnection) {
+    private suspend fun persist(operation: SaveOperation) {
+        val draft = operation.draft
         val oldKey = _existingConnection.value
             ?.takeIf { it.authentication == NetworkAuthentication.SSH_KEY }
             ?.privateKeyFileName
             .orEmpty()
-        val selected = _selectedPrivateKey.value
+        val selected = operation.selectedPrivateKey
 
         if (draft.protocol == NetworkProtocol.SFTP && draft.authentication == NetworkAuthentication.SSH_KEY) {
             if (selected == null) {
@@ -219,7 +263,7 @@ class AddConnectionViewModel @AssistedInject constructor(
                 if (isCleared) scheduleTrackedCleanup(selected.stagedFileName)
                 throw error
             }
-            _selectedPrivateKey.value = null
+            if (_selectedPrivateKey.value == selected) _selectedPrivateKey.value = null
             replacePersistingKey(selected.stagedFileName, committed)
             val saved = draft.copy(privateKeyFileName = committed)
             try {
@@ -241,12 +285,35 @@ class AddConnectionViewModel @AssistedInject constructor(
 
         repository.upsert(draft)
         if (oldKey.isNotBlank()) cleanupAfterSuccessfulSave(oldKey)
-        val unusedStage = takeSelectedPrivateKey()
+        val unusedStage = operation.selectedPrivateKey
+        if (_selectedPrivateKey.value == unusedStage) _selectedPrivateKey.value = null
         if (unusedStage != null) cleanupAfterSuccessfulSave(unusedStage.stagedFileName)
     }
 
-    private fun takeSelectedPrivateKey(): SelectedPrivateKey? =
-        _selectedPrivateKey.value.also { _selectedPrivateKey.value = null }
+    private fun keyMutationBlocked(): Boolean =
+        cleanupRequested || activeOperation != null || activeKeyMutationJob?.isActive == true
+
+    private fun keyMutationMayComplete(epoch: Long): Boolean =
+        !cleanupRequested && lifecycleEpoch == epoch && activeOperation == null
+
+    private fun isCurrent(operation: SaveOperation): Boolean = activeOperation?.id == operation.id
+
+    private fun invalidateAndCleanup() {
+        val jobs = synchronized(lifecycleLock) {
+            lifecycleEpoch++
+            activeOperation = null
+            pendingOperation = null
+            if (cleanupRequested) return
+            cleanupRequested = true
+            listOfNotNull(activeSaveJob, activeKeyMutationJob)
+        }
+        _selectedPrivateKey.value = null
+        jobs.forEach(Job::cancel)
+        applicationScope.launch {
+            jobs.joinAll()
+            scheduleAllTrackedCleanup()
+        }
+    }
 
     private suspend fun cleanupAfterSuccessfulSave(fileName: String) {
         trackSessionKey(fileName)
@@ -324,16 +391,28 @@ class AddConnectionViewModel @AssistedInject constructor(
             "The SSH host key doesn't match the trusted fingerprint."
         findCause<FileNotFoundException>() != null ->
             "The private key is missing. Choose it again."
-        message.orEmpty().contains("passphrase", ignoreCase = true) ||
-            message.orEmpty().contains("decrypt", ignoreCase = true) ->
+        causeMessages().any { message ->
+            message.contains("passphrase", ignoreCase = true) ||
+                message.contains("decrypt", ignoreCase = true)
+        } ->
             "The private key passphrase is incorrect or missing."
-        message.orEmpty().contains("key", ignoreCase = true) &&
-            message.orEmpty().contains("format", ignoreCase = true) ->
+        causeMessages().any { message ->
+            message.contains("key", ignoreCase = true) &&
+                (message.contains("format", ignoreCase = true) ||
+                    message.contains("malformed", ignoreCase = true) ||
+                    message.contains("invalid pem", ignoreCase = true))
+        } ->
             "The private key format isn't supported or the file is malformed."
-        message.orEmpty().contains("auth", ignoreCase = true) ->
+        causeMessages().any { message ->
+            message.contains("auth", ignoreCase = true) ||
+                message.contains("exhausted available", ignoreCase = true)
+        } ->
             "Authentication was rejected. Check your credentials and try again."
         else -> message ?: "Couldn't connect. Check the details and try again."
     }
+
+    private fun Throwable.causeMessages(): List<String> =
+        generateSequence(this) { it.cause }.mapNotNull(Throwable::message).toList()
 
     private companion object {
         const val CLEANUP_ATTEMPTS = 3
