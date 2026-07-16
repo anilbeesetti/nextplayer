@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,20 +33,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -56,16 +57,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import coil3.compose.AsyncImage
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
-import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
@@ -84,7 +86,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as CoreUiR
 @Composable
 fun PlaylistDetailScreenRoute(
     onNavigateUp: () -> Unit,
-    onPlayPlaylist: (uris: List<Uri>, startUri: Uri) -> Unit,
+    onPlayPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
     viewModel: PlaylistDetailViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,13 +98,12 @@ fun PlaylistDetailScreenRoute(
     ObservePlaylistDetailEvents(viewModel.events) { event ->
         when (event) {
             is PlaylistDetailEvent.Play -> onPlayPlaylist(
-                event.uris.map(String::toUri),
+                event.playlistId,
                 event.startUri.toUri(),
             )
             is PlaylistDetailEvent.Message -> coroutineScope.launch {
                 snackbarHostState.showSnackbar(event.text)
             }
-            PlaylistDetailEvent.Deleted -> onNavigateUp()
         }
     }
 
@@ -129,7 +130,6 @@ internal fun PlaylistDetailScreen(
     val ownedSnackbarHostState = remember { SnackbarHostState() }
     val resolvedSnackbarHostState = snackbarHostState ?: ownedSnackbarHostState
     val playlist = uiState.playlist
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -177,16 +177,6 @@ internal fun PlaylistDetailScreen(
                             }
                         }
                     }
-                    IconButton(
-                        onClick = { showDeleteConfirmation = true },
-                        enabled = playlist != null,
-                        modifier = Modifier.tvFocusRing(),
-                    ) {
-                        Icon(
-                            imageVector = NextIcons.Delete,
-                            contentDescription = stringResource(R.string.delete_playlist),
-                        )
-                    }
                 },
             )
         },
@@ -218,28 +208,6 @@ internal fun PlaylistDetailScreen(
         }
     }
 
-    if (showDeleteConfirmation && playlist != null) {
-        NextDialog(
-            onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text(stringResource(R.string.delete_playlist)) },
-            content = { Text(stringResource(R.string.delete_playlist_confirmation, playlist.name)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteConfirmation = false
-                        onAction(PlaylistDetailAction.Delete)
-                    },
-                    modifier = Modifier.tvFocusRing(),
-                ) { Text(stringResource(R.string.delete)) }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteConfirmation = false },
-                    modifier = Modifier.tvFocusRing(),
-                ) { Text(stringResource(R.string.cancel)) }
-            },
-        )
-    }
 }
 
 @Composable
@@ -294,6 +262,7 @@ private fun PlaylistDetailContent(
                         ReorderableItem(state = reorderState, key = item.uriString) {
                             PlaylistItemRow(
                                 item = item,
+                                playlistType = playlist.type,
                                 isFirstItem = index == 0,
                                 isLastItem = index == displayedItems.lastIndex,
                                 reorderHandle = {
@@ -324,6 +293,7 @@ private fun PlaylistDetailContent(
                     } else {
                         PlaylistItemRow(
                             item = item,
+                            playlistType = playlist.type,
                             isFirstItem = index == 0,
                             isLastItem = index == displayedItems.lastIndex,
                             canMoveUp = playlist.type == PlaylistType.EDITABLE && !isMoving && index > 0,
@@ -349,6 +319,7 @@ private fun PlaylistDetailContent(
 @Composable
 private fun PlaylistItemRow(
     item: PlaylistItem,
+    playlistType: PlaylistType,
     isFirstItem: Boolean,
     isLastItem: Boolean,
     reorderHandle: (@Composable () -> Unit)? = null,
@@ -360,6 +331,13 @@ private fun PlaylistItemRow(
     onClick: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val supportingText = if (playlistType == PlaylistType.EDITABLE) {
+        item.displayPath?.takeIf(String::isNotBlank) ?: item.uriString
+    } else {
+        item.uriString
+    }
+    val artworkModel = item.imageUrl?.takeIf(String::isNotBlank)
+        ?: item.uriString.takeIf { playlistType == PlaylistType.EDITABLE }
     NextSegmentedListItem(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
@@ -367,7 +345,34 @@ private fun PlaylistItemRow(
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
         onClick = onClick,
-        leadingContent = reorderHandle,
+        leadingContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                reorderHandle?.invoke()
+                Box(
+                    modifier = Modifier
+                        .width(min(100.dp, LocalConfiguration.current.screenWidthDp.dp * 0.30f))
+                        .aspectRatio(16f / 10f)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)),
+                ) {
+                    Icon(
+                        imageVector = NextIcons.Video,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .fillMaxSize(0.5f),
+                    )
+                    artworkModel?.let { model ->
+                        AsyncImage(
+                            model = model,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
+        },
         content = {
             Text(
                 text = item.title?.takeIf(String::isNotBlank)
@@ -380,7 +385,7 @@ private fun PlaylistItemRow(
         },
         supportingContent = {
             Text(
-                text = item.uriString,
+                text = supportingText,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

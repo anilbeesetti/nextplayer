@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.coil.compose)
     implementation(libs.reorderable)
 
     implementation(libs.hilt.android)

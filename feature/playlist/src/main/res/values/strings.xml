@@ -19,9 +19,9 @@
     <string name="playlist_name_conflict">A playlist with this name already exists.</string>
     <string name="no_playlists_title">No playlists yet</string>
     <string name="no_playlists_description">Create an empty playlist or link an M3U source to start watching.</string>
-    <string name="editable_playlist">Editable</string>
+    <string name="editable_playlist">Local</string>
     <string name="m3u_url_playlist">M3U URL</string>
-    <string name="m3u_file_playlist">M3U file</string>
+    <string name="m3u_file_playlist">M3U File</string>
     <string name="not_refreshed">Not loaded yet</string>
     <string name="last_refreshed">Last loaded %1$s</string>
     <string name="delete_playlist">Delete playlist</string>

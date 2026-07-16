@@ -66,7 +66,7 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
-    fun playAllEmitsFullOrderedListAndFirstStart() = runTest(dispatcher) {
+    fun playAllEmitsPlaylistIdAndFirstStart() = runTest(dispatcher) {
         collectUiState()
         repository.playlist.value = playlist(
             items = listOf(item("content://1", 0), item("content://2", 1)),
@@ -78,7 +78,7 @@ class PlaylistDetailViewModelTest {
 
         assertEquals(
             PlaylistDetailEvent.Play(
-                uris = listOf("content://1", "content://2"),
+                playlistId = 42,
                 startUri = "content://1",
             ),
             event.await(),
@@ -86,7 +86,7 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
-    fun playItemEmitsFullListAndSelectedStart() = runTest(dispatcher) {
+    fun playItemEmitsPlaylistIdAndSelectedStart() = runTest(dispatcher) {
         collectUiState()
         repository.playlist.value = playlist(
             items = listOf(item("content://1", 0), item("content://2", 1)),
@@ -97,7 +97,7 @@ class PlaylistDetailViewModelTest {
         viewModel.onAction(PlaylistDetailAction.PlayItem("content://2"))
 
         assertEquals(
-            PlaylistDetailEvent.Play(listOf("content://1", "content://2"), "content://2"),
+            PlaylistDetailEvent.Play(playlistId = 42, startUri = "content://2"),
             event.await(),
         )
     }
@@ -120,47 +120,51 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
-    fun playbackUsesDisplayedOrderDuringPendingDrag() = runTest(dispatcher) {
+    fun playbackDoesNotEmitWhileDragging() = runTest(dispatcher) {
         collectUiState()
         repository.playlist.value = playlist(
             items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
         )
         runCurrent()
-        val event = async { viewModel.events.first() }
+        val events = mutableListOf<PlaylistDetailEvent>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.events.toList(events)
+        }
 
         viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
         viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 0, toIndex = 1))
         viewModel.onAction(PlaylistDetailAction.PlayItem("content://1"))
+        viewModel.onAction(PlaylistDetailAction.PlayAll)
+        runCurrent()
 
-        assertEquals(
-            PlaylistDetailEvent.Play(
-                uris = listOf("content://2", "content://1", "content://3"),
-                startUri = "content://1",
-            ),
-            event.await(),
-        )
+        assertEquals(emptyList<PlaylistDetailEvent>(), events)
     }
 
     @Test
-    fun playAllUsesFinalDisplayedOrderAndFirstUriDuringPendingDrag() = runTest(dispatcher) {
+    fun playbackDoesNotEmitWhileMoving() = runTest(dispatcher) {
         collectUiState()
         repository.playlist.value = playlist(
             items = listOf(item("content://1", 0), item("content://2", 1), item("content://3", 2)),
         )
         runCurrent()
-        val event = async { viewModel.events.first() }
+        repository.moveGate = CompletableDeferred()
+        val events = mutableListOf<PlaylistDetailEvent>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.events.toList(events)
+        }
 
-        viewModel.onAction(PlaylistDetailAction.StartMoveDrag)
-        viewModel.onAction(PlaylistDetailAction.PreviewMove(fromIndex = 0, toIndex = 2))
+        viewModel.onAction(PlaylistDetailAction.MoveItem("content://1", 2))
+        runCurrent()
+        assertTrue(viewModel.uiState.value.isMoving)
+
         viewModel.onAction(PlaylistDetailAction.PlayAll)
+        viewModel.onAction(PlaylistDetailAction.PlayItem("content://1"))
+        runCurrent()
 
-        assertEquals(
-            PlaylistDetailEvent.Play(
-                uris = listOf("content://2", "content://3", "content://1"),
-                startUri = "content://2",
-            ),
-            event.await(),
-        )
+        assertEquals(emptyList<PlaylistDetailEvent>(), events)
+
+        repository.moveGate?.complete(Unit)
+        advanceUntilIdle()
     }
 
     @Test
@@ -503,17 +507,6 @@ class PlaylistDetailViewModelTest {
         assertFalse(viewModel.uiState.value.isMoving)
     }
 
-    @Test
-    fun deleteDelegatesIdAndEmitsDeleted() = runTest(dispatcher) {
-        val event = async { viewModel.events.first() }
-
-        viewModel.onAction(PlaylistDetailAction.Delete)
-        advanceUntilIdle()
-
-        assertEquals(listOf(42L), repository.deletedIds)
-        assertEquals(PlaylistDetailEvent.Deleted, event.await())
-    }
-
     private fun TestScope.collectUiState() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
     }
@@ -525,7 +518,6 @@ private class FakeDetailPlaylistRepository : PlaylistRepository {
     val playlist = MutableStateFlow<Playlist?>(null)
     val refreshedIds = mutableListOf<Long>()
     val moveCalls = mutableListOf<MoveCall>()
-    val deletedIds = mutableListOf<Long>()
     var refreshGate: CompletableDeferred<Unit>? = null
     var refreshFailure: Throwable? = null
     var refreshResult = PlaylistRefreshResult(42, 0, 0)
@@ -559,9 +551,7 @@ private class FakeDetailPlaylistRepository : PlaylistRepository {
         return refreshResult
     }
 
-    override suspend fun delete(id: Long) {
-        deletedIds += id
-    }
+    override suspend fun delete(id: Long) = error("Not used")
 }
 
 private fun playlist(

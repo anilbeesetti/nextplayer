@@ -458,7 +458,13 @@ internal class PlaylistSelectionController(
         scope.launch(dispatcher) {
             try {
                 val videos = resolver.resolve(selectionItems, mediaViewMode())
-                pendingItems = videos.map { PlaylistItemInput(it.uriString, it.displayName) }
+                pendingItems = videos.map { video ->
+                    PlaylistItemInput(
+                        uriString = video.uriString,
+                        title = video.displayName,
+                        displayPath = video.path.substringBeforeLast('/'),
+                    )
+                }
                 stateInternal.update {
                     it.copy(
                         isSaving = false,

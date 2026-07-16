@@ -48,7 +48,25 @@ class PlaylistDetailScreenTest {
         composeRule.onAllNodesWithContentDescription("Reorder playlist item").assertCountEquals(0)
         composeRule.onAllNodesWithContentDescription("Move up").assertCountEquals(0)
         composeRule.onAllNodesWithContentDescription("Move down").assertCountEquals(0)
+        composeRule.onNodeWithText("https://example.test/one.mp4").assertIsDisplayed()
         assertEquals(listOf(PlaylistDetailAction.Refresh), actions)
+    }
+
+    @Test
+    fun localPlaylistItemShowsPersistedDisplayPath() {
+        setDetailContent(
+            playlist = playlist(
+                items = listOf(
+                    item(
+                        uri = "content://one",
+                        position = 0,
+                        displayPath = "/storage/emulated/0/Movies",
+                    ),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("/storage/emulated/0/Movies").assertIsDisplayed()
     }
 
     @Test
@@ -116,17 +134,10 @@ class PlaylistDetailScreenTest {
     }
 
     @Test
-    fun deleteRequiresConfirmationBeforeDispatchingAction() {
-        val actions = mutableListOf<PlaylistDetailAction>()
-        setDetailContent(playlist = playlist(), onAction = { actions += it })
+    fun detailDoesNotOfferPlaylistDeletion() {
+        setDetailContent(playlist = playlist())
 
-        composeRule.onNodeWithContentDescription("Delete playlist").performClick()
-        composeRule.onNodeWithText("Remove \"Movies\"?").assertIsDisplayed()
-        assertEquals(emptyList<PlaylistDetailAction>(), actions)
-
-        composeRule.onNodeWithText("Delete").performClick()
-
-        assertEquals(listOf(PlaylistDetailAction.Delete), actions)
+        composeRule.onAllNodesWithContentDescription("Delete playlist").assertCountEquals(0)
     }
 
     private fun setDetailContent(
@@ -170,4 +181,12 @@ private fun item(
     uri: String,
     position: Int,
     title: String = "Item ${position + 1}",
-) = PlaylistItem(uriString = uri, title = title, position = position)
+    imageUrl: String? = null,
+    displayPath: String? = null,
+) = PlaylistItem(
+    uriString = uri,
+    title = title,
+    position = position,
+    imageUrl = imageUrl,
+    displayPath = displayPath,
+)

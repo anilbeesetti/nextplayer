@@ -51,15 +51,12 @@ sealed interface PlaylistDetailAction {
 
     data object StopMoveDrag : PlaylistDetailAction
 
-    data object Delete : PlaylistDetailAction
 }
 
 sealed interface PlaylistDetailEvent {
-    data class Play(val uris: List<String>, val startUri: String) : PlaylistDetailEvent
+    data class Play(val playlistId: Long, val startUri: String) : PlaylistDetailEvent
 
     data class Message(val text: String) : PlaylistDetailEvent
-
-    data object Deleted : PlaylistDetailEvent
 }
 
 @HiltViewModel(assistedFactory = PlaylistDetailViewModel.Factory::class)
@@ -124,15 +121,16 @@ class PlaylistDetailViewModel @AssistedInject constructor(
             PlaylistDetailAction.StartMoveDrag -> startMoveDrag()
             is PlaylistDetailAction.PreviewMove -> previewMove(action.fromIndex, action.toIndex)
             PlaylistDetailAction.StopMoveDrag -> stopMoveDrag()
-            PlaylistDetailAction.Delete -> delete()
         }
     }
 
     private fun play(startUri: String?) {
-        val uris = reorderState.state.value.displayedItems.map { it.uriString }
+        val reorderSnapshot = reorderState.state.value
+        if (reorderSnapshot.isDragging || reorderSnapshot.isMoving) return
+        val uris = reorderSnapshot.displayedItems.map { it.uriString }
         if (startUri == null || startUri !in uris) return
         viewModelScope.launch {
-            eventChannel.send(PlaylistDetailEvent.Play(uris = uris, startUri = startUri))
+            eventChannel.send(PlaylistDetailEvent.Play(playlistId = playlistId, startUri = startUri))
         }
     }
 
@@ -224,19 +222,6 @@ class PlaylistDetailViewModel @AssistedInject constructor(
         }
         moveReconciliationJob = job
         job.start()
-    }
-
-    private fun delete() {
-        viewModelScope.launch {
-            try {
-                repository.delete(playlistId)
-                eventChannel.send(PlaylistDetailEvent.Deleted)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                eventChannel.send(PlaylistDetailEvent.Message(error.userMessage()))
-            }
-        }
     }
 
     private fun sendMessage(message: String) {

@@ -34,7 +34,7 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
 
 fun EntryProviderScope<NavKey>.playlistDetailEntry(
     onNavigateUp: () -> Unit,
-    onPlayPlaylist: (uris: List<Uri>, startUri: Uri) -> Unit,
+    onPlayPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
 ) {
     entry<PlaylistDetailRoute> { key ->
         PlaylistDetailScreenRoute(

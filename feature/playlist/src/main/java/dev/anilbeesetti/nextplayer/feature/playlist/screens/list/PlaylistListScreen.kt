@@ -3,7 +3,6 @@ package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
-import android.text.format.DateFormat
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -74,7 +73,6 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.playlist.R
 import dev.anilbeesetti.nextplayer.feature.playlist.composables.AddM3uUrlDialog
 import dev.anilbeesetti.nextplayer.feature.playlist.composables.PlaylistNameDialog
-import java.util.Date
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -482,7 +480,6 @@ private fun PlaylistItem(
 ) {
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val itemCount = pluralStringResource(R.plurals.playlist_item_count, playlist.itemCount, playlist.itemCount)
-    val sourceStatus = playlist.sourceStatus()
 
     NextSegmentedListItem(
         isFirstItem = isFirstItem,
@@ -491,35 +488,32 @@ private fun PlaylistItem(
         contentPadding = PaddingValues(12.dp),
         leadingContent = {
             Icon(
-                imageVector = when (playlist.type) {
-                    PlaylistType.EDITABLE -> NextIcons.Edit
-                    PlaylistType.M3U_URL -> NextIcons.Link
-                    PlaylistType.M3U_FILE -> NextIcons.FileOpen
-                },
+                imageVector = NextIcons.Playlist,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 8.dp),
             )
         },
-        overlineContent = { Text(playlist.typeLabel()) },
         content = {
             Text(
                 text = playlist.name,
-                style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         },
         supportingContent = {
             Text(
-                text = "$itemCount · $sourceStatus",
+                text = "${playlist.typeLabel()} · $itemCount",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         },
         trailingContent = {
             Box {
-                IconButton(onClick = { menuExpanded = true }) {
+                IconButton(
+                    onClick = { menuExpanded = true },
+                    modifier = Modifier.tvFocusRing(),
+                ) {
                     Icon(NextIcons.ExtraSettings, contentDescription = stringResource(R.string.playlist_actions))
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
@@ -545,18 +539,6 @@ private fun PlaylistSummary.typeLabel(): String = stringResource(
         PlaylistType.M3U_FILE -> R.string.m3u_file_playlist
     },
 )
-
-@Composable
-private fun PlaylistSummary.sourceStatus(): String {
-    if (type == PlaylistType.EDITABLE) return stringResource(R.string.editable_playlist)
-    val refreshedAt = lastRefreshedAt ?: return stringResource(R.string.not_refreshed)
-    val context = LocalContext.current
-    val formatted = remember(refreshedAt, context) {
-        val date = Date(refreshedAt)
-        "${DateFormat.getMediumDateFormat(context).format(date)} ${DateFormat.getTimeFormat(context).format(date)}"
-    }
-    return stringResource(R.string.last_refreshed, formatted)
-}
 
 @Composable
 private fun PlaylistEmptyState(modifier: Modifier = Modifier) {

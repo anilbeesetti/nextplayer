@@ -118,6 +118,40 @@ class PlaylistSelectionMapperTest {
     }
 
     @Test
+    fun localVideoSelectionPersistsParentDisplayPath() = runTest {
+        val video = video("content://movie", "/Movies")
+        val repository = FakePlaylistRepository().apply {
+            playlists.value = listOf(summary(7, "Editable", PlaylistType.EDITABLE))
+        }
+        val controller = controller(
+            repository = repository,
+            resolver = resolver(folderVideos = listOf(video)),
+        )
+        controller.showAddToPlaylist(
+            linkedSetOf(
+                SelectionItem.Video(
+                    name = video.displayName,
+                    uriString = video.uriString,
+                    path = video.path,
+                ),
+            ),
+        )
+        advanceUntilIdle()
+
+        controller.addSelectionToPlaylist(7)
+        advanceUntilIdle()
+
+        assertEquals(
+            PlaylistItemInput(
+                uriString = video.uriString,
+                title = video.displayName,
+                displayPath = "/Movies",
+            ),
+            repository.addedItems.single(),
+        )
+    }
+
+    @Test
     fun repositoryFailureKeepsDialogAndPendingSelectionForRetry() = runTest {
         val repository = FakePlaylistRepository().apply {
             addFailure = IOException("disk full")
@@ -320,6 +354,7 @@ private data class AddCall(val playlistId: Long, val items: List<PlaylistItemInp
 private class FakePlaylistRepository : PlaylistRepository {
     val playlists = MutableStateFlow<List<PlaylistSummary>>(emptyList())
     val addCalls = mutableListOf<AddCall>()
+    val addedItems = mutableListOf<PlaylistItemInput>()
     val createdNames = mutableListOf<String>()
     var editableId = 1L
     var addedCount = 1
@@ -335,6 +370,7 @@ private class FakePlaylistRepository : PlaylistRepository {
 
     override suspend fun addItems(id: Long, items: List<PlaylistItemInput>): Int {
         addCalls += AddCall(id, items)
+        addedItems += items
         addFailure?.let { throw it }
         return addedCount
     }
