@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "e43a0406cede57db2538bc1ae2756c47",
+    "identityHash": "4c6bc69ed4b436c28c1fd12880d88f90",
     "entities": [
       {
         "tableName": "media_state",
@@ -302,7 +302,7 @@
       },
       {
         "tableName": "playlist_item",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`playlist_id` INTEGER NOT NULL, `uri` TEXT NOT NULL, `title` TEXT, `position` INTEGER NOT NULL, PRIMARY KEY(`playlist_id`, `uri`), FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`playlist_id` INTEGER NOT NULL, `uri` TEXT NOT NULL, `title` TEXT, `position` INTEGER NOT NULL, `image_url` TEXT, `display_path` TEXT, PRIMARY KEY(`playlist_id`, `uri`), FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "playlistId",
@@ -326,6 +326,16 @@
             "columnName": "position",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "image_url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "displayPath",
+            "columnName": "display_path",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -373,7 +383,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e43a0406cede57db2538bc1ae2756c47')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4c6bc69ed4b436c28c1fd12880d88f90')"
     ]
   }
 }

@@ -273,6 +273,8 @@ abstract class MediaDatabase : RoomDatabase() {
                         `uri` TEXT NOT NULL,
                         `title` TEXT,
                         `position` INTEGER NOT NULL,
+                        `image_url` TEXT,
+                        `display_path` TEXT,
                         PRIMARY KEY(`playlist_id`, `uri`),
                         FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`)
                             ON UPDATE NO ACTION ON DELETE CASCADE

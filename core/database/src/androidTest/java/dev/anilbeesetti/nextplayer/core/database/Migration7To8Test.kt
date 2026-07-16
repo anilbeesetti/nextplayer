@@ -48,6 +48,13 @@ class Migration7To8Test {
             }
             assertEquals(setOf("playlist", "playlist_item"), tableNames)
         }
+        val columns = buildMap<String, Int> {
+            migrated.query("PRAGMA table_info(`playlist_item`)").use { cursor ->
+                while (cursor.moveToNext()) put(cursor.getString(1), cursor.getInt(3))
+            }
+        }
+        assertEquals(0, columns.getValue("image_url"))
+        assertEquals(0, columns.getValue("display_path"))
         migrated.close()
     }
 

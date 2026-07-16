@@ -61,6 +61,30 @@ class PlaylistDaoTest {
     }
 
     @Test
+    fun itemMetadataRoundTrips() = runTest {
+        val id = dao.insertPlaylist(
+            PlaylistEntity(name = "Movies", normalizedName = "movies", type = "EDITABLE"),
+        )
+        dao.addItems(
+            id,
+            listOf(
+                PlaylistItemEntity(
+                    playlistId = id,
+                    uri = "content://video/1",
+                    title = "First",
+                    position = 0,
+                    imageUrl = "https://images.example/first.png",
+                    displayPath = "/storage/emulated/0/Movies",
+                ),
+            ),
+        )
+
+        val item = dao.getItems(id).single()
+        assertEquals("https://images.example/first.png", item.imageUrl)
+        assertEquals("/storage/emulated/0/Movies", item.displayPath)
+    }
+
+    @Test
     fun deletingPlaylistCascadesToItems() = runTest {
         val id = dao.insertPlaylist(
             PlaylistEntity(name = "Movies", normalizedName = "movies", type = "EDITABLE"),

@@ -176,6 +176,8 @@ private fun List<PlaylistItemInput>.toEntities(playlistId: Long = 0): List<Playl
             uri = item.uriString,
             title = item.title,
             position = position,
+            imageUrl = item.imageUrl,
+            displayPath = item.displayPath,
         )
     }
 
@@ -197,6 +199,8 @@ private fun PlaylistWithItems.toModel() = Playlist(
             uriString = item.uri,
             title = item.title,
             position = item.position,
+            imageUrl = item.imageUrl,
+            displayPath = item.displayPath,
         )
     },
     lastRefreshedAt = playlist.lastRefreshedAt,

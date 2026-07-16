@@ -26,4 +26,6 @@ data class PlaylistItemEntity(
     val uri: String,
     val title: String?,
     val position: Int,
+    @ColumnInfo(name = "image_url") val imageUrl: String? = null,
+    @ColumnInfo(name = "display_path") val displayPath: String? = null,
 )

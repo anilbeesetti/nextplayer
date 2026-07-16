@@ -75,6 +75,27 @@ class LocalPlaylistRepositoryTest {
     }
 
     @Test
+    fun editableItemMetadataRoundTrips() = runTest {
+        val id = repository.createEditable("Movies")
+
+        repository.addItems(
+            id,
+            listOf(
+                PlaylistItemInput(
+                    uriString = "content://video/1",
+                    title = "First",
+                    imageUrl = "https://images.example/first.png",
+                    displayPath = "/storage/emulated/0/Movies",
+                ),
+            ),
+        )
+
+        val item = repository.observePlaylist(id).first()!!.items.single()
+        assertEquals("https://images.example/first.png", item.imageUrl)
+        assertEquals("/storage/emulated/0/Movies", item.displayPath)
+    }
+
+    @Test
     fun editablePlaylistCanMoveItems() = runTest {
         val id = repository.createEditable("Movies")
         repository.addItems(
@@ -184,15 +205,13 @@ class LocalPlaylistRepositoryTest {
     @Test
     fun failedRefreshKeepsCachedItems() = runTest {
         val id = repository.createLinked("News", PlaylistType.M3U_URL, SOURCE).playlistId
+        val cachedItem = repository.observePlaylist(id).first()!!.items.single()
         sourceReader.failure = IOException("offline")
 
         val failure = assertFailsWith<PlaylistSourceException> { repository.refresh(id) }
 
         assertSame(sourceReader.failure, failure.cause)
-        assertEquals(
-            listOf("https://example.test/one.mp4"),
-            dao.getItems(id).map { it.uri },
-        )
+        assertEquals(cachedItem, repository.observePlaylist(id).first()!!.items.single())
     }
 
     @Test
