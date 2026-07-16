@@ -23,6 +23,12 @@ internal class SftpOwnedInputStream(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+        if (offset < 0 || length < 0 || offset > buffer.size || length > buffer.size - offset) {
+            throw IndexOutOfBoundsException(
+                "offset=$offset, length=$length, bufferSize=${buffer.size}",
+            )
+        }
+        if (length == 0) return 0
         val bytesRead = reader(position, buffer, offset, length)
         if (bytesRead > 0) position += bytesRead
         return bytesRead

@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.media.network.sftp
 import java.io.Closeable
 import java.io.IOException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class SftpOwnedInputStreamTest {
@@ -44,6 +45,46 @@ class SftpOwnedInputStreamTest {
         assertEquals(-1, stream.read(ByteArray(4)))
         assertEquals(-1, stream.read(ByteArray(4)))
         assertEquals(listOf(9L, 9L), positions)
+    }
+
+    @Test
+    fun `invalid bulk read ranges fail locally without invoking reader`() {
+        var readerCalls = 0
+        val stream = SftpOwnedInputStream(
+            offset = 0L,
+            reader = { _, _, _, _ ->
+                readerCalls++
+                -1
+            },
+            remoteFile = Closeable {},
+            sftpClient = Closeable {},
+            sshClient = Closeable {},
+        )
+        val buffer = ByteArray(4)
+
+        assertThrows(IndexOutOfBoundsException::class.java) { stream.read(buffer, -1, 1) }
+        assertThrows(IndexOutOfBoundsException::class.java) { stream.read(buffer, 0, -1) }
+        assertThrows(IndexOutOfBoundsException::class.java) { stream.read(buffer, 3, 2) }
+
+        assertEquals(0, readerCalls)
+    }
+
+    @Test
+    fun `zero length bulk read returns zero without invoking reader at EOF`() {
+        var readerCalls = 0
+        val stream = SftpOwnedInputStream(
+            offset = 0L,
+            reader = { _, _, _, _ ->
+                readerCalls++
+                -1
+            },
+            remoteFile = Closeable {},
+            sftpClient = Closeable {},
+            sshClient = Closeable {},
+        )
+
+        assertEquals(0, stream.read(ByteArray(4), 4, 0))
+        assertEquals(0, readerCalls)
     }
 
     @Test
