@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="6" failures="0" errors="0" skipped="0" time="0.662" timestamp="2026-07-15T16:18:18" hostname="localhost">
+  <testsuite name="dev.anilbeesetti.nextplayer.core.database.Migration7To8Test" tests="1" failures="0" errors="0" skipped="0" time="0.128" timestamp="2026-07-15T16:18:18" hostname="localhost">
+    <properties>
+      <property name="device" value="nextplayer_playlist_qa_api37_final(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":core:database" />
+    </properties>
+    <testcase name="migrationPreservesMediaStateAndCreatesPlaylistTables" classname="dev.anilbeesetti.nextplayer.core.database.Migration7To8Test" time="0.128" />
+  </testsuite>
+  <testsuite name="dev.anilbeesetti.nextplayer.core.database.PlaylistDaoTest" tests="5" failures="0" errors="0" skipped="0" time="0.133" timestamp="2026-07-15T16:18:18" hostname="localhost">
+    <properties>
+      <property name="device" value="nextplayer_playlist_qa_api37_final(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":core:database" />
+    </properties>
+    <testcase name="getPlaylistOrdersItemsByPersistedPosition" classname="dev.anilbeesetti.nextplayer.core.database.PlaylistDaoTest" time="0.069" />
+    <testcase name="duplicateNormalizedNameIsRejected" classname="dev.anilbeesetti.nextplayer.core.database.PlaylistDaoTest" time="0.001" />
+    <testcase name="deletingPlaylistCascadesToItems" classname="dev.anilbeesetti.nextplayer.core.database.PlaylistDaoTest" time="0.001" />
+    <testcase name="addAndMoveKeepUniqueContiguousOrder" classname="dev.anilbeesetti.nextplayer.core.database.PlaylistDaoTest" time="0.033" />
+    <testcase name="observePlaylistOrdersItemsByPersistedPosition" classname="dev.anilbeesetti.nextplayer.core.database.PlaylistDaoTest" time="0.029" />
+  </testsuite>
+</testsuites>

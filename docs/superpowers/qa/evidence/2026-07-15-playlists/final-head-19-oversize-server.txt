@@ -1,0 +1,6 @@
+Fixture: /tmp/nextplayer-final-oversize/oversize.m3u
+Size: 1048577 bytes
+Bind: 127.0.0.1:8766
+Scoped route: adb -s emulator-5554 reverse tcp:8766 tcp:8766
+Request: 127.0.0.1 - - [16/Jul/2026 06:53:41] "GET /oversize.m3u HTTP/1.1" 200 -
+Result: server interrupted cleanly after the single request; reverse rule removed.

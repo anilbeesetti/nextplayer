@@ -1,0 +1,9 @@
+Dedicated AVD removal: Successfully removed device 'nextplayer_playlist_qa_api37_final'.
+~/.android/avd/nextplayer_playlist_qa_api37_final.ini: ABSENT
+~/.android/avd/nextplayer_playlist_qa_api37_final.avd: ABSENT
+TCP 8766 listening process: ABSENT
+Dedicated adb reverse rules before stop: NONE
+Final crash buffer: EMPTY (0 bytes)
+
+Raw PRE/POST AVD definitions: byte-identical.
+CLI/adb runtime PRE/POST: not byte-identical solely because the pre-existing Pixel_6a was online at PRE and was already offline after the interrupted turn. It remained offline after cleanup. It was not started, stopped, installed to, inspected through adb, or otherwise targeted during the resumed run.

@@ -1,0 +1,1 @@
+Starting: Intent { cmp=dev.anilbeesetti.nextplayer.debug/dev.anilbeesetti.nextplayer.MainActivity }

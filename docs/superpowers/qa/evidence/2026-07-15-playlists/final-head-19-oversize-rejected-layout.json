@@ -1,0 +1,71 @@
+[
+  {
+    "text": "Add M3U playlist from URL",
+    "center": "[481,412]",
+    "key": 3506402
+  },
+  {
+    "text": "Oversize Final",
+    "interactions": [
+      "clickable",
+      "focusable",
+      "long-clickable"
+    ],
+    "center": "[539,601]",
+    "key": 3506402
+  },
+  {
+    "text": "http://127.0.0.1:8766/oversize.m3u",
+    "interactions": [
+      "clickable",
+      "focusable",
+      "long-clickable"
+    ],
+    "state": [
+      "focused"
+    ],
+    "center": "[539,843]",
+    "key": 3506402
+  },
+  {
+    "text": "Playlist source exceeds maximum size of 1048576 bytes or 1048576 characters",
+    "center": "[539,1033]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[888,1213]",
+    "key": 3506402
+  },
+  {
+    "interactions": [
+      "clickable",
+      "focusable"
+    ],
+    "center": "[692,1213]",
+    "key": 3506402
+  },
+  {
+    "text": "Playlist name",
+    "center": "[247,517]",
+    "key": 3506402
+  },
+  {
+    "text": "M3U URL",
+    "center": "[215,759]",
+    "key": 3506402
+  },
+  {
+    "text": "Create",
+    "center": "[888,1212]",
+    "key": 3506402
+  },
+  {
+    "text": "Cancel",
+    "center": "[692,1212]",
+    "key": 3506402
+  }
+]

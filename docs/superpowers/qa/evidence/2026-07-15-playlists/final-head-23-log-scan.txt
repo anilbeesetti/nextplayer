@@ -1,0 +1,4 @@
+PASS: final crash buffer is empty (0 bytes).
+PASS: no FATAL EXCEPTION, SecurityException, EACCES, SQLiteException, RoomDatabase failure, NetworkOnMainThreadException, StrictMode violation, app-private thumbnail URI, or app-private file URI was found in final-head logs.
+NOTE: the playback log contains Android framework ContentProviderHelper warnings saying "assuming permission denied" while holding the window-manager lock. They reference neither Next Player, SystemUI, the playlist media URI, thumbnails, nor an app-private URI; this is the same unrelated framework warning documented by the earlier regression run.
+NOTE: AndroidRuntime lines in the logs are normal UI Automator launcher startup/shutdown, not exceptions.

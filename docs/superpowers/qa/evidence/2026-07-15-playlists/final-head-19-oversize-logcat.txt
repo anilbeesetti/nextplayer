@@ -1,0 +1,680 @@
+--------- beginning of main
+07-16 06:53:40.727   497   497 I adbd    : adbd service requested 'shell,v2,TERM=dumb,raw:input tap 888 1143'
+--------- beginning of system
+07-16 06:53:40.763   649  2056 I ImeTracker: dev.anilbeesetti.nextplayer.debug:3df4070c: onFinished on previously finished token at PHASE_CLIENT_ON_CONTROLS_CHANGED with STATUS_CANCEL
+07-16 06:53:40.763  3482  3482 I ImeTracker: dev.anilbeesetti.nextplayer.debug:3df4070c: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+07-16 06:53:40.771   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:40.771   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:40.871   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:40.871   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:40.971   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:40.971   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.072   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.072   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.172   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.172   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.185   649   746 D ActivityManager: freezing 2217 com.google.android.apps.photos
+07-16 06:53:41.188   649   814 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+07-16 06:53:41.188   649   814 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+07-16 06:53:41.188   649   814 D InetDiagMessage: Destroyed live tcp sockets for uids={10165} in 1ms
+07-16 06:53:41.273   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.273   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.373   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.373   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.474   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.474   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.575   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.575   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.677   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.677   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.750   649   808 D WifiClientModeImpl[3650:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=2 freq=2447 RxLinkSpeed=2
+07-16 06:53:41.750   649   808 D WifiClientModeImpl[3650:wlan0]: reported txKbps 12000 rxKbps 30000
+07-16 06:53:41.750   649   808 D WifiDataStall: tx tput in kbps: 11000
+07-16 06:53:41.750   649   808 D WifiDataStall: rx tput in kbps: 11000
+07-16 06:53:41.750   649   808 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+07-16 06:53:41.750   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:41.750   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:41.750   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:41.750   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:41.751   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:41.751   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:41.751   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:41.751   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:41.752   649   841 I AdbWifiNetworkMonitor: Wi-Fi network available
+07-16 06:53:41.752   649   841 I AdbWifiNetworkMonitor: Received the same Wi-Fi SSID. Ignoring.
+07-16 06:53:41.753   649   808 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+07-16 06:53:41.753   649   808 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 1247628298 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.17, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 2Mbps, Tx Link speed: 2Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+07-16 06:53:41.753   649   808 D WifiScoreCard: txRate: 1 txSpeed: 2
+07-16 06:53:41.753   649   808 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 485850966 RSSI -50 txSpeed -1
+07-16 06:53:41.753   649   808 D WifiClientModeImpl[3650:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 1 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=2 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3008] from screen [on:0 period:1753593913] score=100
+07-16 06:53:41.755   649  1984 I WifiService: getConnectionInfo uid=10223
+07-16 06:53:41.755   649  1984 V WifiService: Clearing REDACT_FOR_LOCAL_MAC_ADDRESS for com.google.android.gms(uid=10223)
+07-16 06:53:41.755   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.755   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.755   649   719 I WifiService: getWifiEnabledState uid=10193 state=3
+07-16 06:53:41.756   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.756   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.756   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.756   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.756   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.756   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:41.756   649  1984 V WifiPermissionsUtil: checkCallersLocationPermission(com.google.android.gms): ok because uid 10223 has app-op android:fine_location
+07-16 06:53:41.756   649  1984 V WifiService: Clearing REDACT_FOR_ACCESS_FINE_LOCATION for com.google.android.gms(uid=10223)
+07-16 06:53:41.758  1240  1248 I NullBinder: NullBinder for android.net.action.RECOMMEND_NETWORKS triggering remote TransactionTooLargeException due to Service without Chimera impl, calling uid: 1000, calling pid: 0
+07-16 06:53:41.758  1240  1248 W libbinder.Binder: Large reply transaction of 1056768 bytes, interface descriptor , function: UNKNOWN_FUNCTION_NAME, code: 1, flags: 17
+07-16 06:53:41.823   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:41.823   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:42.323   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:42.323   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:42.802  1647  1727 D PickerSyncController: Attempting to enable cloud media queries.
+07-16 06:53:42.802  1647  1727 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@4bf34[Unlocked]. Lock Name = CLOUD_SYNC_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+07-16 06:53:42.802  1647  1727 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@4bf34[Locked by thread com.android.providers.media.internal.modules.utils.BackgroundThread]. Lock Name = CLOUD_SYNC_LOCK. Threads that may be waiting to acquire this lock = []
+07-16 06:53:42.802  1647  1727 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@5d32b6f[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+07-16 06:53:42.802  1647  1727 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@5d32b6f[Locked by thread com.android.providers.media.internal.modules.utils.BackgroundThread]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+07-16 06:53:42.802  1647  1727 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@5d32b6f[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+07-16 06:53:42.802  1647  1727 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@5d32b6f[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+07-16 06:53:42.802  1647  1727 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@5d32b6f[Locked by thread com.android.providers.media.internal.modules.utils.BackgroundThread]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+07-16 06:53:42.802  1647  1727 D PickerSyncController: getSyncRequestParams() CLOUD, auth=com.google.android.apps.photos.cloudpicker
+07-16 06:53:42.804   649  1984 D OomAdjuster: Not killing cached processes
+07-16 06:53:42.814   649  1984 D ActivityManager: sync unfroze 2217 com.google.android.apps.photos for 7
+07-16 06:53:42.824   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:42.825   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:42.846   429   472 I netd    : tetherGetStats() -> {[]} <0.71ms>
+07-16 06:53:42.866  2217  4139 W libc    : Access denied finding property "ro.debuggable"
+07-16 06:53:42.866  1647  1727 D PickerSyncController:    Latest ID/Gen=null/0
+07-16 06:53:42.866  1647  1727 D PickerSyncController:    Cached ID/Gen=null/-1
+07-16 06:53:42.866  1647  1727 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@5d32b6f[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+07-16 06:53:42.866  1647  1727 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@4bf34[Unlocked]. Lock Name = CLOUD_SYNC_LOCK. Threads that may be waiting to acquire this lock = []
+07-16 06:53:42.866  1647  1727 D PickerSyncController: Error occurred, remaining retry count: 1
+07-16 06:53:42.866  1647  1727 D PickerSyncController: com.android.providers.media.photopicker.util.exceptions.InvalidProviderSyncParamsException: Unexpected Latest Media Collection Info: ID/Gen/AccountName=null/0/null
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at com.android.providers.media.photopicker.PickerSyncController.getSyncRequestParamsLocked(PickerSyncController.java:1687)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at com.android.providers.media.photopicker.PickerSyncController.getSyncRequestParams(PickerSyncController.java:1644)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at com.android.providers.media.photopicker.PickerSyncController.maybeEnableCloudMediaQueries(PickerSyncController.java:376)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at com.android.providers.media.photopicker.PickerSyncController.lambda$tryEnablingCloudMediaQueries$0(PickerSyncController.java:297)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at com.android.providers.media.photopicker.PickerSyncController.$r8$lambda$igHbLHRBgFxI5G0Bp5TN28PcQJ4(PickerSyncController.java:0)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at com.android.providers.media.photopicker.PickerSyncController$$ExternalSyntheticLambda1.run(R8$$SyntheticClass:0)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at android.os.Handler.handleCallback(Handler.java:1095)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at android.os.Handler.dispatchMessage(Handler.java:125)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at android.os.Looper.loopOnce(Looper.java:296)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at android.os.Looper.loop(Looper.java:397)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: 	at android.os.HandlerThread.run(HandlerThread.java:139)
+07-16 06:53:42.866  1647  1727 D PickerSyncController: Schedule enable cloud media query task.
+07-16 06:53:43.326   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:43.326   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:43.824   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:43.824   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:44.323   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:44.323   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:44.757   649   808 D WifiClientModeImpl[3650:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=2 freq=2447 RxLinkSpeed=2
+07-16 06:53:44.757   649   808 D WifiDataStall: tx tput in kbps: 11000
+07-16 06:53:44.758   649   808 D WifiDataStall: rx tput in kbps: 11000
+07-16 06:53:44.758   649   808 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:44.758   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:44.762   649   808 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+07-16 06:53:44.762   649   808 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 1247628298 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.17, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 2Mbps, Tx Link speed: 2Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+07-16 06:53:44.762   649   808 D WifiScoreCard: txRate: 1 txSpeed: 2
+07-16 06:53:44.762   649   808 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 485850966 RSSI -50 txSpeed -1
+07-16 06:53:44.762   649   808 D WifiClientModeImpl[3650:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 1 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=2 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3009] from screen [on:0 period:1753596922] score=100
+07-16 06:53:44.821   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:44.821   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.099   497   497 I adbd    : adbd service requested 'shell,v2:rm /sdcard/window_dump.xml'
+07-16 06:53:45.104  1647  1829 I MediaProvider: Deleted 0 0 0 0 0 0 1 items on external_primary due to com.android.shell
+07-16 06:53:45.113   497   497 I adbd    : adbd service requested 'shell,v2:uiautomator dump /sdcard/window_dump.xml'
+07-16 06:53:45.140  4156  4156 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+07-16 06:53:45.142  4156  4156 I AndroidRuntime: Using default boot image
+07-16 06:53:45.142  4156  4156 I AndroidRuntime: Leaving lock profiling enabled
+07-16 06:53:45.142  4156  4156 I app_process: Core platform API enforcement enabled from the hiddenapi_platform_enforcement flag and the device API level
+07-16 06:53:45.142  4156  4156 I app_process: Using generational CollectorTypeCMC GC.
+07-16 06:53:45.160  4156  4156 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+07-16 06:53:45.163  4156  4156 D nativeloader: Load libicu_jni.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+07-16 06:53:45.163  4156  4156 D app_process: u_setTimeZoneFilesDirectory("/apex/com.android.tzdata/etc/tz/versioned/10/icu") succeeded.
+07-16 06:53:45.163  4156  4156 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt78l.dat
+07-16 06:53:45.163  4156  4156 D nativeloader: Load libjavacore.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+07-16 06:53:45.163  4156  4156 D nativeloader: Load libopenjdk.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+07-16 06:53:45.164  4156  4156 I app_process: Priority-to-niceness mapping: 19, 16, 13, 10, 0, -2, -4, -5, -6, -8
+07-16 06:53:45.164  4156  4156 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*736588042]#PCL[/system/framework/android.test.mock.jar*4008448454]} | PCL[])
+07-16 06:53:45.164  4156  4156 W app_process: ClassLoaderContext classpath size mismatch. expected=0, found=1 (PCL[]{PCL[/system/framework/android.test.runner.jar*805256125]{PCL[/system/framework/android.test.base.jar*736588042]#PCL[/system/framework/android.test.mock.jar*4008448454]}#PCL[/system/framework/android.test.base.jar*736588042]} | PCL[/system/framework/android.test.runner.jar*805256125])
+07-16 06:53:45.171  4156  4156 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+07-16 06:53:45.171  4156  4156 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.media.swcodec.flags is mapped to com.android.media.swcodec
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.permission.flags is mapped to com.android.permission
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.permissioncontroller.flags is mapped to com.android.permission
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.google.android.widevine.flags is mapped to com.google.android.widevine
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.icu is mapped to com.android.i18n
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.appsearch.flags is mapped to com.android.appsearch
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.uprobestats.flags is mapped to com.android.uprobestats
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.uprobestats.mainline.flags is mapped to com.android.uprobestats
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.crashrecovery.flags is mapped to com.android.crashrecovery
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.provider.flags is mapped to com.android.configinfrastructure
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.server.deviceconfig is mapped to com.android.configinfrastructure
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.art.flags is mapped to com.android.art
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.art.rw.flags is mapped to com.android.art
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.libcore is mapped to com.android.art
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.telecom.flags is mapped to com.android.telephonycore
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.internal.telecom.flags is mapped to com.android.telephonycore
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.telephony.flags is mapped to com.android.telephonycore
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.media.extractor.flags is mapped to com.android.media
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.media.metrics.flags is mapped to com.android.media
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.media.mainline.flags is mapped to com.android.media
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.wifi.flags is mapped to com.android.wifi
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.org.conscrypt.flags is mapped to com.android.conscrypt
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.org.conscrypt.net.flags is mapped to com.android.conscrypt
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.healthfitness.flags is mapped to com.android.healthfitness
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.ipsec.flags is mapped to com.android.ipsec
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.nfc.module.flags is mapped to com.android.nfcservices
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.nfc.module.nonexported.flags is mapped to com.android.nfcservices
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.adservices.ondevicepersonalization.flags is mapped to com.android.ondevicepersonalization
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.adbd.flags is mapped to com.android.adbd
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.bluetooth.beta.flags is mapped to com.android.bt
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.bluetooth.flags is mapped to com.android.bt
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.devicelock.flags is mapped to com.android.devicelock
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.os.profiling is mapped to com.android.profiling
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.os.profiling.anomaly.flags is mapped to com.android.profiling
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.os.statsd.flags is mapped to com.android.os.statsd
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.webapp.flags is mapped to com.android.webapp
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.rkpd.flags is mapped to com.android.rkpd
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.cellbroadcastreceiver.flags is mapped to com.android.cellbroadcast
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.adservices.flags is mapped to com.android.adservices
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.sdksandbox.flags is mapped to com.android.adservices
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.app.sdksandbox.flags is mapped to com.android.adservices
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.uwb.flags is mapped to com.android.uwb
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.ranging.flags is mapped to com.android.uwb
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.npumanager is mapped to com.android.npumanager
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.graphics.pdf.flags is mapped to com.android.mediaprovider
+07-16 06:53:45.173  4156  4156 I AconfigPackage: com.android.providers.media.flags is mapped to com.android.mediaprovider
+07-16 06:53:45.173  4156  4156 I AconfigPackage: android.graphics.pdf.flags.readonly is mapped to com.android.mediaprovider
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.tethering.mainline.beta is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: android.net.http is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.tethering.readonly.flags is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: android.net.vcn is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.net.flags is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.tethering.flags is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.tethering.beta.test is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.nearby.flags is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.net.thread.flags is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.net.ct.flags is mapped to com.android.tethering
+07-16 06:53:45.174  4156  4156 I AconfigPackage: com.android.system.virtualmachine.flags is mapped to com.android.virt
+07-16 06:53:45.174  4156  4156 E FeatureFlagsImplExport: android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+07-16 06:53:45.175  4156  4156 D UiAutomationConnection: Created on user UserHandle{0}
+07-16 06:53:45.175  4156  4156 I UiAutomation: Initialized for user 0 on display 0
+07-16 06:53:45.175  4156  4156 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+07-16 06:53:45.175   649  1984 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+07-16 06:53:45.175   649  1984 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation, flags=0x0) when called by user 0
+07-16 06:53:45.175   649  1984 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+07-16 06:53:45.176   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_shortcut_target_service, current:{}, new:{}
+07-16 06:53:45.176   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_button_targets, current:{}, new:{}
+07-16 06:53:45.176   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_gesture_targets, current:{}, new:{}
+07-16 06:53:45.176   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_qs_targets, current:{}, new:{}
+07-16 06:53:45.176   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_key_gesture_targets, current:{}, new:{}
+07-16 06:53:45.176   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_top_row_key_targets, current:{}, new:{}
+07-16 06:53:45.176   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_quick_access_targets, current:{}, new:{}
+07-16 06:53:45.176   649  1984 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+07-16 06:53:45.176  1633  2826 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+07-16 06:53:45.176  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:45.176  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:45.176  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:45.176  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:45.176  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:45.177  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface ambientcue with targets# 0 (types=[])
+07-16 06:53:45.177   916  1171 I AmbientCueRepository: Receiving SmartSpace targets # 0
+07-16 06:53:45.177  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:45.177  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:45.177  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:45.177  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177  4156  4168 V UiAutomation: Init UiAutomation@6256f8[id=22, displayId=0, flags=0]
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.177   649   649 D BatterySaverPolicy: accessibility changed to true, updating policy.
+07-16 06:53:45.177  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:45.177  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+07-16 06:53:45.178   649  1984 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+07-16 06:53:45.178  1633  1642 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+07-16 06:53:45.179  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:45.179   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_shortcut_target_service, current:{}, new:{}
+07-16 06:53:45.179   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_button_targets, current:{}, new:{}
+07-16 06:53:45.179   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_gesture_targets, current:{}, new:{}
+07-16 06:53:45.179   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_qs_targets, current:{}, new:{}
+07-16 06:53:45.179   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_key_gesture_targets, current:{}, new:{}
+07-16 06:53:45.179   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_top_row_key_targets, current:{}, new:{}
+07-16 06:53:45.179   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_quick_access_targets, current:{}, new:{}
+07-16 06:53:45.179   649  1984 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+07-16 06:53:45.179  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:45.179  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:45.179  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:45.179   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.179  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:45.179  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:45.180   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.180  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:45.180  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:45.180  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:45.180   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.180  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:45.180   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.180  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:45.180  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:45.180  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:45.180  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:45.180  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:45.180  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:45.180  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:45.180  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:45.180  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:45.180  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:45.180  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+07-16 06:53:45.180   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.180  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface ambientcue with targets# 0 (types=[])
+07-16 06:53:45.180   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.180   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.180   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:45.181  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+07-16 06:53:45.181  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+07-16 06:53:45.182   916  1171 I AmbientCueRepository: Receiving SmartSpace targets # 0
+07-16 06:53:45.182   649   973 D AccessibilityManagerService: .getAccessibilityShortcutTargets {shortcutType=32, userId=0}
+07-16 06:53:45.187   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.187   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.288   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.288   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.389   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.389   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.837   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:45.837   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.185  1647  1828 W MediaProvider: isAppCloneUserPair for user 0: false
+07-16 06:53:46.186  4156  4156 W AccessibilityNodeInfoDumper: Fetch time: 2ms
+07-16 06:53:46.187   649  2056 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+07-16 06:53:46.187   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_shortcut_target_service, current:{}, new:{}
+07-16 06:53:46.187   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_button_targets, current:{}, new:{}
+07-16 06:53:46.187   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_gesture_targets, current:{}, new:{}
+07-16 06:53:46.187   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_qs_targets, current:{}, new:{}
+07-16 06:53:46.187   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_key_gesture_targets, current:{}, new:{}
+07-16 06:53:46.187   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_top_row_key_targets, current:{}, new:{}
+07-16 06:53:46.187   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_quick_access_targets, current:{}, new:{}
+07-16 06:53:46.187   649  2056 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+07-16 06:53:46.187  1633  1642 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+07-16 06:53:46.187   649  2056 D AccessibilityManagerService: restoreCurrentUserForTestAutomationIfNeededLocked(): ignoring because device doesn't support visible background users
+07-16 06:53:46.187   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.187   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.187   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.187   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.187   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.187  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:46.187  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:46.187  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:46.187  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:46.187   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.187   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.187  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:46.187  4156  4156 D AndroidRuntime: Shutting down VM
+07-16 06:53:46.188  4156  4166 W libbinder.IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+07-16 06:53:46.188   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.188  4156  4169 W libbinder.IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+07-16 06:53:46.188  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:46.188  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:46.188  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:46.188  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:46.188  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:46.188  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:46.188  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:46.188  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:46.188  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:46.188   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.188  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:46.188   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.188   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.188   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:46.188  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface ambientcue with targets# 0 (types=[])
+07-16 06:53:46.188   649   649 D BatterySaverPolicy: accessibility changed to false, updating policy.
+07-16 06:53:46.188  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+07-16 06:53:46.188  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+07-16 06:53:46.188  4156  4165 W libbinder.IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+07-16 06:53:46.189   916  1171 I AmbientCueRepository: Receiving SmartSpace targets # 0
+07-16 06:53:46.203   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.204   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.304   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.304   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.404   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.404   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.837   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:46.837   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.001   497   497 I adbd    : adbd service requested 'sync:'
+07-16 06:53:47.337   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.337   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.395   900   900 D wpa_supplicant: nl80211: Drv Event 64 (NL80211_CMD_NOTIFY_CQM) received for wlan0
+07-16 06:53:47.395   900   900 D wpa_supplicant: nl80211: Beacon loss event
+07-16 06:53:47.395   900   900 D wpa_supplicant: wlan0: Event BEACON_LOSS (53) received
+07-16 06:53:47.395   900   900 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS
+07-16 06:53:47.438   497   497 I adbd    : adbd service requested 'exec:uiautomator 'dump' '/dev/tty''
+07-16 06:53:47.476  4173  4173 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+07-16 06:53:47.478  4173  4173 I AndroidRuntime: Using default boot image
+07-16 06:53:47.478  4173  4173 I AndroidRuntime: Leaving lock profiling enabled
+07-16 06:53:47.479  4173  4173 I app_process: Core platform API enforcement enabled from the hiddenapi_platform_enforcement flag and the device API level
+07-16 06:53:47.479  4173  4173 I app_process: Using generational CollectorTypeCMC GC.
+07-16 06:53:47.498  4173  4173 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+07-16 06:53:47.501  4173  4173 D nativeloader: Load libicu_jni.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+07-16 06:53:47.501  4173  4173 D app_process: u_setTimeZoneFilesDirectory("/apex/com.android.tzdata/etc/tz/versioned/10/icu") succeeded.
+07-16 06:53:47.501  4173  4173 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt78l.dat
+07-16 06:53:47.501  4173  4173 D nativeloader: Load libjavacore.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+07-16 06:53:47.502  4173  4173 D nativeloader: Load libopenjdk.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+07-16 06:53:47.502  4173  4173 I app_process: Priority-to-niceness mapping: 19, 16, 13, 10, 0, -2, -4, -5, -6, -8
+07-16 06:53:47.503  4173  4173 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*736588042]#PCL[/system/framework/android.test.mock.jar*4008448454]} | PCL[])
+07-16 06:53:47.503  4173  4173 W app_process: ClassLoaderContext classpath size mismatch. expected=0, found=1 (PCL[]{PCL[/system/framework/android.test.runner.jar*805256125]{PCL[/system/framework/android.test.base.jar*736588042]#PCL[/system/framework/android.test.mock.jar*4008448454]}#PCL[/system/framework/android.test.base.jar*736588042]} | PCL[/system/framework/android.test.runner.jar*805256125])
+07-16 06:53:47.510  4173  4173 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+07-16 06:53:47.510  4173  4173 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+07-16 06:53:47.511  4173  4173 I AconfigPackage: android.media.swcodec.flags is mapped to com.android.media.swcodec
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.permission.flags is mapped to com.android.permission
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.permissioncontroller.flags is mapped to com.android.permission
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.google.android.widevine.flags is mapped to com.google.android.widevine
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.icu is mapped to com.android.i18n
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.appsearch.flags is mapped to com.android.appsearch
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.uprobestats.flags is mapped to com.android.uprobestats
+07-16 06:53:47.511  4173  4173 I AconfigPackage: android.uprobestats.mainline.flags is mapped to com.android.uprobestats
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.crashrecovery.flags is mapped to com.android.crashrecovery
+07-16 06:53:47.511  4173  4173 I AconfigPackage: android.provider.flags is mapped to com.android.configinfrastructure
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.server.deviceconfig is mapped to com.android.configinfrastructure
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.art.flags is mapped to com.android.art
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.art.rw.flags is mapped to com.android.art
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.libcore is mapped to com.android.art
+07-16 06:53:47.511  4173  4173 I AconfigPackage: android.telecom.flags is mapped to com.android.telephonycore
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.internal.telecom.flags is mapped to com.android.telephonycore
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.telephony.flags is mapped to com.android.telephonycore
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.media.extractor.flags is mapped to com.android.media
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.media.metrics.flags is mapped to com.android.media
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.media.mainline.flags is mapped to com.android.media
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.wifi.flags is mapped to com.android.wifi
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.org.conscrypt.flags is mapped to com.android.conscrypt
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.org.conscrypt.net.flags is mapped to com.android.conscrypt
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.healthfitness.flags is mapped to com.android.healthfitness
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.ipsec.flags is mapped to com.android.ipsec
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.nfc.module.flags is mapped to com.android.nfcservices
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.nfc.module.nonexported.flags is mapped to com.android.nfcservices
+07-16 06:53:47.511  4173  4173 I AconfigPackage: com.android.adservices.ondevicepersonalization.flags is mapped to com.android.ondevicepersonalization
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.adbd.flags is mapped to com.android.adbd
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.bluetooth.beta.flags is mapped to com.android.bt
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.bluetooth.flags is mapped to com.android.bt
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.devicelock.flags is mapped to com.android.devicelock
+07-16 06:53:47.512  4173  4173 I AconfigPackage: android.os.profiling is mapped to com.android.profiling
+07-16 06:53:47.512  4173  4173 I AconfigPackage: android.os.profiling.anomaly.flags is mapped to com.android.profiling
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.os.statsd.flags is mapped to com.android.os.statsd
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.webapp.flags is mapped to com.android.webapp
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.rkpd.flags is mapped to com.android.rkpd
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.cellbroadcastreceiver.flags is mapped to com.android.cellbroadcast
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.adservices.flags is mapped to com.android.adservices
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.sdksandbox.flags is mapped to com.android.adservices
+07-16 06:53:47.512  4173  4173 I AconfigPackage: android.app.sdksandbox.flags is mapped to com.android.adservices
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.uwb.flags is mapped to com.android.uwb
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.ranging.flags is mapped to com.android.uwb
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.npumanager is mapped to com.android.npumanager
+07-16 06:53:47.512  4173  4173 I AconfigPackage: android.graphics.pdf.flags is mapped to com.android.mediaprovider
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.providers.media.flags is mapped to com.android.mediaprovider
+07-16 06:53:47.512  4173  4173 I AconfigPackage: android.graphics.pdf.flags.readonly is mapped to com.android.mediaprovider
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.tethering.mainline.beta is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: android.net.http is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.tethering.readonly.flags is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: android.net.vcn is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.net.flags is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.tethering.flags is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.tethering.beta.test is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.nearby.flags is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.net.thread.flags is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.net.ct.flags is mapped to com.android.tethering
+07-16 06:53:47.512  4173  4173 I AconfigPackage: com.android.system.virtualmachine.flags is mapped to com.android.virt
+07-16 06:53:47.512  4173  4173 E FeatureFlagsImplExport: android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+07-16 06:53:47.513  4173  4173 D UiAutomationConnection: Created on user UserHandle{0}
+07-16 06:53:47.513  4173  4173 I UiAutomation: Initialized for user 0 on display 0
+07-16 06:53:47.513  4173  4173 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+07-16 06:53:47.514   649  1984 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+07-16 06:53:47.514   649  1984 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation, flags=0x0) when called by user 0
+07-16 06:53:47.514   649  1984 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+07-16 06:53:47.514   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_shortcut_target_service, current:{}, new:{}
+07-16 06:53:47.515   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_button_targets, current:{}, new:{}
+07-16 06:53:47.515   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_gesture_targets, current:{}, new:{}
+07-16 06:53:47.515  1633  1642 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+07-16 06:53:47.515   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_qs_targets, current:{}, new:{}
+07-16 06:53:47.515   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_key_gesture_targets, current:{}, new:{}
+07-16 06:53:47.515   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_top_row_key_targets, current:{}, new:{}
+07-16 06:53:47.515   649  1984 V AccessibilityUserState: updateShortcutTargets: type:accessibility_quick_access_targets, current:{}, new:{}
+07-16 06:53:47.515   649  1984 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+07-16 06:53:47.515  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:47.515  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:47.515  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:47.515  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:47.515  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:47.516  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:47.516  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:47.516  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:47.516  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:47.516  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:47.516  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:47.516  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:47.516  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:47.516  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:47.517  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:47.517  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface ambientcue with targets# 0 (types=[])
+07-16 06:53:47.517  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+07-16 06:53:47.517   916  1171 I AmbientCueRepository: Receiving SmartSpace targets # 0
+07-16 06:53:47.517  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.517   649   649 D BatterySaverPolicy: accessibility changed to true, updating policy.
+07-16 06:53:47.517  4173  4184 V UiAutomation: Init UiAutomation@27760a[id=23, displayId=0, flags=0]
+07-16 06:53:47.518   649  2056 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+07-16 06:53:47.518   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_shortcut_target_service, current:{}, new:{}
+07-16 06:53:47.518  1633  1642 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+07-16 06:53:47.519  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:47.519  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:47.519  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:47.519  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:47.519  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:47.519  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:47.519  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:47.519  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:47.519  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:47.519  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:47.519  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:47.519  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:47.519  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:47.519  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:47.519  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:47.519  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface ambientcue with targets# 0 (types=[])
+07-16 06:53:47.519   916  1171 I AmbientCueRepository: Receiving SmartSpace targets # 0
+07-16 06:53:47.519  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+07-16 06:53:47.519  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+07-16 06:53:47.521   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_button_targets, current:{}, new:{}
+07-16 06:53:47.521   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_gesture_targets, current:{}, new:{}
+07-16 06:53:47.521   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_qs_targets, current:{}, new:{}
+07-16 06:53:47.521   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_key_gesture_targets, current:{}, new:{}
+07-16 06:53:47.521   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.521   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_top_row_key_targets, current:{}, new:{}
+07-16 06:53:47.521   649  2056 V AccessibilityUserState: updateShortcutTargets: type:accessibility_quick_access_targets, current:{}, new:{}
+07-16 06:53:47.521   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.521   649  2056 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.522   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.523   649   719 D AccessibilityManagerService: .getAccessibilityShortcutTargets {shortcutType=32, userId=0}
+07-16 06:53:47.621   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.621   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.763   649   808 D WifiClientModeImpl[3650:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+07-16 06:53:47.763   649   808 D WifiClientModeImpl[3650:wlan0]: reported txKbps 12000 rxKbps 30000
+07-16 06:53:47.764   649   808 D WifiDataStall: tx tput in kbps: 11000
+07-16 06:53:47.764   649   808 D WifiDataStall: rx tput in kbps: 11000
+07-16 06:53:47.764   649   808 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+07-16 06:53:47.764   649   808 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   814 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:47.765   649   841 I AdbWifiNetworkMonitor: Wi-Fi network available
+07-16 06:53:47.765   649   841 I AdbWifiNetworkMonitor: Received the same Wi-Fi SSID. Ignoring.
+07-16 06:53:47.765   649  1984 I WifiService: getConnectionInfo uid=10223
+07-16 06:53:47.765   649  1984 V WifiService: Clearing REDACT_FOR_LOCAL_MAC_ADDRESS for com.google.android.gms(uid=10223)
+07-16 06:53:47.766   649  1984 V WifiPermissionsUtil: checkCallersLocationPermission(com.google.android.gms): ok because uid 10223 has app-op android:fine_location
+07-16 06:53:47.766   649   719 I WifiService: getWifiEnabledState uid=10193 state=3
+07-16 06:53:47.766   649  1984 V WifiService: Clearing REDACT_FOR_ACCESS_FINE_LOCATION for com.google.android.gms(uid=10223)
+07-16 06:53:47.767   649   808 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+07-16 06:53:47.767   649   808 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 1247628298 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.17, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+07-16 06:53:47.767   649   808 D WifiScoreCard: txRate: 1 txSpeed: 1
+07-16 06:53:47.767  1240  1251 I NullBinder: NullBinder for android.net.action.RECOMMEND_NETWORKS triggering remote TransactionTooLargeException due to Service without Chimera impl, calling uid: 1000, calling pid: 0
+07-16 06:53:47.767   649   808 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 485850966 RSSI -50 txSpeed -1
+07-16 06:53:47.767  1240  1251 W libbinder.Binder: Large reply transaction of 1056768 bytes, interface descriptor , function: UNKNOWN_FUNCTION_NAME, code: 1, flags: 17
+07-16 06:53:47.767   649   808 D WifiClientModeImpl[3650:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 1 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3004] from screen [on:0 period:1753599927] score=100
+07-16 06:53:47.838   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:47.838   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.098   649   719 D OomAdjuster: Not killing cached processes
+07-16 06:53:48.110   649   719 D ActivityManager: sync unfroze 1677 com.google.android.gms for 6
+07-16 06:53:48.113   649  1737 W ProcessStats: Tracking association SourceState{9af6081 com.google.android.gms.persistent/10223 ImpBg #2236} whose proc state 6 is better than process ProcessState{79238a2 com.google.android.gms/10223 pkg=com.google.android.gms} proc state 14 (0 skipped)
+07-16 06:53:48.114  1677  1677 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.auth.api.credentials.fido.autoenroll.CryptauthKeyAutoEnrollmentService.ACTION_TASK_READY dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.GmsInternalBoundBrokerService }
+07-16 06:53:48.114  1677  1677 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.auth.api.credentials.fido.autoenroll.CryptauthKeyAutoEnrollmentService.ACTION_TASK_READY dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.GmsInternalBoundBrokerService }
+07-16 06:53:48.115  1240  3669 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 375 [CONTEXT service_id=218 ]
+07-16 06:53:48.117  1240  4142 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.auth.api.credentials.fido.autoenroll.CryptauthKeyAutoEnrollmentService started execution. cause:9 exec_start_elapsed_seconds: 375 [CONTEXT service_id=218 ]
+07-16 06:53:48.119  1240  3669 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 24 uptime_millis: 24 exec_start_elapsed_seconds: 375 [CONTEXT service_id=218 ]
+07-16 06:53:48.121  1677  2624 I Auth.Api.Credentials: [ListAccountsWithUsernameOperation] Operation started. [CONTEXT service_id=399 ]
+07-16 06:53:48.123  1677  1918 I Auth.Api.Credentials: [ListAccountsWithUsernameOperation] Operation succeeded with result: []. [CONTEXT service_id=399 ]
+07-16 06:53:48.133  1677  1677 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.auth.api.credentials.fido.autoenroll.CryptauthKeyAutoEnrollmentService.ACTION_TASK_READY dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.GmsInternalBoundBrokerService }
+07-16 06:53:48.134  1240  4142 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.auth.api.credentials.fido.autoenroll.CryptauthKeyAutoEnrollmentService finished executing. cause:9 result: 1 elapsed_millis: 31 uptime_millis: 31 exec_start_elapsed_seconds: 375 [CONTEXT service_id=218 ]
+07-16 06:53:48.162   649   691 I WifiService: isFeatureSupported uid=1000 returns [WIFI_FEATURE_INFRA, WIFI_FEATURE_P2P, WIFI_FEATURE_MOBILE_HOTSPOT, WIFI_FEATURE_WPA3_SAE, WIFI_FEATURE_WPA3_SUITE_B, WIFI_FEATURE_OWE, WIFI_FEATURE_DPP, WIFI_FEATURE_AP_RAND_MAC, WIFI_FEATURE_MBO, WIFI_FEATURE_FILS_SHA256, WIFI_FEATURE_FILS_SHA384, WIFI_FEATURE_SAE_PK, WIFI_FEATURE_DPP_ENROLLEE_RESPONDER, WIFI_FEATURE_PASSPOINT_TERMS_AND_CONDITIONS, WIFI_FEATURE_WFD_R2, WIFI_FEATURE_DECORATED_IDENTITY, WIFI_FEATURE_TRUST_ON_FIRST_USE, WIFI_FEATURE_SET_TLS_MINIMUM_VERSION, WIFI_FEATURE_TLS_V1_3, WIFI_FEATURE_WEP, WIFI_FEATURE_WPA_PERSONAL]
+07-16 06:53:48.253  1037  1162 D SatelliteController: isInCarrierRoamingNbIotNtn: satellite is disabled
+07-16 06:53:48.253  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectType: Checking connect type from PLMN config for subId: 1
+07-16 06:53:48.253  1037  1162 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+07-16 06:53:48.253  1037  1162 V SatelliteController: satelliteConfigParser is not ready
+07-16 06:53:48.253  1037  1162 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+07-16 06:53:48.254  1037  1162 D SatelliteController: getSatellitePerPlmnConfiguration: invalid subId or not supported via carrier.
+07-16 06:53:48.254  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectType: config: null
+07-16 06:53:48.254  1037  1162 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+07-16 06:53:48.254  1037  1162 V SatelliteController: satelliteConfigParser is not ready
+07-16 06:53:48.254  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectTypeViaConfigUpdater: return null (satelliteConfig is null)
+07-16 06:53:48.254  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectType: Falling back to global carrier config connect type: 0
+07-16 06:53:48.254  1037  1162 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+07-16 06:53:48.254  1037  1162 V SatelliteController: satelliteConfigParser is not ready
+07-16 06:53:48.254  1037  1162 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+07-16 06:53:48.254  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectType: Checking connect type from PLMN config for subId: 1
+07-16 06:53:48.254  1037  1162 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+07-16 06:53:48.254  1037  1162 V SatelliteController: satelliteConfigParser is not ready
+07-16 06:53:48.254  1037  1162 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+07-16 06:53:48.255  1037  1162 D SatelliteController: getSatellitePerPlmnConfiguration: invalid subId or not supported via carrier.
+07-16 06:53:48.255  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectType: config: null
+07-16 06:53:48.255  1037  1162 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+07-16 06:53:48.255  1037  1162 V SatelliteController: satelliteConfigParser is not ready
+07-16 06:53:48.255  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectTypeViaConfigUpdater: return null (satelliteConfig is null)
+07-16 06:53:48.255  1037  1162 D SatelliteController: getCarrierRoamingNtnConnectType: Falling back to global carrier config connect type: 0
+07-16 06:53:48.256  1037  1162 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+07-16 06:53:48.256  1037  1162 V SatelliteController: satelliteConfigParser is not ready
+07-16 06:53:48.256  1037  1162 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+07-16 06:53:48.340   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.340   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.540  4173  4173 W AccessibilityNodeInfoDumper: Fetch time: 11ms
+07-16 06:53:48.543   649   973 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+07-16 06:53:48.544   649   973 V AccessibilityUserState: updateShortcutTargets: type:accessibility_shortcut_target_service, current:{}, new:{}
+07-16 06:53:48.544   649   973 V AccessibilityUserState: updateShortcutTargets: type:accessibility_button_targets, current:{}, new:{}
+07-16 06:53:48.544   649   973 V AccessibilityUserState: updateShortcutTargets: type:accessibility_gesture_targets, current:{}, new:{}
+07-16 06:53:48.544   649   973 V AccessibilityUserState: updateShortcutTargets: type:accessibility_qs_targets, current:{}, new:{}
+07-16 06:53:48.544   649   973 V AccessibilityUserState: updateShortcutTargets: type:accessibility_key_gesture_targets, current:{}, new:{}
+07-16 06:53:48.544   649   973 V AccessibilityUserState: updateShortcutTargets: type:accessibility_top_row_key_targets, current:{}, new:{}
+07-16 06:53:48.544   649   973 V AccessibilityUserState: updateShortcutTargets: type:accessibility_quick_access_targets, current:{}, new:{}
+07-16 06:53:48.544   649   973 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+07-16 06:53:48.544   649   973 D AccessibilityManagerService: restoreCurrentUserForTestAutomationIfNeededLocked(): ignoring because device doesn't support visible background users
+07-16 06:53:48.544  1633  1642 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+07-16 06:53:48.544   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.545  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:48.545   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.545  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:48.545  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:48.545  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:48.545   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.545   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.545  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:48.545  4173  4173 D AndroidRuntime: Shutting down VM
+07-16 06:53:48.545   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.545  4173  4181 W libbinder.IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+07-16 06:53:48.545  4173  4182 W libbinder.IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+07-16 06:53:48.545   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.545   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.545  4173  4185 W libbinder.IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+07-16 06:53:48.546   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.546  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:48.546  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:48.546  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:48.546  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:48.546  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:48.546  1633  1843 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+07-16 06:53:48.547  1633  1843 I AiAiEcho: EchoTargets:
+07-16 06:53:48.547  1633  1843 I AiAiEcho: Filtered by AiAi flag check:
+07-16 06:53:48.547  1633  1843 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+07-16 06:53:48.547  1633  1843 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+07-16 06:53:48.547  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface ambientcue with targets# 0 (types=[])
+07-16 06:53:48.547  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+07-16 06:53:48.547  1633  1843 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+07-16 06:53:48.547   916  1171 I AmbientCueRepository: Receiving SmartSpace targets # 0
+07-16 06:53:48.552   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.552   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.552   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.552   649   649 W libbinder.IPCThreadState: Sending oneway calls to frozen process.
+07-16 06:53:48.552   649   649 D BatterySaverPolicy: accessibility changed to false, updating policy.
+07-16 06:53:48.556   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.556   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.661   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.661   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.846   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.846   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:48.904   429   472 I netd    : tetherGetStats() -> {[]} <1.23ms>
+07-16 06:53:49.342   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:49.342   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:49.390   497   497 I adbd    : adbd service requested 'exec:screencap '-p''
+07-16 06:53:49.428  4189  4189 W libbinder.BackendUnifiedServiceManager: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+07-16 06:53:49.428  4189  4189 W libbinder.BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+07-16 06:53:49.428  4189  4189 W libbinder.ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+07-16 06:53:49.430   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:49.430   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:49.430   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:49.430   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:49.430   495   593 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+07-16 06:53:49.436  4189  4190 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+--------- beginning of kernel
+07-16 06:53:49.435   286   286 I servicemanager: Caller(pid=4189,uid=2000,sid=u:r:shell:s0) Found android.hardware.graphics.allocator.IAllocator/default in device VINTF manifest.
+07-16 06:53:49.435   286   286 I servicemanager: Caller(pid=4189,uid=2000,sid=u:r:shell:s0) Found android.hardware.graphics.allocator.IAllocator/default in device VINTF manifest.
+07-16 06:53:49.436   286   286 I servicemanager: Caller(pid=4189,uid=2000,sid=u:r:shell:s0) Found mapper/ranchu in device VINTF manifest.
+07-16 06:53:49.513   497   497 I adbd    : adbd service requested 'shell,v2,TERM=dumb:export ANDROID_LOG_TAGS=''; exec logcat '-d''

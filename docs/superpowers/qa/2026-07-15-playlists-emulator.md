@@ -172,3 +172,43 @@ The app-level test playlists were deleted through their confirmation dialogs and
 The installed API 37 system image and command-line tools were intentionally retained; the task required deleting the fresh AVD, not uninstalling shared SDK packages.
 
 For the focused correction regression, the editable `QA Regression` playlist was deleted through its quoted confirmation dialog and the empty state returned (`regression-19-deleted-empty-list.png`). The crash buffer was empty, only `nextplayer_playlist_qa_api37_regression` was stopped and removed, all three PRE/POST inventories compare exactly, and both regression AVD paths are absent (`regression-20-final-device.txt`, `regression-21-crash-buffer.txt`, `regression-00-*`, `regression-99-*`).
+
+## Final-HEAD hardening verification
+
+The completed implementation at `52f25f53` received one additional fresh-AVD verification on `nextplayer_playlist_qa_api37_final`. The AVD used the same API 37 Google APIs 16 KB ARM64 image and was created with no snapshot/data reuse. All commands were scoped to the serial only after `adb emu avd name` identified the dedicated AVD.
+
+### Automated coverage
+
+The final-HEAD connected suites passed from their generated XML:
+
+| Module | Tests | Passed | Failed | Errors | Skipped |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `core:database` | 6 | 6 | 0 | 0 | 0 |
+| `feature:playlist` | 10 | 10 | 0 | 0 | 0 |
+
+This is 16/16 passed with zero failures, errors, or skips (`final-head-01-instrumentation.txt`, `final-head-01-database-results.xml`, `final-head-01-playlist-results.xml`).
+
+### Final-HEAD manual assertions
+
+| Assertion | Result | Evidence |
+| --- | --- | --- |
+| An editable playlist containing exactly one item launches that item as current with a queue size of one | PASS | `final-head-02-single-item-*`, `final-head-04-single-activity.txt`, `final-head-05-single-media-session.txt` |
+| Published media artwork is a rendered bitmap, with no private thumbnail URI or `EACCES` | PASS | `final-head-06-single-notification.txt`, `final-head-07-single-playback-logcat.txt`, `final-head-08-single-media-card.*` |
+| A real file selected through OpenDocument creates a linked M3U playlist and acquires a persisted read grant | PASS | `final-head-09-*`, `final-head-10-*` |
+| The persisted OpenDocument grant survives app force-stop | PASS | `final-head-11-uri-grant-after-force-stop.txt` |
+| The playlist, its cached item, and `persisted=0x1` grant survive a subsequent cold device restart | PASS | `final-head-12-grants-after-cold-restart.txt`, `final-head-13-playlists-after-cold-restart-*` |
+| Deleting the last linked-file playlist through the quoted UI confirmation releases its persisted document grant | PASS | `final-head-15-linked-delete-confirm-*`, `final-head-16-grants-after-last-file-delete.txt`, `final-head-16-list-after-file-delete-*` |
+| A URL response of 1,048,577 bytes is rejected above the 1 MiB source limit, the app stays responsive, and no playlist row is created | PASS | `final-head-19-oversize-server.txt`, `final-head-19-oversize-rejected-*`, `final-head-20-responsive-no-oversize-row-*` |
+| All remaining test playlists delete through the UI and the Playlists empty state returns | PASS | `final-head-21-editable-delete-confirm-*`, `final-head-22-empty-*` |
+
+The oversized-source check used a localhost-only fixture, one scoped `adb reverse tcp:8766 tcp:8766` rule, and a single successful HTTP request. The UI retained the creation dialog and displayed `Playlist source exceeds maximum size of 1048576 bytes or 1048576 characters`; after Cancel, the list contained only the pre-existing editable test playlist. The boundary, chunked-body, and dishonest-length variants remain covered by host unit tests.
+
+Only the safe single-last-reference SAF lifecycle was repeated on-device. The shared-reference retain/release combinations remain covered by repository/host tests; this run did not create a second persisted reference solely to duplicate that coverage.
+
+The final crash buffer is empty. The final-head log scan contains no app crash, `SecurityException`, `EACCES`, database failure, main-thread network violation, private thumbnail URI, or private app file URI (`final-head-22-crash-buffer.txt`, `final-head-23-log-scan.txt`). The framework `ContentProviderHelper` warning containing the words `assuming permission denied` is unrelated to Next Player and is the same window-manager-lock warning documented by the earlier regression run.
+
+### Final-HEAD cleanup and interrupted-runtime note
+
+The QA-only Gradle tooling flag `org.gradle.tooling.parallel=true`, introduced during the interrupted emulator session, was removed; `gradle.properties` is byte-for-byte back to its committed content. The fixture server was stopped, its reverse rule removed, the app had no persisted document grants, and only the serial verified as `nextplayer_playlist_qa_api37_final` was killed. The exact AVD was then removed successfully, both of its AVD paths are absent, TCP 8766 has no listener, and the raw PRE/POST AVD-definition lists are byte-identical (`final-head-98-final-device.txt`, `final-head-99-*`).
+
+The saved PRE runtime inventory showed the pre-existing `Pixel_6a` online at `emulator-5554`. The interrupted turn left both that AVD and the dedicated AVD offline before this resumed run. Restarting the existing dedicated AVD therefore reused serial `emulator-5554`; its AVD name, API, ABI, and 16 KB device model were verified before any command targeted it. After dedicated cleanup, the untouched `Pixel_6a` remained offline, so the CLI-status and adb-device PRE/POST files differ only by that external runtime state. It was not started, stopped, installed to, inspected through adb, or otherwise targeted to manufacture an inventory match. Raw AVD definitions match exactly, and no pre-existing AVD definition was changed.
