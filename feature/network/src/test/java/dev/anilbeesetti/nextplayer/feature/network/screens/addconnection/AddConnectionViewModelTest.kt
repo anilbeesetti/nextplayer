@@ -11,6 +11,7 @@ import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
 import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.media.network.keys.StagedSshKey
 import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyConfirmationRequired
+import dev.anilbeesetti.nextplayer.core.media.network.sftp.HostKeyMismatch
 import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkFile
@@ -409,6 +410,34 @@ class AddConnectionViewModelTest {
             IllegalStateException("SSH failed", IllegalStateException("Exhausted available authentication methods")),
             "Authentication was rejected. Check your credentials and try again.",
         )
+
+    @Test
+    fun `host key mismatch exposes trusted and presented fingerprints`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val mismatch = HostKeyMismatch(
+                expectedFingerprint = "SHA256:trusted-key",
+                presentedFingerprint = "SHA256:presented-key",
+            )
+            val viewModel = viewModel(
+                clients = ArrayDeque(
+                    listOf(FakeNetworkClient(Result.failure(IllegalStateException("SSH failed", mismatch)))),
+                ),
+            )
+
+            viewModel.testAndSave(keyDraft(authentication = NetworkAuthentication.PASSWORD))
+            advanceUntilIdle()
+
+            assertEquals(
+                SaveState.Error(
+                    message = "The SSH host key doesn't match the trusted fingerprint.",
+                    hostKeyMismatch = HostKeyMismatchDetails(
+                        trustedFingerprint = "SHA256:trusted-key",
+                        presentedFingerprint = "SHA256:presented-key",
+                    ),
+                ),
+                viewModel.saveState.value,
+            )
+        }
 
     @Test
     fun `rejecting host confirmation retains the staged key`() =

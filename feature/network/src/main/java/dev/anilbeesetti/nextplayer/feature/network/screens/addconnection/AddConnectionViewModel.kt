@@ -42,11 +42,19 @@ data class HostKeyConfirmation(
     val fingerprint: String,
 )
 
+data class HostKeyMismatchDetails(
+    val trustedFingerprint: String,
+    val presentedFingerprint: String,
+)
+
 sealed interface SaveState {
     data object Idle : SaveState
     data object Testing : SaveState
     data class ConfirmHostKey(val confirmation: HostKeyConfirmation) : SaveState
-    data class Error(val message: String?) : SaveState
+    data class Error(
+        val message: String?,
+        val hostKeyMismatch: HostKeyMismatchDetails? = null,
+    ) : SaveState
 }
 
 @HiltViewModel(assistedFactory = AddConnectionViewModel.Factory::class)
@@ -241,7 +249,7 @@ class AddConnectionViewModel @AssistedInject constructor(
         } else {
             pendingOperation = null
             activeOperation = null
-            _saveState.value = SaveState.Error(error.actionableMessage())
+            _saveState.value = error.toSaveError()
         }
     }
 
@@ -414,6 +422,19 @@ class AddConnectionViewModel @AssistedInject constructor(
         } ->
             "Authentication was rejected. Check your credentials and try again."
         else -> message ?: "Couldn't connect. Check the details and try again."
+    }
+
+    private fun Throwable.toSaveError(): SaveState.Error {
+        val mismatch = findCause<HostKeyMismatch>()
+        return SaveState.Error(
+            message = actionableMessage(),
+            hostKeyMismatch = mismatch?.let {
+                HostKeyMismatchDetails(
+                    trustedFingerprint = it.expectedFingerprint,
+                    presentedFingerprint = it.presentedFingerprint,
+                )
+            },
+        )
     }
 
     private fun Throwable.causeMessages(): List<String> =

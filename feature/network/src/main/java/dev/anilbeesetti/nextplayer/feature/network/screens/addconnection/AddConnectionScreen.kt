@@ -485,11 +485,35 @@ internal fun AddConnectionScreen(
             }
 
             (saveState as? SaveState.Error)?.let {
-                Text(
-                    text = it.message ?: stringResource(R.string.connection_failed),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = it.message ?: stringResource(R.string.connection_failed),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    it.hostKeyMismatch?.let { mismatch ->
+                        SelectionContainer {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.ssh_host_key_trusted_fingerprint,
+                                        mismatch.trustedFingerprint,
+                                    ),
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.ssh_host_key_presented_fingerprint,
+                                        mismatch.presentedFingerprint,
+                                    ),
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(Modifier.size(4.dp))
