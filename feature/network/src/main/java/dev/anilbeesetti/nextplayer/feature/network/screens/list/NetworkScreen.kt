@@ -304,6 +304,7 @@ private fun NetworkEmptyState(modifier: Modifier = Modifier) {
 internal fun NetworkProtocol.icon(): ImageVector = when (this) {
     NetworkProtocol.SMB -> NextIcons.Storage
     NetworkProtocol.FTP -> NextIcons.Dns
+    NetworkProtocol.SFTP -> NextIcons.Dns
     NetworkProtocol.WEBDAV -> NextIcons.Cloud
 }
 
