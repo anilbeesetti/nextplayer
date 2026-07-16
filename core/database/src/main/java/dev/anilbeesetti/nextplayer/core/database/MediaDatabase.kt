@@ -17,7 +17,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.NetworkConnectionEntit
         HiddenVideoEntity::class,
         NetworkConnectionEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -233,6 +233,27 @@ abstract class MediaDatabase : RoomDatabase() {
                         `created_at` INTEGER NOT NULL
                     )
                     """,
+                )
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `authentication` TEXT NOT NULL DEFAULT 'PASSWORD'",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_file_name` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_passphrase` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `host_key_fingerprint` TEXT NOT NULL DEFAULT ''",
                 )
             }
         }

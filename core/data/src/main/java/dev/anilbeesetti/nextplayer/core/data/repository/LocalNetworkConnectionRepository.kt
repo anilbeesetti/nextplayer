@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 
 import dev.anilbeesetti.nextplayer.core.database.dao.NetworkConnectionDao
 import dev.anilbeesetti.nextplayer.core.database.entities.NetworkConnectionEntity
+import dev.anilbeesetti.nextplayer.core.model.NetworkAuthentication
 import dev.anilbeesetti.nextplayer.core.model.NetworkConnection
 import dev.anilbeesetti.nextplayer.core.model.NetworkProtocol
 import javax.inject.Inject
@@ -35,6 +36,11 @@ class LocalNetworkConnectionRepository @Inject constructor(
         username = username,
         password = password,
         useHttps = useHttps,
+        authentication = runCatching { NetworkAuthentication.valueOf(authentication) }
+            .getOrDefault(NetworkAuthentication.PASSWORD),
+        privateKeyFileName = privateKeyFileName,
+        privateKeyPassphrase = privateKeyPassphrase,
+        hostKeyFingerprint = hostKeyFingerprint,
     )
 
     private fun NetworkConnection.toEntity() = NetworkConnectionEntity(
@@ -47,5 +53,9 @@ class LocalNetworkConnectionRepository @Inject constructor(
         username = username,
         password = password,
         useHttps = useHttps,
+        authentication = authentication.name,
+        privateKeyFileName = privateKeyFileName,
+        privateKeyPassphrase = privateKeyPassphrase,
+        hostKeyFingerprint = hostKeyFingerprint,
     )
 }
