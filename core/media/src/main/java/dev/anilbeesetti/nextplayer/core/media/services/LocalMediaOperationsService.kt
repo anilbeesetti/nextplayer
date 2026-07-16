@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.BaseColumns
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
@@ -284,13 +285,30 @@ class LocalMediaOperationsService @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun deleteMediaR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
+    private suspend fun deleteMediaR(uris: List<Uri>): Boolean = runMediaRequests(
+        items = uris,
+        itemExists = ::mediaExists,
+        request = ::requestDeleteR,
+    )
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestDeleteR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
         launchDeleteRequest(
             uris = uris,
             onResultOk = { continuation.resume(true) },
             onResultCanceled = { continuation.resume(false) },
         )
     }
+
+    private fun mediaExists(uri: Uri): Boolean = runCatching {
+        contentResolver.query(
+            uri,
+            arrayOf(BaseColumns._ID),
+            null,
+            null,
+            null,
+        )?.use { cursor -> cursor.moveToFirst() } == true
+    }.getOrDefault(false)
 
     private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean {
         return uris.map { uri ->
