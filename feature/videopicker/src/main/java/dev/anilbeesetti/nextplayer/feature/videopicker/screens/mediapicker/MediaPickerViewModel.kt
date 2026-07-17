@@ -1,7 +1,10 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.compose.runtime.Stable
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,8 +12,10 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
+import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
@@ -57,6 +62,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private val vaultRepository: VaultRepository,
     private val vaultPinRepository: VaultPinRepository,
     private val systemService: SystemService,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -81,7 +87,9 @@ class MediaPickerViewModel @AssistedInject constructor(
     private var transferJob: Job? = null
 
     init {
-        collectMedia()
+        if (ContextCompat.checkSelfPermission(context, storagePermission) == PackageManager.PERMISSION_GRANTED) {
+            startMediaCollection()
+        }
         collectPreferences()
     }
 
@@ -90,7 +98,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             is MediaPickerAction.Refresh -> refresh()
             is MediaPickerAction.RenameVideo -> renameVideo(action.uri, action.to)
             is MediaPickerAction.UpdateMenu -> updateMenu(action.preferences)
-            is MediaPickerAction.OnPermissionAccepted -> collectMedia()
+            is MediaPickerAction.OnPermissionAccepted -> startMediaCollection()
             is MediaPickerAction.PlaySelectedItems -> playSelectedItems(action.selectionItems)
             is MediaPickerAction.DeleteSelectedItems -> deleteSelectedItems(action.selectionItems)
             is MediaPickerAction.ShareSelectedItems -> shareSelectedItems(action.selectionItems)
@@ -104,6 +112,11 @@ class MediaPickerViewModel @AssistedInject constructor(
             MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
             MediaPickerAction.DismissHideFlow -> uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
         }
+    }
+
+    private fun startMediaCollection() {
+        mediaSynchronizer.startSync()
+        collectMedia()
     }
 
     private fun collectMedia() {
