@@ -114,27 +114,29 @@ class MediaStoreMediaService @Inject constructor(
     }
 
     override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> = withContext(Dispatchers.IO) {
-        val mediaVideos = mutableListOf<MediaVideo>()
+        return@withContext runMediaStoreQuery {
+            val mediaVideos = mutableListOf<MediaVideo>()
 
-        // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
-        // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
-        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
-        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
-        val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
+            // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
+            // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
+            val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
+            val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
+            val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
 
-        context.contentResolver.query(
-            VIDEO_COLLECTION_URI,
-            VIDEO_PROJECTION,
-            selection,
-            selectionArgs,
-            sortOrder,
-        )?.use { cursor ->
-            while (cursor.moveToNext()) {
-                val video = cursor.toMediaVideo() ?: continue
-                mediaVideos.add(video)
+            context.contentResolver.query(
+                VIDEO_COLLECTION_URI,
+                VIDEO_PROJECTION,
+                selection,
+                selectionArgs,
+                sortOrder,
+            )?.use { cursor ->
+                while (cursor.moveToNext()) {
+                    val video = cursor.toMediaVideo() ?: continue
+                    mediaVideos.add(video)
+                }
             }
+            mediaVideos
         }
-        return@withContext mediaVideos
     }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
