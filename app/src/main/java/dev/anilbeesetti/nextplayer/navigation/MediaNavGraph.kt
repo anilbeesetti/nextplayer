@@ -21,7 +21,7 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
     backStack: NavBackStack<NavKey>,
 ) {
     mediaPickerEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
         onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
         onPlayVideos = { uris -> context.startPlayback(uris) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
@@ -31,13 +31,13 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
     )
 
     searchEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
         onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
     )
 
     vaultEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
         // Vault files are served through FileProvider, so read access must be granted at
         // playback time for both PlayerActivity and the (separate) PlayerService component.
         onPlayVideo = { uri -> context.startPlayback(listOf(uri), grantReadPermission = true) },
