@@ -10,4 +10,4 @@ internal fun <T : NavKey> NavBackStack<T>.ensureRoot(root: T) {
 
 /** Pops a nested destination while preserving the stack's required root entry. */
 internal fun <T : NavKey> NavBackStack<T>.removeLastIfNotRoot(): T? =
-    if (size > 1) removeLast() else null
+    if (size > 1) removeAt(lastIndex) else null
