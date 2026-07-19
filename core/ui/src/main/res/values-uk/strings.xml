@@ -376,4 +376,28 @@
     </plurals>
     <string name="cannot_move_to_same_folder">Не вдалося перемістити в ту саму теку</string>
     <string name="folder_duration">Тривалість теки</string>
+    <string name="home">Головна</string>
+    <string name="network">Мережа</string>
+    <string name="add_connection">Додати з’єднання</string>
+    <string name="edit_connection">Змінити з’єднання</string>
+    <string name="delete_connection">Видалити з’єднання</string>
+    <string name="delete_connection_confirmation">Видалити «%1$s»?</string>
+    <string name="connection_name">Назва</string>
+    <string name="protocol">Протокол</string>
+    <string name="host">Хост</string>
+    <string name="port">Порт</string>
+    <string name="port_hint">Порт (типово %1$d)</string>
+    <string name="path_share">Шлях / Назва спільної теки</string>
+    <string name="username">Ім’я користувача</string>
+    <string name="password">Пароль</string>
+    <string name="use_https">Використовувати HTTPS</string>
+    <string name="test_and_save">Перевірити та зберегти</string>
+    <string name="connecting">З’єднання…</string>
+    <string name="connection_failed">Не вдалося під’єднатися. Перевірте дані та спробуйте ще раз.</string>
+    <string name="no_connections_title">Жодного з’єднання</string>
+    <string name="no_connections_description">Додайте з’єднання SMB, FTP або WebDAV, аби переглядати та відтворювати відео з вашої мережі.</string>
+    <string name="empty_folder">Ця тека порожня</string>
+    <string name="failed_to_load_folder">Не вдалося завантажити це місце</string>
+    <string name="retry">Повторити</string>
+    <string name="edit">Редагувати</string>
 </resources>
