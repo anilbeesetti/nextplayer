@@ -34,6 +34,7 @@ ksp = "2.3.10"
 ktlint = "12.3.0"
 reorderable = "3.1.0"
 room = "2.8.4"
+robolectric = "4.16.1"
 nextlib = "1.10.1-0.13.0"
 universalChardet = "2.5.0"
 smbj = "0.14.0"
@@ -98,6 +99,7 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
 commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }
 sardine-android = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardineAndroid" }

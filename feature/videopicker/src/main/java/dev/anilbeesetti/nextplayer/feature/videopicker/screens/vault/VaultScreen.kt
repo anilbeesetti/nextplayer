@@ -106,9 +106,8 @@ fun VaultRoute(
 
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
-            is VaultEvent.PlayVideos -> {
-                if (event.uris.size == 1) onPlayVideo(event.uris.first()) else onPlayVideos(event.uris)
-            }
+            is VaultEvent.PlayVideo -> onPlayVideo(event.uri)
+            is VaultEvent.PlayVideos -> onPlayVideos(event.uris)
 
             is VaultEvent.VideosRelocated -> {
                 val message = context.resources.getQuantityString(
