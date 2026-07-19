@@ -34,7 +34,7 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(
     backStack: NavBackStack<NavKey>,
 ) {
     settingsEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
         onItemClick = { setting ->
             when (setting) {
                 Setting.APPEARANCE -> backStack.navigateToAppearancePreferences()
@@ -50,42 +50,42 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(
         },
     )
     appearancePreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     mediaLibraryPreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
         onFolderSettingClick = backStack::navigateToFolderPreferencesScreen,
         onThumbnailSettingClick = backStack::navigateToThumbnailPreferencesScreen,
     )
     thumbnailPreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     folderPreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     playerPreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     gesturePreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     decoderPreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     audioPreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     subtitlePreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     generalPreferencesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     aboutPreferencesEntry(
         onLibrariesClick = backStack::navigateToLibraries,
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     librariesEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
 }
