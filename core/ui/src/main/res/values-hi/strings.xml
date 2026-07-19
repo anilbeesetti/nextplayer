@@ -364,4 +364,14 @@
         <item quantity="other">%1$d वीडियो मूव किए गये, लेकिन ओरिजिनल वीडियो नहीं हटा पाए</item>
     </plurals>
     <string name="cannot_move_to_same_folder">एक ही फ़ोल्डर में मूव नहीं कर सकते</string>
+    <string name="edit">एडिट करें</string>
+    <string name="retry">फिर से कोशिश करें</string>
+    <string name="failed_to_load_folder">यह लोकेशन लोड नहीं हो सकी</string>
+    <string name="empty_folder">यह फ़ोल्डर खाली है</string>
+    <string name="no_connections_description">अपने नेटवर्क से वीडियो ब्राउज़ करने और चलाने के लिए SMB, FTP या WebDAV कनेक्शन जोड़ें।</string>
+    <string name="no_connections_title">अभी तक कोई कनेक्शन नहीं</string>
+    <string name="connection_failed">कनेक्ट नहीं हो सका। डिटेल चैक करें और फिर से कोशिश करें।</string>
+    <string name="home">घर</string>
+    <string name="network">नेटवर्क</string>
+    <string name="add_connection">नेटवर्क जोड़ें</string>
 </resources>

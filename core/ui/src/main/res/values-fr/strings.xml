@@ -285,4 +285,6 @@
     <string name="frame_position">Position de l\'image</string>
     <string name="frame_position_value">Image à %1$.0f%% de la durée vidéo</string>
     <string name="thumbnail_setting_change_confirmation">Changer ce paramètre va vider le cache des miniatures. Elles seront générées de nouveau lorsque les dossiers vidéos seront ouverts. Continuer ?</string>
+    <string name="folder_duration">Durée répertoire</string>
+    <string name="gestures_name">Gestes</string>
 </resources>

@@ -364,4 +364,28 @@
         <item quantity="other">%1$d ਵੀਡੀਓ ਤਬਦੀਲ ਕੀਤੇ ਗਏ, ਪਰ ਅਸਲੀ ਵੀਡੀਓ ਹਟਾਏ ਨਹੀਂ ਜਾ ਸਕੇ</item>
     </plurals>
     <string name="cannot_move_to_same_folder">ਉਸੇ ਫੋਲਡਰ ਵਿੱਚ ਤਬਦੀਲ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ</string>
+    <string name="home">ਘਰ</string>
+    <string name="network">ਨੈੱਟਵਰਕ</string>
+    <string name="add_connection">ਕੁਨੈਕਸ਼ਨ ਸ਼ਾਮਿਲ ਕਰੋ</string>
+    <string name="edit_connection">ਕੁਨੈਕਸਨ ਸੰਪਾਦਿਤ ਕਰੋ</string>
+    <string name="delete_connection">ਕਨੈਕਸ਼ਨ ਮਿਟਾਓ</string>
+    <string name="delete_connection_confirmation">ਕੀ \"%1$s\" ਨੂੰ ਹਟਾਉਣਾ ਹੈ?</string>
+    <string name="connection_name">ਨਾਮ</string>
+    <string name="protocol">ਪ੍ਰੋਟੋਕੋਲ</string>
+    <string name="host">ਹੋਸਟ</string>
+    <string name="port">ਪੋਰਟ</string>
+    <string name="port_hint">ਪੋਰਟ (ਡਿਫ਼ਾਲਟ %1$d)</string>
+    <string name="path_share">ਪਾਥ / ਸਾਂਝਾ ਨਾਮ</string>
+    <string name="username">ਯੂਜ਼ਰ ਦਾ ਨਾਮ</string>
+    <string name="password">ਪਾਸਵਰਡ</string>
+    <string name="use_https">HTTPS ਵਰਤੋ</string>
+    <string name="test_and_save">ਟੈਸਟ ਕਰੋ ਅਤੇ ਸੇਵ ਕਰੋ</string>
+    <string name="connecting">ਕਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…</string>
+    <string name="connection_failed">ਕੁਨੈਕਟ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ। ਵੇਰਵਿਆਂ ਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="no_connections_title">ਹਾਲੇ ਕੋਈ ਕੁਨੈਕਸ਼ਨ ਨਹੀਂ ਹੈ</string>
+    <string name="no_connections_description">ਆਪਣੇ ਨੈੱਟਵਰਕ ਤੋਂ ਵੀਡੀਓ ਬ੍ਰਾਊਜ਼ ਕਰਨ ਅਤੇ ਚਲਾਉਣ ਲਈ ਇੱਕ SMB, FTP ਜਾਂ WebDAV ਕੁਨੈਕਸ਼ਨ ਜੋੜੋ।</string>
+    <string name="empty_folder">ਇਹ ਫ਼ੋਲਡਰ ਖ਼ਾਲੀ ਹੈ</string>
+    <string name="failed_to_load_folder">ਇਸ ਲੋਕੇਸ਼ਨ ਨੂੰ ਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ</string>
+    <string name="retry">ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
+    <string name="edit">ਸੰਪਾਦਿਤ ਕਰੋ</string>
 </resources>

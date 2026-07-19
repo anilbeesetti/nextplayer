@@ -376,4 +376,28 @@
     </plurals>
     <string name="cannot_move_to_same_folder">Невозможно переместить в ту же папку</string>
     <string name="folder_duration">Общая длительность</string>
+    <string name="home">Главная</string>
+    <string name="network">Сеть</string>
+    <string name="add_connection">Добавить подключение</string>
+    <string name="edit_connection">Изменить подключение</string>
+    <string name="delete_connection">Удалить подключение</string>
+    <string name="delete_connection_confirmation">Удалить \"%1$s\"?</string>
+    <string name="connection_name">Имя</string>
+    <string name="protocol">Протокол</string>
+    <string name="host">Хост</string>
+    <string name="port">Порт</string>
+    <string name="port_hint">Порт (по умолчанию %1$d)</string>
+    <string name="path_share">Путь / Общая папка</string>
+    <string name="username">Имя пользователя</string>
+    <string name="password">Пароль</string>
+    <string name="use_https">Использовать HTTPS</string>
+    <string name="test_and_save">Проверить и сохранить</string>
+    <string name="connecting">Подключение…</string>
+    <string name="connection_failed">Не удалось подключиться. Проверьте данные и попробуйте ещё раз.</string>
+    <string name="no_connections_title">Нет подключений</string>
+    <string name="no_connections_description">Добавьте подключение SMB, FTP или WebDAV, чтобы просматривать и воспроизводить видео по сети.</string>
+    <string name="empty_folder">Эта папка пуста</string>
+    <string name="failed_to_load_folder">Не удалось загрузить это расположение</string>
+    <string name="retry">Повторить</string>
+    <string name="edit">Изменить</string>
 </resources>
