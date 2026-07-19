@@ -131,7 +131,7 @@ class VaultViewModel @Inject constructor(
 
     private fun playVideo(video: Video) {
         viewModelScope.launch {
-            eventsInternal.send(VaultEvent.PlayVideos(listOf(video.uriString.toUri())))
+            eventsInternal.send(VaultEvent.PlayVideo(video.uriString.toUri()))
         }
     }
 
@@ -213,6 +213,7 @@ sealed interface VaultAction {
 }
 
 sealed interface VaultEvent {
+    data class PlayVideo(val uri: Uri) : VaultEvent
     data class PlayVideos(val uris: List<Uri>) : VaultEvent
     data class VideosRelocated(val count: Int) : VaultEvent
 }
