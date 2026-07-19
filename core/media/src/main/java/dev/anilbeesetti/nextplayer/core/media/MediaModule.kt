@@ -4,6 +4,10 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.anilbeesetti.nextplayer.core.media.network.DefaultNetworkClientFactory
+import dev.anilbeesetti.nextplayer.core.media.network.NetworkClientFactory
+import dev.anilbeesetti.nextplayer.core.media.network.keys.DefaultSshKeyStore
+import dev.anilbeesetti.nextplayer.core.media.network.keys.SshKeyStore
 import dev.anilbeesetti.nextplayer.core.media.services.LocalMediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
@@ -15,6 +19,14 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 interface MediaModule {
+
+    @Binds
+    @Singleton
+    fun bindNetworkClientFactory(factory: DefaultNetworkClientFactory): NetworkClientFactory
+
+    @Binds
+    @Singleton
+    fun bindSshKeyStore(store: DefaultSshKeyStore): SshKeyStore
 
     @Binds
     @Singleton

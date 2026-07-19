@@ -5,14 +5,21 @@ import java.io.Serializable
 enum class NetworkProtocol(val defaultPort: Int) {
     SMB(445),
     FTP(21),
+    SFTP(22),
     WEBDAV(80),
 }
 
+enum class NetworkAuthentication {
+    PASSWORD,
+    SSH_KEY,
+}
+
 /**
- * A saved connection to a network location (SMB share, FTP or WebDAV server).
+ * A saved connection to a network location (SMB share, FTP, SFTP, or WebDAV server).
  *
- * [path] is the protocol-specific root: the share name for SMB, or the base directory for FTP and
- * WebDAV. Credentials are stored as-is; leaving both blank connects anonymously.
+ * [path] is the protocol-specific root: the share name for SMB, or the base directory for FTP,
+ * SFTP, and WebDAV. Imported SSH keys remain in app-private storage and are referenced by their
+ * generated [privateKeyFileName].
  */
 data class NetworkConnection(
     val id: Long = 0,
@@ -24,6 +31,10 @@ data class NetworkConnection(
     val username: String = "",
     val password: String = "",
     val useHttps: Boolean = false,
+    val authentication: NetworkAuthentication = NetworkAuthentication.PASSWORD,
+    val privateKeyFileName: String = "",
+    val privateKeyPassphrase: String = "",
+    val hostKeyFingerprint: String = "",
 ) : Serializable {
 
     val effectivePort: Int get() = port ?: protocol.defaultPort

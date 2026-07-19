@@ -25,6 +25,14 @@ data class NetworkConnectionEntity(
     val password: String = "",
     @ColumnInfo(name = "use_https")
     val useHttps: Boolean = false,
+    @ColumnInfo(name = "authentication", defaultValue = "'PASSWORD'")
+    val authentication: String = "PASSWORD",
+    @ColumnInfo(name = "private_key_file_name", defaultValue = "''")
+    val privateKeyFileName: String = "",
+    @ColumnInfo(name = "private_key_passphrase", defaultValue = "''")
+    val privateKeyPassphrase: String = "",
+    @ColumnInfo(name = "host_key_fingerprint", defaultValue = "''")
+    val hostKeyFingerprint: String = "",
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
 )
