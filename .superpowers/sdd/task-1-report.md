@@ -55,3 +55,20 @@ The initial implementation-test read-back failed with `expected:<100000> but was
 
 - Gradle emits existing configuration-time dependency-resolution warnings (Gradle issue 2298) during all test/build commands; they did not affect task outcomes.
 - The API-36 instrumentation assertion requires a foreground app because Android blocks background clipboard reads. The test launches `CrashActivity` solely for that platform requirement.
+
+## Follow-up: deterministic API-36 clipboard focus synchronization
+
+Whole-branch review found that the original instrumentation setup used `context.startActivity(...)` followed by `SystemClock.sleep(1_000)`. That delay did not prove that `CrashActivity` had resumed or received window focus before the API-36 clipboard read-back. The test now launches `CrashActivity` with `ActivityScenario.launch`, scopes it with `use` so the activity is closed, and calls `awaitWindowFocus()` before copying. The helper polls `hasWindowFocus()` on the main thread, drains the instrumentation queue between checks, and fails after a five-second deadline; it contains no fixed sleep. Production code is unchanged.
+
+### Follow-up RED
+
+`ANDROID_SERIAL=emulator-5554 ANDROID_HOME=/Users/anil/Library/Android/sdk ANDROID_SDK_ROOT=/Users/anil/Library/Android/sdk ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=dev.anilbeesetti.nextplayer.crash.CrashLogClipboardInstrumentedTest`
+
+- Failed as expected at `:app:compileDebugAndroidTestKotlin`: the renamed focused-activity regression referenced the intentionally absent `awaitWindowFocus` helper.
+
+### Follow-up GREEN
+
+1. `ANDROID_SERIAL=emulator-5554 ANDROID_HOME=/Users/anil/Library/Android/sdk ANDROID_SDK_ROOT=/Users/anil/Library/Android/sdk ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=dev.anilbeesetti.nextplayer.crash.CrashLogClipboardInstrumentedTest`
+   - Passed on `emulator-5554` (API 36) after `ActivityScenario` lifecycle and window-focus synchronization.
+2. `ANDROID_SERIAL=emulator-5554 ANDROID_HOME=/Users/anil/Library/Android/sdk ANDROID_SDK_ROOT=/Users/anil/Library/Android/sdk ./gradlew :app:testDebugUnitTest --tests dev.anilbeesetti.nextplayer.crash.CrashLogClipboardTest`
+   - Passed; no production code changed in this follow-up.
