@@ -250,7 +250,14 @@ class LocalMediaOperationsService @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun requestWriteAccessR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
+    private suspend fun requestWriteAccessR(uris: List<Uri>): Boolean = runMediaWriteRequests(
+        uris = uris,
+        itemExists = ::mediaExists,
+        request = ::requestWriteR,
+    )
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestWriteR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
         launchWriteRequest(
             uris = uris,
             onResultOk = { continuation.resume(true) },

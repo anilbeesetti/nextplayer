@@ -9,6 +9,24 @@ import org.junit.Test
 class MediaRequestRunnerTest {
 
     @Test
+    fun `splits write access requests at the platform uri limit`() = runBlocking {
+        val requestedBatchSizes = mutableListOf<Int>()
+
+        val result = runMediaWriteRequests(
+            uris = (1..2_001).toList(),
+            itemExists = { true },
+            request = { batch ->
+                require(batch.size <= MAX_MEDIA_REQUEST_URIS)
+                requestedBatchSizes += batch.size
+                true
+            },
+        )
+
+        assertTrue(result)
+        assertEquals(listOf(2_000, 1), requestedBatchSizes)
+    }
+
+    @Test
     fun `splits requests at the platform uri limit`() = runBlocking {
         val requestedBatchSizes = mutableListOf<Int>()
 

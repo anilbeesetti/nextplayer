@@ -2,6 +2,16 @@ package dev.anilbeesetti.nextplayer.core.media.services
 
 internal const val MAX_MEDIA_REQUEST_URIS = 2_000
 
+internal suspend fun <T> runMediaWriteRequests(
+    uris: List<T>,
+    itemExists: suspend (T) -> Boolean,
+    request: suspend (List<T>) -> Boolean,
+): Boolean = runMediaRequests(
+    items = uris,
+    itemExists = itemExists,
+    request = request,
+)
+
 internal suspend fun <T> runMediaRequests(
     items: List<T>,
     maxBatchSize: Int = MAX_MEDIA_REQUEST_URIS,
