@@ -140,11 +140,9 @@ class CrashActivity : ComponentActivity() {
                         }
                     },
                     onCopyLogsClick = {
-                        clipboard.nativeClipboard.setPrimaryClip(
-                            ClipData.newPlainText(
-                                null,
-                                concatLogs(collectDeviceInfo(), exceptionString, logcat),
-                            ),
+                        copyCrashReportToClipboard(
+                            clipboard = clipboard.nativeClipboard,
+                            report = concatLogs(collectDeviceInfo(), exceptionString, logcat),
                         )
                     },
                     onRestartClick = {
