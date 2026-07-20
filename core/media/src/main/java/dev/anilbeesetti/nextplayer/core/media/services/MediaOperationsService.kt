@@ -12,7 +12,7 @@ interface MediaOperationsService {
     suspend fun deleteMedia(uris: List<Uri>): Boolean
     suspend fun renameMedia(uri: Uri, to: String): Boolean
     suspend fun shareMedia(uris: List<Uri>)
-    suspend fun moveMedia(uris: List<Uri>, targetDir: File): Map<Uri, File?>
+    suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?>
 
     fun transferMedia(
         uris: List<Uri>,

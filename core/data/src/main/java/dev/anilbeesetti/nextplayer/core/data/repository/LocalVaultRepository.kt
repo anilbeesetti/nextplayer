@@ -21,9 +21,12 @@ import dev.anilbeesetti.nextplayer.core.model.MediaInfo
 import dev.anilbeesetti.nextplayer.core.model.Video
 import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
 import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -46,16 +49,15 @@ class LocalVaultRepository @Inject constructor(
     }
 
     override suspend fun hideVideos(videos: List<Video>) {
-        val movedFiles = mediaOperationsService.moveMedia(
-            uris = videos.map { it.uriString.toUri() },
-            targetDir = vaultDir,
-        )
-
-        videos.forEach { video ->
-            val vaultFile = movedFiles[video.uriString.toUri()] ?: return@forEach
-            hiddenVideoDao.insert(
-                HiddenVideoEntity(
-                    vaultPath = vaultFile.absolutePath,
+        val reservations = mutableListOf<HideReservation>()
+        val attemptedVaultPaths = mutableListOf<String>()
+        try {
+            videos.forEach { video ->
+                val sourceUri = video.uriString.toUri()
+                val destination = createVaultDestination(video.nameWithExtension)
+                attemptedVaultPaths += destination.absolutePath
+                val entity = HiddenVideoEntity(
+                    vaultPath = destination.absolutePath,
                     originalPath = video.path,
                     displayName = video.nameWithExtension,
                     duration = video.duration,
@@ -63,8 +65,70 @@ class LocalVaultRepository @Inject constructor(
                     width = video.width,
                     height = video.height,
                     hiddenAt = System.currentTimeMillis(),
-                ),
+                )
+                val rowId = try {
+                    hiddenVideoDao.insert(entity)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    deleteReservationsByVaultPath(listOf(destination.absolutePath))
+                    return@forEach
+                }
+                reservations += HideReservation(rowId, sourceUri, destination)
+            }
+        } catch (e: CancellationException) {
+            deleteReservationsByVaultPath(attemptedVaultPaths)
+            throw e
+        }
+        if (reservations.isEmpty()) return
+
+        val movedFiles = try {
+            mediaOperationsService.moveMedia(
+                reservations.associate { it.sourceUri to it.destination },
             )
+        } catch (e: CancellationException) {
+            reconcileReservations(reservations, movedFiles = null)
+            throw e
+        } catch (e: Exception) {
+            reconcileReservations(reservations, movedFiles = null)
+            return
+        }
+
+        reconcileReservations(reservations, movedFiles)
+    }
+
+    private data class HideReservation(
+        val rowId: Long,
+        val sourceUri: Uri,
+        val destination: File,
+    )
+
+    private fun createVaultDestination(displayName: String): File {
+        val extension = File(displayName).extension.takeIf { it.isNotBlank() }
+        val suffix = extension?.let { ".$it" }.orEmpty()
+        return generateSequence { File(vaultDir, "${UUID.randomUUID()}$suffix") }
+            .first { !it.exists() }
+    }
+
+    private suspend fun reconcileReservations(
+        reservations: List<HideReservation>,
+        movedFiles: Map<Uri, File?>?,
+    ) {
+        val failedRowIds = reservations.mapNotNull { reservation ->
+            val moveConfirmed = movedFiles?.get(reservation.sourceUri) == reservation.destination
+            val destinationExistsAfterUnknownResult = movedFiles == null && reservation.destination.exists()
+            reservation.rowId.takeUnless { moveConfirmed || destinationExistsAfterUnknownResult }
+        }
+        if (failedRowIds.isEmpty()) return
+        withContext(NonCancellable) {
+            runCatching { hiddenVideoDao.deleteByIds(failedRowIds) }
+        }
+    }
+
+    private suspend fun deleteReservationsByVaultPath(vaultPaths: List<String>) {
+        if (vaultPaths.isEmpty()) return
+        withContext(NonCancellable) {
+            runCatching { hiddenVideoDao.deleteByVaultPaths(vaultPaths) }
         }
     }
 
