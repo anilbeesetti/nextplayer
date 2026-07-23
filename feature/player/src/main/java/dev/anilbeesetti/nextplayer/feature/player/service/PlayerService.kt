@@ -22,6 +22,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
@@ -49,9 +50,11 @@ import dev.anilbeesetti.nextplayer.core.model.Resume
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
+import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
+import dev.anilbeesetti.nextplayer.feature.player.extensions.externalAudioTrackUris
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.playbackSpeed
 import dev.anilbeesetti.nextplayer.feature.player.extensions.positionMs
@@ -80,6 +83,41 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
+internal suspend fun handleAddAudioTrackCommand(
+    args: Bundle,
+    player: Player?,
+    mediaRepository: MediaRepository,
+): SessionResult {
+    val audioUri = args.audioTrackUriOrNull()
+        ?: return SessionResult(SessionError.ERROR_BAD_VALUE)
+
+    val currentPlayer = player ?: return SessionResult(SessionError.ERROR_INVALID_STATE)
+    val currentMediaItem = currentPlayer.currentMediaItem
+        ?: return SessionResult(SessionError.ERROR_INVALID_STATE)
+    if (audioUri in currentMediaItem.mediaMetadata.externalAudioTrackUris) {
+        return SessionResult(SessionResult.RESULT_SUCCESS)
+    }
+
+    val audioTracks = currentPlayer.currentTracks.groups.filter {
+        it.type == C.TRACK_TYPE_AUDIO && it.isSupported
+    }
+
+    mediaRepository.updateMediumPosition(
+        uri = currentMediaItem.mediaId,
+        position = currentPlayer.currentPosition,
+    )
+    mediaRepository.updateMediumAudioTrack(
+        uri = currentMediaItem.mediaId,
+        audioTrackIndex = audioTracks.size,
+    )
+    mediaRepository.addExternalAudioTrackToMedium(
+        uri = currentMediaItem.mediaId,
+        audioUri = audioUri,
+    )
+    currentPlayer.addAdditionalAudioTrack(audioUri)
+    return SessionResult(SessionResult.RESULT_SUCCESS)
+}
+
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class PlayerService : MediaSessionService() {
@@ -99,8 +137,6 @@ class PlayerService : MediaSessionService() {
 
     private val playerPreferences: PlayerPreferences
         get() = preferencesRepository.playerPreferences.value
-
-    private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
 
@@ -350,7 +386,12 @@ class PlayerService : MediaSessionService() {
             return MediaSession.ConnectionResult.accept(
                 connectionResult.availableSessionCommands
                     .buildUpon()
-                    .addSessionCommands(customCommands)
+                    .addSessionCommands(
+                        commandsForController(
+                            controllerPackageName = controller.packageName,
+                            applicationPackageName = applicationContext.packageName,
+                        ),
+                    )
                     .build(),
                 connectionResult.availablePlayerCommands,
             )
@@ -384,8 +425,17 @@ class PlayerService : MediaSessionService() {
         ): ListenableFuture<SessionResult> = serviceScope.future {
             val command = CustomCommands.fromSessionCommand(customCommand)
                 ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
+            commandPermissionError(
+                controllerPackageName = controller.packageName,
+                applicationPackageName = applicationContext.packageName,
+                command = command,
+            )?.let { return@future it }
 
             when (command) {
+                CustomCommands.ADD_AUDIO_TRACK -> {
+                    return@future handleAddAudioTrackCommand(args, mediaSession?.player, mediaRepository)
+                }
+
                 CustomCommands.ADD_SUBTITLE_TRACK -> {
                     val subtitleUri = args.getString(CustomCommands.SUBTITLE_TRACK_URI_KEY)?.toUri()
                         ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
@@ -544,6 +594,9 @@ class PlayerService : MediaSessionService() {
         val player = ExoPlayer.Builder(applicationContext)
             .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
+            .setMediaSourceFactory(
+                ExternalAudioMediaSourceFactory(DefaultMediaSourceFactory(applicationContext)),
+            )
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
@@ -643,6 +696,8 @@ class PlayerService : MediaSessionService() {
                 val artworkUri = getDefaultArtworkUri()
 
                 val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
+                val durationMs = mediaItem.mediaMetadata.durationMs?.takeIf { it > 0 }
+                    ?: video?.duration?.takeIf { it > 0 }
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
                 val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
                 val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
@@ -656,6 +711,7 @@ class PlayerService : MediaSessionService() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(title)
+                            setDurationMs(durationMs)
                             setArtworkUri(artworkUri)
                             setExtras(
                                 positionMs = positionMs,
@@ -665,6 +721,7 @@ class PlayerService : MediaSessionService() {
                                 subtitleTrackIndex = subtitleTrackIndex,
                                 subtitleDelayMilliseconds = subtitleDelay,
                                 subtitleSpeed = subtitleSpeed,
+                                externalAudioTrackUris = videoState?.externalAudioTracks.orEmpty(),
                             )
                         }.build(),
                     )

@@ -1,5 +1,6 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -34,7 +35,7 @@ fun Player.switchTrack(trackType: @C.TrackType Int, trackIndex: Int) {
             .setTrackTypeDisabled(trackType, true)
             .build()
     } else {
-        val tracks = currentTracks.groups.filter { it.type == trackType }
+        val tracks = currentTracks.groups.filter { it.type == trackType && it.isSupported }
 
         if (tracks.isEmpty() || trackIndex >= tracks.size) {
             Logger.logError("Player", "Operation failed: Invalid track index: $trackIndex")
@@ -60,7 +61,7 @@ fun Player.getManuallySelectedTrackIndex(trackType: @C.TrackType Int): Int? {
 
     val trackOverrides = trackSelectionParameters.overrides.values.map { it.mediaTrackGroup }
     val trackOverride = trackOverrides.firstOrNull { it.type == trackType } ?: return null
-    val tracks = currentTracks.groups.filter { it.type == trackType }
+    val tracks = currentTracks.groups.filter { it.type == trackType && it.isSupported }
 
     return tracks.indexOfFirst { it.mediaTrackGroup == trackOverride }.takeIf { it != -1 }
 }
@@ -87,6 +88,27 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     addMediaItem(index + 1, updateMediaItem)
     seekTo(index + 1, currentPosition)
     removeMediaItem(index)
+}
+
+fun Player.addAdditionalAudioTrack(uri: Uri) {
+    val currentItem = currentMediaItem ?: return
+    val existingAudioTrackUris = currentItem.mediaMetadata.externalAudioTrackUris
+    if (uri in existingAudioTrackUris) return
+
+    val index = currentMediaItemIndex
+    val position = currentPosition
+    val shouldPlayWhenReady = playWhenReady
+
+    addMediaItem(
+        index + 1,
+        currentItem.copy(
+            positionMs = position,
+            externalAudioTrackUris = existingAudioTrackUris + uri,
+        ),
+    )
+    seekTo(index + 1, position)
+    removeMediaItem(index)
+    playWhenReady = shouldPlayWhenReady
 }
 
 @OptIn(UnstableApi::class)
