@@ -84,9 +84,8 @@ class LocalVaultRepository @Inject constructor(
             videos.mapNotNull { video ->
                 reserveVideo(video, attemptedVaultPaths)
             }
-        } catch (e: CancellationException) {
-            deleteReservationsByVaultPath(attemptedVaultPaths)
-            revealReservations(attemptedVaultPaths)
+        } catch (e: Exception) {
+            cleanUpReservations(attemptedVaultPaths)
             throw e
         }
     }
@@ -105,8 +104,7 @@ class LocalVaultRepository @Inject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            deleteReservationsByVaultPath(listOf(destination.absolutePath))
-            revealReservations(listOf(destination.absolutePath))
+            cleanUpReservations(listOf(destination.absolutePath))
             return null
         }
         return HideReservation(
@@ -198,6 +196,11 @@ class LocalVaultRepository @Inject constructor(
             runCatching { hiddenVideoDao.deleteByVaultPaths(vaultPaths) }
                 .onFailure { logCleanupFailure("delete reservations by vault path", it) }
         }
+    }
+
+    private suspend fun cleanUpReservations(vaultPaths: List<String>) {
+        deleteReservationsByVaultPath(vaultPaths)
+        revealReservations(vaultPaths)
     }
 
     private fun revealReservations(vaultPaths: List<String>) {
