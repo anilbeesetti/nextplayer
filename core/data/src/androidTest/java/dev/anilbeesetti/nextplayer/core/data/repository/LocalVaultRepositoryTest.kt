@@ -170,6 +170,37 @@ class LocalVaultRepositoryTest {
         }
     }
 
+    @Test
+    fun hideVideosRetainsCommittedReservationWhenMoveIsCancelled() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val sourceFile = File(
+            requireNotNull(context.getExternalFilesDir(null)),
+            "issue-1828-${UUID.randomUUID()}.mp4",
+        )
+            .apply { writeText("original video") }
+        val dao = RecordingHiddenVideoDao()
+        val repository = LocalVaultRepository(
+            hiddenVideoDao = dao,
+            mediaOperationsService = MovingMediaOperationsService(
+                moveExceptionAfterCommit = CancellationException("cancelled"),
+            ),
+            context = context,
+        )
+
+        try {
+            val result = runCatching { repository.hideVideos(listOf(videoFor(sourceFile))) }
+            val vaultFile = File(dao.entities.getValue(1L).vaultPath)
+
+            assertTrue(result.exceptionOrNull() is CancellationException)
+            assertFalse("A committed move must not retain the source", sourceFile.exists())
+            assertTrue("A committed move must retain its reservation", dao.entities.containsKey(1L))
+            assertTrue("A committed move must retain its vault file", vaultFile.exists())
+        } finally {
+            sourceFile.delete()
+            dao.entities.values.forEach { File(it.vaultPath).delete() }
+        }
+    }
+
     private fun videoFor(file: File): Video = Video.sample.copy(
         path = file.absolutePath,
         parentPath = file.parent.orEmpty(),
@@ -239,6 +270,7 @@ private class CommitThenCancelHiddenVideoDao : HiddenVideoDao {
 private class MovingMediaOperationsService(
     private val moveSucceeds: Boolean = true,
     private val moveException: Exception? = null,
+    private val moveExceptionAfterCommit: Exception? = null,
 ) : MediaOperationsService {
     var moveCalls: Int = 0
         private set
@@ -254,12 +286,14 @@ private class MovingMediaOperationsService(
     override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> {
         moveCalls++
         moveException?.let { throw it }
-        return targets.mapValues { (uri, destination) ->
+        val movedFiles = targets.mapValues { (uri, destination) ->
             if (!moveSucceeds) return@mapValues null
             val source = File(requireNotNull(uri.path))
             destination.parentFile?.mkdirs()
             if (source.renameTo(destination)) destination else null
         }
+        moveExceptionAfterCommit?.let { throw it }
+        return movedFiles
     }
 
     override fun transferMedia(
