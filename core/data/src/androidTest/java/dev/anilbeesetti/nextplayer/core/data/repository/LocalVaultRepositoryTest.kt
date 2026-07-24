@@ -15,10 +15,15 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -201,12 +206,147 @@ class LocalVaultRepositoryTest {
         }
     }
 
+    @Test
+    fun hideVideosRetainsOnlyCommittedRowsFromPartialMoveResult() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val testRoot = File(
+            requireNotNull(context.getExternalFilesDir(null)),
+            "issue-1828-partial-${UUID.randomUUID()}",
+        )
+        val firstSource = File(File(testRoot, "first").apply { mkdirs() }, "first.mp4")
+            .apply { writeText("first video") }
+        val secondSource = File(File(testRoot, "second").apply { mkdirs() }, "second.mp4")
+            .apply { writeText("second video") }
+        val dao = RecordingHiddenVideoDao()
+        val repository = LocalVaultRepository(
+            hiddenVideoDao = dao,
+            mediaOperationsService = MovingMediaOperationsService(maxSuccessfulMoves = 1),
+            context = context,
+        )
+
+        try {
+            repository.hideVideos(listOf(videoFor(firstSource), videoFor(secondSource)))
+
+            assertEquals(listOf(1L), dao.entities.keys.toList())
+            assertFalse("The first source must be committed", firstSource.exists())
+            assertTrue(
+                "The first reservation must retain its vault file",
+                File(dao.entities.getValue(1L).vaultPath).exists(),
+            )
+            assertTrue("The later uncommitted source must remain", secondSource.exists())
+        } finally {
+            firstSource.delete()
+            secondSource.delete()
+            dao.entities.values.forEach { File(it.vaultPath).delete() }
+            testRoot.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun hideVideosRemovesReservationWhenReportedDestinationIsMissing() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val sourceFile = File(
+            requireNotNull(context.getExternalFilesDir(null)),
+            "issue-1828-missing-destination-${UUID.randomUUID()}.mp4",
+        ).apply { writeText("original video") }
+        val dao = RecordingHiddenVideoDao()
+        val repository = LocalVaultRepository(
+            hiddenVideoDao = dao,
+            mediaOperationsService = MovingMediaOperationsService(deleteDestinationBeforeReturn = true),
+            context = context,
+        )
+
+        try {
+            repository.hideVideos(listOf(videoFor(sourceFile)))
+
+            assertTrue("A missing reported destination must not retain a vault row", dao.entities.isEmpty())
+        } finally {
+            sourceFile.delete()
+            dao.entities.values.forEach { File(it.vaultPath).delete() }
+        }
+    }
+
+    @Test
+    fun observeHiddenVideosDoesNotExposeReservationBeforeMoveCommits() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val sourceFile = File(
+            requireNotNull(context.getExternalFilesDir(null)),
+            "issue-1828-pending-${UUID.randomUUID()}.mp4",
+        ).apply { writeText("original video") }
+        val dao = RecordingHiddenVideoDao()
+        val mediaOperations = PausedMovingMediaOperationsService()
+        val repository = LocalVaultRepository(dao, mediaOperations, context)
+
+        try {
+            val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {
+                repository.hideVideos(listOf(videoFor(sourceFile)))
+            }
+            withTimeout(TEST_TIMEOUT_MILLIS) { mediaOperations.moveStarted.await() }
+
+            assertTrue(
+                "A reservation must stay hidden until its vault file commits",
+                repository.observeHiddenVideos().first().isEmpty(),
+            )
+
+            mediaOperations.allowMove.complete(Unit)
+            withTimeout(TEST_TIMEOUT_MILLIS) { hideJob.join() }
+            assertEquals(1, repository.observeHiddenVideos().first().size)
+        } finally {
+            mediaOperations.allowMove.complete(Unit)
+            sourceFile.delete()
+            dao.entities.values.forEach { File(it.vaultPath).delete() }
+        }
+    }
+
+    @Test
+    fun deleteHiddenVideosWaitsForInProgressHideToCommit() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val sourceFile = File(
+            requireNotNull(context.getExternalFilesDir(null)),
+            "issue-1828-delete-race-${UUID.randomUUID()}.mp4",
+        ).apply { writeText("original video") }
+        val dao = RecordingHiddenVideoDao()
+        val mediaOperations = PausedMovingMediaOperationsService()
+        val repository = LocalVaultRepository(dao, mediaOperations, context)
+
+        try {
+            val hideJob = launch(start = CoroutineStart.UNDISPATCHED) {
+                repository.hideVideos(listOf(videoFor(sourceFile)))
+            }
+            withTimeout(TEST_TIMEOUT_MILLIS) { mediaOperations.moveStarted.await() }
+
+            val deleteJob = launch(start = CoroutineStart.UNDISPATCHED) {
+                repository.deleteHiddenVideos(listOf(videoFor(sourceFile).copy(id = 1L)))
+            }
+
+            assertTrue("Delete must wait for the in-progress hide operation", deleteJob.isActive)
+            assertTrue("Delete must not remove an in-progress reservation", dao.entities.containsKey(1L))
+
+            mediaOperations.allowMove.complete(Unit)
+            withTimeout(TEST_TIMEOUT_MILLIS) {
+                hideJob.join()
+                deleteJob.join()
+            }
+
+            assertFalse(sourceFile.exists())
+            assertTrue(dao.entities.isEmpty())
+        } finally {
+            mediaOperations.allowMove.complete(Unit)
+            sourceFile.delete()
+            dao.entities.values.forEach { File(it.vaultPath).delete() }
+        }
+    }
+
     private fun videoFor(file: File): Video = Video.sample.copy(
         path = file.absolutePath,
         parentPath = file.parent.orEmpty(),
         uriString = file.toUri().toString(),
         nameWithExtension = file.name,
     )
+
+    private companion object {
+        const val TEST_TIMEOUT_MILLIS = 5_000L
+    }
 }
 
 private data object FailingInsertHiddenVideoDao : HiddenVideoDao {
@@ -271,6 +411,8 @@ private class MovingMediaOperationsService(
     private val moveSucceeds: Boolean = true,
     private val moveException: Exception? = null,
     private val moveExceptionAfterCommit: Exception? = null,
+    private val maxSuccessfulMoves: Int = Int.MAX_VALUE,
+    private val deleteDestinationBeforeReturn: Boolean = false,
 ) : MediaOperationsService {
     var moveCalls: Int = 0
         private set
@@ -286,14 +428,46 @@ private class MovingMediaOperationsService(
     override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> {
         moveCalls++
         moveException?.let { throw it }
-        val movedFiles = targets.mapValues { (uri, destination) ->
-            if (!moveSucceeds) return@mapValues null
+        val movedFiles = targets.entries.mapIndexed { index, (uri, destination) ->
+            if (!moveSucceeds || index >= maxSuccessfulMoves) return@mapIndexed uri to null
             val source = File(requireNotNull(uri.path))
             destination.parentFile?.mkdirs()
-            if (source.renameTo(destination)) destination else null
+            uri to destination.takeIf { source.renameTo(destination) }
+        }.toMap()
+        if (deleteDestinationBeforeReturn) {
+            movedFiles.values.filterNotNull().forEach(File::delete)
         }
         moveExceptionAfterCommit?.let { throw it }
         return movedFiles
+    }
+
+    override fun transferMedia(
+        uris: List<Uri>,
+        folderUri: Uri,
+        mode: TransferMode,
+    ): Flow<TransferEvent> = emptyFlow()
+}
+
+private class PausedMovingMediaOperationsService : MediaOperationsService {
+    val moveStarted = CompletableDeferred<Unit>()
+    val allowMove = CompletableDeferred<Unit>()
+
+    override fun initialize(activity: ComponentActivity) = Unit
+
+    override suspend fun deleteMedia(uris: List<Uri>): Boolean = true
+
+    override suspend fun renameMedia(uri: Uri, to: String): Boolean = false
+
+    override suspend fun shareMedia(uris: List<Uri>) = Unit
+
+    override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> {
+        moveStarted.complete(Unit)
+        allowMove.await()
+        return targets.mapValues { (uri, destination) ->
+            val source = File(requireNotNull(uri.path))
+            destination.parentFile?.mkdirs()
+            destination.takeIf { source.renameTo(destination) }
+        }
     }
 
     override fun transferMedia(

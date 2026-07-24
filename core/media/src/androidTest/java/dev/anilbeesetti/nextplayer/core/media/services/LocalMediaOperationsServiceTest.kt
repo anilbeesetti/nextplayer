@@ -8,6 +8,7 @@ import java.io.File
 import java.util.UUID
 import java.util.concurrent.CyclicBarrier
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -15,7 +16,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
@@ -110,11 +111,13 @@ class LocalMediaOperationsServiceTest {
         val firstSource = File(File(testRoot, "source-1").apply { mkdirs() }, "first.mp4")
             .apply { writeText("first video") }
         val secondSource = File(File(testRoot, "source-2").apply { mkdirs() }, "second.mp4")
-            .apply { writeBytes(ByteArray(64 * 1024 * 1024)) }
+            .apply { writeText("second video") }
         val vaultDir = File(testRoot, "vault").apply { mkdirs() }
         val firstDestination = File(vaultDir, "first.mp4")
         val secondDestination = File(vaultDir, "second.mp4")
         val service = LocalMediaOperationsService(context)
+        val firstMoveCommitted = CompletableDeferred<Unit>()
+        val allowSecondMove = CompletableDeferred<Unit>()
 
         try {
             val moveJob = launch(Dispatchers.Default) {
@@ -123,10 +126,15 @@ class LocalMediaOperationsServiceTest {
                         firstSource.toUri() to firstDestination,
                         secondSource.toUri() to secondDestination,
                     ),
-                )
+                ) {
+                    firstMoveCommitted.complete(Unit)
+                    allowSecondMove.await()
+                }
             }
-            while (firstSource.exists()) yield()
-            moveJob.cancelAndJoin()
+            withTimeout(TEST_TIMEOUT_MILLIS) { firstMoveCommitted.await() }
+            moveJob.cancel()
+            allowSecondMove.complete(Unit)
+            withTimeout(TEST_TIMEOUT_MILLIS) { moveJob.cancelAndJoin() }
 
             assertTrue("The committed first vault copy must remain", firstDestination.exists())
             assertTrue("The uncommitted second source must remain", secondSource.exists())
@@ -134,5 +142,9 @@ class LocalMediaOperationsServiceTest {
         } finally {
             testRoot.deleteRecursively()
         }
+    }
+
+    private companion object {
+        const val TEST_TIMEOUT_MILLIS = 5_000L
     }
 }

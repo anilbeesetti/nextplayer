@@ -10,6 +10,7 @@ import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.data.mappers.toAudioStreamInfo
 import dev.anilbeesetti.nextplayer.core.data.mappers.toSubtitleStreamInfo
@@ -28,8 +29,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 @Singleton
@@ -39,22 +44,38 @@ class LocalVaultRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : VaultRepository {
 
+    private val vaultMutationMutex = Mutex()
+    private val pendingVaultPaths = MutableStateFlow<Set<String>>(emptySet())
+
     private val vaultDir: File by lazy {
         val base = context.getExternalFilesDir(null) ?: context.filesDir
         File(base, VAULT_DIR_NAME).apply { if (!exists()) mkdirs() }
     }
 
     override fun observeHiddenVideos(): Flow<List<Video>> {
-        return hiddenVideoDao.getAll().map { entities -> entities.map { it.toVideo() } }
+        return combine(hiddenVideoDao.getAll(), pendingVaultPaths) { entities, pendingPaths ->
+            entities
+                .filterNot { it.vaultPath in pendingPaths }
+                .filter { File(it.vaultPath).exists() }
+                .map { it.toVideo() }
+        }
     }
 
-    override suspend fun hideVideos(videos: List<Video>) {
+    override suspend fun hideVideos(videos: List<Video>) = vaultMutationMutex.withLock {
+        hideVideosLocked(videos)
+    }
+
+    private suspend fun hideVideosLocked(videos: List<Video>) {
         val reservations = reserveVideos(videos)
         if (reservations.isEmpty()) return
 
-        val moveOutcome = moveReservedVideos(reservations)
-        reconcileReservations(reservations, moveOutcome)
-        moveOutcome.rethrowCancellation()
+        try {
+            val moveOutcome = moveReservedVideos(reservations)
+            reconcileReservations(reservations, moveOutcome)
+            moveOutcome.rethrowCancellation()
+        } finally {
+            revealReservations(reservations.map { it.destination.absolutePath })
+        }
     }
 
     private suspend fun reserveVideos(videos: List<Video>): List<HideReservation> {
@@ -65,6 +86,7 @@ class LocalVaultRepository @Inject constructor(
             }
         } catch (e: CancellationException) {
             deleteReservationsByVaultPath(attemptedVaultPaths)
+            revealReservations(attemptedVaultPaths)
             throw e
         }
     }
@@ -77,12 +99,14 @@ class LocalVaultRepository @Inject constructor(
         attemptedVaultPaths += destination.absolutePath
         val sourceUri = video.uriString.toUri()
         val entity = video.toHiddenVideoEntity(destination)
+        pendingVaultPaths.update { it + destination.absolutePath }
         val rowId = try {
             hiddenVideoDao.insert(entity)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             deleteReservationsByVaultPath(listOf(destination.absolutePath))
+            revealReservations(listOf(destination.absolutePath))
             return null
         }
         return HideReservation(
@@ -150,13 +174,15 @@ class LocalVaultRepository @Inject constructor(
         if (failedRowIds.isEmpty()) return
         withContext(NonCancellable) {
             runCatching { hiddenVideoDao.deleteByIds(failedRowIds) }
+                .onFailure { logCleanupFailure("delete failed hide reservations", it) }
         }
     }
 
     private fun MoveOutcome.wasCommitted(reservation: HideReservation): Boolean {
         return when (this) {
             is MoveOutcome.Completed -> {
-                movedFiles[reservation.sourceUri] == reservation.destination
+                movedFiles[reservation.sourceUri] == reservation.destination &&
+                    reservation.destination.exists()
             }
             MoveOutcome.Failed, is MoveOutcome.Cancelled -> reservation.destination.exists()
         }
@@ -170,17 +196,26 @@ class LocalVaultRepository @Inject constructor(
         if (vaultPaths.isEmpty()) return
         withContext(NonCancellable) {
             runCatching { hiddenVideoDao.deleteByVaultPaths(vaultPaths) }
+                .onFailure { logCleanupFailure("delete reservations by vault path", it) }
         }
     }
 
-    override suspend fun unhideVideos(videos: List<Video>): UnhideResult {
+    private fun revealReservations(vaultPaths: List<String>) {
+        pendingVaultPaths.update { it - vaultPaths.toSet() }
+    }
+
+    private fun logCleanupFailure(operation: String, throwable: Throwable) {
+        Logger.logError(TAG, "Failed to $operation: ${throwable.stackTraceToString()}")
+    }
+
+    override suspend fun unhideVideos(videos: List<Video>): UnhideResult = vaultMutationMutex.withLock {
         val restored = withContext(Dispatchers.IO) {
             entitiesFor(videos).mapNotNull { entity ->
                 restoreToMediaStore(entity)?.let { relocated -> entity.id to relocated }
             }
         }
         if (restored.isNotEmpty()) hiddenVideoDao.deleteByIds(restored.map { it.first })
-        return UnhideResult(relocatedCount = restored.count { (_, relocated) -> relocated })
+        UnhideResult(relocatedCount = restored.count { (_, relocated) -> relocated })
     }
 
     /**
@@ -272,9 +307,9 @@ class LocalVaultRepository @Inject constructor(
         return parent.removePrefix(root).trim('/').takeIf { it.isNotEmpty() }?.let { "$it/" }
     }
 
-    override suspend fun deleteHiddenVideos(videos: List<Video>) {
+    override suspend fun deleteHiddenVideos(videos: List<Video>): Unit = vaultMutationMutex.withLock {
         val entities = entitiesFor(videos)
-        if (entities.isEmpty()) return
+        if (entities.isEmpty()) return@withLock
         entities.forEach { File(it.vaultPath).delete() }
         hiddenVideoDao.deleteByIds(entities.map { it.id })
     }
@@ -322,6 +357,7 @@ class LocalVaultRepository @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "LocalVaultRepository"
         private const val VAULT_DIR_NAME = "vault"
 
         /** Fallback folder for videos whose original location MediaStore won't accept. */

@@ -95,6 +95,17 @@ class LocalMediaOperationsService @Inject constructor(
     }
 
     override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> {
+        return moveMedia(targets, onMoveCommitted = null)
+    }
+
+    /**
+     * The internal callback is a deterministic synchronization seam for commit-boundary tests.
+     * Production calls use [moveMedia] and pay no callback cost.
+     */
+    internal suspend fun moveMedia(
+        targets: Map<Uri, File>,
+        onMoveCommitted: (suspend (Uri) -> Unit)?,
+    ): Map<Uri, File?> {
         val uris = targets.keys.toList()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val mediaStoreUris = uris.filter { it.authority == MediaStore.AUTHORITY }
@@ -137,6 +148,7 @@ class LocalMediaOperationsService @Inject constructor(
                     }
                     movedFiles[uri] = movedFile
                     moveCommitted = moveCommitted || movedFile != null
+                    if (movedFile != null) onMoveCommitted?.invoke(uri)
                 }
                 movedFiles
             }
