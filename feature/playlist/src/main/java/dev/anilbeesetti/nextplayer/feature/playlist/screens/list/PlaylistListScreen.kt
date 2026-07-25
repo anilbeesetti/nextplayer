@@ -514,7 +514,10 @@ private fun PlaylistItem(
                     onClick = { menuExpanded = true },
                     modifier = Modifier.tvFocusRing(),
                 ) {
-                    Icon(NextIcons.ExtraSettings, contentDescription = stringResource(R.string.playlist_actions))
+                    Icon(
+                        imageVector = NextIcons.MoreVert,
+                        contentDescription = stringResource(R.string.playlist_actions),
+                    )
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(

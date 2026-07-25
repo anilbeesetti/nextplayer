@@ -248,7 +248,10 @@ private fun ConnectionItem(
         trailingContent = {
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(NextIcons.ExtraSettings, contentDescription = null)
+                    Icon(
+                        imageVector = NextIcons.MoreVert,
+                        contentDescription = null,
+                    )
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(

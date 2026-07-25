@@ -20,6 +20,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -52,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -118,7 +120,9 @@ import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.CancelButton
 import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
+import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
+import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
@@ -1130,6 +1134,7 @@ private fun NetworkUrlDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun PlaylistTargetDialog(
     playlists: List<PlaylistSummary>,
@@ -1187,45 +1192,74 @@ private fun PlaylistTargetDialog(
         onDismissRequest = { if (!state.isSaving) onDismissRequest() },
         title = { Text(stringResource(VideoPickerR.string.videopicker_playlist_choose_playlist)) },
         content = {
-            LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
-                if (playlists.isEmpty()) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedButton(
+                    onClick = { showCreateDialog = true },
+                    enabled = !state.isSaving,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .tvFocusRing(),
+                ) {
+                    Text(stringResource(VideoPickerR.string.videopicker_playlist_create_new_playlist))
+                }
+                LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
                     item {
-                        Text(
-                            text = stringResource(VideoPickerR.string.videopicker_playlist_no_editable_playlists),
-                            modifier = Modifier.padding(12.dp),
+                        ListSectionTitle(
+                            text = stringResource(VideoPickerR.string.existing_playlists),
                         )
                     }
-                }
-                items(playlists, key = { it.id }) { playlist ->
-                    TextButton(
-                        onClick = { onPlaylistSelected(playlist.id) },
-                        enabled = !state.isSaving,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .tvFocusRing(),
-                    ) {
-                        Text(playlist.name)
+                    if (playlists.isEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(VideoPickerR.string.videopicker_playlist_no_editable_playlists),
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
                     }
-                }
-                item {
-                    TextButton(
-                        onClick = { showCreateDialog = true },
-                        enabled = !state.isSaving,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .tvFocusRing(),
-                    ) {
-                        Text(stringResource(VideoPickerR.string.videopicker_playlist_create_new_playlist))
-                    }
-                }
-                state.error?.let { error ->
-                    item {
-                        Text(
-                            text = error,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(12.dp),
+                    items(playlists, key = { it.id }) { playlist ->
+                        val isFirstItem = playlists.indexOf(playlist) == 0
+                        val isLastItem = playlists.indexOf(playlist) == playlists.lastIndex
+
+                        NextSegmentedListItem(
+                            isFirstItem = isFirstItem,
+                            isLastItem = isLastItem,
+                            onClick = { onPlaylistSelected(playlist.id) },
+                            contentPadding = PaddingValues(12.dp),
+                            leadingContent = {
+                                Icon(
+                                    imageVector = NextIcons.Playlist,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 8.dp),
+                                )
+                            },
+                            content = {
+                                Text(
+                                    text = playlist.name,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    text = "${playlist.itemCount} videos",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            },
                         )
+                    }
+                    state.error?.let { error ->
+                        item {
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
                     }
                 }
             }

@@ -38,9 +38,11 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,6 +66,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
@@ -89,7 +94,7 @@ fun PlaylistDetailScreenRoute(
     onPlayPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
     viewModel: PlaylistDetailViewModel,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.STARTED)
     val context = LocalContext.current
     val keyboard = LocalConfiguration.current.keyboard
     val snackbarHostState = remember { SnackbarHostState() }
@@ -267,7 +272,7 @@ private fun PlaylistDetailContent(
                                 isLastItem = index == displayedItems.lastIndex,
                                 reorderHandle = {
                                     Icon(
-                                        imageVector = NextIcons.Move,
+                                        imageVector = NextIcons.DragHandle,
                                         contentDescription = stringResource(R.string.reorder_playlist_item),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier
@@ -283,8 +288,7 @@ private fun PlaylistDetailContent(
                                                     onAction(PlaylistDetailAction.StopMoveDrag)
                                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
                                                 },
-                                            )
-                                            .padding(8.dp),
+                                            ),
                                     )
                                 },
                                 onClick = { onAction(PlaylistDetailAction.PlayItem(item.uriString)) },
@@ -336,8 +340,8 @@ private fun PlaylistItemRow(
     } else {
         item.uriString
     }
-    val artworkModel = item.imageUrl?.takeIf(String::isNotBlank)
-        ?: item.uriString.takeIf { playlistType == PlaylistType.EDITABLE }
+    val artworkUri = item.imageUrl ?: item.uriString.takeIf { playlistType == PlaylistType.EDITABLE }
+    val context = LocalContext.current
     NextSegmentedListItem(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
@@ -355,19 +359,31 @@ private fun PlaylistItemRow(
                         .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)),
                 ) {
-                    Icon(
-                        imageVector = NextIcons.Video,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .fillMaxSize(0.5f),
-                    )
-                    artworkModel?.let { model ->
-                        AsyncImage(
-                            model = model,
+                    var isImageLoaded by remember(artworkUri) { mutableStateOf(false) }
+                    if (!isImageLoaded) {
+                        Icon(
+                            imageVector = NextIcons.Video,
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                            tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .fillMaxSize(0.5f),
+                        )
+                    }
+
+                    artworkUri?.let { artwork ->
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(artwork)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            contentScale = when (playlistType) {
+                                PlaylistType.EDITABLE -> ContentScale.Crop
+                                else -> ContentScale.Fit
+                            },
                             modifier = Modifier.fillMaxSize(),
+                            onState = { state -> isImageLoaded = state is AsyncImagePainter.State.Success },
                         )
                     }
                 }
