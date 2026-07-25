@@ -1,5 +1,0 @@
-AVD ID                   AVD Name                      API Level      Status         Serial
-Television_1080p         Television (1080p)            android-36     Offline
-Pixel_6a                 Pixel 6a                      android-36.1   Offline
-Pixel_7                  Pixel 7                       android-36.1   Offline
-Resizable_Experimental   Resizable (Experimental)      android-36.1   Offline

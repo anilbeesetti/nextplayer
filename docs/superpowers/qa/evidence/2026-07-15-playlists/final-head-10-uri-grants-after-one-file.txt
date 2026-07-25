@@ -1,3 +1,0 @@
-Unknown command: uri-permissions
-Bad activity command, or no activities match: uri-permissions
-Use -h for help.
