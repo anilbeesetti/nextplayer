@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface HiddenVideoDao {
 
     @Insert
-    suspend fun insert(hiddenVideo: HiddenVideoEntity)
+    suspend fun insert(hiddenVideo: HiddenVideoEntity): Long
 
     @Query("SELECT * FROM hidden_video ORDER BY hidden_at DESC")
     fun getAll(): Flow<List<HiddenVideoEntity>>
@@ -20,4 +20,7 @@ interface HiddenVideoDao {
 
     @Query("DELETE FROM hidden_video WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<Long>)
+
+    @Query("DELETE FROM hidden_video WHERE vault_path IN (:vaultPaths)")
+    suspend fun deleteByVaultPaths(vaultPaths: List<String>)
 }
