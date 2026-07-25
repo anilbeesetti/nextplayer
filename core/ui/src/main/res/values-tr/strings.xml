@@ -217,7 +217,7 @@
     <string name="paypal">PayPal</string>
     <string name="upi">UPI</string>
     <string name="list">Liste</string>
-    <string name="by">%1$s tarafından</string>
+    <string name="by">%1$s\'den</string>
     <string name="media_layout">Medya Düzeni</string>
     <string name="grid">Izgara</string>
     <string name="error_opening_link">Bu bağlantıyı işleyecek bir uygulama bulunamadı</string>
@@ -298,4 +298,70 @@
     <string name="material_you_controls">Material You kontrolleri</string>
     <string name="material_you_controls_description">Material You stili kontroller kullanın</string>
     <string name="pan_gesture_description">Videoyu yakınlaştırın ve kaydırın</string>
+    <string name="folder_duration">Klasör süresi</string>
+    <string name="hide">Gizle</string>
+    <string name="unhide">Görünür yap</string>
+    <string name="vault">Kasa</string>
+    <string name="hidden_videos">Gizli videolar</string>
+    <string name="hide_one_video_confirmation">Bu video gizlensin mi?</string>
+    <string name="hide_videos_confirmation">%1$d video gizlensin mi?</string>
+    <string name="hide_video_info">Gizli videolar PIN koduyla korunan özel bir kasaya taşınır ve galerinizden kaldırılır.</string>
+    <string name="hiding_videos_in_progress">Gizleniyor…</string>
+    <string name="unhiding_videos_in_progress">Görünür yapılıyor…</string>
+    <string name="hiding_videos">Gizleniyor…</string>
+    <string name="set_vault_pin">Kasa PIN\'i ayarlayın</string>
+    <string name="set_vault_pin_description">Gizli videolarınızı korumak için 4 haneli bir PIN oluşturun</string>
+    <string name="confirm_vault_pin">PIN\'i doğrulayın</string>
+    <string name="confirm_vault_pin_description">Doğrulamak için PIN kodunuzu tekrar girin</string>
+    <string name="enter_vault_pin">PIN girin</string>
+    <string name="enter_vault_pin_description">Gizli videolara erişmek için PIN\'inizi girin</string>
+    <string name="pins_do_not_match">PIN\'ler eşleşmiyor. Tekrar deneyin</string>
+    <string name="incorrect_pin">Yanlış PIN</string>
+    <string name="how_to_find_hidden_videos_title">Gizli videolarınızı nasıl bulabilirsiniz</string>
+    <string name="how_to_find_hidden_videos_description">Gizli videolarınız Kasanızda güvenli bir şekilde saklanır. Tekrar açmak için ana ekranın üst kısmındaki \"NextPlayer\" başlığına basılı tutun ve PIN\'inizi girin.</string>
+    <string name="open_vault">Kasayı aç</string>
+    <string name="vault_empty_title">Gizli video yok</string>
+    <string name="vault_empty_description">Gizlediğiniz videolar burada görünecektir. Bir videoya uzun süre basılı tutun ve Gizle seçeneğine dokunarak onu kasaya ekleyin.</string>
+    <string name="unhide_one_video_confirmation">Bu video görünür yapılsın mı? Video orijinal konumuna geri taşınacaktır.</string>
+    <string name="unhide_videos_confirmation">%1$d video görünür yapılsın mı? Orijinal konumlarına geri taşınacaklar.</string>
+    <string name="delete_one_video_from_vault">Bu video kalıcı olarak silinsin mi?</string>
+    <string name="delete_videos_from_vault">%1$d video kalıcı olarak silinsin mi?</string>
+    <string name="delete_from_vault_info">Bu işlem geri alınamaz. Video cihazınızdan kalıcı olarak silinecektir.</string>
+    <string name="sort_by">Göre sırala</string>
+    <string name="name">Ad</string>
+    <string name="date_hidden">Gizleme tarihi</string>
+    <string name="forgot_pin">PIN\'inizi mi unuttunuz?</string>
+    <string name="reset_vault_pin_confirmation">PIN\'inizi sıfırlamak, artık kilidi açılamayacağı için kasada bulunan tüm videoları kalıcı olarak silecektir. Devam edilsin mi?</string>
+    <string name="reset_pin_and_delete_all">PIN\'i sıfırla ve tümünü sil</string>
+    <string name="copy">Kopyala</string>
+    <string name="move">Taşı</string>
+    <string name="copying_videos_in_progress">Kopyalanıyor…</string>
+    <string name="moving_videos_in_progress">Taşınıyor…</string>
+    <plurals name="copied_videos_result">
+        <item quantity="one">1 video kopyalandı</item>
+        <item quantity="other">%1$d video kopyalandı</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="one">1 video taşındı</item>
+        <item quantity="other">%1$d video taşındı</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="one">1 video kopyalanamadı</item>
+        <item quantity="other">%1$d video kopyalanamadı</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="one">1 video taşınamadı</item>
+        <item quantity="other">%1$d video taşınamadı</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="one">1 video taşındı, ancak orijinali silinemedi</item>
+        <item quantity="other">%1$d video taşındı, ancak orijinali silinemedi</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">Aynı klasöre taşınamıyor</string>
+    <plurals name="videos_relocated_to_movies">
+        <item quantity="one">Orijinal klasörü geri yüklenemedi — Filmler/ klasörüne taşındı</item>
+        <item quantity="other">%1$d videonun orijinal klasörü geri yüklenemedi — Filmler/ klasörüne taşındı</item>
+    </plurals>
+    <string name="got_it">Anladım</string>
+    <string name="transfer_file_progress">Dosya %1$d / %2$d</string>
 </resources>

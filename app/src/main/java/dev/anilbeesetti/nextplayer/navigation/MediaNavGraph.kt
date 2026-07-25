@@ -21,8 +21,8 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
     backStack: NavBackStack<NavKey>,
 ) {
     mediaPickerEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
-        onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
+        onPlayVideo = { uri -> context.startPlayback(uri) },
         onPlayVideos = { uris -> context.startPlayback(uris) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
         onSettingsClick = backStack::navigateToSettings,
@@ -31,32 +31,55 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
     )
 
     searchEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
-        onPlayVideo = { uri -> context.startPlayback(listOf(uri)) },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
+        onPlayVideo = { uri -> context.startPlayback(uri) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
     )
 
     vaultEntry(
-        onNavigateUp = { backStack.removeLastOrNull() },
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
         // Vault files are served through FileProvider, so read access must be granted at
         // playback time for both PlayerActivity and the (separate) PlayerService component.
-        onPlayVideo = { uri -> context.startPlayback(listOf(uri), grantReadPermission = true) },
+        onPlayVideo = { uri -> context.startPlayback(uri, grantReadPermission = true) },
         onPlayVideos = { uris -> context.startPlayback(uris, grantReadPermission = true) },
+    )
+}
+
+internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = false) {
+    startPlayback(
+        uri = uri,
+        playlist = null,
+        grantReadPermission = grantReadPermission,
     )
 }
 
 internal fun Context.startPlayback(
     uris: List<Uri>,
-    startUri: Uri = uris.first(),
+    startUri: Uri? = null,
     grantReadPermission: Boolean = false,
 ) {
-    val spec = playbackLaunchSpec(
-        items = uris,
-        startItem = startUri,
+    val uri = startUri ?: uris.firstOrNull() ?: return
+    startPlayback(
+        uri = uri,
+        playlist = uris,
         grantReadPermission = grantReadPermission,
     )
+}
+
+private fun Context.startPlayback(
+    uri: Uri,
+    playlist: List<Uri>?,
+    grantReadPermission: Boolean,
+) {
+    val items = playlist ?: listOf(uri)
+    val spec = playbackLaunchSpec(
+        items = items,
+        startItem = uri,
+        grantReadPermission = grantReadPermission,
+        includePlaylist = playlist != null,
+    )
     if (spec.grantReadPermission) {
-        uris.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        items.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
     }
     val intent = Intent(this, PlayerActivity::class.java).apply {
         action = Intent.ACTION_VIEW
@@ -77,8 +100,9 @@ internal fun <T> playbackLaunchSpec(
     items: List<T>,
     startItem: T = items.first(),
     grantReadPermission: Boolean = false,
+    includePlaylist: Boolean = items.size > 1,
 ): PlaybackLaunchSpec<T> = PlaybackLaunchSpec(
     startItem = startItem,
-    playlistExtra = items.takeIf { it.size > 1 }?.let { ArrayList(it) },
+    playlistExtra = items.takeIf { includePlaylist }?.let { ArrayList(it) },
     grantReadPermission = grantReadPermission,
 )

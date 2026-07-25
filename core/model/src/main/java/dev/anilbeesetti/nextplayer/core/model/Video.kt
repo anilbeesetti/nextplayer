@@ -26,7 +26,11 @@ data class Video(
 
     val displayName: String = nameWithExtension.substringBeforeLast(".")
     val playedPercentage: Float? = playbackPosition?.let { playbackPosition ->
-        (playbackPosition.toFloat() / duration.toFloat()).takeIf { playbackPosition >= 0 && duration > 0 }
+        when {
+            duration <= 0 -> null
+            playbackPosition < 0 -> 1f
+            else -> playbackPosition.toFloat() / duration.toFloat()
+        }
     }
 
     companion object {

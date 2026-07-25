@@ -344,6 +344,32 @@
     <string name="reset_vault_pin_confirmation">Resetting your PIN will permanently delete all videos currently in the vault, since they can no longer be unlocked. Continue?</string>
     <string name="reset_pin_and_delete_all">Reset PIN &amp; delete all</string>
 
+    <!-- Network -->
+    <string name="home">Home</string>
+    <string name="network">Network</string>
+    <string name="add_connection">Add connection</string>
+    <string name="edit_connection">Edit connection</string>
+    <string name="delete_connection">Delete connection</string>
+    <string name="delete_connection_confirmation">Remove \"%1$s\"?</string>
+    <string name="connection_name">Name</string>
+    <string name="protocol">Protocol</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="port_hint">Port (default %1$d)</string>
+    <string name="path_share">Path / Share name</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="use_https">Use HTTPS</string>
+    <string name="test_and_save">Test &amp; Save</string>
+    <string name="connecting">Connecting…</string>
+    <string name="connection_failed">Couldn\'t connect. Check the details and try again.</string>
+    <string name="no_connections_title">No connections yet</string>
+    <string name="no_connections_description">Add an SMB, FTP or WebDAV connection to browse and play videos from your network.</string>
+    <string name="empty_folder">This folder is empty</string>
+    <string name="failed_to_load_folder">Couldn\'t load this location</string>
+    <string name="retry">Retry</string>
+    <string name="edit">Edit</string>
+
     <!-- Copy / Move -->
     <string name="copy">Copy</string>
     <string name="move">Move</string>

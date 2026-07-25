@@ -36,7 +36,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.media.network.proxy.NetworkStreamingProxy
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
-import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.NextNavigationBar
@@ -54,9 +53,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var synchronizer: MediaSynchronizer
 
     @Inject
     lateinit var mediaOperationsService: MediaOperationsService
@@ -79,8 +75,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         systemService.initialize(this@MainActivity)
         mediaOperationsService.initialize(this@MainActivity)
-        synchronizer.startSync()
-
         var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
 
         lifecycleScope.launch {

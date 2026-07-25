@@ -364,4 +364,28 @@
         <item quantity="other">Μετακινήθηκαν %1$d βίντεο, αλλά δεν διαγράφηκαν τα πρωτότυπα</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Δεν είναι δυνατή η μετακίνηση στον ίδιο φάκελο</string>
+    <string name="home">Αρχική</string>
+    <string name="network">Δίκτυο</string>
+    <string name="add_connection">Προσθήκη</string>
+    <string name="edit_connection">Τροποποίηση σύνδεσης</string>
+    <string name="delete_connection">Διαγραφή σύνδεσης</string>
+    <string name="delete_connection_confirmation">Διαγραφή \"%1$s\";</string>
+    <string name="connection_name">Όνομα</string>
+    <string name="protocol">Πρωτόκολλο</string>
+    <string name="host">Κεντρικός υπολογιστής</string>
+    <string name="port">Θύρα</string>
+    <string name="port_hint">Θύρα (αρχική %1$d)</string>
+    <string name="path_share">Διαδρομή / ονομασία διαμοιρασμού</string>
+    <string name="username">Όνομα χρήστη</string>
+    <string name="password">Κωδικός</string>
+    <string name="use_https">Χρήση HTTPS</string>
+    <string name="test_and_save">Δοκιμή &amp; αποθήκευση</string>
+    <string name="connecting">Σύνδεση…</string>
+    <string name="connection_failed">Δεν ήταν δυνατή η σύνδεση. Ελέγξτε τις λεπτομέρειες και δοκιμάστε ξανά.</string>
+    <string name="no_connections_title">Καμία σύνδεση ακόμα</string>
+    <string name="no_connections_description">Προσθέστε μια σύνδεση SMB, FTP ή WebDAV για να περιηγηθείτε και να αναπαράγετε βίντεο από το δίκτυο σας.</string>
+    <string name="empty_folder">Αυτός ο φάκελος είναι άδειος</string>
+    <string name="failed_to_load_folder">Αδυναμία φόρτωσης αυτής της τοποθεσίας</string>
+    <string name="retry">Επανάληψη</string>
+    <string name="edit">Τροποποίηση</string>
 </resources>
