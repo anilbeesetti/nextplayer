@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.BaseColumns
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
@@ -21,6 +22,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.updateMedia
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
@@ -29,7 +31,11 @@ import kotlin.coroutines.resume
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -88,20 +94,107 @@ class LocalMediaOperationsService @Inject constructor(
         activity.startActivity(intent)
     }
 
-    override suspend fun moveMedia(uris: List<Uri>, targetDir: File): Map<Uri, File?> = withContext(Dispatchers.IO) {
+    override suspend fun moveMedia(targets: Map<Uri, File>): Map<Uri, File?> {
+        return moveMedia(targets, onMoveCommitted = null)
+    }
+
+    /**
+     * The internal callback is a deterministic synchronization seam for commit-boundary tests.
+     * Production calls use [moveMedia] and pay no callback cost.
+     */
+    internal suspend fun moveMedia(
+        targets: Map<Uri, File>,
+        onMoveCommitted: (suspend (Uri) -> Unit)?,
+    ): Map<Uri, File?> {
+        val uris = targets.keys.toList()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val mediaStoreUris = uris.filter { it.authority == MediaStore.AUTHORITY }
             if (mediaStoreUris.isNotEmpty()) {
-                val granted = requestWriteAccessR(mediaStoreUris)
-                if (!granted) return@withContext uris.associateWith { null }
+                val granted = try {
+                    requestWriteAccessR(mediaStoreUris)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    false
+                }
+                if (!granted) return targets.keys.associateWith { null }
             }
         }
 
-        uris.associateWith { uri ->
-            val sourceFile = context.getPath(uri)?.let { File(it) } ?: return@associateWith null
-            val destFile = File(targetDir, sourceFile.name)
-            if (sourceFile.renameTo(destFile)) destFile else null
+        val callerJob = currentCoroutineContext()[Job]
+        return withContext(NonCancellable) {
+            withContext(Dispatchers.IO) io@{
+                val movedFiles = linkedMapOf<Uri, File?>()
+                val entries = targets.entries.iterator()
+                var moveCommitted = false
+                while (entries.hasNext()) {
+                    val (uri, destination) = entries.next()
+                    val movedFile = try {
+                        callerJob?.ensureActive()
+                        val sourceFile = context.getPath(uri)?.let { File(it) }
+                        if (sourceFile == null) {
+                            null
+                        } else {
+                            destination.parentFile?.mkdirs()
+                            moveFileWithoutOverwrite(sourceFile, destination) { callerJob?.ensureActive() }
+                        }
+                    } catch (e: CancellationException) {
+                        if (!moveCommitted) throw e
+                        movedFiles[uri] = null
+                        while (entries.hasNext()) movedFiles[entries.next().key] = null
+                        return@io movedFiles
+                    } catch (e: Exception) {
+                        null
+                    }
+                    movedFiles[uri] = movedFile
+                    moveCommitted = moveCommitted || movedFile != null
+                    if (movedFile != null) onMoveCommitted?.invoke(uri)
+                }
+                movedFiles
+            }
         }
+    }
+
+    /** Copies into an exclusively-created destination before atomically committing source deletion. */
+    internal fun moveFileWithoutOverwrite(
+        source: File,
+        destination: File,
+        ensureActive: () -> Unit,
+    ): File? {
+        if (!source.exists() || !destination.createNewFile()) return null
+        val expectedBytes = source.length()
+
+        val copiedBytes = try {
+            source.inputStream().use { input ->
+                FileOutputStream(destination).use { output ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    var copied = 0L
+                    while (true) {
+                        ensureActive()
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        output.write(buffer, 0, read)
+                        copied += read
+                    }
+                    output.fd.sync()
+                    ensureActive()
+                    copied
+                }
+            }
+        } catch (e: CancellationException) {
+            destination.delete()
+            throw e
+        } catch (e: Exception) {
+            destination.delete()
+            return null
+        }
+
+        // Cancellation before this point rolls back the destination. From here, the move is committed.
+        if (copiedBytes != expectedBytes || !source.delete()) {
+            destination.delete()
+            return null
+        }
+        return destination
     }
 
     override fun transferMedia(
@@ -249,7 +342,14 @@ class LocalMediaOperationsService @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun requestWriteAccessR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
+    private suspend fun requestWriteAccessR(uris: List<Uri>): Boolean = runMediaWriteRequests(
+        uris = uris,
+        itemExists = ::mediaExists,
+        request = ::requestWriteR,
+    )
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestWriteR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
         launchWriteRequest(
             uris = uris,
             onResultOk = { continuation.resume(true) },
@@ -284,13 +384,30 @@ class LocalMediaOperationsService @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun deleteMediaR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
+    private suspend fun deleteMediaR(uris: List<Uri>): Boolean = runMediaRequests(
+        items = uris,
+        itemExists = ::mediaExists,
+        request = ::requestDeleteR,
+    )
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private suspend fun requestDeleteR(uris: List<Uri>): Boolean = suspendCancellableCoroutine { continuation ->
         launchDeleteRequest(
             uris = uris,
             onResultOk = { continuation.resume(true) },
             onResultCanceled = { continuation.resume(false) },
         )
     }
+
+    private fun mediaExists(uri: Uri): Boolean = runCatching {
+        contentResolver.query(
+            uri,
+            arrayOf(BaseColumns._ID),
+            null,
+            null,
+            null,
+        )?.use { cursor -> cursor.moveToFirst() } == true
+    }.getOrDefault(false)
 
     private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean {
         return uris.map { uri ->

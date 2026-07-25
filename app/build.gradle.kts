@@ -16,8 +16,9 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         applicationId = "dev.anilbeesetti.nextplayer"
-        versionCode = 66
-        versionName = "0.17.0"
+        versionCode = 71
+        versionName = "0.17.4"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -140,6 +141,7 @@ dependencies {
     implementation(libs.github.anilbeesetti.nextlib.mediainfo)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.robolectric)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)

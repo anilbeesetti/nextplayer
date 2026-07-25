@@ -210,14 +210,16 @@ internal fun MediaPickerScreen(
         Modifier
     }
     val selectionManager = rememberSelectionManager()
-    val permissionState = rememberPermissionState(
-        permission = storagePermission,
-        onPermissionResult = { result ->
-            if (result) {
-                onAction(MediaPickerAction.OnPermissionAccepted)
-            }
+    val permissionState = rememberPermissionState(permission = storagePermission)
+    var wasPermissionGranted by remember { mutableStateOf(permissionState.status.isGranted) }
+
+    LaunchedEffect(permissionState.status.isGranted) {
+        val isPermissionGranted = permissionState.status.isGranted
+        if (isPermissionGranted && !wasPermissionGranted) {
+            onAction(MediaPickerAction.OnPermissionAccepted)
         }
-    )
+        wasPermissionGranted = isPermissionGranted
+    }
     val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -498,7 +500,20 @@ internal fun MediaPickerScreen(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
-        when (uiState.mediaDataState) {
+        if (!permissionState.status.isGranted) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(scaffoldPadding),
+            ) {
+                PermissionMissingView(
+                    isGranted = permissionState.status.isGranted,
+                    showRationale = permissionState.status.shouldShowRationale,
+                    permission = permissionState.permission,
+                    launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                ) {}
+            }
+        } else when (uiState.mediaDataState) {
             is DataState.Error -> {
             }
 
@@ -520,18 +535,10 @@ internal fun MediaPickerScreen(
                         start = 0.dp,
                         bottom = scaffoldPadding.calculateBottomPadding(),
                     )
-                    PermissionMissingView(
-                        isGranted = permissionState.status.isGranted,
-                        showRationale = permissionState.status.shouldShowRationale,
-                        permission = permissionState.permission,
-                        launchPermissionRequest = { permissionState.launchPermissionRequest() },
-                    ) {
-                        val mediaHolder = uiState.mediaDataState.value
-                        if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
-                            NoVideosFound(contentPadding = updatedScaffoldPadding)
-                            return@PermissionMissingView
-                        }
-
+                    val mediaHolder = uiState.mediaDataState.value
+                    if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
+                        NoVideosFound(contentPadding = updatedScaffoldPadding)
+                    } else {
                         MediaView(
                             recentlyPlayedVideo = uiState.recentlyPlayedVideo,
                             recentlyPlayedFolder = uiState.recentlyPlayedFolder,
