@@ -18,25 +18,19 @@ class PlayerApi(val activity: PlayerActivity) {
     val position: Long?
         get() {
             if (extras == null) return null
-            val msRaw = extras.get(API_POSITION)
-                ?: extras.get("extra_position")
-                ?: extras.get("position_extra")
-                ?: extras.get("resume_position")
-                ?: extras.get("position_ms")
-            if (msRaw != null) {
-                return when (msRaw) {
-                    is Number -> msRaw.toLong()
-                    is String -> msRaw.toLongOrNull()
-                    else -> null
-                }
-            }
-            val secRaw = extras.get("start") ?: extras.get("position_sec") ?: return null
-            val num = when (secRaw) {
-                is Number -> secRaw.toLong()
-                is String -> secRaw.toLongOrNull()
+            val raw = extras.get(API_POSITION)
+                ?: extras.get(API_EXTRA_POSITION)
+                ?: extras.get(API_POSITION_EXTRA)
+                ?: extras.get(API_START)
+                ?: return null
+            val num = when (raw) {
+                is Number -> raw.toLong()
+                is String -> raw.toLongOrNull()
                 else -> null
             } ?: return null
-            return if (num in 1..86400) num * 1000L else num
+
+            val key = extras.keySet().firstOrNull { extras.get(it) == raw }
+            return if (key == API_START && num in 1..86400) num * 1000L else num
         }
     val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
 
@@ -73,18 +67,12 @@ class PlayerApi(val activity: PlayerActivity) {
             data = activity.intent.data
             val endBy = if (isPlaybackFinished) API_END_BY_COMPLETION else API_END_BY_USER
             putExtra(API_END_BY, endBy)
-            putExtra("is_finished", isPlaybackFinished)
-            putExtra("playback_completion", isPlaybackFinished)
             putExtra(API_RETURN_RESULT, true)
 
             val targetDuration = if (duration != C.TIME_UNSET) duration else -1L
             if (targetDuration >= 0) {
                 putExtra(API_DURATION, targetDuration.toInt())
-                putExtra("duration_long", targetDuration)
-                putExtra("extra_duration", targetDuration)
-                putExtra("extra_duration_int", targetDuration.toInt())
-                putExtra("duration_ms", targetDuration)
-                putExtra("duration_sec", (targetDuration / 1000).toInt())
+                putExtra(API_EXTRA_DURATION, targetDuration)
             }
 
             val targetPosition = if (isPlaybackFinished && targetDuration >= 0) {
@@ -97,12 +85,8 @@ class PlayerApi(val activity: PlayerActivity) {
 
             if (targetPosition >= 0) {
                 putExtra(API_POSITION, targetPosition.toInt())
-                putExtra("position_long", targetPosition)
-                putExtra("position_extra", targetPosition.toInt())
-                putExtra("extra_position", targetPosition)
-                putExtra("extra_position_int", targetPosition.toInt())
-                putExtra("position_ms", targetPosition)
-                putExtra("position_sec", (targetPosition / 1000).toInt())
+                putExtra(API_POSITION_EXTRA, targetPosition.toInt())
+                putExtra(API_EXTRA_POSITION, targetPosition)
             }
         }
     }
@@ -110,7 +94,11 @@ class PlayerApi(val activity: PlayerActivity) {
     companion object {
         const val API_TITLE = "title"
         const val API_POSITION = "position"
+        const val API_POSITION_EXTRA = "position_extra"
+        const val API_EXTRA_POSITION = "extra_position"
+        const val API_START = "start"
         const val API_DURATION = "duration"
+        const val API_EXTRA_DURATION = "extra_duration"
         const val API_RETURN_RESULT = "return_result"
         const val API_END_BY = "end_by"
         const val API_SUBS = "subs"
