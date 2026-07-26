@@ -528,7 +528,7 @@ class PlayerService : MediaSessionService() {
             override fun getCodecAdapterFactory(): androidx.media3.exoplayer.mediacodec.MediaCodecAdapter.Factory {
                 val defaultFactory = super.getCodecAdapterFactory()
                 return androidx.media3.exoplayer.mediacodec.MediaCodecAdapter.Factory { configuration ->
-                    if (androidx.media3.common.MimeTypes.VIDEO_DOLBY_VISION == configuration.format.sampleMimeType) {
+                    if (playerPreferences.dv7Fallback && androidx.media3.common.MimeTypes.VIDEO_DOLBY_VISION == configuration.format.sampleMimeType) {
                         if (android.os.Build.VERSION.SDK_INT >= 29) {
                             configuration.mediaFormat.removeKey(android.media.MediaFormat.KEY_PROFILE)
                         } else {
@@ -553,7 +553,7 @@ class PlayerService : MediaSessionService() {
                 out: java.util.ArrayList<androidx.media3.exoplayer.Renderer>
             ) {
                 val customSelector = androidx.media3.exoplayer.mediacodec.MediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
-                    if (androidx.media3.common.MimeTypes.VIDEO_DOLBY_VISION == mimeType) {
+                    if (playerPreferences.dv7Fallback && androidx.media3.common.MimeTypes.VIDEO_DOLBY_VISION == mimeType) {
                         androidx.media3.exoplayer.mediacodec.MediaCodecUtil.getDecoderInfos(
                             androidx.media3.common.MimeTypes.VIDEO_H265, requiresSecureDecoder, requiresTunnelingDecoder
                         )

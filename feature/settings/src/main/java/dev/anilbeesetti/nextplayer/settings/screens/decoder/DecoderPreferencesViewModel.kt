@@ -39,12 +39,21 @@ class DecoderPreferencesViewModel @Inject constructor(
         when (event) {
             is DecoderPreferencesUiEvent.ShowDialog -> showDialog(event.value)
             is DecoderPreferencesUiEvent.UpdateDecoderPriority -> updateDecoderPriority(event.value)
+            is DecoderPreferencesUiEvent.UpdateDv7Fallback -> updateDv7Fallback(event.value)
         }
     }
 
     private fun showDialog(value: DecoderPreferenceDialog?) {
         uiStateInternal.update {
             it.copy(showDialog = value)
+        }
+    }
+
+    private fun updateDv7Fallback(value: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(dv7Fallback = value)
+            }
         }
     }
 
@@ -70,4 +79,5 @@ sealed interface DecoderPreferenceDialog {
 sealed interface DecoderPreferencesUiEvent {
     data class ShowDialog(val value: DecoderPreferenceDialog?) : DecoderPreferencesUiEvent
     data class UpdateDecoderPriority(val value: DecoderPriority) : DecoderPreferencesUiEvent
+    data class UpdateDv7Fallback(val value: Boolean) : DecoderPreferencesUiEvent
 }
