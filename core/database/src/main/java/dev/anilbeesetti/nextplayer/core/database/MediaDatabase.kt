@@ -232,6 +232,9 @@ abstract class MediaDatabase : RoomDatabase() {
                         `use_https` INTEGER NOT NULL,
                         `created_at` INTEGER NOT NULL
                     )
+                    """,
+                )
+            }
         }
 
         val MIGRATION_7_8 = object : Migration(7, 8) {
@@ -239,6 +242,5 @@ abstract class MediaDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE `media_state` ADD COLUMN `video_scale_y` REAL NOT NULL DEFAULT 1")
             }
         }
-    }
     }
 }
