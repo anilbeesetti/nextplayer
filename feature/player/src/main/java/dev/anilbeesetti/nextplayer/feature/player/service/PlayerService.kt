@@ -523,15 +523,65 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        val renderersFactory = NextRenderersFactory(applicationContext)
-            .setEnableDecoderFallback(true)
-            .setExtensionRendererMode(
+        val renderersFactory = object : NextRenderersFactory(applicationContext) {
+            override fun getCodecAdapterFactory(): androidx.media3.exoplayer.mediacodec.MediaCodecAdapter.Factory {
+                val defaultFactory = super.getCodecAdapterFactory()
+                return androidx.media3.exoplayer.mediacodec.MediaCodecAdapter.Factory { configuration ->
+                    if (playerPreferences.dv7Fallback && androidx.media3.common.MimeTypes.VIDEO_DOLBY_VISION == configuration.format.sampleMimeType) {
+                        if (android.os.Build.VERSION.SDK_INT >= 29) {
+                            configuration.mediaFormat.removeKey(android.media.MediaFormat.KEY_PROFILE)
+                        } else {
+                            configuration.mediaFormat.setInteger(android.media.MediaFormat.KEY_PROFILE, android.media.MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10)
+                        }
+                        if (android.os.Build.VERSION.SDK_INT >= 31) {
+                            configuration.mediaFormat.removeKey(android.media.MediaFormat.KEY_COLOR_TRANSFER_REQUEST)
+                        }
+                    }
+                    defaultFactory.createAdapter(configuration)
+                }
+            }
+
+            override fun buildVideoRenderers(
+                context: android.content.Context,
+                extensionRendererMode: Int,
+                mediaCodecSelector: androidx.media3.exoplayer.mediacodec.MediaCodecSelector,
+                enableDecoderFallback: Boolean,
+                eventHandler: android.os.Handler,
+                eventListener: androidx.media3.exoplayer.video.VideoRendererEventListener,
+                allowedVideoJoiningTimeMs: Long,
+                out: java.util.ArrayList<androidx.media3.exoplayer.Renderer>
+            ) {
+                val customSelector = androidx.media3.exoplayer.mediacodec.MediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
+                    if (playerPreferences.dv7Fallback && androidx.media3.common.MimeTypes.VIDEO_DOLBY_VISION == mimeType) {
+                        androidx.media3.exoplayer.mediacodec.MediaCodecUtil.getDecoderInfos(
+                            androidx.media3.common.MimeTypes.VIDEO_H265, requiresSecureDecoder, requiresTunnelingDecoder
+                        )
+                    } else {
+                        mediaCodecSelector.getDecoderInfos(mimeType, requiresSecureDecoder, requiresTunnelingDecoder)
+                    }
+                }
+                
+                super.buildVideoRenderers(
+                    context,
+                    extensionRendererMode,
+                    customSelector,
+                    enableDecoderFallback,
+                    eventHandler,
+                    eventListener,
+                    allowedVideoJoiningTimeMs,
+                    out
+                )
+            }
+        }.apply {
+            setEnableDecoderFallback(true)
+            setExtensionRendererMode(
                 when (playerPreferences.decoderPriority) {
-                    DecoderPriority.DEVICE_ONLY -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderPriority.PREFER_DEVICE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderPriority.PREFER_APP -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                    DecoderPriority.DEVICE_ONLY -> androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DecoderPriority.PREFER_DEVICE -> androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                    DecoderPriority.PREFER_APP -> androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
                 },
             )
+        }
 
         val trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(
