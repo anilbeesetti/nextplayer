@@ -48,9 +48,9 @@ class PlayerViewModel @Inject constructor(
         return getSortedPlaylistUseCase.invoke(uri)
     }
 
-    fun updateVideoZoom(uri: String, zoom: Float) {
+    fun updateVideoZoom(uri: String, zoomX: Float, zoomY: Float) {
         viewModelScope.launch {
-            mediaRepository.updateMediumZoom(uri, zoom)
+            mediaRepository.updateMediumZoom(uri, zoomX, zoomY)
         }
     }
 
@@ -78,7 +78,7 @@ class PlayerViewModel @Inject constructor(
                 updateVideoContentScale(event.contentScale)
             }
             is VideoZoomEvent.ZoomChanged -> {
-                updateVideoZoom(event.mediaItem.mediaId, event.zoom)
+                updateVideoZoom(event.mediaItem.mediaId, event.zoomX, event.zoomY)
             }
         }
     }

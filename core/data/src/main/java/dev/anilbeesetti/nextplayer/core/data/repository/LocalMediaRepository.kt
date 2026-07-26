@@ -143,12 +143,13 @@ class LocalMediaRepository @Inject constructor(
         )
     }
 
-    override suspend fun updateMediumZoom(uri: String, zoom: Float) {
+    override suspend fun updateMediumZoom(uri: String, zoomX: Float, zoomY: Float) {
         val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
 
         mediumStateDao.upsert(
             mediumState = stateEntity.copy(
-                videoScale = zoom,
+                videoScale = zoomX,
+                videoScaleY = zoomY,
                 lastPlayedTime = System.currentTimeMillis(),
             ),
         )

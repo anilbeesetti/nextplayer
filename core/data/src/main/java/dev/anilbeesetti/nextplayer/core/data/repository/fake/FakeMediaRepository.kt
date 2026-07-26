@@ -57,7 +57,7 @@ class FakeMediaRepository : MediaRepository {
     override suspend fun updateMediumSubtitleTrack(uri: String, subtitleTrackIndex: Int) {
     }
 
-    override suspend fun updateMediumZoom(uri: String, zoom: Float) {
+    override suspend fun updateMediumZoom(uri: String, zoomX: Float, zoomY: Float) {
     }
 
     override suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri) {
