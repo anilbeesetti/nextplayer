@@ -11,10 +11,33 @@ class PlayerApi(val activity: PlayerActivity) {
 
     private val extras = activity.intent.extras
     val isApiAccess: Boolean get() = extras != null
-    val hasPosition: Boolean get() = extras?.containsKey(API_POSITION) == true
+    val hasPosition: Boolean get() = position != null
     val hasTitle: Boolean get() = extras?.containsKey(API_TITLE) == true
-    val shouldReturnResult: Boolean get() = extras?.containsKey(API_RETURN_RESULT) == true
-    val position: Int? get() = if (hasPosition) extras?.getInt(API_POSITION) else null
+    val shouldReturnResult: Boolean
+        get() = activity.callingActivity != null || activity.callingPackage != null || extras?.containsKey(API_RETURN_RESULT) == true
+    val position: Long?
+        get() {
+            if (extras == null) return null
+            val msRaw = extras.get(API_POSITION)
+                ?: extras.get("extra_position")
+                ?: extras.get("position_extra")
+                ?: extras.get("resume_position")
+                ?: extras.get("position_ms")
+            if (msRaw != null) {
+                return when (msRaw) {
+                    is Number -> msRaw.toLong()
+                    is String -> msRaw.toLongOrNull()
+                    else -> null
+                }
+            }
+            val secRaw = extras.get("start") ?: extras.get("position_sec") ?: return null
+            val num = when (secRaw) {
+                is Number -> secRaw.toLong()
+                is String -> secRaw.toLongOrNull()
+                else -> null
+            } ?: return null
+            return if (num in 1..86400) num * 1000L else num
+        }
     val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
 
     fun getSubs(): List<Subtitle> {
@@ -47,12 +70,39 @@ class PlayerApi(val activity: PlayerActivity) {
 
     fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent {
         return Intent(API_RESULT_INTENT).apply {
-            if (isPlaybackFinished) {
-                putExtra(API_END_BY, API_END_BY_COMPLETION)
+            data = activity.intent.data
+            val endBy = if (isPlaybackFinished) API_END_BY_COMPLETION else API_END_BY_USER
+            putExtra(API_END_BY, endBy)
+            putExtra("is_finished", isPlaybackFinished)
+            putExtra("playback_completion", isPlaybackFinished)
+            putExtra(API_RETURN_RESULT, true)
+
+            val targetDuration = if (duration != C.TIME_UNSET) duration else -1L
+            if (targetDuration >= 0) {
+                putExtra(API_DURATION, targetDuration.toInt())
+                putExtra("duration_long", targetDuration)
+                putExtra("extra_duration", targetDuration)
+                putExtra("extra_duration_int", targetDuration.toInt())
+                putExtra("duration_ms", targetDuration)
+                putExtra("duration_sec", (targetDuration / 1000).toInt())
+            }
+
+            val targetPosition = if (isPlaybackFinished && targetDuration >= 0) {
+                targetDuration
+            } else if (position != C.TIME_UNSET) {
+                position
             } else {
-                putExtra(API_END_BY, API_END_BY_USER)
-                if (duration != C.TIME_UNSET) putExtra(API_DURATION, duration.toInt())
-                if (position != C.TIME_UNSET) putExtra(API_POSITION, position.toInt())
+                -1L
+            }
+
+            if (targetPosition >= 0) {
+                putExtra(API_POSITION, targetPosition.toInt())
+                putExtra("position_long", targetPosition)
+                putExtra("position_extra", targetPosition.toInt())
+                putExtra("extra_position", targetPosition)
+                putExtra("extra_position_int", targetPosition.toInt())
+                putExtra("position_ms", targetPosition)
+                putExtra("position_sec", (targetPosition / 1000).toInt())
             }
         }
     }
