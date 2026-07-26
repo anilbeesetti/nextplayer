@@ -68,7 +68,10 @@ class VideoZoomAndContentScaleState(
     var videoContentScale: VideoContentScale by mutableStateOf(initialContentScale)
         private set
 
-    var zoom: Float by mutableFloatStateOf(1f)
+    var zoomX: Float by mutableFloatStateOf(1f)
+        private set
+
+    var zoomY: Float by mutableFloatStateOf(1f)
         private set
 
     var offset: Offset by mutableStateOf(Offset.Zero)
@@ -84,7 +87,8 @@ class VideoZoomAndContentScaleState(
 
     fun onVideoContentScaleChanged(newContentScale: VideoContentScale) {
         videoContentScale = newContentScale
-        zoom = 1f
+        zoomX = 1f
+        zoomY = 1f
         offset = Offset.Zero
         onEvent(VideoZoomEvent.ContentScaleChanged(videoContentScale))
         updateVideoScaleMetadataAndSendEvent()
@@ -105,23 +109,24 @@ class VideoZoomAndContentScaleState(
         onVideoContentScaleChanged(videoContentScale.next())
     }
 
-    fun onZoomPanGesture(constraints: Constraints, panChange: Offset, zoomChange: Float) {
+    fun onZoomPanGesture(constraints: Constraints, panChange: Offset, zoomChange: Offset) {
         if (player.duration == C.TIME_UNSET) return
         if (!enableZoomGesture) return
 
         isZooming = true
-        zoom = (zoom * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
+        zoomX = (zoomX * zoomChange.x).coerceIn(MIN_ZOOM, MAX_ZOOM)
+        zoomY = (zoomY * zoomChange.y).coerceIn(MIN_ZOOM, MAX_ZOOM)
 
-        val extraWidth = (zoom - 1) * constraints.maxWidth
-        val extraHeight = (zoom - 1) * constraints.maxHeight
+        val extraWidth = (zoomX - 1) * constraints.maxWidth
+        val extraHeight = (zoomY - 1) * constraints.maxHeight
 
         val maxX = abs(extraWidth / 2)
         val maxY = abs(extraHeight / 2)
 
         if (enablePanGesture) {
             offset = Offset(
-                x = (offset.x + zoom * panChange.x).coerceIn(-maxX, maxX),
-                y = (offset.y + zoom * panChange.y).coerceIn(-maxY, maxY),
+                x = (offset.x + zoomX * panChange.x).coerceIn(-maxX, maxX),
+                y = (offset.y + zoomY * panChange.y).coerceIn(-maxY, maxY),
             )
         }
     }
@@ -132,25 +137,27 @@ class VideoZoomAndContentScaleState(
     }
 
     suspend fun observe() {
-        zoom = player.currentMediaItem?.mediaMetadata?.videoZoom ?: 1f
+        zoomX = player.currentMediaItem?.mediaMetadata?.videoZoomX ?: 1f
+        zoomY = player.currentMediaItem?.mediaMetadata?.videoZoomY ?: 1f
         player.listen { events ->
             if (events.contains(Player.EVENT_MEDIA_METADATA_CHANGED)) {
-                zoom = player.currentMediaItem?.mediaMetadata?.videoZoom ?: 1f
+                zoomX = player.currentMediaItem?.mediaMetadata?.videoZoomX ?: 1f
+                zoomY = player.currentMediaItem?.mediaMetadata?.videoZoomY ?: 1f
             }
         }
     }
 
-    private fun updateVideoScaleMetadataAndSendEvent(zoom: Float = this.zoom) {
+    private fun updateVideoScaleMetadataAndSendEvent(zoomX: Float = this.zoomX, zoomY: Float = this.zoomY) {
         val currentMediaItem = player.currentMediaItem ?: return
         player.replaceMediaItem(
             player.currentMediaItemIndex,
-            currentMediaItem.copy(videoZoom = zoom),
+            currentMediaItem.copy(videoZoomX = zoomX, videoZoomY = zoomY),
         )
-        onEvent(VideoZoomEvent.ZoomChanged(currentMediaItem, zoom))
+        onEvent(VideoZoomEvent.ZoomChanged(currentMediaItem, zoomX, zoomY))
     }
 }
 
 sealed interface VideoZoomEvent {
     data class ContentScaleChanged(val contentScale: VideoContentScale) : VideoZoomEvent
-    data class ZoomChanged(val mediaItem: MediaItem, val zoom: Float) : VideoZoomEvent
+    data class ZoomChanged(val mediaItem: MediaItem, val zoomX: Float, val zoomY: Float) : VideoZoomEvent
 }
