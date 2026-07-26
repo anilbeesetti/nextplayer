@@ -43,10 +43,10 @@ fun PointerEvent.calculateZoomXY(): Offset {
     var deltaX = currentDistanceX - previousDistanceX
     var deltaY = currentDistanceY - previousDistanceY
     
-    // Snap to dominant axis to prevent accidental scaling on the other axis
-    if (kotlin.math.abs(deltaX) > kotlin.math.abs(deltaY) * 1.5f) {
+    // Snap based on finger placement
+    if (previousDistanceX >= previousDistanceY) {
         deltaY = 0f
-    } else if (kotlin.math.abs(deltaY) > kotlin.math.abs(deltaX) * 1.5f) {
+    } else {
         deltaX = 0f
     }
     
