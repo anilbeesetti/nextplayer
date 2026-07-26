@@ -33,8 +33,18 @@ fun PointerEvent.calculateZoomXY(): Offset {
     val previousDistanceX = kotlin.math.abs(p1.previousPosition.x - p2.previousPosition.x)
     val previousDistanceY = kotlin.math.abs(p1.previousPosition.y - p2.previousPosition.y)
     
-    val zoomX = if (previousDistanceX > 10f) currentDistanceX / previousDistanceX else 1f
-    val zoomY = if (previousDistanceY > 10f) currentDistanceY / previousDistanceY else 1f
+    val previousDistance = kotlin.math.hypot(
+        p1.previousPosition.x - p2.previousPosition.x,
+        p1.previousPosition.y - p2.previousPosition.y
+    )
+    
+    if (previousDistance < 10f) return Offset(1f, 1f)
+    
+    val deltaX = currentDistanceX - previousDistanceX
+    val deltaY = currentDistanceY - previousDistanceY
+    
+    val zoomX = 1f + (deltaX / previousDistance)
+    val zoomY = 1f + (deltaY / previousDistance)
     
     return Offset(zoomX, zoomY)
 }
