@@ -364,4 +364,28 @@
     </plurals>
     <string name="got_it">Anladım</string>
     <string name="transfer_file_progress">Dosya %1$d / %2$d</string>
+    <string name="home">Ana Sayfa</string>
+    <string name="network">Ağ</string>
+    <string name="add_connection">Bağlantı ekle</string>
+    <string name="edit_connection">Bağlantıyı düzenle</string>
+    <string name="delete_connection">Bağlantıyı sil</string>
+    <string name="delete_connection_confirmation">\"%1$s\" kaldırılsın mı?</string>
+    <string name="connection_name">İsim</string>
+    <string name="protocol">Protokol</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="port_hint">Port (varsayılan %1$d)</string>
+    <string name="path_share">Yol / Paylaşım adı</string>
+    <string name="username">Kullanıcı adı</string>
+    <string name="password">Şifre</string>
+    <string name="use_https">HTTPS kullan</string>
+    <string name="test_and_save">Test et &amp; Kaydet</string>
+    <string name="connecting">Bağlanıyor…</string>
+    <string name="connection_failed">Bağlantı kurulamadı. Ayrıntıları kontrol edin ve tekrar deneyin.</string>
+    <string name="no_connections_title">Henüz bağlantı yok</string>
+    <string name="no_connections_description">Ağınızdaki videoları taramak ve oynatmak için bir SMB, FTP veya WebDAV bağlantısı ekleyin.</string>
+    <string name="empty_folder">Bu klasör boş</string>
+    <string name="failed_to_load_folder">Bu konum yüklenemedi</string>
+    <string name="retry">Tekrar dene</string>
+    <string name="edit">Düzenle</string>
 </resources>
