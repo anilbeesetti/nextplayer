@@ -372,7 +372,7 @@
     <string name="home">Domov</string>
     <string name="network">Síť</string>
     <string name="add_connection">Přidat připojení</string>
-    <string name="edit_connection">Změnit připojení</string>
+    <string name="edit_connection">Upravit připojení</string>
     <string name="delete_connection">Odstranit připojení</string>
     <string name="delete_connection_confirmation">Odebrat \"%1$s\"?</string>
     <string name="connection_name">Jméno</string>
