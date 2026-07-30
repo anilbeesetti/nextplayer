@@ -53,6 +53,9 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
                 .withMultiProtocolNegotiate(true)
                 .withSigningRequired(false)
                 .withEncryptData(false)
+                // Add large buffer sizes (e.g., 8MB)
+                .withReadBufferSize(8 * 1024 * 1024)
+                .withWriteBufferSize(8 * 1024 * 1024)
                 .build()
 
             val smbClient = SMBClient(config)
@@ -119,7 +122,8 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
         val sess = session ?: error("Not connected")
         val share = sess.connectShare(shareName) as DiskShare
         val file = openReadFile(share, path)
-        object : InputStream() {
+
+        val rawStream = object : InputStream() {
             private var position = offset
 
             override fun read(): Int {
@@ -138,6 +142,9 @@ class SmbClient(private val connection: NetworkConnection) : NetworkClient {
                 runCatching { share.close() }
             }
         }
+
+        // Wrap the stream in a 2MB buffer to drastically reduce SMB network requests
+        return@withContext rawStream.buffered(2 * 1024 * 1024)
     }
 
     private fun openReadFile(share: DiskShare, path: String) = share.openFile(
