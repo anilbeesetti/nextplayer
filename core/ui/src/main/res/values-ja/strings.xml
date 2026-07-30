@@ -27,7 +27,7 @@
     <string name="fast_seek_description">正確なキーフレームではなく、最も近いキーフレームを検索します。</string>
     <string name="player_controls_next">次のプレーヤー</string>
     <string name="permission_not_granted">権限が付与されていません</string>
-    <string name="duration">時間</string>
+    <string name="duration">長さ</string>
     <string name="done">完了</string>
     <string name="size">サイズ</string>
     <string name="force_rescan_storage">ストレージの強制再スキャン</string>
@@ -108,7 +108,7 @@
     <string name="dynamic_theme_description">システムの壁紙の色をアプリケーションのテーマに適用します</string>
     <string name="system_default">システムのデフォルト</string>
     <string name="delete_file">以下のファイルは完全に削除されます</string>
-    <string name="high_contrast_dark_theme_desc">ダークテーマに真っ黒な背景を使用します</string>
+    <string name="high_contrast_dark_theme_desc">ダークテーマで真っ黒な背景を使用します</string>
     <string name="fields">フィールド</string>
     <string name="zoom_gesture_description">ピンチしてビデオをズーム</string>
     <string name="subtitle_text_size">字幕の文字サイズ</string>
@@ -312,7 +312,7 @@
     <string name="copying_videos_in_progress">コピー中…</string>
     <string name="moving_videos_in_progress">移動中…</string>
     <string name="transfer_file_progress">%2$d 件中 %1$d 件目</string>
-    <string name="folder_duration">フォルダーの有効期間</string>
+    <string name="folder_duration">フォルダー内の長さ</string>
     <string name="reorder">再配置</string>
     <string name="remove">除去</string>
     <string name="unknown">不明</string>
@@ -345,9 +345,41 @@
     <string name="confirm_vault_pin">PIN の確認</string>
     <string name="confirm_vault_pin_description">確認のため、PIN を再入力してください</string>
     <string name="enter_vault_pin">PIN を入力</string>
-    <string name="enter_vault_pin_description">非表示になっている動画にアクセスするには PIN を入力してください</string>
+    <string name="enter_vault_pin_description">非表示にした動画にアクセスするには PIN を入力してください</string>
     <string name="pins_do_not_match">PIN が一致しません。もう一度お試しください</string>
     <string name="incorrect_pin">PIN が間違っています</string>
-    <string name="how_to_find_hidden_videos_title">非表示になっている動画を見つける方法</string>
-    <string name="how_to_find_hidden_videos_description">非表示になっている動画は保管庫に安全に保管されています。再度開くには、ホーム画面上部の「NextPlayer」タイトルを長押しし、PIN を入力してください。</string>
+    <string name="how_to_find_hidden_videos_title">非表示にした動画を見つける方法</string>
+    <string name="how_to_find_hidden_videos_description">非表示にした動画は保管庫に安全に保管されています。再度開くには、ホーム画面上部の「NextPlayer」タイトルを長押しし、PIN を入力してください。</string>
+    <string name="reset_controller_timeout">コントローラーが非表示になるまでの時間をリセット</string>
+    <string name="got_it">わかりました</string>
+    <string name="open_vault">保管庫を開く</string>
+    <string name="vault_empty_title">非表示にした動画はありません</string>
+    <string name="vault_empty_description">非表示にした動画はここに表示されます。動画を長押しして「非表示」をタップすると、動画を保管庫に追加できます。</string>
+    <string name="unhide_one_video_confirmation">この動画の非表示を解除しますか？元の場所に戻されます。</string>
+    <string name="unhide_videos_confirmation">%1$d 本の動画の非表示を解除しますか？元の場所に戻されます。</string>
+    <string name="delete_one_video_from_vault">この動画を完全に削除しますか？</string>
+    <string name="delete_videos_from_vault">%1$d 本の動画を完全に削除しますか？</string>
+    <string name="delete_from_vault_info">この操作は元に戻せません。動画はデバイスから完全に削除されます。</string>
+    <string name="sort_by">並べ替え</string>
+    <string name="name">名前</string>
+    <string name="date_hidden">非表示にした日付</string>
+    <string name="forgot_pin">PIN を忘れましたか？</string>
+    <string name="reset_vault_pin_confirmation">PIN をリセットすると、ロックを解除できなくなるため、保管庫にあるすべての動画が完全に削除されます。続行しますか？</string>
+    <string name="reset_pin_and_delete_all">PIN をリセットしてすべて削除</string>
+    <plurals name="copied_videos_result">
+        <item quantity="other">%1$d 本の動画をコピーしました</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="other">%1$d 本の動画を移動しました</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="other">%1$d 本の動画をコピーできませんでした</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="other">%1$d 本の動画を移動できませんでした</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="other">%1$d 個の動画を移動しましたが、元の動画を削除できませんでした</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">同じフォルダーには移動できません</string>
 </resources>
