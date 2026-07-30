@@ -46,3 +46,6 @@ vendor/
 .bundle/
 .kotlin
 .junie
+.superpowers
+docs
+qa

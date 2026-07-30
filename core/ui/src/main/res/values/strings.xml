@@ -397,4 +397,5 @@
         <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
+
 </resources>

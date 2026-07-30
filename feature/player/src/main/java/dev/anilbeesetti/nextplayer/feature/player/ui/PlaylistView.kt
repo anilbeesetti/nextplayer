@@ -53,6 +53,7 @@ import dev.anilbeesetti.nextplayer.core.common.Utils
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.feature.player.extensions.artworkModel
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaylistState
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableCollectionItemScope
@@ -233,7 +234,7 @@ private fun ThumbnailView(
         // Thumbnail image
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(mediaItem.mediaId)
+                .data(mediaItem.artworkModel)
                 .crossfade(true)
                 .build(),
             contentDescription = null,

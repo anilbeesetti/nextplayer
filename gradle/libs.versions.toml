@@ -33,8 +33,8 @@ kotlinxSerializationJson = "1.11.0"
 ksp = "2.3.10"
 ktlint = "12.3.0"
 reorderable = "3.1.0"
-room = "2.8.4"
 robolectric = "4.16.1"
+room = "2.8.4"
 nextlib = "1.10.1-0.13.0"
 universalChardet = "2.5.0"
 smbj = "0.14.0"
@@ -83,9 +83,11 @@ androidx-lifecycle-viewmodel-navigation3 = { group = "androidx.lifecycle", name 
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 github-albfernandez-juniversalchardet = { group="com.github.albfernandez", name = "juniversalchardet", version.ref="universalChardet" }
 github-anilbeesetti-nextlib-media3ext = { group = "io.github.anilbeesetti", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "io.github.anilbeesetti", name = "nextlib-mediainfo", version.ref = "nextlib" }
@@ -98,6 +100,7 @@ kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
+kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }

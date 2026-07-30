@@ -45,6 +45,8 @@ dependencies {
     kspAndroidTest(libs.hilt.compiler)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
 }

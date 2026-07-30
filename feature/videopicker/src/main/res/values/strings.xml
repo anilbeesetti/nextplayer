@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="videopicker_playlist_add_to_playlist">Add to playlist</string>
+    <string name="videopicker_playlist_choose_playlist">Choose a playlist</string>
+    <string name="videopicker_playlist_no_editable_playlists">No local playlists yet</string>
+    <string name="videopicker_playlist_create_new_playlist">Create new playlist</string>
+    <string name="videopicker_playlist_name">Playlist name</string>
+    <string name="videopicker_playlist_create">Create</string>
+    <string name="existing_playlists">Existing playlists</string>
+    <plurals name="videopicker_playlist_added_videos">
+        <item quantity="one">Added 1 video to playlist</item>
+        <item quantity="other">Added %1$d videos to playlist</item>
+    </plurals>
+</resources>

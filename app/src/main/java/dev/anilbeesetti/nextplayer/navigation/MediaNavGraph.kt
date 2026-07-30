@@ -46,25 +46,63 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
 }
 
 internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = false) {
-    startPlayback(uri = uri, playlist = null, grantReadPermission = grantReadPermission)
+    startPlayback(
+        uri = uri,
+        playlist = null,
+        grantReadPermission = grantReadPermission,
+    )
 }
 
-internal fun Context.startPlayback(uris: List<Uri>, grantReadPermission: Boolean = false) {
-    val uri = uris.firstOrNull() ?: return
-    startPlayback(uri = uri, playlist = uris, grantReadPermission = grantReadPermission)
+internal fun Context.startPlayback(
+    uris: List<Uri>,
+    startUri: Uri? = null,
+    grantReadPermission: Boolean = false,
+) {
+    val uri = startUri ?: uris.firstOrNull() ?: return
+    startPlayback(
+        uri = uri,
+        playlist = uris,
+        grantReadPermission = grantReadPermission,
+    )
 }
 
-private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermission: Boolean) {
-    if (grantReadPermission) {
-        (playlist ?: listOf(uri)).forEach {
-            grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+private fun Context.startPlayback(
+    uri: Uri,
+    playlist: List<Uri>?,
+    grantReadPermission: Boolean,
+) {
+    val items = playlist ?: listOf(uri)
+    val spec = playbackLaunchSpec(
+        items = items,
+        startItem = uri,
+        grantReadPermission = grantReadPermission,
+        includePlaylist = playlist != null,
+    )
+    if (spec.grantReadPermission) {
+        items.forEach { grantUriPermission(packageName, it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
     }
     val intent = Intent(this, PlayerActivity::class.java).apply {
         action = Intent.ACTION_VIEW
-        data = uri
-        playlist?.let { putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, ArrayList(it)) }
-        if (grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        data = spec.startItem
+        spec.playlistExtra?.let { putParcelableArrayListExtra(PlayerApi.API_PLAYLIST, it) }
+        if (spec.grantReadPermission) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     startActivity(intent)
 }
+
+internal data class PlaybackLaunchSpec<T>(
+    val startItem: T,
+    val playlistExtra: ArrayList<T>?,
+    val grantReadPermission: Boolean,
+)
+
+internal fun <T> playbackLaunchSpec(
+    items: List<T>,
+    startItem: T = items.first(),
+    grantReadPermission: Boolean = false,
+    includePlaylist: Boolean = items.size > 1,
+): PlaybackLaunchSpec<T> = PlaybackLaunchSpec(
+    startItem = startItem,
+    playlistExtra = items.takeIf { includePlaylist }?.let { ArrayList(it) },
+    grantReadPermission = grantReadPermission,
+)

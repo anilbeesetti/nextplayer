@@ -1,8 +1,11 @@
 package dev.anilbeesetti.nextplayer.feature.player.extensions
 
+import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import dev.anilbeesetti.nextplayer.feature.player.service.MAX_PUBLISHED_ARTWORK_BYTES
 
 private const val MEDIA_METADATA_POSITION_KEY = "media_metadata_position"
 private const val MEDIA_METADATA_PLAYBACK_SPEED_KEY = "media_metadata_playback_speed"
@@ -11,6 +14,20 @@ private const val MEDIA_METADATA_SUBTITLE_TRACK_INDEX_KEY = "subtitle_track_inde
 private const val MEDIA_METADATA_VIDEO_ZOOM_KEY = "media_metadata_video_zoom"
 private const val MEDIA_METADATA_SUBTITLE_DELAY_KEY = "media_metadata_subtitle_delay"
 private const val MEDIA_METADATA_SUBTITLE_SPEED_KEY = "media_metadata_subtitle_speed"
+
+val MediaItem.artworkModel: Any
+    get() = mediaMetadata.artworkData
+        ?: mediaMetadata.artworkUri
+        ?: mediaId.toUri()
+
+val MediaItem.artworkRequestUri: Uri
+    get() = mediaMetadata.artworkUri ?: mediaId.toUri()
+
+fun MediaItem.artworkRequestUris(defaultArtworkUri: Uri): List<Uri> = buildList {
+    mediaMetadata.artworkUri?.let(::add)
+    add(localConfiguration?.uri ?: mediaId.toUri())
+    add(defaultArtworkUri)
+}.distinct()
 
 private fun Bundle.setExtras(
     positionMs: Long?,
@@ -105,7 +122,7 @@ fun MediaItem.copy(
     mediaMetadata.buildUpon()
         .setDurationMs(durationMs)
         .setExtras(
-            Bundle(mediaMetadata.extras).setExtras(
+            (mediaMetadata.extras?.let(::Bundle) ?: Bundle()).setExtras(
                 positionMs = positionMs,
                 videoScale = videoZoom,
                 playbackSpeed = playbackSpeed,
@@ -116,3 +133,20 @@ fun MediaItem.copy(
             ),
         ).build(),
 ).build()
+
+/**
+ * Publishes compressed artwork without exposing an app-private cache URI to media controllers.
+ */
+fun MediaItem.withPublishedArtwork(artworkData: ByteArray): MediaItem {
+    require(artworkData.size <= MAX_PUBLISHED_ARTWORK_BYTES) {
+        "Published artwork must not exceed $MAX_PUBLISHED_ARTWORK_BYTES bytes"
+    }
+    return buildUpon()
+        .setMediaMetadata(
+            mediaMetadata.buildUpon()
+                .setArtworkUri(null)
+                .setArtworkData(artworkData, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                .build(),
+        )
+        .build()
+}

@@ -7,17 +7,22 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.dao.NetworkConnectionDao
+import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
 import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.NetworkConnectionEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
 
 @Database(
     entities = [
         MediumStateEntity::class,
         HiddenVideoEntity::class,
         NetworkConnectionEntity::class,
+        PlaylistEntity::class,
+        PlaylistItemEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -27,6 +32,8 @@ abstract class MediaDatabase : RoomDatabase() {
     abstract fun hiddenVideoDao(): HiddenVideoDao
 
     abstract fun networkConnectionDao(): NetworkConnectionDao
+
+    abstract fun playlistDao(): PlaylistDao
 
     companion object {
         const val DATABASE_NAME = "media_db"
@@ -232,6 +239,58 @@ abstract class MediaDatabase : RoomDatabase() {
                         `use_https` INTEGER NOT NULL,
                         `created_at` INTEGER NOT NULL
                     )
+                    """,
+                )
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `playlist` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `normalized_name` TEXT NOT NULL,
+                        `type` TEXT NOT NULL,
+                        `source` TEXT,
+                        `created_at` INTEGER NOT NULL,
+                        `updated_at` INTEGER NOT NULL,
+                        `last_refreshed_at` INTEGER
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_normalized_name`
+                    ON `playlist` (`normalized_name`)
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `playlist_item` (
+                        `playlist_id` INTEGER NOT NULL,
+                        `uri` TEXT NOT NULL,
+                        `title` TEXT,
+                        `position` INTEGER NOT NULL,
+                        `image_url` TEXT,
+                        `display_path` TEXT,
+                        PRIMARY KEY(`playlist_id`, `uri`),
+                        FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`)
+                            ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_playlist_item_playlist_id`
+                    ON `playlist_item` (`playlist_id`)
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_item_playlist_id_position`
+                    ON `playlist_item` (`playlist_id`, `position`)
                     """,
                 )
             }

@@ -31,8 +31,9 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import coil3.ImageLoader
-import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
@@ -50,6 +51,7 @@ import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 import dev.anilbeesetti.nextplayer.feature.player.R
 import dev.anilbeesetti.nextplayer.feature.player.extensions.addAdditionalSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.extensions.artworkRequestUris
 import dev.anilbeesetti.nextplayer.feature.player.extensions.audioTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.copy
 import dev.anilbeesetti.nextplayer.feature.player.extensions.getManuallySelectedTrackIndex
@@ -63,21 +65,20 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.subtitleTrackIndex
 import dev.anilbeesetti.nextplayer.feature.player.extensions.switchTrack
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
+import dev.anilbeesetti.nextplayer.feature.player.extensions.withPublishedArtwork
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
@@ -280,7 +281,7 @@ class PlayerService : MediaSessionService() {
             // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
+                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0)),
             )
         }
 
@@ -363,7 +364,7 @@ class PlayerService : MediaSessionService() {
             startIndex: Int,
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = serviceScope.future(Dispatchers.Default) {
-            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems)
+            val updatedMediaItems = updatedMediaItemsWithMetadata(mediaItems, requiredIndex = startIndex)
             return@future MediaSession.MediaItemsWithStartPosition(updatedMediaItems, startIndex, startPositionMs)
         }
 
@@ -616,63 +617,60 @@ class PlayerService : MediaSessionService() {
 
     private suspend fun updatedMediaItemsWithMetadata(
         mediaItems: List<MediaItem>,
-    ): List<MediaItem> = supervisorScope {
-        mediaItems.map { mediaItem ->
-            async {
-                val uri = mediaItem.mediaId.toUri()
-                val video = mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
-                val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
+        requiredIndex: Int? = null,
+    ): List<MediaItem> = enrichLocalMediaItems(
+        mediaItems = mediaItems,
+        requiredIndexes = requiredIndex?.takeIf(mediaItems.indices::contains)?.let(::setOf).orEmpty(),
+    ) { mediaItem ->
+        val uri = mediaItem.mediaId.toUri()
+        val video = mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
+        val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
-                val externalSubs = videoState?.externalSubs ?: emptyList()
-                val localSubs = (videoState?.path ?: getPath(uri))?.let {
-                    File(it).getLocalSubtitles(
-                        context = this@PlayerService,
-                        excludeSubsList = externalSubs,
+        val externalSubs = videoState?.externalSubs ?: emptyList()
+        val localSubs = (videoState?.path ?: getPath(uri))?.let {
+            File(it).getLocalSubtitles(
+                context = this@PlayerService,
+                excludeSubsList = externalSubs,
+            )
+        } ?: emptyList()
+
+        val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
+        val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
+            uriToSubtitleConfiguration(
+                uri = subtitleUri,
+                subtitleEncoding = playerPreferences.subtitleTextEncoding,
+            )
+        }
+
+        val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
+        val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
+        val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
+        val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
+        val audioTrackIndex = mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
+        val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
+        val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
+        val subtitleSpeed = mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
+
+        mediaItem.buildUpon().apply {
+            setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
+            setMediaMetadata(
+                MediaMetadata.Builder().apply {
+                    setTitle(title)
+                    setArtworkUri(mediaItem.mediaMetadata.artworkUri)
+                    setExtras(
+                        positionMs = positionMs,
+                        videoScale = videoScale,
+                        playbackSpeed = playbackSpeed,
+                        audioTrackIndex = audioTrackIndex,
+                        subtitleTrackIndex = subtitleTrackIndex,
+                        subtitleDelayMilliseconds = subtitleDelay,
+                        subtitleSpeed = subtitleSpeed,
                     )
-                } ?: emptyList()
-
-                val existingSubConfigurations = mediaItem.localConfiguration?.subtitleConfigurations ?: emptyList()
-                val subConfigurations = (localSubs + externalSubs).map { subtitleUri ->
-                    uriToSubtitleConfiguration(
-                        uri = subtitleUri,
-                        subtitleEncoding = playerPreferences.subtitleTextEncoding,
-                    )
-                }
-
-                // Use placeholder artwork initially - actual artwork will be loaded in background
-                val artworkUri = getDefaultArtworkUri()
-
-                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
-                val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
-                val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
-                val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
-                val audioTrackIndex = mediaItem.mediaMetadata.audioTrackIndex ?: videoState?.audioTrackIndex
-                val subtitleTrackIndex = mediaItem.mediaMetadata.subtitleTrackIndex ?: videoState?.subtitleTrackIndex
-                val subtitleDelay = mediaItem.mediaMetadata.subtitleDelayMilliseconds ?: videoState?.subtitleDelayMilliseconds
-                val subtitleSpeed = mediaItem.mediaMetadata.subtitleSpeed ?: videoState?.subtitleSpeed
-
-                mediaItem.buildUpon().apply {
-                    setSubtitleConfigurations(existingSubConfigurations + subConfigurations)
-                    setMediaMetadata(
-                        MediaMetadata.Builder().apply {
-                            setTitle(title)
-                            setArtworkUri(artworkUri)
-                            setExtras(
-                                positionMs = positionMs,
-                                videoScale = videoScale,
-                                playbackSpeed = playbackSpeed,
-                                audioTrackIndex = audioTrackIndex,
-                                subtitleTrackIndex = subtitleTrackIndex,
-                                subtitleDelayMilliseconds = subtitleDelay,
-                                subtitleSpeed = subtitleSpeed,
-                            )
-                        }.build(),
-                    )
-                }.build()
-            }
-        }.awaitAll()
+                }.build(),
+            )
+        }.build()
     }
-    
+
     private fun getDefaultArtworkUri(): Uri = Uri.Builder().apply {
         val defaultArtwork = R.drawable.artwork_default
         scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
@@ -688,7 +686,7 @@ class PlayerService : MediaSessionService() {
             val currentMediaItem = player.currentMediaItem ?: return@launch
             if (currentMediaItem.mediaMetadata.artworkData != null) return@launch
 
-            val artworkUri = loadArtworkForMediaItem(currentMediaItem) ?: return@launch
+            val artworkData = loadArtworkForMediaItem(currentMediaItem) ?: return@launch
 
             val updatedPlayer = mediaSession?.player ?: return@launch
             val updatedMediaItem = updatedPlayer.currentMediaItem ?: return@launch
@@ -696,33 +694,29 @@ class PlayerService : MediaSessionService() {
 
             updatedPlayer.replaceMediaItem(
                 updatedPlayer.currentMediaItemIndex,
-                updatedMediaItem.withArtwork(artworkUri),
+                updatedMediaItem.withPublishedArtwork(artworkData),
             )
         }
     }
-    private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? = withContext(Dispatchers.IO) {
-        val uri = mediaItem.mediaId.toUri()
-        return@withContext try {
-            val request = ImageRequest.Builder(this@PlayerService)
-                .data(uri)
-                .size(512, 512)
-                .build()
-            imageLoader.execute(request)
-            val diskCache = imageLoader.diskCache ?: return@withContext null
-            return@withContext diskCache.openSnapshot(uri.toString())?.use { snapshot ->
-                snapshot.data.toFile().toUri()
+
+    private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): ByteArray? = withContext(Dispatchers.IO) {
+        for (uri in mediaItem.artworkRequestUris(getDefaultArtworkUri())) {
+            try {
+                val request = ImageRequest.Builder(this@PlayerService)
+                    .data(uri)
+                    .size(512, 512)
+                    .allowHardware(false)
+                    .build()
+                val result = imageLoader.execute(request) as? SuccessResult ?: continue
+                encodePublishedArtwork(result.image)?.let { return@withContext it }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                // Try the next candidate: supplied artwork, media thumbnail, then app default.
             }
-        } catch (_: Throwable) {
-            null
         }
+        null
     }
-    private fun MediaItem.withArtwork(uri: Uri): MediaItem = buildUpon()
-        .setMediaMetadata(
-            mediaMetadata.buildUpon()
-                .setArtworkUri(uri)
-                .build(),
-        )
-        .build()
 }
 
 @get:UnstableApi
