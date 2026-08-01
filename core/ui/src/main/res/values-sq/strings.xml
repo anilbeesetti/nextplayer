@@ -364,4 +364,28 @@
         <item quantity="other">U zhvendosën %1$d video, por nuk u hoqën dot origjinalet</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Nuk mund të zhvendoset te e njëjta dosje</string>
+    <string name="home">Kreu</string>
+    <string name="network">Rrjeti</string>
+    <string name="add_connection">Shto lidhje</string>
+    <string name="edit_connection">Modifiko lidhjen</string>
+    <string name="delete_connection">Fshi lidhjen</string>
+    <string name="delete_connection_confirmation">Të hiqet \"%1$s\"?</string>
+    <string name="connection_name">Emri</string>
+    <string name="protocol">Protokolli</string>
+    <string name="host">Hosti</string>
+    <string name="port">Porta</string>
+    <string name="port_hint">Porta (parazgjedhur %1$d)</string>
+    <string name="path_share">Shtegu / Emri i ndarjes</string>
+    <string name="username">Emri i përdoruesit</string>
+    <string name="password">Fjalëkalimi</string>
+    <string name="use_https">Përdor HTTPS</string>
+    <string name="test_and_save">Testo &amp; ruaj</string>
+    <string name="connecting">Po lidhet…</string>
+    <string name="connection_failed">Nuk u lidh dot. Kontrollo detajet dhe provo përsëri.</string>
+    <string name="no_connections_title">Ende asnjë lidhje</string>
+    <string name="no_connections_description">Shto një lidhje SMB, FTP ose WebDAV për të shfletuar dhe luajtur video nga rrjeti yt.</string>
+    <string name="empty_folder">Kjo dosje është bosh</string>
+    <string name="failed_to_load_folder">Nuk u ngarkua dot kjo vendndodhje</string>
+    <string name="retry">Riprovo</string>
+    <string name="edit">Modifiko</string>
 </resources>
