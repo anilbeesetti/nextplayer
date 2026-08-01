@@ -34,6 +34,11 @@
 -keep class com.hierynomus.ntlm.** { *; }
 -keep class com.hierynomus.security.** { *; }
 
+# Bouncy Castle registers JCA implementations by class name. SFTP uses an
+# app-specific provider name so Android's stripped platform BC is untouched.
+-keep class org.bouncycastle.jcajce.provider.** { *; }
+-keep class org.bouncycastle.jce.provider.** { *; }
+
 # mbassador creates the default handler invocation through Class.getConstructor().
 -keepclassmembers,allowobfuscation class net.engio.mbassy.dispatch.ReflectiveHandlerInvocation {
     public <init>(net.engio.mbassy.subscription.SubscriptionContext);

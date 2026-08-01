@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -107,6 +108,7 @@ internal fun NetworkBrowseScreen(
             }
 
             uiState.error != null -> {
+                val error = uiState.error
                 Column(
                     modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 32.dp),
                     verticalArrangement = Arrangement.Center,
@@ -118,11 +120,43 @@ internal fun NetworkBrowseScreen(
                     )
                     Spacer(Modifier.size(4.dp))
                     Text(
-                        text = uiState.error,
+                        text = if (error.hostKeyMismatch != null) {
+                            stringResource(R.string.host_key_mismatch)
+                        } else {
+                            error.message ?: stringResource(R.string.connection_failed)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
+                    error.hostKeyMismatch?.let { mismatch ->
+                        Spacer(Modifier.size(4.dp))
+                        SelectionContainer {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.ssh_host_key_trusted_fingerprint,
+                                        mismatch.trustedFingerprint,
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.ssh_host_key_presented_fingerprint,
+                                        mismatch.presentedFingerprint,
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                        }
+                    }
                     Spacer(Modifier.size(16.dp))
                     Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
                 }
