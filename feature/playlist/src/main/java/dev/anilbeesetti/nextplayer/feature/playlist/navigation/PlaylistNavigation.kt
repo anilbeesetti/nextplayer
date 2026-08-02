@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.NavKey
 import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailScreenRoute
 import dev.anilbeesetti.nextplayer.feature.playlist.screens.detail.PlaylistDetailViewModel
 import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListScreenRoute
+import dev.anilbeesetti.nextplayer.feature.playlist.screens.list.PlaylistListViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -26,8 +27,16 @@ fun EntryProviderScope<NavKey>.playlistListEntry(
 ) {
     entry<PlaylistListRoute> {
         PlaylistListScreenRoute(
-            onPlaylistClick = onPlaylistClick,
-            onSettingsClick = onSettingsClick,
+            viewModel = hiltViewModel<PlaylistListViewModel, PlaylistListViewModel.Factory>(
+                creationCallback = { factory ->
+                    factory.create(
+                        PlaylistListViewModel.Output(
+                            openPlaylist = onPlaylistClick,
+                            openSettings = onSettingsClick,
+                        ),
+                    )
+                },
+            ),
         )
     }
 }

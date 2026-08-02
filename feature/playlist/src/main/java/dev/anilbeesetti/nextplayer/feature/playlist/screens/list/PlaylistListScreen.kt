@@ -48,80 +48,39 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextSegmentedListItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.rememberTvListFocusRequester
-import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.components.tvListFocus
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
 @Composable
 fun PlaylistListScreenRoute(
-    onPlaylistClick: (Long) -> Unit,
-    onSettingsClick: () -> Unit,
     viewModel: PlaylistListViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.synchronize()
     }
-    LaunchedEffect(viewModel.events) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is PlaylistListEvent.Created -> onPlaylistClick(event.playlistId)
-                is PlaylistListEvent.Message ->
-                    Toast.makeText(context, event.messageRes, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 
     PlaylistListScreen(
         uiState = uiState,
-        onPlaylistClick = onPlaylistClick,
-        onSettingsClick = onSettingsClick,
-        onCreate = viewModel::create,
-        onRename = viewModel::rename,
-        onDelete = viewModel::delete,
-        onClearError = viewModel::clearFormError,
+        onAction = viewModel::onAction,
     )
 }
 
 @Composable
 internal fun PlaylistListScreen(
     uiState: PlaylistListUiState,
-    onPlaylistClick: (Long) -> Unit = {},
-    onSettingsClick: () -> Unit = {},
-    onCreate: (String) -> Unit = {},
-    onRename: (Long, String) -> Unit = { _, _ -> },
-    onDelete: (Long) -> Unit = {},
-    onClearError: () -> Unit = {},
+    onAction: (PlaylistUiAction) -> Unit = {},
 ) {
-    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
-    var playlistToRename by remember { mutableStateOf<PlaylistSummary?>(null) }
-    var playlistToDelete by remember { mutableStateOf<PlaylistSummary?>(null) }
-    val context = LocalContext.current
-    val isTv = remember(context) { context.isTelevision }
-    val showEmptyState = uiState.playlists.isEmpty() && !uiState.isLoading
     val createFocusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(uiState.saveVersion) {
-        if (uiState.saveVersion > 0) {
-            showCreateDialog = false
-            playlistToRename = null
-        }
-    }
-    if (isTv) {
-        LaunchedEffect(showEmptyState) {
-            if (showEmptyState) createFocusRequester.requestFocusUntilLanded()
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -129,7 +88,10 @@ internal fun PlaylistListScreen(
                 title = stringResource(R.string.playlists),
                 fontWeight = FontWeight.Bold,
                 actions = {
-                    IconButton(onClick = onSettingsClick, modifier = Modifier.tvFocusRing()) {
+                    IconButton(
+                        onClick = { onAction(PlaylistUiAction.OnSettingsClick) },
+                        modifier = Modifier.tvFocusRing()
+                    ) {
                         Icon(
                             imageVector = NextIcons.Settings,
                             contentDescription = stringResource(R.string.settings),
@@ -140,10 +102,7 @@ internal fun PlaylistListScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = {
-                    onClearError()
-                    showCreateDialog = true
-                },
+                onClick = { onAction(PlaylistUiAction.ShowCreateDialog) },
                 icon = {
                     Icon(
                         imageVector = NextIcons.Add,
@@ -166,99 +125,96 @@ internal fun PlaylistListScreen(
             .background(MaterialTheme.colorScheme.background)
 
         Box(modifier = containerModifier) {
-            when {
-                uiState.isLoading && uiState.playlists.isEmpty() ->
+            when (uiState.playlistsDataState) {
+                is DataState.Loading -> {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
-                showEmptyState -> PlaylistListEmptyState(Modifier.fillMaxSize())
-                else -> LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .tvListFocus(rememberTvListFocusRequester()),
-                    contentPadding = PaddingValues(
-                        start = 8.dp,
-                        top = 8.dp,
-                        end = 8.dp,
-                        bottom = padding.calculateBottomPadding() + 96.dp,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    itemsIndexed(
-                        items = uiState.playlists,
-                        key = { _, playlist -> playlist.id },
-                    ) { index, playlist ->
-                        PlaylistRow(
-                            playlist = playlist,
-                            isFirstItem = index == 0,
-                            isLastItem = index == uiState.playlists.lastIndex,
-                            onClick = { onPlaylistClick(playlist.id) },
-                            onRename = {
-                                onClearError()
-                                playlistToRename = playlist
-                            },
-                            onDelete = { playlistToDelete = playlist },
-                        )
+                }
+
+                is DataState.Error -> {
+                    PlaylistListEmptyState(Modifier.fillMaxSize())
+                }
+
+                is DataState.Success -> {
+                    val playlistList = uiState.playlistsDataState.value
+
+                    if (playlistList.isEmpty()) {
+                        PlaylistListEmptyState(Modifier.fillMaxSize())
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .tvListFocus(rememberTvListFocusRequester()),
+                            contentPadding = PaddingValues(
+                                start = 8.dp,
+                                top = 8.dp,
+                                end = 8.dp,
+                                bottom = padding.calculateBottomPadding() + 96.dp,
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            itemsIndexed(
+                                items = uiState.playlistsDataState.value,
+                                key = { _, playlist -> playlist.id },
+                            ) { index, playlist ->
+                                PlaylistRow(
+                                    playlist = playlist,
+                                    isFirstItem = index == 0,
+                                    isLastItem = index == uiState.playlistsDataState.value.lastIndex,
+                                    onClick = { onAction(PlaylistUiAction.OnPlaylistClick(playlist)) },
+                                    onRename = { onAction(PlaylistUiAction.ShowRenameDialogFor(playlist)) },
+                                    onDelete = { onAction(PlaylistUiAction.ShowDeleteDialogFor(playlist)) },
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
-    if (showCreateDialog) {
+    if (uiState.showCreateDialog) {
         PlaylistNameDialog(
             title = stringResource(R.string.create_playlist),
             confirmLabel = stringResource(R.string.create),
-            isSaving = uiState.isSaving,
-            error = uiState.formErrorRes?.let { stringResource(it) },
-            onDismissRequest = {
-                if (!uiState.isSaving) {
-                    showCreateDialog = false
-                    onClearError()
-                }
-            },
-            onConfirm = onCreate,
-            onClearError = onClearError,
+            isSaving = uiState.saveActionState.isRunning,
+            error = uiState.saveActionState.errorMessage,
+            onDismissRequest = { onAction(PlaylistUiAction.DismissCreateDialog) },
+            onConfirm = { onAction(PlaylistUiAction.Create(it)) },
         )
     }
 
-    playlistToRename?.let { playlist ->
+    uiState.showRenameDialogFor?.let { playlist ->
         PlaylistNameDialog(
             title = stringResource(R.string.rename_playlist),
             confirmLabel = stringResource(R.string.save),
             initialName = playlist.name,
-            isSaving = uiState.isSaving,
-            error = uiState.formErrorRes?.let { stringResource(it) },
-            onDismissRequest = {
-                if (!uiState.isSaving) {
-                    playlistToRename = null
-                    onClearError()
-                }
-            },
-            onConfirm = { onRename(playlist.id, it) },
-            onClearError = onClearError,
+            isSaving = uiState.saveActionState.isRunning,
+            error = uiState.saveActionState.errorMessage,
+            onDismissRequest = { onAction(PlaylistUiAction.DismissRenameDialog) },
+            onConfirm = { onAction(PlaylistUiAction.Rename(playlist.id, it)) },
         )
     }
 
-    playlistToDelete?.let { playlist ->
+    uiState.showDeleteDialogFor?.let { playlist ->
         NextDialog(
-            onDismissRequest = { playlistToDelete = null },
-            title = { Text(stringResource(R.string.delete_playlist)) },
+            title = { Text(text = stringResource(R.string.delete_playlist)) },
             content = {
-                Text(stringResource(R.string.delete_playlist_confirmation, playlist.name))
+                Text(
+                    text = stringResource(R.string.delete_playlist_confirmation, playlist.name)
+                )
             },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        onDelete(playlist.id)
-                        playlistToDelete = null
-                    },
+                    onClick = { onAction(PlaylistUiAction.Delete(playlist.id)) },
                     modifier = Modifier.tvFocusRing(),
                 ) {
                     Text(stringResource(R.string.delete))
                 }
             },
+            onDismissRequest = { onAction(PlaylistUiAction.DismissDeleteDialog) },
             dismissButton = {
                 TextButton(
-                    onClick = { playlistToDelete = null },
+                    onClick = { onAction(PlaylistUiAction.DismissDeleteDialog) },
                     modifier = Modifier.tvFocusRing(),
                 ) {
                     Text(stringResource(R.string.cancel))
@@ -276,11 +232,9 @@ private fun PlaylistNameDialog(
     error: String?,
     onDismissRequest: () -> Unit,
     onConfirm: (String) -> Unit,
-    onClearError: () -> Unit,
     initialName: String = "",
 ) {
     var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
-    var attemptedSubmit by rememberSaveable { mutableStateOf(false) }
     val trimmedName = name.trim()
 
     NextDialog(
@@ -290,18 +244,15 @@ private fun PlaylistNameDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = {
-                        name = it
-                        onClearError()
-                    },
+                    onValueChange = { name = it },
                     label = { Text(stringResource(R.string.playlist_name)) },
                     enabled = !isSaving,
                     singleLine = true,
-                    isError = error != null || attemptedSubmit && trimmedName.isEmpty(),
+                    isError = error != null && trimmedName.isEmpty(),
                     supportingText = {
                         when {
                             error != null -> Text(error)
-                            attemptedSubmit && trimmedName.isEmpty() ->
+                            trimmedName.isEmpty() ->
                                 Text(stringResource(R.string.name_required))
                         }
                     },
@@ -317,7 +268,6 @@ private fun PlaylistNameDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    attemptedSubmit = true
                     if (trimmedName.isNotEmpty()) onConfirm(trimmedName)
                 },
                 enabled = !isSaving && trimmedName.isNotEmpty(),
@@ -350,9 +300,7 @@ private fun PlaylistRow(
 ) {
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val videoCount = pluralStringResource(
-        R.plurals.playlist_video_count,
-        playlist.itemCount,
-        playlist.itemCount,
+        R.plurals.playlist_video_count, playlist.itemCount, playlist.itemCount,
     )
 
     NextSegmentedListItem(

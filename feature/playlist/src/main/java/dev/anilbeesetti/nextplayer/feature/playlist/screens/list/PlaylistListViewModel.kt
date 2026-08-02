@@ -1,71 +1,90 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 
-import androidx.lifecycle.ViewModel
+import android.widget.Toast
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.base.ActionState
+import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class PlaylistListUiState(
-    val playlists: List<PlaylistSummary> = emptyList(),
-    val isLoading: Boolean = true,
-    val isSaving: Boolean = false,
-    val formErrorRes: Int? = null,
-    val saveVersion: Long = 0,
-)
-
-sealed interface PlaylistListEvent {
-    data class Created(val playlistId: Long) : PlaylistListEvent
-    data class Message(val messageRes: Int) : PlaylistListEvent
-}
-
-private data class PlaylistListOperationState(
-    val isSaving: Boolean = false,
-    val formErrorRes: Int? = null,
-    val saveVersion: Long = 0,
-)
-
-@HiltViewModel
-class PlaylistListViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = PlaylistListViewModel.Factory::class)
+class PlaylistListViewModel @AssistedInject constructor(
     private val playlistRepository: PlaylistRepository,
     private val syncPlaylistsWithMedia: SyncPlaylistsWithMediaUseCase,
-) : ViewModel() {
+    private val systemService: SystemService,
+    @Assisted private val output: Output,
+) : MviViewModel<PlaylistListUiState, PlaylistUiAction>() {
 
-    private val operationState = MutableStateFlow(PlaylistListOperationState())
-    private val eventChannel = Channel<PlaylistListEvent>(Channel.BUFFERED)
-    val events = eventChannel.receiveAsFlow()
+    data class Output(
+        val openPlaylist: (Long) -> Unit,
+        val openSettings: () -> Unit,
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(output: Output): PlaylistListViewModel
+    }
+
     private var syncJob: Job? = null
 
-    val uiState: StateFlow<PlaylistListUiState> = combine(
-        playlistRepository.observePlaylists(),
-        operationState,
-    ) { playlists, operation ->
-        PlaylistListUiState(
-            playlists = playlists,
-            isLoading = false,
-            isSaving = operation.isSaving,
-            formErrorRes = operation.formErrorRes,
-            saveVersion = operation.saveVersion,
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = PlaylistListUiState(),
-    )
+    private val internalState = MutableStateFlow(PlaylistListUiState())
+    override val state: StateFlow<PlaylistListUiState> = internalState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            playlistRepository.observePlaylists().collect { playlists ->
+                internalState.update { currentState ->
+                    currentState.copy(playlistsDataState = DataState.Success(playlists))
+                }
+            }
+        }
+    }
+
+    override fun onAction(action: PlaylistUiAction) {
+        when (action) {
+            is PlaylistUiAction.OnSettingsClick -> output.openSettings()
+            is PlaylistUiAction.OnPlaylistClick -> output.openPlaylist(action.playlist.id)
+            is PlaylistUiAction.ShowCreateDialog -> internalState.update { currentState ->
+                currentState.copy(showCreateDialog = true, saveActionState = ActionState.Idle)
+            }
+            is PlaylistUiAction.DismissCreateDialog -> internalState.update { currentState ->
+                currentState.copy(showCreateDialog = false, saveActionState = ActionState.Idle)
+            }
+            is PlaylistUiAction.ShowRenameDialogFor -> internalState.update { currentState ->
+                currentState.copy(showRenameDialogFor = action.playlist, saveActionState = ActionState.Idle)
+            }
+            is PlaylistUiAction.DismissRenameDialog -> internalState.update { currentState ->
+                currentState.copy(showRenameDialogFor = null, saveActionState = ActionState.Idle)
+            }
+            is PlaylistUiAction.ShowDeleteDialogFor -> internalState.update { currentState ->
+                currentState.copy(showDeleteDialogFor = action.playlist, saveActionState = ActionState.Idle)
+            }
+            is PlaylistUiAction.DismissDeleteDialog -> internalState.update { currentState ->
+                currentState.copy(showDeleteDialogFor = null, saveActionState = ActionState.Idle)
+            }
+            is PlaylistUiAction.Create -> create(action.name)
+            is PlaylistUiAction.Rename -> rename(action.playlistId, action.name)
+            is PlaylistUiAction.Delete -> delete(action.playlistId)
+        }
+    }
 
     fun synchronize() {
         if (syncJob?.isActive == true) return
@@ -74,57 +93,99 @@ class PlaylistListViewModel @Inject constructor(
         }
     }
 
-    fun create(name: String) {
+    private fun create(name: String) {
         save {
             val playlistId = playlistRepository.create(name)
-            eventChannel.send(PlaylistListEvent.Created(playlistId))
+            internalState.update { currentState ->
+                currentState.copy(showCreateDialog = false)
+            }
+            output.openPlaylist(playlistId)
         }
     }
 
-    fun rename(playlistId: Long, name: String) {
-        save { playlistRepository.rename(playlistId, name) }
-    }
-
-    fun delete(playlistId: Long) {
-        viewModelScope.launch {
-            try {
-                playlistRepository.delete(playlistId)
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (_: Throwable) {
-                eventChannel.send(PlaylistListEvent.Message(R.string.playlist_delete_failed))
+    private fun rename(playlistId: Long, name: String) {
+        save {
+            playlistRepository.rename(playlistId, name)
+            internalState.update { currentState ->
+                currentState.copy(showRenameDialogFor = null)
             }
         }
     }
 
-    fun clearFormError() {
-        operationState.update { it.copy(formErrorRes = null) }
+    private fun delete(playlistId: Long) {
+        viewModelScope.launch {
+            try {
+                playlistRepository.delete(playlistId)
+                internalState.update { currentState ->
+                    currentState.copy(showDeleteDialogFor = null)
+                }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Throwable) {
+                systemService.showToast(
+                    text = systemService.getString(R.string.playlist_delete_failed),
+                    duration = Toast.LENGTH_SHORT,
+                )
+            }
+        }
     }
 
     private fun save(block: suspend () -> Unit) {
-        if (operationState.value.isSaving) return
+        if (state.value.saveActionState.isRunning) return
         viewModelScope.launch {
-            operationState.update { it.copy(isSaving = true, formErrorRes = null) }
+            internalState.update { currentState ->
+                currentState.copy(saveActionState = ActionState.Running)
+            }
             try {
                 block()
-                operationState.update {
-                    it.copy(
-                        isSaving = false,
-                        formErrorRes = null,
-                        saveVersion = it.saveVersion + 1,
-                    )
+                internalState.update { currentState ->
+                    currentState.copy(saveActionState = ActionState.Success)
                 }
             } catch (cancellation: CancellationException) {
-                operationState.update { it.copy(isSaving = false) }
+                internalState.update { currentState ->
+                    currentState.copy(saveActionState = ActionState.Idle)
+                }
                 throw cancellation
-            } catch (_: Throwable) {
-                operationState.update {
-                    it.copy(
-                        isSaving = false,
-                        formErrorRes = R.string.playlist_save_failed,
+            } catch (error: Throwable) {
+                internalState.update { currentState ->
+                    currentState.copy(
+                        saveActionState = ActionState.Failed(
+                            value = Error(
+                                systemService.getString(R.string.playlist_save_failed),
+                                error
+                            )
+                        )
                     )
                 }
             }
         }
     }
 }
+
+data class PlaylistListUiState(
+    val playlistsDataState: DataState<List<PlaylistSummary>> = DataState.Loading,
+    val saveActionState: ActionState = ActionState.Idle,
+    val showCreateDialog: Boolean = false,
+    val showRenameDialogFor: PlaylistSummary? = null,
+    val showDeleteDialogFor: PlaylistSummary? = null,
+)
+
+sealed interface PlaylistUiAction {
+    data object OnSettingsClick : PlaylistUiAction
+    data class OnPlaylistClick(val playlist: PlaylistSummary) : PlaylistUiAction
+    data object ShowCreateDialog : PlaylistUiAction
+    data object DismissCreateDialog: PlaylistUiAction
+    data class ShowRenameDialogFor(val playlist: PlaylistSummary) : PlaylistUiAction
+    data object DismissRenameDialog : PlaylistUiAction
+    data class ShowDeleteDialogFor(val playlist: PlaylistSummary) : PlaylistUiAction
+    data object DismissDeleteDialog : PlaylistUiAction
+    data class Create(val name: String) : PlaylistUiAction
+    data class Rename(val playlistId: Long, val name: String) : PlaylistUiAction
+    data class Delete(val playlistId: Long) : PlaylistUiAction
+}
+
+sealed interface PlaylistListEvent {
+    data class Created(val playlistId: Long) : PlaylistListEvent
+    data class Message(val messageRes: Int) : PlaylistListEvent
+}
+
