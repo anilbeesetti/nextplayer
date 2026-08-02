@@ -47,10 +47,18 @@ fun EntryProviderScope<NavKey>.playlistDetailEntry(
 ) {
     entry<PlaylistDetailRoute> { route ->
         PlaylistDetailScreenRoute(
-            onNavigateUp = onNavigateUp,
-            onPlayVideos = onPlayVideos,
             viewModel = hiltViewModel<PlaylistDetailViewModel, PlaylistDetailViewModel.Factory>(
-                creationCallback = { factory -> factory.create(route.playlistId) },
+                creationCallback = { factory ->
+                    factory.create(
+                        input = PlaylistDetailViewModel.Input(
+                            playlistId = route.playlistId,
+                        ),
+                        output = PlaylistDetailViewModel.Output(
+                            navigateUp = onNavigateUp,
+                            playVideos = onPlayVideos,
+                        ),
+                    )
+                },
             ),
         )
     }
