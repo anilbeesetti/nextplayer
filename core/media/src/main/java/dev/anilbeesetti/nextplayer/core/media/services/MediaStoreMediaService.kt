@@ -117,8 +117,8 @@ class MediaStoreMediaService @Inject constructor(
         return@withContext runMediaStoreQuery { queryVideos(folderPath) }
     }
 
-    override suspend fun fetchVideosOrThrow(folderPath: String?): List<MediaVideo> = withContext(Dispatchers.IO) {
-        queryVideos(folderPath)
+    override suspend fun fetchVideoUrisOrThrow(folderPath: String?): Set<String> = withContext(Dispatchers.IO) {
+        queryVideoUris(folderPath)
     }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
@@ -193,6 +193,31 @@ class MediaStoreMediaService @Inject constructor(
             }
         }
         return mediaVideos
+    }
+
+    private fun queryVideoUris(folderPath: String?): Set<String> {
+        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
+        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
+        val cursor = checkNotNull(
+            context.contentResolver.query(
+                VIDEO_COLLECTION_URI,
+                arrayOf(MediaStore.Video.Media._ID),
+                selection,
+                selectionArgs,
+                null,
+            ),
+        ) {
+            "MediaStore returned no cursor for the video snapshot"
+        }
+
+        return cursor.use {
+            buildSet {
+                val idIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                while (cursor.moveToNext()) {
+                    add(ContentUris.withAppendedId(VIDEO_COLLECTION_URI, cursor.getLong(idIndex)).toString())
+                }
+            }
+        }
     }
 
     /**

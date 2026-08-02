@@ -1175,9 +1175,9 @@ private fun PlaylistTargetDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    state.error?.let { error ->
+                    state.errorRes?.let { errorRes ->
                         Text(
-                            text = error,
+                            text = stringResource(errorRes),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -1278,9 +1278,9 @@ private fun PlaylistTargetDialog(
                         }
                     }
                 }
-                state.error?.let { error ->
+                state.errorRes?.let { errorRes ->
                     Text(
-                        text = error,
+                        text = stringResource(errorRes),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )

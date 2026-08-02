@@ -10,6 +10,7 @@ import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.domain.ObservePlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
 import dev.anilbeesetti.nextplayer.core.model.Playlist
+import dev.anilbeesetti.nextplayer.core.ui.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -29,7 +30,7 @@ data class PlaylistDetailUiState(
 )
 
 sealed interface PlaylistDetailEvent {
-    data class Message(val text: String) : PlaylistDetailEvent
+    data class Message(val messageRes: Int) : PlaylistDetailEvent
 }
 
 private data class DetailOperationState(
@@ -105,7 +106,7 @@ class PlaylistDetailViewModel @AssistedInject constructor(
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Throwable) {
-                eventChannel.send(PlaylistDetailEvent.Message("Couldn't update playlist. Try again."))
+                eventChannel.send(PlaylistDetailEvent.Message(R.string.playlist_update_failed))
             } finally {
                 operationState.update { it.copy(isSaving = false) }
             }

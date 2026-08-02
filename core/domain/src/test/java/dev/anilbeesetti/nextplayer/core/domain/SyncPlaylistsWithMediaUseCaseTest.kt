@@ -1,7 +1,6 @@
 package dev.anilbeesetti.nextplayer.core.domain
 
 import java.io.IOException
-import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,9 +15,7 @@ class SyncPlaylistsWithMediaUseCaseTest {
 
         val result = synchronizePlaylistsWithMedia(
             hasStoragePermission = { true },
-            fetchVideos = {
-                listOf(syncVideo("content://one"))
-            },
+            fetchVideoUris = { setOf("content://one") },
             removeMissingVideos = { receivedUris = it },
         )
 
@@ -33,9 +30,9 @@ class SyncPlaylistsWithMediaUseCaseTest {
 
         val result = synchronizePlaylistsWithMedia(
             hasStoragePermission = { false },
-            fetchVideos = {
+            fetchVideoUris = {
                 fetched = true
-                emptyList()
+                emptySet()
             },
             removeMissingVideos = { cleaned = true },
         )
@@ -51,7 +48,7 @@ class SyncPlaylistsWithMediaUseCaseTest {
 
         val result = synchronizePlaylistsWithMedia(
             hasStoragePermission = { true },
-            fetchVideos = { throw IOException("MediaStore unavailable") },
+            fetchVideoUris = { throw IOException("MediaStore unavailable") },
             removeMissingVideos = { cleaned = true },
         )
 
@@ -66,7 +63,7 @@ class SyncPlaylistsWithMediaUseCaseTest {
 
         val result = synchronizePlaylistsWithMedia(
             hasStoragePermission = { permissionChecks++ == 0 },
-            fetchVideos = { emptyList() },
+            fetchVideoUris = { emptySet() },
             removeMissingVideos = { cleaned = true },
         )
 
@@ -74,15 +71,3 @@ class SyncPlaylistsWithMediaUseCaseTest {
         assertFalse(cleaned)
     }
 }
-
-private fun syncVideo(uri: String) = Video(
-    id = 1,
-    path = "/Movies/One.mp4",
-    parentPath = "/Movies",
-    duration = 1_000,
-    uriString = uri,
-    nameWithExtension = "One.mp4",
-    width = 1920,
-    height = 1080,
-    size = 1_000,
-)

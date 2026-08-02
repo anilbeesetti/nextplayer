@@ -103,7 +103,7 @@ fun PlaylistDetailScreenRoute(
         viewModel.events.collect { event ->
             when (event) {
                 is PlaylistDetailEvent.Message ->
-                    Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, event.messageRes, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -340,7 +340,7 @@ private fun PlaylistDetailContent(
         }
     }
 
-    LaunchedEffect(playlist.items, isDragging) {
+    LaunchedEffect(playlist.items) {
         if (!isDragging) displayedItems = playlist.items
     }
 

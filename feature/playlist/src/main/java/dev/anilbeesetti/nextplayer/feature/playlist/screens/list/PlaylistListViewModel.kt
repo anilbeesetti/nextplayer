@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
+import dev.anilbeesetti.nextplayer.core.ui.R
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -23,18 +24,18 @@ data class PlaylistListUiState(
     val playlists: List<PlaylistSummary> = emptyList(),
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
-    val formError: String? = null,
+    val formErrorRes: Int? = null,
     val saveVersion: Long = 0,
 )
 
 sealed interface PlaylistListEvent {
     data class Created(val playlistId: Long) : PlaylistListEvent
-    data class Message(val text: String) : PlaylistListEvent
+    data class Message(val messageRes: Int) : PlaylistListEvent
 }
 
 private data class PlaylistListOperationState(
     val isSaving: Boolean = false,
-    val formError: String? = null,
+    val formErrorRes: Int? = null,
     val saveVersion: Long = 0,
 )
 
@@ -57,7 +58,7 @@ class PlaylistListViewModel @Inject constructor(
             playlists = playlists,
             isLoading = false,
             isSaving = operation.isSaving,
-            formError = operation.formError,
+            formErrorRes = operation.formErrorRes,
             saveVersion = operation.saveVersion,
         )
     }.stateIn(
@@ -91,25 +92,25 @@ class PlaylistListViewModel @Inject constructor(
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Throwable) {
-                eventChannel.send(PlaylistListEvent.Message("Couldn't delete playlist. Try again."))
+                eventChannel.send(PlaylistListEvent.Message(R.string.playlist_delete_failed))
             }
         }
     }
 
     fun clearFormError() {
-        operationState.update { it.copy(formError = null) }
+        operationState.update { it.copy(formErrorRes = null) }
     }
 
     private fun save(block: suspend () -> Unit) {
         if (operationState.value.isSaving) return
         viewModelScope.launch {
-            operationState.update { it.copy(isSaving = true, formError = null) }
+            operationState.update { it.copy(isSaving = true, formErrorRes = null) }
             try {
                 block()
                 operationState.update {
                     it.copy(
                         isSaving = false,
-                        formError = null,
+                        formErrorRes = null,
                         saveVersion = it.saveVersion + 1,
                     )
                 }
@@ -120,7 +121,7 @@ class PlaylistListViewModel @Inject constructor(
                 operationState.update {
                     it.copy(
                         isSaving = false,
-                        formError = "Couldn't save playlist. Try again.",
+                        formErrorRes = R.string.playlist_save_failed,
                     )
                 }
             }

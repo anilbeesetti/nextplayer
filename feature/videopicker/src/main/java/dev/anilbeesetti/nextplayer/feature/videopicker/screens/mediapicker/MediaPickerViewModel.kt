@@ -38,6 +38,7 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
+import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import kotlinx.coroutines.Job
@@ -189,8 +190,8 @@ class MediaPickerViewModel @AssistedInject constructor(
                         addToPlaylistState = AddToPlaylistState(
                             isVisible = true,
                             hasVideos = videos.isNotEmpty(),
-                            error = if (videos.isEmpty()) {
-                                "No local videos were found in this selection."
+                            errorRes = if (videos.isEmpty()) {
+                                R.string.playlist_selection_empty
                             } else {
                                 null
                             },
@@ -205,7 +206,7 @@ class MediaPickerViewModel @AssistedInject constructor(
                     it.copy(
                         addToPlaylistState = AddToPlaylistState(
                             isVisible = true,
-                            error = "Couldn't read the selected videos. Try again.",
+                            errorRes = R.string.playlist_selection_read_failed,
                             completionToken = it.addToPlaylistState.completionToken,
                         ),
                     )
@@ -236,7 +237,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private fun savePlaylistSelection(block: suspend () -> Int) {
         if (pendingPlaylistVideos.isEmpty() || uiStateInternal.value.addToPlaylistState.isSaving) return
         uiStateInternal.update {
-            it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = true, error = null))
+            it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = true, errorRes = null))
         }
         viewModelScope.launch {
             try {
@@ -260,7 +261,7 @@ class MediaPickerViewModel @AssistedInject constructor(
                     it.copy(
                         addToPlaylistState = it.addToPlaylistState.copy(
                             isSaving = false,
-                            error = "Couldn't update playlist. Try again.",
+                            errorRes = R.string.playlist_update_failed,
                         ),
                     )
                 }
@@ -459,7 +460,7 @@ data class AddToPlaylistState(
     val isVisible: Boolean = false,
     val isSaving: Boolean = false,
     val hasVideos: Boolean = false,
-    val error: String? = null,
+    val errorRes: Int? = null,
     val completionToken: Long = 0,
 )
 

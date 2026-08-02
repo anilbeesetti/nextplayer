@@ -77,7 +77,7 @@ fun PlaylistListScreenRoute(
             when (event) {
                 is PlaylistListEvent.Created -> onPlaylistClick(event.playlistId)
                 is PlaylistListEvent.Message ->
-                    Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, event.messageRes, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -208,7 +208,7 @@ internal fun PlaylistListScreen(
             title = stringResource(R.string.create_playlist),
             confirmLabel = stringResource(R.string.create),
             isSaving = uiState.isSaving,
-            error = uiState.formError,
+            error = uiState.formErrorRes?.let { stringResource(it) },
             onDismissRequest = {
                 if (!uiState.isSaving) {
                     showCreateDialog = false
@@ -226,7 +226,7 @@ internal fun PlaylistListScreen(
             confirmLabel = stringResource(R.string.save),
             initialName = playlist.name,
             isSaving = uiState.isSaving,
-            error = uiState.formError,
+            error = uiState.formErrorRes?.let { stringResource(it) },
             onDismissRequest = {
                 if (!uiState.isSaving) {
                     playlistToRename = null

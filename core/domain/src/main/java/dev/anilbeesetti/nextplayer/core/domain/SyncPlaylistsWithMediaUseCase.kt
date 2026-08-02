@@ -18,7 +18,7 @@ class SyncPlaylistsWithMediaUseCase @Inject constructor(
     suspend operator fun invoke(): Boolean {
         return synchronizePlaylistsWithMedia(
             hasStoragePermission = { context.hasStoragePermission() },
-            fetchVideos = mediaRepository::fetchVideosOrThrow,
+            fetchVideoUris = mediaRepository::fetchVideoUrisOrThrow,
             removeMissingVideos = playlistRepository::removeMissingVideos,
         )
     }
@@ -29,13 +29,13 @@ class SyncPlaylistsWithMediaUseCase @Inject constructor(
 
 internal suspend fun synchronizePlaylistsWithMedia(
     hasStoragePermission: () -> Boolean,
-    fetchVideos: suspend () -> List<dev.anilbeesetti.nextplayer.core.model.Video>,
+    fetchVideoUris: suspend () -> Set<String>,
     removeMissingVideos: suspend (Set<String>) -> Unit,
 ): Boolean {
     if (!hasStoragePermission()) return false
-    val videos = runCatching { fetchVideos() }.getOrElse { return false }
+    val videoUris = runCatching { fetchVideoUris() }.getOrElse { return false }
     if (!hasStoragePermission()) return false
 
-    removeMissingVideos(videos.mapTo(mutableSetOf()) { it.uriString })
+    removeMissingVideos(videoUris)
     return true
 }

@@ -431,6 +431,11 @@
     <string name="existing_playlists">Existing playlists</string>
     <string name="no_playlists">No playlists yet.</string>
     <string name="already_in_playlist">The selected videos are already in this playlist.</string>
+    <string name="playlist_delete_failed">Couldn\'t delete playlist. Try again.</string>
+    <string name="playlist_save_failed">Couldn\'t save playlist. Try again.</string>
+    <string name="playlist_update_failed">Couldn\'t update playlist. Try again.</string>
+    <string name="playlist_selection_empty">No local videos were found in this selection.</string>
+    <string name="playlist_selection_read_failed">Couldn\'t read the selected videos. Try again.</string>
     <plurals name="added_videos_to_playlist">
         <item quantity="one">Added %d video to playlist.</item>
         <item quantity="other">Added %d videos to playlist.</item>
