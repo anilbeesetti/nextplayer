@@ -6,10 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -61,5 +63,31 @@ class MediaPickerScreenTest {
         composeRule.waitForIdle()
 
         assertTrue(MediaPickerAction.OnPermissionAccepted in actions)
+    }
+
+    @Test
+    fun addToPlaylistDialogShowsCreateAndExistingTargets() {
+        val actions = mutableListOf<MediaPickerAction>()
+        composeRule.setContent {
+            NextPlayerTheme {
+                MediaPickerScreen(
+                    uiState = MediaPickerUiState(
+                        folderName = null,
+                        playlists = listOf(PlaylistSummary(7, "Movies", 2)),
+                        addToPlaylistState = AddToPlaylistState(
+                            isVisible = true,
+                            hasVideos = true,
+                        ),
+                    ),
+                    onAction = actions::add,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Choose a playlist").assertIsDisplayed()
+        composeRule.onNodeWithText("Create new playlist").assertIsDisplayed()
+        composeRule.onNodeWithText("Movies").performClick()
+
+        assertTrue(MediaPickerAction.AddSelectionToPlaylist(7) in actions)
     }
 }

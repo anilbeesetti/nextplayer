@@ -31,11 +31,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,6 +65,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -75,6 +79,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -107,6 +112,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
+import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -161,6 +167,18 @@ fun MediaPickerRoute(
                 val message = transferCompleteMessage(context, event.mode, event.result)
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
+            is MediaPickerEvent.PlaylistItemsAdded -> {
+                val message = if (event.count == 0) {
+                    context.getString(R.string.already_in_playlist)
+                } else {
+                    context.resources.getQuantityString(
+                        R.plurals.added_videos_to_playlist,
+                        event.count,
+                        event.count,
+                    )
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -210,6 +228,16 @@ internal fun MediaPickerScreen(
         Modifier
     }
     val selectionManager = rememberSelectionManager()
+    var observedPlaylistCompletionToken by rememberSaveable {
+        mutableLongStateOf(uiState.addToPlaylistState.completionToken)
+    }
+    LaunchedEffect(uiState.addToPlaylistState.completionToken) {
+        val token = uiState.addToPlaylistState.completionToken
+        if (token > observedPlaylistCompletionToken) {
+            selectionManager.exitSelectionMode()
+        }
+        observedPlaylistCompletionToken = token
+    }
     val permissionState = rememberPermissionState(permission = storagePermission)
     var wasPermissionGranted by remember { mutableStateOf(permissionState.status.isGranted) }
 
@@ -364,6 +392,9 @@ internal fun MediaPickerScreen(
                 onPlayAction = {
                     onAction(MediaPickerAction.PlaySelectedItems(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
+                },
+                onAddToPlaylistAction = {
+                    onAction(MediaPickerAction.ShowAddToPlaylist(selectionManager.selectionItems))
                 },
                 onRenameAction = {
                     val selectedVideo = selectionManager.selectionItems.firstOrNull() ?: return@SelectionActionsSheet
@@ -655,6 +686,20 @@ internal fun MediaPickerScreen(
             mode = transfer.mode,
             progress = transfer.progress,
             onCancel = { onAction(MediaPickerAction.CancelTransfer) },
+        )
+    }
+
+    if (uiState.addToPlaylistState.isVisible) {
+        PlaylistTargetDialog(
+            playlists = uiState.playlists,
+            state = uiState.addToPlaylistState,
+            onDismissRequest = { onAction(MediaPickerAction.DismissAddToPlaylist) },
+            onPlaylistSelected = {
+                onAction(MediaPickerAction.AddSelectionToPlaylist(it))
+            },
+            onCreatePlaylist = {
+                onAction(MediaPickerAction.CreatePlaylistWithSelection(it))
+            },
         )
     }
 }
@@ -1098,6 +1143,166 @@ private fun NetworkUrlDialog(
     )
 }
 
+@Composable
+private fun PlaylistTargetDialog(
+    playlists: List<PlaylistSummary>,
+    state: AddToPlaylistState,
+    onDismissRequest: () -> Unit,
+    onPlaylistSelected: (Long) -> Unit,
+    onCreatePlaylist: (String) -> Unit,
+) {
+    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showCreateDialog) {
+        var name by rememberSaveable { mutableStateOf("") }
+        val trimmedName = name.trim()
+        NextDialog(
+            onDismissRequest = {
+                if (!state.isSaving) showCreateDialog = false
+            },
+            title = {
+                Text(stringResource(R.string.create_new_playlist))
+            },
+            content = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = {
+                            Text(stringResource(R.string.playlist_name))
+                        },
+                        enabled = !state.isSaving,
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    state.error?.let { error ->
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { onCreatePlaylist(trimmedName) },
+                    enabled = !state.isSaving && state.hasVideos && trimmedName.isNotEmpty(),
+                    modifier = Modifier.tvFocusRing(),
+                ) {
+                    Text(stringResource(R.string.create))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { if (!state.isSaving) showCreateDialog = false },
+                    enabled = !state.isSaving,
+                    modifier = Modifier.tvFocusRing(),
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+        return
+    }
+
+    NextDialog(
+        onDismissRequest = {
+            if (!state.isSaving) onDismissRequest()
+        },
+        title = {
+            Text(stringResource(R.string.choose_playlist))
+        },
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(
+                    onClick = { showCreateDialog = true },
+                    enabled = !state.isSaving,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .tvFocusRing(),
+                ) {
+                    Icon(NextIcons.Add, contentDescription = null)
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        text = stringResource(R.string.create_new_playlist),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.existing_playlists),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
+                    if (playlists.isEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.no_playlists),
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
+                    }
+                    items(playlists, key = PlaylistSummary::id) { playlist ->
+                        TextButton(
+                            onClick = { onPlaylistSelected(playlist.id) },
+                            enabled = !state.isSaving && state.hasVideos,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .tvFocusRing(),
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.Playlist,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Spacer(Modifier.size(8.dp))
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.Start,
+                            ) {
+                                Text(
+                                    text = playlist.name,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = pluralStringResource(
+                                        R.plurals.playlist_video_count,
+                                        playlist.itemCount,
+                                        playlist.itemCount,
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+                state.error?.let { error ->
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (state.isSaving) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(
+                onClick = onDismissRequest,
+                enabled = !state.isSaving,
+                modifier = Modifier.tvFocusRing(),
+            ) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SelectionActionsSheet(
@@ -1109,6 +1314,7 @@ private fun SelectionActionsSheet(
     showInfoAction: Boolean,
     showHideAction: Boolean,
     onPlayAction: () -> Unit,
+    onAddToPlaylistAction: () -> Unit,
     onRenameAction: () -> Unit,
     onShareAction: () -> Unit,
     onCopyAction: () -> Unit,
@@ -1164,6 +1370,13 @@ private fun SelectionActionsSheet(
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
                     onClick = onPlayAction,
+                )
+                SelectionAction(
+                    modifier = actionUpModifier,
+                    isTv = isTv,
+                    imageVector = NextIcons.PlaylistAdd,
+                    title = stringResource(R.string.add_to_playlist),
+                    onClick = onAddToPlaylistAction,
                 )
                 if (showRenameAction) {
                     SelectionAction(

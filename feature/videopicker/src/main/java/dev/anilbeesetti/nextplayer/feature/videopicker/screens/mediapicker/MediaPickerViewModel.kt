@@ -17,6 +17,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
+import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultPinRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.VaultRepository
@@ -33,6 +34,7 @@ import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
+import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -57,6 +59,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
     private val mediaOperationsService: MediaOperationsService,
     private val mediaRepository: MediaRepository,
+    private val playlistRepository: PlaylistRepository,
     private val preferencesRepository: PreferencesRepository,
     private val mediaSynchronizer: MediaSynchronizer,
     private val vaultRepository: VaultRepository,
@@ -91,6 +94,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             startMediaCollection()
         }
         collectPreferences()
+        collectPlaylists()
     }
 
     fun onAction(action: MediaPickerAction) {
@@ -111,6 +115,10 @@ class MediaPickerViewModel @AssistedInject constructor(
             is MediaPickerAction.SetVaultPinAndHide -> setVaultPinAndHide(action.pin)
             MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
             MediaPickerAction.DismissHideFlow -> uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            is MediaPickerAction.ShowAddToPlaylist -> showAddToPlaylist(action.selectionItems)
+            is MediaPickerAction.AddSelectionToPlaylist -> addSelectionToPlaylist(action.playlistId)
+            is MediaPickerAction.CreatePlaylistWithSelection -> createPlaylistWithSelection(action.name)
+            MediaPickerAction.DismissAddToPlaylist -> dismissAddToPlaylist()
         }
     }
 
@@ -149,6 +157,126 @@ class MediaPickerViewModel @AssistedInject constructor(
                     currentState.copy(preferences = it)
                 }
             }
+        }
+    }
+
+    private fun collectPlaylists() {
+        viewModelScope.launch {
+            playlistRepository.observePlaylists().collect { playlists ->
+                uiStateInternal.update { it.copy(playlists = playlists) }
+            }
+        }
+    }
+
+    private var pendingPlaylistVideos: List<Video> = emptyList()
+
+    private fun showAddToPlaylist(selectedItems: Set<SelectionItem>) {
+        uiStateInternal.update {
+            it.copy(
+                addToPlaylistState = AddToPlaylistState(
+                    isVisible = true,
+                    isSaving = true,
+                    completionToken = it.addToPlaylistState.completionToken,
+                ),
+            )
+        }
+        viewModelScope.launch {
+            try {
+                val videos = selectedItems.toVideos()
+                pendingPlaylistVideos = videos
+                uiStateInternal.update {
+                    it.copy(
+                        addToPlaylistState = AddToPlaylistState(
+                            isVisible = true,
+                            hasVideos = videos.isNotEmpty(),
+                            error = if (videos.isEmpty()) {
+                                "No local videos were found in this selection."
+                            } else {
+                                null
+                            },
+                            completionToken = it.addToPlaylistState.completionToken,
+                        ),
+                    )
+                }
+            } catch (error: kotlinx.coroutines.CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                uiStateInternal.update {
+                    it.copy(
+                        addToPlaylistState = AddToPlaylistState(
+                            isVisible = true,
+                            error = "Couldn't read the selected videos. Try again.",
+                            completionToken = it.addToPlaylistState.completionToken,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun addSelectionToPlaylist(playlistId: Long) {
+        savePlaylistSelection {
+            playlistRepository.addVideos(
+                playlistId = playlistId,
+                videoUris = pendingPlaylistVideos.map(Video::uriString),
+            )
+        }
+    }
+
+    private fun createPlaylistWithSelection(name: String) {
+        savePlaylistSelection {
+            playlistRepository.create(
+                name = name,
+                videoUris = pendingPlaylistVideos.map(Video::uriString),
+            )
+            pendingPlaylistVideos.size
+        }
+    }
+
+    private fun savePlaylistSelection(block: suspend () -> Int) {
+        if (pendingPlaylistVideos.isEmpty() || uiStateInternal.value.addToPlaylistState.isSaving) return
+        uiStateInternal.update {
+            it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = true, error = null))
+        }
+        viewModelScope.launch {
+            try {
+                val addedCount = block()
+                pendingPlaylistVideos = emptyList()
+                uiStateInternal.update {
+                    it.copy(
+                        addToPlaylistState = AddToPlaylistState(
+                            completionToken = it.addToPlaylistState.completionToken + 1,
+                        ),
+                    )
+                }
+                eventsInternal.send(MediaPickerEvent.PlaylistItemsAdded(addedCount))
+            } catch (error: kotlinx.coroutines.CancellationException) {
+                uiStateInternal.update {
+                    it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = false))
+                }
+                throw error
+            } catch (_: Throwable) {
+                uiStateInternal.update {
+                    it.copy(
+                        addToPlaylistState = it.addToPlaylistState.copy(
+                            isSaving = false,
+                            error = "Couldn't update playlist. Try again.",
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun dismissAddToPlaylist() {
+        if (uiStateInternal.value.addToPlaylistState.isSaving) return
+        pendingPlaylistVideos = emptyList()
+        uiStateInternal.update {
+            it.copy(
+                addToPlaylistState = AddToPlaylistState(
+                    completionToken = it.addToPlaylistState.completionToken,
+                ),
+            )
         }
     }
 
@@ -303,7 +431,7 @@ class MediaPickerViewModel @AssistedInject constructor(
                     filteredVideos
                 }
             }
-        }
+        }.distinctBy(Video::uriString)
     }
 
     private suspend fun Set<SelectionItem>.toVideoUris(): List<Uri> {
@@ -322,6 +450,17 @@ data class MediaPickerUiState(
     val mediaInfo: dev.anilbeesetti.nextplayer.core.model.MediaInfo? = null,
     val hideFlow: HideFlowState = HideFlowState.Idle,
     val transferFlow: TransferFlowState = TransferFlowState.Idle,
+    val playlists: List<PlaylistSummary> = emptyList(),
+    val addToPlaylistState: AddToPlaylistState = AddToPlaylistState(),
+)
+
+@Stable
+data class AddToPlaylistState(
+    val isVisible: Boolean = false,
+    val isSaving: Boolean = false,
+    val hasVideos: Boolean = false,
+    val error: String? = null,
+    val completionToken: Long = 0,
 )
 
 sealed interface TransferFlowState {
@@ -349,12 +488,16 @@ sealed interface MediaPickerAction {
     data class CopySelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class MoveSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data object CancelTransfer : MediaPickerAction
-    data class ShowMediaInfo(val video: Video): MediaPickerAction
+    data class ShowMediaInfo(val video: Video) : MediaPickerAction
     data object DismissMediaInfo : MediaPickerAction
     data class RequestHideSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class SetVaultPinAndHide(val pin: String) : MediaPickerAction
     data object ConfirmHidePendingItems : MediaPickerAction
     data object DismissHideFlow : MediaPickerAction
+    data class ShowAddToPlaylist(val selectionItems: Set<SelectionItem>) : MediaPickerAction
+    data class AddSelectionToPlaylist(val playlistId: Long) : MediaPickerAction
+    data class CreatePlaylistWithSelection(val name: String) : MediaPickerAction
+    data object DismissAddToPlaylist : MediaPickerAction
 }
 
 sealed interface MediaPickerEvent {
@@ -363,4 +506,5 @@ sealed interface MediaPickerEvent {
         val mode: TransferMode,
         val result: TransferResult,
     ) : MediaPickerEvent
+    data class PlaylistItemsAdded(val count: Int) : MediaPickerEvent
 }
