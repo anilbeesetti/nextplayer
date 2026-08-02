@@ -23,7 +23,7 @@ class PlaylistDetailScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun resolvedVideoMetadataIsRenderedAndPlayAllUsesOrderedQueue() {
+    fun playFabFallsBackToFirstVideoAndUsesOrderedQueue() {
         val playCalls = mutableListOf<Pair<List<Uri>, Uri>>()
         val playlist = playlist(
             item("content://two", "Renamed Two.mp4", "/Moved", 0),
@@ -34,10 +34,32 @@ class PlaylistDetailScreenTest {
 
         composeRule.onNodeWithText("Renamed Two").assertIsDisplayed()
         composeRule.onNodeWithText("/Moved").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Play all").performClick()
+        composeRule.onAllNodesWithContentDescription("Play all").assertCountEquals(0)
+        composeRule.onNodeWithContentDescription("Play").performClick()
 
         assertEquals(
             listOf("content://two", "content://one"),
+            playCalls.single().first.map(Uri::toString),
+        )
+        assertEquals("content://two", playCalls.single().second.toString())
+    }
+
+    @Test
+    fun playFabStartsFromTheLastPlayedVideo() {
+        val playCalls = mutableListOf<Pair<List<Uri>, Uri>>()
+        val playlist = playlist(
+            item("content://one", "One.mp4", "/Movies", 0),
+            item("content://two", "Two.mp4", "/Movies", 1),
+        ).copy(lastPlayedUri = "content://two")
+
+        setContent(
+            playlist = playlist,
+            onPlayVideos = { uris, startUri -> playCalls += uris to startUri },
+        )
+        composeRule.onNodeWithContentDescription("Play").performClick()
+
+        assertEquals(
+            listOf("content://one", "content://two"),
             playCalls.single().first.map(Uri::toString),
         )
         assertEquals("content://two", playCalls.single().second.toString())
@@ -75,7 +97,7 @@ class PlaylistDetailScreenTest {
         composeRule.onNodeWithContentDescription("Search").performClick()
         composeRule.onNodeWithText("Search playlist").performTextInput("downloads")
 
-        composeRule.onAllNodesWithContentDescription("Play all").assertCountEquals(0)
+        composeRule.onAllNodesWithContentDescription("Play").assertCountEquals(0)
         composeRule.onAllNodesWithText("One").assertCountEquals(0)
         composeRule.onNodeWithText("Two").assertIsDisplayed()
         composeRule.onNodeWithText("Two").performClick()
@@ -86,7 +108,7 @@ class PlaylistDetailScreenTest {
         assertEquals("content://two", playCalls.single().second.toString())
 
         composeRule.onNodeWithContentDescription("Close search").performClick()
-        composeRule.onNodeWithContentDescription("Play all").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Play").assertIsDisplayed()
         composeRule.onNodeWithText("One").assertIsDisplayed()
         composeRule.onNodeWithText("Two").assertIsDisplayed()
     }
@@ -109,7 +131,7 @@ class PlaylistDetailScreenTest {
         assertEquals(1, playCalls.size)
 
         composeRule.onNodeWithContentDescription("Reorder playlist").performClick()
-        composeRule.onAllNodesWithContentDescription("Play all").assertCountEquals(0)
+        composeRule.onAllNodesWithContentDescription("Play").assertCountEquals(0)
         composeRule.onNodeWithContentDescription("Finish reordering").assertIsDisplayed()
         composeRule.onAllNodesWithContentDescription("Reorder playlist item").assertCountEquals(2)
         composeRule.onAllNodesWithContentDescription("Playlist actions").assertCountEquals(0)
@@ -117,7 +139,7 @@ class PlaylistDetailScreenTest {
         assertEquals(1, playCalls.size)
 
         composeRule.onNodeWithContentDescription("Finish reordering").performClick()
-        composeRule.onNodeWithContentDescription("Play all").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Play").assertIsDisplayed()
         composeRule.onAllNodesWithContentDescription("Reorder playlist item").assertCountEquals(0)
     }
 
@@ -134,7 +156,7 @@ class PlaylistDetailScreenTest {
             onPlayVideos = { uris, startUri -> playCalls += uris to startUri },
         )
         composeRule.onAllNodesWithContentDescription("Reorder playlist").assertCountEquals(0)
-        composeRule.onAllNodesWithContentDescription("Play").assertCountEquals(0)
+        composeRule.onAllNodesWithContentDescription("Play").assertCountEquals(1)
         composeRule.onAllNodesWithContentDescription("Move up").assertCountEquals(0)
         composeRule.onAllNodesWithContentDescription("Move down").assertCountEquals(0)
 

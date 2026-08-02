@@ -46,6 +46,10 @@ class LocalPlaylistRepository @Inject constructor(
         playlistDao.replaceOrder(playlistId, orderedUris)
     }
 
+    override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) {
+        playlistDao.markItemPlayed(playlistId, videoUri)
+    }
+
     override suspend fun removeMissingVideos(existingUris: Set<String>) {
         playlistDao.removeMissingItems(existingUris)
     }
@@ -64,4 +68,5 @@ private fun PlaylistWithItems.toModel() = PlaylistRecord(
     id = playlist.id,
     name = playlist.name,
     orderedUris = items.sortedBy { it.position }.map { it.uri },
+    lastPlayedUri = playlist.lastPlayedUri,
 )

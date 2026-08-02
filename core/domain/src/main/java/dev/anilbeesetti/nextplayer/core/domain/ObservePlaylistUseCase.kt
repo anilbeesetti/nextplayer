@@ -28,6 +28,9 @@ class ObservePlaylistUseCase @Inject constructor(
                     items = resolvedVideos.mapIndexed { position, video ->
                         PlaylistItem(position = position, video = video)
                     },
+                    lastPlayedUri = record.lastPlayedUri?.takeIf { uri ->
+                        uri in record.orderedUris && uri in videosByUri
+                    },
                 )
             }
         }.distinctUntilChanged()

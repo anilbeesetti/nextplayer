@@ -52,6 +52,32 @@ interface PlaylistDao {
     @Query("DELETE FROM playlist_item WHERE playlist_id = :playlistId AND uri = :uri")
     suspend fun deleteItem(playlistId: Long, uri: String)
 
+    @Query(
+        """
+        UPDATE playlist
+        SET last_played_uri = :uri
+        WHERE id = :playlistId
+          AND EXISTS (
+              SELECT 1 FROM playlist_item
+              WHERE playlist_id = :playlistId AND uri = :uri
+          )
+        """,
+    )
+    suspend fun updateLastPlayedUri(playlistId: Long, uri: String): Int
+
+    @Query(
+        """
+        UPDATE playlist
+        SET last_played_uri = NULL
+        WHERE id = :playlistId
+          AND last_played_uri IS NOT NULL
+          AND last_played_uri NOT IN (
+              SELECT uri FROM playlist_item WHERE playlist_id = :playlistId
+          )
+        """,
+    )
+    suspend fun clearInvalidLastPlayedUri(playlistId: Long)
+
     @Delete
     suspend fun deleteItems(items: List<PlaylistItemEntity>)
 
@@ -91,6 +117,14 @@ interface PlaylistDao {
     suspend fun removeItem(playlistId: Long, uri: String) {
         deleteItem(playlistId, uri)
         normalizePositions(playlistId)
+        clearInvalidLastPlayedUri(playlistId)
+    }
+
+    @Transaction
+    suspend fun markItemPlayed(playlistId: Long, uri: String) {
+        require(updateLastPlayedUri(playlistId, uri) == 1) {
+            "Last played URI must belong to the playlist"
+        }
     }
 
     @Transaction
@@ -119,7 +153,10 @@ interface PlaylistDao {
         if (missingItems.isEmpty()) return
 
         deleteItems(missingItems)
-        missingItems.map { it.playlistId }.distinct().forEach { normalizePositions(it) }
+        missingItems.map { it.playlistId }.distinct().forEach { playlistId ->
+            normalizePositions(playlistId)
+            clearInvalidLastPlayedUri(playlistId)
+        }
     }
 
     private suspend fun normalizePositions(playlistId: Long) {

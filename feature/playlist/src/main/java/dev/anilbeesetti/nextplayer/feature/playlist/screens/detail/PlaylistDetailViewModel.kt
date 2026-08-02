@@ -95,6 +95,18 @@ class PlaylistDetailViewModel @AssistedInject constructor(
         updatePlaylist { playlistRepository.replaceOrder(playlistId, orderedUris) }
     }
 
+    fun markVideoPlayed(videoUri: String) {
+        viewModelScope.launch {
+            try {
+                playlistRepository.markVideoPlayed(playlistId, videoUri)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Throwable) {
+                // Playback should still start if saving the resume item fails.
+            }
+        }
+    }
+
     private fun updatePlaylist(block: suspend () -> Unit) {
         if (operationState.value.isSaving) return
         viewModelScope.launch {

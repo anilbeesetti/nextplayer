@@ -23,6 +23,7 @@ class ObservePlaylistUseCaseTest {
                 id = 7,
                 name = "Movies",
                 orderedUris = listOf("content://two", "content://missing", "content://one"),
+                lastPlayedUri = "content://two",
             ),
         )
         val mediaRepository = FakeMediaRepository().apply {
@@ -35,6 +36,7 @@ class ObservePlaylistUseCaseTest {
         assertEquals(listOf("Two", "One"), playlist?.items?.map { it.video.displayName })
         assertEquals(listOf("/Downloads", "/Movies"), playlist?.items?.map { it.video.parentPath })
         assertEquals(listOf(0, 1), playlist?.items?.map { it.position })
+        assertEquals("content://two", playlist?.lastPlayedUri)
     }
 
     @Test
@@ -80,6 +82,7 @@ private class FakePlaylistRepository(
     override suspend fun addVideos(playlistId: Long, videoUris: List<String>): Int = error("Not used")
     override suspend fun removeVideo(playlistId: Long, videoUri: String) = error("Not used")
     override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) = error("Not used")
+    override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) = error("Not used")
     override suspend fun removeMissingVideos(existingUris: Set<String>) = error("Not used")
 }
 

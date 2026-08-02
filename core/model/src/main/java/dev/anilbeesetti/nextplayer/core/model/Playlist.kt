@@ -10,6 +10,7 @@ data class PlaylistRecord(
     val id: Long,
     val name: String,
     val orderedUris: List<String>,
+    val lastPlayedUri: String? = null,
 )
 
 data class PlaylistItem(
@@ -21,4 +22,5 @@ data class Playlist(
     val id: Long,
     val name: String,
     val items: List<PlaylistItem>,
+    val lastPlayedUri: String? = null,
 )

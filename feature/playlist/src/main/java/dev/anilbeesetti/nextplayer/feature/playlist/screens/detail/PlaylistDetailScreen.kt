@@ -29,6 +29,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -111,7 +112,10 @@ fun PlaylistDetailScreenRoute(
         uiState = uiState,
         isTv = context.isTelevision,
         onBack = onNavigateUp,
-        onPlayVideos = onPlayVideos,
+        onPlayVideos = { uris, startUri ->
+            viewModel.markVideoPlayed(startUri.toString())
+            onPlayVideos(uris, startUri)
+        },
         onRemoveVideo = viewModel::removeVideo,
         onReplaceOrder = viewModel::replaceOrder,
     )
@@ -128,6 +132,10 @@ internal fun PlaylistDetailScreen(
 ) {
     val playlist = uiState.playlist
     val videoUris = playlist?.items.orEmpty().map { it.video.uriString.toUri() }
+    val playbackStartUri = playlist?.lastPlayedUri
+        ?.toUri()
+        ?.takeIf(videoUris::contains)
+        ?: videoUris.firstOrNull()
     var isReordering by rememberSaveable { mutableStateOf(false) }
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -238,20 +246,6 @@ internal fun PlaylistDetailScreen(
                                     contentDescription = stringResource(R.string.search),
                                 )
                             }
-                            IconButton(
-                                onClick = {
-                                    videoUris.firstOrNull()?.let { startUri ->
-                                        onPlayVideos(videoUris, startUri)
-                                    }
-                                },
-                                enabled = videoUris.isNotEmpty() && uiState.actionsEnabled,
-                                modifier = Modifier.tvFocusRing(),
-                            ) {
-                                Icon(
-                                    imageVector = NextIcons.Play,
-                                    contentDescription = stringResource(R.string.play_all),
-                                )
-                            }
                             if (!isTv) {
                                 IconButton(
                                     onClick = { isReordering = true },
@@ -268,6 +262,20 @@ internal fun PlaylistDetailScreen(
                     }
                 },
             )
+        },
+        floatingActionButton = {
+            if (!isSearching && !isReordering && playbackStartUri != null) {
+                FloatingActionButton(
+                    onClick = { onPlayVideos(videoUris, playbackStartUri) },
+                    modifier = Modifier.tvFocusRing(shape = MaterialTheme.shapes.large),
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    Icon(
+                        imageVector = NextIcons.Play,
+                        contentDescription = stringResource(R.string.play),
+                    )
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { padding ->
@@ -288,6 +296,7 @@ internal fun PlaylistDetailScreen(
                 isTv = isTv,
                 isReordering = isReordering,
                 searchQuery = searchQuery,
+                showPlayFab = !isSearching && !isReordering && playbackStartUri != null,
                 actionsEnabled = uiState.actionsEnabled,
                 scaffoldPadding = padding,
                 onPlayVideos = onPlayVideos,
@@ -305,6 +314,7 @@ private fun PlaylistDetailContent(
     isTv: Boolean,
     isReordering: Boolean,
     searchQuery: String,
+    showPlayFab: Boolean,
     actionsEnabled: Boolean,
     scaffoldPadding: PaddingValues,
     onPlayVideos: (uris: List<Uri>, startUri: Uri) -> Unit,
@@ -355,7 +365,8 @@ private fun PlaylistDetailContent(
                     start = 8.dp,
                     top = 8.dp,
                     end = 8.dp,
-                    bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
+                    bottom = scaffoldPadding.calculateBottomPadding() +
+                        if (showPlayFab) 96.dp else 16.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
