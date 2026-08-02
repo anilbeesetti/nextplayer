@@ -36,6 +36,8 @@ After implementing a feature, or when asked to review one, validate the affected
 
 Write short, imperative commit subjects consistent with history, such as `Fix vault reservation concurrency`. Optional prefixes like `fix(media):`, `test:`, or `docs:` are acceptable when useful. Keep each commit focused.
 
+During feature work, commit each coherent, verified intermediate milestone instead of leaving multiple completed steps uncommitted until the end.
+
 Pull requests should explain the problem and solution, link the relevant issue, and list verification commands. Include before/after screenshots or recordings for UI changes and note device/API coverage for Android-specific behavior. Ensure `assembleDebug`, `test`, and `ktlintCheck` pass before requesting review.
 
 ## Security & Local Configuration

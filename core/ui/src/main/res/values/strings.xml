@@ -422,6 +422,9 @@
     <string name="empty_playlist_title">This playlist is empty</string>
     <string name="empty_playlist_description">Select videos in Home and choose Add to playlist.</string>
     <string name="playlist_unavailable">This playlist is no longer available.</string>
+    <string name="search_playlist">Search playlist</string>
+    <string name="close_search">Close search</string>
+    <string name="no_matching_videos">No matching videos</string>
     <string name="add_to_playlist">Add to playlist</string>
     <string name="choose_playlist">Choose a playlist</string>
     <string name="create_new_playlist">Create new playlist</string>

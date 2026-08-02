@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.feature.playlist.screens.detail
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -28,6 +32,8 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,14 +51,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -120,6 +129,15 @@ internal fun PlaylistDetailScreen(
     val playlist = uiState.playlist
     val videoUris = playlist?.items.orEmpty().map { it.video.uriString.toUri() }
     var isReordering by rememberSaveable { mutableStateOf(false) }
+    var isSearching by rememberSaveable { mutableStateOf(false) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val searchFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val exitSearch: () -> Unit = {
+        searchQuery = ""
+        isSearching = false
+        keyboardController?.hide()
+    }
 
     LaunchedEffect(playlist?.items?.size) {
         if ((playlist?.items?.size ?: 0) < 2) {
@@ -129,12 +147,59 @@ internal fun PlaylistDetailScreen(
     LaunchedEffect(isTv) {
         if (isTv) isReordering = false
     }
+    LaunchedEffect(isSearching) {
+        if (isSearching) searchFocusRequester.requestFocus()
+    }
+    BackHandler(enabled = isSearching, onBack = exitSearch)
 
     Scaffold(
         topBar = {
             NextTopAppBar(
-                title = playlist?.name.orEmpty(),
-                fontWeight = FontWeight.Bold,
+                title = {
+                    if (isSearching) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(searchFocusRequester),
+                            placeholder = {
+                                Text(
+                                    text = stringResource(R.string.search_playlist),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = exitSearch) {
+                                    Icon(
+                                        imageVector = NextIcons.Close,
+                                        contentDescription = stringResource(R.string.close_search),
+                                    )
+                                }
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(
+                                onSearch = { keyboardController?.hide() },
+                            ),
+                            shape = CircleShape,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedBorderColor = Color.Transparent,
+                                errorBorderColor = Color.Transparent,
+                                disabledBorderColor = Color.Transparent,
+                            ),
+                        )
+                    } else {
+                        Text(
+                            text = playlist?.name.orEmpty(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                },
                 navigationIcon = {
                     FilledTonalIconButton(
                         onClick = onBack,
@@ -147,42 +212,57 @@ internal fun PlaylistDetailScreen(
                     }
                 },
                 actions = {
-                    if (isReordering) {
-                        IconButton(
-                            onClick = { isReordering = false },
-                            enabled = uiState.actionsEnabled,
-                            modifier = Modifier.tvFocusRing(),
-                        ) {
-                            Icon(
-                                imageVector = NextIcons.Check,
-                                contentDescription = stringResource(R.string.finish_reordering),
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            onClick = {
-                                videoUris.firstOrNull()?.let { startUri ->
-                                    onPlayVideos(videoUris, startUri)
-                                }
-                            },
-                            enabled = videoUris.isNotEmpty() && uiState.actionsEnabled,
-                            modifier = Modifier.tvFocusRing(),
-                        ) {
-                            Icon(
-                                imageVector = NextIcons.Play,
-                                contentDescription = stringResource(R.string.play_all),
-                            )
-                        }
-                        if (!isTv) {
+                    if (!isSearching) {
+                        if (isReordering) {
                             IconButton(
-                                onClick = { isReordering = true },
-                                enabled = videoUris.size > 1 && uiState.actionsEnabled,
+                                onClick = { isReordering = false },
+                                enabled = uiState.actionsEnabled,
                                 modifier = Modifier.tvFocusRing(),
                             ) {
                                 Icon(
-                                    imageVector = NextIcons.Reorder,
-                                    contentDescription = stringResource(R.string.reorder_playlist),
+                                    imageVector = NextIcons.Check,
+                                    contentDescription = stringResource(R.string.finish_reordering),
                                 )
+                            }
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    isReordering = false
+                                    isSearching = true
+                                },
+                                enabled = playlist != null,
+                                modifier = Modifier.tvFocusRing(),
+                            ) {
+                                Icon(
+                                    imageVector = NextIcons.Search,
+                                    contentDescription = stringResource(R.string.search),
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    videoUris.firstOrNull()?.let { startUri ->
+                                        onPlayVideos(videoUris, startUri)
+                                    }
+                                },
+                                enabled = videoUris.isNotEmpty() && uiState.actionsEnabled,
+                                modifier = Modifier.tvFocusRing(),
+                            ) {
+                                Icon(
+                                    imageVector = NextIcons.Play,
+                                    contentDescription = stringResource(R.string.play_all),
+                                )
+                            }
+                            if (!isTv) {
+                                IconButton(
+                                    onClick = { isReordering = true },
+                                    enabled = videoUris.size > 1 && uiState.actionsEnabled,
+                                    modifier = Modifier.tvFocusRing(),
+                                ) {
+                                    Icon(
+                                        imageVector = NextIcons.Reorder,
+                                        contentDescription = stringResource(R.string.reorder_playlist),
+                                    )
+                                }
                             }
                         }
                     }
@@ -207,6 +287,7 @@ internal fun PlaylistDetailScreen(
                 playlist = playlist,
                 isTv = isTv,
                 isReordering = isReordering,
+                searchQuery = searchQuery,
                 actionsEnabled = uiState.actionsEnabled,
                 scaffoldPadding = padding,
                 onPlayVideos = onPlayVideos,
@@ -223,6 +304,7 @@ private fun PlaylistDetailContent(
     playlist: Playlist,
     isTv: Boolean,
     isReordering: Boolean,
+    searchQuery: String,
     actionsEnabled: Boolean,
     scaffoldPadding: PaddingValues,
     onPlayVideos: (uris: List<Uri>, startUri: Uri) -> Unit,
@@ -235,6 +317,17 @@ private fun PlaylistDetailContent(
     var itemToRemove by remember { mutableStateOf<PlaylistItem?>(null) }
     val listState = rememberLazyListState()
     val hapticFeedback = LocalHapticFeedback.current
+    val visibleItems = remember(displayedItems, searchQuery) {
+        val query = searchQuery.trim()
+        if (query.isEmpty()) {
+            displayedItems
+        } else {
+            displayedItems.filter { item ->
+                item.video.displayName.contains(query, ignoreCase = true) ||
+                    item.video.parentPath.contains(query, ignoreCase = true)
+            }
+        }
+    }
 
     LaunchedEffect(playlist.items, isDragging) {
         if (!isDragging) displayedItems = playlist.items
@@ -250,6 +343,8 @@ private fun PlaylistDetailContent(
     Box(modifier = modifier) {
         if (displayedItems.isEmpty()) {
             PlaylistEmptyState(Modifier.fillMaxSize())
+        } else if (visibleItems.isEmpty()) {
+            PlaylistSearchEmptyState(Modifier.fillMaxSize())
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -265,7 +360,7 @@ private fun PlaylistDetailContent(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 itemsIndexed(
-                    items = displayedItems,
+                    items = visibleItems,
                     key = { _, item -> item.video.uriString },
                 ) { index, item ->
                     val onPlay = {
@@ -280,7 +375,7 @@ private fun PlaylistDetailContent(
                             PlaylistVideoRow(
                                 item = item,
                                 isFirstItem = index == 0,
-                                isLastItem = index == displayedItems.lastIndex,
+                                isLastItem = index == visibleItems.lastIndex,
                                 isTv = false,
                                 isReordering = true,
                                 actionsEnabled = actionsEnabled,
@@ -325,7 +420,7 @@ private fun PlaylistDetailContent(
                         PlaylistVideoRow(
                             item = item,
                             isFirstItem = index == 0,
-                            isLastItem = index == displayedItems.lastIndex,
+                            isLastItem = index == visibleItems.lastIndex,
                             isTv = isTv,
                             isReordering = isReordering,
                             actionsEnabled = actionsEnabled,
@@ -516,6 +611,29 @@ private fun PlaylistEmptyState(modifier: Modifier = Modifier) {
             text = stringResource(R.string.empty_playlist_description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun PlaylistSearchEmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(horizontal = 32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = NextIcons.Search,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(48.dp),
+        )
+        Spacer(Modifier.size(16.dp))
+        Text(
+            text = stringResource(R.string.no_matching_videos),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
     }

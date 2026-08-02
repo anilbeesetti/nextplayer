@@ -5,9 +5,11 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -56,6 +58,37 @@ class PlaylistDetailScreenTest {
 
         composeRule.onNodeWithText("Remove").performClick()
         assertEquals(listOf("content://one"), removedUris)
+    }
+
+    @Test
+    fun inPlaceSearchFiltersMetadataAndCloseRestoresThePlaylist() {
+        val playCalls = mutableListOf<Pair<List<Uri>, Uri>>()
+        val playlist = playlist(
+            item("content://one", "One.mp4", "/Movies", 0),
+            item("content://two", "Two.mp4", "/Downloads", 1),
+        )
+        setContent(
+            playlist = playlist,
+            onPlayVideos = { uris, startUri -> playCalls += uris to startUri },
+        )
+
+        composeRule.onNodeWithContentDescription("Search").performClick()
+        composeRule.onNodeWithText("Search playlist").performTextInput("downloads")
+
+        composeRule.onAllNodesWithContentDescription("Play all").assertCountEquals(0)
+        composeRule.onAllNodesWithText("One").assertCountEquals(0)
+        composeRule.onNodeWithText("Two").assertIsDisplayed()
+        composeRule.onNodeWithText("Two").performClick()
+        assertEquals(
+            listOf("content://one", "content://two"),
+            playCalls.single().first.map(Uri::toString),
+        )
+        assertEquals("content://two", playCalls.single().second.toString())
+
+        composeRule.onNodeWithContentDescription("Close search").performClick()
+        composeRule.onNodeWithContentDescription("Play all").assertIsDisplayed()
+        composeRule.onNodeWithText("One").assertIsDisplayed()
+        composeRule.onNodeWithText("Two").assertIsDisplayed()
     }
 
     @Test
