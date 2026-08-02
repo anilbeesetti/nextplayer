@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -34,8 +33,6 @@ sealed interface PlaylistDetailEvent {
 }
 
 private data class DetailOperationState(
-    val hasLoaded: Boolean = false,
-    val isSyncing: Boolean = true,
     val isSaving: Boolean = false,
 )
 
@@ -57,17 +54,14 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     val events = eventChannel.receiveAsFlow()
     private var syncJob: Job? = null
 
-    private val playlist = observePlaylist(playlistId)
-        .onEach { operationState.update { state -> state.copy(hasLoaded = true) } }
-
     val uiState: StateFlow<PlaylistDetailUiState> = combine(
-        playlist,
+        observePlaylist(playlistId),
         operationState,
     ) { resolvedPlaylist, operation ->
         PlaylistDetailUiState(
             playlist = resolvedPlaylist,
-            isLoading = !operation.hasLoaded || operation.isSyncing,
-            actionsEnabled = operation.hasLoaded && !operation.isSyncing && !operation.isSaving,
+            isLoading = false,
+            actionsEnabled = !operation.isSaving,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -77,13 +71,8 @@ class PlaylistDetailViewModel @AssistedInject constructor(
 
     fun synchronize() {
         if (syncJob?.isActive == true) return
-        operationState.update { it.copy(isSyncing = true) }
         syncJob = viewModelScope.launch {
-            try {
-                syncPlaylistsWithMedia()
-            } finally {
-                operationState.update { it.copy(isSyncing = false) }
-            }
+            syncPlaylistsWithMedia()
         }
     }
 

@@ -287,9 +287,10 @@ internal fun PlaylistDetailScreen(
             .background(MaterialTheme.colorScheme.background)
 
         when {
-            uiState.isLoading -> Box(containerModifier, contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            uiState.isLoading && playlist == null ->
+                Box(containerModifier, contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             playlist == null -> PlaylistUnavailable(containerModifier)
             else -> PlaylistDetailContent(
                 playlist = playlist,

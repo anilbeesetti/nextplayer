@@ -56,4 +56,21 @@ class PlaylistListScreenTest {
         composeRule.onNodeWithText("Rename playlist").assertIsDisplayed()
         composeRule.onNodeWithText("Delete").assertIsDisplayed()
     }
+
+    @Test
+    fun existingRowsRemainVisibleWhileRefreshing() {
+        composeRule.setContent {
+            NextPlayerTheme {
+                PlaylistListScreen(
+                    uiState = PlaylistListUiState(
+                        playlists = listOf(PlaylistSummary(7, "Movies", 2)),
+                        isLoading = true,
+                    ),
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Movies").assertIsDisplayed()
+        composeRule.onNodeWithText("Local · 2 videos").assertIsDisplayed()
+    }
 }

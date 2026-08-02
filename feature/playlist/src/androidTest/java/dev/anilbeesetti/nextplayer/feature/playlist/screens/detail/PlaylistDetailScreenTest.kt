@@ -66,6 +66,17 @@ class PlaylistDetailScreenTest {
     }
 
     @Test
+    fun existingPlaylistRemainsVisibleWhileRefreshing() {
+        setContent(
+            playlist = playlist(item("content://one", "One.mp4", "/Movies", 0)),
+            isLoading = true,
+        )
+
+        composeRule.onNodeWithText("One").assertIsDisplayed()
+        composeRule.onNodeWithText("/Movies").assertIsDisplayed()
+    }
+
+    @Test
     fun removeActionRequiresConfirmation() {
         val removedUris = mutableListOf<String>()
         setContent(
@@ -171,6 +182,7 @@ class PlaylistDetailScreenTest {
     private fun setContent(
         playlist: Playlist,
         isTv: Boolean = false,
+        isLoading: Boolean = false,
         onPlayVideos: (List<Uri>, Uri) -> Unit = { _, _ -> },
         onRemoveVideo: (String) -> Unit = {},
         onReplaceOrder: (List<String>) -> Unit = {},
@@ -180,7 +192,7 @@ class PlaylistDetailScreenTest {
                 PlaylistDetailScreen(
                     uiState = PlaylistDetailUiState(
                         playlist = playlist,
-                        isLoading = false,
+                        isLoading = isLoading,
                         actionsEnabled = true,
                     ),
                     isTv = isTv,

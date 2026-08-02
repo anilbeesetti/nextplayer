@@ -33,7 +33,6 @@ sealed interface PlaylistListEvent {
 }
 
 private data class PlaylistListOperationState(
-    val isSyncing: Boolean = true,
     val isSaving: Boolean = false,
     val formError: String? = null,
     val saveVersion: Long = 0,
@@ -56,7 +55,7 @@ class PlaylistListViewModel @Inject constructor(
     ) { playlists, operation ->
         PlaylistListUiState(
             playlists = playlists,
-            isLoading = operation.isSyncing,
+            isLoading = false,
             isSaving = operation.isSaving,
             formError = operation.formError,
             saveVersion = operation.saveVersion,
@@ -69,13 +68,8 @@ class PlaylistListViewModel @Inject constructor(
 
     fun synchronize() {
         if (syncJob?.isActive == true) return
-        operationState.update { it.copy(isSyncing = true) }
         syncJob = viewModelScope.launch {
-            try {
-                syncPlaylistsWithMedia()
-            } finally {
-                operationState.update { it.copy(isSyncing = false) }
-            }
+            syncPlaylistsWithMedia()
         }
     }
 

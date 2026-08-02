@@ -167,7 +167,8 @@ internal fun PlaylistListScreen(
 
         Box(modifier = containerModifier) {
             when {
-                uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                uiState.isLoading && uiState.playlists.isEmpty() ->
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
                 showEmptyState -> PlaylistListEmptyState(Modifier.fillMaxSize())
                 else -> LazyColumn(
                     modifier = Modifier
