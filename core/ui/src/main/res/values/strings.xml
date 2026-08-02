@@ -397,4 +397,6 @@
         <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
+    <string name="dv7_fallback">DV Profile 7 Fallback</string>
+    <string name="dv7_fallback_description">Fixes black screen issue for Dolby Vision Profile 7 on Exynos devices</string>
 </resources>

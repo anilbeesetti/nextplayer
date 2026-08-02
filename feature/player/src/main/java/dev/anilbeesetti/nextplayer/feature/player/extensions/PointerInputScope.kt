@@ -12,12 +12,49 @@ import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.gestures.verticalDrag
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import kotlin.math.abs
+
+fun PointerEvent.calculateZoomXY(): Offset {
+    val pointers = changes.filter { it.pressed || it.previousPressed }
+    if (pointers.size < 2) return Offset(1f, 1f)
+    
+    val p1 = pointers[0]
+    val p2 = pointers[1]
+    
+    val currentDistanceX = kotlin.math.abs(p1.position.x - p2.position.x)
+    val currentDistanceY = kotlin.math.abs(p1.position.y - p2.position.y)
+    
+    val previousDistanceX = kotlin.math.abs(p1.previousPosition.x - p2.previousPosition.x)
+    val previousDistanceY = kotlin.math.abs(p1.previousPosition.y - p2.previousPosition.y)
+    
+    val previousDistance = kotlin.math.hypot(
+        p1.previousPosition.x - p2.previousPosition.x,
+        p1.previousPosition.y - p2.previousPosition.y
+    )
+    
+    if (previousDistance < 10f) return Offset(1f, 1f)
+    
+    var deltaX = currentDistanceX - previousDistanceX
+    var deltaY = currentDistanceY - previousDistanceY
+    
+    // Snap based on finger placement
+    if (previousDistanceX >= previousDistanceY) {
+        deltaY = 0f
+    } else {
+        deltaX = 0f
+    }
+    
+    val zoomX = 1f + (deltaX / previousDistance)
+    val zoomY = 1f + (deltaY / previousDistance)
+    
+    return Offset(zoomX, zoomY)
+}
 
 /**
  * Detects custom transform gestures including pan, zoom, and rotation gestures.
@@ -41,14 +78,14 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
     onGesture: (
         centroid: Offset,
         pan: Offset,
-        zoom: Float,
+        zoom: Offset,
         rotation: Float,
     ) -> Unit,
     onGestureEnd: (PointerInputChange) -> Unit = {},
 ) {
     awaitEachGesture {
         var rotation = 0f
-        var zoom = 1f
+        var zoom = Offset(1f, 1f)
         var pan = Offset.Zero
         var pastTouchSlop = false
         val touchSlop = viewConfiguration.touchSlop
@@ -92,23 +129,25 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
                 pointerId = pointerInputChange.id
                 pointer = pointerInputChange
 
-                val zoomChange = event.calculateZoom()
+                val zoomChange = event.calculateZoomXY()
                 val rotationChange = event.calculateRotation()
                 val panChange = event.calculatePan()
 
                 if (!pastTouchSlop) {
-                    zoom *= zoomChange
+                    zoom = Offset(zoom.x * zoomChange.x, zoom.y * zoomChange.y)
                     rotation += rotationChange
                     pan += panChange
 
                     val centroidSize = event.calculateCentroidSize(useCurrent = false)
-                    val zoomMotion = abs(1 - zoom) * centroidSize
+                    val zoomMotionX = abs(1 - zoom.x) * centroidSize
+                    val zoomMotionY = abs(1 - zoom.y) * centroidSize
                     val rotationMotion = abs(
                         rotation * kotlin.math.PI.toFloat() * centroidSize / 180f,
                     )
                     val panMotion = pan.getDistance()
 
-                    if (zoomMotion > touchSlop ||
+                    if (zoomMotionX > touchSlop ||
+                        zoomMotionY > touchSlop ||
                         rotationMotion > touchSlop ||
                         panMotion > touchSlop
                     ) {
@@ -121,7 +160,7 @@ suspend fun PointerInputScope.detectCustomTransformGestures(
                     val centroid = event.calculateCentroid(useCurrent = false)
                     val effectiveRotation = if (lockedToPanZoom) 0f else rotationChange
                     if (effectiveRotation != 0f ||
-                        zoomChange != 1f ||
+                        zoomChange != Offset(1f, 1f) ||
                         panChange != Offset.Zero
                     ) {
                         onGesture(

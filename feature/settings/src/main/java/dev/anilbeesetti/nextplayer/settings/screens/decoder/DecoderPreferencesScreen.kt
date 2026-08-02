@@ -31,6 +31,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.RadioTextButton
+import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
@@ -94,6 +95,13 @@ private fun DecoderPreferencesContent(
                     icon = NextIcons.Priority,
                     onClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(DecoderPreferenceDialog.DecoderPriorityDialog)) },
                     isFirstItem = true,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.dv7_fallback),
+                    description = stringResource(id = R.string.dv7_fallback_description),
+                    icon = NextIcons.Video,
+                    isChecked = preferences.dv7Fallback,
+                    onClick = { onEvent(DecoderPreferencesUiEvent.UpdateDv7Fallback(!preferences.dv7Fallback)) },
                     isLastItem = true,
                 )
             }

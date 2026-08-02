@@ -64,8 +64,8 @@ fun PlayerContentFrame(
                 pictureInPictureState.setVideoViewRect(rect)
             }
             .graphicsLayer {
-                scaleX = videoZoomAndContentScaleState.zoom
-                scaleY = videoZoomAndContentScaleState.zoom
+                scaleX = videoZoomAndContentScaleState.zoomX
+                scaleY = videoZoomAndContentScaleState.zoomY
                 translationX = videoZoomAndContentScaleState.offset.x
                 translationY = videoZoomAndContentScaleState.offset.y
             },
