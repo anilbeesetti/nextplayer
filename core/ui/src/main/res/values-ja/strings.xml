@@ -226,8 +226,8 @@
     <string name="info">情報</string>
     <string name="play">再生</string>
     <string name="recently_played">最近再生した</string>
-    <string name="delete_one_video">1 個の動画を削除してもよろしいですか？</string>
-    <string name="delete_videos">%1$d 個の動画を削除してもよろしいですか？</string>
+    <string name="delete_one_video">1 本の動画を削除してもよろしいですか？</string>
+    <string name="delete_videos">%1$d 本の動画を削除してもよろしいですか？</string>
     <string name="delete_one_folder">1 個のフォルダーを削除してもよろしいですか？</string>
     <string name="delete_folders">%1$d 個のフォルダーを削除してもよろしいですか？</string>
     <string name="delete_items">%1$d 個の項目を削除してもよろしいですか？</string>
@@ -379,7 +379,7 @@
         <item quantity="other">%1$d 本の動画を移動できませんでした</item>
     </plurals>
     <plurals name="moved_videos_originals_remain">
-        <item quantity="other">%1$d 個の動画を移動しましたが、元の動画を削除できませんでした</item>
+        <item quantity="other">%1$d 本の動画を移動しましたが、元の動画を削除できませんでした</item>
     </plurals>
     <string name="cannot_move_to_same_folder">同じフォルダーには移動できません</string>
 </resources>
