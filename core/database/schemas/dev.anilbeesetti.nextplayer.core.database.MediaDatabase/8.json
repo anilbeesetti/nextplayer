@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "e4f87926fba4278ea617efaf09181fcb",
+    "identityHash": "a197bf0d829c1e0ae876381353b272bf",
     "entities": [
       {
         "tableName": "media_state",
@@ -263,7 +263,7 @@
       },
       {
         "tableName": "playlist_item",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`playlist_id` INTEGER NOT NULL, `uri` TEXT NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`playlist_id`, `uri`), FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`playlist_id` INTEGER NOT NULL, `uri` TEXT NOT NULL, `position` INTEGER NOT NULL, `last_played_at` INTEGER, PRIMARY KEY(`playlist_id`, `uri`), FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "playlistId",
@@ -282,6 +282,11 @@
             "columnName": "position",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "lastPlayedAt",
+            "columnName": "last_played_at",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -329,7 +334,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e4f87926fba4278ea617efaf09181fcb')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a197bf0d829c1e0ae876381353b272bf')"
     ]
   }
 }

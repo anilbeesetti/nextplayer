@@ -18,7 +18,7 @@ class Migration7To8Test {
     )
 
     @Test
-    fun migrationPreservesExistingDataAndCreatesUriOnlyPlaylistTables() {
+    fun migrationPreservesExistingDataAndCreatesFinalPlaylistTables() {
         helper.createDatabase(TEST_DATABASE, 7).apply {
             execSQL(
                 """
@@ -46,7 +46,7 @@ class Migration7To8Test {
                 while (cursor.moveToNext()) add(cursor.getString(1))
             }
         }
-        assertEquals(setOf("playlist_id", "uri", "position"), columns)
+        assertEquals(setOf("playlist_id", "uri", "position", "last_played_at"), columns)
         migrated.close()
     }
 
