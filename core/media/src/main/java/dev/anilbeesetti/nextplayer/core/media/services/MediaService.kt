@@ -49,6 +49,15 @@ interface MediaService {
     suspend fun fetchVideos(folderPath: String? = null): List<MediaVideo>
 
     /**
+     * Fetches video URIs while preserving MediaStore query failures.
+     *
+     * Use this for operations that mutate stored data based on a complete MediaStore snapshot.
+     * Browsing callers should continue using [fetchVideos], whose implementation tolerates a
+     * revoked permission.
+     */
+    suspend fun fetchVideoUrisOrThrow(folderPath: String? = null): Set<String>
+
+    /**
      * Finds a specific video by its content URI.
      *
      * @param uri The content URI of the video.

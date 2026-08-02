@@ -4,6 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
 import androidx.compose.material.icons.automirrored.rounded.DriveFileMove
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AppSettingsAlt
@@ -28,6 +30,7 @@ import androidx.compose.material.icons.rounded.Deselect
 import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
+import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FileOpen
@@ -52,6 +55,7 @@ import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.MiscellaneousServices
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Movie
@@ -75,6 +79,7 @@ import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Subtitles
+import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.SwipeVertical
 import androidx.compose.material.icons.rounded.Timer
@@ -130,6 +135,8 @@ object NextIcons {
     val Pinch = Icons.Rounded.Pinch
     val Play = Icons.Rounded.PlayArrow
     val Player = Icons.Rounded.PlayCircle
+    val Playlist = Icons.AutoMirrored.Rounded.PlaylistPlay
+    val PlaylistAdd = Icons.AutoMirrored.Rounded.PlaylistAdd
     val Priority = Icons.Rounded.PriorityHigh
     val Replay = Icons.Rounded.Replay10
     val Resume = Icons.Rounded.ResetTv
@@ -164,8 +171,11 @@ object NextIcons {
     val Copy = Icons.Rounded.ContentCopy
     val Move = Icons.AutoMirrored.Rounded.DriveFileMove
     val ExtraSettings = Icons.Rounded.MiscellaneousServices
+    val MoreVert = Icons.Rounded.MoreVert
     val DeleteSweep = Icons.Rounded.DeleteSweep
     val Image = Icons.Rounded.Image
     val Frame = Icons.Rounded.FilterFrames
     val Lock = Icons.Rounded.Lock
+    val DragHandle = Icons.Rounded.DragHandle
+    val Reorder = Icons.Rounded.SwapVert
 }

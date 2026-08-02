@@ -397,4 +397,51 @@
         <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
+
+    <!-- Playlists -->
+    <string name="playlists">Playlists</string>
+    <string name="create_playlist">Create playlist</string>
+    <string name="rename_playlist">Rename playlist</string>
+    <string name="playlist_name">Playlist name</string>
+    <string name="create">Create</string>
+    <string name="save">Save</string>
+    <string name="name_required">Enter a playlist name.</string>
+    <string name="saving_playlist">Saving playlist…</string>
+    <string name="no_playlists_title">No playlists yet</string>
+    <string name="no_playlists_description">Create a playlist, then select local videos from Home to add them.</string>
+    <string name="local_playlist">Local</string>
+    <string name="delete_playlist">Delete playlist</string>
+    <string name="delete_playlist_confirmation">Delete “%1$s” and its saved order?</string>
+    <string name="playlist_actions">Playlist actions</string>
+    <string name="play_all">Play all</string>
+    <string name="remove_video">Remove video</string>
+    <string name="remove_video_confirmation">Remove “%1$s” from this playlist?</string>
+    <string name="reorder_playlist">Reorder playlist</string>
+    <string name="finish_reordering">Finish reordering</string>
+    <string name="reorder_playlist_item">Reorder playlist item</string>
+    <string name="empty_playlist_title">This playlist is empty</string>
+    <string name="empty_playlist_description">Select videos in Home and choose Add to playlist.</string>
+    <string name="playlist_unavailable">This playlist is no longer available.</string>
+    <string name="search_playlist">Search playlist</string>
+    <string name="close_search">Close search</string>
+    <string name="no_matching_videos">No matching videos</string>
+    <string name="add_to_playlist">Add to playlist</string>
+    <string name="choose_playlist">Choose a playlist</string>
+    <string name="create_new_playlist">Create new playlist</string>
+    <string name="existing_playlists">Existing playlists</string>
+    <string name="no_playlists">No playlists yet.</string>
+    <string name="already_in_playlist">The selected videos are already in this playlist.</string>
+    <string name="playlist_delete_failed">Couldn\'t delete playlist. Try again.</string>
+    <string name="playlist_save_failed">Couldn\'t save playlist. Try again.</string>
+    <string name="playlist_update_failed">Couldn\'t update playlist. Try again.</string>
+    <string name="playlist_selection_empty">No local videos were found in this selection.</string>
+    <string name="playlist_selection_read_failed">Couldn\'t read the selected videos. Try again.</string>
+    <plurals name="added_videos_to_playlist">
+        <item quantity="one">Added %d video to playlist.</item>
+        <item quantity="other">Added %d videos to playlist.</item>
+    </plurals>
+    <plurals name="playlist_video_count">
+        <item quantity="one">%d video</item>
+        <item quantity="other">%d videos</item>
+    </plurals>
 </resources>

@@ -49,8 +49,12 @@ internal fun Context.startPlayback(uri: Uri, grantReadPermission: Boolean = fals
     startPlayback(uri = uri, playlist = null, grantReadPermission = grantReadPermission)
 }
 
-internal fun Context.startPlayback(uris: List<Uri>, grantReadPermission: Boolean = false) {
-    val uri = uris.firstOrNull() ?: return
+internal fun Context.startPlayback(
+    uris: List<Uri>,
+    startUri: Uri? = null,
+    grantReadPermission: Boolean = false,
+) {
+    val uri = startUri?.takeIf(uris::contains) ?: uris.firstOrNull() ?: return
     startPlayback(uri = uri, playlist = uris, grantReadPermission = grantReadPermission)
 }
 

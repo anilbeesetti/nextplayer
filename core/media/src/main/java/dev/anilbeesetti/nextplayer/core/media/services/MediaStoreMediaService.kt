@@ -114,29 +114,11 @@ class MediaStoreMediaService @Inject constructor(
     }
 
     override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> = withContext(Dispatchers.IO) {
-        return@withContext runMediaStoreQuery {
-            val mediaVideos = mutableListOf<MediaVideo>()
+        return@withContext runMediaStoreQuery { queryVideos(folderPath) }
+    }
 
-            // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
-            // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
-            val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
-            val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
-            val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
-
-            context.contentResolver.query(
-                VIDEO_COLLECTION_URI,
-                VIDEO_PROJECTION,
-                selection,
-                selectionArgs,
-                sortOrder,
-            )?.use { cursor ->
-                while (cursor.moveToNext()) {
-                    val video = cursor.toMediaVideo() ?: continue
-                    mediaVideos.add(video)
-                }
-            }
-            mediaVideos
-        }
+    override suspend fun fetchVideoUrisOrThrow(folderPath: String?): Set<String> = withContext(Dispatchers.IO) {
+        queryVideoUris(folderPath)
     }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
@@ -188,6 +170,55 @@ class MediaStoreMediaService @Inject constructor(
      * Walks up the directory tree from this file's parent to the root.
      */
     private fun File.walkUp() = generateSequence(parentFile) { it.parentFile }
+
+    private fun queryVideos(folderPath: String?): List<MediaVideo> {
+        val mediaVideos = mutableListOf<MediaVideo>()
+
+        // A null folderPath scans every storage volume (e.g. SD cards / USB OTG). For a specific
+        // folder, match it and its descendants, escaping LIKE metacharacters ('%', '_') in the path.
+        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
+        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
+        val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
+
+        context.contentResolver.query(
+            VIDEO_COLLECTION_URI,
+            VIDEO_PROJECTION,
+            selection,
+            selectionArgs,
+            sortOrder,
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val video = cursor.toMediaVideo() ?: continue
+                mediaVideos.add(video)
+            }
+        }
+        return mediaVideos
+    }
+
+    private fun queryVideoUris(folderPath: String?): Set<String> {
+        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
+        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
+        val cursor = checkNotNull(
+            context.contentResolver.query(
+                VIDEO_COLLECTION_URI,
+                arrayOf(MediaStore.Video.Media._ID),
+                selection,
+                selectionArgs,
+                null,
+            ),
+        ) {
+            "MediaStore returned no cursor for the video snapshot"
+        }
+
+        return cursor.use {
+            buildSet {
+                val idIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                while (cursor.moveToNext()) {
+                    add(ContentUris.withAppendedId(VIDEO_COLLECTION_URI, cursor.getLong(idIndex)).toString())
+                }
+            }
+        }
+    }
 
     /**
      * Escapes SQL LIKE metacharacters so a path is matched literally (used with `ESCAPE '\'`).

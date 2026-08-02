@@ -50,4 +50,20 @@ class MediaNavGraphTest {
 
         assertNull(shadowOf(context).nextStartedActivity)
     }
+
+    @Test
+    fun `explicit playlist starts at requested uri without changing queue order`() {
+        val context = Robolectric.buildActivity(Activity::class.java).setup().get()
+        val first = "content://media/external/video/media/1".toUri()
+        val second = "content://media/external/video/media/2".toUri()
+
+        context.startPlayback(listOf(first, second), startUri = second)
+
+        val intent = shadowOf(context).nextStartedActivity
+        assertEquals(second, intent.data)
+        assertEquals(
+            arrayListOf(first, second),
+            IntentCompat.getParcelableArrayListExtra(intent, PlayerApi.API_PLAYLIST, Uri::class.java),
+        )
+    }
 }
