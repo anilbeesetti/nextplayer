@@ -13,8 +13,6 @@ data class PlaylistEntity(
     val name: String,
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
-    @ColumnInfo(name = "last_played_uri")
-    val lastPlayedUri: String? = null,
 )
 
 data class PlaylistSummaryEntity(

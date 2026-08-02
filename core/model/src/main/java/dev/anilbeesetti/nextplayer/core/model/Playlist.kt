@@ -9,18 +9,29 @@ data class PlaylistSummary(
 data class PlaylistRecord(
     val id: Long,
     val name: String,
-    val orderedUris: List<String>,
-    val lastPlayedUri: String? = null,
+    val items: List<PlaylistItemRecord>,
+)
+
+data class PlaylistItemRecord(
+    val position: Int,
+    val uri: String,
+    val lastPlayedAt: Long? = null,
 )
 
 data class PlaylistItem(
     val position: Int,
     val video: Video,
+    val lastPlayedAt: Long? = null,
 )
 
 data class Playlist(
     val id: Long,
     val name: String,
     val items: List<PlaylistItem>,
-    val lastPlayedUri: String? = null,
-)
+) {
+    val lastPlayedVideo: Video?
+        get() = items
+            .maxByOrNull { it.lastPlayedAt ?: Long.MIN_VALUE }
+            ?.takeIf { it.lastPlayedAt != null }
+            ?.video
+}

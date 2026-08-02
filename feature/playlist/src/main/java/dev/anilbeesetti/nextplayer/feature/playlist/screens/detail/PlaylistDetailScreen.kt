@@ -132,9 +132,9 @@ internal fun PlaylistDetailScreen(
 ) {
     val playlist = uiState.playlist
     val videoUris = playlist?.items.orEmpty().map { it.video.uriString.toUri() }
-    val playbackStartUri = playlist?.lastPlayedUri
+    val playbackStartUri = playlist?.lastPlayedVideo
+        ?.uriString
         ?.toUri()
-        ?.takeIf(videoUris::contains)
         ?: videoUris.firstOrNull()
     var isReordering by rememberSaveable { mutableStateOf(false) }
     var isSearching by rememberSaveable { mutableStateOf(false) }

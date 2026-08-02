@@ -84,24 +84,28 @@ class PlaylistDaoTest {
     }
 
     @Test
-    fun lastPlayedUriIsStoredAndClearedWhenItsItemIsRemoved() = runTest {
+    fun lastPlayedTimestampsRetainThePreviousItemAfterTheNewestIsRemoved() = runTest {
         val playlistId = dao.createPlaylist(
             "Movies",
             listOf("content://one", "content://two"),
         )
 
-        dao.markItemPlayed(playlistId, "content://two")
+        dao.markItemPlayed(playlistId, "content://one", playedAt = 100)
+        dao.markItemPlayed(playlistId, "content://two", playedAt = 200)
         assertEquals(
-            "content://two",
-            dao.observePlaylist(playlistId).first()?.playlist?.lastPlayedUri,
+            listOf(100L, 200L),
+            dao.getItems(playlistId).map { it.lastPlayedAt },
         )
 
         dao.removeItem(playlistId, "content://two")
-        assertEquals(null, dao.observePlaylist(playlistId).first()?.playlist?.lastPlayedUri)
+        assertEquals(
+            listOf("content://one" to 100L),
+            dao.getItems(playlistId).map { it.uri to it.lastPlayedAt },
+        )
     }
 
     @Test
-    fun playlistItemTableStoresOnlyIdentityAndOrder() {
+    fun playlistItemTableStoresOnlyIdentityOrderAndPlaybackTimestamp() {
         val columns = database.openHelper.readableDatabase
             .query("PRAGMA table_info(`playlist_item`)")
             .use { cursor ->
@@ -110,7 +114,7 @@ class PlaylistDaoTest {
                 }
             }
 
-        assertEquals(setOf("playlist_id", "uri", "position"), columns)
+        assertEquals(setOf("playlist_id", "uri", "position", "last_played_at"), columns)
     }
 
     @Test

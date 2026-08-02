@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.core.data.repository
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
 import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistSummaryEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistWithItems
+import dev.anilbeesetti.nextplayer.core.model.PlaylistItemRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import javax.inject.Inject
@@ -47,7 +48,11 @@ class LocalPlaylistRepository @Inject constructor(
     }
 
     override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) {
-        playlistDao.markItemPlayed(playlistId, videoUri)
+        playlistDao.markItemPlayed(
+            playlistId = playlistId,
+            uri = videoUri,
+            playedAt = System.currentTimeMillis(),
+        )
     }
 
     override suspend fun removeMissingVideos(existingUris: Set<String>) {
@@ -67,6 +72,11 @@ private fun PlaylistSummaryEntity.toModel() = PlaylistSummary(
 private fun PlaylistWithItems.toModel() = PlaylistRecord(
     id = playlist.id,
     name = playlist.name,
-    orderedUris = items.sortedBy { it.position }.map { it.uri },
-    lastPlayedUri = playlist.lastPlayedUri,
+    items = items.sortedBy { it.position }.map { item ->
+        PlaylistItemRecord(
+            position = item.position,
+            uri = item.uri,
+            lastPlayedAt = item.lastPlayedAt,
+        )
+    },
 )

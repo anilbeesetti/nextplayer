@@ -26,4 +26,6 @@ data class PlaylistItemEntity(
     val playlistId: Long,
     val uri: String,
     val position: Int,
+    @ColumnInfo(name = "last_played_at")
+    val lastPlayedAt: Long? = null,
 )

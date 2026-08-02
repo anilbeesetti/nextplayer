@@ -2,6 +2,7 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
+import dev.anilbeesetti.nextplayer.core.model.PlaylistItemRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.Video
@@ -22,8 +23,11 @@ class ObservePlaylistUseCaseTest {
             PlaylistRecord(
                 id = 7,
                 name = "Movies",
-                orderedUris = listOf("content://two", "content://missing", "content://one"),
-                lastPlayedUri = "content://two",
+                items = listOf(
+                    PlaylistItemRecord(0, "content://two", lastPlayedAt = 200),
+                    PlaylistItemRecord(1, "content://missing", lastPlayedAt = 300),
+                    PlaylistItemRecord(2, "content://one", lastPlayedAt = 100),
+                ),
             ),
         )
         val mediaRepository = FakeMediaRepository().apply {
@@ -36,13 +40,18 @@ class ObservePlaylistUseCaseTest {
         assertEquals(listOf("Two", "One"), playlist?.items?.map { it.video.displayName })
         assertEquals(listOf("/Downloads", "/Movies"), playlist?.items?.map { it.video.parentPath })
         assertEquals(listOf(0, 1), playlist?.items?.map { it.position })
-        assertEquals("content://two", playlist?.lastPlayedUri)
+        assertEquals(listOf(200L, 100L), playlist?.items?.map { it.lastPlayedAt })
+        assertEquals("content://two", playlist?.lastPlayedVideo?.uriString)
     }
 
     @Test
     fun aMediaStoreRenameAndPlaybackUpdateAreReflectedWithoutChangingPlaylistRows() = runTest {
         val playlistRepository = FakePlaylistRepository(
-            PlaylistRecord(7, "Movies", listOf("content://one")),
+            PlaylistRecord(
+                id = 7,
+                name = "Movies",
+                items = listOf(PlaylistItemRecord(0, "content://one")),
+            ),
         )
         val mediaRepository = FakeMediaRepository().apply {
             videos += video("content://one", "Before.mp4", "/Movies")
@@ -63,7 +72,10 @@ class ObservePlaylistUseCaseTest {
         assertEquals("After", after?.items?.single()?.video?.displayName)
         assertEquals("/Renamed", after?.items?.single()?.video?.parentPath)
         assertEquals(500L, after?.items?.single()?.video?.playbackPosition)
-        assertEquals(listOf("content://one"), playlistRepository.record.value?.orderedUris)
+        assertEquals(
+            listOf("content://one"),
+            playlistRepository.record.value?.items?.map { it.uri },
+        )
     }
 }
 

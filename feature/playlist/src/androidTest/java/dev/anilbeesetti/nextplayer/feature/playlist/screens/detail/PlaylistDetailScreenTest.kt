@@ -49,8 +49,8 @@ class PlaylistDetailScreenTest {
         val playCalls = mutableListOf<Pair<List<Uri>, Uri>>()
         val playlist = playlist(
             item("content://one", "One.mp4", "/Movies", 0),
-            item("content://two", "Two.mp4", "/Movies", 1),
-        ).copy(lastPlayedUri = "content://two")
+            item("content://two", "Two.mp4", "/Movies", 1, lastPlayedAt = 200),
+        )
 
         setContent(
             playlist = playlist,
@@ -205,8 +205,10 @@ private fun item(
     name: String,
     parentPath: String,
     position: Int,
+    lastPlayedAt: Long? = null,
 ) = PlaylistItem(
     position = position,
+    lastPlayedAt = lastPlayedAt,
     video = Video(
         id = position.toLong(),
         path = "$parentPath/$name",

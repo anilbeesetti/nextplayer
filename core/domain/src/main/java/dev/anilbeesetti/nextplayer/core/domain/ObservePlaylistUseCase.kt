@@ -21,15 +21,20 @@ class ObservePlaylistUseCase @Inject constructor(
         ) { record, videos ->
             record?.let {
                 val videosByUri = videos.associateBy { video -> video.uriString }
-                val resolvedVideos = record.orderedUris.mapNotNull(videosByUri::get)
+                val resolvedItems = record.items.mapNotNull { item ->
+                    videosByUri[item.uri]?.let { video ->
+                        PlaylistItem(
+                            position = item.position,
+                            video = video,
+                            lastPlayedAt = item.lastPlayedAt,
+                        )
+                    }
+                }
                 Playlist(
                     id = record.id,
                     name = record.name,
-                    items = resolvedVideos.mapIndexed { position, video ->
-                        PlaylistItem(position = position, video = video)
-                    },
-                    lastPlayedUri = record.lastPlayedUri?.takeIf { uri ->
-                        uri in record.orderedUris && uri in videosByUri
+                    items = resolvedItems.mapIndexed { position, item ->
+                        item.copy(position = position)
                     },
                 )
             }

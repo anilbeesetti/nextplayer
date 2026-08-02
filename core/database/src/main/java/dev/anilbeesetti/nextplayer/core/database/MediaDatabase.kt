@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -285,6 +285,102 @@ abstract class MediaDatabase : RoomDatabase() {
         val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `playlist` ADD COLUMN `last_played_uri` TEXT")
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `playlist_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `created_at` INTEGER NOT NULL
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `playlist_item_backup` (
+                        `playlist_id` INTEGER NOT NULL,
+                        `uri` TEXT NOT NULL,
+                        `position` INTEGER NOT NULL,
+                        `last_played_at` INTEGER
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO `playlist_item_backup` (
+                        `playlist_id`,
+                        `uri`,
+                        `position`,
+                        `last_played_at`
+                    )
+                    SELECT
+                        playlist_item.playlist_id,
+                        playlist_item.uri,
+                        playlist_item.position,
+                        CASE
+                            WHEN playlist_item.uri = playlist.last_played_uri
+                            THEN playlist.created_at
+                            ELSE NULL
+                        END
+                    FROM playlist_item
+                    INNER JOIN playlist ON playlist.id = playlist_item.playlist_id
+                    """,
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO `playlist_new` (`id`, `name`, `created_at`)
+                    SELECT `id`, `name`, `created_at` FROM `playlist`
+                    """,
+                )
+                db.execSQL("DROP TABLE `playlist_item`")
+                db.execSQL("DROP TABLE `playlist`")
+                db.execSQL("ALTER TABLE `playlist_new` RENAME TO `playlist`")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `playlist_item` (
+                        `playlist_id` INTEGER NOT NULL,
+                        `uri` TEXT NOT NULL,
+                        `position` INTEGER NOT NULL,
+                        `last_played_at` INTEGER,
+                        PRIMARY KEY(`playlist_id`, `uri`),
+                        FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`)
+                            ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO `playlist_item` (
+                        `playlist_id`,
+                        `uri`,
+                        `position`,
+                        `last_played_at`
+                    )
+                    SELECT
+                        `playlist_id`,
+                        `uri`,
+                        `position`,
+                        `last_played_at`
+                    FROM `playlist_item_backup`
+                    """,
+                )
+                db.execSQL("DROP TABLE `playlist_item_backup`")
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_playlist_item_playlist_id`
+                    ON `playlist_item` (`playlist_id`)
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_item_playlist_id_position`
+                    ON `playlist_item` (`playlist_id`, `position`)
+                    """,
+                )
             }
         }
     }
