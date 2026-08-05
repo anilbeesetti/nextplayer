@@ -15,6 +15,7 @@ import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
+import dev.anilbeesetti.nextplayer.feature.player.extensions.videoContentFrame
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.SeekGestureState
@@ -40,18 +41,20 @@ fun PlayerContentFrame(
     subtitleConfiguration: SubtitleConfiguration,
 ) {
     val presentationState = rememberPresentationState(player)
+    val contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale()
+    val sourceSizeDp = presentationState.videoSizeDp?.let { size ->
+        size.copy(
+            width = with(LocalDensity.current) { size.width.toDp().value },
+            height = with(LocalDensity.current) { size.height.toDp().value },
+        )
+    }
     PlayerSurface(
         player = player,
         surfaceType = SURFACE_TYPE_SURFACE_VIEW,
         modifier = modifier
             .resizeWithContentScale(
-                contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),
-                sourceSizeDp = presentationState.videoSizeDp?.let { size ->
-                    size.copy(
-                        width = with(LocalDensity.current) { size.width.toDp().value },
-                        height = with(LocalDensity.current) { size.height.toDp().value },
-                    )
-                },
+                contentScale = contentScale,
+                sourceSizeDp = sourceSizeDp,
             )
             .onGloballyPositioned {
                 val bounds = it.boundsInWindow()
@@ -81,6 +84,10 @@ fun PlayerContentFrame(
     )
 
     SubtitleView(
+        modifier = Modifier.videoContentFrame(
+            contentScale = contentScale,
+            videoSizeDp = sourceSizeDp,
+        ),
         player = player,
         isInPictureInPictureMode = pictureInPictureState.isInPictureInPictureMode,
         configuration = subtitleConfiguration,
