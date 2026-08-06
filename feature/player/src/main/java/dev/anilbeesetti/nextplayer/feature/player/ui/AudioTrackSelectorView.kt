@@ -3,10 +3,15 @@ package dev.anilbeesetti.nextplayer.feature.player.ui
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -24,6 +29,7 @@ fun BoxScope.AudioTrackSelectorView(
     modifier: Modifier = Modifier,
     show: Boolean,
     player: Player,
+    onSelectAudioClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val audioTracksState = rememberTracksState(player, C.TRACK_TYPE_AUDIO)
@@ -58,6 +64,16 @@ fun BoxScope.AudioTrackSelectorView(
                     onDismiss()
                 },
             )
+            Spacer(modifier = Modifier.size(16.dp))
+            FilledTonalButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    onSelectAudioClick()
+                    onDismiss()
+                },
+            ) {
+                Text(text = stringResource(R.string.open_audio))
+            }
         }
     }
 }

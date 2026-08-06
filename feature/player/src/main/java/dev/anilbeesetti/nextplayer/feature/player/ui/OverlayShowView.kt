@@ -16,6 +16,7 @@ fun BoxScope.OverlayShowView(
     overlayView: OverlayView?,
     videoContentScale: VideoContentScale,
     onDismiss: () -> Unit = {},
+    onSelectAudioClick: () -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
     onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
     onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
@@ -35,6 +36,7 @@ fun BoxScope.OverlayShowView(
     AudioTrackSelectorView(
         show = overlayView == OverlayView.AUDIO_SELECTOR,
         player = player,
+        onSelectAudioClick = onSelectAudioClick,
         onDismiss = onDismiss,
     )
 

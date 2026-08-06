@@ -169,6 +169,10 @@ class LocalMediaRepository @Inject constructor(
         )
     }
 
+    override suspend fun addExternalAudioTrackToMedium(uri: String, audioUri: Uri) {
+        mediumStateDao.addExternalAudioTrack(uri, audioUri)
+    }
+
     override suspend fun updateSubtitleDelay(uri: String, delay: Long) {
         val stateEntity = mediumStateDao.get(uri) ?: MediumStateEntity(uriString = uri)
 
