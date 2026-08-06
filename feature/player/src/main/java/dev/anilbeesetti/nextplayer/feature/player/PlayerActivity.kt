@@ -63,6 +63,8 @@ class PlayerActivity : ComponentActivity() {
     private var isPlaybackFinished = false
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
+    private var lastKnownPosition: Long = C.TIME_UNSET
+    private var lastKnownDuration: Long = C.TIME_UNSET
 
     /**
      * Player
@@ -159,6 +161,8 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onStop() {
         mediaController?.run {
+            if (currentPosition >= 0) lastKnownPosition = currentPosition
+            if (duration >= 0) lastKnownDuration = duration
             viewModel.playWhenReady = playWhenReady
             removeListener(playbackStateListener)
         }
@@ -233,7 +237,7 @@ class PlayerActivity : ComponentActivity() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(playerApi.title)
-                            setExtras(positionMs = playerApi.position?.toLong())
+                            setExtras(positionMs = playerApi.position)
                         }.build(),
                     )
                     val apiSubs = playerApi.getSubs().map { subtitle ->
@@ -250,7 +254,7 @@ class PlayerActivity : ComponentActivity() {
 
         withContext(Dispatchers.Main) {
             mediaController?.run {
-                setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
+                setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position ?: C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
                 prepare()
             }
@@ -258,6 +262,12 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun playbackStateListener() = object : Player.Listener {
+        override fun onEvents(player: Player, events: Player.Events) {
+            super.onEvents(player, events)
+            if (player.currentPosition >= 0) lastKnownPosition = player.currentPosition
+            if (player.duration >= 0) lastKnownDuration = player.duration
+        }
+
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             intent.data = mediaItem?.localConfiguration?.uri
@@ -292,11 +302,13 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun finish() {
-        if (playerApi.shouldReturnResult) {
+        if (!isFinishing) {
+            val currentPos = mediaController?.currentPosition?.takeIf { it >= 0 } ?: lastKnownPosition
+            val duration = mediaController?.duration?.takeIf { it >= 0 } ?: lastKnownDuration
             val result = playerApi.getResult(
                 isPlaybackFinished = isPlaybackFinished,
-                duration = mediaController?.duration ?: C.TIME_UNSET,
-                position = mediaController?.currentPosition ?: C.TIME_UNSET,
+                duration = duration,
+                position = currentPos,
             )
             setResult(RESULT_OK, result)
         }
