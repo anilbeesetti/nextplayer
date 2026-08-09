@@ -9,8 +9,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.Media
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.MediaPickerViewModel
 import kotlinx.serialization.Serializable
 
-class FolderArgs(val folderId: String?)
-
 @Serializable
 data class MediaPickerRoute(
     val folderId: String? = null,
@@ -32,15 +30,23 @@ fun EntryProviderScope<NavKey>.mediaPickerEntry(
     entry<MediaPickerRoute> { key ->
         MediaPickerRoute(
             viewModel = hiltViewModel<MediaPickerViewModel, MediaPickerViewModel.Factory>(
-                creationCallback = { factory -> factory.create(FolderArgs(key.folderId)) },
+                creationCallback = { factory ->
+                    factory.create(
+                        input = MediaPickerViewModel.Input(
+                            folderId = key.folderId,
+                        ),
+                        output = MediaPickerViewModel.Output(
+                            navigateUp = onNavigateUp,
+                            playVideo = onPlayVideo,
+                            playVideos = onPlayVideos,
+                            openFolder = onFolderClick,
+                            openSettings = onSettingsClick,
+                            openSearch = onSearchClick,
+                            openVault = onVaultClick,
+                        ),
+                    )
+                },
             ),
-            onPlayVideo = onPlayVideo,
-            onPlayVideos = onPlayVideos,
-            onNavigateUp = onNavigateUp,
-            onFolderClick = onFolderClick,
-            onSettingsClick = onSettingsClick,
-            onSearchClick = onSearchClick,
-            onVaultClick = onVaultClick,
         )
     }
 }

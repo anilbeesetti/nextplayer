@@ -6,11 +6,16 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -61,5 +66,44 @@ class MediaPickerScreenTest {
         composeRule.waitForIdle()
 
         assertTrue(MediaPickerAction.OnPermissionAccepted in actions)
+    }
+
+    @Test
+    fun choosingPlaylistDispatchesActionAndExitsSelectionMode() {
+        val actions = mutableListOf<MediaPickerAction>()
+        val selectionManager = SelectionManager(
+            initialSelectionItems = setOf(
+                SelectionItem.Video(
+                    name = "Video",
+                    uriString = "content://video/1",
+                    path = "/storage/emulated/0/video.mp4",
+                ),
+            ),
+            initialIsInSelectionMode = true,
+        )
+        composeRule.setContent {
+            NextPlayerTheme {
+                MediaPickerScreen(
+                    uiState = MediaPickerUiState(
+                        folderName = null,
+                        playlists = listOf(PlaylistSummary(7, "Movies", 2)),
+                        addToPlaylistState = AddToPlaylistState(
+                            isVisible = true,
+                            hasVideos = true,
+                        ),
+                    ),
+                    selectionManager = selectionManager,
+                    onAction = actions::add,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Choose a playlist").assertIsDisplayed()
+        composeRule.onNodeWithText("Create new playlist").assertIsDisplayed()
+        composeRule.onNodeWithText("Movies").performClick()
+
+        assertTrue(MediaPickerAction.AddSelectionToPlaylist(7) in actions)
+        assertFalse(selectionManager.isInSelectionMode)
+        assertTrue(selectionManager.selectionItems.isEmpty())
     }
 }

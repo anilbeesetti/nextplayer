@@ -16,4 +16,7 @@ object DaoModule {
 
     @Provides
     fun provideNetworkConnectionDao(db: MediaDatabase) = db.networkConnectionDao()
+
+    @Provides
+    fun providePlaylistDao(db: MediaDatabase) = db.playlistDao()
 }
