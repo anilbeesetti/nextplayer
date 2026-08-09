@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -279,6 +279,27 @@ abstract class MediaDatabase : RoomDatabase() {
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_item_playlist_id_position`
                     ON `playlist_item` (`playlist_id`, `position`)
                     """,
+                )
+            }
+        }
+
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `authentication` TEXT NOT NULL DEFAULT 'PASSWORD'",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_file_name` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_passphrase` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `host_key_fingerprint` TEXT NOT NULL DEFAULT ''",
                 )
             }
         }

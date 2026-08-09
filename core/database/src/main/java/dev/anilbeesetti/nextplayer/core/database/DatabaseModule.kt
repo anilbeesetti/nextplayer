@@ -30,6 +30,7 @@ object DatabaseModule {
             MediaDatabase.MIGRATION_5_6,
             MediaDatabase.MIGRATION_6_7,
             MediaDatabase.MIGRATION_7_8,
+            MediaDatabase.MIGRATION_8_9,
         )
         fallbackToDestructiveMigration(false)
     }.build()
