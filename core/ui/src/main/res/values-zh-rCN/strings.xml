@@ -438,7 +438,7 @@
     <plurals name="playlist_video_count">
         <item quantity="other">%d 个视频</item>
     </plurals>
-    <string name="confirm_ssh_host_key_description">在信任密钥前，请将此指纹和您的服务器进行对比</string>
+    <string name="confirm_ssh_host_key_description">在信任密钥前，请将此指纹和您的服务器进行对比.</string>
     <string name="ssh_host_key_trusted_fingerprint">已信任的指纹：%1$s</string>
     <string name="ssh_host_key_presented_fingerprint">已提交的指纹：%1$s</string>
     <string name="private_key_missing">缺少私钥。请重选。</string>
