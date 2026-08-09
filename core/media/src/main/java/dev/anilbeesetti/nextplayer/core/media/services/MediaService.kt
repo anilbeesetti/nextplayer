@@ -43,6 +43,9 @@ interface MediaService {
     /**
      * Fetches all videos under the given path recursively (one-shot).
      *
+     * Query failures are propagated so callers that reconcile persisted data can distinguish a
+     * failed query from a successful empty result.
+     *
      * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return List of all videos found under the path.
      */

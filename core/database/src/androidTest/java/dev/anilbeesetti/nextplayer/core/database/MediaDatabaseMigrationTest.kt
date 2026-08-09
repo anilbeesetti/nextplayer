@@ -17,8 +17,8 @@ class MediaDatabaseMigrationTest {
     )
 
     @Test
-    fun migrate7To8_preservesConnectionAndAddsPasswordDefaults() {
-        helper.createDatabase(TEST_DB, 7).apply {
+    fun migrate8To9_preservesConnectionAndAddsPasswordDefaults() {
+        helper.createDatabase(TEST_DB, 8).apply {
             execSQL(
                 "INSERT INTO network_connection " +
                     "(id,name,protocol,host,port,path,username,password,use_https,created_at) " +
@@ -29,9 +29,9 @@ class MediaDatabaseMigrationTest {
 
         helper.runMigrationsAndValidate(
             TEST_DB,
-            8,
+            9,
             true,
-            MediaDatabase.MIGRATION_7_8,
+            MediaDatabase.MIGRATION_8_9,
         ).use { db ->
             db.query("SELECT * FROM network_connection WHERE id = 1").use { cursor ->
                 check(cursor.moveToFirst())

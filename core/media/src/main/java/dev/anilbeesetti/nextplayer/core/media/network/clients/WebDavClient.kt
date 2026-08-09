@@ -25,22 +25,23 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
 
     private val scheme get() = if (connection.useHttps) "https" else "http"
 
-    private fun buildUrl(path: String): String {
+    private fun buildUrl(path: String, isDirectory: Boolean = false): String {
         val base = connection.path.trim('/')
         val clean = path.trim('/')
         val authority = "$scheme://${connection.host}:${connection.effectivePort}"
-        return when {
+        val url = when {
             clean.isEmpty() -> if (base.isEmpty()) "$authority/" else "$authority/$base"
             base.isEmpty() -> "$authority/$clean"
             else -> "$authority/$base/$clean"
         }
+        return if (isDirectory && !url.endsWith("/")) "$url/" else url
     }
 
     override suspend fun connect(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val client = OkHttpSardine()
             if (!connection.isAnonymous) client.setCredentials(connection.username, connection.password)
-            client.exists(buildUrl(""))
+            client.exists(buildUrl("", isDirectory = true))
             sardine = client
         }
     }
@@ -54,7 +55,7 @@ class WebDavClient(private val connection: NetworkConnection) : NetworkClient {
     override suspend fun listFiles(path: String): Result<List<NetworkFile>> = withContext(Dispatchers.IO) {
         runCatching {
             val client = sardine ?: error("Not connected")
-            client.list(buildUrl(path)).drop(1).map { resource ->
+            client.list(buildUrl(path, isDirectory = true)).drop(1).map { resource ->
                 val name = resource.name ?: ""
                 NetworkFile(
                     name = name,

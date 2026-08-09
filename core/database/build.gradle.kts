@@ -28,6 +28,12 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.androidTest?.sources?.assets?.addStaticSourceDirectory("$projectDir/schemas")
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.jvm.get()))

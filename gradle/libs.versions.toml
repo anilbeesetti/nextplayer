@@ -3,9 +3,9 @@ android-compileSdk = "37"
 android-targetSdk = "37"
 android-minSdk = "23"
 android-jvm = "17"
-aboutlibraries = "15.0.3"
+aboutlibraries = "15.0.4"
 accompanist = "0.37.3"
-androidGradlePlugin = "9.3.0"
+androidGradlePlugin = "9.3.1"
 androidMaterial = "1.14.0"
 androidxActivity = "1.13.0"
 androidxAppCompat = "1.7.1"
@@ -20,8 +20,8 @@ androidxDataStore = "1.2.1"
 androidxEspresso = "3.7.0"
 androidxHiltNavigationCompose = "1.4.0"
 androidxLifecycle = "2.11.0"
-androidxMedia3 = "1.10.1"
-androidxNavigation3 = "1.1.4"
+androidxMedia3 = "1.11.0"
+androidxNavigation3 = "1.1.5"
 androidxLifecycleViewmodelNav3 = "2.11.0"
 androidxTestExt = "1.3.0"
 coil = "3.5.0"
@@ -30,7 +30,7 @@ junit4 = "4.13.2"
 kotlin = "2.4.10"
 kotlinxCoroutines = "1.11.0"
 kotlinxSerializationJson = "1.11.0"
-ksp = "2.3.10"
+ksp = "2.3.11"
 ktlint = "12.3.0"
 reorderable = "3.1.0"
 room = "2.8.4"
@@ -62,7 +62,6 @@ androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-juni
 androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidxConstraintLayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-core-pip = { group = "androidx.core", name = "core-pip", version.ref = "androidxCorePip" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxCoreSplashscreen" }

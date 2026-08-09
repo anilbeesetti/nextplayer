@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "39fa96f9f201a4a25811a864696a0f37",
+    "identityHash": "a197bf0d829c1e0ae876381353b272bf",
     "entities": [
       {
         "tableName": "media_state",
@@ -162,7 +162,7 @@
       },
       {
         "tableName": "network_connection",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `protocol` TEXT NOT NULL, `host` TEXT NOT NULL, `port` INTEGER, `path` TEXT NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `use_https` INTEGER NOT NULL, `authentication` TEXT NOT NULL DEFAULT 'PASSWORD', `private_key_file_name` TEXT NOT NULL DEFAULT '', `private_key_passphrase` TEXT NOT NULL DEFAULT '', `host_key_fingerprint` TEXT NOT NULL DEFAULT '', `created_at` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `protocol` TEXT NOT NULL, `host` TEXT NOT NULL, `port` INTEGER, `path` TEXT NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `use_https` INTEGER NOT NULL, `created_at` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -218,32 +218,34 @@
             "notNull": true
           },
           {
-            "fieldPath": "authentication",
-            "columnName": "authentication",
-            "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "'PASSWORD'"
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "playlist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `created_at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
           },
           {
-            "fieldPath": "privateKeyFileName",
-            "columnName": "private_key_file_name",
+            "fieldPath": "name",
+            "columnName": "name",
             "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "''"
-          },
-          {
-            "fieldPath": "privateKeyPassphrase",
-            "columnName": "private_key_passphrase",
-            "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "''"
-          },
-          {
-            "fieldPath": "hostKeyFingerprint",
-            "columnName": "host_key_fingerprint",
-            "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "''"
+            "notNull": true
           },
           {
             "fieldPath": "createdAt",
@@ -258,11 +260,81 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "playlist_item",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`playlist_id` INTEGER NOT NULL, `uri` TEXT NOT NULL, `position` INTEGER NOT NULL, `last_played_at` INTEGER, PRIMARY KEY(`playlist_id`, `uri`), FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "playlistId",
+            "columnName": "playlist_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uri",
+            "columnName": "uri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastPlayedAt",
+            "columnName": "last_played_at",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "playlist_id",
+            "uri"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_playlist_item_playlist_id",
+            "unique": false,
+            "columnNames": [
+              "playlist_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_playlist_item_playlist_id` ON `${TABLE_NAME}` (`playlist_id`)"
+          },
+          {
+            "name": "index_playlist_item_playlist_id_position",
+            "unique": true,
+            "columnNames": [
+              "playlist_id",
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_item_playlist_id_position` ON `${TABLE_NAME}` (`playlist_id`, `position`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "playlist",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "playlist_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '39fa96f9f201a4a25811a864696a0f37')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a197bf0d829c1e0ae876381353b272bf')"
     ]
   }
 }
