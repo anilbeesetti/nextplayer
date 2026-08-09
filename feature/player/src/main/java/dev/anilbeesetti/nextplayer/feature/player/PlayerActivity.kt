@@ -32,24 +32,55 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import dev.anilbeesetti.nextplayer.core.common.Logger
 import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
-import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
+import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
+import dev.anilbeesetti.nextplayer.feature.player.service.addAudioTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 val LocalUseMaterialYouControls = compositionLocalOf { false }
+
+internal fun createAudioPickerInput(initialUri: Uri?) = OpenDocumentAtInitialUri.Input(
+    mimeTypes = arrayOf(MimeTypes.BASE_TYPE_AUDIO + "/*"),
+    initialUri = initialUri,
+)
+
+internal suspend fun usePersistedReadableUri(
+    uri: Uri,
+    takePersistableReadPermission: (Uri) -> Unit,
+    isReadable: suspend (Uri) -> Boolean,
+    onFailure: (Exception) -> Unit,
+    onReadableUri: suspend (Uri) -> Unit,
+) {
+    try {
+        takePersistableReadPermission(uri)
+        if (!isReadable(uri)) {
+            throw IOException("Selected URI is not readable: $uri")
+        }
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        onFailure(error)
+        return
+    }
+
+    onReadableUri(uri)
+}
 
 @SuppressLint("UnsafeOptInUsageError")
 @AndroidEntryPoint
@@ -76,6 +107,7 @@ class PlayerActivity : ComponentActivity() {
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
 
+    private val audioFileSuspendLauncher = registerForSuspendActivityResult(OpenDocumentAtInitialUri())
     private val subtitleFileSuspendLauncher = registerForSuspendActivityResult(OpenDocumentAtInitialUri())
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,6 +138,42 @@ class PlayerActivity : ComponentActivity() {
                         player = player,
                         viewModel = viewModel,
                         playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
+                        onSelectAudioClick = {
+                            lifecycleScope.launch {
+                                val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
+                                val initialUri = videoUri?.let { video ->
+                                    withContext(Dispatchers.IO) { getInitialDirectoryUri(video) }
+                                }
+                                val uri = audioFileSuspendLauncher.launch(
+                                    createAudioPickerInput(initialUri),
+                                ) ?: return@launch
+
+                                usePersistedReadableUri(
+                                    uri = uri,
+                                    takePersistableReadPermission = { selectedUri ->
+                                        contentResolver.takePersistableUriPermission(
+                                            selectedUri,
+                                            Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                                        )
+                                    },
+                                    isReadable = { selectedUri ->
+                                        withContext(Dispatchers.IO) {
+                                            contentResolver.openFileDescriptor(selectedUri, "r")?.use { true } ?: false
+                                        }
+                                    },
+                                    onFailure = { error ->
+                                        Logger.logError(
+                                            "PlayerActivity",
+                                            "Unable to retain readable audio URI $uri: ${error.message}",
+                                        )
+                                    },
+                                    onReadableUri = { readableUri ->
+                                        maybeInitControllerFuture()
+                                        controllerFuture?.await()?.addAudioTrack(readableUri)
+                                    },
+                                )
+                            }
+                        },
                         onSelectSubtitleClick = {
                             lifecycleScope.launch {
                                 val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
@@ -163,7 +231,11 @@ class PlayerActivity : ComponentActivity() {
             removeListener(playbackStateListener)
         }
         val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
-        if (subtitleFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
+        if (
+            audioFileSuspendLauncher.isAwaitingResult ||
+            subtitleFileSuspendLauncher.isAwaitingResult ||
+            !shouldPlayInBackground
+        ) {
             mediaController?.pause()
         }
 
