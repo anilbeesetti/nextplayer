@@ -130,7 +130,7 @@
     <string name="delete_file">سيحذف هذا الملف نهائيًا</string>
     <string name="autoplay_settings_description">تشغيل الفيديو التالي في المجلد الحالي تلقائيًا</string>
     <string name="autoplay_settings">تشغيل تلقائي</string>
-    <string name="decoder_desc">أولوية فاكَّ الشفرة، خيارات فاكَّ شفرة التشغيل</string>
+    <string name="decoder_desc">أولوية وحدة فك التشفير ، خيارات وحدة فك ترميز التشغيل</string>
     <string name="decoder">مفكك</string>
     <string name="decoder_priority">أولوية فاكَّ الشفرة</string>
     <string name="video_software_decoders">فاك ترميز الفيديو البرمجي</string>
