@@ -8,7 +8,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
-import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.ActionState
@@ -16,7 +16,6 @@ import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +27,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = PlaylistListViewModel.Factory::class)
 class PlaylistListViewModel @AssistedInject constructor(
     private val playlistRepository: PlaylistRepository,
-    private val syncPlaylistsWithMedia: SyncPlaylistsWithMediaUseCase,
+    private val mediaSynchronizer: MediaSynchronizer,
     private val systemService: SystemService,
     @Assisted private val output: Output,
 ) : MviViewModel<PlaylistListUiState, PlaylistUiAction>() {
@@ -42,8 +41,6 @@ class PlaylistListViewModel @AssistedInject constructor(
     interface Factory {
         fun create(output: Output): PlaylistListViewModel
     }
-
-    private var syncJob: Job? = null
 
     private val internalState = MutableStateFlow(PlaylistListUiState())
     override val state: StateFlow<PlaylistListUiState> = internalState.asStateFlow()
@@ -87,10 +84,7 @@ class PlaylistListViewModel @AssistedInject constructor(
     }
 
     fun synchronize() {
-        if (syncJob?.isActive == true) return
-        syncJob = viewModelScope.launch {
-            syncPlaylistsWithMedia()
-        }
+        mediaSynchronizer.startSync()
     }
 
     private fun create(name: String) {
@@ -188,4 +182,3 @@ sealed interface PlaylistListEvent {
     data class Created(val playlistId: Long) : PlaylistListEvent
     data class Message(val messageRes: Int) : PlaylistListEvent
 }
-

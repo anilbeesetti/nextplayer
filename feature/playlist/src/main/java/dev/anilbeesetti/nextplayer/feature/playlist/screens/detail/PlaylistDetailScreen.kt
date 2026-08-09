@@ -1,6 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.detail
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -92,10 +91,6 @@ fun PlaylistDetailScreenRoute(
     viewModel: PlaylistDetailViewModel,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.synchronize()
-    }
 
     PlaylistDetailScreen(
         uiState = uiState,

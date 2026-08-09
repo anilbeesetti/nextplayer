@@ -114,11 +114,7 @@ class MediaStoreMediaService @Inject constructor(
     }
 
     override suspend fun fetchVideos(folderPath: String?): List<MediaVideo> = withContext(Dispatchers.IO) {
-        return@withContext runMediaStoreQuery { queryVideos(folderPath) }
-    }
-
-    override suspend fun fetchVideoUrisOrThrow(folderPath: String?): Set<String> = withContext(Dispatchers.IO) {
-        queryVideoUris(folderPath)
+        queryVideos(folderPath)
     }
 
     override suspend fun findVideo(uri: Uri): MediaVideo? = withContext(Dispatchers.IO) {
@@ -180,44 +176,25 @@ class MediaStoreMediaService @Inject constructor(
         val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
         val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
 
-        context.contentResolver.query(
-            VIDEO_COLLECTION_URI,
-            VIDEO_PROJECTION,
-            selection,
-            selectionArgs,
-            sortOrder,
-        )?.use { cursor ->
+        val cursor = checkNotNull(
+            context.contentResolver.query(
+                VIDEO_COLLECTION_URI,
+                VIDEO_PROJECTION,
+                selection,
+                selectionArgs,
+                sortOrder,
+            ),
+        ) {
+            "MediaStore returned no cursor for the video query"
+        }
+
+        cursor.use {
             while (cursor.moveToNext()) {
                 val video = cursor.toMediaVideo() ?: continue
                 mediaVideos.add(video)
             }
         }
         return mediaVideos
-    }
-
-    private fun queryVideoUris(folderPath: String?): Set<String> {
-        val selection = if (folderPath == null) null else "${MediaStore.Video.Media.DATA} LIKE ? ESCAPE '\\'"
-        val selectionArgs = if (folderPath == null) null else arrayOf("${folderPath.escapeLike()}/%")
-        val cursor = checkNotNull(
-            context.contentResolver.query(
-                VIDEO_COLLECTION_URI,
-                arrayOf(MediaStore.Video.Media._ID),
-                selection,
-                selectionArgs,
-                null,
-            ),
-        ) {
-            "MediaStore returned no cursor for the video snapshot"
-        }
-
-        return cursor.use {
-            buildSet {
-                val idIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-                while (cursor.moveToNext()) {
-                    add(ContentUris.withAppendedId(VIDEO_COLLECTION_URI, cursor.getLong(idIndex)).toString())
-                }
-            }
-        }
     }
 
     /**

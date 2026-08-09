@@ -13,6 +13,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -66,8 +69,18 @@ class MediaPickerScreenTest {
     }
 
     @Test
-    fun addToPlaylistDialogShowsCreateAndExistingTargets() {
+    fun choosingPlaylistDispatchesActionAndExitsSelectionMode() {
         val actions = mutableListOf<MediaPickerAction>()
+        val selectionManager = SelectionManager(
+            initialSelectionItems = setOf(
+                SelectionItem.Video(
+                    name = "Video",
+                    uriString = "content://video/1",
+                    path = "/storage/emulated/0/video.mp4",
+                ),
+            ),
+            initialIsInSelectionMode = true,
+        )
         composeRule.setContent {
             NextPlayerTheme {
                 MediaPickerScreen(
@@ -79,6 +92,7 @@ class MediaPickerScreenTest {
                             hasVideos = true,
                         ),
                     ),
+                    selectionManager = selectionManager,
                     onAction = actions::add,
                 )
             }
@@ -89,5 +103,7 @@ class MediaPickerScreenTest {
         composeRule.onNodeWithText("Movies").performClick()
 
         assertTrue(MediaPickerAction.AddSelectionToPlaylist(7) in actions)
+        assertFalse(selectionManager.isInSelectionMode)
+        assertTrue(selectionManager.selectionItems.isEmpty())
     }
 }

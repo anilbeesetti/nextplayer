@@ -1,9 +1,5 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,15 +25,14 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -65,7 +60,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -78,8 +72,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -87,16 +81,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -107,7 +98,6 @@ import dev.anilbeesetti.nextplayer.core.domain.MediaHolder
 import dev.anilbeesetti.nextplayer.core.media.services.MediaOperationsService
 import dev.anilbeesetti.nextplayer.core.media.services.TransferMode
 import dev.anilbeesetti.nextplayer.core.media.services.TransferProgress
-import dev.anilbeesetti.nextplayer.core.media.services.TransferResult
 import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
@@ -129,67 +119,29 @@ import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
 import dev.anilbeesetti.nextplayer.core.ui.preview.VideoPickerPreviewParameterProvider
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NoVideosFound
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
+import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionManager
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 import kotlin.math.roundToInt
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
 
 @Composable
 fun MediaPickerRoute(
     viewModel: MediaPickerViewModel = hiltViewModel(),
-    onPlayVideo: (uri: Uri) -> Unit,
-    onPlayVideos: (uris: List<Uri>) -> Unit,
-    onFolderClick: (folderPath: String) -> Unit,
-    onSettingsClick: () -> Unit,
-    onSearchClick: () -> Unit,
-    onVaultClick: () -> Unit,
-    onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
-    val context = LocalContext.current
-
-    ObserveAsEvents(flow = viewModel.events) { event ->
-        when (event) {
-            is MediaPickerEvent.PlayVideos -> onPlayVideos(event.uris)
-            is MediaPickerEvent.TransferComplete -> {
-                val message = transferCompleteMessage(context, event.mode, event.result)
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            }
-            is MediaPickerEvent.PlaylistItemsAdded -> {
-                val message = if (event.count == 0) {
-                    context.getString(R.string.already_in_playlist)
-                } else {
-                    context.resources.getQuantityString(
-                        R.plurals.added_videos_to_playlist,
-                        event.count,
-                        event.count,
-                    )
-                }
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 
     MediaPickerScreen(
         uiState = uiState,
-        onPlayVideo = onPlayVideo,
-        onNavigateUp = onNavigateUp,
-        onFolderClick = onFolderClick,
-        onSettingsClick = onSettingsClick,
-        onVaultClick = onVaultClick,
-        onSearchClick = onSearchClick,
         onAction = viewModel::onAction,
     )
 }
@@ -203,12 +155,7 @@ fun MediaPickerRoute(
 @Composable
 internal fun MediaPickerScreen(
     uiState: MediaPickerUiState,
-    onNavigateUp: () -> Unit = {},
-    onPlayVideo: (Uri) -> Unit = {},
-    onFolderClick: (String) -> Unit = {},
-    onSettingsClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {},
-    onVaultClick: () -> Unit = {},
+    selectionManager: SelectionManager = rememberSelectionManager(),
     onAction: (MediaPickerAction) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -227,17 +174,6 @@ internal fun MediaPickerScreen(
     } else {
         Modifier
     }
-    val selectionManager = rememberSelectionManager()
-    var observedPlaylistCompletionToken by rememberSaveable {
-        mutableLongStateOf(uiState.addToPlaylistState.completionToken)
-    }
-    LaunchedEffect(uiState.addToPlaylistState.completionToken) {
-        val token = uiState.addToPlaylistState.completionToken
-        if (token > observedPlaylistCompletionToken) {
-            selectionManager.exitSelectionMode()
-        }
-        observedPlaylistCompletionToken = token
-    }
     val permissionState = rememberPermissionState(permission = storagePermission)
     var wasPermissionGranted by remember { mutableStateOf(permissionState.status.isGranted) }
 
@@ -251,7 +187,7 @@ internal fun MediaPickerScreen(
     val lazyGridState = rememberLazyGridState()
     val selectVideoFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { it?.let { onPlayVideo(it) } },
+        onResult = { uri -> uri?.let { onAction(MediaPickerAction.OnPlayVideo(it)) } },
     )
 
     var isFabExpanded by rememberSaveable { mutableStateOf(false) }
@@ -281,7 +217,7 @@ internal fun MediaPickerScreen(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
                                 onClick = {},
-                                onLongClick = onVaultClick,
+                                onLongClick = { onAction(MediaPickerAction.OnVaultClick) },
                             )
                         } else {
                             Modifier
@@ -311,7 +247,7 @@ internal fun MediaPickerScreen(
                         }
                     } else if (uiState.folderName != null) {
                         FilledTonalIconButton(
-                            onClick = onNavigateUp,
+                            onClick = { onAction(MediaPickerAction.OnNavigateUpClick) },
                             modifier = topBarDownModifier.tvFocusRing(isTv),
                         ) {
                             Icon(
@@ -351,7 +287,7 @@ internal fun MediaPickerScreen(
                         }
                     } else {
                         IconButton(
-                            onClick = onSearchClick,
+                            onClick = { onAction(MediaPickerAction.OnSearchClick) },
                             modifier = topBarDownModifier.tvFocusRing(isTv),
                         ) {
                             Icon(
@@ -369,7 +305,7 @@ internal fun MediaPickerScreen(
                             )
                         }
                         IconButton(
-                            onClick = onSettingsClick,
+                            onClick = { onAction(MediaPickerAction.OnSettingsClick) },
                             modifier = topBarDownModifier.tvFocusRing(isTv),
                         ) {
                             Icon(
@@ -514,7 +450,7 @@ internal fun MediaPickerScreen(
                         modifier = Modifier.tvFocusRing(isTv),
                         onClick = {
                             isFabExpanded = false
-                            onPlayVideo(uiState.recentlyPlayedVideo.uriString.toUri())
+                            onAction(MediaPickerAction.OnPlayVideo(uiState.recentlyPlayedVideo.uriString.toUri()))
                         },
                         icon = {
                             Icon(
@@ -575,8 +511,8 @@ internal fun MediaPickerScreen(
                             recentlyPlayedFolder = uiState.recentlyPlayedFolder,
                             mediaHolder = mediaHolder,
                             preferences = uiState.preferences,
-                            onFolderClick = onFolderClick,
-                            onVideoClick = { onPlayVideo(it) },
+                            onFolderClick = { onAction(MediaPickerAction.OnFolderClick(it)) },
+                            onVideoClick = { onAction(MediaPickerAction.OnPlayVideo(it)) },
                             selectionManager = selectionManager,
                             lazyGridState = lazyGridState,
                             firstItemFocusRequester = if (isTv) firstItemFocusRequester else null,
@@ -639,7 +575,7 @@ internal fun MediaPickerScreen(
     if (showUrlDialog) {
         NetworkUrlDialog(
             onDismiss = { showUrlDialog = false },
-            onDone = { onPlayVideo(it.toUri()) },
+            onDone = { onAction(MediaPickerAction.OnPlayVideo(it.toUri())) },
         )
     }
 
@@ -696,46 +632,12 @@ internal fun MediaPickerScreen(
             onDismissRequest = { onAction(MediaPickerAction.DismissAddToPlaylist) },
             onPlaylistSelected = {
                 onAction(MediaPickerAction.AddSelectionToPlaylist(it))
+                selectionManager.exitSelectionMode()
             },
             onCreatePlaylist = {
                 onAction(MediaPickerAction.CreatePlaylistWithSelection(it))
+                selectionManager.exitSelectionMode()
             },
-        )
-    }
-}
-
-private fun transferCompleteMessage(
-    context: Context,
-    mode: TransferMode,
-    result: TransferResult,
-): String {
-    val resources = context.resources
-    return when {
-        result.sameFolderSkipped > 0 && result.succeeded == 0 && result.failed == 0 ->
-            context.getString(R.string.cannot_move_to_same_folder)
-
-        result.failed > 0 -> resources.getQuantityString(
-            if (mode == TransferMode.MOVE) R.plurals.move_failed else R.plurals.copy_failed,
-            result.failed,
-            result.failed,
-        )
-
-        result.originalsNotDeleted -> resources.getQuantityString(
-            R.plurals.moved_videos_originals_remain,
-            result.succeeded,
-            result.succeeded,
-        )
-
-        mode == TransferMode.MOVE -> resources.getQuantityString(
-            R.plurals.moved_videos_result,
-            result.succeeded,
-            result.succeeded,
-        )
-
-        else -> resources.getQuantityString(
-            R.plurals.copied_videos_result,
-            result.succeeded,
-            result.succeeded,
         )
     }
 }
@@ -1548,23 +1450,6 @@ private fun MediaPickerLoadingPreview() {
                     preferences = ApplicationPreferences(),
                 ),
             )
-        }
-    }
-}
-
-@Composable
-fun <T> ObserveAsEvents(
-    flow: Flow<T>,
-    key1: Any? = null,
-    key2: Any? = null,
-    onEvent: suspend (T) -> Unit
-) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(lifecycleOwner, key1,key2) {
-        lifecycleOwner.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
-            withContext(context = Dispatchers.Main.immediate) {
-                flow.collect(onEvent)
-            }
         }
     }
 }

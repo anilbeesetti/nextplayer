@@ -69,7 +69,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.MediaLayoutMode
 import dev.anilbeesetti.nextplayer.core.model.Sort
@@ -90,7 +93,6 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDots
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
-import dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker.ObserveAsEvents
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
@@ -103,19 +105,24 @@ fun VaultRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    ObserveAsEvents(flow = viewModel.events) { event ->
-        when (event) {
-            is VaultEvent.PlayVideo -> onPlayVideo(event.uri)
-            is VaultEvent.PlayVideos -> onPlayVideos(event.uris)
+    LaunchedEffect(lifecycleOwner, viewModel) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.events.collect { event ->
+                when (event) {
+                    is VaultEvent.PlayVideo -> onPlayVideo(event.uri)
+                    is VaultEvent.PlayVideos -> onPlayVideos(event.uris)
 
-            is VaultEvent.VideosRelocated -> {
-                val message = context.resources.getQuantityString(
-                    R.plurals.videos_relocated_to_movies,
-                    event.count,
-                    event.count,
-                )
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                    is VaultEvent.VideosRelocated -> {
+                        val message = context.resources.getQuantityString(
+                            R.plurals.videos_relocated_to_movies,
+                            event.count,
+                            event.count,
+                        )
+                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                    }
+                }
             }
         }
     }

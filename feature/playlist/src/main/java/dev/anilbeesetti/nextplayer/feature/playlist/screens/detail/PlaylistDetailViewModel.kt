@@ -10,7 +10,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.domain.ObservePlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
 import dev.anilbeesetti.nextplayer.core.ui.R
@@ -18,7 +17,6 @@ import dev.anilbeesetti.nextplayer.core.ui.base.ActionState
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.base.MviViewModel
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +27,6 @@ import kotlinx.coroutines.launch
 class PlaylistDetailViewModel @AssistedInject constructor(
     observePlaylist: ObservePlaylistUseCase,
     private val playlistRepository: PlaylistRepository,
-    private val syncPlaylistsWithMedia: SyncPlaylistsWithMediaUseCase,
     private val systemService: SystemService,
     @Assisted private val input: Input,
     @Assisted private val output: Output,
@@ -54,8 +51,6 @@ class PlaylistDetailViewModel @AssistedInject constructor(
 
     private val internalState = MutableStateFlow(PlaylistDetailUiState())
     override val state: StateFlow<PlaylistDetailUiState> = internalState.asStateFlow()
-
-    private var syncJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -101,13 +96,6 @@ class PlaylistDetailViewModel @AssistedInject constructor(
             }
             is PlaylistDetailUiAction.RemoveVideo -> removeVideo(action.videoUri)
             is PlaylistDetailUiAction.ReplaceOrder -> replaceOrder(action.orderedUris)
-        }
-    }
-
-    fun synchronize() {
-        if (syncJob?.isActive == true) return
-        syncJob = viewModelScope.launch {
-            syncPlaylistsWithMedia()
         }
     }
 

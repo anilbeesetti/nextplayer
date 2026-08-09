@@ -24,5 +24,4 @@ interface PlaylistRepository {
 
     suspend fun markVideoPlayed(playlistId: Long, videoUri: String)
 
-    suspend fun removeMissingVideos(existingUris: Set<String>)
 }

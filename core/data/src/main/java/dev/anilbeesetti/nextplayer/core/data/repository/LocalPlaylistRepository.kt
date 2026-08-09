@@ -55,9 +55,6 @@ class LocalPlaylistRepository @Inject constructor(
         )
     }
 
-    override suspend fun removeMissingVideos(existingUris: Set<String>) {
-        playlistDao.removeMissingItems(existingUris)
-    }
 }
 
 private fun String.validatedName(): String =
