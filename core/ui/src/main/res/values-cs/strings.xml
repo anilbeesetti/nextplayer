@@ -388,7 +388,7 @@
     <string name="connecting">Připojování…</string>
     <string name="connection_failed">Nešlo se připojit. Zkontrolujte všechny zadané údaje a zkuste to znovu.</string>
     <string name="no_connections_title">Zatím žádná připojení</string>
-    <string name="no_connections_description">Přidejte SMB, FTP nebo WebDAV připojení pro prohlížení a přehrávání videí z vaší sítě.</string>
+    <string name="no_connections_description">Přidejte SMB, FTP, SFTP nebo WebDAV připojení pro prohlížení a přehrávání videí z vaší sítě.</string>
     <string name="empty_folder">Tato složka je prázdná</string>
     <string name="failed_to_load_folder">Nešlo načíst tohleto umístění</string>
     <string name="retry">Zkusit znovu</string>
