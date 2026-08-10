@@ -401,7 +401,7 @@
     <string name="playlist_name">播放列表名称</string>
     <string name="create">创建</string>
     <string name="save">保存</string>
-    <string name="name_required">输入播放列表名称</string>
+    <string name="name_required">输入播放列表名称。</string>
     <string name="saving_playlist">正在保存播放列表…</string>
     <string name="no_playlists_title">尚无播放列表</string>
     <string name="local_playlist">本地</string>
@@ -416,24 +416,24 @@
     <string name="close_search">关闭搜索</string>
     <string name="add_to_playlist">添加到播放列表</string>
     <string name="existing_playlists">现有播放列表</string>
-    <string name="no_playlists">尚无播放列表</string>
-    <string name="no_playlists_description">创建播放列表，然后从主页选择要添加的本地视频</string>
+    <string name="no_playlists">尚无播放列表。</string>
+    <string name="no_playlists_description">创建播放列表，然后从主页选择要添加的本地视频。</string>
     <string name="delete_playlist_confirmation">删除“%1$s”及其保存的顺序吗？</string>
     <string name="play_all">播放全部</string>
     <string name="remove_video_confirmation">从此播放列表移除“%1$s”吗？</string>
-    <string name="empty_playlist_description">在主页选择视频并选择“添加到播放列表”</string>
-    <string name="playlist_unavailable">此播放列表不再可用</string>
+    <string name="empty_playlist_description">在主页选择视频并选择“添加到播放列表”。</string>
+    <string name="playlist_unavailable">此播放列表不再可用。</string>
     <string name="no_matching_videos">没有匹配的视频</string>
     <string name="choose_playlist">选择播放列表</string>
     <string name="create_new_playlist">创建新播放列表</string>
-    <string name="already_in_playlist">所选视频已经在此播放列表中</string>
+    <string name="already_in_playlist">所选视频已经在此播放列表中。</string>
     <string name="playlist_delete_failed">无法删除播放列表。请重试。</string>
     <string name="playlist_save_failed">无法保存播放列表。请重试。</string>
     <string name="playlist_update_failed">无法更新播放列表。请重试。</string>
-    <string name="playlist_selection_empty">在此次选择中未找到本地视频</string>
+    <string name="playlist_selection_empty">在此次选择中未找到本地视频。</string>
     <string name="playlist_selection_read_failed">无法读取所选视频。请重试。</string>
     <plurals name="added_videos_to_playlist">
-        <item quantity="other">已将 %d 个视频添加到播放列表</item>
+        <item quantity="other">已将 %d 个视频添加到播放列表。</item>
     </plurals>
     <plurals name="playlist_video_count">
         <item quantity="other">%d 个视频</item>
@@ -442,9 +442,9 @@
     <string name="ssh_host_key_trusted_fingerprint">已信任的指纹：%1$s</string>
     <string name="ssh_host_key_presented_fingerprint">已提交的指纹：%1$s</string>
     <string name="private_key_missing">缺少私钥。请重选。</string>
-    <string name="private_key_malformed">不支持此私钥格式或文件错误</string>
-    <string name="private_key_wrong_passphrase">私钥密码短语错误或缺失</string>
+    <string name="private_key_malformed">不支持此私钥格式或文件错误。</string>
+    <string name="private_key_wrong_passphrase">私钥密码短语错误或缺失。</string>
     <string name="authentication_rejected">身份验证被拒绝。请检查您的凭据并重试。</string>
-    <string name="host_key_mismatch">SSH 主机密钥和已信任的指纹不匹配</string>
-    <string name="sftp_root_inaccessible">SFTP 根路径缺失或无法访问</string>
+    <string name="host_key_mismatch">SSH 主机密钥和受信任的指纹不匹配。</string>
+    <string name="sftp_root_inaccessible">SFTP 根路径缺失或无法访问。</string>
 </resources>
