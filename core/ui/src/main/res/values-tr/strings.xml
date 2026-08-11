@@ -383,9 +383,18 @@
     <string name="connecting">Bağlanıyor…</string>
     <string name="connection_failed">Bağlantı kurulamadı. Ayrıntıları kontrol edin ve tekrar deneyin.</string>
     <string name="no_connections_title">Henüz bağlantı yok</string>
-    <string name="no_connections_description">Ağınızdaki videoları taramak ve oynatmak için bir SMB, FTP veya WebDAV bağlantısı ekleyin.</string>
+    <string name="no_connections_description">Ağınızdaki videoları taramak ve oynatmak için bir SMB, FTP, SFTP veya WebDAV bağlantısı ekleyin.</string>
     <string name="empty_folder">Bu klasör boş</string>
     <string name="failed_to_load_folder">Bu konum yüklenemedi</string>
     <string name="retry">Tekrar dene</string>
     <string name="edit">Düzenle</string>
+    <string name="authentication">Kimlik doğrulama</string>
+    <string name="ssh_key">SSH anahtarı</string>
+    <string name="choose_private_key">Gizli anahtarı seçin</string>
+    <string name="replace_private_key">Gizli anahtarı değiştirin</string>
+    <string name="remove_private_key">Gizli anahtarı kaldır</string>
+    <string name="private_key_stored">Gizli anahtar saklandı</string>
+    <string name="selected_private_key">Seçilen anahtar: %1$s</string>
+    <string name="private_key_passphrase">Gizli anahtar parola cümlesi (isteğe bağlı)</string>
+    <string name="confirm_ssh_host_key">SSH sunucu anahtarını onayla</string>
 </resources>
