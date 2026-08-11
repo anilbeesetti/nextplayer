@@ -401,7 +401,7 @@
     <string name="playlist_name">播放列表名称</string>
     <string name="create">创建</string>
     <string name="save">保存</string>
-    <string name="name_required">输入播放列表名称</string>
+    <string name="name_required">请输入播放列表名称</string>
     <string name="saving_playlist">正在保存播放列表…</string>
     <string name="no_playlists_title">尚无播放列表</string>
     <string name="local_playlist">本地</string>
@@ -419,7 +419,7 @@
     <string name="no_playlists">尚无播放列表</string>
     <string name="no_playlists_description">创建播放列表，然后从主页选择要添加的本地视频</string>
     <string name="delete_playlist_confirmation">删除“%1$s”及其保存的顺序吗？</string>
-    <string name="play_all">播放全部</string>
+    <string name="play_all">全部播放</string>
     <string name="remove_video_confirmation">从此播放列表移除“%1$s”吗？</string>
     <string name="empty_playlist_description">在主页选择视频并选择“添加到播放列表”</string>
     <string name="playlist_unavailable">此播放列表不再可用</string>
@@ -438,7 +438,7 @@
     <plurals name="playlist_video_count">
         <item quantity="other">%d 个视频</item>
     </plurals>
-    <string name="confirm_ssh_host_key_description">在信任密钥前，请将此指纹和您的服务器进行对比</string>
+    <string name="confirm_ssh_host_key_description">在信任前，请将此指纹和您的服务器进行对比</string>
     <string name="ssh_host_key_trusted_fingerprint">已信任的指纹：%1$s</string>
     <string name="ssh_host_key_presented_fingerprint">已提交的指纹：%1$s</string>
     <string name="private_key_missing">缺少私钥。请重选。</string>
