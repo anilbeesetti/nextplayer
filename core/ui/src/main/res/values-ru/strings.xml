@@ -395,7 +395,7 @@
     <string name="connecting">Подключение…</string>
     <string name="connection_failed">Не удалось подключиться. Проверьте данные и попробуйте ещё раз.</string>
     <string name="no_connections_title">Нет подключений</string>
-    <string name="no_connections_description">Добавьте подключение SMB, FTP или WebDAV, чтобы просматривать и воспроизводить видео по сети.</string>
+    <string name="no_connections_description">Добавьте подключение SMB, FTP, SFTP или WebDAV для просмотра и воспроизведения видео из вашей локальной сети.</string>
     <string name="empty_folder">Эта папка пуста</string>
     <string name="failed_to_load_folder">Не удалось загрузить это расположение</string>
     <string name="retry">Повторить</string>
