@@ -394,4 +394,18 @@
     <string name="failed_to_load_folder">No se pudo cargar esta ubicación</string>
     <string name="retry">Reintentar</string>
     <string name="edit">Editar</string>
+    <string name="authentication">Autenticación</string>
+    <string name="ssh_key">Clave SSH</string>
+    <string name="choose_private_key">Elige clave privada</string>
+    <string name="replace_private_key">Reemplazar la clave privada</string>
+    <string name="remove_private_key">Eliminar la clave privada</string>
+    <string name="private_key_stored">Clave privada almacenada</string>
+    <string name="selected_private_key">Clave seleccionada: %1$s</string>
+    <string name="private_key_passphrase">Frase de contraseña de clave privada (opcional)</string>
+    <string name="confirm_ssh_host_key">Confirmar clave de host SSH</string>
+    <string name="confirm_ssh_host_key_description">Compara esta huella con tu servidor antes de confiar en ella.</string>
+    <string name="ssh_host_key_algorithm">Algoritmo: %1$s</string>
+    <string name="ssh_host_key_fingerprint">Huella dactilar: %1$s</string>
+    <string name="ssh_host_key_trusted_fingerprint">Huella dactilar confiable: %1$s</string>
+    <string name="ssh_host_key_presented_fingerprint">Huella dactilar presentada: %1$s</string>
 </resources>
