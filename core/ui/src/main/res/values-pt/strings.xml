@@ -23,7 +23,7 @@
     <string name="select_audio_track">Selecione a faixa de áudio</string>
     <string name="select_subtitle_track">Selecione a faixa de legenda</string>
     <string name="sort">Organizar</string>
-    <string name="title_activity_player">Atividade do Next Player</string>
+    <string name="title_activity_player">Atividade do Graviton</string>
     <string name="unknown_error">Um erro desconhecido ocorreu</string>
     <string name="playback">Reprodução</string>
     <string name="interface_name">Interface</string>
@@ -99,10 +99,10 @@
     <string name="navigate_up">Navegar para cima</string>
     <string name="no_videos_found">Nenhum vídeo encontrado</string>
     <string name="open_settings">Abrir configurações</string>
-    <string name="permission_info">A app Next Player precisa da permissão \"%1$s\" para aceder e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar a app completamente, conceda a permissão.</string>
+    <string name="permission_info">A app Graviton precisa da permissão \"%1$s\" para aceder e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar a app completamente, conceda a permissão.</string>
     <string name="permission_not_granted">Permissão não concedida</string>
     <string name="permission_request">Solicitação de permissão</string>
-    <string name="permission_settings">A app Next Player precisa da permissão \"%1$s\" para aceder e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar a app completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
+    <string name="permission_settings">A app Graviton precisa da permissão \"%1$s\" para aceder e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar a app completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
     <string name="player_controls_exit">Navegar para cima</string>
     <string name="player_controls_next">Reproduzir o próximo</string>
     <string name="player_controls_play_pause">Pausar reprodução</string>

@@ -37,7 +37,7 @@
     <string name="player_controls_previous">Spelare förgående</string>
     <string name="player_controls_progress">Spelare förloppsindikator</string>
     <string name="player_description">Spelare utseende, uppspelningskontroller</string>
-    <string name="title_activity_player">Next Player aktivitet</string>
+    <string name="title_activity_player">Graviton aktivitet</string>
     <string name="interface_name">Gränssnitt</string>
     <string name="z_a">Z-A</string>
     <string name="longest">Längst</string>
@@ -94,7 +94,7 @@
     <string name="descending">Fallande</string>
     <string name="duration">Varaktighet</string>
     <string name="quick_settings">Snabbinställningar</string>
-    <string name="permission_info">Appen Next Player kräver behörigheten \"%1$s\" för att spela media. Utan den kan inte appen läsa och spela filer. För att få full funktionalitet, ge appen behörighet.</string>
+    <string name="permission_info">Appen Graviton kräver behörigheten \"%1$s\" för att spela media. Utan den kan inte appen läsa och spela filer. För att få full funktionalitet, ge appen behörighet.</string>
     <string name="autoplay_settings_description">Spela automatiskt upp nästa videoklipp i nuvarande mapp</string>
     <string name="size">Storlek</string>
     <string name="audio">Ljud</string>
@@ -119,7 +119,7 @@
     <string name="enter_a_network_url">Ange en nätverksadress:</string>
     <string name="decoder_desc">Decoderprioritet, spelarens decoderinställningar</string>
     <string name="manage_folders_desc">Välj mappar att exkludera från mediabiblioteket</string>
-    <string name="permission_settings">Appen Next Player kräver behörigheten \"%1$s\" för att spela media. Utan den kan inte appen läsa och spela filer. För att få full funktionalitet, ge appen behörighet från inställningar då detta har nekats permanent.</string>
+    <string name="permission_settings">Appen Graviton kräver behörigheten \"%1$s\" för att spela media. Utan den kan inte appen läsa och spela filer. För att få full funktionalitet, ge appen behörighet från inställningar då detta har nekats permanent.</string>
     <string name="none">Ingen</string>
     <string name="monospace">Monospace</string>
     <string name="remember_selections_description">Kom ihåg val för varje fil som ljudspår, undertextspår, etc</string>

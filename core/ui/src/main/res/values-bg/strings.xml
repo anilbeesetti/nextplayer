@@ -47,7 +47,7 @@
     <string name="size">Размер</string>
     <string name="sort">Сортирай</string>
     <string name="title">Заглавие</string>
-    <string name="title_activity_player">Next Player активност</string>
+    <string name="title_activity_player">Graviton активност</string>
     <string name="playback">Възпроизвеждане</string>
     <string name="interface_name">Интерфейс</string>
     <string name="shortest">Най-кратък</string>
@@ -176,8 +176,8 @@
     <string name="location">Местоположение</string>
     <string name="double_tap">Жест с двойно докосване</string>
     <string name="double_tap_description">Избери действие за жест с двойно докосване</string>
-    <string name="permission_info">Приложението Next Player се нуждае от разрешение \"%1$s\" за достъп и изпълнение на мултимедия. Без него достъпът до мултимедия и възпроизвеждането няма да работят. За да използвате приложението напълно, дайте разрешение.</string>
-    <string name="permission_settings">Приложението Next Player се нуждае от разрешение \"%1$s\" за достъп и изпълнение на мултимедия. Без него достъпът до мултимедия и възпроизвеждането няма да работят. За да използвате приложението пълноценно, дайте разрешение от настройките, тъй като е било отказано за постоянно.</string>
+    <string name="permission_info">Приложението Graviton се нуждае от разрешение \"%1$s\" за достъп и изпълнение на мултимедия. Без него достъпът до мултимедия и възпроизвеждането няма да работят. За да използвате приложението напълно, дайте разрешение.</string>
+    <string name="permission_settings">Приложението Graviton се нуждае от разрешение \"%1$s\" за достъп и изпълнение на мултимедия. Без него достъпът до мултимедия и възпроизвеждането няма да работят. За да използвате приложението пълноценно, дайте разрешение от настройките, тъй като е било отказано за постоянно.</string>
     <string name="autoplay_settings">Автоматично изпълнение</string>
     <string name="pip_settings_description">Автоматично превключване към миниатюрен плейър при докосване на бутона Начало</string>
     <string name="player_name">Плейър</string>

@@ -22,10 +22,10 @@
     <string name="navigate_up">Ngjit lart</string>
     <string name="no_videos_found">Nuk u gjetën video</string>
     <string name="open_settings">Hap Cilësimet</string>
-    <string name="permission_info">Aplikacioni Next Player ka nevojë për lejen \"%1$s\" me qasë dhe me lujtë media. Pa të, qasja dhe luajtja e medias s\'do të funksionojë. Për me e përdorë plotësisht aplikacionin, jep lejen.</string>
+    <string name="permission_info">Aplikacioni Graviton ka nevojë për lejen \"%1$s\" me qasë dhe me lujtë media. Pa të, qasja dhe luajtja e medias s\'do të funksionojë. Për me e përdorë plotësisht aplikacionin, jep lejen.</string>
     <string name="permission_not_granted">Leja Nuk U Dha</string>
     <string name="permission_request">Kërkesë Leje</string>
-    <string name="permission_settings">Aplikacioni Next Player ka nevojë për lejen \"%1$s\" me qasë dhe me lujtë media. Pa të, qasja dhe luajtja e medias s\'do të funksionojë. Për me e përdorë plotësisht aplikacionin, jep lejen prej cilësimeve pasi u refuzua përfundimisht.</string>
+    <string name="permission_settings">Aplikacioni Graviton ka nevojë për lejen \"%1$s\" me qasë dhe me lujtë media. Pa të, qasja dhe luajtja e medias s\'do të funksionojë. Për me e përdorë plotësisht aplikacionin, jep lejen prej cilësimeve pasi u refuzua përfundimisht.</string>
     <string name="player_controls_exit">Ngjit lart</string>
     <string name="player_controls_next">Tjetra te lojtari</string>
     <string name="player_controls_play_pause">Luaj pauzë te lojtari</string>
@@ -54,7 +54,7 @@
     <string name="size">Madhësia</string>
     <string name="sort">Rendit</string>
     <string name="title">Titull</string>
-    <string name="title_activity_player">Aktiviteti i Next Player</string>
+    <string name="title_activity_player">Aktiviteti i Graviton</string>
     <string name="unknown_error">Ndodhi një gabim i panjohun</string>
     <string name="playback">Luajtja</string>
     <string name="interface_name">Ndërfaqja</string>
@@ -322,7 +322,7 @@
     <string name="pins_do_not_match">PIN-et nuk përputhen. Provo përsëri</string>
     <string name="incorrect_pin">PIN i gabuar</string>
     <string name="how_to_find_hidden_videos_title">Si t\'i gjesh videot e tua të fshehura</string>
-    <string name="how_to_find_hidden_videos_description">Videot e fshehura mbahen të sigurta në Kasafortën tënde. Për ta hapur përsëri, shtyp dhe mbaj titullin \"NextPlayer\" në krye të ekranit kryesor dhe vendos PIN-in tënd.</string>
+    <string name="how_to_find_hidden_videos_description">Videot e fshehura mbahen të sigurta në Kasafortën tënde. Për ta hapur përsëri, shtyp dhe mbaj titullin \"Graviton\" në krye të ekranit kryesor dhe vendos PIN-in tënd.</string>
     <string name="got_it">E kuptova</string>
     <string name="open_vault">Hap kasafortën</string>
     <string name="vault_empty_title">Nuk ka video të fshehura</string>

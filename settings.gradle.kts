@@ -17,7 +17,7 @@ dependencyResolutionManagement {
 
 /**
  * Use a local copy of nextlib, if it exists by uncommenting the below lines
- * Assuming, that nextplayer and nextlib have the same parent directory.
+ * Assuming, that graviton and nextlib have the same parent directory.
  * If this is not the case, please change the nextLibDirPath.
  */
 
@@ -31,7 +31,7 @@ dependencyResolutionManagement {
 //    }
 //}
 
-rootProject.name = "NextPlayer"
+rootProject.name = "Graviton"
 include(":app")
 include(":core:common")
 include(":core:data")

@@ -16,10 +16,10 @@
     <string name="appearance_name">ظاہری شکل</string>
     <string name="ascending">صعودی ترتیب</string>
     <string name="no_videos_found">کوئی ویڈیوز نہیں ملیں</string>
-    <string name="permission_info">Next Player ایپ کو میڈیا تک رسائی اور پلے کرنے کے لیے \"%1$s\" کی اجازت درکار ہے۔ اس کے بغیر میڈیا تک رسائی اور پلے بیک کام نہیں کرے گا۔ ایپ کو مکمل طور پر استعمال کرنے کے لیے اجازت فراہم کریں۔</string>
+    <string name="permission_info">Graviton ایپ کو میڈیا تک رسائی اور پلے کرنے کے لیے \"%1$s\" کی اجازت درکار ہے۔ اس کے بغیر میڈیا تک رسائی اور پلے بیک کام نہیں کرے گا۔ ایپ کو مکمل طور پر استعمال کرنے کے لیے اجازت فراہم کریں۔</string>
     <string name="permission_not_granted">اجازت فراہم نہیں کی گئی</string>
     <string name="permission_request">اجازت کی درخواست</string>
-    <string name="permission_settings">Next Player ایپ کو میڈیا تک رسائی اور پلے کرنے کے لیے \"%1$s\" کی اجازت درکار ہے۔ اس کے بغیر میڈیا تک رسائی اور پلے بیک کام نہیں کرے گا۔ چونکہ اجازت مستقل طور پر مسترد کر دی گئی ہے، اس لیے ایپ کو مکمل طور پر استعمال کرنے کے لیے سیٹنگز سے اجازت فراہم کریں۔</string>
+    <string name="permission_settings">Graviton ایپ کو میڈیا تک رسائی اور پلے کرنے کے لیے \"%1$s\" کی اجازت درکار ہے۔ اس کے بغیر میڈیا تک رسائی اور پلے بیک کام نہیں کرے گا۔ چونکہ اجازت مستقل طور پر مسترد کر دی گئی ہے، اس لیے ایپ کو مکمل طور پر استعمال کرنے کے لیے سیٹنگز سے اجازت فراہم کریں۔</string>
     <string name="autoplay_settings_description">موجودہ فولڈر میں اگلی ویڈیو خود بخود چلائیں</string>
     <string name="pip_settings">تصویر میں تصویر وضع</string>
     <string name="pip_settings_description">ہوم بٹن دبانے پر خودکار طور پر چھوٹے پلیئر پر منتقل ہوں</string>

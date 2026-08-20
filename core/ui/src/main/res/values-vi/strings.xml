@@ -111,7 +111,7 @@
     <string name="dark_theme">Chủ đề tối</string>
     <string name="cancel">Hủy bỏ</string>
     <string name="extension">Đuôi tệp</string>
-    <string name="permission_settings">Ứng dụng Next Player cần có quyền \"%1$s\" để truy cập và phát phương tiện. Không có nó, việc truy cập và phát lại phương tiện sẽ không hoạt động. Để sử dụng ứng dụng trọn vẹn, hãy cấp quyền từ thiết đặt vì nó đã bị từ chối vĩnh viễn.</string>
+    <string name="permission_settings">Ứng dụng Graviton cần có quyền \"%1$s\" để truy cập và phát phương tiện. Không có nó, việc truy cập và phát lại phương tiện sẽ không hoạt động. Để sử dụng ứng dụng trọn vẹn, hãy cấp quyền từ thiết đặt vì nó đã bị từ chối vĩnh viễn.</string>
     <string name="monospace">Đơn cách</string>
     <string name="path">Đường dẫn</string>
     <string name="appearance_description">Điều chỉnh ứng dụng theo ý thích của bạn</string>
@@ -133,7 +133,7 @@
     <string name="select_playback_speed">Chọn tốc độ phát lại</string>
     <string name="seek_gesture">Cử chỉ tua</string>
     <string name="require_audio_focus_desc">Tạm dừng trình phát khác trong khi trình phát này đang phát video và ngược lại.</string>
-    <string name="permission_info">Ứng dụng Next Player cần có quyền \"%1$s\" để truy cập và phát phương tiện. Không có nó, việc truy cập và phát lại phương tiện sẽ không hoạt động. Để sử dụng trọn vẹn ứng dụng, hãy cấp quyền.</string>
+    <string name="permission_info">Ứng dụng Graviton cần có quyền \"%1$s\" để truy cập và phát phương tiện. Không có nó, việc truy cập và phát lại phương tiện sẽ không hoạt động. Để sử dụng trọn vẹn ứng dụng, hãy cấp quyền.</string>
     <string name="settings">Thiết đặt</string>
     <string name="z_a">Z tới A</string>
     <string name="decoder_desc">Bộ giải mã ưu tiên, tùy chọn bộ giải mã phát lại</string>
@@ -141,7 +141,7 @@
     <string name="best_fit">Phù hợp nhất</string>
     <string name="about_name">Giới thiệu</string>
     <string name="subtitle">Phụ đề</string>
-    <string name="title_activity_player">Hoạt động Next Player</string>
+    <string name="title_activity_player">Hoạt động Graviton</string>
     <string name="serif">Có Chân</string>
     <string name="fast_seek_description">Tua đến khung gần nhất thay vì khung chính xác.</string>
     <string name="subtitle_text_bold">Văn bản phụ đề in đậm</string>

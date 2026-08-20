@@ -26,7 +26,7 @@
     <string name="open_settings">Beállítások megnyitása</string>
     <string name="permission_not_granted">Engedély nincs megadva</string>
     <string name="permission_request">Engedélykérés</string>
-    <string name="permission_settings">A Next Player alkalmazásnak „%1$s” engedélyre van szüksége a média eléréséhez és lejátszásához. Enélkül a médiahozzáférés és a lejátszás nem működik. Az alkalmazás teljes körű használatához adja meg az engedélyt a beállításokból, mivel az véglegesen meg lett tagadva.</string>
+    <string name="permission_settings">A Graviton alkalmazásnak „%1$s” engedélyre van szüksége a média eléréséhez és lejátszásához. Enélkül a médiahozzáférés és a lejátszás nem működik. Az alkalmazás teljes körű használatához adja meg az engedélyt a beállításokból, mivel az véglegesen meg lett tagadva.</string>
     <string name="player_controls_exit">Navigáljon felfelé</string>
     <string name="player_controls_play_pause">Lejátszó lejátszás szünet</string>
     <string name="player_controls_next">Lejátszó következő</string>
@@ -41,7 +41,7 @@
     <string name="seek_gesture">Keresés gesztus</string>
     <string name="autoplay_settings">Automatikus lejátszás</string>
     <string name="resume">Folytatás</string>
-    <string name="permission_info">A Next Player alkalmazásnak \"%1$s\" engedélyre van szüksége a média eléréséhez és lejátszásához. Enélkül a médiához való hozzáférés és a lejátszás nem fog működni. Az alkalmazás teljes körű használatához adja meg az engedélyt.</string>
+    <string name="permission_info">A Graviton alkalmazásnak \"%1$s\" engedélyre van szüksége a média eléréséhez és lejátszásához. Enélkül a médiához való hozzáférés és a lejátszás nem fog működni. Az alkalmazás teljes körű használatához adja meg az engedélyt.</string>
     <string name="autoplay_settings_description">Automatikusan lejátssza a következő videót az aktuális mappában</string>
     <string name="remember_selections_description">Emlékezzen az egyes fájlok kiválasztására, mint például hangsáv, feliratsáv, stb</string>
     <string name="remember_selections">Emlékezzen a kiválasztásokra</string>

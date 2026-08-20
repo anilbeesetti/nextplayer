@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Next Player is a Kotlin/Jetpack Compose multi-module Android app. `app/` owns application entry points and top-level navigation. Reusable layers live under `core/`; user-facing areas are split across `feature/player`, `feature/videopicker`, `feature/settings`, and `feature/network`.
+Graviton is a Kotlin/Jetpack Compose multi-module Android app. `app/` owns application entry points and top-level navigation. Reusable layers live under `core/`; user-facing areas are split across `feature/player`, `feature/videopicker`, `feature/settings`, and `feature/network`.
 
 Kotlin sources are under each module's `src/main/java/`; resources are in `src/main/res/`. Place JVM and Robolectric tests in `src/test/`, and device tests in `src/androidTest/`. Release metadata and screenshots belong in `fastlane/metadata/`.
 
@@ -20,8 +20,8 @@ For faster feedback, target a module: `./gradlew :core:media:test`.
 
 ## Coding Style & Naming Conventions
 
-- Follow `.editorconfig` and the Android Studio ktlint style: four-space indentation and trailing commas where supported. Use `PascalCase` for classes, files, and `@Composable` functions; use `camelCase` for methods and properties; keep packages lowercase under `dev.anilbeesetti.nextplayer`.
-- Place UI string and plurals resources in `core/ui/src/main/res/values/strings.xml` and reference them through `dev.anilbeesetti.nextplayer.core.ui.R`; do not create feature-local string resource files.
+- Follow `.editorconfig` and the Android Studio ktlint style: four-space indentation and trailing commas where supported. Use `PascalCase` for classes, files, and `@Composable` functions; use `camelCase` for methods and properties; keep packages lowercase under `com.graviton`.
+- Place UI string and plurals resources in `core/ui/src/main/res/values/strings.xml` and reference them through `com.graviton.core.ui.R`; do not create feature-local string resource files.
 - Choose the simplest implementation that fully meets the current requirements.
 - Prefer established, well-maintained libraries over custom implementations.
 - Optimize for the next reader: use clear names, small focused units, straightforward control flow, and existing module boundaries. Avoid unnecessary abstractions, clever shortcuts, and speculative flexibility.

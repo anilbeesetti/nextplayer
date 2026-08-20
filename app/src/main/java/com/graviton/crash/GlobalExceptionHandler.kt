@@ -1,0 +1,21 @@
+package com.graviton.crash
+
+import android.content.Context
+import android.content.Intent
+import kotlin.system.exitProcess
+
+class GlobalExceptionHandler(
+    private val context: Context,
+    private val activity: Class<*>,
+) : Thread.UncaughtExceptionHandler {
+    private val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+
+    override fun uncaughtException(t: Thread, e: Throwable) {
+        val intent = Intent(context, activity)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        intent.putExtra("exception", e.stackTraceToString())
+        context.startActivity(intent)
+        defaultHandler?.uncaughtException(t, e) ?: exitProcess(0)
+    }
+}

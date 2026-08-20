@@ -322,7 +322,7 @@
     <string name="pins_do_not_match">ਪਿੰਨ ਮੇਲ ਨਹੀਂ ਖਾਂਦੇ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
     <string name="incorrect_pin">ਗਲਤ ਪਿੰਨ</string>
     <string name="how_to_find_hidden_videos_title">ਆਪਣੇ ਲੁਕਵੇਂ ਵੀਡੀਓ ਕਿਵੇਂ ਲੱਭਣੇ ਹਨ</string>
-    <string name="how_to_find_hidden_videos_description">ਲੁਕੇ ਹੋਏ ਵੀਡੀਓ ਤੁਹਾਡੇ ਵਾਲਟ ਵਿੱਚ ਸੁਰੱਖਿਅਤ ਰੱਖੇ ਜਾਂਦੇ ਹਨ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਖੋਲ੍ਹਣ ਲਈ, ਹੋਮ ਸਕ੍ਰੀਨ ਦੇ ਸਿਖਰ \'ਤੇ \"NextPlayer\" ਸਿਰਲੇਖ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ ਅਤੇ ਆਪਣਾ PIN ਦਰਜ ਕਰੋ।</string>
+    <string name="how_to_find_hidden_videos_description">ਲੁਕੇ ਹੋਏ ਵੀਡੀਓ ਤੁਹਾਡੇ ਵਾਲਟ ਵਿੱਚ ਸੁਰੱਖਿਅਤ ਰੱਖੇ ਜਾਂਦੇ ਹਨ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਖੋਲ੍ਹਣ ਲਈ, ਹੋਮ ਸਕ੍ਰੀਨ ਦੇ ਸਿਖਰ \'ਤੇ \"Graviton\" ਸਿਰਲੇਖ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ ਅਤੇ ਆਪਣਾ PIN ਦਰਜ ਕਰੋ।</string>
     <string name="got_it">ਸਮਝ ਗਿਆ</string>
     <string name="open_vault">ਖੁੱਲ੍ਹਾ ਵਾਲਟ</string>
     <string name="vault_empty_title">ਕੋਈ ਲੁਕਵੇਂ ਵੀਡੀਓ ਨਹੀਂ</string>

@@ -7,10 +7,10 @@
     <string name="navigate_up">Aufwärts navigieren</string>
     <string name="no_videos_found">Keine Videos gefunden</string>
     <string name="open_settings">Einstellungen öffnen</string>
-    <string name="permission_info">Next Player benötigt die \"%1$s\" Berechtigung, um auf Medien zuzugreifen und sie wiedergeben zu können. Ohne diese Berechtigung funktionieren Zugriff und Wiedergabe von Medien nicht. Um die App vollständig zu nutzen, erteile diese Berechtigung.</string>
+    <string name="permission_info">Graviton benötigt die \"%1$s\" Berechtigung, um auf Medien zuzugreifen und sie wiedergeben zu können. Ohne diese Berechtigung funktionieren Zugriff und Wiedergabe von Medien nicht. Um die App vollständig zu nutzen, erteile diese Berechtigung.</string>
     <string name="permission_not_granted">Berechtigung nicht erteilt</string>
     <string name="permission_request">Berechtigungsanfrage</string>
-    <string name="permission_settings">Next Player benötigt die \"%1$s\"-Berechtigung um auf Medien zuzugreifen und sie wiederzugeben. Ohne diese Berechtigung funktionieren Zugriff und Wiedergabe von Medien nicht. Um die App vollständig zu nutzen, erteile diese Berechtigung in den Einstellungen, da sie zuvor verweigert wurde.</string>
+    <string name="permission_settings">Graviton benötigt die \"%1$s\"-Berechtigung um auf Medien zuzugreifen und sie wiederzugeben. Ohne diese Berechtigung funktionieren Zugriff und Wiedergabe von Medien nicht. Um die App vollständig zu nutzen, erteile diese Berechtigung in den Einstellungen, da sie zuvor verweigert wurde.</string>
     <string name="player_controls_exit">Aufwärts navigieren</string>
     <string name="player_controls_next">Nächster Player</string>
     <string name="player_controls_play_pause">Player: Wiedergabe/Pause</string>
@@ -23,7 +23,7 @@
     <string name="select_audio_track">Audiospur wählen</string>
     <string name="settings">Einstellungen</string>
     <string name="title">Titel</string>
-    <string name="title_activity_player">Next Player-Aktivität</string>
+    <string name="title_activity_player">Graviton-Aktivität</string>
     <string name="unknown_error">Ein unbekannter Fehler ist aufgetreten</string>
     <string name="playback">Wiedergabe</string>
     <string name="interface_name">Schnittstelle</string>

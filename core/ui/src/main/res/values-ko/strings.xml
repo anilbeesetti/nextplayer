@@ -38,7 +38,7 @@
     <string name="seek_gesture_description">좌우로 화면을 쓸어 앞뒤로 동영상 탐색</string>
     <string name="resume_description">지난 번에 멈췄던 곳에서부터 동영상 재생</string>
     <string name="size">크기</string>
-    <string name="title_activity_player">Next Player 액티비티</string>
+    <string name="title_activity_player">Graviton 액티비티</string>
     <string name="playback">재생</string>
     <string name="a_z">A-Z</string>
     <string name="z_a">Z-A</string>

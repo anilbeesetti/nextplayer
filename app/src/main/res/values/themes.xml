@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.NextPlayer.Splash" parent="Theme.SplashScreen">
+    <style name="Theme.Graviton.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="windowSplashScreenBackground">#171B1C</item>
-        <item name="postSplashScreenTheme">@style/Theme.NextPlayer</item>
+        <item name="postSplashScreenTheme">@style/Theme.Graviton</item>
     </style>
 
-    <style name="Theme.NextPlayer" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar" />
+    <style name="Theme.Graviton" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar" />
 </resources>
