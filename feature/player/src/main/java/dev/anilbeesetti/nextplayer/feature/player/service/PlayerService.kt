@@ -42,7 +42,7 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getPath
 import dev.anilbeesetti.nextplayer.core.common.extensions.subtitleCacheDir
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
+import dev.anilbeesetti.nextplayer.core.model.DecoderMode
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Resume
@@ -523,17 +523,113 @@ class PlayerService : MediaSessionService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
+
+    private var lastDecoderMode: DecoderMode? = null
+    private var decoderModeJob: Job? = null
+
+    private fun observeDecoderMode() {
+        decoderModeJob = CoroutineScope(SupervisorJob() + Dispatchers.Main).launch {
+            preferencesRepository.playerPreferences.collect { prefs ->
+                if (lastDecoderMode != null && lastDecoderMode != prefs.decoderMode) {
+                    lastDecoderMode = prefs.decoderMode
+                    recreatePlayer()
+                } else if (lastDecoderMode == null) {
+                    lastDecoderMode = prefs.decoderMode
+                }
+            }
+        }
+    }
+
+    private fun recreatePlayer() {
+        val currentPlayer = mediaSession?.player ?: return
+
+        // 1. Capture state
+        val currentPosition = currentPlayer.currentPosition
+        val currentMediaItemIndex = currentPlayer.currentMediaItemIndex
+        val isPlaying = currentPlayer.playWhenReady
+        val playbackParameters = currentPlayer.playbackParameters
+        val repeatMode = currentPlayer.repeatMode
+        val shuffleModeEnabled = currentPlayer.shuffleModeEnabled
+        val trackSelectionParameters = currentPlayer.trackSelectionParameters
+        val skipSilenceEnabled = (currentPlayer as? ExoPlayer)?.skipSilenceEnabled ?: false
+
+        val mediaItems = mutableListOf<MediaItem>()
+        for (i in 0 until currentPlayer.mediaItemCount) {
+            mediaItems.add(currentPlayer.getMediaItemAt(i))
+        }
+
+        // 3. Release old player
+        currentPlayer.release()
+
+        // 4. Create new player with selected decoder configuration
+        val renderersFactory = NextRenderersFactory(applicationContext)
+            .setEnableDecoderFallback(playerPreferences.decoderMode == DecoderMode.AUTO)
+            .setExtensionRendererMode(
+                when (playerPreferences.decoderMode) {
+                    DecoderMode.AUTO -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                    DecoderMode.HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DecoderMode.HARDWARE_PLUS -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DecoderMode.SOFTWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                },
+            ).apply {
+                if (playerPreferences.decoderMode == DecoderMode.HARDWARE_PLUS) {
+                    setMediaCodecSelector(androidx.media3.exoplayer.mediacodec.MediaCodecSelector.DEFAULT)
+                }
+            }
+
+        val trackSelector = DefaultTrackSelector(applicationContext).apply {
+            setParameters(trackSelectionParameters)
+        }
+
+        val newPlayer = ExoPlayer.Builder(applicationContext)
+            .setRenderersFactory(renderersFactory)
+            .setTrackSelector(trackSelector)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                    .build(),
+                playerPreferences.requireAudioFocus,
+            )
+            .build()
+
+        // 8. Ensure listeners remain correctly connected
+        newPlayer.addListener(playbackStateListener)
+
+        // 5. Restore captured state
+        newPlayer.setMediaItems(mediaItems)
+        newPlayer.playbackParameters = playbackParameters
+        newPlayer.repeatMode = repeatMode
+        newPlayer.shuffleModeEnabled = shuffleModeEnabled
+        (newPlayer as? ExoPlayer)?.skipSilenceEnabled = skipSilenceEnabled
+
+        // 6. Restore playback position
+        newPlayer.seekTo(currentMediaItemIndex, currentPosition)
+
+        // 7. Restore play/pause state
+        newPlayer.playWhenReady = isPlaying
+        newPlayer.prepare()
+
+        mediaSession?.player = newPlayer
+    }
+
     override fun onCreate() {
         super.onCreate()
+        observeDecoderMode()
         val renderersFactory = NextRenderersFactory(applicationContext)
-            .setEnableDecoderFallback(true)
+            .setEnableDecoderFallback(playerPreferences.decoderMode == DecoderMode.AUTO)
             .setExtensionRendererMode(
-                when (playerPreferences.decoderPriority) {
-                    DecoderPriority.DEVICE_ONLY -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderPriority.PREFER_DEVICE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderPriority.PREFER_APP -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                when (playerPreferences.decoderMode) {
+                    DecoderMode.AUTO -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                    DecoderMode.HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DecoderMode.HARDWARE_PLUS -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DecoderMode.SOFTWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
                 },
-            )
+            ).apply {
+                if (playerPreferences.decoderMode == DecoderMode.HARDWARE_PLUS) {
+                    setMediaCodecSelector(androidx.media3.exoplayer.mediacodec.MediaCodecSelector.DEFAULT)
+                }
+            }
 
         val trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(

@@ -1,6 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+
+
 
 val primaryLight = Color(0xFF006A68)
 val onPrimaryLight = Color(0xFFFFFFFF)
@@ -229,3 +233,38 @@ val surfaceContainerHighPureBlack = Color(0xFF1A1A1A)
 val surfaceContainerHighestPureBlack = Color(0xFF222222)
 
 val seed = Color(0xFF2B4241)
+
+
+
+
+
+
+val oceanLightScheme = lightColorScheme(primary = Color(0xFF006874), secondary = Color(0xFF4A6267))
+val oceanDarkScheme = darkColorScheme(primary = Color(0xFF4FD8EB), secondary = Color(0xFFB1CBD0))
+
+val blueLightScheme = lightColorScheme(primary = Color(0xFF0061A4), secondary = Color(0xFF535F70))
+val blueDarkScheme = darkColorScheme(primary = Color(0xFF9ECAFF), secondary = Color(0xFFBBC7DB))
+
+val purpleLightScheme = lightColorScheme(primary = Color(0xFF6750A4), secondary = Color(0xFF625B71))
+val purpleDarkScheme = darkColorScheme(primary = Color(0xFFD0BCFF), secondary = Color(0xFFCCC2DC))
+
+val greenLightScheme = lightColorScheme(primary = Color(0xFF386A20), secondary = Color(0xFF55624C))
+val greenDarkScheme = darkColorScheme(primary = Color(0xFF9CD67D), secondary = Color(0xFFBFCBAD))
+
+val redLightScheme = lightColorScheme(primary = Color(0xFFB3261E), secondary = Color(0xFF775652))
+val redDarkScheme = darkColorScheme(primary = Color(0xFFF2B8B5), secondary = Color(0xFFE7BDB8))
+
+val orangeLightScheme = lightColorScheme(primary = Color(0xFF8C5000), secondary = Color(0xFF725A42))
+val orangeDarkScheme = darkColorScheme(primary = Color(0xFFFFB870), secondary = Color(0xFFE1C1A4))
+
+val pinkLightScheme = lightColorScheme(primary = Color(0xFF9C4146), secondary = Color(0xFF775656))
+val pinkDarkScheme = darkColorScheme(primary = Color(0xFFFFB3B6), secondary = Color(0xFFE6BDBC))
+
+val cyanLightScheme = lightColorScheme(primary = Color(0xFF00687A), secondary = Color(0xFF4A6269))
+val cyanDarkScheme = darkColorScheme(primary = Color(0xFF55D6F4), secondary = Color(0xFFB1CBD3))
+
+val monochromeLightScheme = lightColorScheme(primary = Color(0xFF000000), secondary = Color(0xFF5D5E5F))
+val monochromeDarkScheme = darkColorScheme(primary = Color(0xFFFFFFFF), secondary = Color(0xFFC6C6C7))
+
+val graphiteLightScheme = lightColorScheme(primary = Color(0xFF474747), secondary = Color(0xFF5E5E5E))
+val graphiteDarkScheme = darkColorScheme(primary = Color(0xFFC6C6C6), secondary = Color(0xFFD1D1D1))

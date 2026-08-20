@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -41,7 +41,7 @@ private const val NORMAL_MAX_PERCENTAGE = 100
 @Composable
 fun VerticalProgressView(
     modifier: Modifier = Modifier,
-    width: Dp = 32.dp,
+    width: Dp = 48.dp,
     icon: Painter,
     @IntRange(from = 0, to = 200) value: Int,
     maxValue: Int = NORMAL_MAX_PERCENTAGE,
@@ -53,48 +53,47 @@ fun VerticalProgressView(
 
     Column(
         modifier = modifier
-            .heightIn(max = 250.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp),
+            .heightIn(max = 280.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+            .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
-            modifier = Modifier.size(width),
+            modifier = Modifier.size(width).padding(top = 4.dp),
             contentAlignment = Alignment.Center,
         ) {
             BasicText(
                 text = normalizedValue.toString(),
                 style = MaterialTheme.typography.labelLarge.copy(
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
-                autoSize = TextAutoSize.StepBased(maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
             )
         }
         Box(
             modifier = Modifier
                 .weight(1f)
-                .width(width)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .width(16.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)),
             contentAlignment = Alignment.BottomCenter,
         ) {
             Box(
                 modifier = Modifier
-                    .width(width)
+                    .width(16.dp)
                     .fillMaxHeight(fillFraction)
                     .background(if (isBoostActive) boostColor else MaterialTheme.colorScheme.primary),
             )
         }
         Box(
-            modifier = Modifier.size(width),
+            modifier = Modifier.size(width).padding(bottom = 4.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

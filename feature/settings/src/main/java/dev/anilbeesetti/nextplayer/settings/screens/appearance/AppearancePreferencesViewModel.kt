@@ -38,6 +38,7 @@ class AppearancePreferencesViewModel @Inject constructor(
             is AppearancePreferencesEvent.ShowDialog -> showDialog(event.value)
             AppearancePreferencesEvent.ToggleDarkTheme -> toggleDarkTheme()
             is AppearancePreferencesEvent.UpdateThemeConfig -> updateThemeConfig(event.themeConfig)
+            is AppearancePreferencesEvent.UpdateAppTheme -> updateAppTheme(event.appTheme)
             AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
             AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
         }
@@ -55,6 +56,14 @@ class AppearancePreferencesViewModel @Inject constructor(
                 it.copy(
                     themeConfig = if (it.themeConfig == ThemeConfig.ON) ThemeConfig.OFF else ThemeConfig.ON,
                 )
+            }
+        }
+    }
+
+    private fun updateAppTheme(appTheme: dev.anilbeesetti.nextplayer.core.model.AppTheme) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(appTheme = appTheme)
             }
         }
     }
@@ -94,10 +103,12 @@ sealed interface AppearancePreferencesEvent {
     data class ShowDialog(val value: AppearancePreferenceDialog?) : AppearancePreferencesEvent
     data object ToggleDarkTheme : AppearancePreferencesEvent
     data class UpdateThemeConfig(val themeConfig: ThemeConfig) : AppearancePreferencesEvent
+    data class UpdateAppTheme(val appTheme: dev.anilbeesetti.nextplayer.core.model.AppTheme) : AppearancePreferencesEvent
     data object ToggleUseDynamicColors : AppearancePreferencesEvent
     data object ToggleUseHighContrastDarkTheme : AppearancePreferencesEvent
 }
 
 sealed interface AppearancePreferenceDialog {
     data object Theme : AppearancePreferenceDialog
+    data object AppTheme : AppearancePreferenceDialog
 }

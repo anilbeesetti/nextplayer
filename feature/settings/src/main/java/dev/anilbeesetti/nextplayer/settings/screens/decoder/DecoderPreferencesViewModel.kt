@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
-import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
+import dev.anilbeesetti.nextplayer.core.model.DecoderMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +38,7 @@ class DecoderPreferencesViewModel @Inject constructor(
     fun onEvent(event: DecoderPreferencesUiEvent) {
         when (event) {
             is DecoderPreferencesUiEvent.ShowDialog -> showDialog(event.value)
-            is DecoderPreferencesUiEvent.UpdateDecoderPriority -> updateDecoderPriority(event.value)
+            is DecoderPreferencesUiEvent.UpdateDecoderMode -> updateDecoderMode(event.value)
         }
     }
 
@@ -48,10 +48,10 @@ class DecoderPreferencesViewModel @Inject constructor(
         }
     }
 
-    private fun updateDecoderPriority(value: DecoderPriority) {
+    private fun updateDecoderMode(value: DecoderMode) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
-                it.copy(decoderPriority = value)
+                it.copy(decoderMode = value)
             }
         }
     }
@@ -64,10 +64,10 @@ data class DecoderPreferencesUiState(
 )
 
 sealed interface DecoderPreferenceDialog {
-    data object DecoderPriorityDialog : DecoderPreferenceDialog
+    data object DecoderModeDialog : DecoderPreferenceDialog
 }
 
 sealed interface DecoderPreferencesUiEvent {
     data class ShowDialog(val value: DecoderPreferenceDialog?) : DecoderPreferencesUiEvent
-    data class UpdateDecoderPriority(val value: DecoderPriority) : DecoderPreferencesUiEvent
+    data class UpdateDecoderMode(val value: DecoderMode) : DecoderPreferencesUiEvent
 }

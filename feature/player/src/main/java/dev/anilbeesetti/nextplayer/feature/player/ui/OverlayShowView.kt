@@ -7,11 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
+import dev.anilbeesetti.nextplayer.core.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
 
 @Composable
 fun BoxScope.OverlayShowView(
+    currentDecoderMode: DecoderMode,
+    onDecoderModeSelected: (DecoderMode) -> Unit,
     player: Player,
     overlayView: OverlayView?,
     videoContentScale: VideoContentScale,
@@ -58,7 +61,16 @@ fun BoxScope.OverlayShowView(
         onDismiss = onDismiss,
     )
 
+
+    DecoderSelectorView(
+        show = overlayView == OverlayView.DECODER_SELECTOR,
+        currentDecoderMode = currentDecoderMode,
+        onDecoderModeSelected = onDecoderModeSelected,
+        onDismiss = onDismiss,
+    )
+
     PlaylistView(
+
         show = overlayView == OverlayView.PLAYLIST,
         player = player,
     )
@@ -67,10 +79,3 @@ fun BoxScope.OverlayShowView(
 val Configuration.isPortrait: Boolean
     get() = orientation == Configuration.ORIENTATION_PORTRAIT
 
-enum class OverlayView {
-    AUDIO_SELECTOR,
-    SUBTITLE_SELECTOR,
-    PLAYBACK_SPEED,
-    VIDEO_CONTENT_SCALE,
-    PLAYLIST,
-}

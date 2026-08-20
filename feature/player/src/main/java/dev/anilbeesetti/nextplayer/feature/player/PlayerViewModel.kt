@@ -83,6 +83,15 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+
+    fun updateDecoderMode(decoderMode: dev.anilbeesetti.nextplayer.core.model.DecoderMode) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences {
+                it.copy(decoderMode = decoderMode)
+            }
+        }
+    }
+
     fun onSubtitleOptionEvent(event: SubtitleOptionsEvent) {
         when (event) {
             is SubtitleOptionsEvent.DelayChanged -> {

@@ -110,10 +110,12 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
+            val appTheme = (uiState as? MainActivityUiState.Success)?.preferences?.appTheme ?: dev.anilbeesetti.nextplayer.core.model.AppTheme.SYSTEM
             NextPlayerTheme(
                 darkTheme = shouldUseDarkTheme,
                 highContrastDarkTheme = shouldUseHighContrastDarkTheme(uiState = uiState),
                 dynamicColor = shouldUseDynamicTheming(uiState = uiState),
+                appTheme = appTheme,
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

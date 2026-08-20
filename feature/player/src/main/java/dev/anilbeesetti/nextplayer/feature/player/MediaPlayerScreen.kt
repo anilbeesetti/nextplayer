@@ -85,6 +85,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibili
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMetadataState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberPlaybackParametersState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberPictureInPictureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
@@ -97,6 +98,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.nameRes
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
+import dev.anilbeesetti.nextplayer.feature.player.ui.SpeedOverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
@@ -127,6 +129,7 @@ fun MediaPlayerScreen(
     )
     player ?: return
     val metadataState = rememberMetadataState(player)
+    val playbackParametersState = rememberPlaybackParametersState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
@@ -385,6 +388,10 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.PLAYLIST
                                     },
+                                    onDecoderClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.DECODER_SELECTOR
+                                    },
                                     onBackClick = onBackClick,
                                 )
                             }
@@ -489,7 +496,10 @@ fun MediaPlayerScreen(
                 }
             }
 
+
             OverlayShowView(
+                currentDecoderMode = playerPreferences.decoderMode,
+                onDecoderModeSelected = viewModel::updateDecoderMode,
                 player = player,
                 overlayView = overlayView,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
@@ -498,7 +508,12 @@ fun MediaPlayerScreen(
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
             )
+
+            SpeedOverlayView(
+                speed = playbackParametersState.speed
+            )
         }
+
     }
 
     errorState.error?.let { error ->

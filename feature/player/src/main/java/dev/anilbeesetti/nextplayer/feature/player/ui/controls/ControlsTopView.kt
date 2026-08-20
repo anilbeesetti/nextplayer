@@ -36,6 +36,7 @@ fun ControlsTopView(
     onSubtitleClick: () -> Unit = {},
     onPlaybackSpeedClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
+    onDecoderClick: () -> Unit = {},
     onBackClick: () -> Unit,
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
@@ -90,6 +91,12 @@ fun ControlsTopView(
             PlayerButton(onClick = onSubtitleClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_subtitle_track),
+                    contentDescription = null,
+                )
+            }
+            PlayerButton(onClick = onDecoderClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_more_vert),
                     contentDescription = null,
                 )
             }
