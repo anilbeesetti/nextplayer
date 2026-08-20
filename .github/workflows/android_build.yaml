@@ -1,9 +1,9 @@
-name: Android Build
+name: Android Release Build
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allows running manually from the Actions tab
+  workflow_dispatch:
 
 concurrency:
   group: build-${{ github.ref }}
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    name: Build APK and Publish
+    name: Build and Sign APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -33,14 +33,24 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
 
-      - name: Create Pre-Release with Direct APKs
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Create Release with Signed APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: Debug Build #${{ github.run_number }}
+          tag_name: release-${{ github.run_number }}
+          name: Release Build #${{ github.run_number }}
           draft: false
-          prerelease: true
-          files: app/build/outputs/apk/debug/*.apk
+          prerelease: false
+          files: ${{ steps.sign_app.outputs.signedReleaseFile }}
