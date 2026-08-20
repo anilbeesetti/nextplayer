@@ -31,22 +31,46 @@ jobs:
       - name: Build Unsigned Release APK
         run: ./gradlew assembleRelease
 
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-          alias: ${{ secrets.SIGNING_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      - name: Sign APKs
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          # 1. Reconstruct keystore from GitHub secret
+          echo "$KEYSTORE_BASE64" | base64 --decode > release.jks
 
-      - name: Publish Signed APK to Release
+          # 2. Find the latest Android build tools directory dynamically
+          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          mkdir -p app/build/outputs/apk/signed
+
+          # 3. Align and Sign all APK files generated
+          for apk in app/build/outputs/apk/release/*.apk; do
+            if [ -f "$apk" ]; then
+              base=$(basename "$apk" .apk)
+              
+              # Align APK
+              $BUILD_TOOLS/zipalign -v -p 4 "$apk" "app/build/outputs/apk/signed/${base}-aligned.apk"
+              
+              # Sign APK
+              $BUILD_TOOLS/apksigner sign --ks release.jks \
+                --ks-key-alias "$SIGNING_KEY_ALIAS" \
+                --ks-pass "pass:$SIGNING_STORE_PASSWORD" \
+                --key-pass "pass:$SIGNING_KEY_PASSWORD" \
+                --out "app/build/outputs/apk/signed/${base}-signed.apk" \
+                "app/build/outputs/apk/signed/${base}-aligned.apk"
+                
+              # Remove intermediate aligned file
+              rm "app/build/outputs/apk/signed/${base}-aligned.apk"
+            fi
+          done
+
+      - name: Publish Signed APKs to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
           name: Signed Release #${{ github.run_number }}
           draft: false
           prerelease: false
-          files: ${{ steps.sign_app.outputs.signedFiles }}
-          
+          files: app/build/outputs/apk/signed/*-signed.apk
