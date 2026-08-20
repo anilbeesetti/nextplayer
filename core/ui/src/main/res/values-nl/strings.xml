@@ -24,5 +24,5 @@
     <string name="location">Locatie</string>
     <string name="no_videos_found">Geen videos gevonden</string>
     <string name="open_settings">Open instellingen</string>
-    <string name="permission_info">The Next Player heeft \"%1$s\" permissie nodig om media te kunnen vinden en afspelen. Zonder deze permissie zal dit niet werken. Geef toestemming om de app volledig te gebruiken.</string>
+    <string name="permission_info">The Graviton heeft \"%1$s\" permissie nodig om media te kunnen vinden en afspelen. Zonder deze permissie zal dit niet werken. Geef toestemming om de app volledig te gebruiken.</string>
 </resources>

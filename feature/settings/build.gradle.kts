@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.anilbeesetti.nextplayer.feature.settings"
+    namespace = "com.graviton.feature.settings"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

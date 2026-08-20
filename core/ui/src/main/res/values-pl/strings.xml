@@ -84,11 +84,11 @@
     <string name="manage_folders_desc">Wybierz katalogi, które mają być wykluczone z biblioteki multimediów</string>
     <string name="screen_rotation">Obrót ekranu</string>
     <string name="extension">Rozszerzenie</string>
-    <string name="permission_settings">Aplikacja Next Player wymaga pozwolenia %1$s, aby uzyskać dostęp do multimediów. Bez niego dostęp do multimediów i odtwarzanie nie będą działać. Aby w pełni korzystać z aplikacji, należy przyznać uprawnienie w ustawieniach, ponieważ zostało ono trwale odrzucone.</string>
+    <string name="permission_settings">Aplikacja Graviton wymaga pozwolenia %1$s, aby uzyskać dostęp do multimediów. Bez niego dostęp do multimediów i odtwarzanie nie będą działać. Aby w pełni korzystać z aplikacji, należy przyznać uprawnienie w ustawieniach, ponieważ zostało ono trwale odrzucone.</string>
     <string name="path">Ścieżka</string>
     <string name="media_library">Biblioteka mediów</string>
     <string name="fast_seek">Szybkie wyszukiwanie</string>
-    <string name="permission_info">Aplikacja Next Player wymaga pozwolenia %1$s, aby mieć dostęp do multimediów. Bez niego, dostęp do multimediów i odtwarzanie nie będą działać. Aby w pełni korzystać z aplikacji, nadaj pozwolenie.</string>
+    <string name="permission_info">Aplikacja Graviton wymaga pozwolenia %1$s, aby mieć dostęp do multimediów. Bez niego, dostęp do multimediów i odtwarzanie nie będą działać. Aby w pełni korzystać z aplikacji, nadaj pozwolenie.</string>
     <string name="stretch">Rozciągnięcie</string>
     <string name="permission_not_granted">Nie udzielono zezwolenia</string>
     <string name="resolution">Rozdzielczość</string>
@@ -99,7 +99,7 @@
     <string name="pip_settings">Tryb \"Obraz w obrazie\"</string>
     <string name="pip_settings_description">Automatyczne przełączanie na miniaturowy odtwarzacz po dotknięciu przycisku \"Ekran główny\"</string>
     <string name="remember_selections_description">Zapamiętuje wybory dla każdego pliku, takie jak ścieżka audio, ścieżka napisów itp.</string>
-    <string name="title_activity_player">Czynności Next Player</string>
+    <string name="title_activity_player">Czynności Graviton</string>
     <string name="video_zoom">Powiększanie wideo</string>
     <string name="controls_unlock">Elementy sterujące odblokowywaniem</string>
     <string name="dynamic_theme_description">Stosuje kolory z tapety systemowej do motywu aplikacji</string>
@@ -323,7 +323,7 @@
     <string name="pins_do_not_match">Kody PIN nie są zgodne. Spróbuj ponownie</string>
     <string name="incorrect_pin">Nieprawidłowy kod PIN</string>
     <string name="how_to_find_hidden_videos_title">Jak znaleźć swoje ukryte wideo</string>
-    <string name="how_to_find_hidden_videos_description">Ukryte wideo jest bezpiecznie przechowywane w twoim sejfie. Aby ponownie go otworzyć, naciśnij i przytrzymaj tytuł „NextPlayer” u góry ekranu głównego, a następnie wprowadź swój kod PIN.</string>
+    <string name="how_to_find_hidden_videos_description">Ukryte wideo jest bezpiecznie przechowywane w twoim sejfie. Aby ponownie go otworzyć, naciśnij i przytrzymaj tytuł „Graviton” u góry ekranu głównego, a następnie wprowadź swój kod PIN.</string>
     <string name="got_it">Rozumiem</string>
     <string name="open_vault">Otwórz sejf</string>
     <string name="vault_empty_title">Brak ukrytych wideo</string>

@@ -13,7 +13,7 @@
             android:launchMode="singleTask"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
-            android:theme="@style/NextPlayer"
+            android:theme="@style/Graviton"
             android:windowSoftInputMode="adjustResize"
             tools:targetApi="o">
 

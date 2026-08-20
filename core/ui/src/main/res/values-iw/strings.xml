@@ -27,8 +27,8 @@
     <string name="fast_seek_description">חפש מסגרת ראשית קרובה ביותר במקום אחת מדויקת.</string>
     <string name="menu">תפריט</string>
     <string name="duration">אורך</string>
-    <string name="permission_info">אפליקציית Next Player צריכה רשות \"%1$s\" כדי לגשת ולנגן מדיה. ללא רשות זו, ניגון וגישה למדיה לא יעבדו. כדי לצרוך את האפליקציה במלואה, יש לתת רשות.</string>
-    <string name="permission_settings">אפליקציית Next Player צריכה רשות \"%1$s\" כדי לגשת ולנגן מדיה. ללא רשות זו, ניגון וגישה למדיה לא יעבדו. כדי לצרוך את האפליקציה במלואה, יש לתת רשות מן ההגדרות כיוון שהיא נדחתה לצמיתות.</string>
+    <string name="permission_info">אפליקציית Graviton צריכה רשות \"%1$s\" כדי לגשת ולנגן מדיה. ללא רשות זו, ניגון וגישה למדיה לא יעבדו. כדי לצרוך את האפליקציה במלואה, יש לתת רשות.</string>
+    <string name="permission_settings">אפליקציית Graviton צריכה רשות \"%1$s\" כדי לגשת ולנגן מדיה. ללא רשות זו, ניגון וגישה למדיה לא יעבדו. כדי לצרוך את האפליקציה במלואה, יש לתת רשות מן ההגדרות כיוון שהיא נדחתה לצמיתות.</string>
     <string name="player_controls_exit">נווט מעלה</string>
     <string name="player_controls_next">נגן הבא</string>
     <string name="remember_brightness_level">זכור רמת בהירות</string>
@@ -41,7 +41,7 @@
     <string name="select_audio_track">בחר רצועת שמע</string>
     <string name="size">גודל</string>
     <string name="title">כותרת</string>
-    <string name="title_activity_player">פעילות Next Player</string>
+    <string name="title_activity_player">פעילות Graviton</string>
     <string name="playback">הפעלה</string>
     <string name="interface_name">ממשק</string>
     <string name="a_z">א-ת</string>

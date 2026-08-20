@@ -39,7 +39,7 @@
     <string name="dark_theme">Тёмная тема</string>
     <string name="video_zoom">Увеличить видео</string>
     <string name="controls_lock">Заблокировать управление</string>
-    <string name="title_activity_player">Активность Next Player</string>
+    <string name="title_activity_player">Активность Graviton</string>
     <string name="controls_unlock">Разблокировать управление</string>
     <string name="select_playback_speed">Выбор скорости воспроизведения</string>
     <string name="fast_seek">Быстрая перемотка</string>
@@ -50,12 +50,12 @@
     <string name="duration">Длительность</string>
     <string name="menu">Меню</string>
     <string name="open_settings">Открыть настройки</string>
-    <string name="permission_info">Приложению Next Player требуется разрешение «%1$s» для доступа и воспроизведения видео и аудио. Чтобы использовать приложение, пожалуйста, предоставьте это разрешение в настройках.</string>
+    <string name="permission_info">Приложению Graviton требуется разрешение «%1$s» для доступа и воспроизведения видео и аудио. Чтобы использовать приложение, пожалуйста, предоставьте это разрешение в настройках.</string>
     <string name="permission_request">Запрос на разрешение</string>
     <string name="group_videos">Группировка видео по папкам</string>
     <string name="location">Расположение</string>
     <string name="permission_not_granted">Разрешение не выдано</string>
-    <string name="permission_settings">Приложению Next Player требуется разрешение «%1$s» для доступа и воспроизведения видео и аудио. Чтобы использовать приложение, пожалуйста, предоставьте разрешение в настройках, поскольку оно было запрещено.</string>
+    <string name="permission_settings">Приложению Graviton требуется разрешение «%1$s» для доступа и воспроизведения видео и аудио. Чтобы использовать приложение, пожалуйста, предоставьте разрешение в настройках, поскольку оно было запрещено.</string>
     <string name="player_name">Проигрыватель</string>
     <string name="quick_settings">Быстрые настройки</string>
     <string name="remember_brightness_level">Запоминать уровень яркости</string>
@@ -172,7 +172,7 @@
     <string name="language">Язык</string>
     <string name="okay">Хорошо</string>
     <string name="audio_track">Аудиодорожка</string>
-    <string name="require_audio_focus_desc">Ставить на паузу другие источники звука при воспроизведении в Next Player и наоборот.</string>
+    <string name="require_audio_focus_desc">Ставить на паузу другие источники звука при воспроизведении в Graviton и наоборот.</string>
     <string name="sample_rate">Частота дискретизации</string>
     <string name="file">Файл</string>
     <string name="resolution">Разрешение</string>
@@ -326,7 +326,7 @@
     <string name="pins_do_not_match">PIN-коды не совпадают. Попробуйте ещё раз</string>
     <string name="incorrect_pin">Неверный PIN-код</string>
     <string name="how_to_find_hidden_videos_title">Как найти скрытые видео</string>
-    <string name="how_to_find_hidden_videos_description">Скрытые видео надёжно хранятся в секретной папке. Чтобы снова открыть её, нажмите и удерживайте заголовок \"NextPlayer\" в верхней части главного экрана, а затем введите PIN-код.</string>
+    <string name="how_to_find_hidden_videos_description">Скрытые видео надёжно хранятся в секретной папке. Чтобы снова открыть её, нажмите и удерживайте заголовок \"Graviton\" в верхней части главного экрана, а затем введите PIN-код.</string>
     <string name="got_it">Понятно</string>
     <string name="open_vault">Открыть секретную папку</string>
     <string name="vault_empty_title">Скрытых видео нет</string>

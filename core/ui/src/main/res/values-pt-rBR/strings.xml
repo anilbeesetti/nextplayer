@@ -41,7 +41,7 @@
     <string name="size">Tamanho</string>
     <string name="sort">Organizar</string>
     <string name="title">Título</string>
-    <string name="title_activity_player">Atividade do Next Player</string>
+    <string name="title_activity_player">Atividade do Graviton</string>
     <string name="unknown_error">Um erro desconhecido ocorreu</string>
     <string name="playback">Reprodução</string>
     <string name="interface_name">Interface</string>
@@ -63,8 +63,8 @@
     <string name="about_description">Versão, suporte, créditos</string>
     <string name="grant_permission">Conceder permissão</string>
     <string name="done">OK</string>
-    <string name="permission_info">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão.</string>
-    <string name="permission_settings">O aplicativo Next Player precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
+    <string name="permission_info">O aplicativo Graviton precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão.</string>
+    <string name="permission_settings">O aplicativo Graviton precisa da permissão \"%1$s\" para acessar e reproduzir mídia. Sem ele, o acesso à mídia e a reprodução não funcionarão. Para usar o aplicativo completamente, conceda a permissão nas configurações, pois ela foi negada permanentemente.</string>
     <string name="audio">Áudio</string>
     <string name="preferred_audio_lang">Idioma de áudio preferido</string>
     <string name="preferred_audio_lang_description">Idioma da faixa de áudio que você deseja usar por padrão</string>

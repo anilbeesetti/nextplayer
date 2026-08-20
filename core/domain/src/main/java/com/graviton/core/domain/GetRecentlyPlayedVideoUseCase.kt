@@ -1,0 +1,48 @@
+package com.graviton.core.domain
+
+import com.graviton.core.common.Dispatcher
+import com.graviton.core.common.NextDispatchers
+import com.graviton.core.data.repository.PreferencesRepository
+import com.graviton.core.model.MediaViewMode
+import com.graviton.core.model.Video
+import com.graviton.core.model.recentPlayed
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+/**
+ * Use case for retrieving the most recently played video.
+ *
+ * Returns the video with the most recent play timestamp, optionally
+ * filtered to a specific folder path based on the current view mode.
+ */
+class GetRecentlyPlayedVideoUseCase @Inject constructor(
+    private val getSortedVideosUseCase: GetSortedVideosUseCase,
+    private val preferencesRepository: PreferencesRepository,
+    @Dispatcher(NextDispatchers.Default) private val defaultDispatcher: CoroutineDispatcher,
+) {
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    operator fun invoke(folderPath: String? = null): Flow<Video?> {
+        return preferencesRepository.applicationPreferences.flatMapLatest { preferences ->
+            // null folderPath scans all storage volumes.
+            getSortedVideosUseCase(folderPath).map { videos ->
+                // Filter based on view mode when folderPath is provided
+                val filteredVideos = if (folderPath != null) {
+                    when (preferences.mediaViewMode) {
+                        MediaViewMode.FOLDER_TREE -> videos // All descendants
+                        MediaViewMode.FOLDERS -> videos.filter { it.parentPath == folderPath }
+                        MediaViewMode.VIDEOS -> videos
+                    }
+                } else {
+                    videos
+                }
+                filteredVideos.recentPlayed()
+            }
+        }.flowOn(defaultDispatcher)
+    }
+}

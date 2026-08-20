@@ -22,9 +22,9 @@
     <string name="navigate_up">Navigasi ke atas</string>
     <string name="no_videos_found">Tidak ada video yang ditemukan</string>
     <string name="open_settings">Buka Pengaturan</string>
-    <string name="permission_info">Aplikasi Next Player memerlukan izin \"%1$s\" untuk mengakses dan memutar media. Tanpa izin tersebut, akses dan pemutaran media tidak akan berfungsi. Untuk menggunakan aplikasi sepenuhnya, berikan izin.</string>
+    <string name="permission_info">Aplikasi Graviton memerlukan izin \"%1$s\" untuk mengakses dan memutar media. Tanpa izin tersebut, akses dan pemutaran media tidak akan berfungsi. Untuk menggunakan aplikasi sepenuhnya, berikan izin.</string>
     <string name="permission_not_granted">Izin Tidak Diberikan</string>
-    <string name="permission_settings">Aplikasi Next Player memerlukan izin \"%1$s\" untuk mengakses dan memutar media. Tanpa izin tersebut, akses dan pemutaran media tidak akan berfungsi. Untuk menggunakan aplikasi sepenuhnya, berikan izin dari pengaturan karena izin tersebut ditolak secara permanen.</string>
+    <string name="permission_settings">Aplikasi Graviton memerlukan izin \"%1$s\" untuk mengakses dan memutar media. Tanpa izin tersebut, akses dan pemutaran media tidak akan berfungsi. Untuk menggunakan aplikasi sepenuhnya, berikan izin dari pengaturan karena izin tersebut ditolak secara permanen.</string>
     <string name="player_controls_exit">Navigasi ke atas</string>
     <string name="permission_request">Permintaan Izin</string>
     <string name="player_controls_next">Pemain berikutnya</string>
@@ -52,7 +52,7 @@
     <string name="select_subtitle_track">Pilih trek subtitle</string>
     <string name="sort">Urutkan</string>
     <string name="title">Judul</string>
-    <string name="title_activity_player">Aktivitas Next Player</string>
+    <string name="title_activity_player">Aktivitas Graviton</string>
     <string name="playback">Pemutaran</string>
     <string name="interface_name">Antarmuka</string>
     <string name="a_z">A-Z</string>
@@ -345,7 +345,7 @@
     <string name="pins_do_not_match">PIN tidak cocok. Coba lagi</string>
     <string name="incorrect_pin">PIN salah</string>
     <string name="how_to_find_hidden_videos_title">Cara menemukan video tersembunyi Anda</string>
-    <string name="how_to_find_hidden_videos_description">Video tersembunyi Anda disimpan dengan aman di Brankas. Untuk membukanya kembali, tekan dan tahan judul \"NextPlayer\" di bagian atas layar beranda, lalu masukkan PIN Anda.</string>
+    <string name="how_to_find_hidden_videos_description">Video tersembunyi Anda disimpan dengan aman di Brankas. Untuk membukanya kembali, tekan dan tahan judul \"Graviton\" di bagian atas layar beranda, lalu masukkan PIN Anda.</string>
     <string name="got_it">Mengerti</string>
     <string name="open_vault">Buka brankas</string>
     <string name="vault_empty_title">Tidak ada video tersembunyi</string>

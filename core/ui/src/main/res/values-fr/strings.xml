@@ -38,10 +38,10 @@
     <string name="navigate_up">Naviguer vers le haut</string>
     <string name="no_videos_found">Aucune vidéo trouvée</string>
     <string name="open_settings">Ouvrir les paramètres</string>
-    <string name="permission_info">Next Player a besoin de l\'autorisation \"%1$s\" pour accéder aux médias et lire du contenu. Sans cette permission, l\'accès aux médias et leur lecture ne fonctionneront pas. Pour utiliser l\'application complètement, accordez cette autorisation.</string>
+    <string name="permission_info">Graviton a besoin de l\'autorisation \"%1$s\" pour accéder aux médias et lire du contenu. Sans cette permission, l\'accès aux médias et leur lecture ne fonctionneront pas. Pour utiliser l\'application complètement, accordez cette autorisation.</string>
     <string name="permission_not_granted">Autorisation non accordée</string>
     <string name="permission_request">Demande d\'autorisation</string>
-    <string name="permission_settings">Next Player a besoin de l\'autorisation \"%1$s\" pour accéder aux médias et lire du contenu. Sans cette autorisation, l\'accès aux médias et leur lecture ne fonctionneront pas. Cette autorisation a précédemment été refusée, pour utiliser l\'application complètement, accordez-la depuis les paramètres d\'Android.</string>
+    <string name="permission_settings">Graviton a besoin de l\'autorisation \"%1$s\" pour accéder aux médias et lire du contenu. Sans cette autorisation, l\'accès aux médias et leur lecture ne fonctionneront pas. Cette autorisation a précédemment été refusée, pour utiliser l\'application complètement, accordez-la depuis les paramètres d\'Android.</string>
     <string name="player_controls_exit">Naviguer vers le haut</string>
     <string name="a_z">A-Z</string>
     <string name="seconds">%1$s secondes</string>
@@ -88,7 +88,7 @@
     <string name="select_audio_track">Piste audio</string>
     <string name="seek_gesture_description">Glisser horizontalement pour avancer ou reculer dans la vidéo</string>
     <string name="sort">Trier</string>
-    <string name="title_activity_player">Activité de Next Player</string>
+    <string name="title_activity_player">Activité de Graviton</string>
     <string name="title">Titre</string>
     <string name="dark_theme">Thème sombre</string>
     <string name="video_zoom">Zoom vidéo</string>

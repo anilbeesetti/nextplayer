@@ -22,10 +22,10 @@
     <string name="navigate_up">Yukarı git</string>
     <string name="no_videos_found">Video bulunamadı</string>
     <string name="open_settings">Ayarları Aç</string>
-    <string name="permission_info">Next Player uygulamasının medya erişimi ve oynatma için "%1$s" iznine ihtiyacı var. Bu izin olmadan medya erişimi ve oynatma çalışmaz. Uygulamayı tam olarak kullanmak için izni verin.</string>
+    <string name="permission_info">Graviton uygulamasının medya erişimi ve oynatma için "%1$s" iznine ihtiyacı var. Bu izin olmadan medya erişimi ve oynatma çalışmaz. Uygulamayı tam olarak kullanmak için izni verin.</string>
     <string name="permission_not_granted">İzin Verilmedi</string>
     <string name="permission_request">İzin İsteği</string>
-    <string name="permission_settings">Next Player uygulamasının medya erişimi ve oynatma için "%1$s" iznine ihtiyacı var. Bu izin olmadan medya erişimi ve oynatma çalışmaz. İzin kalıcı olarak reddedildiği için, tam kullanabilmek için izni ayarlardan verin.</string>
+    <string name="permission_settings">Graviton uygulamasının medya erişimi ve oynatma için "%1$s" iznine ihtiyacı var. Bu izin olmadan medya erişimi ve oynatma çalışmaz. İzin kalıcı olarak reddedildiği için, tam kullanabilmek için izni ayarlardan verin.</string>
     <string name="player_controls_exit">Yukarı git</string>
     <string name="player_controls_next">Sonraki oynatıcı</string>
     <string name="player_controls_play_pause">Oynatıcı oynat duraklat</string>
@@ -52,7 +52,7 @@
     <string name="size">Boyut</string>
     <string name="sort">Sırala</string>
     <string name="title">Başlık</string>
-    <string name="title_activity_player">Next Player Etkinliği</string>
+    <string name="title_activity_player">Graviton Etkinliği</string>
     <string name="unknown_error">Bilinmeyen bir hata oluştu</string>
     <string name="playback">Oynatma</string>
     <string name="interface_name">Arayüz</string>
@@ -318,7 +318,7 @@
     <string name="pins_do_not_match">PIN\'ler eşleşmiyor. Tekrar deneyin</string>
     <string name="incorrect_pin">Yanlış PIN</string>
     <string name="how_to_find_hidden_videos_title">Gizli videolarınızı nasıl bulabilirsiniz</string>
-    <string name="how_to_find_hidden_videos_description">Gizli videolarınız Kasanızda güvenli bir şekilde saklanır. Tekrar açmak için ana ekranın üst kısmındaki \"NextPlayer\" başlığına basılı tutun ve PIN\'inizi girin.</string>
+    <string name="how_to_find_hidden_videos_description">Gizli videolarınız Kasanızda güvenli bir şekilde saklanır. Tekrar açmak için ana ekranın üst kısmındaki \"Graviton\" başlığına basılı tutun ve PIN\'inizi girin.</string>
     <string name="open_vault">Kasayı aç</string>
     <string name="vault_empty_title">Gizli video yok</string>
     <string name="vault_empty_description">Gizlediğiniz videolar burada görünecektir. Bir videoya uzun süre basılı tutun ve Gizle seçeneğine dokunarak onu kasaya ekleyin.</string>

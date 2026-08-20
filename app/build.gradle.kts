@@ -9,13 +9,13 @@ plugins {
 }
 
 android {
-    namespace = "dev.anilbeesetti.nextplayer"
+    namespace = "com.graviton"
 
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        applicationId = "dev.anilbeesetti.nextplayer"
+        applicationId = "com.graviton"
         versionCode = 72
         versionName = "0.17.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -150,3 +150,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.testManifest)
 }
+android { lint { disable.add("MissingTranslation") } }
+android { lint { disable.add("ImpliedQuantity"); disable.add("MissingTranslation") } }

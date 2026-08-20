@@ -21,9 +21,9 @@
     <string name="permission_request">権限の要求</string>
     <string name="open_settings">設定を開く</string>
     <string name="location">場所</string>
-    <string name="permission_settings">Next Player アプリには、メディアにアクセスして再生するためには「%1$s」の権限が必要です。この権限がないと、メディアのアクセスと再生ができません。アプリを完全に使用するには、以前永久に拒否された権限を、設定から付与してください。</string>
+    <string name="permission_settings">Graviton アプリには、メディアにアクセスして再生するためには「%1$s」の権限が必要です。この権限がないと、メディアのアクセスと再生ができません。アプリを完全に使用するには、以前永久に拒否された権限を、設定から付与してください。</string>
     <string name="disable">無効</string>
-    <string name="permission_info">Next Player アプリには、メディアにアクセスして再生するためには「%1$s」の権限が必要です。この権限がないと、メディアのアクセスと再生ができません。アプリを完全に使用するには、この権限を付与してください。</string>
+    <string name="permission_info">Graviton アプリには、メディアにアクセスして再生するためには「%1$s」の権限が必要です。この権限がないと、メディアのアクセスと再生ができません。アプリを完全に使用するには、この権限を付与してください。</string>
     <string name="fast_seek_description">正確なキーフレームではなく、最も近いキーフレームを検索します。</string>
     <string name="player_controls_next">次のプレーヤー</string>
     <string name="permission_not_granted">権限が付与されていません</string>
@@ -100,7 +100,7 @@
     <string name="z_a">Z-A</string>
     <string name="video_orientation">ビデオの向き</string>
     <string name="subtitle">字幕</string>
-    <string name="title_activity_player">Next Player のアクティビティ</string>
+    <string name="title_activity_player">Graviton のアクティビティ</string>
     <string name="ff_rewind">早送り/巻き戻し</string>
     <string name="audio">オーディオ</string>
     <string name="manage_folders">フォルダーの管理</string>
@@ -349,7 +349,7 @@
     <string name="pins_do_not_match">PIN が一致しません。もう一度お試しください</string>
     <string name="incorrect_pin">PIN が間違っています</string>
     <string name="how_to_find_hidden_videos_title">非表示にした動画を見つける方法</string>
-    <string name="how_to_find_hidden_videos_description">非表示にした動画は保管庫に安全に保管されています。再度開くには、ホーム画面上部の「NextPlayer」タイトルを長押しし、PIN を入力してください。</string>
+    <string name="how_to_find_hidden_videos_description">非表示にした動画は保管庫に安全に保管されています。再度開くには、ホーム画面上部の「Graviton」タイトルを長押しし、PIN を入力してください。</string>
     <string name="reset_controller_timeout">コントローラーが非表示になるまでの時間をリセット</string>
     <string name="got_it">わかりました</string>
     <string name="open_vault">保管庫を開く</string>

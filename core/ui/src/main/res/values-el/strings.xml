@@ -14,7 +14,7 @@
     <string name="duration">Διάρκεια</string>
     <string name="no_videos_found">Δε βρέθηκαν βίντεο</string>
     <string name="open_settings">Άνοιγμα ρυθμίσεων</string>
-    <string name="permission_info">Ο Next Player χρειάζεται άδεια \"%1$s\" για πρόσβαση και αναπαραγωγή πολυμέσων. Χωρίς αυτό, η πρόσβαση και η αναπαραγωγή πολυμέσων δε θα λειτουργήσουν. Για να χρησιμοποιήσετε την εφαρμογή πλήρως, παραχωρήστε την άδεια.</string>
+    <string name="permission_info">Ο Graviton χρειάζεται άδεια \"%1$s\" για πρόσβαση και αναπαραγωγή πολυμέσων. Χωρίς αυτό, η πρόσβαση και η αναπαραγωγή πολυμέσων δε θα λειτουργήσουν. Για να χρησιμοποιήσετε την εφαρμογή πλήρως, παραχωρήστε την άδεια.</string>
     <string name="permission_not_granted">Δε χορηγήθηκε άδεια</string>
     <string name="player_controls_exit">Πλοήγηση επάνω</string>
     <string name="player_controls_next">Αναπαραγωγή επόμενου</string>
@@ -35,7 +35,7 @@
     <string name="size">Μέγεθος</string>
     <string name="sort">Ταξινόμηση κατά</string>
     <string name="title">Τίτλο</string>
-    <string name="title_activity_player">Δραστηριότητα Next Player</string>
+    <string name="title_activity_player">Δραστηριότητα Graviton</string>
     <string name="unknown_error">Προέκυψε ένα άγνωστο σφάλμα</string>
     <string name="playback">Αναπαραγωγή</string>
     <string name="interface_name">Διεπαφή</string>
@@ -61,7 +61,7 @@
     <string name="navigate_up">Πλοήγηση επάνω</string>
     <string name="location">Τοποθεσία</string>
     <string name="permission_request">Αίτημα άδειας</string>
-    <string name="permission_settings">Ο Next Player χρειάζεται άδεια \"%1$s\" για πρόσβαση και αναπαραγωγή πολυμέσων. Χωρίς αυτό, η πρόσβαση και η αναπαραγωγή πολυμέσων δε θα λειτουργήσουν. Για να χρησιμοποιήσετε την εφαρμογή πλήρως, παραχωρήστε την άδεια από τις ρυθμίσεις, καθώς απορρίφθηκε οριστικά.</string>
+    <string name="permission_settings">Ο Graviton χρειάζεται άδεια \"%1$s\" για πρόσβαση και αναπαραγωγή πολυμέσων. Χωρίς αυτό, η πρόσβαση και η αναπαραγωγή πολυμέσων δε θα λειτουργήσουν. Για να χρησιμοποιήσετε την εφαρμογή πλήρως, παραχωρήστε την άδεια από τις ρυθμίσεις, καθώς απορρίφθηκε οριστικά.</string>
     <string name="remember_selections_description">Απομνημόνευση για κάθε αρχείο (ήχο, υπότιτλους κλπ).</string>
     <string name="seek_gesture_description">Οριζόντια για αναζήτηση εμπρός ή πίσω</string>
     <string name="seek_gesture">Αναζήτησης</string>
@@ -321,7 +321,7 @@
     <string name="pins_do_not_match">Τα PIN δεν ταιριάζουν. Δοκιμάστε ξανά</string>
     <string name="incorrect_pin">Λανθασμένο PIN</string>
     <string name="how_to_find_hidden_videos_title">Πώς να βρείτε τα κρυφά σας βίντεο</string>
-    <string name="how_to_find_hidden_videos_description">Τα κρυμμένα βίντεο φυλάσσονται με ασφάλεια στην κρύπτη σας. Για να την ανοίξετε ξανά, πατήστε παρατεταμένα τον τίτλο \"NextPlayer\" στο επάνω μέρος της αρχικής οθόνης και εισάγετε τον κωδικό PIN σας.</string>
+    <string name="how_to_find_hidden_videos_description">Τα κρυμμένα βίντεο φυλάσσονται με ασφάλεια στην κρύπτη σας. Για να την ανοίξετε ξανά, πατήστε παρατεταμένα τον τίτλο \"Graviton\" στο επάνω μέρος της αρχικής οθόνης και εισάγετε τον κωδικό PIN σας.</string>
     <string name="open_vault">Άνοιγμα κρύπτης</string>
     <string name="vault_empty_title">Κανένα κρυφό βίντεο</string>
     <string name="vault_empty_description">Τα βίντεο που αποκρύπτετε θα εμφανίζονται εδώ. Πατήστε παρατεταμένα ένα βίντεο και πατήστε Απόκρυψη για να το προσθέσετε στο αρχείο καταγραφής.</string>

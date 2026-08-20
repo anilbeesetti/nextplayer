@@ -15,7 +15,7 @@
     <string name="resume_description">حدد ما إذا كنت تريد استئناف تشغيل مقاطع الفيديو التي شُغلت من النقطة التي توقفت عندها</string>
     <string name="seek_gesture_description">اسحب أفقيًا للتقدم للأمام أو للخلف</string>
     <string name="select_audio_track">حدد مسار الصوت</string>
-    <string name="title_activity_player">نشاط Next Player</string>
+    <string name="title_activity_player">نشاط Graviton</string>
     <string name="interface_name">الواجهة</string>
     <string name="z_a">Z-A</string>
     <string name="shortest">الأقصر</string>
@@ -41,7 +41,7 @@
     <string name="group_videos">تجميع الفيديوهات حسب المجلد</string>
     <string name="navigate_up">الانتقال لأعلى</string>
     <string name="location">الموقع</string>
-    <string name="permission_info">يحتاج تطبيق Next Player إلى إذن \"%1$s\" للوصول إلى الوسائط وتشغيلها. بدونها لن يعمل التطبيق بشكل كامل، امنح الإذن.</string>
+    <string name="permission_info">يحتاج تطبيق Graviton إلى إذن \"%1$s\" للوصول إلى الوسائط وتشغيلها. بدونها لن يعمل التطبيق بشكل كامل، امنح الإذن.</string>
     <string name="player_controls_progress">شريط التقدم</string>
     <string name="menu">القائمة</string>
     <string name="no_videos_found">لا توجد فيديوهات</string>
@@ -49,7 +49,7 @@
     <string name="permission_not_granted">الإذن غير ممنوح</string>
     <string name="player_controls_play_pause">التشغيل والإيقاف المؤقت للمشغل</string>
     <string name="permission_request">طلب الإذن</string>
-    <string name="permission_settings">يحتاج تطبيق Next Player إلى إذن\"%1$s\" للوصول إلى الوسائط وتشغيلها. بدونها لن يعمل التطبيق بشكل كامل، امنح الإذن من الإعدادات لأنه رُفض نهائيًا.</string>
+    <string name="permission_settings">يحتاج تطبيق Graviton إلى إذن\"%1$s\" للوصول إلى الوسائط وتشغيلها. بدونها لن يعمل التطبيق بشكل كامل، امنح الإذن من الإعدادات لأنه رُفض نهائيًا.</string>
     <string name="player_name">المشغل</string>
     <string name="remember_brightness_level_description">تذكر مستوى السطوع بين جلسات التشغيل</string>
     <string name="player_controls_previous">تشغيل السابق</string>
@@ -325,7 +325,7 @@
     <string name="pins_do_not_match">الرمزان غير متطابقين. حاول مرة أخرى</string>
     <string name="incorrect_pin">رمز غير صحيح</string>
     <string name="how_to_find_hidden_videos_title">\"كيف تجد فيديوهاتك المخفية</string>
-    <string name="how_to_find_hidden_videos_description">يتم الاحتفاظ بالفيديوهات المخفية بأمان في الخزنة. لفتحها مرة أخرى، اضغط مطولاً على عنوان \"NextPlayer\" أعلى الشاشة الرئيسية وأدخل رمزك.</string>
+    <string name="how_to_find_hidden_videos_description">يتم الاحتفاظ بالفيديوهات المخفية بأمان في الخزنة. لفتحها مرة أخرى، اضغط مطولاً على عنوان \"Graviton\" أعلى الشاشة الرئيسية وأدخل رمزك.</string>
     <string name="got_it">فهمت</string>
     <string name="open_vault">فتح الخزنة</string>
     <string name="vault_empty_title">لا توجد فيديوهات مخفية</string>

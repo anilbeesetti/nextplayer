@@ -40,10 +40,10 @@ No implementation agent may edit the plan or another task's owned files. If a re
 
 **Files:**
 
-- Modify: `core/model/src/main/java/dev/anilbeesetti/nextplayer/core/model/NetworkConnection.kt`
+- Modify: `core/model/src/main/java/dev/anilbeesetti/graviton/core/model/NetworkConnection.kt`
 - Modify: `core/model/build.gradle.kts`
 - Modify: `gradle/libs.versions.toml`
-- Create: `core/model/src/test/java/dev/anilbeesetti/nextplayer/core/model/NetworkConnectionTest.kt`
+- Create: `core/model/src/test/java/dev/anilbeesetti/graviton/core/model/NetworkConnectionTest.kt`
 
 **Interfaces:**
 
@@ -54,7 +54,7 @@ No implementation agent may edit the plan or another task's owned files. If a re
 - [ ] **Step 1: Add the failing model test**
 
 ```kotlin
-package dev.anilbeesetti.nextplayer.core.model
+package com.graviton.core.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -144,15 +144,15 @@ git commit -m "feat: add SFTP connection model"
 
 **Files:**
 
-- Modify: `core/database/src/main/java/dev/anilbeesetti/nextplayer/core/database/entities/NetworkConnectionEntity.kt`
-- Modify: `core/database/src/main/java/dev/anilbeesetti/nextplayer/core/database/MediaDatabase.kt`
-- Modify: `core/database/src/main/java/dev/anilbeesetti/nextplayer/core/database/DatabaseModule.kt`
+- Modify: `core/database/src/main/java/dev/anilbeesetti/graviton/core/database/entities/NetworkConnectionEntity.kt`
+- Modify: `core/database/src/main/java/dev/anilbeesetti/graviton/core/database/MediaDatabase.kt`
+- Modify: `core/database/src/main/java/dev/anilbeesetti/graviton/core/database/DatabaseModule.kt`
 - Modify: `core/database/build.gradle.kts`
-- Create: `core/database/src/androidTest/java/dev/anilbeesetti/nextplayer/core/database/MediaDatabaseMigrationTest.kt`
-- Create: `core/database/schemas/dev.anilbeesetti.nextplayer.core.database.MediaDatabase/8.json`
-- Modify: `core/data/src/main/java/dev/anilbeesetti/nextplayer/core/data/repository/LocalNetworkConnectionRepository.kt`
+- Create: `core/database/src/androidTest/java/dev/anilbeesetti/graviton/core/database/MediaDatabaseMigrationTest.kt`
+- Create: `core/database/schemas/com.graviton.core.database.MediaDatabase/8.json`
+- Modify: `core/data/src/main/java/dev/anilbeesetti/graviton/core/data/repository/LocalNetworkConnectionRepository.kt`
 - Modify: `core/data/build.gradle.kts`
-- Create: `core/data/src/test/java/dev/anilbeesetti/nextplayer/core/data/repository/LocalNetworkConnectionRepositoryTest.kt`
+- Create: `core/data/src/test/java/dev/anilbeesetti/graviton/core/data/repository/LocalNetworkConnectionRepositoryTest.kt`
 
 **Interfaces:**
 
@@ -217,8 +217,8 @@ class MediaDatabaseMigrationTest {
 Create the task-specific disposable AVD once and reserve serial `emulator-5580` for this plan:
 
 ```bash
-printf 'no\n' | avdmanager create avd --force --name nextplayer-sftp-disposable --package "system-images;android-36.1;google_apis;arm64-v8a" --device pixel_6
-/Users/anil/Library/Android/sdk/emulator/emulator -avd nextplayer-sftp-disposable -port 5580 -wipe-data -no-snapshot -no-boot-anim
+printf 'no\n' | avdmanager create avd --force --name graviton-sftp-disposable --package "system-images;android-36.1;google_apis;arm64-v8a" --device pixel_6
+/Users/anil/Library/Android/sdk/emulator/emulator -avd graviton-sftp-disposable -port 5580 -wipe-data -no-snapshot -no-boot-anim
 adb -s emulator-5580 wait-for-device
 ```
 
@@ -325,13 +325,13 @@ git commit -m "feat: persist SFTP authentication settings"
 **Files:**
 
 - Modify: `core/media/build.gradle.kts`
-- Modify: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/MediaModule.kt`
-- Create: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/keys/SshKeyStore.kt`
-- Create: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/keys/DefaultSshKeyStore.kt`
-- Create: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/keys/SshKeyFiles.kt`
-- Create: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/sftp/SftpHostKeyVerifier.kt`
-- Create: `core/media/src/test/java/dev/anilbeesetti/nextplayer/core/media/network/keys/SshKeyFilesTest.kt`
-- Create: `core/media/src/test/java/dev/anilbeesetti/nextplayer/core/media/network/sftp/SftpHostKeyVerifierTest.kt`
+- Modify: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/MediaModule.kt`
+- Create: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/keys/SshKeyStore.kt`
+- Create: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/keys/DefaultSshKeyStore.kt`
+- Create: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/keys/SshKeyFiles.kt`
+- Create: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/sftp/SftpHostKeyVerifier.kt`
+- Create: `core/media/src/test/java/dev/anilbeesetti/graviton/core/media/network/keys/SshKeyFilesTest.kt`
+- Create: `core/media/src/test/java/dev/anilbeesetti/graviton/core/media/network/sftp/SftpHostKeyVerifierTest.kt`
 
 **Interfaces:**
 
@@ -454,9 +454,9 @@ git commit -m "feat: add SSH key storage and host verification"
 
 **Files:**
 
-- Create: `feature/network/src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/ConnectionFormValidation.kt`
-- Create: `feature/network/src/test/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/ConnectionFormValidationTest.kt`
-- Modify: `feature/network/src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/list/NetworkScreen.kt`
+- Create: `feature/network/src/main/java/dev/anilbeesetti/graviton/feature/network/screens/addconnection/ConnectionFormValidation.kt`
+- Create: `feature/network/src/test/java/dev/anilbeesetti/graviton/feature/network/screens/addconnection/ConnectionFormValidationTest.kt`
+- Modify: `feature/network/src/main/java/dev/anilbeesetti/graviton/feature/network/screens/list/NetworkScreen.kt`
 - Modify: `core/ui/src/main/res/values/strings.xml`
 
 **Interfaces:**
@@ -519,16 +519,16 @@ git commit -m "feat: define SFTP connection form rules"
 **Files:**
 
 - Modify: `core/media/build.gradle.kts`
-- Modify: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/NetworkClient.kt`
-- Modify: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/NetworkClientFactory.kt`
-- Create: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/DefaultNetworkClientFactory.kt`
-- Modify: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/proxy/NetworkStreamingProxy.kt`
-- Modify: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/MediaModule.kt`
-- Modify: `feature/network/src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/browse/NetworkBrowseViewModel.kt`
-- Create: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/clients/SftpClient.kt`
-- Create: `core/media/src/main/java/dev/anilbeesetti/nextplayer/core/media/network/sftp/SftpOwnedInputStream.kt`
-- Create: `core/media/src/test/java/dev/anilbeesetti/nextplayer/core/media/network/sftp/SftpOwnedInputStreamTest.kt`
-- Create: `core/media/src/test/java/dev/anilbeesetti/nextplayer/core/media/network/NetworkClientFactoryTest.kt`
+- Modify: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/NetworkClient.kt`
+- Modify: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/NetworkClientFactory.kt`
+- Create: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/DefaultNetworkClientFactory.kt`
+- Modify: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/proxy/NetworkStreamingProxy.kt`
+- Modify: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/MediaModule.kt`
+- Modify: `feature/network/src/main/java/dev/anilbeesetti/graviton/feature/network/screens/browse/NetworkBrowseViewModel.kt`
+- Create: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/clients/SftpClient.kt`
+- Create: `core/media/src/main/java/dev/anilbeesetti/graviton/core/media/network/sftp/SftpOwnedInputStream.kt`
+- Create: `core/media/src/test/java/dev/anilbeesetti/graviton/core/media/network/sftp/SftpOwnedInputStreamTest.kt`
+- Create: `core/media/src/test/java/dev/anilbeesetti/graviton/core/media/network/NetworkClientFactoryTest.kt`
 
 **Interfaces:**
 
@@ -609,8 +609,8 @@ git commit -m "feat: add seekable SFTP network client"
 
 **Files:**
 
-- Modify: `feature/network/src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/list/NetworkViewModel.kt`
-- Create: `feature/network/src/test/java/dev/anilbeesetti/nextplayer/feature/network/screens/list/NetworkViewModelTest.kt`
+- Modify: `feature/network/src/main/java/dev/anilbeesetti/graviton/feature/network/screens/list/NetworkViewModel.kt`
+- Create: `feature/network/src/test/java/dev/anilbeesetti/graviton/feature/network/screens/list/NetworkViewModelTest.kt`
 
 **Interfaces:**
 
@@ -653,11 +653,11 @@ git commit -m "feat: integrate SFTP browsing and key cleanup"
 
 **Files:**
 
-- Modify: `feature/network/src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/AddConnectionViewModel.kt`
-- Modify: `feature/network/src/main/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/AddConnectionScreen.kt`
+- Modify: `feature/network/src/main/java/dev/anilbeesetti/graviton/feature/network/screens/addconnection/AddConnectionViewModel.kt`
+- Modify: `feature/network/src/main/java/dev/anilbeesetti/graviton/feature/network/screens/addconnection/AddConnectionScreen.kt`
 - Modify: `feature/network/build.gradle.kts`
-- Create: `feature/network/src/test/java/dev/anilbeesetti/nextplayer/feature/network/screens/addconnection/AddConnectionViewModelTest.kt`
-- Create: `feature/network/src/test/java/dev/anilbeesetti/nextplayer/feature/network/MainDispatcherRule.kt`
+- Create: `feature/network/src/test/java/dev/anilbeesetti/graviton/feature/network/screens/addconnection/AddConnectionViewModelTest.kt`
+- Create: `feature/network/src/test/java/dev/anilbeesetti/graviton/feature/network/MainDispatcherRule.kt`
 
 **Interfaces:**
 
@@ -752,7 +752,7 @@ git commit -m "feat: add SFTP password and SSH key setup UI"
 **Files:**
 
 - Modify only if evidence finds a bug: files owned by the responsible prior task.
-- Create evidence outside git under `/tmp/nextplayer-sftp-qa/`.
+- Create evidence outside git under `/tmp/graviton-sftp-qa/`.
 - Do not commit keys, passwords, media fixtures, emulator state, raw unredacted logs, or generated server host material.
 
 - [ ] **Step 1: Run full static/unit/build verification**
@@ -770,26 +770,26 @@ Expected: all exit 0. Record exact task/test counts.
 Restart the task-specific AVD from Task 2 with wiped data:
 
 ```bash
-mkdir -p /tmp/nextplayer-sftp-qa
+mkdir -p /tmp/graviton-sftp-qa
 adb -s emulator-5580 emu kill
-/Users/anil/Library/Android/sdk/emulator/emulator -avd nextplayer-sftp-disposable -port 5580 -wipe-data -no-snapshot -no-boot-anim
+/Users/anil/Library/Android/sdk/emulator/emulator -avd graviton-sftp-disposable -port 5580 -wipe-data -no-snapshot -no-boot-anim
 adb -s emulator-5580 wait-for-device
 ```
 
 Create exact throwaway fixtures and start the server on localhost port `22222`, reachable from the emulator as `10.0.2.2:22222`:
 
 ```bash
-mkdir -p /tmp/nextplayer-sftp-fixtures/keys /tmp/nextplayer-sftp-fixtures/upload/nested
+mkdir -p /tmp/graviton-sftp-fixtures/keys /tmp/graviton-sftp-fixtures/upload/nested
 QA_PASSWORD="$(openssl rand -hex 12)"
 QA_KEY_PASSPHRASE="$(openssl rand -hex 12)"
 umask 077
-printf 'QA_PASSWORD=%s\nQA_KEY_PASSPHRASE=%s\n' "$QA_PASSWORD" "$QA_KEY_PASSPHRASE" > /tmp/nextplayer-sftp-fixtures/qa.env
-ssh-keygen -q -t ed25519 -N '' -f /tmp/nextplayer-sftp-fixtures/id_ed25519
-ssh-keygen -q -t ed25519 -N "$QA_KEY_PASSPHRASE" -f /tmp/nextplayer-sftp-fixtures/id_ed25519_encrypted
-cp /tmp/nextplayer-sftp-fixtures/id_ed25519.pub /tmp/nextplayer-sftp-fixtures/keys/
-cp /tmp/nextplayer-sftp-fixtures/id_ed25519_encrypted.pub /tmp/nextplayer-sftp-fixtures/keys/
-ffmpeg -y -f lavfi -i color=c=blue:s=640x360:d=20 -c:v libx264 -pix_fmt yuv420p -movflags +faststart /tmp/nextplayer-sftp-fixtures/upload/nested/test.mp4
-docker run --rm -d --name nextplayer-sftp-qa -p 22222:22 -v /tmp/nextplayer-sftp-fixtures/upload:/home/test/upload -v /tmp/nextplayer-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine "test:$QA_PASSWORD:1001"
+printf 'QA_PASSWORD=%s\nQA_KEY_PASSPHRASE=%s\n' "$QA_PASSWORD" "$QA_KEY_PASSPHRASE" > /tmp/graviton-sftp-fixtures/qa.env
+ssh-keygen -q -t ed25519 -N '' -f /tmp/graviton-sftp-fixtures/id_ed25519
+ssh-keygen -q -t ed25519 -N "$QA_KEY_PASSPHRASE" -f /tmp/graviton-sftp-fixtures/id_ed25519_encrypted
+cp /tmp/graviton-sftp-fixtures/id_ed25519.pub /tmp/graviton-sftp-fixtures/keys/
+cp /tmp/graviton-sftp-fixtures/id_ed25519_encrypted.pub /tmp/graviton-sftp-fixtures/keys/
+ffmpeg -y -f lavfi -i color=c=blue:s=640x360:d=20 -c:v libx264 -pix_fmt yuv420p -movflags +faststart /tmp/graviton-sftp-fixtures/upload/nested/test.mp4
+docker run --rm -d --name graviton-sftp-qa -p 22222:22 -v /tmp/graviton-sftp-fixtures/upload:/home/test/upload -v /tmp/graviton-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine "test:$QA_PASSWORD:1001"
 ```
 
 - [ ] **Step 3: Install, launch, and capture clean startup evidence**
@@ -797,9 +797,9 @@ docker run --rm -d --name nextplayer-sftp-qa -p 22222:22 -v /tmp/nextplayer-sftp
 ```bash
 env ANDROID_HOME=/Users/anil/Library/Android/sdk ./gradlew :app:installDebug --console=plain
 adb -s emulator-5580 logcat -c
-adb -s emulator-5580 shell am start -n dev.anilbeesetti.nextplayer.debug/dev.anilbeesetti.nextplayer.MainActivity
-adb -s emulator-5580 exec-out uiautomator dump /dev/tty > /tmp/nextplayer-sftp-qa/startup.xml
-adb -s emulator-5580 exec-out screencap -p > /tmp/nextplayer-sftp-qa/startup.png
+adb -s emulator-5580 shell am start -n com.graviton.debug/com.graviton.MainActivity
+adb -s emulator-5580 exec-out uiautomator dump /dev/tty > /tmp/graviton-sftp-qa/startup.xml
+adb -s emulator-5580 exec-out screencap -p > /tmp/graviton-sftp-qa/startup.png
 ```
 
 - [ ] **Step 4: Exercise authentication and host verification**
@@ -809,18 +809,18 @@ Drive all taps from UI-tree bounds. Verify password auth, unencrypted key auth, 
 Rotate the server host key by recreating the ephemeral container, which generates a new host key while retaining the same user data and published port:
 
 ```bash
-docker stop nextplayer-sftp-qa
-. /tmp/nextplayer-sftp-fixtures/qa.env
-docker run --rm -d --name nextplayer-sftp-qa -p 22222:22 -v /tmp/nextplayer-sftp-fixtures/upload:/home/test/upload -v /tmp/nextplayer-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine "test:$QA_PASSWORD:1001"
+docker stop graviton-sftp-qa
+. /tmp/graviton-sftp-fixtures/qa.env
+docker run --rm -d --name graviton-sftp-qa -p 22222:22 -v /tmp/graviton-sftp-fixtures/upload:/home/test/upload -v /tmp/graviton-sftp-fixtures/keys:/home/test/.ssh/keys:ro atmoz/sftp:alpine "test:$QA_PASSWORD:1001"
 ```
 
 Push test keys only to emulator Downloads and select them through DocumentsUI:
 
 ```bash
-adb -s emulator-5580 push /tmp/nextplayer-sftp-fixtures/id_ed25519 /sdcard/Download/id_ed25519
-adb -s emulator-5580 push /tmp/nextplayer-sftp-fixtures/id_ed25519_encrypted /sdcard/Download/id_ed25519_encrypted
-adb -s emulator-5580 exec-out uiautomator dump /dev/tty > /tmp/nextplayer-sftp-qa/add-connection.xml
-python3 /Users/anil/.codex/plugins/cache/openai-curated-remote/test-android-apps/0.1.2/skills/android-emulator-qa/scripts/ui_pick.py /tmp/nextplayer-sftp-qa/add-connection.xml "Add connection"
+adb -s emulator-5580 push /tmp/graviton-sftp-fixtures/id_ed25519 /sdcard/Download/id_ed25519
+adb -s emulator-5580 push /tmp/graviton-sftp-fixtures/id_ed25519_encrypted /sdcard/Download/id_ed25519_encrypted
+adb -s emulator-5580 exec-out uiautomator dump /dev/tty > /tmp/graviton-sftp-qa/add-connection.xml
+python3 /Users/anil/.codex/plugins/cache/openai-curated-remote/test-android-apps/0.1.2/skills/android-emulator-qa/scripts/ui_pick.py /tmp/graviton-sftp-qa/add-connection.xml "Add connection"
 ```
 
 - [ ] **Step 5: Exercise browsing, playback, seek, edit, and delete**
@@ -830,9 +830,9 @@ Verify root and nested browsing, play the fixture, seek forward, and confirm log
 - [ ] **Step 6: Capture final evidence and verify no crash**
 
 ```bash
-PID=$(adb -s emulator-5580 shell pidof -s dev.anilbeesetti.nextplayer.debug)
-adb -s emulator-5580 logcat --pid "$PID" -d > /tmp/nextplayer-sftp-qa/app-logcat.txt
-adb -s emulator-5580 logcat -b crash -d > /tmp/nextplayer-sftp-qa/crash-log.txt
+PID=$(adb -s emulator-5580 shell pidof -s com.graviton.debug)
+adb -s emulator-5580 logcat --pid "$PID" -d > /tmp/graviton-sftp-qa/app-logcat.txt
+adb -s emulator-5580 logcat -b crash -d > /tmp/graviton-sftp-qa/crash-log.txt
 ```
 
 Expected: crash log is empty. Sanitize secrets and source paths from retained evidence.
@@ -843,9 +843,9 @@ Stop/delete the SFTP container and remove throwaway keys, credentials, fixtures,
 
 ```bash
 adb -s emulator-5580 emu kill
-docker stop nextplayer-sftp-qa
-avdmanager delete avd -n nextplayer-sftp-disposable
-rm -rf /tmp/nextplayer-sftp-fixtures
+docker stop graviton-sftp-qa
+avdmanager delete avd -n graviton-sftp-disposable
+rm -rf /tmp/graviton-sftp-fixtures
 ```
 
 Verify `emulator -list-avds` no longer lists it and the server/container no longer exists.

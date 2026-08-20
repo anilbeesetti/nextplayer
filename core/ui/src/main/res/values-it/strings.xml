@@ -26,7 +26,7 @@
     <string name="disable">Disattiva</string>
     <string name="no_videos_found">Nessun video trovato</string>
     <string name="open_settings">Apri impostazioni</string>
-    <string name="permission_info">L\'applicazione Next Player necessita dell\'autorizzazione \"%1$s\" per accedere e riprodurre contenuti multimediali. Senza di essa, l\'accesso e la riproduzione dei media non funzionano. Per utilizzare appieno l\'app, concedi l\'autorizzazione.</string>
+    <string name="permission_info">L\'applicazione Graviton necessita dell\'autorizzazione \"%1$s\" per accedere e riprodurre contenuti multimediali. Senza di essa, l\'accesso e la riproduzione dei media non funzionano. Per utilizzare appieno l\'app, concedi l\'autorizzazione.</string>
     <string name="a_z">A-Z</string>
     <string name="settings">Impostazioni</string>
     <string name="z_a">Z-A</string>
@@ -132,7 +132,7 @@
     <string name="remember_brightness_level_description">Ricorda livelli luminosità tra sessioni riproduzione</string>
     <string name="remember_selections_description">Ricorda selezioni per ogni file come traccia audio, traccia sottotitolo, ecc</string>
     <string name="seek_gesture">Gesto ricerca</string>
-    <string name="title_activity_player">Attività Next Player</string>
+    <string name="title_activity_player">Attività Graviton</string>
     <string name="shortest">Più breve</string>
     <string name="smallest">Più piccolo</string>
     <string name="dynamic_theme_description">Applica colori dallo sfondo di sistema al tema dell\'applicazione</string>
@@ -179,7 +179,7 @@
     <string name="open_local_video">Apri video locale</string>
     <string name="exit">Esci</string>
     <string name="decoder">Decodificatore</string>
-    <string name="permission_settings">L\'app Next Player ha bisogno dell\'autorizzazione \"%1$s\" per accedere e eseguire i media. Senza di questo, l\'accesso ai media e l\'esecuzione non funzionerà. Per usare a pieno l\'app, permetti l\'autorizzazione dalle impostazioni dato che è stato negato permanentemente.</string>
+    <string name="permission_settings">L\'app Graviton ha bisogno dell\'autorizzazione \"%1$s\" per accedere e eseguire i media. Senza di questo, l\'accesso ai media e l\'esecuzione non funzionerà. Per usare a pieno l\'app, permetti l\'autorizzazione dalle impostazioni dato che è stato negato permanentemente.</string>
     <string name="device_decoders_only">Solo decodificatori del dispositivo</string>
     <string name="open_network_stream">Apri flusso di rete</string>
     <string name="controller_timeout">Controllo Timeout</string>

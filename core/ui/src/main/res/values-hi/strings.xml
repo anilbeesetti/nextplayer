@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="z_a">Z-A</string>
-    <string name="permission_info">Next Player ऐप को मीडिया तक पहुंचने और चलाने के लिए \"%1$s\" अनुमति की आवश्यकता है। इसके बिना, मीडिया एक्सेस और प्लेबैक काम नहीं करेगा। ऐप का पूरा उपयोग करने के लिए अनुमति दें।</string>
-    <string name="permission_settings">Next Player ऐप को मीडिया तक पहुंचने और चलाने के लिए \"%1$s\" अनुमति की आवश्यकता है। इसके बिना, मीडिया एक्सेस और प्लेबैक काम नहीं करेगा। ऐप को पूरी तरह से उपयोग करने के लिए, सेटिंग्स से अनुमति दें क्योंकि इसे स्थायी रूप से अस्वीकार कर दिया गया था।</string>
+    <string name="permission_info">Graviton ऐप को मीडिया तक पहुंचने और चलाने के लिए \"%1$s\" अनुमति की आवश्यकता है। इसके बिना, मीडिया एक्सेस और प्लेबैक काम नहीं करेगा। ऐप का पूरा उपयोग करने के लिए अनुमति दें।</string>
+    <string name="permission_settings">Graviton ऐप को मीडिया तक पहुंचने और चलाने के लिए \"%1$s\" अनुमति की आवश्यकता है। इसके बिना, मीडिया एक्सेस और प्लेबैक काम नहीं करेगा। ऐप को पूरी तरह से उपयोग करने के लिए, सेटिंग्स से अनुमति दें क्योंकि इसे स्थायी रूप से अस्वीकार कर दिया गया था।</string>
     <string name="play_pause_ff_rewind">प्ले/पॉज और फास्ट फॉरवर्ड/रिवाइंड</string>
     <string name="no">नही</string>
     <string name="system_default">सिस्टम डिफॉल्ट</string>
@@ -322,7 +322,7 @@
     <string name="pins_do_not_match">पिन मैच नहीं कर रहे हैं। फिर से कोशिश करें</string>
     <string name="incorrect_pin">गलत पिन</string>
     <string name="how_to_find_hidden_videos_title">अपने छिपे हुए वीडियो कैसे ढूंढने हैं</string>
-    <string name="how_to_find_hidden_videos_description">छिपे हुए वीडियो आपके वॉल्ट में सुरक्षित रहते हैं। इसे फिर से खोलने के लिए, होम स्क्रीन के ऊपर \"NextPlayer\" टाइटल को दबाकर रखें और अपना पिन डालें।</string>
+    <string name="how_to_find_hidden_videos_description">छिपे हुए वीडियो आपके वॉल्ट में सुरक्षित रहते हैं। इसे फिर से खोलने के लिए, होम स्क्रीन के ऊपर \"Graviton\" टाइटल को दबाकर रखें और अपना पिन डालें।</string>
     <string name="got_it">समझ गया</string>
     <string name="open_vault">वॉल्ट खोलें</string>
     <string name="vault_empty_title">कोई छिपा हुआ वीडियो नहीं</string>

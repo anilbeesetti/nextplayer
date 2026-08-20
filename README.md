@@ -1,23 +1,23 @@
 
-<p align="center">
-  <img src="https://i.ibb.co/20hmMX6T/graviton-logo.png" alt="Graviton Logo" width="120" height="120" />
-</p>
+# Graviton
 
-<h1 align="center">Graviton</h1>
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/anilbeesetti/graviton.svg?logo=github&label=GitHub&cacheSeconds=3600)](https://github.com/graviton/graviton/releases/latest)
+[![Google Play](https://img.shields.io/endpoint?color=green&logo=google-play&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.graviton%26l%3DGoogle%2520Play%26m%3Dv%24version)](https://play.google.com/store/apps/details?id=com.graviton)
+[![IzzyOnDroid](https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.graviton)](https://apt.izzysoft.de/fdroid/index/apk/com.graviton)
+[![F-Droid](https://img.shields.io/f-droid/v/com.graviton?logo=f-droid&label=F-Droid&cacheSeconds=3600)](https://f-droid.org/packages/com.graviton)
+[![GitHub all releases](https://img.shields.io/github/downloads/anilbeesetti/graviton/total?logo=github&cacheSeconds=3600)](https://github.com/graviton/graviton/releases/latest)
+[![Google Play](https://img.shields.io/endpoint?color=green&logo=google-play&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.graviton%26l%3Ddownloads%26m%3D%24totalinstalls)](https://play.google.com/store/apps/details?id=com.graviton)
+[![Weblate project translated](https://img.shields.io/weblate/progress/next-player?logo=weblate&logoColor=white&cacheSeconds=36000)](https://hosted.weblate.org/engage/next-player/)
 
-<p align="center">
-  A modern, powerful and customizable Android video player.
-</p>
+Graviton is an Android native video player written in Kotlin. It provides a simple and easy-to-use interface for users to play videos on their
+Android devices
 
-<p align="center">
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white" />
-  <img alt="Min SDK" src="https://img.shields.io/badge/minSdk-21-blue" />
-  <img alt="Language" src="https://img.shields.io/badge/language-Kotlin-7F52FF?logo=kotlin&logoColor=white" />
-  <img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-orange" />
-  <img alt="Build" src="https://img.shields.io/badge/build-Gradle-02303A?logo=gradle&logoColor=white" />
-</p>
+**This project is still in development and is expected to have bugs. Please report any bugs you find in
+the [Issues](https://github.com/graviton/graviton/issues) section.**
 
----
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80"/>](https://play.google.com/store/apps/details?id=com.graviton)
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="80">](https://apt.izzysoft.de/fdroid/index/apk/com.graviton)
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/com.graviton/)
 
 ## Overview
 
@@ -306,7 +306,7 @@ Contributions are welcome. Please follow the steps below:
    ```
 5. **Open a Pull Request** against the `main` branch and describe your changes.
 
-### Guidelines
+You can help translate Graviton on [Hosted Weblate](https://hosted.weblate.org/engage/next-player/).
 
 - Follow existing code style and Kotlin conventions.
 - Write or update tests where applicable.
@@ -356,5 +356,4 @@ Graviton is provided **"as is"**, without warranty of any kind, express or impli
 | Upstream video-player project | Foundational codebase | *(see LICENSE)* |
 | Kotlin & Jetpack libraries | Language & architecture components | Apache 2.0 |
 
-Special 
-thanks to all open-source contributors whose work makes Graviton possible.
+Graviton is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for more information.

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Next Player</string>
+    <string name="app_name" translatable="false">Graviton</string>
     <string name="about_description">Version, support, credits</string>
     <string name="about_name">About</string>
     <string name="appearance_description">Adjust the app to your liking</string>
@@ -24,10 +24,10 @@
     <string name="navigate_up">Navigate up</string>
     <string name="no_videos_found">No videos found</string>
     <string name="open_settings">Open Settings</string>
-    <string name="permission_info">The Next Player app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission.</string>
+    <string name="permission_info">The Graviton app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission.</string>
     <string name="permission_not_granted">Permission Not Granted</string>
     <string name="permission_request">Permission Request</string>
-    <string name="permission_settings">The Next Player app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission from settings since it was permanently denied.</string>
+    <string name="permission_settings">The Graviton app needs \"%1$s\" permission to access and play media. Without it, media access and playback won\'t work. To use the app fully, grant the permission from settings since it was permanently denied.</string>
     <string name="player_controls_exit">Navigate up</string>
     <string name="player_controls_next">Player next</string>
     <string name="player_controls_play_pause">Player play pause</string>
@@ -56,7 +56,7 @@
     <string name="size">Size</string>
     <string name="sort">Sort</string>
     <string name="title">Title</string>
-    <string name="title_activity_player">Next Player Activity</string>
+    <string name="title_activity_player">Graviton Activity</string>
     <string name="unknown_error">An unknown error has occurred</string>
     <string name="playback">Playback</string>
     <string name="interface_name">Interface</string>
@@ -214,7 +214,7 @@
     <string name="loop_mode_off">Loop: Off</string>
     <string name="loop_mode_one">Loop: One</string>
     <string name="loop_mode_all">Loop: All</string>
-    <string name="app_developer" translatable="false">anilbeesetti</string>
+    <string name="app_developer" translatable="false">graviton</string>
     <string name="by">by %1$s</string>
     <string name="libraries">Libraries</string>
     <string name="github">Github</string>
@@ -327,7 +327,7 @@
     <string name="pins_do_not_match">PINs don\'t match. Try again</string>
     <string name="incorrect_pin">Incorrect PIN</string>
     <string name="how_to_find_hidden_videos_title">How to find your hidden videos</string>
-    <string name="how_to_find_hidden_videos_description">Hidden videos are kept safe in your Vault. To open it again, press and hold the \"NextPlayer\" title at the top of the home screen and enter your PIN.</string>
+    <string name="how_to_find_hidden_videos_description">Hidden videos are kept safe in your Vault. To open it again, press and hold the \"Graviton\" title at the top of the home screen and enter your PIN.</string>
     <string name="got_it">Got it</string>
     <string name="open_vault">Open vault</string>
     <string name="vault_empty_title">No hidden videos</string>

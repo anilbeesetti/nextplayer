@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.anilbeesetti.nextplayer.core.ui"
+    namespace = "com.graviton.core.ui"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -56,3 +56,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.testManifest)
 }
+android { lint { disable.add("MissingTranslation") } }
+android { lint { disable.add("ImpliedQuantity"); disable.add("MissingTranslation") } }

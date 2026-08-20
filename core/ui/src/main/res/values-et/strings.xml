@@ -25,9 +25,9 @@
     <string name="player_description">Meediamängija välimus ja juhtnupud</string>
     <string name="group_videos">Rühmita videoid kausta kaupa</string>
     <string name="location">Asukoht</string>
-    <string name="title_activity_player">Next Playeri tegevus</string>
+    <string name="title_activity_player">Gravitoni tegevus</string>
     <string name="file">Fail</string>
-    <string name="permission_info">Ligipääsuks meediale ja selle esitamiseks vajab rakendus Next Player „%1$s“ õigust. Ilma selleta kumbagi toimingut teha ei saa. Rakenduse täisfunktsionaalseks kasutamiseks palun jaga need õigused.</string>
+    <string name="permission_info">Ligipääsuks meediale ja selle esitamiseks vajab rakendus Graviton „%1$s“ õigust. Ilma selleta kumbagi toimingut teha ei saa. Rakenduse täisfunktsionaalseks kasutamiseks palun jaga need õigused.</string>
     <string name="resume">Jätka</string>
     <string name="controls_unlock">Eemalda juhtnuppude lukustus</string>
     <string name="interface_name">Kasutajaliides</string>
@@ -67,7 +67,7 @@
     <string name="player_controls_exit">Liigu üles</string>
     <string name="player_controls_next">Esita järgmisena</string>
     <string name="player_controls_play_pause">Esita või peata</string>
-    <string name="permission_settings">Ligipääsuks meediale ja selle esitamiseks vajab rakendus Next Player „%1$s“ õigust. Ilma selleta kumbagi toimingut teha ei saa. Kuna hetkel need õigused üheselt puuduvad, siis rakenduse täisfunktsionaalseks kasutamiseks palun jaga need õigused seadistustest.</string>
+    <string name="permission_settings">Ligipääsuks meediale ja selle esitamiseks vajab rakendus Graviton „%1$s“ õigust. Ilma selleta kumbagi toimingut teha ei saa. Kuna hetkel need õigused üheselt puuduvad, siis rakenduse täisfunktsionaalseks kasutamiseks palun jaga need õigused seadistustest.</string>
     <string name="player_controls_progress">Meediamängija edenemisriba</string>
     <string name="player_name">Meediamängija</string>
     <string name="quick_settings">Kiirseadistused</string>
@@ -357,7 +357,7 @@
         <item quantity="one">Video taastamine tema algkausta ei õnnestunud, selle asemel tõstsin kausta „Movies/“</item>
         <item quantity="other">%1$d video taastamine nende algkausta ei õnnestunud, selle asemel tõstsin kausta „Movies/“</item>
     </plurals>
-    <string name="how_to_find_hidden_videos_description">Peidetud videoid hoitakse turvaliselt sinu turvakaustas. Uuesti avamiseks vajuta NextPlayeri pealkirja ekraani ülaosas ja hoia all ning siis sisesta oma turvakausta PIN-kood.</string>
+    <string name="how_to_find_hidden_videos_description">Peidetud videoid hoitakse turvaliselt sinu turvakaustas. Uuesti avamiseks vajuta Gravitoni pealkirja ekraani ülaosas ja hoia all ning siis sisesta oma turvakausta PIN-kood.</string>
     <string name="vault_empty_description">Sinu peidetavad videod saavad olema nähtavad siin. Turvakausta lisamiseks vajuta videot pikalt ja vali „Peida“.</string>
     <string name="unhide_one_video_confirmation">Kas lõpetad selle video peitmine? Ta tõstetakse tagasi oma algsesse kausta.</string>
     <string name="unhide_videos_confirmation">Kas lõpetad %1$d video peitmine? Nad tõstetakse tagasi oma algse(te)sse kausta(desse).</string>

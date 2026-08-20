@@ -1,0 +1,180 @@
+package com.graviton.settings.screens.appearance
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.graviton.settings.utils.rememberTvListFocusRequester
+import com.graviton.settings.utils.tvFocusDown
+import com.graviton.settings.utils.tvListFocus
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.graviton.core.model.ThemeConfig
+import com.graviton.core.ui.R
+import com.graviton.core.ui.components.ListSectionTitle
+import com.graviton.core.ui.components.ClickablePreferenceItem
+import com.graviton.core.ui.components.NextTopAppBar
+import com.graviton.core.ui.components.PreferenceSwitch
+import com.graviton.core.ui.components.PreferenceSwitchWithDivider
+import com.graviton.core.ui.components.RadioTextButton
+import com.graviton.core.ui.designsystem.NextIcons
+import com.graviton.core.ui.theme.GravitonTheme
+import com.graviton.core.ui.theme.supportsDynamicTheming
+import com.graviton.settings.composables.OptionsDialog
+import com.graviton.settings.extensions.name
+import com.graviton.core.model.AppTheme
+
+@Composable
+fun AppearancePreferencesScreen(
+    onNavigateUp: () -> Unit,
+    viewModel: AppearancePreferencesViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    AppearancePreferencesContent(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        onNavigateUp = onNavigateUp,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun AppearancePreferencesContent(
+    uiState: AppearancePreferencesUiState,
+    onEvent: (AppearancePreferencesEvent) -> Unit,
+    onNavigateUp: () -> Unit = {},
+) {
+    val listFocusRequester = rememberTvListFocusRequester()
+    Scaffold(
+        topBar = {
+            NextTopAppBar(
+                title = stringResource(id = R.string.appearance_name),
+                navigationIcon = {
+                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                        Icon(
+                            imageVector = NextIcons.ArrowBack,
+                            contentDescription = stringResource(id = R.string.navigate_up),
+                        )
+                    }
+                },
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(state = rememberScrollState())
+                .tvListFocus(listFocusRequester)
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
+        ) {
+            ListSectionTitle(text = stringResource(id = R.string.appearance_name))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                PreferenceSwitchWithDivider(
+                    title = stringResource(id = R.string.dark_theme),
+                    description = uiState.preferences.themeConfig.name(),
+                    isChecked = uiState.preferences.themeConfig == ThemeConfig.ON,
+                    onChecked = { onEvent(AppearancePreferencesEvent.ToggleDarkTheme) },
+                    icon = NextIcons.DarkMode,
+                    onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
+                    isFirstItem = true
+                )
+                ClickablePreferenceItem(
+                    title = "App Colors",
+                    description = uiState.preferences.appTheme.name(),
+                    icon = NextIcons.Appearance,
+                    onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.AppTheme)) },
+                    isFirstItem = true
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.high_contrast_dark_theme),
+                    description = stringResource(R.string.high_contrast_dark_theme_desc),
+                    icon = NextIcons.Contrast,
+                    isChecked = uiState.preferences.useHighContrastDarkTheme,
+                    onClick = { onEvent(AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme) },
+                    isLastItem = !supportsDynamicTheming()
+                )
+                if (supportsDynamicTheming()) {
+                    PreferenceSwitch(
+                        title = stringResource(id = R.string.dynamic_theme),
+                        description = stringResource(id = R.string.dynamic_theme_description),
+                        icon = NextIcons.Appearance,
+                        isChecked = uiState.preferences.useDynamicColors,
+                        onClick = { onEvent(AppearancePreferencesEvent.ToggleUseDynamicColors) },
+                        isLastItem = true
+                    )
+                }
+            }
+        }
+
+        uiState.showDialog?.let { showDialog ->
+            when (showDialog) {
+                AppearancePreferenceDialog.Theme -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.dark_theme),
+                        onDismissClick = { onEvent(AppearancePreferencesEvent.ShowDialog(null)) },
+                    ) {
+                        items(ThemeConfig.entries.toTypedArray()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == uiState.preferences.themeConfig),
+                                onClick = {
+                                    onEvent(AppearancePreferencesEvent.UpdateThemeConfig(it))
+                                    onEvent(AppearancePreferencesEvent.ShowDialog(null))
+                                },
+                            )
+                        }
+                    }
+                }
+                AppearancePreferenceDialog.AppTheme -> {
+                    OptionsDialog(
+                        text = "App Theme",
+                        onDismissClick = { onEvent(AppearancePreferencesEvent.ShowDialog(null)) },
+                    ) {
+                        items(AppTheme.entries.toTypedArray()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == uiState.preferences.appTheme),
+                                onClick = {
+                                    onEvent(AppearancePreferencesEvent.UpdateAppTheme(it))
+                                    onEvent(AppearancePreferencesEvent.ShowDialog(null))
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AppearancePreferencesScreenPreview() {
+    GravitonTheme {
+        AppearancePreferencesContent(
+            uiState = AppearancePreferencesUiState(),
+            onEvent = {},
+        )
+    }
+}
