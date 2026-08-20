@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.ui.theme
 
 import android.os.Build
+import dev.anilbeesetti.nextplayer.core.model.AppTheme
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +11,9 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+
+
+
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -244,9 +248,51 @@ fun NextPlayerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     highContrastDarkTheme: Boolean = false,
     dynamicColor: Boolean = true,
+    appTheme: AppTheme = AppTheme.SYSTEM,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
+        appTheme == AppTheme.AMOLED && darkTheme -> darkScheme.copy(
+            background = backgroundPureBlack,
+            surface = surfacePureBlack,
+            surfaceDim = surfaceDimPureBlack,
+            surfaceBright = surfaceBrightPureBlack,
+            surfaceContainerLowest = surfaceContainerLowestPureBlack,
+            surfaceContainerLow = surfaceContainerLowPureBlack,
+            surfaceContainer = surfaceContainerPureBlack,
+            surfaceContainerHigh = surfaceContainerHighPureBlack,
+            surfaceContainerHighest = surfaceContainerHighestPureBlack,
+        )
+        appTheme != AppTheme.SYSTEM -> {
+            val scheme = when (appTheme) {
+                AppTheme.OCEAN -> if (darkTheme) oceanDarkScheme else oceanLightScheme
+                AppTheme.BLUE -> if (darkTheme) blueDarkScheme else blueLightScheme
+                AppTheme.PURPLE -> if (darkTheme) purpleDarkScheme else purpleLightScheme
+                AppTheme.GREEN -> if (darkTheme) greenDarkScheme else greenLightScheme
+                AppTheme.RED -> if (darkTheme) redDarkScheme else redLightScheme
+                AppTheme.ORANGE -> if (darkTheme) orangeDarkScheme else orangeLightScheme
+                AppTheme.PINK -> if (darkTheme) pinkDarkScheme else pinkLightScheme
+                AppTheme.CYAN -> if (darkTheme) cyanDarkScheme else cyanLightScheme
+                AppTheme.MONOCHROME -> if (darkTheme) monochromeDarkScheme else monochromeLightScheme
+                AppTheme.GRAPHITE -> if (darkTheme) graphiteDarkScheme else graphiteLightScheme
+                else -> if (darkTheme) darkScheme else lightScheme
+            }
+            if (darkTheme && highContrastDarkTheme) {
+                scheme.copy(
+                    background = backgroundPureBlack,
+                    surface = surfacePureBlack,
+                    surfaceDim = surfaceDimPureBlack,
+                    surfaceBright = surfaceBrightPureBlack,
+                    surfaceContainerLowest = surfaceContainerLowestPureBlack,
+                    surfaceContainerLow = surfaceContainerLowPureBlack,
+                    surfaceContainer = surfaceContainerPureBlack,
+                    surfaceContainerHigh = surfaceContainerHighPureBlack,
+                    surfaceContainerHighest = surfaceContainerHighestPureBlack,
+                )
+            } else {
+                scheme
+            }
+        }
         dynamicColor && supportsDynamicTheming() -> {
             val context = LocalContext.current
             when {

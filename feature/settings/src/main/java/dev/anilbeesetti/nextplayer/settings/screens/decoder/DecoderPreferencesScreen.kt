@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.anilbeesetti.nextplayer.core.model.DecoderPriority
+import dev.anilbeesetti.nextplayer.core.model.DecoderMode
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
@@ -90,9 +90,9 @@ private fun DecoderPreferencesContent(
             ) {
                 ClickablePreferenceItem(
                     title = stringResource(R.string.decoder_priority),
-                    description = preferences.decoderPriority.name(),
+                    description = preferences.decoderMode.name(),
                     icon = NextIcons.Priority,
-                    onClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(DecoderPreferenceDialog.DecoderPriorityDialog)) },
+                    onClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(DecoderPreferenceDialog.DecoderModeDialog)) },
                     isFirstItem = true,
                     isLastItem = true,
                 )
@@ -101,17 +101,17 @@ private fun DecoderPreferencesContent(
 
         uiState.showDialog?.let { showDialog ->
             when (showDialog) {
-                DecoderPreferenceDialog.DecoderPriorityDialog -> {
+                DecoderPreferenceDialog.DecoderModeDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.decoder_priority),
                         onDismissClick = { onEvent(DecoderPreferencesUiEvent.ShowDialog(null)) },
                     ) {
-                        items(DecoderPriority.entries.toTypedArray()) {
+                        items(DecoderMode.entries.toTypedArray()) {
                             RadioTextButton(
                                 text = it.name(),
-                                selected = it == preferences.decoderPriority,
+                                selected = it == preferences.decoderMode,
                                 onClick = {
-                                    onEvent(DecoderPreferencesUiEvent.UpdateDecoderPriority(it))
+                                    onEvent(DecoderPreferencesUiEvent.UpdateDecoderMode(it))
                                     onEvent(DecoderPreferencesUiEvent.ShowDialog(null))
                                 },
                             )

@@ -120,3 +120,13 @@ private fun PreviewOverlayView() {
         }
     }
 }
+
+
+enum class OverlayView {
+    AUDIO_SELECTOR,
+    SUBTITLE_SELECTOR,
+    PLAYBACK_SPEED,
+    VIDEO_CONTENT_SCALE,
+    PLAYLIST,
+    DECODER_SELECTOR,
+}

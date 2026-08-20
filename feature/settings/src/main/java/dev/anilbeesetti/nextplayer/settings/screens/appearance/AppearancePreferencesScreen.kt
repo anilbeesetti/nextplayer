@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.ListSectionTitle
+import dev.anilbeesetti.nextplayer.core.ui.components.ClickablePreferenceItem
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitch
 import dev.anilbeesetti.nextplayer.core.ui.components.PreferenceSwitchWithDivider
@@ -37,6 +38,7 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.core.ui.theme.supportsDynamicTheming
 import dev.anilbeesetti.nextplayer.settings.composables.OptionsDialog
 import dev.anilbeesetti.nextplayer.settings.extensions.name
+import dev.anilbeesetti.nextplayer.core.model.AppTheme
 
 @Composable
 fun AppearancePreferencesScreen(
@@ -97,6 +99,13 @@ private fun AppearancePreferencesContent(
                     onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.Theme)) },
                     isFirstItem = true
                 )
+                ClickablePreferenceItem(
+                    title = "App Colors",
+                    description = uiState.preferences.appTheme.name(),
+                    icon = NextIcons.Appearance,
+                    onClick = { onEvent(AppearancePreferencesEvent.ShowDialog(AppearancePreferenceDialog.AppTheme)) },
+                    isFirstItem = true
+                )
                 PreferenceSwitch(
                     title = stringResource(R.string.high_contrast_dark_theme),
                     description = stringResource(R.string.high_contrast_dark_theme_desc),
@@ -131,6 +140,23 @@ private fun AppearancePreferencesContent(
                                 selected = (it == uiState.preferences.themeConfig),
                                 onClick = {
                                     onEvent(AppearancePreferencesEvent.UpdateThemeConfig(it))
+                                    onEvent(AppearancePreferencesEvent.ShowDialog(null))
+                                },
+                            )
+                        }
+                    }
+                }
+                AppearancePreferenceDialog.AppTheme -> {
+                    OptionsDialog(
+                        text = "App Theme",
+                        onDismissClick = { onEvent(AppearancePreferencesEvent.ShowDialog(null)) },
+                    ) {
+                        items(AppTheme.entries.toTypedArray()) {
+                            RadioTextButton(
+                                text = it.name(),
+                                selected = (it == uiState.preferences.appTheme),
+                                onClick = {
+                                    onEvent(AppearancePreferencesEvent.UpdateAppTheme(it))
                                     onEvent(AppearancePreferencesEvent.ShowDialog(null))
                                 },
                             )

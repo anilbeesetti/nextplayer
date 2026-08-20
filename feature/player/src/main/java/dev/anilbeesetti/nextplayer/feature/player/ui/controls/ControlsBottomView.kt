@@ -214,25 +214,14 @@ private fun PlayerSeekbar(
         .fillMaxWidth()
         .onFocusChanged { isFocused = it.isFocused }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        if (LocalUseMaterialYouControls.current) {
-            MaterialYouSlider(
-                modifier = focusModifier,
-                isFocused = isFocused,
-                value = position,
-                valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
-            )
-        } else {
-            SimpleSlider(
-                modifier = focusModifier,
-                isFocused = isFocused,
-                value = position,
-                valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
-            )
-        }
+        MaterialYouSlider(
+            modifier = focusModifier,
+            isFocused = isFocused,
+            value = position,
+            valueRange = 0f..duration,
+            onValueChange = onSeek,
+            onValueChangeFinished = onSeekFinished,
+        )
     }
 }
 
