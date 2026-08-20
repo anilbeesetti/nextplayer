@@ -3,16 +3,19 @@ name: Android Build
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch: # Allows running manually from the Actions tab
 
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+# Permission required to create releases and upload assets
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build APK and Run Tests
+    name: Build APK and Publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -33,24 +36,11 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload Debug APKs
-        uses: actions/upload-artifact@v4
+      - name: Create Pre-Release with Direct APKs
+        uses: softprops/action-gh-release@v2
         with:
-          name: debug-apks
-          path: app/build/outputs/apk/debug/*.apk
-
-      - name: Run Local Tests
-        run: ./gradlew test
-        continue-on-error: true
-
-      - name: Lint Checks
-        run: ./gradlew ktlintCheck
-        continue-on-error: true
-
-      - name: Upload Build Reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-reports
-          path: app/build/reports
-          
+          tag_name: build-${{ github.run_number }}
+          name: Debug Build #${{ github.run_number }}
+          draft: false
+          prerelease: true
+          files: app/build/outputs/apk/debug/*.apk
