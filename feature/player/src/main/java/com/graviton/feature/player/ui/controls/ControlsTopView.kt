@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
@@ -54,7 +55,7 @@ fun ControlsTopView(
         PlayerButton(onClick = onBackClick) {
             Icon(
                 painter = painterResource(R.drawable.ic_arrow_left),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.navigate_up),
             )
         }
         Text(
@@ -73,31 +74,31 @@ fun ControlsTopView(
             PlayerButton(onClick = onPlaylistClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_playlist),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.playlists),
                 )
             }
             PlayerButton(onClick = onPlaybackSpeedClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_speed),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.select_playback_speed),
                 )
             }
             PlayerButton(onClick = onAudioClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_audio_track),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.select_audio_track),
                 )
             }
             PlayerButton(onClick = onSubtitleClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_subtitle_track),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.select_subtitle_track),
                 )
             }
             PlayerButton(onClick = onDecoderClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_more_vert),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.decoder),
                 )
             }
         }

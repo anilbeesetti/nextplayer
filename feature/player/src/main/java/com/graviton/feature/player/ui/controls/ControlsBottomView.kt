@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -145,7 +146,7 @@ fun ControlsBottomView(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_screen_rotation),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.screen_rotation),
                         modifier = Modifier.size(20.dp),
                     )
                 }
@@ -168,7 +169,7 @@ fun ControlsBottomView(
             PlayerButton(onClick = onLockControlsClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_lock_open),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.controls_lock),
                 )
             }
             PlayerButton(
@@ -177,21 +178,21 @@ fun ControlsBottomView(
             ) {
                 Icon(
                     painter = painterResource(videoContentScale.drawableRes()),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.video_zoom),
                 )
             }
             if (isPipSupported) {
                 PlayerButton(onClick = onPictureInPictureClick) {
                     Icon(
                         painter = painterResource(R.drawable.ic_pip),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.pip_settings),
                     )
                 }
             }
             PlayerButton(onClick = onPlayInBackgroundClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_headset),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.background_play),
                 )
             }
             LoopButton(player = player)
