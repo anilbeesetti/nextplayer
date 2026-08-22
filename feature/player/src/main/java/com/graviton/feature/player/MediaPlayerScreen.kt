@@ -318,29 +318,6 @@ fun MediaPlayerScreen(
                     positionMs = dpadSeekTargetMs,
                 )
 
-                AnimatedVisibility(
-                    modifier = Modifier
-                        .padding(top = 24.dp)
-                        .align(Alignment.TopCenter),
-                    visible = tapGestureState.isLongPressGestureInAction,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    Surface(shape = CircleShape) {
-                        Row(
-                            modifier = Modifier.padding(
-                                horizontal = 16.dp,
-                                vertical = 8.dp,
-                            ),
-                        ) {
-                            Text(
-                                text = stringResource(coreUiR.string.fast_playback_speed, tapGestureState.longPressSpeed),
-                                style = MaterialTheme.typography.labelLarge,
-                            )
-                        }
-                    }
-                }
-
                 if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
                     Column(
                         modifier = Modifier
@@ -510,7 +487,8 @@ fun MediaPlayerScreen(
             )
 
             SpeedOverlayView(
-                speed = playbackParametersState.speed
+                speed = if (tapGestureState.isLongPressGestureInAction) tapGestureState.longPressSpeed else playbackParametersState.speed,
+                isLongPressActive = tapGestureState.isLongPressGestureInAction
             )
         }
 

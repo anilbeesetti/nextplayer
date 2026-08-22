@@ -1,4 +1,13 @@
-package com.graviton.feature.player.ui
+with open("feature/player/src/main/java/com/graviton/feature/player/ui/DecoderSelectorView.kt", "r") as f:
+    content = f.read()
+
+# Make sure it's valid Kotlin
+import re
+content = re.sub(r'DecoderMode\.AUTO -> "Auto"\s*DecoderMode\.HARDWARE -> "HW"\s*DecoderMode\.SOFTWARE -> "SW"',
+                 'DecoderMode.AUTO -> "Auto"\n                    DecoderMode.HARDWARE -> "HW"\n                    DecoderMode.SOFTWARE -> "SW"', content)
+
+with open("feature/player/src/main/java/com/graviton/feature/player/ui/DecoderSelectorView.kt", "w") as f:
+    f.write('''package com.graviton.feature.player.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxScope
@@ -63,3 +72,12 @@ fun BoxScope.DecoderSelectorView(
         }
     }
 }
+''')
+
+with open("feature/player/src/main/java/com/graviton/feature/player/service/PlayerService.kt", "r") as f:
+    content = f.read()
+
+content = re.sub(r'DecoderMode\.HARDWARE_PLUS -> DefaultRenderersFactory\.EXTENSION_RENDERER_MODE_OFF\s*', '', content)
+
+with open("feature/player/src/main/java/com/graviton/feature/player/service/PlayerService.kt", "w") as f:
+    f.write(content)
