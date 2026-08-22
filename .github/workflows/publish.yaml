@@ -1,31 +1,19 @@
-name: Build & Sign APK
+name: Build Unsigned APK
 
 on:
   push:
-    branches:
-      - 'release/v*.*.*'
-      - 'main'
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Extract Version Name
-        run: |
-          if [[ "${GITHUB_REF}" == refs/heads/release/v* ]]; then
-            version_name=${GITHUB_REF#refs/heads/release/v}
-          else
-            version_name="snapshot"
-          fi
-          echo "VERSION_NAME=$version_name" >> $GITHUB_ENV
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -33,68 +21,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Make Gradle Executable
+      - name: Make Gradle executable
         run: chmod +x ./gradlew
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: true
 
-      - name: Build Release APK
+      - name: Build Release APK (Unsigned)
         run: ./gradlew assembleRelease
 
-      - name: Decode Keystore
-        uses: timheuer/base64-to-file@v2
-        id: keystore
-        with:
-          fileName: 'release.jks'
-          encodedString: ${{ secrets.KEYSTORE_BASE64 }}
-
-      - name: Align and Sign APKs
-        env:
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          KEYSTORE_PATH: ${{ steps.keystore.outputs.filePath }}
-        run: |
-          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
-          mkdir -p app/build/outputs/apk/signed
-
-          for apk in app/build/outputs/apk/release/*.apk; do
-            if [ -f "$apk" ]; then
-              base=$(basename "$apk" .apk)
-              
-              # 1. Zipalign
-              $BUILD_TOOLS/zipalign -v -p 4 "$apk" "app/build/outputs/apk/signed/${base}-aligned.apk"
-              
-              # 2. Apksigner
-              $BUILD_TOOLS/apksigner sign --ks "$KEYSTORE_PATH" \
-                --ks-key-alias "$SIGNING_KEY_ALIAS" \
-                --ks-pass "pass:$SIGNING_STORE_PASSWORD" \
-                --key-pass "pass:$SIGNING_KEY_PASSWORD" \
-                --out "app/build/outputs/apk/signed/nextplayer-v${{ env.VERSION_NAME }}-${base#app-}.apk" \
-                "app/build/outputs/apk/signed/${base}-aligned.apk"
-              
-              # 3. Clean up intermediate aligned APK
-              rm "app/build/outputs/apk/signed/${base}-aligned.apk"
-            fi
-          done
-
-      - name: Upload Signed APKs Artifact
+      - name: Upload Unsigned APK
         uses: actions/upload-artifact@v4
         with:
-          name: signed-apks
-          path: app/build/outputs/apk/signed/*.apk
+          name: unsigned-apks
+          path: app/build/outputs/apk/release/*.apk
           retention-days: 7
-
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/heads/release/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: app/build/outputs/apk/signed/*.apk
-          draft: true
-          name: v${{ env.VERSION_NAME }}
-          tag_name: v${{ env.VERSION_NAME }}
-          generate_release_notes: true
           
