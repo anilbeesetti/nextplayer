@@ -56,6 +56,7 @@ class TapGestureState(
 ) {
     var seekMillis by mutableLongStateOf(0L)
     var isLongPressGestureInAction by mutableStateOf(false)
+    var activeLongPressSpeed by mutableStateOf(2.0f)
 
     private var resetJob: Job? = null
     private var currentSpeed: Float = player.playbackParameters.speed
@@ -121,7 +122,32 @@ class TapGestureState(
 
         isLongPressGestureInAction = true
         currentSpeed = player.playbackParameters.speed
-        player.setPlaybackSpeed(longPressSpeed)
+        activeLongPressSpeed = longPressSpeed
+        player.setPlaybackSpeed(activeLongPressSpeed)
+
+        cumulativeDrag = 0f
+    }
+
+    private var cumulativeDrag = 0f
+
+    fun handleLongPressDrag(dragAmount: Float) {
+        if (!isLongPressGestureInAction) return
+        cumulativeDrag += dragAmount
+
+        // Let's say 100 pixels is one step
+        val stepPixels = 100f
+
+        if (cumulativeDrag > stepPixels) {
+            // Step up
+            activeLongPressSpeed = (activeLongPressSpeed + 0.5f).coerceAtMost(4.0f)
+            player.setPlaybackSpeed(activeLongPressSpeed)
+            cumulativeDrag = 0f
+        } else if (cumulativeDrag < -stepPixels) {
+            // Step down
+            activeLongPressSpeed = (activeLongPressSpeed - 0.5f).coerceAtLeast(1.0f)
+            player.setPlaybackSpeed(activeLongPressSpeed)
+            cumulativeDrag = 0f
+        }
     }
 
     fun handleOnLongPressRelease() {

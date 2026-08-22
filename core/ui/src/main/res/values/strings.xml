@@ -466,4 +466,16 @@
         <item quantity="one">%d video</item>
         <item quantity="other">%d videos</item>
     </plurals>
+
+    <string name="hardware_plus">Hardware+ Decoder</string>
+    <string name="sixteen_nine">16:9</string>
+    <string name="four_three">4:3</string>
+
+
+
+    <string name="show_playlists_tab">Show "Playlists" Tab</string>
+    <string name="show_network_tab">Show "Network" Tab</string>
+    <string name="show_music_tab">Show "Music" Tab</string>
+    <string name="pure_black_theme">AMOLED Pure Black Theme</string>
+    <string name="pure_black_theme_desc">Use #000000 instead of standard dark background</string>
 </resources>

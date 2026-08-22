@@ -129,4 +129,5 @@ enum class OverlayView {
     VIDEO_CONTENT_SCALE,
     PLAYLIST,
     DECODER_SELECTOR,
+    TOOLS_PANEL
 }

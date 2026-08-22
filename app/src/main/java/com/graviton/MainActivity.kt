@@ -123,22 +123,32 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navState = rememberTopLevelNavState()
 
+                    val preferences = (uiState as? MainActivityUiState.Success)?.preferences
                     val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
                         isTopLevel = { contentKey -> navState.topLevelContentKeys.contains(contentKey) },
-                        navBar = { NextNavigationBar(navState) },
-                        navRail = { NextNavigationRail(navState) },
+                        navBar = { NextNavigationBar(navState, preferences) },
+                        navRail = { NextNavigationRail(navState, preferences) },
                     )
 
                     val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
-                    val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)
+                                        val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)
+                    val musicStack = navState.backStacks.getValue(TopLevelDestination.MUSIC.route)
                     val networkStack = navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
 
                     // Media and network entries navigate within their own tab's stack; settings is
                     // shared, so it navigates within whichever tab it was opened from (the current one).
-                    val provider = entryProvider {
+                                        val provider = entryProvider {
                         mediaNavGraph(context = this@MainActivity, backStack = mediaStack)
                         playlistNavGraph(context = this@MainActivity, backStack = playlistStack)
                         networkNavGraph(context = this@MainActivity, backStack = networkStack)
+
+                        entry<com.graviton.navigation.MusicRoute> {
+                            androidx.compose.material3.Text(
+                                "Music Integration Scaffold",
+                                modifier = androidx.compose.ui.Modifier
+                            )
+                        }
+
                         settingsNavGraph(backStack = navState.currentStack)
                     }
 

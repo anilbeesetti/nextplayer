@@ -49,6 +49,11 @@ import com.graviton.core.ui.designsystem.NextIcons
 import com.graviton.feature.network.navigation.NetworkRoute
 import com.graviton.feature.playlist.navigation.PlaylistListRoute
 import com.graviton.feature.videopicker.navigation.MediaPickerRoute
+// Added placeholder for music route
+import kotlinx.serialization.Serializable
+
+@Serializable
+data object MusicRoute : NavKey
 
 /**
  * Top-level destinations shown in the bottom bar / nav rail. The first entry is the start (exit)
@@ -61,6 +66,7 @@ enum class TopLevelDestination(
 ) {
     MEDIA(MediaPickerRoute(), NextIcons.Home, R.string.home),
     PLAYLISTS(PlaylistListRoute, NextIcons.Playlist, R.string.playlists),
+    MUSIC(MusicRoute, NextIcons.Audio, R.string.audio), // Added MUSIC
     NETWORK(NetworkRoute, NextIcons.Network, R.string.network),
 }
 
@@ -147,22 +153,30 @@ fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene
     topLevelContentKeys.run { contains(initialState.entries.lastOrNull()?.contentKey) && contains(targetState.entries.lastOrNull()?.contentKey) }
 
 @Composable
-fun NextNavigationBar(state: TopLevelNavState) {
+fun NextNavigationBar(state: TopLevelNavState, preferences: com.graviton.core.model.ApplicationPreferences?) {
     NavigationBar {
         state.destinations.forEach { dest ->
-            NavigationBarItem(
-                selected = state.topLevelRoute == dest.route,
-                onClick = { state.switchTo(dest.route) },
-                icon = { Icon(imageVector = dest.icon, contentDescription = null) },
-                label = { Text(text = stringResource(dest.labelRes)) },
-                modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(24.dp)),
-            )
+            val show = when (dest) {
+                TopLevelDestination.PLAYLISTS -> preferences?.showPlaylistsTab ?: true
+                TopLevelDestination.NETWORK -> preferences?.showNetworkTab ?: true
+                TopLevelDestination.MUSIC -> preferences?.showMusicTab ?: true
+                else -> true
+            }
+            if (show) {
+                NavigationBarItem(
+                    selected = state.topLevelRoute == dest.route,
+                    onClick = { state.switchTo(dest.route) },
+                    icon = { Icon(imageVector = dest.icon, contentDescription = null) },
+                    label = { Text(text = stringResource(dest.labelRes)) },
+                    modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(24.dp)),
+                )
+            }
         }
     }
 }
 
 @Composable
-fun NextNavigationRail(state: TopLevelNavState) {
+fun NextNavigationRail(state: TopLevelNavState, preferences: com.graviton.core.model.ApplicationPreferences?) {
     NavigationRail(
         modifier = Modifier.fillMaxHeight(),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -173,32 +187,40 @@ fun NextNavigationRail(state: TopLevelNavState) {
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         ) {
             state.destinations.forEach { dest ->
-                val selected = state.topLevelRoute == dest.route
-                Box(
-                    Modifier
-                        .tvFocusRing(shape = RoundedCornerShape(99.dp))
-                        .clip(CircleShape)
-                        .selectable(
-                            selected = state.topLevelRoute == dest.route,
-                            onClick = { state.switchTo(dest.route) },
-                            role = Role.Tab,
+                val show = when (dest) {
+                    TopLevelDestination.PLAYLISTS -> preferences?.showPlaylistsTab ?: true
+                    TopLevelDestination.NETWORK -> preferences?.showNetworkTab ?: true
+                    TopLevelDestination.MUSIC -> preferences?.showMusicTab ?: true
+                    else -> true
+                }
+                if (show) {
+                    val selected = state.topLevelRoute == dest.route
+                    Box(
+                        Modifier
+                            .tvFocusRing(shape = RoundedCornerShape(99.dp))
+                            .clip(CircleShape)
+                            .selectable(
+                                selected = state.topLevelRoute == dest.route,
+                                onClick = { state.switchTo(dest.route) },
+                                role = Role.Tab,
+                            )
+                            .background(
+                                if (selected) {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                } else {
+                                    Color.Transparent
+                                }
+                            )
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center,
+                        propagateMinConstraints = true,
+                    ) {
+                        Icon(
+                            imageVector = dest.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
                         )
-                        .background(
-                            if (selected) {
-                                MaterialTheme.colorScheme.secondaryContainer
-                            } else {
-                                Color.Transparent
-                            }
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center,
-                    propagateMinConstraints = true,
-                ) {
-                    Icon(
-                        imageVector = dest.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    }
                 }
             }
         }

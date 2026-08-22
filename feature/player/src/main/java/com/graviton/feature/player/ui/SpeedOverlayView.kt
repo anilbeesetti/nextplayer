@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 
 @Composable
 fun BoxScope.SpeedOverlayView(
@@ -31,40 +30,29 @@ fun BoxScope.SpeedOverlayView(
     isLongPressActive: Boolean = false,
 ) {
     var showOverlay by remember { mutableStateOf(false) }
-    var isFirstLaunch by remember { mutableStateOf(true) }
 
-    LaunchedEffect(speed, isLongPressActive) {
-        if (isLongPressActive) {
-            showOverlay = true
-        } else {
-            if (isFirstLaunch) {
-                isFirstLaunch = false
-            } else {
-                showOverlay = true
-                delay(1500)
-                showOverlay = false
-            }
-        }
+    LaunchedEffect(isLongPressActive, speed) {
+        showOverlay = isLongPressActive
     }
 
     AnimatedVisibility(
         visible = showOverlay,
-        enter = fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
-        exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300)),
+        enter = fadeIn(animationSpec = tween(150)) + scaleIn(initialScale = 0.9f, animationSpec = tween(150)),
+        exit = fadeOut(animationSpec = tween(150)) + scaleOut(targetScale = 0.9f, animationSpec = tween(150)),
         modifier = modifier.align(Alignment.TopCenter).padding(top = 48.dp),
     ) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .clip(RoundedCornerShape(32.dp))
+                .background(androidx.compose.ui.graphics.Color(0x99000000))
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
-            val formattedSpeed = if (speed % 1.0f == 0.0f) "${speed.toInt()} \u00d7  \u25b6\u25b6" else "${speed} \u00d7  \u25b6\u25b6"
+            val formattedSpeed = if (speed % 1.0f == 0.0f) "${speed.toInt()}x Speed" else "${speed}x Speed"
             Text(
                 text = formattedSpeed,
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge,
+                color = androidx.compose.ui.graphics.Color.White,
             )
         }
     }

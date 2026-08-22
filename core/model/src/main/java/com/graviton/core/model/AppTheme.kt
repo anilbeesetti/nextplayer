@@ -12,5 +12,5 @@ enum class AppTheme {
     PINK,
     CYAN,
     MONOCHROME,
-    GRAPHITE
+    GRAPHITE,
 }

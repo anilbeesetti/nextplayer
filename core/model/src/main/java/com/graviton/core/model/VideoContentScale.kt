@@ -5,4 +5,6 @@ enum class VideoContentScale {
     STRETCH,
     CROP,
     HUNDRED_PERCENT,
+    SIXTEEN_NINE,
+    FOUR_THREE,
 }
