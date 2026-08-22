@@ -39,7 +39,15 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
           # 1. Reconstruct keystore from GitHub secret
-          echo "$KEYSTORE_BASE64" | base64 --decode > release.jks
+          echo "$KEYSTORE_BASE64" | base64 --decode --ignore-garbage > release.jks
+          KEYSTORE_PATH="release.jks"
+
+          # Validate keystore
+          if [ ! -s "$KEYSTORE_PATH" ]; then
+            echo "Error: Keystore file is empty or missing after decoding."
+            exit 1
+          fi
+          echo "Keystore successfully decoded. Size: $(stat -c%s "$KEYSTORE_PATH") bytes."
 
           # 2. Find the latest Android build tools directory dynamically
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
@@ -54,7 +62,7 @@ jobs:
               $BUILD_TOOLS/zipalign -v -p 4 "$apk" "app/build/outputs/apk/signed/${base}-aligned.apk"
               
               # Sign APK
-              $BUILD_TOOLS/apksigner sign --ks release.jks \
+              $BUILD_TOOLS/apksigner sign --ks "$KEYSTORE_PATH" \
                 --ks-key-alias "$SIGNING_KEY_ALIAS" \
                 --ks-pass "pass:$SIGNING_STORE_PASSWORD" \
                 --key-pass "pass:$SIGNING_KEY_PASSWORD" \
@@ -65,6 +73,9 @@ jobs:
               rm "app/build/outputs/apk/signed/${base}-aligned.apk"
             fi
           done
+
+          # Cleanup keystore
+          rm -f "$KEYSTORE_PATH"
 
       - name: Publish Signed APKs to GitHub Release
         uses: softprops/action-gh-release@v2

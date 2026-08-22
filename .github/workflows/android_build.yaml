@@ -51,24 +51,28 @@ jobs:
       - name: Build Release APKs
         run: ./gradlew assembleRelease --no-daemon
 
-      - name: Decode Keystore
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
-        uses: timheuer/base64-to-file@v2
-        id: keystore
-        with:
-          fileName: 'release.jks'
-          encodedString: ${{ secrets.KEYSTORE_BASE64 }}
-
       - name: Align and Sign APKs
         if: ${{ secrets.KEYSTORE_BASE64 != '' }}
         env:
-          KEYSTORE_PATH: ${{ steps.keystore.outputs.filePath }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
+
+          # Decode keystore
+          echo "$KEYSTORE_BASE64" | base64 --decode --ignore-garbage > release.jks
+          KEYSTORE_PATH="release.jks"
+
+          # Validate keystore
+          if [ ! -s "$KEYSTORE_PATH" ]; then
+            echo "Error: Keystore file is empty or missing after decoding."
+            exit 1
+          fi
+          echo "Keystore successfully decoded. Size: $(stat -c%s "$KEYSTORE_PATH") bytes."
+
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
           mkdir -p app/build/outputs/apk/signed
 
@@ -92,6 +96,9 @@ jobs:
               rm -f "app/build/outputs/apk/signed/${base}-aligned.apk"
             fi
           done
+
+          # Cleanup keystore
+          rm -f "$KEYSTORE_PATH"
 
       - name: Upload Signed APKs
         if: ${{ secrets.KEYSTORE_BASE64 != '' }}
