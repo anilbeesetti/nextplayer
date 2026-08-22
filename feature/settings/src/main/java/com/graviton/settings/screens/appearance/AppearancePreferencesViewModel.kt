@@ -41,6 +41,9 @@ class AppearancePreferencesViewModel @Inject constructor(
             is AppearancePreferencesEvent.UpdateAppTheme -> updateAppTheme(event.appTheme)
             AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
             AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
+            AppearancePreferencesEvent.ToggleShowPlaylistsTab -> toggleShowPlaylistsTab()
+            AppearancePreferencesEvent.ToggleShowNetworkTab -> toggleShowNetworkTab()
+            AppearancePreferencesEvent.ToggleShowMusicTab -> toggleShowMusicTab()
         }
     }
 
@@ -91,6 +94,30 @@ class AppearancePreferencesViewModel @Inject constructor(
             }
         }
     }
+
+    private fun toggleShowPlaylistsTab() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showPlaylistsTab = !it.showPlaylistsTab)
+            }
+        }
+    }
+
+    private fun toggleShowNetworkTab() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showNetworkTab = !it.showNetworkTab)
+            }
+        }
+    }
+
+    private fun toggleShowMusicTab() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showMusicTab = !it.showMusicTab)
+            }
+        }
+    }
 }
 
 @Stable
@@ -106,6 +133,9 @@ sealed interface AppearancePreferencesEvent {
     data class UpdateAppTheme(val appTheme: com.graviton.core.model.AppTheme) : AppearancePreferencesEvent
     data object ToggleUseDynamicColors : AppearancePreferencesEvent
     data object ToggleUseHighContrastDarkTheme : AppearancePreferencesEvent
+    data object ToggleShowPlaylistsTab : AppearancePreferencesEvent
+    data object ToggleShowNetworkTab : AppearancePreferencesEvent
+    data object ToggleShowMusicTab : AppearancePreferencesEvent
 }
 
 sealed interface AppearancePreferenceDialog {

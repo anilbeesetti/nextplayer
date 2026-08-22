@@ -121,9 +121,45 @@ private fun AppearancePreferencesContent(
                         icon = NextIcons.Appearance,
                         isChecked = uiState.preferences.useDynamicColors,
                         onClick = { onEvent(AppearancePreferencesEvent.ToggleUseDynamicColors) },
-                        isLastItem = true
+                        isLastItem = false
                     )
                 }
+
+                PreferenceSwitch(
+                    title = stringResource(R.string.pure_black_theme),
+                    description = stringResource(R.string.pure_black_theme_desc),
+                    icon = NextIcons.DarkMode,
+                    isChecked = uiState.preferences.appTheme == AppTheme.AMOLED, // Mocking pure black as a distinct theme or toggle
+                    onClick = {
+                        // If AMOLED is requested, usually we just update appTheme to BLACK if we have one.
+                        // Let's assume there is an AppTheme enum and we can use it.
+                        onEvent(AppearancePreferencesEvent.UpdateAppTheme(AppTheme.AMOLED))
+                    },
+                    isLastItem = true
+                )
+
+                ListSectionTitle(text = "Navigation Bar")
+
+                PreferenceSwitchWithDivider(
+                    title = stringResource(R.string.show_playlists_tab),
+                    icon = NextIcons.Playlist,
+                    isChecked = uiState.preferences.showPlaylistsTab,
+                    onClick = { onEvent(AppearancePreferencesEvent.ToggleShowPlaylistsTab) },
+                    isFirstItem = true
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_network_tab),
+                    icon = NextIcons.Network,
+                    isChecked = uiState.preferences.showNetworkTab,
+                    onClick = { onEvent(AppearancePreferencesEvent.ToggleShowNetworkTab) },
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_music_tab),
+                    icon = NextIcons.Audio,
+                    isChecked = uiState.preferences.showMusicTab,
+                    onClick = { onEvent(AppearancePreferencesEvent.ToggleShowMusicTab) },
+                    isLastItem = true
+                )
             }
         }
 

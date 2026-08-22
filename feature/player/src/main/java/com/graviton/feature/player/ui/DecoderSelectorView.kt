@@ -36,6 +36,7 @@ fun BoxScope.DecoderSelectorView(
                 val name = when (mode) {
                     DecoderMode.AUTO -> "Auto"
                     DecoderMode.HARDWARE -> "HW"
+                    DecoderMode.HARDWARE_PLUS -> "HW+"
                     DecoderMode.SOFTWARE -> "SW"
                 }
 

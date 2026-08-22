@@ -57,4 +57,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.testManifest)
 }
 android { lint { disable.add("MissingTranslation") } }
-android { lint { disable.add("ImpliedQuantity"); disable.add("MissingTranslation") } }
+android {
+    lint {
+        disable.add("ImpliedQuantity")
+        disable.add("MissingTranslation")
+    }
+}

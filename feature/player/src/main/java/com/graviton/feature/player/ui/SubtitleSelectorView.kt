@@ -162,8 +162,8 @@ private fun DelayInput(
                 onValueChange(milliseconds)
             }
         },
-        onIncrement = { onValueChange(value + 100) },
-        onDecrement = { onValueChange(value - 100) },
+        onIncrement = { onValueChange(value + 50) },
+        onDecrement = { onValueChange(value - 50) },
     )
 }
 

@@ -15,6 +15,11 @@ data class ApplicationPreferences(
     val mediaViewMode: MediaViewMode = MediaViewMode.FOLDERS,
     val mediaLayoutMode: MediaLayoutMode = MediaLayoutMode.LIST,
 
+    // Navigation bar
+    val showPlaylistsTab: Boolean = true,
+    val showNetworkTab: Boolean = true,
+    val showMusicTab: Boolean = true,
+
     // Fields
     val showDurationField: Boolean = true,
     val showFolderDurationField: Boolean = true,

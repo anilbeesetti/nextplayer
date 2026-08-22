@@ -3,7 +3,7 @@
 
     <style name="Theme.Graviton.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
-        <item name="windowSplashScreenBackground">#171B1C</item>
+        <item name="windowSplashScreenBackground">#000000</item>
         <item name="postSplashScreenTheme">@style/Theme.Graviton</item>
     </style>
 

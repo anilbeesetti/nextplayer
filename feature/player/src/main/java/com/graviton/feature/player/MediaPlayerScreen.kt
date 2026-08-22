@@ -349,6 +349,7 @@ fun MediaPlayerScreen(
                             ) {
                                 ControlsTopView(
                                     title = metadataState.title ?: "",
+                                    currentDecoderMode = playerPreferences.decoderMode,
                                     onAudioClick = {
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.AUDIO_SELECTOR
@@ -487,7 +488,7 @@ fun MediaPlayerScreen(
             )
 
             SpeedOverlayView(
-                speed = if (tapGestureState.isLongPressGestureInAction) tapGestureState.longPressSpeed else playbackParametersState.speed,
+                speed = if (tapGestureState.isLongPressGestureInAction) tapGestureState.activeLongPressSpeed else playbackParametersState.speed,
                 isLongPressActive = tapGestureState.isLongPressGestureInAction
             )
         }

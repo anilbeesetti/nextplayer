@@ -15,6 +15,7 @@ class TopLevelNavigationTest {
             listOf(
                 TopLevelDestination.MEDIA,
                 TopLevelDestination.PLAYLISTS,
+                TopLevelDestination.MUSIC,
                 TopLevelDestination.NETWORK,
             ),
             TopLevelDestination.entries,

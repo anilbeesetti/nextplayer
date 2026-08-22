@@ -4,6 +4,7 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
@@ -26,6 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import com.graviton.core.ui.R
 import com.graviton.core.ui.extensions.copy
+import com.graviton.core.model.DecoderMode
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
 import com.graviton.feature.player.buttons.PlayerButton
 
 @OptIn(UnstableApi::class)
@@ -33,6 +39,7 @@ import com.graviton.feature.player.buttons.PlayerButton
 fun ControlsTopView(
     modifier: Modifier = Modifier,
     title: String,
+    currentDecoderMode: DecoderMode = DecoderMode.AUTO,
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
     onPlaybackSpeedClick: () -> Unit = {},
@@ -95,10 +102,23 @@ fun ControlsTopView(
                     contentDescription = stringResource(R.string.select_subtitle_track),
                 )
             }
-            PlayerButton(onClick = onDecoderClick) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_more_vert),
-                    contentDescription = stringResource(R.string.decoder),
+                        Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onDecoderClick() }
+                    .border(1.dp, Color.White, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = when (currentDecoderMode) {
+                        DecoderMode.AUTO -> "Auto"
+                        DecoderMode.HARDWARE -> "HW"
+                        DecoderMode.HARDWARE_PLUS -> "HW+"
+                        DecoderMode.SOFTWARE -> "SW"
+                    },
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
         }

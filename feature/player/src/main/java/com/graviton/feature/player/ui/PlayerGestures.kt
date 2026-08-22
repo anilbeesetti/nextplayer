@@ -61,10 +61,29 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomHorizontalDragGestures(
-                        onDragStart = seekGestureState::onDragStart,
-                        onHorizontalDrag = seekGestureState::onDrag,
-                        onDragCancel = seekGestureState::onDragEnd,
-                        onDragEnd = seekGestureState::onDragEnd,
+                        onDragStart = { offset ->
+                            if (!tapGestureState.isLongPressGestureInAction) {
+                                seekGestureState.onDragStart(offset)
+                            }
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            if (tapGestureState.isLongPressGestureInAction) {
+                                tapGestureState.handleLongPressDrag(dragAmount)
+                                change.consume()
+                            } else {
+                                seekGestureState.onDrag(change, dragAmount)
+                            }
+                        },
+                        onDragCancel = {
+                            if (!tapGestureState.isLongPressGestureInAction) {
+                                seekGestureState.onDragEnd()
+                            }
+                        },
+                        onDragEnd = {
+                            if (!tapGestureState.isLongPressGestureInAction) {
+                                seekGestureState.onDragEnd()
+                            }
+                        },
                     )
                 }
                 .pointerInput(
