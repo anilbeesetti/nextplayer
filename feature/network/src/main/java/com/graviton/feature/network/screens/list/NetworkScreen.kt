@@ -247,7 +247,7 @@ private fun ConnectionItem(
         trailingContent = {
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(NextIcons.ExtraSettings, contentDescription = null)
+                    Icon(NextIcons.ExtraSettings, contentDescription = stringResource(R.string.menu))
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(

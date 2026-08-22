@@ -1,0 +1,3 @@
+## 2026-08-22 - Added proper TalkBack label for 'Settings' Extra Menu
+**Learning:** Found an unlabelled `IconButton` with `contentDescription = null` opening a DropdownMenu in `NetworkScreen`. This caused TalkBack to read the button simply as 'unlabelled button' which creates a poor experience for visually impaired users looking for options like Edit or Delete for network items. Replacing `null` with a valid string resource (`stringResource(R.string.menu)`) ensures standard screen reader compatibility.
+**Action:** Always scan for `IconButton` and `Icon` components with `contentDescription = null` in new Compose screens, especially those opening menus, and replace them with meaningful localized `stringResource` calls.
