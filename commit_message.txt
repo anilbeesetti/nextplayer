@@ -1,0 +1,6 @@
+Port mpvRx/mpvRex player features to Graviton
+
+- Redesigned `VerticalProgressView` to match the exact visual style of mpvRx's pill-shaped volume and brightness sliders, complete with animations and smooth gradients.
+- Added temporary 2x fast-forward on long press, along with a styled `SpeedOverlayView` mimicking mpvRex, resetting back to the previous speed upon release.
+- Simplified Decoder Mode selection to just Auto, Hardware, and Software, removing unused legacy states and mapping directly to Media3 extension settings.
+- Fixed a rendering lifecycle race condition during player recreation that could cause black screens, specifically by properly detaching and clearing the video surface before releasing the existing player, allowing the newly constructed ExoPlayer instance to bind correctly.

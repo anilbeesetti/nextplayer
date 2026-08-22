@@ -558,6 +558,8 @@ class PlayerService : MediaSessionService() {
             mediaItems.add(currentPlayer.getMediaItemAt(i))
         }
 
+                // Clear the video surface before releasing to avoid stale references blocking the new player
+        currentPlayer.clearVideoSurface()
         // 3. Release old player
         currentPlayer.release()
 
@@ -568,13 +570,10 @@ class PlayerService : MediaSessionService() {
                 when (playerPreferences.decoderMode) {
                     DecoderMode.AUTO -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
                     DecoderMode.HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderMode.HARDWARE_PLUS -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
                     DecoderMode.SOFTWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
                 },
             ).apply {
-                if (playerPreferences.decoderMode == DecoderMode.HARDWARE_PLUS) {
-                    setMediaCodecSelector(androidx.media3.exoplayer.mediacodec.MediaCodecSelector.DEFAULT)
-                }
+
             }
 
         val trackSelector = DefaultTrackSelector(applicationContext).apply {
@@ -622,13 +621,10 @@ class PlayerService : MediaSessionService() {
                 when (playerPreferences.decoderMode) {
                     DecoderMode.AUTO -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
                     DecoderMode.HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderMode.HARDWARE_PLUS -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
                     DecoderMode.SOFTWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
                 },
             ).apply {
-                if (playerPreferences.decoderMode == DecoderMode.HARDWARE_PLUS) {
-                    setMediaCodecSelector(androidx.media3.exoplayer.mediacodec.MediaCodecSelector.DEFAULT)
-                }
+
             }
 
         val trackSelector = DefaultTrackSelector(applicationContext).apply {

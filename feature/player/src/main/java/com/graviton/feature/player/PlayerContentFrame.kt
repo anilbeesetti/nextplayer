@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.PlayerSurface
-import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
+import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import com.graviton.feature.player.extensions.toContentScale
@@ -42,7 +42,7 @@ fun PlayerContentFrame(
     val presentationState = rememberPresentationState(player)
     PlayerSurface(
         player = player,
-        surfaceType = SURFACE_TYPE_SURFACE_VIEW,
+        surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
         modifier = modifier
             .resizeWithContentScale(
                 contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),

@@ -28,17 +28,22 @@ import kotlinx.coroutines.delay
 fun BoxScope.SpeedOverlayView(
     modifier: Modifier = Modifier,
     speed: Float,
+    isLongPressActive: Boolean = false,
 ) {
     var showOverlay by remember { mutableStateOf(false) }
     var isFirstLaunch by remember { mutableStateOf(true) }
 
-    LaunchedEffect(speed) {
-        if (isFirstLaunch) {
-            isFirstLaunch = false
-        } else {
+    LaunchedEffect(speed, isLongPressActive) {
+        if (isLongPressActive) {
             showOverlay = true
-            delay(1500)
-            showOverlay = false
+        } else {
+            if (isFirstLaunch) {
+                isFirstLaunch = false
+            } else {
+                showOverlay = true
+                delay(1500)
+                showOverlay = false
+            }
         }
     }
 
@@ -46,7 +51,7 @@ fun BoxScope.SpeedOverlayView(
         visible = showOverlay,
         enter = fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
         exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300)),
-        modifier = modifier.align(Alignment.Center),
+        modifier = modifier.align(Alignment.TopCenter).padding(top = 48.dp),
     ) {
         Box(
             modifier = Modifier
