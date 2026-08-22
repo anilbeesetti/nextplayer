@@ -45,6 +45,7 @@ jobs:
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 34.0.0 # <-- Fixes the build-tools error
 
       - name: Create Release with Signed APK
         uses: softprops/action-gh-release@v2
@@ -53,4 +54,4 @@ jobs:
           name: Release Build #${{ github.run_number }}
           draft: false
           prerelease: false
-          files: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          files: ${{ steps.sign_app.outputs.signedReleaseFile || steps.sign_app.outputs.signedFiles }}
