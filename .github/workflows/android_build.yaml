@@ -1,57 +1,110 @@
-name: Android Release Build
+name: CI/CD Build
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - master
+  pull_request:
   workflow_dispatch:
 
-concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
-
-# Permission required to create releases and upload assets
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    name: Build and Sign APK
+    name: Build & Sign APKs
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate build metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 17
           distribution: temurin
+          java-version: '17'
 
-      - name: Make Gradlew Executable
+      - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
-
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
         with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: 34.0.0 # <-- Fixes the build-tools error
+          validate-wrappers: true
 
-      - name: Create Release with Signed APK
-        uses: softprops/action-gh-release@v2
+      - name: Build Release APKs
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Decode Keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        uses: timheuer/base64-to-file@v2
+        id: keystore
         with:
-          tag_name: release-${{ github.run_number }}
-          name: Release Build #${{ github.run_number }}
-          draft: false
-          prerelease: false
-          files: ${{ steps.sign_app.outputs.signedReleaseFile || steps.sign_app.outputs.signedFiles }}
+          fileName: 'release.jks'
+          encodedString: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: Align and Sign APKs
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_PATH: ${{ steps.keystore.outputs.filePath }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          mkdir -p app/build/outputs/apk/signed
+
+          for apk in app/build/outputs/apk/release/*.apk; do
+            if [ -f "$apk" ]; then
+              base=$(basename "$apk" .apk)
+              
+              # Align
+              $BUILD_TOOLS/zipalign -v -p 4 "$apk" "app/build/outputs/apk/signed/${base}-aligned.apk"
+              
+              # Sign
+              $BUILD_TOOLS/apksigner sign \
+                --ks "$KEYSTORE_PATH" \
+                --ks-key-alias "$SIGNING_KEY_ALIAS" \
+                --ks-pass "pass:$SIGNING_STORE_PASSWORD" \
+                --key-pass "pass:$SIGNING_KEY_PASSWORD" \
+                --out "app/build/outputs/apk/signed/${base}-signed.apk" \
+                "app/build/outputs/apk/signed/${base}-aligned.apk"
+              
+              # Cleanup
+              rm -f "app/build/outputs/apk/signed/${base}-aligned.apk"
+            fi
+          done
+
+      - name: Upload Signed APKs
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-apks-${{ env.SHORT_SHA }}
+          path: app/build/outputs/apk/signed/*.apk
+          retention-days: 14
+
+      - name: Upload Unsigned APKs (Fallback)
+        if: ${{ secrets.KEYSTORE_BASE64 == '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-apks-${{ env.SHORT_SHA }}
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 14
