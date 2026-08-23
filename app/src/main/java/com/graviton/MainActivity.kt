@@ -143,10 +143,7 @@ class MainActivity : ComponentActivity() {
                         networkNavGraph(context = this@MainActivity, backStack = networkStack)
 
                         entry<com.graviton.navigation.MusicRoute> {
-                            androidx.compose.material3.Text(
-                                "Music Integration Scaffold",
-                                modifier = androidx.compose.ui.Modifier
-                            )
+                            com.graviton.feature.music.MusicHomeScreen()
                         }
 
                         settingsNavGraph(backStack = navState.currentStack)
