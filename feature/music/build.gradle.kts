@@ -56,6 +56,7 @@ dependencies {
 
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.session)
+    implementation(libs.accompanist.permissions)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

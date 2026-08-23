@@ -399,12 +399,14 @@ private fun MusicLibraryContent(
 
     playback?.let { snapshot ->
         if (snapshot.mediaId != null && snapshot.isMusic) {
-            MiniPlayer(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                snapshot = snapshot,
-                onTogglePlay = onPause,
-                onOpen = onOpenFullPlayer,
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                MiniPlayer(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    snapshot = snapshot,
+                    onTogglePlay = onPause,
+                    onOpen = onOpenFullPlayer,
+                )
+            }
         }
     }
 }
