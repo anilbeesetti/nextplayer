@@ -31,6 +31,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
 import com.graviton.core.common.service.system.SystemService
@@ -63,6 +65,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var networkStreamingProxy: NetworkStreamingProxy
 
+    @Inject
+    lateinit var imageLoader: ImageLoader
+
     private val viewModel: MainViewModel by viewModels()
 
     override fun onDestroy() {
@@ -93,6 +98,9 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            // Coil 3.5 no longer exposes a CompositionLocal ImageLoader. Register the existing
+            // decoder-aware loader before any media thumbnails are composed.
+            setSingletonImageLoaderFactory { _ -> imageLoader }
             val shouldUseDarkTheme = shouldUseDarkTheme(uiState = uiState)
 
             LaunchedEffect(shouldUseDarkTheme) {
@@ -131,13 +139,12 @@ class MainActivity : ComponentActivity() {
                     )
 
                     val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
-                                        val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)
-                    val musicStack = navState.backStacks.getValue(TopLevelDestination.MUSIC.route)
+                    val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)
                     val networkStack = navState.backStacks.getValue(TopLevelDestination.NETWORK.route)
 
                     // Media and network entries navigate within their own tab's stack; settings is
                     // shared, so it navigates within whichever tab it was opened from (the current one).
-                                        val provider = entryProvider {
+                    val provider = entryProvider {
                         mediaNavGraph(context = this@MainActivity, backStack = mediaStack)
                         playlistNavGraph(context = this@MainActivity, backStack = playlistStack)
                         networkNavGraph(context = this@MainActivity, backStack = networkStack)

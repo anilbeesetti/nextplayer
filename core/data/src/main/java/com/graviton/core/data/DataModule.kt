@@ -37,6 +37,12 @@ interface DataModule {
 
     @Binds
     @Singleton
+    fun bindsMusicRepository(
+        musicRepository: LocalMusicRepository,
+    ): MusicRepository
+
+    @Binds
+    @Singleton
     fun bindsPreferencesRepository(
         preferencesRepository: LocalPreferencesRepository,
     ): PreferencesRepository

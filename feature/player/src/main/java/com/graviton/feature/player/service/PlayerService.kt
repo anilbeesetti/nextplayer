@@ -41,6 +41,7 @@ import com.graviton.core.common.extensions.getLocalSubtitles
 import com.graviton.core.common.extensions.getPath
 import com.graviton.core.common.extensions.subtitleCacheDir
 import com.graviton.core.data.repository.MediaRepository
+import com.graviton.core.data.repository.MusicRepository
 import com.graviton.core.data.repository.PreferencesRepository
 import com.graviton.core.model.DecoderMode
 import com.graviton.core.model.LoopMode
@@ -95,6 +96,9 @@ class PlayerService : MediaSessionService() {
     lateinit var mediaRepository: MediaRepository
 
     @Inject
+    lateinit var musicRepository: MusicRepository
+
+    @Inject
     lateinit var imageLoader: ImageLoader
 
     private val playerPreferences: PlayerPreferences
@@ -103,6 +107,7 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+    private val knownDurations = mutableMapOf<String, Long>()
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var currentVolumeGain: Int = 0
@@ -156,6 +161,7 @@ class PlayerService : MediaSessionService() {
                 DISCONTINUITY_REASON_REMOVE -> {
                     serviceScope.launch {
                         val durationMs = oldMediaItem.mediaMetadata.durationMs
+                            ?: knownDurations[oldMediaItem.mediaId]
                         val isAtEnd = durationMs != null && oldPosition.positionMs >= durationMs - 1000
                         mediaRepository.updateMediumPosition(
                             uri = oldMediaItem.mediaId,
@@ -230,10 +236,8 @@ class PlayerService : MediaSessionService() {
                     playbackSpeed = playbackSpeed,
                 )
             }
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                currentMediaItem.copy(playbackSpeed = playbackSpeed),
-            )
+            // Do not replace the currently rendered item just to persist speed. Replacing a
+            // current item can tear down its decoder/surface during a seek or 2x gesture.
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -246,6 +250,9 @@ class PlayerService : MediaSessionService() {
 
             if (playbackState == Player.STATE_READY) {
                 mediaSession?.player?.let {
+                    it.currentMediaItem?.mediaId?.let { mediaId ->
+                        knownDurations[mediaId] = it.duration.coerceAtLeast(0L)
+                    }
                     serviceScope.launch {
                         mediaRepository.updateMediumLastPlayedTime(
                             uri = it.currentMediaItem?.mediaId ?: return@launch,
@@ -271,17 +278,6 @@ class PlayerService : MediaSessionService() {
                 }
                 stopSelf()
             }
-        }
-
-        override fun onRenderedFirstFrame() {
-            super.onRenderedFirstFrame()
-            val player = mediaSession?.player ?: return
-            val currentMediaItem = player.currentMediaItem ?: return
-            // Update the media metadata duration so that it will be used later in position discontinuity handling
-            player.replaceMediaItem(
-                player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
-            )
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -524,98 +520,8 @@ class PlayerService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
 
-    private var lastDecoderMode: DecoderMode? = null
-    private var decoderModeJob: Job? = null
-
-    private fun observeDecoderMode() {
-        decoderModeJob = CoroutineScope(SupervisorJob() + Dispatchers.Main).launch {
-            preferencesRepository.playerPreferences.collect { prefs ->
-                if (lastDecoderMode != null && lastDecoderMode != prefs.decoderMode) {
-                    lastDecoderMode = prefs.decoderMode
-                    recreatePlayer()
-                } else if (lastDecoderMode == null) {
-                    lastDecoderMode = prefs.decoderMode
-                }
-            }
-        }
-    }
-
-    private fun recreatePlayer() {
-        val currentPlayer = mediaSession?.player ?: return
-
-        // 1. Capture state
-        val currentPosition = currentPlayer.currentPosition
-        val currentMediaItemIndex = currentPlayer.currentMediaItemIndex
-        val isPlaying = currentPlayer.playWhenReady
-        val playbackParameters = currentPlayer.playbackParameters
-        val repeatMode = currentPlayer.repeatMode
-        val shuffleModeEnabled = currentPlayer.shuffleModeEnabled
-        val trackSelectionParameters = currentPlayer.trackSelectionParameters
-        val skipSilenceEnabled = (currentPlayer as? ExoPlayer)?.skipSilenceEnabled ?: false
-
-        val mediaItems = mutableListOf<MediaItem>()
-        for (i in 0 until currentPlayer.mediaItemCount) {
-            mediaItems.add(currentPlayer.getMediaItemAt(i))
-        }
-
-                // Clear the video surface before releasing to avoid stale references blocking the new player
-        currentPlayer.clearVideoSurface()
-        // 3. Release old player
-        currentPlayer.release()
-
-        // 4. Create new player with selected decoder configuration
-        val renderersFactory = NextRenderersFactory(applicationContext)
-            .setEnableDecoderFallback(playerPreferences.decoderMode == DecoderMode.AUTO)
-            .setExtensionRendererMode(
-                when (playerPreferences.decoderMode) {
-                    DecoderMode.AUTO -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderMode.HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderMode.HARDWARE_PLUS -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderMode.SOFTWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-                },
-            ).apply {
-
-            }
-
-        val trackSelector = DefaultTrackSelector(applicationContext).apply {
-            setParameters(trackSelectionParameters)
-        }
-
-        val newPlayer = ExoPlayer.Builder(applicationContext)
-            .setRenderersFactory(renderersFactory)
-            .setTrackSelector(trackSelector)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                    .build(),
-                playerPreferences.requireAudioFocus,
-            )
-            .build()
-
-        // 8. Ensure listeners remain correctly connected
-        newPlayer.addListener(playbackStateListener)
-
-        // 5. Restore captured state
-        newPlayer.setMediaItems(mediaItems)
-        newPlayer.playbackParameters = playbackParameters
-        newPlayer.repeatMode = repeatMode
-        newPlayer.shuffleModeEnabled = shuffleModeEnabled
-        (newPlayer as? ExoPlayer)?.skipSilenceEnabled = skipSilenceEnabled
-
-        // 6. Restore playback position
-        newPlayer.seekTo(currentMediaItemIndex, currentPosition)
-
-        // 7. Restore play/pause state
-        newPlayer.playWhenReady = isPlaying
-        newPlayer.prepare()
-
-        mediaSession?.player = newPlayer
-    }
-
     override fun onCreate() {
         super.onCreate()
-        observeDecoderMode()
         val renderersFactory = NextRenderersFactory(applicationContext)
             .setEnableDecoderFallback(playerPreferences.decoderMode == DecoderMode.AUTO)
             .setExtensionRendererMode(
@@ -687,8 +593,8 @@ class PlayerService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        val player = mediaSession?.player!!
-        if (!player.playWhenReady || player.mediaItemCount == 0 || player.playbackState == Player.STATE_ENDED) {
+        val player = mediaSession?.player
+        if (player == null || !player.playWhenReady || player.mediaItemCount == 0 || player.playbackState == Player.STATE_ENDED) {
             stopSelf()
         }
     }
@@ -717,6 +623,7 @@ class PlayerService : MediaSessionService() {
             async {
                 val uri = mediaItem.mediaId.toUri()
                 val video = mediaRepository.getVideoByUri(uri = mediaItem.mediaId)
+                val audio = if (video == null) musicRepository.getTrack(mediaItem.mediaId) else null
                 val videoState = mediaRepository.getVideoState(uri = mediaItem.mediaId)
 
                 val externalSubs = videoState?.externalSubs ?: emptyList()
@@ -735,10 +642,17 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                // Use placeholder artwork initially - actual artwork will be loaded in background
-                val artworkUri = getDefaultArtworkUri()
-
-                val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
+                // Keep metadata supplied by the caller. Music items carry artist/album artwork
+                // here, while video items get the normal Graviton artwork fallback.
+                val artworkUri = mediaItem.mediaMetadata.artworkUri
+                    ?: audio?.artworkUriString?.toUri()
+                    ?: getDefaultArtworkUri()
+                val title = mediaItem.mediaMetadata.title
+                    ?: video?.nameWithExtension
+                    ?: audio?.displayTitle
+                    ?: getFilenameFromUri(uri)
+                val artist = mediaItem.mediaMetadata.artist ?: audio?.displayArtist
+                val albumTitle = mediaItem.mediaMetadata.albumTitle ?: audio?.displayAlbum
                 val positionMs = mediaItem.mediaMetadata.positionMs ?: videoState?.position
                 val videoScale = mediaItem.mediaMetadata.videoZoom ?: videoState?.videoScale
                 val playbackSpeed = mediaItem.mediaMetadata.playbackSpeed ?: videoState?.playbackSpeed
@@ -752,6 +666,8 @@ class PlayerService : MediaSessionService() {
                     setMediaMetadata(
                         MediaMetadata.Builder().apply {
                             setTitle(title)
+                            artist?.let { setArtist(it) }
+                            albumTitle?.let { setAlbumTitle(it) }
                             setArtworkUri(artworkUri)
                             setExtras(
                                 positionMs = positionMs,

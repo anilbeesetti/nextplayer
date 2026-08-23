@@ -199,12 +199,14 @@ internal fun MediaPickerScreen(
 
     val selectedItemsSize = selectionManager.selectionItems.size
     val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
+    val mediaHolderForFab = (uiState.mediaDataState as? DataState.Success)?.value
+    val canPlayAll = mediaHolderForFab?.videos?.isNotEmpty() == true
 
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = {
-                    val titleText = (uiState.folderName ?: stringResource(R.string.app_name))
+                    val titleText = (uiState.folderName ?: stringResource(R.string.folders))
                         .takeIf { !selectionManager.isInSelectionMode } ?: ""
                     val isRootScreen = uiState.folderName == null && !selectionManager.isInSelectionMode
                     Text(
@@ -293,6 +295,27 @@ internal fun MediaPickerScreen(
                             Icon(
                                 imageVector = NextIcons.Search,
                                 contentDescription = stringResource(id = R.string.search),
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                onAction(
+                                    MediaPickerAction.UpdateMenu(
+                                        uiState.preferences.copy(
+                                            mediaLayoutMode = if (uiState.preferences.mediaLayoutMode == MediaLayoutMode.LIST) {
+                                                MediaLayoutMode.GRID
+                                            } else {
+                                                MediaLayoutMode.LIST
+                                            },
+                                        ),
+                                    ),
+                                )
+                            },
+                            modifier = topBarDownModifier.tvFocusRing(isTv),
+                        ) {
+                            Icon(
+                                imageVector = if (uiState.preferences.mediaLayoutMode == MediaLayoutMode.LIST) NextIcons.Grid else NextIcons.List,
+                                contentDescription = stringResource(R.string.media_layout),
                             )
                         }
                         IconButton(
@@ -408,6 +431,24 @@ internal fun MediaPickerScreen(
                     }
                 },
             ) {
+                if (canPlayAll) {
+                    FloatingActionButtonMenuItem(
+                        modifier = Modifier.tvFocusRing(isTv),
+                        onClick = {
+                            isFabExpanded = false
+                            val items = mediaHolderForFab?.videos.orEmpty().map { video ->
+                                SelectionItem.Video(video.displayName, video.uriString, video.path)
+                            }.toSet()
+                            onAction(MediaPickerAction.PlaySelectedItems(items))
+                        },
+                        icon = {
+                            Icon(NextIcons.Play, contentDescription = null)
+                        },
+                        text = {
+                            Text(text = stringResource(id = R.string.play_all))
+                        },
+                    )
+                }
                 FloatingActionButtonMenuItem(
                     // Top-most menu item: up exits the menu back to the last media item.
                     modifier = Modifier
@@ -482,6 +523,11 @@ internal fun MediaPickerScreen(
             }
         } else when (uiState.mediaDataState) {
             is DataState.Error -> {
+                MediaLoadError(
+                    error = uiState.mediaDataState.error,
+                    onRetry = { onAction(MediaPickerAction.Refresh) },
+                    modifier = Modifier.padding(scaffoldPadding),
+                )
             }
 
             is DataState.Loading -> {
@@ -639,6 +685,41 @@ internal fun MediaPickerScreen(
                 selectionManager.exitSelectionMode()
             },
         )
+    }
+}
+
+@Composable
+private fun MediaLoadError(
+    error: Throwable?,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxSize().padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = NextIcons.Priority,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.error,
+        )
+        Spacer(Modifier.size(12.dp))
+        Text(
+            text = stringResource(R.string.error_loading_media),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = error?.message ?: stringResource(R.string.unknown_error),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        TextButton(onClick = onRetry, modifier = Modifier.padding(top = 8.dp)) {
+            Text(stringResource(R.string.retry))
+        }
     }
 }
 

@@ -17,10 +17,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.util.Consumer
-import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -45,6 +43,7 @@ import com.graviton.feature.player.service.stopPlayerSession
 import com.graviton.feature.player.utils.PlayerApi
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,15 +69,22 @@ class PlayerActivity : ComponentActivity() {
     private var playInBackground: Boolean = false
     private var isIntentNew: Boolean = true
 
+    private val keepSessionOnClose: Boolean
+        get() = intent.getBooleanExtra(PlayerApi.API_KEEP_SESSION, false)
+
     /**
      * Player
      */
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
+    private var controllerConnectionJob: Job? = null
+    private var playbackJob: Job? = null
+    private var playbackGeneration: Long = 0L
+    private var renderedController: MediaController? by mutableStateOf(null)
     private lateinit var playerApi: PlayerApi
 
     /**
-     * Listeners
+    * Listeners
      */
     private val playbackStateListener: Player.Listener = playbackStateListener()
 
@@ -91,20 +97,14 @@ class PlayerActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
 
+        // Initialise the API before any lifecycle callback can start playback. The view observes
+        // renderedController, which is assigned only after the single MediaController future has
+        // resolved; this prevents an empty/stale surface host during rapid navigation.
+        playerApi = PlayerApi(this)
+
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            var player by remember { mutableStateOf<MediaController?>(null) }
-
-            LifecycleStartEffect(Unit) {
-                maybeInitControllerFuture()
-                lifecycleScope.launch {
-                    player = controllerFuture?.await()
-                }
-
-                onStopOrDispose {
-                    player = null
-                }
-            }
+            val player = renderedController
 
             CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
                 GravitonTheme(darkTheme = true) {
@@ -136,7 +136,9 @@ class PlayerActivity : ComponentActivity() {
                                 controllerFuture?.await()?.addSubtitleTrack(uri)
                             }
                         },
-                        onBackClick = { finishAndStopPlayerSession() },
+                        onBackClick = {
+                            if (keepSessionOnClose) finish() else finishAndStopPlayerSession()
+                        },
                         onPlayInBackgroundClick = {
                             playInBackground = true
                             finish()
@@ -145,45 +147,53 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
         }
-
-        playerApi = PlayerApi(this)
     }
 
     override fun onStart() {
         super.onStart()
-        lifecycleScope.launch {
+        controllerConnectionJob?.cancel()
+        controllerConnectionJob = lifecycleScope.launch {
             maybeInitControllerFuture()
-            mediaController = controllerFuture?.await()
-
-            mediaController?.run {
-                updateKeepScreenOnFlag()
-                addListener(playbackStateListener)
-                startPlayback()
-            }
+            val controller = controllerFuture?.await() ?: return@launch
+            // onStop may have happened while await() was suspended.
+            if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
+            mediaController = controller
+            renderedController = controller
+            controller.updateKeepScreenOnFlag()
+            controller.addListener(playbackStateListener)
+            startPlayback()
         }
     }
 
     override fun onStop() {
-        mediaController?.run {
-            viewModel.playWhenReady = playWhenReady
-            removeListener(playbackStateListener)
+        controllerConnectionJob?.cancel()
+        controllerConnectionJob = null
+        playbackJob?.cancel()
+        playbackJob = null
+
+        val controller = mediaController
+        controller?.let {
+            viewModel.playWhenReady = it.playWhenReady
+            it.removeListener(playbackStateListener)
         }
-        val shouldPlayInBackground = playInBackground || playerPreferences?.autoBackgroundPlay == true
+        val shouldPlayInBackground = playInBackground || keepSessionOnClose || playerPreferences?.autoBackgroundPlay == true
         if (subtitleFileSuspendLauncher.isAwaitingResult || !shouldPlayInBackground) {
-            mediaController?.pause()
+            controller?.pause()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
             finish()
-            if (!shouldPlayInBackground) {
-                mediaController?.stopPlayerSession()
-            }
+            if (!shouldPlayInBackground) controller?.stopPlayerSession()
         }
 
-        controllerFuture?.run {
-            MediaController.releaseFuture(this)
-            controllerFuture = null
-        }
+        // Detach the session from the old rendering target before releasing the controller. This
+        // is the important lifecycle edge: a new Activity must not inherit a surface whose
+        // BufferQueue belongs to the previous window.
+        controller?.clearVideoSurface()
+        renderedController = null
+        mediaController = null
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        controllerFuture = null
         super.onStop()
     }
 
@@ -214,12 +224,14 @@ class PlayerActivity : ComponentActivity() {
 
         isIntentNew = false
 
-        lifecycleScope.launch {
-            playVideo(uri)
+        playbackJob?.cancel()
+        val requestGeneration = ++playbackGeneration
+        playbackJob = lifecycleScope.launch {
+            playVideo(uri, requestGeneration)
         }
     }
 
-    private suspend fun playVideo(uri: Uri) = withContext(Dispatchers.Default) {
+    private suspend fun playVideo(uri: Uri, requestGeneration: Long) = withContext(Dispatchers.Default) {
         val mediaContentUri = getMediaContentUri(uri)
         val playlist = playerApi.getPlaylist().takeIf { it.isNotEmpty() }
             ?: mediaContentUri?.let { mediaUri ->
@@ -261,6 +273,7 @@ class PlayerActivity : ComponentActivity() {
         }
 
         withContext(Dispatchers.Main) {
+            if (requestGeneration != playbackGeneration || !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@withContext
             mediaController?.run {
                 setMediaItems(mediaItems, mediaItemIndexToPlay, playerApi.position?.toLong() ?: C.TIME_UNSET)
                 playWhenReady = viewModel.playWhenReady
@@ -319,6 +332,7 @@ class PlayerActivity : ComponentActivity() {
         super.onNewIntent(intent)
         if (intent.data != null) {
             setIntent(intent)
+            playerApi = PlayerApi(this)
             isIntentNew = true
             if (mediaController != null) {
                 startPlayback()

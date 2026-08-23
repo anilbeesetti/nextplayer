@@ -27,7 +27,9 @@ fun VideoContentScale.toContentScale(): ContentScale = when (this) {
     VideoContentScale.BEST_FIT -> ContentScale.Fit
     VideoContentScale.STRETCH -> ContentScale.FillBounds
     VideoContentScale.CROP -> ContentScale.Crop
-    VideoContentScale.HUNDRED_PERCENT -> FixedScale(1.0f) // TODO: fix this
+    // `resizeWithContentScale` uses the presentation size, so a unit fixed scale is the
+    // intentional 1:1 (100 percent) mode.
+    VideoContentScale.HUNDRED_PERCENT -> FixedScale(1.0f)
     VideoContentScale.SIXTEEN_NINE -> ContentScale.FillBounds // Pseudo
     VideoContentScale.FOUR_THREE -> ContentScale.FillBounds // Pseudo
 }
