@@ -478,4 +478,6 @@
     <string name="show_music_tab">Show "Music" Tab</string>
     <string name="pure_black_theme">AMOLED Pure Black Theme</string>
     <string name="pure_black_theme_desc">Use #000000 instead of standard dark background</string>
+    <string name="decrease_speed">Decrease speed</string>
+    <string name="increase_speed">Increase speed</string>
 </resources>
