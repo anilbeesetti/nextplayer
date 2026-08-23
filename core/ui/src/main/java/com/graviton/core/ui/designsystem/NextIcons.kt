@@ -41,6 +41,7 @@ import androidx.compose.material.icons.rounded.FolderOff
 import androidx.compose.material.icons.rounded.FontDownload
 import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.FormatSize
+import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material.icons.rounded.HeadsetOff
 import androidx.compose.material.icons.rounded.HideSource
@@ -63,9 +64,12 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PanToolAlt
 import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.Pinch
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.PriorityHigh
+import androidx.compose.material.icons.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.ResetTv
@@ -88,6 +92,7 @@ import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.ViewList
 
 object NextIcons {
     val Add = Icons.Rounded.Add
@@ -134,8 +139,11 @@ object NextIcons {
     val Pip = Icons.Rounded.PictureInPictureAlt
     val Pinch = Icons.Rounded.Pinch
     val Play = Icons.Rounded.PlayArrow
+    val Pause = Icons.Rounded.Pause
     val Player = Icons.Rounded.PlayCircle
     val Playlist = Icons.AutoMirrored.Rounded.PlaylistPlay
+    val QueueMusic = Icons.Rounded.QueueMusic
+    val Shuffle = Icons.Rounded.Shuffle
     val PlaylistAdd = Icons.AutoMirrored.Rounded.PlaylistAdd
     val Priority = Icons.Rounded.PriorityHigh
     val Replay = Icons.Rounded.Replay10
@@ -175,6 +183,8 @@ object NextIcons {
     val DeleteSweep = Icons.Rounded.DeleteSweep
     val Image = Icons.Rounded.Image
     val Frame = Icons.Rounded.FilterFrames
+    val Grid = Icons.Rounded.GridView
+    val List = Icons.Rounded.ViewList
     val Lock = Icons.Rounded.Lock
     val DragHandle = Icons.Rounded.DragHandle
     val Reorder = Icons.Rounded.SwapVert

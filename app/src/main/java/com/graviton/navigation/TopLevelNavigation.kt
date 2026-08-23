@@ -49,7 +49,6 @@ import com.graviton.core.ui.designsystem.NextIcons
 import com.graviton.feature.network.navigation.NetworkRoute
 import com.graviton.feature.playlist.navigation.PlaylistListRoute
 import com.graviton.feature.videopicker.navigation.MediaPickerRoute
-// Added placeholder for music route
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -66,7 +65,7 @@ enum class TopLevelDestination(
 ) {
     MEDIA(MediaPickerRoute(), NextIcons.Home, R.string.home),
     PLAYLISTS(PlaylistListRoute, NextIcons.Playlist, R.string.playlists),
-    MUSIC(MusicRoute, NextIcons.Audio, R.string.audio), // Added MUSIC
+    MUSIC(MusicRoute, NextIcons.Audio, R.string.music),
     NETWORK(NetworkRoute, NextIcons.Network, R.string.network),
 }
 

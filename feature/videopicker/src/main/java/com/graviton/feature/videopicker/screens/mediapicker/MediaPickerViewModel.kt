@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -158,15 +159,20 @@ class MediaPickerViewModel @AssistedInject constructor(
                 getRecentlyPlayedVideoUseCase.invoke(folderPath),
             ) { media, recentlyPlayed ->
                 media to recentlyPlayed
-            }.collect { (media, recentlyPlayed) ->
-                uiStateInternal.update { currentState ->
-                    currentState.copy(
-                        mediaDataState = DataState.Success(media),
-                        recentlyPlayedVideo = recentlyPlayed,
-                        recentlyPlayedFolder = recentlyPlayed?.let { media?.folders?.findClosestFolder(it.path) }
-                    )
-                }
             }
+                .catch { error ->
+                    if (error is kotlinx.coroutines.CancellationException) throw error
+                    uiStateInternal.update { it.copy(mediaDataState = DataState.Error(error)) }
+                }
+                .collect { (media, recentlyPlayed) ->
+                    uiStateInternal.update { currentState ->
+                        currentState.copy(
+                            mediaDataState = DataState.Success(media),
+                            recentlyPlayedVideo = recentlyPlayed,
+                            recentlyPlayedFolder = recentlyPlayed?.let { media?.folders?.findClosestFolder(it.path) },
+                        )
+                    }
+                }
         }
     }
 
@@ -415,8 +421,11 @@ class MediaPickerViewModel @AssistedInject constructor(
     private fun refresh() {
         viewModelScope.launch {
             uiStateInternal.update { it.copy(refreshing = true) }
-            mediaSynchronizer.refresh()
+            runCatching { mediaSynchronizer.refresh() }
             uiStateInternal.update { it.copy(refreshing = false) }
+            // A failed collection is terminal for a Flow. Restarting it here also makes the
+            // retry action deterministic instead of leaving the screen stuck on Loading.
+            collectMedia()
         }
     }
 

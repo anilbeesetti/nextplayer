@@ -74,18 +74,6 @@ fun BoxScope.OverlayShowView(
         show = overlayView == OverlayView.PLAYLIST,
         player = player,
     )
-    ToolsPanelView(
-        show = overlayView == OverlayView.TOOLS_PANEL,
-        onDismiss = onDismiss,
-        onVideoContentScaleClick = {
-            // we could switch to video content scale view but we are inside an overlay
-            // to keep it simple, just dismiss
-            onDismiss()
-        },
-        onPlaybackSpeedClick = {
-            onDismiss()
-        }
-    )
 }
 
 val Configuration.isPortrait: Boolean
