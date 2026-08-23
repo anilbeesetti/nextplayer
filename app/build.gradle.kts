@@ -105,6 +105,8 @@ dependencies {
     implementation(project(":feature:network"))
     implementation(project(":feature:playlist"))
     implementation(project(":feature:videopicker"))
+    implementation(project(":feature:music"))
+
     implementation(project(":feature:player"))
     implementation(project(":feature:settings"))
 
