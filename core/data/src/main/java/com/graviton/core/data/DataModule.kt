@@ -11,7 +11,9 @@ import com.graviton.core.data.repository.LocalPlaylistRepository
 import com.graviton.core.data.repository.LocalSearchHistoryRepository
 import com.graviton.core.data.repository.LocalVaultPinRepository
 import com.graviton.core.data.repository.LocalVaultRepository
+import com.graviton.core.data.repository.LocalMusicRepository
 import com.graviton.core.data.repository.MediaRepository
+import com.graviton.core.data.repository.MusicRepository
 import com.graviton.core.data.repository.NetworkConnectionRepository
 import com.graviton.core.data.repository.PreferencesRepository
 import com.graviton.core.data.repository.PlaylistRepository

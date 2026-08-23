@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.util.Consumer
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -159,7 +160,7 @@ class PlayerActivity : ComponentActivity() {
             if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
             mediaController = controller
             renderedController = controller
-            controller.updateKeepScreenOnFlag()
+            updateKeepScreenOnFlag()
             controller.addListener(playbackStateListener)
             startPlayback()
         }
