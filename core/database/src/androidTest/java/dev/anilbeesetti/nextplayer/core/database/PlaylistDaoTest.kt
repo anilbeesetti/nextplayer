@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
 import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -72,7 +73,7 @@ class PlaylistDaoTest {
         val firstId = dao.createPlaylist("First", listOf("content://one", "content://missing"))
         val secondId = dao.createPlaylist("Second", listOf("content://missing", "content://two"))
 
-        dao.removeMissingItems(setOf("content://one", "content://two"))
+        dao.removeMissingLocalItems(setOf("content://one", "content://two"))
 
         assertEquals(listOf("content://one"), dao.getItems(firstId).map { it.uri })
         assertEquals(listOf("content://two"), dao.getItems(secondId).map { it.uri })
@@ -105,7 +106,7 @@ class PlaylistDaoTest {
     }
 
     @Test
-    fun playlistItemTableStoresOnlyIdentityOrderAndPlaybackTimestamp() {
+    fun playlistItemTableStoresIdentityMetadataAndPlaybackTimestamp() {
         val columns = database.openHelper.readableDatabase
             .query("PRAGMA table_info(`playlist_item`)")
             .use { cursor ->
@@ -114,7 +115,91 @@ class PlaylistDaoTest {
                 }
             }
 
-        assertEquals(setOf("playlist_id", "uri", "position", "last_played_at"), columns)
+        assertEquals(
+            setOf(
+                "playlist_id",
+                "uri",
+                "position",
+                "title",
+                "tvg_logo",
+                "duration",
+                "group_title",
+                "last_played_at",
+            ),
+            columns,
+        )
+    }
+
+    @Test
+    fun linkedRefreshReplacesMetadataAndPreservesMatchingPlaybackHistory() = runTest {
+        val playlistId = dao.createM3UPlaylist(
+            playlist = PlaylistEntity(
+                name = "Channels",
+                type = "M3U_URL",
+                source = "https://example.com/list.m3u",
+            ),
+            items = listOf(
+                PlaylistItemEntity(0, "https://example.com/one", 0, title = "Before"),
+                PlaylistItemEntity(0, "https://example.com/removed", 1),
+            ),
+        )
+        dao.markItemPlayed(playlistId, "https://example.com/one", playedAt = 123)
+
+        dao.replaceM3UItems(
+            playlistId = playlistId,
+            items = listOf(
+                PlaylistItemEntity(
+                    playlistId = 0,
+                    uri = "https://example.com/new",
+                    position = 0,
+                    title = "New",
+                ),
+                PlaylistItemEntity(
+                    playlistId = 0,
+                    uri = "https://example.com/one",
+                    position = 1,
+                    title = "After",
+                    tvgLogo = "https://example.com/logo.png",
+                    duration = 42,
+                    groupTitle = "News",
+                ),
+            ),
+            refreshedAt = 999,
+        )
+
+        val playlist = dao.getPlaylist(playlistId)
+        assertEquals(999L, playlist?.playlist?.lastRefreshedAt)
+        assertEquals(
+            listOf("https://example.com/new", "https://example.com/one"),
+            playlist?.items?.sortedBy { it.position }?.map { it.uri },
+        )
+        val retained = playlist?.items?.single { it.uri.endsWith("/one") }
+        assertEquals("After", retained?.title)
+        assertEquals("https://example.com/logo.png", retained?.tvgLogo)
+        assertEquals(42, retained?.duration)
+        assertEquals("News", retained?.groupTitle)
+        assertEquals(123L, retained?.lastPlayedAt)
+    }
+
+    @Test
+    fun missingMediaCleanupIgnoresLinkedPlaylists() = runTest {
+        val linkedId = dao.createM3UPlaylist(
+            playlist = PlaylistEntity(
+                name = "Channels",
+                type = "M3U_URL",
+                source = "https://example.com/list.m3u",
+            ),
+            items = listOf(
+                PlaylistItemEntity(0, "https://example.com/live", 0),
+            ),
+        )
+
+        dao.removeMissingLocalItems(emptySet())
+
+        assertEquals(
+            listOf("https://example.com/live"),
+            dao.getItems(linkedId).map { it.uri },
+        )
     }
 
     @Test

@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.Assert.assertEquals
@@ -36,7 +37,7 @@ class PlaylistListScreenTest {
 
         composeRule.onNodeWithContentDescription("Create playlist").performClick()
 
-        assertEquals(listOf(PlaylistUiAction.ShowCreateDialog), actions)
+        assertEquals(listOf(PlaylistUiAction.ShowCreationChooser), actions)
     }
 
     @Test
@@ -48,7 +49,7 @@ class PlaylistListScreenTest {
                 PlaylistListScreen(
                     uiState = PlaylistListUiState(
                         playlistsDataState = DataState.Success(emptyList()),
-                        showCreateDialog = true,
+                        creationDialog = PlaylistCreationDialog.LOCAL_NAME,
                     ),
                     onAction = actions::add,
                 )
@@ -58,13 +59,31 @@ class PlaylistListScreenTest {
         composeRule.onNodeWithText("Playlist name").performTextInput("Movies")
         composeRule.onNodeWithText("Create").performClick()
 
-        assertEquals(listOf(PlaylistUiAction.Create("Movies")), actions)
+        assertEquals(listOf(PlaylistUiAction.CreateLocal("Movies")), actions)
         composeRule.onAllNodesWithText("M3U URL").assertCountEquals(0)
     }
 
     @Test
+    fun creationChooserOffersLocalUrlAndFileSources() {
+        composeRule.setContent {
+            NextPlayerTheme {
+                PlaylistListScreen(
+                    uiState = PlaylistListUiState(
+                        playlistsDataState = DataState.Success(emptyList()),
+                        creationDialog = PlaylistCreationDialog.CHOOSER,
+                    ),
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Create local playlist").assertIsDisplayed()
+        composeRule.onNodeWithText("Add M3U playlist from URL").assertIsDisplayed()
+        composeRule.onNodeWithText("Add M3U playlist from file").assertIsDisplayed()
+    }
+
+    @Test
     fun rowShowsLocalCountAndEmitsRenameAction() {
-        val playlist = PlaylistSummary(7, "Movies", 2)
+        val playlist = playlistSummary()
         val actions = mutableListOf<PlaylistUiAction>()
 
         composeRule.setContent {
@@ -89,7 +108,7 @@ class PlaylistListScreenTest {
 
     @Test
     fun deleteDialogEmitsDeleteAction() {
-        val playlist = PlaylistSummary(7, "Movies", 2)
+        val playlist = playlistSummary()
         val actions = mutableListOf<PlaylistUiAction>()
 
         composeRule.setContent {
@@ -124,3 +143,11 @@ class PlaylistListScreenTest {
         composeRule.onNodeWithText("No playlists yet").assertIsDisplayed()
     }
 }
+
+private fun playlistSummary() = PlaylistSummary(
+    id = 7,
+    name = "Movies",
+    type = PlaylistType.LOCAL,
+    itemCount = 2,
+    lastRefreshedAt = null,
+)

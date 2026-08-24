@@ -12,6 +12,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -73,7 +74,15 @@ class MediaPickerScreenTest {
                 MediaPickerScreen(
                     uiState = MediaPickerUiState(
                         folderName = null,
-                        playlists = listOf(PlaylistSummary(7, "Movies", 2)),
+                        playlists = listOf(
+                            PlaylistSummary(
+                                id = 7,
+                                name = "Movies",
+                                type = PlaylistType.LOCAL,
+                                itemCount = 2,
+                                lastRefreshedAt = null,
+                            ),
+                        ),
                         addToPlaylistState = AddToPlaylistState(
                             isVisible = true,
                             hasVideos = true,

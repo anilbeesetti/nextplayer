@@ -401,6 +401,21 @@
     <!-- Playlists -->
     <string name="playlists">Playlists</string>
     <string name="create_playlist">Create playlist</string>
+    <string name="choose_playlist_type">Create a playlist</string>
+    <string name="create_local_playlist">Create local playlist</string>
+    <string name="add_m3u_url_playlist">Add M3U playlist from URL</string>
+    <string name="add_m3u_file_playlist">Add M3U playlist from file</string>
+    <string name="playlist_url">M3U URL</string>
+    <string name="url_required">Enter an M3U URL.</string>
+    <string name="invalid_url">Enter a valid HTTP or HTTPS URL.</string>
+    <string name="m3u_url_playlist">M3U URL</string>
+    <string name="m3u_file_playlist">M3U File</string>
+    <string name="m3u_file_permission_failed">Couldn\'t keep access to this file. Choose it again or use another file.</string>
+    <string name="refresh_playlist">Refresh playlist</string>
+    <string name="refreshing_playlist">Refreshing playlist</string>
+    <string name="playlist_refresh_succeeded">Playlist refreshed.</string>
+    <string name="playlist_refresh_failed">Couldn\'t refresh playlist. The saved items are unchanged.</string>
+    <string name="last_refreshed">Last refreshed %1$s</string>
     <string name="rename_playlist">Rename playlist</string>
     <string name="playlist_name">Playlist name</string>
     <string name="create">Create</string>
@@ -408,7 +423,7 @@
     <string name="name_required">Enter a playlist name.</string>
     <string name="saving_playlist">Saving playlist…</string>
     <string name="no_playlists_title">No playlists yet</string>
-    <string name="no_playlists_description">Create a playlist, then select local videos from Home to add them.</string>
+    <string name="no_playlists_description">Create a local playlist or add an M3U source to start watching.</string>
     <string name="local_playlist">Local</string>
     <string name="delete_playlist">Delete playlist</string>
     <string name="delete_playlist_confirmation">Delete “%1$s” and its saved order?</string>

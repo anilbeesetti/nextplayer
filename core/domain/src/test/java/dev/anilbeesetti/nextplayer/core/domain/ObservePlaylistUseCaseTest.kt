@@ -2,9 +2,12 @@ package dev.anilbeesetti.nextplayer.core.domain
 
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
+import dev.anilbeesetti.nextplayer.core.model.M3UPlaylist
+import dev.anilbeesetti.nextplayer.core.model.M3UPlaylistItem
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItemRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.model.Video
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -23,11 +26,14 @@ class ObservePlaylistUseCaseTest {
             PlaylistRecord(
                 id = 7,
                 name = "Movies",
+                type = PlaylistType.LOCAL,
+                source = null,
                 items = listOf(
                     PlaylistItemRecord(0, "content://two", lastPlayedAt = 200),
                     PlaylistItemRecord(1, "content://missing", lastPlayedAt = 300),
                     PlaylistItemRecord(2, "content://one", lastPlayedAt = 100),
                 ),
+                lastRefreshedAt = null,
             ),
         )
         val mediaRepository = FakeMediaRepository().apply {
@@ -37,11 +43,11 @@ class ObservePlaylistUseCaseTest {
 
         val playlist = ObservePlaylistUseCase(playlistRepository, mediaRepository)(7).first()
 
-        assertEquals(listOf("Two", "One"), playlist?.items?.map { it.video.displayName })
-        assertEquals(listOf("/Downloads", "/Movies"), playlist?.items?.map { it.video.parentPath })
+        assertEquals(listOf("Two", "One"), playlist?.items?.map { it.video?.displayName })
+        assertEquals(listOf("/Downloads", "/Movies"), playlist?.items?.map { it.video?.parentPath })
         assertEquals(listOf(0, 1), playlist?.items?.map { it.position })
         assertEquals(listOf(200L, 100L), playlist?.items?.map { it.lastPlayedAt })
-        assertEquals("content://two", playlist?.lastPlayedVideo?.uriString)
+        assertEquals("content://two", playlist?.lastPlayedItem?.uri)
     }
 
     @Test
@@ -50,7 +56,10 @@ class ObservePlaylistUseCaseTest {
             PlaylistRecord(
                 id = 7,
                 name = "Movies",
+                type = PlaylistType.LOCAL,
+                source = null,
                 items = listOf(PlaylistItemRecord(0, "content://one")),
+                lastRefreshedAt = null,
             ),
         )
         val mediaRepository = FakeMediaRepository().apply {
@@ -88,7 +97,17 @@ private class FakePlaylistRepository(
         MutableStateFlow(emptyList())
 
     override fun observePlaylist(playlistId: Long): Flow<PlaylistRecord?> = record
+    override suspend fun getPlaylist(playlistId: Long): PlaylistRecord? = record.value
     override suspend fun create(name: String, videoUris: List<String>): Long = error("Not used")
+    override suspend fun createM3U(
+        type: PlaylistType,
+        source: String,
+        playlist: M3UPlaylist,
+    ): Long = error("Not used")
+    override suspend fun replaceM3UItems(
+        playlistId: Long,
+        items: List<M3UPlaylistItem>,
+    ) = error("Not used")
     override suspend fun rename(playlistId: Long, name: String) = error("Not used")
     override suspend fun delete(playlistId: Long) = error("Not used")
     override suspend fun addVideos(playlistId: Long, videoUris: List<String>): Int = error("Not used")
@@ -96,6 +115,7 @@ private class FakePlaylistRepository(
     override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) = error("Not used")
     override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) = error("Not used")
     override suspend fun removeMissingVideos(existingUris: Set<String>) = error("Not used")
+    override suspend fun countFilePlaylistsBySource(source: String): Int = 0
 }
 
 private fun video(

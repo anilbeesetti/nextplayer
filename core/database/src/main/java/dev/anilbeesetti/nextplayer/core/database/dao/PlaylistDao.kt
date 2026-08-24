@@ -18,7 +18,8 @@ interface PlaylistDao {
 
     @Query(
         """
-        SELECT playlist.id, playlist.name, COUNT(playlist_item.uri) AS item_count
+        SELECT playlist.id, playlist.name, playlist.type, playlist.last_refreshed_at,
+            COUNT(playlist_item.uri) AS item_count
         FROM playlist
         LEFT JOIN playlist_item ON playlist.id = playlist_item.playlist_id
         GROUP BY playlist.id
@@ -30,6 +31,13 @@ interface PlaylistDao {
     @Transaction
     @Query("SELECT * FROM playlist WHERE id = :playlistId")
     fun observePlaylist(playlistId: Long): Flow<PlaylistWithItems?>
+
+    @Transaction
+    @Query("SELECT * FROM playlist WHERE id = :playlistId")
+    suspend fun getPlaylist(playlistId: Long): PlaylistWithItems?
+
+    @Query("SELECT * FROM playlist WHERE id = :playlistId")
+    suspend fun getPlaylistEntity(playlistId: Long): PlaylistEntity?
 
     @Query("SELECT * FROM playlist_item WHERE playlist_id = :playlistId ORDER BY position")
     suspend fun getItems(playlistId: Long): List<PlaylistItemEntity>
@@ -51,6 +59,21 @@ interface PlaylistDao {
 
     @Query("DELETE FROM playlist_item WHERE playlist_id = :playlistId AND uri = :uri")
     suspend fun deleteItem(playlistId: Long, uri: String)
+
+    @Query("DELETE FROM playlist_item WHERE playlist_id = :playlistId")
+    suspend fun deleteItemsForPlaylist(playlistId: Long)
+
+    @Query(
+        """
+        UPDATE playlist
+        SET last_refreshed_at = :refreshedAt
+        WHERE id = :playlistId
+        """,
+    )
+    suspend fun updateLastRefreshedAt(playlistId: Long, refreshedAt: Long)
+
+    @Query("SELECT COUNT(*) FROM playlist WHERE type = :type AND source = :source")
+    suspend fun countPlaylistsByTypeAndSource(type: String, source: String): Int
 
     @Query(
         """
@@ -75,6 +98,44 @@ interface PlaylistDao {
         val playlistId = insertPlaylist(PlaylistEntity(name = name))
         addItems(playlistId, uris)
         return playlistId
+    }
+
+    @Transaction
+    suspend fun createM3UPlaylist(
+        playlist: PlaylistEntity,
+        items: List<PlaylistItemEntity>,
+    ): Long {
+        val playlistId = insertPlaylist(playlist)
+        insertItems(items.map { it.copy(playlistId = playlistId) })
+        return playlistId
+    }
+
+    @Transaction
+    suspend fun replaceM3UItems(
+        playlistId: Long,
+        items: List<PlaylistItemEntity>,
+        refreshedAt: Long,
+    ) {
+        require(getPlaylistEntity(playlistId)?.type in LINKED_PLAYLIST_TYPES) {
+            "Only linked playlists can be refreshed"
+        }
+        val playedAtByUri = getItems(playlistId).associate { it.uri to it.lastPlayedAt }
+        deleteItemsForPlaylist(playlistId)
+        insertItems(
+            items.map { item ->
+                item.copy(
+                    playlistId = playlistId,
+                    lastPlayedAt = playedAtByUri[item.uri],
+                )
+            },
+        )
+        updateLastRefreshedAt(playlistId, refreshedAt)
+    }
+
+    suspend fun requireLocalPlaylist(playlistId: Long) {
+        require(getPlaylistEntity(playlistId)?.type == LOCAL_PLAYLIST_TYPE) {
+            "Only local playlists can be edited"
+        }
     }
 
     @Transaction
@@ -130,8 +191,11 @@ interface PlaylistDao {
     }
 
     @Transaction
-    suspend fun removeMissingItems(existingUris: Set<String>) {
-        val missingItems = getAllItems().filter { it.uri !in existingUris }
+    suspend fun removeMissingLocalItems(existingUris: Set<String>) {
+        val localPlaylistIds = getLocalPlaylistIds().toSet()
+        val missingItems = getAllItems().filter {
+            it.playlistId in localPlaylistIds && it.uri !in existingUris
+        }
         if (missingItems.isEmpty()) return
 
         deleteItems(missingItems)
@@ -146,5 +210,13 @@ interface PlaylistDao {
 
         shiftPositions(playlistId, items.size + 1)
         updateItems(items.mapIndexed { position, item -> item.copy(position = position) })
+    }
+
+    @Query("SELECT id FROM playlist WHERE type = 'LOCAL'")
+    suspend fun getLocalPlaylistIds(): List<Long>
+
+    companion object {
+        private const val LOCAL_PLAYLIST_TYPE = "LOCAL"
+        private val LINKED_PLAYLIST_TYPES = setOf("M3U_URL", "M3U_FILE")
     }
 }

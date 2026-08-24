@@ -2,17 +2,21 @@ package dev.anilbeesetti.nextplayer.feature.playlist.screens.detail
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
+import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.domain.ObservePlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
+import dev.anilbeesetti.nextplayer.core.model.M3UPlaylist
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.ActionState
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -29,6 +33,7 @@ import kotlinx.coroutines.launch
 class PlaylistDetailViewModel @AssistedInject constructor(
     observePlaylist: ObservePlaylistUseCase,
     private val playlistRepository: PlaylistRepository,
+    private val m3uParser: M3UParser,
     private val syncPlaylistsWithMedia: SyncPlaylistsWithMediaUseCase,
     private val systemService: SystemService,
     @Assisted private val input: Input,
@@ -36,12 +41,12 @@ class PlaylistDetailViewModel @AssistedInject constructor(
 ) : MviViewModel<PlaylistDetailUiState, PlaylistDetailUiAction>() {
 
     data class Input(
-        val playlistId: Long
+        val playlistId: Long,
     )
 
     data class Output(
         val navigateUp: () -> Unit,
-        val playVideos: (uris: List<Uri>, startUri: Uri) -> Unit,
+        val playPlaylist: (playlistId: Long, startUri: Uri) -> Unit,
     )
 
     @AssistedFactory
@@ -56,6 +61,7 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     override val state: StateFlow<PlaylistDetailUiState> = internalState.asStateFlow()
 
     private var syncJob: Job? = null
+    private var refreshJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -64,7 +70,8 @@ class PlaylistDetailViewModel @AssistedInject constructor(
                     currentState.copy(
                         playlistDataState = DataState.Success(playlist),
                         isReordering = currentState.isReordering &&
-                            (playlist?.items?.size ?: 0) > 1,
+                            playlist?.type == PlaylistType.LOCAL &&
+                            playlist.items.size > 1,
                     )
                 }
             }
@@ -74,30 +81,32 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     override fun onAction(action: PlaylistDetailUiAction) {
         when (action) {
             PlaylistDetailUiAction.OnNavigateUpClick -> output.navigateUp()
-            PlaylistDetailUiAction.OnSearchClick -> internalState.update { currentState ->
-                currentState.copy(isSearching = true, isReordering = false)
+            PlaylistDetailUiAction.OnSearchClick -> internalState.update {
+                it.copy(isSearching = true, isReordering = false)
             }
-            is PlaylistDetailUiAction.OnSearchQueryChange -> internalState.update { currentState ->
-                currentState.copy(searchQuery = action.query)
+            is PlaylistDetailUiAction.OnSearchQueryChange -> internalState.update {
+                it.copy(searchQuery = action.query)
             }
-            PlaylistDetailUiAction.OnCloseSearchClick -> internalState.update { currentState ->
-                currentState.copy(isSearching = false, searchQuery = "")
+            PlaylistDetailUiAction.OnCloseSearchClick -> internalState.update {
+                it.copy(isSearching = false, searchQuery = "")
             }
-            PlaylistDetailUiAction.OnReorderClick -> internalState.update { currentState ->
-                currentState.copy(isReordering = true, isSearching = false, searchQuery = "")
+            PlaylistDetailUiAction.OnReorderClick -> {
+                if (currentPlaylist()?.type == PlaylistType.LOCAL) {
+                    internalState.update {
+                        it.copy(isReordering = true, isSearching = false, searchQuery = "")
+                    }
+                }
             }
-            PlaylistDetailUiAction.OnFinishReorderingClick -> internalState.update { currentState ->
-                currentState.copy(isReordering = false)
+            PlaylistDetailUiAction.OnFinishReorderingClick -> internalState.update {
+                it.copy(isReordering = false)
             }
-            is PlaylistDetailUiAction.OnPlayVideos -> playVideos(
-                uris = action.uris,
-                startUri = action.startUri,
-            )
-            is PlaylistDetailUiAction.ShowRemoveDialogFor -> internalState.update { currentState ->
-                currentState.copy(showRemoveDialogFor = action.item)
+            is PlaylistDetailUiAction.OnPlay -> play(action.startUri)
+            PlaylistDetailUiAction.Refresh -> refreshM3U()
+            is PlaylistDetailUiAction.ShowRemoveDialogFor -> internalState.update {
+                it.copy(showRemoveDialogFor = action.item)
             }
-            PlaylistDetailUiAction.DismissRemoveDialog -> internalState.update { currentState ->
-                currentState.copy(showRemoveDialogFor = null)
+            PlaylistDetailUiAction.DismissRemoveDialog -> internalState.update {
+                it.copy(showRemoveDialogFor = null)
             }
             is PlaylistDetailUiAction.RemoveVideo -> removeVideo(action.videoUri)
             is PlaylistDetailUiAction.ReplaceOrder -> replaceOrder(action.orderedUris)
@@ -106,30 +115,62 @@ class PlaylistDetailViewModel @AssistedInject constructor(
 
     fun synchronize() {
         if (syncJob?.isActive == true) return
-        syncJob = viewModelScope.launch {
-            syncPlaylistsWithMedia()
+        syncJob = viewModelScope.launch { syncPlaylistsWithMedia() }
+    }
+
+    private fun play(startUri: Uri) {
+        markVideoPlayed(startUri.toString())
+        output.playPlaylist(input.playlistId, startUri)
+    }
+
+    private fun refreshM3U() {
+        val playlist = currentPlaylist() ?: return
+        if (playlist.type == PlaylistType.LOCAL || refreshJob?.isActive == true) return
+        refreshJob = viewModelScope.launch {
+            internalState.update { it.copy(isRefreshing = true) }
+            try {
+                val parsed = parseLinkedSource(playlist).getOrThrow()
+                playlistRepository.replaceM3UItems(input.playlistId, parsed.items)
+                showToast(systemService.getString(R.string.playlist_refresh_succeeded))
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Throwable) {
+                showToast(
+                    error.message?.takeIf(String::isNotBlank)
+                        ?: systemService.getString(R.string.playlist_refresh_failed),
+                )
+            } finally {
+                internalState.update { it.copy(isRefreshing = false) }
+            }
         }
     }
 
-    private fun playVideos(uris: List<Uri>, startUri: Uri) {
-        markVideoPlayed(startUri.toString())
-        output.playVideos(uris, startUri)
+    private suspend fun parseLinkedSource(playlist: Playlist): Result<M3UPlaylist> {
+        val source = playlist.source
+            ?: return Result.failure(IllegalStateException("Linked playlist source is missing"))
+        return when (playlist.type) {
+            PlaylistType.M3U_URL -> m3uParser.parseUrl(source)
+            PlaylistType.M3U_FILE -> m3uParser.parseUri(source.toUri())
+            PlaylistType.LOCAL -> Result.failure(
+                IllegalStateException("Local playlists do not have a linked source"),
+            )
+        }
     }
 
     private fun removeVideo(videoUri: String) {
         updatePlaylist(
             block = { playlistRepository.removeVideo(input.playlistId, videoUri) },
             onSuccess = {
-                internalState.update { currentState ->
-                    currentState.copy(showRemoveDialogFor = null)
-                }
+                internalState.update { it.copy(showRemoveDialogFor = null) }
             },
         )
     }
 
     private fun replaceOrder(orderedUris: List<String>) {
         updatePlaylist(
-            block = { playlistRepository.replaceOrder(input.playlistId, orderedUris) },
+            block = {
+                playlistRepository.replaceOrder(input.playlistId, orderedUris)
+            },
         )
     }
 
@@ -151,38 +192,36 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     ) {
         if (state.value.updateActionState.isRunning) return
         viewModelScope.launch {
-            internalState.update { currentState ->
-                currentState.copy(updateActionState = ActionState.Running)
-            }
+            internalState.update { it.copy(updateActionState = ActionState.Running) }
             try {
                 block()
                 onSuccess()
-                internalState.update { currentState ->
-                    currentState.copy(updateActionState = ActionState.Success)
-                }
+                internalState.update { it.copy(updateActionState = ActionState.Success) }
             } catch (cancellation: CancellationException) {
-                internalState.update { currentState ->
-                    currentState.copy(updateActionState = ActionState.Idle)
-                }
+                internalState.update { it.copy(updateActionState = ActionState.Idle) }
                 throw cancellation
             } catch (error: Throwable) {
                 val message = systemService.getString(R.string.playlist_update_failed)
-                internalState.update { currentState ->
-                    currentState.copy(
-                        updateActionState = ActionState.Failed(
-                            Error(message, error),
-                        ),
-                    )
+                internalState.update {
+                    it.copy(updateActionState = ActionState.Failed(Error(message, error)))
                 }
-                systemService.showToast(message, Toast.LENGTH_SHORT)
+                showToast(message)
             }
         }
+    }
+
+    private fun currentPlaylist(): Playlist? =
+        (state.value.playlistDataState as? DataState.Success)?.value
+
+    private fun showToast(message: String) {
+        systemService.showToast(message, Toast.LENGTH_SHORT)
     }
 }
 
 data class PlaylistDetailUiState(
     val playlistDataState: DataState<Playlist?> = DataState.Loading,
     val updateActionState: ActionState = ActionState.Idle,
+    val isRefreshing: Boolean = false,
     val isSearching: Boolean = false,
     val searchQuery: String = "",
     val isReordering: Boolean = false,
@@ -196,10 +235,8 @@ sealed interface PlaylistDetailUiAction {
     data object OnCloseSearchClick : PlaylistDetailUiAction
     data object OnReorderClick : PlaylistDetailUiAction
     data object OnFinishReorderingClick : PlaylistDetailUiAction
-    data class OnPlayVideos(
-        val uris: List<Uri>,
-        val startUri: Uri,
-    ) : PlaylistDetailUiAction
+    data class OnPlay(val startUri: Uri) : PlaylistDetailUiAction
+    data object Refresh : PlaylistDetailUiAction
     data class ShowRemoveDialogFor(val item: PlaylistItem) : PlaylistDetailUiAction
     data object DismissRemoveDialog : PlaylistDetailUiAction
     data class RemoveVideo(val videoUri: String) : PlaylistDetailUiAction
