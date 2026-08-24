@@ -401,7 +401,16 @@ internal fun MediaPickerScreen(
                 button = {
                     ToggleFloatingActionButton(
                         checked = isFabExpanded,
-                        onCheckedChange = { isFabExpanded = !isFabExpanded },
+                        onCheckedChange = { expand ->
+                            if (expand && canPlayAll && uiState.folderName != null && !isFabExpanded) {
+                                val items = mediaHolderForFab?.videos.orEmpty().map { video ->
+                                    SelectionItem.Video(video.displayName, video.uriString, video.path)
+                                }.toSet()
+                                onAction(MediaPickerAction.PlaySelectedItems(items))
+                            } else {
+                                isFabExpanded = expand
+                            }
+                        },
                         modifier = Modifier
                             // Match the ring to the FAB's own shape: a 16.dp rounded square while
                             // collapsed, morphing to a circle once expanded.

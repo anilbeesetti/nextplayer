@@ -141,17 +141,19 @@ private fun AppearancePreferencesContent(
                 ListSectionTitle(text = "Navigation Bar")
 
                 PreferenceSwitchWithDivider(
+                    title = stringResource(R.string.show_bottom_navigation),
+                    description = stringResource(R.string.show_bottom_navigation_desc),
+                    icon = NextIcons.SmartButton,
+                    isChecked = uiState.preferences.showBottomNavigation,
+                    onClick = { onEvent(AppearancePreferencesEvent.ToggleShowBottomNavigation) },
+                    onChecked = { onEvent(AppearancePreferencesEvent.ToggleShowBottomNavigation) },
+                    isFirstItem = true
+                )
+                PreferenceSwitch(
                     title = stringResource(R.string.show_playlists_tab),
                     icon = NextIcons.Playlist,
                     isChecked = uiState.preferences.showPlaylistsTab,
                     onClick = { onEvent(AppearancePreferencesEvent.ToggleShowPlaylistsTab) },
-                    isFirstItem = true
-                )
-                PreferenceSwitch(
-                    title = stringResource(R.string.show_network_tab),
-                    icon = NextIcons.Network,
-                    isChecked = uiState.preferences.showNetworkTab,
-                    onClick = { onEvent(AppearancePreferencesEvent.ToggleShowNetworkTab) },
                 )
                 PreferenceSwitch(
                     title = stringResource(R.string.show_music_tab),

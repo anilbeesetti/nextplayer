@@ -19,9 +19,7 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
-import com.graviton.feature.player.PlayerActivity
 import com.graviton.feature.player.service.PlayerService
-import com.graviton.feature.player.utils.PlayerApi
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,6 +76,10 @@ class MusicPlaybackSnapshot(private val player: Player) {
         private set
     var artworkUri: Uri? by mutableStateOf(null)
         private set
+    var artworkData: ByteArray? by mutableStateOf(null)
+        private set
+    var album: String by mutableStateOf("")
+        private set
     var isMusic: Boolean by mutableStateOf(false)
         private set
     var isPlaying: Boolean by mutableStateOf(false)
@@ -112,7 +114,9 @@ class MusicPlaybackSnapshot(private val player: Player) {
         title = item?.mediaMetadata?.title?.toString().orEmpty()
         artist = item?.mediaMetadata?.artist?.toString().orEmpty()
         artworkUri = item?.mediaMetadata?.artworkUri
-        isMusic = item?.mediaMetadata?.artist != null
+        artworkData = item?.mediaMetadata?.artworkData
+        album = item?.mediaMetadata?.albumTitle?.toString().orEmpty()
+        isMusic = item?.mediaMetadata?.artist != null || item?.mediaMetadata?.albumTitle != null
         isPlaying = player.isPlaying
         positionMs = player.currentPosition.coerceAtLeast(0L)
         durationMs = player.duration.coerceAtLeast(0L)
@@ -150,17 +154,11 @@ fun MediaController.enqueue(track: com.graviton.core.model.AudioTrack) {
     addMediaItem(track.toMediaItem())
 }
 
-fun Context.openMusicPlayer(track: com.graviton.core.model.AudioTrack, queue: List<com.graviton.core.model.AudioTrack>) {
-    val intent = Intent(this, PlayerActivity::class.java).apply {
-        action = Intent.ACTION_VIEW
-        data = Uri.parse(track.uriString)
-        putExtra(PlayerApi.API_KEEP_SESSION, true)
-        putParcelableArrayListExtra(
-            PlayerApi.API_PLAYLIST,
-            ArrayList(queue.map { Uri.parse(it.uriString) }),
-        )
-    }
-    startActivity(intent)
+fun Context.openMusicPlayer(
+    @Suppress("UNUSED_PARAMETER") track: com.graviton.core.model.AudioTrack,
+    @Suppress("UNUSED_PARAMETER") queue: List<com.graviton.core.model.AudioTrack>,
+) {
+    startActivity(Intent(this, com.graviton.feature.music.player.MusicPlayerActivity::class.java))
 }
 
 private fun com.graviton.core.model.AudioTrack.toMediaItem(): MediaItem = MediaItem.Builder()

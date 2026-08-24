@@ -114,6 +114,7 @@ enum class Setting {
     DECODER,
     AUDIO,
     SUBTITLE,
+    MUSIC,
     GENERAL,
     ABOUT,
 }
@@ -165,6 +166,12 @@ private enum class SettingRow(
         descriptionResId = R.string.subtitle_desc,
         icon = NextIcons.Subtitle,
         setting = Setting.SUBTITLE,
+    ),
+    MUSIC(
+        titleResId = R.string.music_settings,
+        descriptionResId = R.string.music_settings_description,
+        icon = NextIcons.Audio,
+        setting = Setting.MUSIC,
     ),
     GENERAL(
         titleResId = R.string.general_name,

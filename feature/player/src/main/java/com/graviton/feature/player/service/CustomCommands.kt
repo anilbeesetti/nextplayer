@@ -2,6 +2,7 @@ package com.graviton.feature.player.service
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.media3.common.C
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import kotlinx.coroutines.guava.await
@@ -19,6 +20,7 @@ enum class CustomCommands(val customAction: String) {
     IS_LOUDNESS_GAIN_SUPPORTED(customAction = "IS_LOUDNESS_GAIN_SUPPORTED"),
     SET_LOUDNESS_GAIN(customAction = "SET_LOUDNESS_GAIN"),
     GET_LOUDNESS_GAIN(customAction = "GET_LOUDNESS_GAIN"),
+    GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
@@ -39,6 +41,7 @@ enum class CustomCommands(val customAction: String) {
         const val SUBTITLE_SPEED_KEY = "subtitle_speed"
         const val LOUDNESS_GAIN_KEY = "loudness_gain"
         const val IS_LOUDNESS_GAIN_SUPPORTED_KEY = "is_loudness_gain_supported"
+        const val AUDIO_SESSION_ID_KEY = "audio_session_id"
     }
 }
 
@@ -111,4 +114,17 @@ suspend fun MediaController.getLoudnessGain(): Int {
 suspend fun MediaController.getIsLoudnessGainSupported(): Boolean {
     val result = sendCustomCommand(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getBoolean(CustomCommands.IS_LOUDNESS_GAIN_SUPPORTED_KEY, false)
+}
+
+suspend fun MediaController.getAudioSessionId(): Int {
+    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
+}
+suspend fun MediaController.getAudioSessionId(): Int {
+    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
+}
+suspend fun MediaController.getAudioSessionId(): Int {
+    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
 }

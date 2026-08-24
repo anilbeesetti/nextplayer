@@ -65,8 +65,14 @@ import androidx.compose.material.icons.rounded.PanToolAlt
 import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.Pinch
 import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.Equalizer
+import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.RepeatOne
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Shuffle
@@ -140,6 +146,12 @@ object NextIcons {
     val Pinch = Icons.Rounded.Pinch
     val Play = Icons.Rounded.PlayArrow
     val Pause = Icons.Rounded.Pause
+    val SkipNext = Icons.Rounded.SkipNext
+    val SkipPrevious = Icons.Rounded.SkipPrevious
+    val Repeat = Icons.Rounded.Repeat
+    val RepeatOne = Icons.Rounded.RepeatOne
+    val Lyrics = Icons.Rounded.Lyrics
+    val Equalizer = Icons.Rounded.Equalizer
     val Player = Icons.Rounded.PlayCircle
     val Playlist = Icons.AutoMirrored.Rounded.PlaylistPlay
     val QueueMusic = Icons.Rounded.QueueMusic

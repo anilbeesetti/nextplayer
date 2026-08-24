@@ -16,9 +16,16 @@ data class ApplicationPreferences(
     val mediaLayoutMode: MediaLayoutMode = MediaLayoutMode.LIST,
 
     // Navigation bar
+    val showBottomNavigation: Boolean = true,
     val showPlaylistsTab: Boolean = true,
-    val showNetworkTab: Boolean = true,
+    val showNetworkTab: Boolean = false,
     val showMusicTab: Boolean = true,
+
+    // Music library playback history (Booming-style resume / recently played)
+    val musicRecentlyPlayedUris: List<String> = emptyList(),
+    val musicFolderLastUri: Map<String, String> = emptyMap(),
+    val musicShowLyrics: Boolean = true,
+    val musicRememberShuffle: Boolean = true,
 
     // Fields
     val showDurationField: Boolean = true,

@@ -41,6 +41,7 @@ class AppearancePreferencesViewModel @Inject constructor(
             is AppearancePreferencesEvent.UpdateAppTheme -> updateAppTheme(event.appTheme)
             AppearancePreferencesEvent.ToggleUseDynamicColors -> toggleUseDynamicColors()
             AppearancePreferencesEvent.ToggleUseHighContrastDarkTheme -> toggleUseHighContrastDarkTheme()
+            AppearancePreferencesEvent.ToggleShowBottomNavigation -> toggleShowBottomNavigation()
             AppearancePreferencesEvent.ToggleShowPlaylistsTab -> toggleShowPlaylistsTab()
             AppearancePreferencesEvent.ToggleShowNetworkTab -> toggleShowNetworkTab()
             AppearancePreferencesEvent.ToggleShowMusicTab -> toggleShowMusicTab()
@@ -95,6 +96,30 @@ class AppearancePreferencesViewModel @Inject constructor(
         }
     }
 
+    private fun toggleShowBottomNavigation() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showBottomNavigation = !it.showBottomNavigation)
+            }
+        }
+    }
+
+    private fun toggleShowBottomNavigation() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showBottomNavigation = !it.showBottomNavigation)
+            }
+        }
+    }
+
+    private fun toggleShowBottomNavigation() {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(showBottomNavigation = !it.showBottomNavigation)
+            }
+        }
+    }
+
     private fun toggleShowPlaylistsTab() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
@@ -133,6 +158,7 @@ sealed interface AppearancePreferencesEvent {
     data class UpdateAppTheme(val appTheme: com.graviton.core.model.AppTheme) : AppearancePreferencesEvent
     data object ToggleUseDynamicColors : AppearancePreferencesEvent
     data object ToggleUseHighContrastDarkTheme : AppearancePreferencesEvent
+    data object ToggleShowBottomNavigation : AppearancePreferencesEvent
     data object ToggleShowPlaylistsTab : AppearancePreferencesEvent
     data object ToggleShowNetworkTab : AppearancePreferencesEvent
     data object ToggleShowMusicTab : AppearancePreferencesEvent
