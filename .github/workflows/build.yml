@@ -1,55 +1,46 @@
-name: Build Graviton Player
+name: Build and Sign APK
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
-      - master
-    tags:
-      - 'v*'
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
 jobs:
   build:
-    name: Build and Sign APK
+    name: Build & Sign Release APK
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
           java-version: '17'
-          cache: 'gradle'
+          distribution: 'temurin'
+          cache: gradle
 
-      - name: Make Gradle executable
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease
 
       - name: Sign APK
         uses: ilharp/sign-android-release@v2
-        id: sign
+        id: sign_app
         with:
-          signingKey: ${{ secrets.KEYSTORE_BASE64 }}
-          keyAlias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: 35.0.0
+          releaseDirectory: app/build/outputs/apk/release
+          signingKey: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: Rename Output File
-        run: mv "${{ steps.sign.outputs.signedFile }}" "GravitonPlayer-release.apk"
-
-      - name: Upload APK Artifact
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: GravitonPlayer-APK
-          path: GravitonPlayer-release.apk
+          name: Signed-Release-APK
+          path: ${{steps.sign_app.outputs.signedReleaseFile}}
+          
