@@ -308,6 +308,24 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
+    private suspend fun resolveStream(playlistUri: String): ExtractedStream {
+        if (!StreamUrls.needsExtraction(playlistUri)) {
+            return ExtractedStream(sourceUrl = playlistUri, playableUrl = playlistUri)
+        }
+        return runCatching { streamExtractor.resolve(playlistUri) }.getOrElse {
+            ExtractedStream(sourceUrl = playlistUri, playableUrl = playlistUri)
+        }
+    }
+
+    private suspend fun resolveStream(playlistUri: String): ExtractedStream {
+        if (!StreamUrls.needsExtraction(playlistUri)) {
+            return ExtractedStream(sourceUrl = playlistUri, playableUrl = playlistUri)
+        }
+        return runCatching { streamExtractor.resolve(playlistUri) }.getOrElse {
+            ExtractedStream(sourceUrl = playlistUri, playableUrl = playlistUri)
+        }
+    }
+
     private fun playbackStateListener() = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)

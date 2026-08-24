@@ -120,3 +120,11 @@ suspend fun MediaController.getAudioSessionId(): Int {
     val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
 }
+suspend fun MediaController.getAudioSessionId(): Int {
+    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
+}
+suspend fun MediaController.getAudioSessionId(): Int {
+    val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
+    return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
+}
