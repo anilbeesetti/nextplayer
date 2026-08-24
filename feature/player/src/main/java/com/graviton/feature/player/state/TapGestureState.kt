@@ -36,11 +36,13 @@ fun rememberTapGestureState(
             player = player,
             doubleTapGesture = doubleTapGesture,
             seekIncrementMillis = seekIncrementMillis,
-            useLongPressGesture = useLongPressGesture,
-            longPressSpeed = longPressSpeed,
+            initialUseLongPressGesture = useLongPressGesture,
+            initialLongPressSpeed = longPressSpeed,
             coroutineScope = coroutineScope,
         )
     }
+    tapGestureState.useLongPressGesture = useLongPressGesture
+    tapGestureState.longPressSpeed = longPressSpeed
     return tapGestureState
 }
 
@@ -48,18 +50,22 @@ fun rememberTapGestureState(
 class TapGestureState(
     private val player: Player,
     private val seekIncrementMillis: Long,
-    private val useLongPressGesture: Boolean = true,
+    initialUseLongPressGesture: Boolean = true,
     private val coroutineScope: CoroutineScope,
-    val longPressSpeed: Float = 2.0f,
+    initialLongPressSpeed: Float = 2.0f,
     val doubleTapGesture: DoubleTapGesture,
     val interactionSource: MutableInteractionSource = MutableInteractionSource(),
 ) {
+    var useLongPressGesture by mutableStateOf(initialUseLongPressGesture)
+    var longPressSpeed by mutableStateOf(initialLongPressSpeed)
     var seekMillis by mutableLongStateOf(0L)
     var isLongPressGestureInAction by mutableStateOf(false)
     var activeLongPressSpeed by mutableStateOf(2.0f)
 
     private var resetJob: Job? = null
-    private var currentSpeed: Float = player.playbackParameters.speed
+    private var restoredSpeed: Float = player.playbackParameters.speed
+    private var holdStartX = 0f
+    private var holdStartSpeed = 2.0f
 
     fun handleDoubleTap(offset: Offset, size: IntSize) {
         if (!player.isCurrentMediaItemSeekable) return
@@ -121,40 +127,38 @@ class TapGestureState(
         if (!player.isPlaying) return
 
         isLongPressGestureInAction = true
-        currentSpeed = player.playbackParameters.speed
+        restoredSpeed = player.playbackParameters.speed
+        holdStartX = offset.x
+        holdStartSpeed = longPressSpeed
         activeLongPressSpeed = longPressSpeed
         player.setPlaybackSpeed(activeLongPressSpeed)
-
-        cumulativeDrag = 0f
     }
 
-    private var cumulativeDrag = 0f
+    fun handleLongPressDrag(
+        currentX: Float,
+        screenWidth: Float,
+        swipeThresholdPx: Float,
+    ): Boolean {
+        if (!isLongPressGestureInAction) return false
 
-    fun handleLongPressDrag(dragAmount: Float) {
-        if (!isLongPressGestureInAction) return
-        cumulativeDrag += dragAmount
+        val nextSpeed = HoldSpeedGesture.speedForSwipe(
+            startSpeed = holdStartSpeed,
+            deltaX = currentX - holdStartX,
+            screenWidth = screenWidth,
+            swipeThresholdPx = swipeThresholdPx,
+        )
+        if (nextSpeed == activeLongPressSpeed) return false
 
-        // Let's say 100 pixels is one step
-        val stepPixels = 100f
-
-        if (cumulativeDrag > stepPixels) {
-            // Step up
-            activeLongPressSpeed = (activeLongPressSpeed + 0.5f).coerceAtMost(4.0f)
-            player.setPlaybackSpeed(activeLongPressSpeed)
-            cumulativeDrag = 0f
-        } else if (cumulativeDrag < -stepPixels) {
-            // Step down
-            activeLongPressSpeed = (activeLongPressSpeed - 0.5f).coerceAtLeast(1.0f)
-            player.setPlaybackSpeed(activeLongPressSpeed)
-            cumulativeDrag = 0f
-        }
+        activeLongPressSpeed = nextSpeed
+        player.setPlaybackSpeed(nextSpeed)
+        return true
     }
 
     fun handleOnLongPressRelease() {
-        if (isLongPressGestureInAction) {
-            isLongPressGestureInAction = false
-            player.setPlaybackSpeed(currentSpeed)
-        }
+        if (!isLongPressGestureInAction) return
+
+        isLongPressGestureInAction = false
+        player.setPlaybackSpeed(restoredSpeed)
     }
 
     private fun resetDoubleTapSeekState() {
