@@ -129,7 +129,6 @@ fun MediaPlayerScreen(
     )
     player ?: return
     val metadataState = rememberMetadataState(player)
-    val playbackParametersState = rememberPlaybackParametersState(player)
     val mediaPresentationState = rememberMediaPresentationState(player)
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
@@ -488,8 +487,9 @@ fun MediaPlayerScreen(
             )
 
             SpeedOverlayView(
-                speed = if (tapGestureState.isLongPressGestureInAction) tapGestureState.activeLongPressSpeed else playbackParametersState.speed,
-                isLongPressActive = tapGestureState.isLongPressGestureInAction
+                speed = tapGestureState.activeLongPressSpeed,
+                isLongPressActive = tapGestureState.isLongPressGestureInAction,
+                controlsVisible = controlsVisibilityState.controlsVisible,
             )
         }
 

@@ -6,11 +6,16 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
 import com.graviton.feature.player.extensions.detectCustomHorizontalDragGestures
 import com.graviton.feature.player.extensions.detectCustomTransformGestures
 import com.graviton.feature.player.extensions.detectCustomVerticalDragGestures
 import com.graviton.feature.player.state.ControlsVisibilityState
+import com.graviton.feature.player.state.HoldSpeedGesture
 import com.graviton.feature.player.state.PictureInPictureState
 import com.graviton.feature.player.state.SeekGestureState
 import com.graviton.feature.player.state.TapGestureState
@@ -27,6 +32,9 @@ fun PlayerGestures(
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
 ) {
+    val haptic = LocalHapticFeedback.current
+    val swipeThresholdPx = with(LocalDensity.current) { HoldSpeedGesture.SWIPE_THRESHOLD_DP.dp.toPx() }
+
     BoxWithConstraints {
         Box(
             modifier = modifier
@@ -50,12 +58,16 @@ fun PlayerGestures(
                         onLongPress = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
                             tapGestureState.handleLongPress(offset = it)
+                            if (tapGestureState.isLongPressGestureInAction) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
                         },
                     )
                 }
                 .pointerInput(
                     controlsVisibilityState.controlsLocked,
                     pictureInPictureState.isInPictureInPictureMode,
+                    swipeThresholdPx,
                 ) {
                     if (controlsVisibilityState.controlsLocked) return@pointerInput
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
@@ -68,7 +80,14 @@ fun PlayerGestures(
                         },
                         onHorizontalDrag = { change, dragAmount ->
                             if (tapGestureState.isLongPressGestureInAction) {
-                                tapGestureState.handleLongPressDrag(dragAmount)
+                                val speedChanged = tapGestureState.handleLongPressDrag(
+                                    currentX = change.position.x,
+                                    screenWidth = size.width.toFloat(),
+                                    swipeThresholdPx = swipeThresholdPx,
+                                )
+                                if (speedChanged) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                }
                                 change.consume()
                             } else {
                                 seekGestureState.onDrag(change, dragAmount)
@@ -94,10 +113,28 @@ fun PlayerGestures(
                     if (pictureInPictureState.isInPictureInPictureMode) return@pointerInput
 
                     detectCustomVerticalDragGestures(
-                        onDragStart = { volumeAndBrightnessGestureState.onDragStart(it, size) },
-                        onVerticalDrag = volumeAndBrightnessGestureState::onDrag,
-                        onDragCancel = volumeAndBrightnessGestureState::onDragEnd,
-                        onDragEnd = volumeAndBrightnessGestureState::onDragEnd,
+                        onDragStart = { offset ->
+                            if (!tapGestureState.isLongPressGestureInAction) {
+                                volumeAndBrightnessGestureState.onDragStart(offset, size)
+                            }
+                        },
+                        onVerticalDrag = { change, dragAmount ->
+                            if (tapGestureState.isLongPressGestureInAction) {
+                                change.consume()
+                            } else {
+                                volumeAndBrightnessGestureState.onDrag(change, dragAmount)
+                            }
+                        },
+                        onDragCancel = {
+                            if (!tapGestureState.isLongPressGestureInAction) {
+                                volumeAndBrightnessGestureState.onDragEnd()
+                            }
+                        },
+                        onDragEnd = {
+                            if (!tapGestureState.isLongPressGestureInAction) {
+                                volumeAndBrightnessGestureState.onDragEnd()
+                            }
+                        },
                     )
                 }
                 .pointerInput(
