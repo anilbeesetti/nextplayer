@@ -262,7 +262,7 @@ private fun CrashScreen(
                         Text(stringResource(R.string.crash_screen_share))
                     }
                     FilledIconButton(onClick = onCopyLogsClick) {
-                        Icon(imageVector = NextIcons.Copy, contentDescription = null)
+                        Icon(imageVector = NextIcons.Copy, contentDescription = stringResource(R.string.copy))
                     }
                 }
                 OutlinedButton(
