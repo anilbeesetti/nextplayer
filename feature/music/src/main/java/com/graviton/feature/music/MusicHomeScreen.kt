@@ -1,6 +1,8 @@
 package com.graviton.feature.music
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -16,7 +18,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
@@ -54,22 +56,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.graviton.feature.music.artwork.MediaArtwork
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.graviton.core.model.AudioTrack
 import com.graviton.core.model.MusicPlaylist
 import com.graviton.core.ui.designsystem.NextIcons
+import com.graviton.feature.player.PlayerActivity
 import kotlinx.coroutines.delay
 
 private val musicPermission: String
@@ -79,7 +79,7 @@ private val musicPermission: String
         Manifest.permission.READ_EXTERNAL_STORAGE
     }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MusicHomeScreen(
     viewModel: MusicViewModel = hiltViewModel(),
@@ -92,6 +92,8 @@ fun MusicHomeScreen(
     val playback = rememberMusicPlaybackSnapshot(controller)
     var searchOpen by remember { mutableStateOf(false) }
     var sortDialogOpen by remember { mutableStateOf(false) }
+    var streamDialogOpen by remember { mutableStateOf(false) }
+    var streamUrl by remember { mutableStateOf("") }
 
     LaunchedEffect(permissionState.status.isGranted) {
         if (permissionState.status.isGranted) viewModel.refresh()
@@ -148,6 +150,9 @@ fun MusicHomeScreen(
                         IconButton(onClick = { searchOpen = true; viewModel.selectSection(MusicSection.TRACKS) }) {
                             Icon(NextIcons.Search, contentDescription = "Search songs")
                         }
+                        IconButton(onClick = { streamDialogOpen = true }) {
+                            Icon(NextIcons.Link, contentDescription = "Stream URL")
+                        }
                     }
                     IconButton(onClick = { sortDialogOpen = true }) {
                         Icon(NextIcons.Reorder, contentDescription = "Sort music")
@@ -194,9 +199,16 @@ fun MusicHomeScreen(
                             controller?.playTracks(uiState.tracks.shuffled())
                         },
                         onPlayTrack = { track ->
+                            viewModel.recordPlay(track)
                             val queue = if (uiState.tracks.isNotEmpty()) uiState.tracks else uiState.allTracks
                             val index = queue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
                             controller?.playTracks(queue, index)
+                        },
+                        onPlayFolder = { path ->
+                            val tracks = uiState.allTracks.filter { it.path.substringBeforeLast('/', "") == path }
+                            val index = viewModel.folderStartIndex(path, tracks)
+                            tracks.getOrNull(index)?.let(viewModel::recordPlay)
+                            controller?.playTracks(tracks, index)
                         },
                         onPause = { if (controller?.isPlaying == true) controller.pause() else controller?.play() },
                         onPlayNext = { controller?.playNext(it) },
@@ -223,6 +235,42 @@ fun MusicHomeScreen(
             onSelected = { viewModel.setSort(it); sortDialogOpen = false },
             onToggleDirection = viewModel::toggleSortDirection,
             onDismiss = { sortDialogOpen = false },
+        )
+    }
+
+    if (streamDialogOpen) {
+        AlertDialog(
+            onDismissRequest = { streamDialogOpen = false },
+            title = { Text("Stream URL") },
+            text = {
+                OutlinedTextField(
+                    value = streamUrl,
+                    onValueChange = { streamUrl = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("https://...") },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val url = streamUrl.trim()
+                        streamDialogOpen = false
+                        if (url.isNotBlank()) {
+                            context.startActivity(
+                                Intent(context, PlayerActivity::class.java).apply {
+                                    action = Intent.ACTION_VIEW
+                                    data = Uri.parse(url)
+                                },
+                            )
+                        }
+                    },
+                    enabled = streamUrl.isNotBlank(),
+                ) { Text("Play") }
+            },
+            dismissButton = {
+                TextButton(onClick = { streamDialogOpen = false }) { Text("Cancel") }
+            },
         )
     }
 }
@@ -261,6 +309,7 @@ private fun MusicLibraryContent(
     onSelectAlbum: (String) -> Unit,
     onSelectArtist: (String) -> Unit,
     onSelectFolder: (String) -> Unit,
+    onPlayFolder: (String) -> Unit,
     onClearFilter: () -> Unit,
 ) {
     val displayTracks = state.tracks
@@ -287,6 +336,7 @@ private fun MusicLibraryContent(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = when (state.section) {
+                            MusicSection.HOME -> "Library"
                             MusicSection.TRACKS -> filterLabel ?: "All songs"
                             else -> state.section.label
                         },
@@ -303,7 +353,9 @@ private fun MusicLibraryContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if (state.section == MusicSection.TRACKS && displayTracks.isNotEmpty()) {
+                if ((state.section == MusicSection.TRACKS || state.section == MusicSection.HOME) &&
+                    displayTracks.isNotEmpty()
+                ) {
                     FilledTonalButton(onClick = onShuffle) {
                         Icon(NextIcons.Shuffle, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
@@ -328,10 +380,62 @@ private fun MusicLibraryContent(
                     }
                 }
             }
+            if (playback?.mediaId != null) {
+                Spacer(Modifier.height(10.dp))
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.clickable(onClick = onOpenFullPlayer),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(NextIcons.Audio, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Now playing", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
             Spacer(Modifier.height(10.dp))
         }
 
         when (state.section) {
+            MusicSection.HOME -> {
+                item(key = "home-recent") {
+                    Text("Recently played", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                }
+                if (state.recentlyPlayed.isEmpty()) {
+                    item { Text("Play a song to build your history.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                } else {
+                    items(state.recentlyPlayed, key = { "recent-${it.uriString}" }) { track ->
+                        TrackRow(
+                            track = track,
+                            active = playback?.mediaId == track.uriString,
+                            playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
+                            onClick = { onPlayTrack(track) },
+                            onPause = onPause,
+                            onPlayNext = { onPlayNext(track) },
+                            onEnqueue = { onEnqueue(track) },
+                        )
+                    }
+                }
+                item(key = "home-added") {
+                    Spacer(Modifier.height(12.dp))
+                    Text("Last added", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                }
+                items(state.recentlyAdded, key = { "added-${it.uriString}" }) { track ->
+                    TrackRow(
+                        track = track,
+                        active = playback?.mediaId == track.uriString,
+                        playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
+                        onClick = { onPlayTrack(track) },
+                        onPause = onPause,
+                        onPlayNext = { onPlayNext(track) },
+                        onEnqueue = { onEnqueue(track) },
+                    )
+                }
+            }
             MusicSection.TRACKS -> {
                 if (displayTracks.isEmpty()) {
                     item(key = "empty-tracks") {
@@ -365,6 +469,7 @@ private fun MusicLibraryContent(
                             title = playlist.name.ifBlank { "Untitled playlist" },
                             subtitle = "${playlist.trackCount} songs",
                             artworkUri = null,
+                            mediaUri = null,
                             icon = NextIcons.Playlist,
                             onClick = { onSelectPlaylist(playlist) },
                         )
@@ -375,43 +480,39 @@ private fun MusicLibraryContent(
                 val albums = state.allTracks.groupBy { it.displayAlbum }.toList().sortedBy { it.first.lowercase() }
                 if (albums.isEmpty()) item { EmptyMusicState(NextIcons.Image, "No albums found", "Album information will appear with your music.", null) }
                 else items(albums, key = { it.first }) { (album, tracks) ->
-                    CollectionRow(album, "${tracks.size} songs · ${tracks.first().displayArtist}", tracks.first().artworkUriString, NextIcons.Image) { onSelectAlbum(album) }
+                    CollectionRow(album, "${tracks.size} songs · ${tracks.first().displayArtist}", tracks.first().artworkUriString, tracks.first().uriString, NextIcons.Image) { onSelectAlbum(album) }
                 }
             }
             MusicSection.ARTISTS -> {
                 val artists = state.allTracks.groupBy { it.displayArtist }.toList().sortedBy { it.first.lowercase() }
                 if (artists.isEmpty()) item { EmptyMusicState(NextIcons.Audio, "No artists found", "Artist information will appear with your music.", null) }
                 else items(artists, key = { it.first }) { (artist, tracks) ->
-                    CollectionRow(artist, "${tracks.size} songs", tracks.first().artworkUriString, NextIcons.Audio) { onSelectArtist(artist) }
+                    CollectionRow(artist, "${tracks.size} songs", tracks.first().artworkUriString, tracks.first().uriString, NextIcons.Audio) { onSelectArtist(artist) }
                 }
             }
             MusicSection.FOLDERS -> {
                 val folders = state.allTracks.groupBy { it.path.substringBeforeLast('/', "") }.toList().sortedBy { it.first.lowercase() }
                 if (folders.isEmpty()) item { EmptyMusicState(NextIcons.Folder, "No folders found", "Music folders will appear here.", null) }
                 else items(folders, key = { it.first }) { (folder, tracks) ->
-                    CollectionRow(folder.substringAfterLast('/').ifBlank { "Music" }, "${tracks.size} songs", tracks.first().artworkUriString, NextIcons.Folder) { onSelectFolder(folder) }
+                    CollectionRow(
+                        title = folder.substringAfterLast('/').ifBlank { "Music" },
+                        subtitle = "${tracks.size} songs",
+                        artworkUri = tracks.first().artworkUriString,
+                        mediaUri = tracks.first().uriString,
+                        icon = NextIcons.Folder,
+                        onClick = { onSelectFolder(folder) },
+                        onPlay = { onPlayFolder(folder) },
+                    )
                 }
             }
         }
 
         item(key = "mini-player-spacer") { Spacer(Modifier.height(8.dp)) }
     }
-
-    playback?.let { snapshot ->
-        if (snapshot.mediaId != null && snapshot.isMusic) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                MiniPlayer(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    snapshot = snapshot,
-                    onTogglePlay = onPause,
-                    onOpen = onOpenFullPlayer,
-                )
-            }
-        }
-    }
 }
 
 private fun sectionCount(state: MusicUiState): String = when (state.section) {
+    MusicSection.HOME -> "${state.allTracks.size} songs"
     MusicSection.PLAYLISTS -> "${state.playlists.size} playlists"
     MusicSection.ALBUMS -> "${state.allTracks.map { it.displayAlbum }.distinct().size} albums"
     MusicSection.ARTISTS -> "${state.allTracks.map { it.displayArtist }.distinct().size} artists"
@@ -442,7 +543,7 @@ private fun TrackRow(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Artwork(track.artworkUriString, NextIcons.Audio, Modifier.size(56.dp))
+            MediaArtwork(track.artworkUriString, track.uriString, Modifier.size(56.dp))
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(track.displayTitle, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
@@ -488,8 +589,10 @@ private fun CollectionRow(
     title: String,
     subtitle: String,
     artworkUri: String?,
+    mediaUri: String?,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
+    onPlay: (() -> Unit)? = null,
 ) {
     Surface(
         shape = RoundedCornerShape(18.dp),
@@ -497,65 +600,18 @@ private fun CollectionRow(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
     ) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Artwork(artworkUri, icon, Modifier.size(58.dp))
+            MediaArtwork(artworkUri, mediaUri, Modifier.size(58.dp), fallback = icon)
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            if (onPlay != null) {
+                IconButton(onClick = onPlay) {
+                    Icon(NextIcons.Play, contentDescription = "Play folder")
+                }
+            }
             Icon(NextIcons.ArrowBack, contentDescription = null, modifier = Modifier.size(20.dp).rotate(180f))
-        }
-    }
-}
-
-@Composable
-private fun MiniPlayer(
-    modifier: Modifier = Modifier,
-    snapshot: MusicPlaybackSnapshot,
-    onTogglePlay: () -> Unit,
-    onOpen: () -> Unit,
-) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clickable(onClick = onOpen),
-        shape = RoundedCornerShape(22.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 4.dp,
-    ) {
-        Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Artwork(snapshot.artworkUri?.toString(), NextIcons.Audio, Modifier.size(48.dp))
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Text(snapshot.title.ifBlank { "Playing" }, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
-                Text(snapshot.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
-            }
-            IconButton(onClick = onTogglePlay) {
-                Icon(if (snapshot.isPlaying) NextIcons.Pause else NextIcons.Play, contentDescription = if (snapshot.isPlaying) "Pause" else "Play")
-            }
-        }
-    }
-}
-
-@Composable
-private fun Artwork(uri: String?, fallback: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier) {
-    val context = LocalContext.current
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(fallback, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
-        if (!uri.isNullOrBlank()) {
-            AsyncImage(
-                model = ImageRequest.Builder(context).data(uri).crossfade(true).build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
         }
     }
 }

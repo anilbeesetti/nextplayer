@@ -4,8 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.graviton.core.data.repository.MusicRepository
+import com.graviton.core.data.repository.PreferencesRepository
 import com.graviton.core.model.AudioTrack
 import com.graviton.core.model.MusicPlaylist
+import com.graviton.core.model.lastMusicUriForFolder
+import com.graviton.core.model.recordMusicPlay
+import com.graviton.core.model.startIndexForFolderPlayback
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +21,7 @@ import javax.inject.Inject
 
 /** Sections shown in the music library. The names also describe the actual MediaStore query used. */
 enum class MusicSection(val label: String) {
+    HOME("Home"),
     TRACKS("Tracks"),
     PLAYLISTS("Playlists"),
     ALBUMS("Albums"),
@@ -47,7 +52,9 @@ data class MusicUiState(
     val allTracks: List<AudioTrack> = emptyList(),
     val tracks: List<AudioTrack> = emptyList(),
     val playlists: List<MusicPlaylist> = emptyList(),
-    val section: MusicSection = MusicSection.TRACKS,
+    val section: MusicSection = MusicSection.HOME,
+    val recentlyPlayed: List<AudioTrack> = emptyList(),
+    val recentlyAdded: List<AudioTrack> = emptyList(),
     val query: String = "",
     val sort: MusicSort = MusicSort.TITLE,
     val ascending: Boolean = true,
@@ -58,6 +65,7 @@ data class MusicUiState(
 @HiltViewModel
 class MusicViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
     private val stateInternal = MutableStateFlow(MusicUiState())
     val uiState = stateInternal.asStateFlow()
@@ -95,6 +103,15 @@ class MusicViewModel @Inject constructor(
             musicRepository.observePlaylists()
                 .catch { error -> stateInternal.update { it.copy(isLoading = false, error = error) } }
                 .collect { sourcePlaylists.value = it }
+        }
+        viewModelScope.launch {
+            preferencesRepository.applicationPreferences.collect { prefs ->
+                val tracks = sourceTracks.value
+                val recent = prefs.musicRecentlyPlayedUris.mapNotNull { uri ->
+                    tracks.firstOrNull { it.uriString == uri }
+                }
+                stateInternal.update { it.copy(recentlyPlayed = recent) }
+            }
         }
     }
 
@@ -142,6 +159,19 @@ class MusicViewModel @Inject constructor(
     fun selectFolder(path: String) {
         stateInternal.update { it.copy(section = MusicSection.TRACKS, filter = MusicFilter.Folder(path)) }
         recomputeVisibleTracks()
+    }
+
+    fun folderStartIndex(path: String, tracks: List<AudioTrack>): Int {
+        val last = preferencesRepository.applicationPreferences.value.lastMusicUriForFolder(path)
+        return startIndexForFolderPlayback(tracks.map { it.uriString }, last)
+    }
+
+    fun recordPlay(track: AudioTrack) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.recordMusicPlay(track.uriString, track.path.substringBeforeLast('/', ""))
+            }
+        }
     }
 
     fun selectPlaylist(playlist: MusicPlaylist) {
@@ -196,6 +226,16 @@ class MusicViewModel @Inject constructor(
             MusicSort.DATE_ADDED -> filtered.sortedBy { it.dateAdded }
             MusicSort.DURATION -> filtered.sortedBy { it.duration }
         }
-        stateInternal.update { it.copy(tracks = if (current.ascending) sorted else sorted.asReversed()) }
+        val recentAdded = current.allTracks.sortedByDescending { it.dateAdded }.take(12)
+        val recentPlayed = preferencesRepository.applicationPreferences.value.musicRecentlyPlayedUris.mapNotNull { uri ->
+            current.allTracks.firstOrNull { it.uriString == uri }
+        }
+        stateInternal.update {
+            it.copy(
+                tracks = if (current.ascending) sorted else sorted.asReversed(),
+                recentlyAdded = recentAdded,
+                recentlyPlayed = recentPlayed,
+            )
+        }
     }
 }

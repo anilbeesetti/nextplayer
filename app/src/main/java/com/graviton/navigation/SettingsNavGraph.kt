@@ -13,6 +13,7 @@ import com.graviton.settings.navigation.generalPreferencesEntry
 import com.graviton.settings.navigation.gesturePreferencesEntry
 import com.graviton.settings.navigation.librariesEntry
 import com.graviton.settings.navigation.mediaLibraryPreferencesEntry
+import com.graviton.settings.navigation.musicPreferencesEntry
 import com.graviton.settings.navigation.navigateToAboutPreferences
 import com.graviton.settings.navigation.navigateToAppearancePreferences
 import com.graviton.settings.navigation.navigateToAudioPreferences
@@ -22,6 +23,7 @@ import com.graviton.settings.navigation.navigateToGeneralPreferences
 import com.graviton.settings.navigation.navigateToGesturePreferences
 import com.graviton.settings.navigation.navigateToLibraries
 import com.graviton.settings.navigation.navigateToMediaLibraryPreferencesScreen
+import com.graviton.settings.navigation.navigateToMusicPreferences
 import com.graviton.settings.navigation.navigateToPlayerPreferences
 import com.graviton.settings.navigation.navigateToSubtitlePreferences
 import com.graviton.settings.navigation.navigateToThumbnailPreferencesScreen
@@ -44,6 +46,7 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(
                 Setting.DECODER -> backStack.navigateToDecoderPreferences()
                 Setting.AUDIO -> backStack.navigateToAudioPreferences()
                 Setting.SUBTITLE -> backStack.navigateToSubtitlePreferences()
+                Setting.MUSIC -> backStack.navigateToMusicPreferences()
                 Setting.GENERAL -> backStack.navigateToGeneralPreferences()
                 Setting.ABOUT -> backStack.navigateToAboutPreferences()
             }
@@ -76,6 +79,9 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     subtitlePreferencesEntry(
+        onNavigateUp = { backStack.removeLastIfNotRoot() },
+    )
+    musicPreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     generalPreferencesEntry(

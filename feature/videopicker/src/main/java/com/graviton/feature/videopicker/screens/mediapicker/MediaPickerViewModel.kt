@@ -37,6 +37,7 @@ import com.graviton.core.model.Folder
 import com.graviton.core.model.MediaViewMode
 import com.graviton.core.model.PlaylistSummary
 import com.graviton.core.model.Video
+import com.graviton.core.model.playbackStart
 import com.graviton.core.model.findClosestFolder
 import com.graviton.core.ui.base.DataState
 import com.graviton.core.ui.R
@@ -76,7 +77,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     data class Output(
         val navigateUp: () -> Unit,
         val playVideo: (Uri) -> Unit,
-        val playVideos: (List<Uri>) -> Unit,
+        val playVideos: (uris: List<Uri>, startUri: Uri?) -> Unit,
         val openFolder: (String) -> Unit,
         val openSettings: () -> Unit,
         val openSearch: () -> Unit,
@@ -310,8 +311,12 @@ class MediaPickerViewModel @AssistedInject constructor(
 
     private fun playSelectedItems(selectedItems: Set<SelectionItem>) {
         viewModelScope.launch {
-            val videoUris = selectedItems.toVideoUris()
-            output.playVideos(videoUris)
+            val videos = selectedItems.toVideos()
+            val start = videos.playbackStart()
+            output.playVideos(
+                videos.map { it.uriString.toUri() },
+                start?.uriString?.toUri(),
+            )
         }
     }
 

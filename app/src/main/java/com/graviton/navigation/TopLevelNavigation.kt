@@ -19,6 +19,7 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -80,6 +81,11 @@ fun rememberTopLevelNavState(): TopLevelNavState {
         dest.route to backStack
     }
     val selectedIndex = rememberSaveable { mutableIntStateOf(0) }
+    SideEffect {
+        if (destinations.getOrNull(selectedIndex.intValue) == TopLevelDestination.NETWORK) {
+            selectedIndex.intValue = 0
+        }
+    }
     return remember(backStacks, selectedIndex) {
         TopLevelNavState(destinations, backStacks, selectedIndex)
     }
@@ -120,7 +126,9 @@ class TopLevelNavState(
 
     fun switchTo(route: NavKey) {
         val index = destinations.indexOfFirst { it.route == route }
-        if (index >= 0) selectedIndex = index
+        if (index >= 0 && destinations[index] != TopLevelDestination.NETWORK) {
+            selectedIndex = index
+        }
     }
 
     fun goBack() {
@@ -153,11 +161,12 @@ fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene
 
 @Composable
 fun NextNavigationBar(state: TopLevelNavState, preferences: com.graviton.core.model.ApplicationPreferences?) {
+    if (preferences?.showBottomNavigation == false) return
     NavigationBar {
         state.destinations.forEach { dest ->
             val show = when (dest) {
                 TopLevelDestination.PLAYLISTS -> preferences?.showPlaylistsTab ?: true
-                TopLevelDestination.NETWORK -> preferences?.showNetworkTab ?: true
+                TopLevelDestination.NETWORK -> false
                 TopLevelDestination.MUSIC -> preferences?.showMusicTab ?: true
                 else -> true
             }
@@ -188,7 +197,7 @@ fun NextNavigationRail(state: TopLevelNavState, preferences: com.graviton.core.m
             state.destinations.forEach { dest ->
                 val show = when (dest) {
                     TopLevelDestination.PLAYLISTS -> preferences?.showPlaylistsTab ?: true
-                    TopLevelDestination.NETWORK -> preferences?.showNetworkTab ?: true
+                    TopLevelDestination.NETWORK -> false
                     TopLevelDestination.MUSIC -> preferences?.showMusicTab ?: true
                     else -> true
                 }

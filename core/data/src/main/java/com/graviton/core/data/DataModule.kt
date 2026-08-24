@@ -72,4 +72,16 @@ interface DataModule {
     fun bindsNetworkConnectionRepository(
         networkConnectionRepository: LocalNetworkConnectionRepository,
     ): NetworkConnectionRepository
+
+    @Binds
+    @Singleton
+    fun bindsProcessRunner(runner: SystemProcessRunner): ProcessRunner
+
+    @Binds
+    @Singleton
+    fun bindsYtDlpBinaryLocator(locator: AppYtDlpBinaryLocator): YtDlpBinaryLocator
+
+    @Binds
+    @Singleton
+    fun bindsStreamExtractor(extractor: YtDlpStreamExtractor): StreamExtractor
 }

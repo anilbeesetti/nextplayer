@@ -42,6 +42,7 @@ class ResponsiveNavigationScene<T : Any>(
     private val isTopLevel: (contentKey: Any) -> Boolean,
     private val navBarContent: @Composable () -> Unit,
     private val navRailContent: @Composable () -> Unit,
+    private val showNavigation: () -> Boolean,
 ) : Scene<T> by scene {
 
     override val key = scene::class to scene.key
@@ -59,6 +60,13 @@ class ResponsiveNavigationScene<T : Any>(
 
         if (currentKey == null || !isTopLevel(currentKey)) {
             scene.content()
+        } else if (!showNavigation()) {
+            Box {
+                scene.content()
+                com.graviton.feature.music.NowPlayingMiniBar(
+                    modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
+                )
+            }
         } else {
 
             val navLayoutType = when {
@@ -96,6 +104,9 @@ class ResponsiveNavigationScene<T : Any>(
                     )
                 ) {
                     scene.content()
+                    com.graviton.feature.music.NowPlayingMiniBar(
+                        modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
+                    )
                 }
             }
         }
@@ -106,12 +117,14 @@ class ResponsiveNavigationScene<T : Any>(
 fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
     isTopLevel: (contentKey: Any) -> Boolean,
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass,
+    showNavigation: () -> Boolean = { true },
     navBar: @Composable () -> Unit,
     navRail: @Composable () -> Unit,
 ): SceneDecoratorStrategy<T> {
     val currentNavBar by rememberUpdatedState(navBar)
     val currentNavRail by rememberUpdatedState(navRail)
     val currentIsTopLevel by rememberUpdatedState(isTopLevel)
+    val currentShowNavigation by rememberUpdatedState(showNavigation)
 
     return remember(windowSizeClass) {
         SceneDecoratorStrategy { scene ->
@@ -121,6 +134,7 @@ fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
                 isTopLevel = { currentIsTopLevel(it) },
                 navBarContent = { currentNavBar() },
                 navRailContent = { currentNavRail() },
+                showNavigation = { currentShowNavigation() },
             )
         }
     }

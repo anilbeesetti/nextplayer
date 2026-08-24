@@ -134,6 +134,7 @@ class MainActivity : ComponentActivity() {
                     val preferences = (uiState as? MainActivityUiState.Success)?.preferences
                     val sceneDecorator = rememberResponsiveNavigationSceneDecoratorStrategy<NavKey>(
                         isTopLevel = { contentKey -> navState.topLevelContentKeys.contains(contentKey) },
+                        showNavigation = { preferences?.showBottomNavigation != false },
                         navBar = { NextNavigationBar(navState, preferences) },
                         navRail = { NextNavigationRail(navState, preferences) },
                     )

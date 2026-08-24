@@ -47,6 +47,7 @@ import com.graviton.core.model.DecoderMode
 import com.graviton.core.model.LoopMode
 import com.graviton.core.model.PlayerPreferences
 import com.graviton.core.model.Resume
+import com.graviton.core.model.recordMusicPlay
 import com.graviton.core.ui.R as coreUiR
 import com.graviton.feature.player.PlayerActivity
 import com.graviton.feature.player.R
@@ -254,10 +255,20 @@ class PlayerService : MediaSessionService() {
                         knownDurations[mediaId] = it.duration.coerceAtLeast(0L)
                     }
                     serviceScope.launch {
+                        val mediaId = it.currentMediaItem?.mediaId ?: return@launch
                         mediaRepository.updateMediumLastPlayedTime(
-                            uri = it.currentMediaItem?.mediaId ?: return@launch,
+                            uri = mediaId,
                             lastPlayedTime = System.currentTimeMillis(),
                         )
+                        val audio = musicRepository.getTrack(mediaId)
+                        if (audio != null) {
+                            preferencesRepository.updateApplicationPreferences { prefs ->
+                                prefs.recordMusicPlay(
+                                    uri = mediaId,
+                                    folderPath = audio.path.substringBeforeLast('/', ""),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -513,6 +524,17 @@ class PlayerService : MediaSessionService() {
                     stopSelf()
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
+
+                CustomCommands.GET_AUDIO_SESSION_ID -> {
+                    val sessionId = (mediaSession?.player as? ExoPlayer)?.audioSessionId
+                        ?: C.AUDIO_SESSION_ID_UNSET
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            putInt(CustomCommands.AUDIO_SESSION_ID_KEY, sessionId)
+                        },
+                    )
+                }
             }
         }
     }
@@ -713,19 +735,27 @@ class PlayerService : MediaSessionService() {
         }
     }
     private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? = withContext(Dispatchers.IO) {
-        val uri = mediaItem.mediaId.toUri()
-        return@withContext try {
-            val request = ImageRequest.Builder(this@PlayerService)
-                .data(uri)
-                .size(512, 512)
-                .build()
-            imageLoader.execute(request)
-            val diskCache = imageLoader.diskCache ?: return@withContext null
-            return@withContext diskCache.openSnapshot(uri.toString())?.use { snapshot ->
-                snapshot.data.toFile().toUri()
-            }
-        } catch (_: Throwable) {
-            null
+        val candidates = listOfNotNull(
+            mediaItem.mediaMetadata.artworkUri,
+            mediaItem.localConfiguration?.uri,
+            mediaItem.mediaId.toUri(),
+        ).distinct()
+        candidates.firstNotNullOfOrNull { candidate ->
+            runCatching {
+                val request = ImageRequest.Builder(this@PlayerService)
+                    .data(candidate)
+                    .size(512, 512)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .build()
+                val result = imageLoader.execute(request)
+                if (result.image == null) return@runCatching null
+                val diskCache = imageLoader.diskCache
+                val snapshotKey = request.diskCacheKey ?: candidate.toString()
+                diskCache?.openSnapshot(snapshotKey)?.use { snapshot ->
+                    snapshot.data.toFile().toUri()
+                } ?: candidate
+            }.getOrNull()
         }
     }
     private fun MediaItem.withArtwork(uri: Uri): MediaItem = buildUpon()

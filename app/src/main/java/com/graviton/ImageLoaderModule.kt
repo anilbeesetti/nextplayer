@@ -28,6 +28,7 @@ object ImageLoaderModule {
     ): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
+                add(AudioArtworkDecoder.Factory())
                 add(
                     VideoThumbnailDecoder.Factory(
                         thumbnailStrategy = {

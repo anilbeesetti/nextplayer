@@ -23,7 +23,7 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(
     mediaPickerEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         onPlayVideo = { uri -> context.startPlayback(uri) },
-        onPlayVideos = { uris -> context.startPlayback(uris) },
+        onPlayVideos = { uris, startUri -> context.startPlayback(uris, startUri = startUri) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
         onSettingsClick = backStack::navigateToSettings,
         onSearchClick = backStack::navigateToSearch,

@@ -478,6 +478,16 @@
     <string name="show_playlists_tab">Show "Playlists" Tab</string>
     <string name="show_network_tab">Show "Network" Tab</string>
     <string name="show_music_tab">Show "Music" Tab</string>
+    <string name="show_bottom_navigation">Show bottom navigation</string>
+    <string name="show_bottom_navigation_desc">Hide the bottom bar completely when this is off</string>
+    <string name="music_settings">Music</string>
+    <string name="music_settings_description">Library, lyrics, history and shuffle</string>
+    <string name="show_lyrics">Show lyrics</string>
+    <string name="show_lyrics_desc">Load sidecar and embedded lyrics in the music player</string>
+    <string name="remember_shuffle">Remember shuffle</string>
+    <string name="remember_shuffle_desc">Keep shuffle enabled between sessions</string>
+    <string name="clear_music_history">Clear recently played</string>
+    <string name="clear_music_history_desc">Remove music playback history from Home</string>
     <string name="pure_black_theme">AMOLED Pure Black Theme</string>
     <string name="pure_black_theme_desc">Use #000000 instead of standard dark background</string>
     <string name="decrease_speed">Decrease speed</string>

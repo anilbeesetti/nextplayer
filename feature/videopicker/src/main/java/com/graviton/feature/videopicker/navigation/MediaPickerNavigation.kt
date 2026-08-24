@@ -21,7 +21,7 @@ fun NavBackStack<NavKey>.navigateToMediaPickerScreen(folderId: String) {
 fun EntryProviderScope<NavKey>.mediaPickerEntry(
     onNavigateUp: () -> Unit,
     onPlayVideo: (uri: Uri) -> Unit,
-    onPlayVideos: (uris: List<Uri>) -> Unit,
+    onPlayVideos: (uris: List<Uri>, startUri: Uri?) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,

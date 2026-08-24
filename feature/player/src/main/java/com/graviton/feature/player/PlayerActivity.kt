@@ -33,6 +33,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import com.graviton.core.common.extensions.getInitialDirectoryUri
 import com.graviton.core.common.extensions.getMediaContentUri
+import com.graviton.core.data.stream.StreamExtractor
+import com.graviton.core.model.ExtractedStream
+import com.graviton.core.model.StreamUrls
 import com.graviton.core.ui.theme.GravitonTheme
 import com.graviton.core.common.service.registerForSuspendActivityResult
 import com.graviton.feature.player.extensions.OpenDocumentAtInitialUri
@@ -83,6 +86,9 @@ class PlayerActivity : ComponentActivity() {
     private var playbackGeneration: Long = 0L
     private var renderedController: MediaController? by mutableStateOf(null)
     private lateinit var playerApi: PlayerApi
+
+    @javax.inject.Inject
+    lateinit var streamExtractor: StreamExtractor
 
     /**
     * Listeners
@@ -250,17 +256,27 @@ class PlayerActivity : ComponentActivity() {
             it == (mediaContentUri ?: uri).toString()
         }.takeIf { it >= 0 } ?: 0
 
-        val mediaItems = playlist.mapIndexed { index, uri ->
+        val mediaItems = playlist.mapIndexed { index, playlistUri ->
+            val extracted = resolveStream(playlistUri)
             MediaItem.Builder().apply {
-                setUri(uri)
-                setMediaId(uri)
-                if (index == mediaItemIndexToPlay) {
-                    setMediaMetadata(
-                        MediaMetadata.Builder().apply {
-                            setTitle(playerApi.title)
+                setUri(extracted.playableUrl)
+                setMediaId(playlistUri)
+                if (extracted.isHls) {
+                    setMimeType(MimeTypes.APPLICATION_M3U8)
+                } else if (extracted.isDash) {
+                    setMimeType(MimeTypes.APPLICATION_MPD)
+                }
+                setMediaMetadata(
+                    MediaMetadata.Builder().apply {
+                        setTitle(extracted.title ?: playerApi.title)
+                        extracted.uploader?.let(::setArtist)
+                        extracted.thumbnailUrl?.let { setArtworkUri(android.net.Uri.parse(it)) }
+                        if (index == mediaItemIndexToPlay) {
                             setExtras(positionMs = playerApi.position?.toLong())
-                        }.build(),
-                    )
+                        }
+                    }.build(),
+                )
+                if (index == mediaItemIndexToPlay) {
                     val apiSubs = playerApi.getSubs().map { subtitle ->
                         uriToSubtitleConfiguration(
                             uri = subtitle.uri,
@@ -280,6 +296,15 @@ class PlayerActivity : ComponentActivity() {
                 playWhenReady = viewModel.playWhenReady
                 prepare()
             }
+        }
+    }
+
+    private suspend fun resolveStream(playlistUri: String): ExtractedStream {
+        if (!StreamUrls.needsExtraction(playlistUri)) {
+            return ExtractedStream(sourceUrl = playlistUri, playableUrl = playlistUri)
+        }
+        return runCatching { streamExtractor.resolve(playlistUri) }.getOrElse {
+            ExtractedStream(sourceUrl = playlistUri, playableUrl = playlistUri)
         }
     }
 

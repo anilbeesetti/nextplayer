@@ -53,3 +53,6 @@ data class Video(
 
 fun List<Video>.recentPlayed(): Video? =
     filter { it.lastPlayedAt != null }.sortedByDescending { it.lastPlayedAt?.time }.firstOrNull()
+
+/** Folder Play starts here: last-played item if any, otherwise the first playable video. */
+fun List<Video>.playbackStart(): Video? = recentPlayed() ?: firstOrNull()
