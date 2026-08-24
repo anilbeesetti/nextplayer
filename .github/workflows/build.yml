@@ -1,46 +1,237 @@
-name: Build and Sign APK
+name: Build & Sign Release APK
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag, e.g. v1.0.0"
+        required: true
+        default: "v1.0.0"
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    name: Build & Sign Release APK
-    runs-on: ubuntu-latest
+  build-release:
+    name: Build Signed Release APK
+    runs-on: ubuntu-24.04
 
     steps:
+      # ---------------------------------------------------------
+      # Checkout
+      # ---------------------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # ---------------------------------------------------------
+      # Java
+      # ---------------------------------------------------------
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: "17"
           cache: gradle
 
+      # ---------------------------------------------------------
+      # Make Gradle executable
+      # ---------------------------------------------------------
       - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+        run: chmod +x ./gradlew
 
+      # ---------------------------------------------------------
+      # Build release APK
+      # ---------------------------------------------------------
       - name: Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew clean assembleRelease --stacktrace
 
+      # ---------------------------------------------------------
+      # Locate APK directory (Fix: releaseDir not releaseDirectory)
+      # ---------------------------------------------------------
+      - name: Locate APK directory
+        id: locate_apk_dir
+        run: |
+          # Find the directory containing release APKs
+          APK_DIR=$(find . \
+            -type f \
+            -name "*-release-unsigned.apk" \
+            | head -n 1 \
+            | xargs dirname)
+
+          # Fallback to signed APK directory
+          if [ -z "$APK_DIR" ]; then
+            APK_DIR=$(find . \
+              -type f \
+              -name "*-release.apk" \
+              | head -n 1 \
+              | xargs dirname)
+          fi
+
+          if [ -z "$APK_DIR" ]; then
+            echo "::error::No release APK directory found."
+            exit 1
+          fi
+
+          echo "APK directory: $APK_DIR"
+          echo "dir=$APK_DIR" >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------
+      # Sign APK (FIXED: releaseDir not releaseDirectory)
+      # ---------------------------------------------------------
       - name: Sign APK
+        id: sign
         uses: ilharp/sign-android-release@v2
-        id: sign_app
         with:
-          releaseDirectory: app/build/outputs/apk/release
+          # ✅ FIXED: correct parameter name is releaseDir
+          releaseDir: ${{ steps.locate_apk_dir.outputs.dir }}
           signingKey: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # ✅ Pin build tools version to avoid apksigner issues
+          buildToolsVersion: "34.0.0"
 
+      # ---------------------------------------------------------
+      # Debug signed files
+      # ---------------------------------------------------------
+      - name: List signed APKs
+        run: |
+          echo "Signed files output:"
+          echo "${{ steps.sign.outputs.signedFiles }}"
+          echo ""
+          echo "All APKs in release dir:"
+          find . -name "*.apk" -print
+
+      # ---------------------------------------------------------
+      # Get APK info & Create SHA256
+      # ---------------------------------------------------------
+      - name: Get APK information
+        id: apk_info
+        run: |
+          # Get first signed APK from output
+          SIGNED_APK=$(echo "${{ steps.sign.outputs.signedFiles }}" \
+            | tr ':' '\n' \
+            | head -n 1)
+
+          if [ -z "$SIGNED_APK" ] || [ ! -f "$SIGNED_APK" ]; then
+            echo "::error::Signed APK not found."
+            exit 1
+          fi
+
+          echo "Signed APK: $SIGNED_APK"
+
+          SIZE=$(du -h "$SIGNED_APK" | cut -f1)
+          SHA256_LINE=$(sha256sum "$SIGNED_APK")
+          SHA256=$(echo "$SHA256_LINE" | cut -d' ' -f1)
+
+          mkdir -p release
+          cp "$SIGNED_APK" release/app-release-signed.apk
+          echo "$SHA256_LINE" > release/app-release-signed.apk.sha256
+
+          echo "apk=release/app-release-signed.apk" >> "$GITHUB_OUTPUT"
+          echo "size=$SIZE"                         >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA256"                     >> "$GITHUB_OUTPUT"
+
+          echo "APK size: $SIZE"
+          echo "SHA256:   $SHA256"
+
+      # ---------------------------------------------------------
+      # Determine release tag
+      # ---------------------------------------------------------
+      - name: Determine release tag
+        id: release_tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_TAG: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.release_tag }}
+        run: |
+          if [ "$EVENT_NAME" = "push" ]; then
+            TAG="$PUSH_TAG"
+          else
+            TAG="$INPUT_TAG"
+          fi
+
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+            echo "::error::Invalid tag format '$TAG'. Expected: v1.2.3"
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Release tag: $TAG"
+
+      # ---------------------------------------------------------
+      # Upload artifact
+      # ---------------------------------------------------------
       - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: Signed-Release-APK
-          path: ${{steps.sign_app.outputs.signedReleaseFile}}
-          
+          name: signed-apk
+          path: |
+            ${{ steps.apk_info.outputs.apk }}
+            release/app-release-signed.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      # ---------------------------------------------------------
+      # Create GitHub Release
+      # ---------------------------------------------------------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: Graviton ${{ steps.release_tag.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            ${{ steps.apk_info.outputs.apk }}
+            release/app-release-signed.apk.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---------------------------------------------------------
+      # Summary
+      # ---------------------------------------------------------
+      - name: Write build summary
+        run: |
+          TAG="${{ steps.release_tag.outputs.tag }}"
+          SIZE="${{ steps.apk_info.outputs.size }}"
+          SHA256="${{ steps.apk_info.outputs.sha256 }}"
+
+          {
+            echo "# 🚀 Graviton Android Release"
+            echo ""
+            echo "## Build Status"
+            echo ""
+            echo "| Property | Value |"
+            echo "|---|---|"
+            echo "| Build | ✅ Successful |"
+            echo "| Release | \`$TAG\` |"
+            echo "| APK | \`app-release-signed.apk\` |"
+            echo "| APK Size | $SIZE |"
+            echo "| Java | 17 |"
+            echo "| Runner | Ubuntu 24.04 |"
+            echo ""
+            echo "## 🔐 Signing"
+            echo ""
+            echo "✅ APK signed with \`ilharp/sign-android-release@v2\`"
+            echo ""
+            echo "## SHA-256"
+            echo ""
+            echo "\`$SHA256\`"
+            echo ""
+            echo "## 📦 Downloads"
+            echo ""
+            echo "- **GitHub Release:** [Open Release](https://github.com/${{ github.repository }}/releases/tag/$TAG)"
+            echo "- **Artifact:** Available in Actions run artifacts"
+            echo ""
+            echo "## Build Information"
+            echo ""
+            echo "- Repository: \`${{ github.repository }}\`"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Workflow: \`${{ github.workflow }}\`"
+            echo ""
+            echo "---"
+            echo "Generated automatically by GitHub Actions."
+          } >> "$GITHUB_STEP_SUMMARY"
