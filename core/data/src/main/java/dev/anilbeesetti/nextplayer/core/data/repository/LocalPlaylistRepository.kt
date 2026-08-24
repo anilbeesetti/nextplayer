@@ -96,10 +96,6 @@ class LocalPlaylistRepository @Inject constructor(
         )
     }
 
-    override suspend fun removeMissingVideos(existingUris: Set<String>) {
-        playlistDao.removeMissingLocalItems(existingUris)
-    }
-
     override suspend fun countFilePlaylistsBySource(source: String): Int =
         playlistDao.countPlaylistsByTypeAndSource(PlaylistType.M3U_FILE.name, source)
 }

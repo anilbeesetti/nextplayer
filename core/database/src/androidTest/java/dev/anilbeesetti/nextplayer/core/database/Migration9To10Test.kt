@@ -11,7 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class Migration8To9Test {
+class Migration9To10Test {
     @get:Rule
     val helper = MigrationTestHelper(
         InstrumentationRegistry.getInstrumentation(),
@@ -20,7 +20,7 @@ class Migration8To9Test {
 
     @Test
     fun migrationPreservesLocalPlaylistOrderAndPlaybackHistory() {
-        helper.createDatabase(TEST_DATABASE, 8).apply {
+        helper.createDatabase(TEST_DATABASE, 9).apply {
             execSQL("INSERT INTO playlist (id, name, created_at) VALUES (7, 'Movies', 100)")
             execSQL(
                 """
@@ -33,9 +33,9 @@ class Migration8To9Test {
 
         val migrated = helper.runMigrationsAndValidate(
             TEST_DATABASE,
-            9,
+            10,
             true,
-            MediaDatabase.MIGRATION_8_9,
+            MediaDatabase.MIGRATION_9_10,
         )
 
         migrated.query(
@@ -70,6 +70,6 @@ class Migration8To9Test {
     }
 
     private companion object {
-        const val TEST_DATABASE = "migration-8-9"
+        const val TEST_DATABASE = "migration-9-10"
     }
 }

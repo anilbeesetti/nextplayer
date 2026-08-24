@@ -22,8 +22,8 @@ For faster feedback, target a module: `./gradlew :core:media:test`.
 
 - Follow `.editorconfig` and the Android Studio ktlint style: four-space indentation and trailing commas where supported. Use `PascalCase` for classes, files, and `@Composable` functions; use `camelCase` for methods and properties; keep packages lowercase under `dev.anilbeesetti.nextplayer`.
 - Place UI string and plurals resources in `core/ui/src/main/res/values/strings.xml` and reference them through `dev.anilbeesetti.nextplayer.core.ui.R`; do not create feature-local string resource files.
-- Choose the simplest implementation that fully meets the current requirements. 
-- Prefer established, well-maintained libraries over custom implementations. 
+- Choose the simplest implementation that fully meets the current requirements.
+- Prefer established, well-maintained libraries over custom implementations.
 - Optimize for the next reader: use clear names, small focused units, straightforward control flow, and existing module boundaries. Avoid unnecessary abstractions, clever shortcuts, and speculative flexibility.
 
 ## Testing Guidelines

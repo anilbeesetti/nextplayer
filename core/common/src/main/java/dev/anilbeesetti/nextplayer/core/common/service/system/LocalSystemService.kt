@@ -35,6 +35,12 @@ class LocalSystemService @Inject constructor(
 
     override fun getString(stringResId: Int): String = context.getString(stringResId)
 
+    override fun getQuantityString(
+        pluralsResId: Int,
+        quantity: Int,
+        vararg formatArgs: Any,
+    ): String = context.resources.getQuantityString(pluralsResId, quantity, *formatArgs)
+
     override fun showToast(text: String, duration: Int) {
         Toast.makeText(context, text, duration).show()
     }

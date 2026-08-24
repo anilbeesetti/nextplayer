@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.videopicker.screens.mediapicker
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -40,22 +41,18 @@ import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.R
-import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.FolderArgs
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 
 @HiltViewModel(assistedFactory = MediaPickerViewModel.Factory::class)
 class MediaPickerViewModel @AssistedInject constructor(
-    @Assisted private val folderArgs: FolderArgs,
     private val getSortedMediaUseCase: GetSortedMediaUseCase,
     private val getRecentlyPlayedVideoUseCase: GetRecentlyPlayedVideoUseCase,
     private val getSortedVideosUseCase: GetSortedVideosUseCase,
@@ -68,14 +65,33 @@ class MediaPickerViewModel @AssistedInject constructor(
     private val vaultPinRepository: VaultPinRepository,
     private val systemService: SystemService,
     @ApplicationContext private val context: Context,
+    @Assisted private val input: Input,
+    @Assisted private val output: Output,
 ) : ViewModel() {
+
+    data class Input(
+        val folderId: String?,
+    )
+
+    data class Output(
+        val navigateUp: () -> Unit,
+        val playVideo: (Uri) -> Unit,
+        val playVideos: (List<Uri>) -> Unit,
+        val openFolder: (String) -> Unit,
+        val openSettings: () -> Unit,
+        val openSearch: () -> Unit,
+        val openVault: () -> Unit,
+    )
 
     @AssistedFactory
     interface Factory {
-        fun create(folderArgs: FolderArgs): MediaPickerViewModel
+        fun create(
+            input: Input,
+            output: Output,
+        ): MediaPickerViewModel
     }
 
-    val folderPath = folderArgs.folderId
+    val folderPath = input.folderId
 
     private val uiStateInternal = MutableStateFlow(
         MediaPickerUiState(
@@ -84,9 +100,6 @@ class MediaPickerViewModel @AssistedInject constructor(
         ),
     )
     val uiState = uiStateInternal.asStateFlow()
-
-    private val eventsInternal = Channel<MediaPickerEvent>()
-    val events = eventsInternal.receiveAsFlow()
 
     private var mediaCollectJob: Job? = null
     private var transferJob: Job? = null
@@ -101,6 +114,12 @@ class MediaPickerViewModel @AssistedInject constructor(
 
     fun onAction(action: MediaPickerAction) {
         when (action) {
+            MediaPickerAction.OnNavigateUpClick -> output.navigateUp()
+            is MediaPickerAction.OnPlayVideo -> output.playVideo(action.uri)
+            is MediaPickerAction.OnFolderClick -> output.openFolder(action.folderPath)
+            MediaPickerAction.OnSettingsClick -> output.openSettings()
+            MediaPickerAction.OnSearchClick -> output.openSearch()
+            MediaPickerAction.OnVaultClick -> output.openVault()
             is MediaPickerAction.Refresh -> refresh()
             is MediaPickerAction.RenameVideo -> renameVideo(action.uri, action.to)
             is MediaPickerAction.UpdateMenu -> updateMenu(action.preferences)
@@ -182,7 +201,6 @@ class MediaPickerViewModel @AssistedInject constructor(
                 addToPlaylistState = AddToPlaylistState(
                     isVisible = true,
                     isSaving = true,
-                    completionToken = it.addToPlaylistState.completionToken,
                 ),
             )
         }
@@ -200,7 +218,6 @@ class MediaPickerViewModel @AssistedInject constructor(
                             } else {
                                 null
                             },
-                            completionToken = it.addToPlaylistState.completionToken,
                         ),
                     )
                 }
@@ -212,7 +229,6 @@ class MediaPickerViewModel @AssistedInject constructor(
                         addToPlaylistState = AddToPlaylistState(
                             isVisible = true,
                             errorRes = R.string.playlist_selection_read_failed,
-                            completionToken = it.addToPlaylistState.completionToken,
                         ),
                     )
                 }
@@ -249,13 +265,9 @@ class MediaPickerViewModel @AssistedInject constructor(
                 val addedCount = block()
                 pendingPlaylistVideos = emptyList()
                 uiStateInternal.update {
-                    it.copy(
-                        addToPlaylistState = AddToPlaylistState(
-                            completionToken = it.addToPlaylistState.completionToken + 1,
-                        ),
-                    )
+                    it.copy(addToPlaylistState = AddToPlaylistState())
                 }
-                eventsInternal.send(MediaPickerEvent.PlaylistItemsAdded(addedCount))
+                showPlaylistItemsAddedToast(addedCount)
             } catch (error: kotlinx.coroutines.CancellationException) {
                 uiStateInternal.update {
                     it.copy(addToPlaylistState = it.addToPlaylistState.copy(isSaving = false))
@@ -278,18 +290,27 @@ class MediaPickerViewModel @AssistedInject constructor(
         if (uiStateInternal.value.addToPlaylistState.isSaving) return
         pendingPlaylistVideos = emptyList()
         uiStateInternal.update {
-            it.copy(
-                addToPlaylistState = AddToPlaylistState(
-                    completionToken = it.addToPlaylistState.completionToken,
-                ),
+            it.copy(addToPlaylistState = AddToPlaylistState())
+        }
+    }
+
+    private fun showPlaylistItemsAddedToast(addedCount: Int) {
+        val message = if (addedCount == 0) {
+            systemService.getString(R.string.already_in_playlist)
+        } else {
+            systemService.getQuantityString(
+                R.plurals.added_videos_to_playlist,
+                addedCount,
+                addedCount,
             )
         }
+        systemService.showToast(message, Toast.LENGTH_SHORT)
     }
 
     private fun playSelectedItems(selectedItems: Set<SelectionItem>) {
         viewModelScope.launch {
             val videoUris = selectedItems.toVideoUris()
-            eventsInternal.send(MediaPickerEvent.PlayVideos(videoUris))
+            output.playVideos(videoUris)
         }
     }
 
@@ -336,11 +357,43 @@ class MediaPickerViewModel @AssistedInject constructor(
 
                     is TransferEvent.Completed -> {
                         uiStateInternal.update { it.copy(transferFlow = TransferFlowState.Idle) }
-                        eventsInternal.send(MediaPickerEvent.TransferComplete(mode, event.result))
+                        showTransferCompleteToast(mode, event.result)
                     }
                 }
             }
         }
+    }
+
+    private fun showTransferCompleteToast(mode: TransferMode, result: TransferResult) {
+        val message = when {
+            result.sameFolderSkipped > 0 && result.succeeded == 0 && result.failed == 0 ->
+                systemService.getString(R.string.cannot_move_to_same_folder)
+
+            result.failed > 0 -> systemService.getQuantityString(
+                if (mode == TransferMode.MOVE) R.plurals.move_failed else R.plurals.copy_failed,
+                result.failed,
+                result.failed,
+            )
+
+            result.originalsNotDeleted -> systemService.getQuantityString(
+                R.plurals.moved_videos_originals_remain,
+                result.succeeded,
+                result.succeeded,
+            )
+
+            mode == TransferMode.MOVE -> systemService.getQuantityString(
+                R.plurals.moved_videos_result,
+                result.succeeded,
+                result.succeeded,
+            )
+
+            else -> systemService.getQuantityString(
+                R.plurals.copied_videos_result,
+                result.succeeded,
+                result.succeeded,
+            )
+        }
+        systemService.showToast(message, Toast.LENGTH_SHORT)
     }
 
     private fun cancelTransfer() {
@@ -466,7 +519,6 @@ data class AddToPlaylistState(
     val isSaving: Boolean = false,
     val hasVideos: Boolean = false,
     val errorRes: Int? = null,
-    val completionToken: Long = 0,
 )
 
 sealed interface TransferFlowState {
@@ -484,6 +536,12 @@ sealed interface HideFlowState {
 }
 
 sealed interface MediaPickerAction {
+    data object OnNavigateUpClick : MediaPickerAction
+    data class OnPlayVideo(val uri: Uri) : MediaPickerAction
+    data class OnFolderClick(val folderPath: String) : MediaPickerAction
+    data object OnSettingsClick : MediaPickerAction
+    data object OnSearchClick : MediaPickerAction
+    data object OnVaultClick : MediaPickerAction
     data object Refresh : MediaPickerAction
     data class RenameVideo(val uri: Uri, val to: String) : MediaPickerAction
     data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerAction
@@ -504,13 +562,4 @@ sealed interface MediaPickerAction {
     data class AddSelectionToPlaylist(val playlistId: Long) : MediaPickerAction
     data class CreatePlaylistWithSelection(val name: String) : MediaPickerAction
     data object DismissAddToPlaylist : MediaPickerAction
-}
-
-sealed interface MediaPickerEvent {
-    data class PlayVideos(val uris: List<Uri>) : MediaPickerEvent
-    data class TransferComplete(
-        val mode: TransferMode,
-        val result: TransferResult,
-    ) : MediaPickerEvent
-    data class PlaylistItemsAdded(val count: Int) : MediaPickerEvent
 }

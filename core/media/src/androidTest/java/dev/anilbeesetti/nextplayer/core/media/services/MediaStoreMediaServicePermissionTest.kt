@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,7 +24,7 @@ import org.junit.runner.RunWith
 class MediaStoreMediaServicePermissionTest {
 
     @Test
-    fun fetchVideosReturnsEmptyListWhenProviderDeniesAccess() = runBlocking {
+    fun fetchVideosThrowsWhenProviderDeniesAccess() = runBlocking {
         val provider = object : ContentProvider() {
             override fun onCreate(): Boolean = true
 
@@ -58,16 +57,19 @@ class MediaStoreMediaServicePermissionTest {
         val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         try {
-            val videos = MediaStoreMediaService(context, applicationScope).fetchVideos()
-
-            assertTrue(videos.isEmpty())
+            try {
+                MediaStoreMediaService(context, applicationScope).fetchVideos()
+                fail("Expected MediaStore permission denial to be preserved")
+            } catch (_: SecurityException) {
+                // Expected: callers decide how to handle an unavailable MediaStore snapshot.
+            }
         } finally {
             applicationScope.cancel()
         }
     }
 
     @Test
-    fun strictVideoUriSnapshotFailsWhenProviderReturnsNullCursor() = runBlocking {
+    fun fetchVideosFailsWhenProviderReturnsNullCursor() = runBlocking {
         val provider = object : ContentProvider() {
             override fun onCreate(): Boolean = true
 
@@ -101,7 +103,7 @@ class MediaStoreMediaServicePermissionTest {
 
         try {
             try {
-                MediaStoreMediaService(context, applicationScope).fetchVideoUrisOrThrow()
+                MediaStoreMediaService(context, applicationScope).fetchVideos()
                 fail("Expected a null MediaStore cursor to fail the strict snapshot")
             } catch (_: IllegalStateException) {
                 // Expected: reconciliation must not treat a null cursor as an empty library.

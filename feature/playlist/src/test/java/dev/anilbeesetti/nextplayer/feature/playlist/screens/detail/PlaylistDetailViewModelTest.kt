@@ -5,7 +5,6 @@ import android.net.Uri
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
 import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
 import dev.anilbeesetti.nextplayer.core.domain.ObservePlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItemRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistRecord
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
@@ -112,11 +111,6 @@ class PlaylistDetailViewModelTest {
         observePlaylist = ObservePlaylistUseCase(repository, mediaRepository),
         playlistRepository = repository,
         m3uParser = M3UParser(context, Dispatchers.Unconfined),
-        syncPlaylistsWithMedia = SyncPlaylistsWithMediaUseCase(
-            mediaRepository = mediaRepository,
-            playlistRepository = repository,
-            context = context,
-        ),
         systemService = systemService,
         input = PlaylistDetailViewModel.Input(7),
         output = PlaylistDetailViewModel.Output(

@@ -65,8 +65,6 @@ internal class FakePlaylistRepository : PlaylistRepository {
 
     override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) = Unit
 
-    override suspend fun removeMissingVideos(existingUris: Set<String>) = Unit
-
     override suspend fun countFilePlaylistsBySource(source: String): Int = 0
 }
 
@@ -78,6 +76,12 @@ internal class FakeSystemService : SystemService {
     override suspend fun pickFolder(): Uri? = null
 
     override fun getString(stringResId: Int): String = "string-$stringResId"
+
+    override fun getQuantityString(
+        pluralsResId: Int,
+        quantity: Int,
+        vararg formatArgs: Any,
+    ): String = "plurals-$pluralsResId-$quantity"
 
     override fun showToast(text: String, duration: Int) {
         toasts += text

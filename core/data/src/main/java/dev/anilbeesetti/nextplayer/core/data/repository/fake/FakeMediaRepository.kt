@@ -36,9 +36,6 @@ class FakeMediaRepository : MediaRepository {
         return videos.filter { folderPath == null || it.path.startsWith(folderPath) }
     }
 
-    override suspend fun fetchVideoUrisOrThrow(folderPath: String?): Set<String> =
-        fetchVideos(folderPath).mapTo(mutableSetOf(), Video::uriString)
-
     override suspend fun getVideoByUri(uri: String): Video? {
         return videos.find { it.uriString == uri }
     }

@@ -43,19 +43,13 @@ interface MediaService {
     /**
      * Fetches all videos under the given path recursively (one-shot).
      *
+     * Query failures are propagated so callers that reconcile persisted data can distinguish a
+     * failed query from a successful empty result.
+     *
      * @param folderPath The root path to search for videos, or null to scan all storage volumes.
      * @return List of all videos found under the path.
      */
     suspend fun fetchVideos(folderPath: String? = null): List<MediaVideo>
-
-    /**
-     * Fetches video URIs while preserving MediaStore query failures.
-     *
-     * Use this for operations that mutate stored data based on a complete MediaStore snapshot.
-     * Browsing callers should continue using [fetchVideos], whose implementation tolerates a
-     * revoked permission.
-     */
-    suspend fun fetchVideoUrisOrThrow(folderPath: String? = null): Set<String>
 
     /**
      * Finds a specific video by its content URI.

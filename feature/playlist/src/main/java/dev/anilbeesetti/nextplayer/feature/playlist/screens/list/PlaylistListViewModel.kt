@@ -12,7 +12,7 @@ import dev.anilbeesetti.nextplayer.core.data.playlist.M3UDocumentPermissionManag
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
 import dev.anilbeesetti.nextplayer.core.data.playlist.PersistedM3UGrant
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
-import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.M3UPlaylist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
@@ -33,7 +33,7 @@ class PlaylistListViewModel @AssistedInject constructor(
     private val playlistRepository: PlaylistRepository,
     private val m3uParser: M3UParser,
     private val documentPermissionManager: M3UDocumentPermissionManager,
-    private val syncPlaylistsWithMedia: SyncPlaylistsWithMediaUseCase,
+    private val mediaSynchronizer: MediaSynchronizer,
     private val systemService: SystemService,
     @Assisted private val output: Output,
 ) : MviViewModel<PlaylistListUiState, PlaylistUiAction>() {
@@ -48,7 +48,6 @@ class PlaylistListViewModel @AssistedInject constructor(
         fun create(output: Output): PlaylistListViewModel
     }
 
-    private var syncJob: Job? = null
     private var linkedCreationJob: Job? = null
 
     private val internalState = MutableStateFlow(PlaylistListUiState())
@@ -92,8 +91,7 @@ class PlaylistListViewModel @AssistedInject constructor(
     }
 
     fun synchronize() {
-        if (syncJob?.isActive == true) return
-        syncJob = viewModelScope.launch { syncPlaylistsWithMedia() }
+        mediaSynchronizer.startSync()
     }
 
     fun createM3UFile(uri: Uri) {

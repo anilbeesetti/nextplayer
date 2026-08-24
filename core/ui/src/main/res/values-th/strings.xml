@@ -26,4 +26,42 @@
     <string name="duration">ระยะเวลา</string>
     <string name="autoplay_settings_description">เล่นวิดีโอถัดไปในโฟลเดอร์ปัจจุบันโดยอัตโนมัติ</string>
     <string name="error_playing_video">ผิดพลาด: ไม่สามารถเล่นวิดีโอได้</string>
+    <string name="about_description">เวอร์ชั่น, การสนับสนุน, เครดิต</string>
+    <string name="ascending">จากน้อยไปมาก</string>
+    <string name="descending">จากมากไปน้อย</string>
+    <string name="double_tap_description">เลือกท่าทางแตะสองครั้ง</string>
+    <string name="folder_duration">ระยะเวลาของโฟลเดอร์</string>
+    <string name="location">ตำแหน่ง</string>
+    <string name="navigate_up">เลื่อนขึ้น</string>
+    <string name="no_connections_title">ยังไม่มีการเชื่อมต่อ</string>
+    <string name="no_connections_description">เพิ่มการเชื่อมต่อแบบ SMB, FTP หรือ WebDAV สำหรับค้นหาและเล่นวิดิโอจากเครือข่ายของคุณ</string>
+    <string name="empty_folder">โฟลเดอร์นี้ว่างเปล่า</string>
+    <string name="failed_to_load_folder">ไม่สามารถโหลดตำแหน่งนี้ได้</string>
+    <string name="retry">ลองใหม่</string>
+    <string name="edit">แก้ไข</string>
+    <string name="copy">คัดลอก / เคลื่อนย้าย</string>
+    <string name="move">เคลื่อนย้าย</string>
+    <string name="copying_videos_in_progress">กำลังคัดลอก…</string>
+    <string name="moving_videos_in_progress">กำลังเคลื่อนย้าย…</string>
+    <string name="transfer_file_progress">ไฟล์ %1$d จากทั้งหมด %2$d</string>
+    <plurals name="copied_videos_result">
+        <item quantity="other">คัดลอกจำนวน %1$d วิดิโอ</item>
+    </plurals>
+    <plurals name="moved_videos_result">
+        <item quantity="other">เคลื่อนย้ายจำนวน %1$d วิดิโอ</item>
+    </plurals>
+    <plurals name="copy_failed">
+        <item quantity="other">ไม่สามารถคัดลอกได้ จำนวน %1$d วิดิโอ</item>
+    </plurals>
+    <plurals name="move_failed">
+        <item quantity="other">ไม่สามารถเคลื่อนย้ายได้ จำนวน %1$d วิดิโอ</item>
+    </plurals>
+    <plurals name="moved_videos_originals_remain">
+        <item quantity="other">เคลื่อนย้ายวิดิโอจำนวน %1$d วิดิโอแล้ว แต่ไม่สามารถลบวิดิโอจากตำแหน่งต้นฉบับได้</item>
+    </plurals>
+    <string name="cannot_move_to_same_folder">ไม่สามารถเคลื่อนย้ายไปยังโฟลเดอร์เดียวกันได้</string>
+    <string name="oldest">เก่าที่สุด</string>
+    <string name="date">วันที่</string>
+    <string name="default_playback_speed">ความเร็วเล่นวิดิโอเริ่มต้น</string>
+    <string name="enter_a_network_url">ใส่เครือข่าย URL:</string>
 </resources>

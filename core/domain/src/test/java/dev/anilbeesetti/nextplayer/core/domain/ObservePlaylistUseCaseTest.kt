@@ -114,7 +114,6 @@ private class FakePlaylistRepository(
     override suspend fun removeVideo(playlistId: Long, videoUri: String) = error("Not used")
     override suspend fun replaceOrder(playlistId: Long, orderedUris: List<String>) = error("Not used")
     override suspend fun markVideoPlayed(playlistId: Long, videoUri: String) = error("Not used")
-    override suspend fun removeMissingVideos(existingUris: Set<String>) = error("Not used")
     override suspend fun countFilePlaylistsBySource(source: String): Int = 0
 }
 

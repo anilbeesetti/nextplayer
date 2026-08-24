@@ -12,7 +12,6 @@ import dev.anilbeesetti.nextplayer.core.common.service.system.SystemService
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
 import dev.anilbeesetti.nextplayer.core.domain.ObservePlaylistUseCase
-import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
 import dev.anilbeesetti.nextplayer.core.model.M3UPlaylist
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
@@ -34,7 +33,6 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     observePlaylist: ObservePlaylistUseCase,
     private val playlistRepository: PlaylistRepository,
     private val m3uParser: M3UParser,
-    private val syncPlaylistsWithMedia: SyncPlaylistsWithMediaUseCase,
     private val systemService: SystemService,
     @Assisted private val input: Input,
     @Assisted private val output: Output,
@@ -60,7 +58,6 @@ class PlaylistDetailViewModel @AssistedInject constructor(
     private val internalState = MutableStateFlow(PlaylistDetailUiState())
     override val state: StateFlow<PlaylistDetailUiState> = internalState.asStateFlow()
 
-    private var syncJob: Job? = null
     private var refreshJob: Job? = null
 
     init {
@@ -111,11 +108,6 @@ class PlaylistDetailViewModel @AssistedInject constructor(
             is PlaylistDetailUiAction.RemoveVideo -> removeVideo(action.videoUri)
             is PlaylistDetailUiAction.ReplaceOrder -> replaceOrder(action.orderedUris)
         }
-    }
-
-    fun synchronize() {
-        if (syncJob?.isActive == true) return
-        syncJob = viewModelScope.launch { syncPlaylistsWithMedia() }
     }
 
     private fun play(startUri: Uri) {

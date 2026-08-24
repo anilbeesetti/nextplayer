@@ -63,9 +63,6 @@ class LocalMediaRepository @Inject constructor(
         }
     }
 
-    override suspend fun fetchVideoUrisOrThrow(folderPath: String?): Set<String> =
-        mediaService.fetchVideoUrisOrThrow(folderPath)
-
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
         val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }
         val mediaStateDeferred = async { mediumStateDao.get(uri) }

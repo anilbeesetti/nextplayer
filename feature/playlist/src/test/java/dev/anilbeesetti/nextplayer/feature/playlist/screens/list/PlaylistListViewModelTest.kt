@@ -4,8 +4,7 @@ import android.content.Context
 import com.sun.net.httpserver.HttpServer
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UDocumentPermissionManager
 import dev.anilbeesetti.nextplayer.core.data.playlist.M3UParser
-import dev.anilbeesetti.nextplayer.core.data.repository.fake.FakeMediaRepository
-import dev.anilbeesetti.nextplayer.core.domain.SyncPlaylistsWithMediaUseCase
+import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.base.ActionState
 import dev.anilbeesetti.nextplayer.feature.playlist.FakePlaylistRepository
@@ -117,11 +116,7 @@ class PlaylistListViewModelTest {
         playlistRepository = repository,
         m3uParser = M3UParser(context, Dispatchers.Unconfined),
         documentPermissionManager = M3UDocumentPermissionManager(context),
-        syncPlaylistsWithMedia = SyncPlaylistsWithMediaUseCase(
-            mediaRepository = FakeMediaRepository(),
-            playlistRepository = repository,
-            context = context,
-        ),
+        mediaSynchronizer = FakeMediaSynchronizer,
         systemService = systemService,
         output = PlaylistListViewModel.Output(
             openPlaylist = openedIds::add,
@@ -138,4 +133,12 @@ class PlaylistListViewModelTest {
             }
             start()
         }
+
+    private object FakeMediaSynchronizer : MediaSynchronizer {
+        override suspend fun refresh(path: String?): Boolean = true
+
+        override fun startSync() = Unit
+
+        override fun stopSync() = Unit
+    }
 }

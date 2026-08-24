@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -284,6 +284,27 @@ abstract class MediaDatabase : RoomDatabase() {
         }
 
         val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `authentication` TEXT NOT NULL DEFAULT 'PASSWORD'",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_file_name` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_passphrase` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `host_key_fingerprint` TEXT NOT NULL DEFAULT ''",
+                )
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `playlist` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'LOCAL'")
                 db.execSQL("ALTER TABLE `playlist` ADD COLUMN `source` TEXT")
