@@ -409,7 +409,7 @@
     <string name="name_required">Уведіть назву добірки.</string>
     <string name="saving_playlist">Збереження добірки…</string>
     <string name="no_playlists_title">Поки немає добірок</string>
-    <string name="no_playlists_description">Створіть добірку, а потім виберіть локальні відео з розділу «Головна», щоби додати їх.</string>
+    <string name="no_playlists_description">Створіть локальну добірку або додайте джерело M3U, щоби почати перегляд.</string>
     <string name="local_playlist">Локальне</string>
     <string name="delete_playlist">Видалити добірку</string>
     <string name="delete_playlist_confirmation">Видалити «%1$s» та збережений порядок?</string>
@@ -471,4 +471,19 @@
     <string name="authentication_rejected">Автентифікація відхилена. Перевірте свої облікові дані та спробуйте ще раз.</string>
     <string name="host_key_mismatch">SSH-ключ власника не збігається з довіреним відбитком.</string>
     <string name="sftp_root_inaccessible">Кореневий шлях SFTP відсутній або недоступний.</string>
+    <string name="choose_playlist_type">Створити добірку</string>
+    <string name="create_local_playlist">Створити локальну добірку</string>
+    <string name="add_m3u_url_playlist">Додати M3U-добірку за URL-адресою</string>
+    <string name="add_m3u_file_playlist">Додати M3U-добірку з файлу</string>
+    <string name="playlist_url">URL-адреса M3U</string>
+    <string name="url_required">Введіть URL-адресу M3U.</string>
+    <string name="invalid_url">Введіть дійсну URL-адресу HTTP або HTTPS.</string>
+    <string name="m3u_url_playlist">URL-адреса M3U</string>
+    <string name="m3u_file_playlist">Файл M3U</string>
+    <string name="m3u_file_permission_failed">Не вдалося зберегти доступ до цього файлу. Виберіть його знову або скористайтеся іншим.</string>
+    <string name="refresh_playlist">Оновити добірку</string>
+    <string name="refreshing_playlist">Оновлення добірки</string>
+    <string name="playlist_refresh_succeeded">Добірку оновлено.</string>
+    <string name="playlist_refresh_failed">Не вдалося оновити добірку. Збережені елементи залишилися без змін.</string>
+    <string name="last_refreshed">Востаннє оновлено: %1$s</string>
 </resources>
