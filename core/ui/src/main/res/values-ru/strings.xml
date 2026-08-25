@@ -431,7 +431,7 @@
     <string name="name_required">Введите название плейлиста.</string>
     <string name="saving_playlist">Сохранение плейлиста…</string>
     <string name="no_playlists_title">Плейлистов пока нет</string>
-    <string name="no_playlists_description">Создайте плейлист, а затем выберите локальные видео в разделе «Главная», чтобы добавить их.</string>
+    <string name="no_playlists_description">Создайте локальный плейлист или добавьте источник M3U, чтобы начать просмотр.</string>
     <string name="delete_playlist">Удалить плейлист</string>
     <string name="delete_playlist_confirmation">Удалить “%1$s” и сохранённый порядок сортировки?</string>
     <string name="playlist_actions">Действия с плейлистом</string>
@@ -471,4 +471,19 @@
         <item quantity="many">%d видео</item>
         <item quantity="other">%d видео</item>
     </plurals>
+    <string name="choose_playlist_type">Создать плейлист</string>
+    <string name="create_local_playlist">Создать локальный плейлист</string>
+    <string name="add_m3u_url_playlist">Добавить M3U-плейлист по ссылке</string>
+    <string name="add_m3u_file_playlist">Добавить M3U-плейлист из файла</string>
+    <string name="playlist_url">Ссылка на M3U</string>
+    <string name="url_required">Введите ссылку на M3U.</string>
+    <string name="invalid_url">Введите корректную ссылку HTTP или HTTPS.</string>
+    <string name="m3u_url_playlist">Ссылка на M3U</string>
+    <string name="m3u_file_playlist">Файл M3U</string>
+    <string name="m3u_file_permission_failed">Не удалось сохранить доступ к этому файлу. Выберите его заново или используйте другой файл.</string>
+    <string name="refresh_playlist">Обновить плейлист</string>
+    <string name="refreshing_playlist">Обновление плейлиста</string>
+    <string name="playlist_refresh_succeeded">Плейлист обновлён.</string>
+    <string name="playlist_refresh_failed">Не удалось обновить плейлист. Сохранённые элементы остались без изменений.</string>
+    <string name="last_refreshed">Последнее обновление %1$s</string>
 </resources>
