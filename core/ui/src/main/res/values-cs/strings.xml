@@ -452,7 +452,7 @@
     <string name="local_playlist">Lokální</string>
     <string name="delete_playlist_confirmation">Odstranit \"%1$s\" a jeho uložené pořadí?</string>
     <string name="delete_playlist">Odstranit playlist</string>
-    <string name="no_playlists_description">Vytvořte playlist, pak vyberte lokální videa z vaší knihovny pro jejich přidání.</string>
+    <string name="no_playlists_description">Vytvořte lokální playlist nebo přidejte M3U zdroj pro začínání sledování.</string>
     <string name="no_playlists_title">Zatím žádné playlisty</string>
     <string name="saving_playlist">Ukládání playlistu…</string>
     <string name="name_required">Zadejte název playlistu.</string>
