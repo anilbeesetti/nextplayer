@@ -3,14 +3,15 @@ android-compileSdk = "37"
 android-targetSdk = "37"
 android-minSdk = "23"
 android-jvm = "17"
-aboutlibraries = "15.0.3"
+aboutlibraries = "15.0.4"
 accompanist = "0.37.3"
-androidGradlePlugin = "9.2.1"
+androidGradlePlugin = "9.3.1"
 androidMaterial = "1.14.0"
 androidxActivity = "1.13.0"
 androidxAppCompat = "1.7.1"
-androidxComposeBom = "2026.06.01"
+androidxComposeBom = "2026.08.00"
 androidxMaterial3 = "1.5.0-alpha17"
+androidxMaterial3Adaptive = "1.3.0-rc01"
 androidxConstraintLayout = "2.2.1"
 androidxCore = "1.19.0"
 androidxCorePip = "1.0.0-alpha03"
@@ -19,22 +20,29 @@ androidxDataStore = "1.2.1"
 androidxEspresso = "3.7.0"
 androidxHiltNavigationCompose = "1.4.0"
 androidxLifecycle = "2.11.0"
-androidxMedia3 = "1.10.1"
-androidxNavigation3 = "1.1.4"
+androidxMedia3 = "1.11.0"
+androidxNavigation3 = "1.1.6"
 androidxLifecycleViewmodelNav3 = "2.11.0"
 androidxTestExt = "1.3.0"
 coil = "3.5.0"
-hilt = "2.60"
+hilt = "2.60.1"
 junit4 = "4.13.2"
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 kotlinxCoroutines = "1.11.0"
 kotlinxSerializationJson = "1.11.0"
-ksp = "2.3.9"
+ksp = "2.3.11"
 ktlint = "12.3.0"
 reorderable = "3.1.0"
 room = "2.8.4"
+sshj = "0.40.0"
+bouncyCastle = "1.80.2"
+robolectric = "4.16.1"
 nextlib = "1.10.1-0.13.0"
 universalChardet = "2.5.0"
+smbj = "0.14.0"
+commonsNet = "3.13.0"
+sardineAndroid = "0.9"
+nanohttpd = "2.3.1"
 
 
 [libraries]
@@ -47,12 +55,13 @@ androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", versi
 androidx-compose-icons = { module = "androidx.compose.material:material-icons-extended" }
 androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidxMaterial3" }
+androidx-compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "androidxMaterial3Adaptive" }
+androidx-compose-material3-adaptive-navigationsuite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite", version.ref = "androidxMaterial3" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidxConstraintLayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-core-pip = { group = "androidx.core", name = "core-pip", version.ref = "androidxCorePip" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxCoreSplashscreen" }
@@ -75,9 +84,11 @@ androidx-lifecycle-viewmodel-navigation3 = { group = "androidx.lifecycle", name 
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 github-albfernandez-juniversalchardet = { group="com.github.albfernandez", name = "juniversalchardet", version.ref="universalChardet" }
 github-anilbeesetti-nextlib-media3ext = { group = "io.github.anilbeesetti", name = "nextlib-media3ext", version.ref = "nextlib" }
 github-anilbeesetti-nextlib-mediainfo = { group = "io.github.anilbeesetti", name = "nextlib-mediainfo", version.ref = "nextlib" }
@@ -91,6 +102,13 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
+sshj = { group = "com.hierynomus", name = "sshj", version.ref = "sshj" }
+bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
+commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }
+sardine-android = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardineAndroid" }
+nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanohttpd" }
 
 [plugins]
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }

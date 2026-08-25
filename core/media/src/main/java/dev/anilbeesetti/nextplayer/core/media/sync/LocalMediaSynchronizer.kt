@@ -3,6 +3,8 @@ package dev.anilbeesetti.nextplayer.core.media.sync
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import coil3.ImageLoader
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -10,14 +12,17 @@ import dev.anilbeesetti.nextplayer.core.common.di.ApplicationScope
 import dev.anilbeesetti.nextplayer.core.common.extensions.getStorageVolumes
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanPaths
 import dev.anilbeesetti.nextplayer.core.common.extensions.scanStorage
+import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.database.converter.UriListConverter
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
+import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.services.MediaVideo
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -26,6 +31,7 @@ import kotlinx.coroutines.withContext
 
 class LocalMediaSynchronizer @Inject constructor(
     private val mediumStateDao: MediumStateDao,
+    private val playlistDao: PlaylistDao,
     private val imageLoader: ImageLoader,
     private val mediaService: MediaService,
     @ApplicationScope private val applicationScope: CoroutineScope,
@@ -40,9 +46,13 @@ class LocalMediaSynchronizer @Inject constructor(
     }
 
     override fun startSync() {
-        if (mediaSyncingJob != null) return
+        if (mediaSyncingJob?.isActive == true) return
         mediaSyncingJob = mediaService.observeVideos()
             .onEach { media -> updateMedia(media) }
+            .catch {
+                // A failed MediaStore query is not a complete snapshot. Leave stored state alone;
+                // startSync can retry after storage permission or the provider becomes available.
+            }
             .launchIn(applicationScope)
     }
 
@@ -50,8 +60,15 @@ class LocalMediaSynchronizer @Inject constructor(
         mediaSyncingJob?.cancel()
     }
 
+    private fun Context.hasStoragePermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, storagePermission) == PackageManager.PERMISSION_GRANTED
+
     private suspend fun updateMedia(media: List<MediaVideo>) = withContext(Dispatchers.Default) {
-        val currentMediaUris = media.map { it.uri.toString() }
+        if (!context.hasStoragePermission()) return@withContext
+
+        val currentMediaUris = media.mapTo(mutableSetOf()) { it.uri.toString() }
+
+        playlistDao.removeMissingLocalItems(currentMediaUris)
 
         val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
             it.uriString in currentMediaUris || !ContentResolver.SCHEME_CONTENT.equals(it.uriString.toUri().scheme, ignoreCase = true)

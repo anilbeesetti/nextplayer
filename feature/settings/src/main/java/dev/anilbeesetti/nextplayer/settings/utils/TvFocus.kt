@@ -10,9 +10,8 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun rememberTvListFocusRequester(): FocusRequester = remember { FocusRequester() }
@@ -24,10 +23,7 @@ fun Modifier.tvListFocus(focusRequester: FocusRequester): Modifier {
 
     LaunchedEffect(isTv) {
         if (!isTv) return@LaunchedEffect
-        repeat(times = 5) {
-            if (runCatching { focusRequester.requestFocus() }.isSuccess) return@LaunchedEffect
-            delay(50.milliseconds)
-        }
+        focusRequester.requestFocusUntilLanded(attempts = 5)
     }
 
     return if (isTv) this.focusRequester(focusRequester).focusGroup() else this

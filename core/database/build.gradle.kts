@@ -10,6 +10,10 @@ android {
     namespace = "dev.anilbeesetti.nextplayer.core.database"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
+
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
@@ -21,6 +25,12 @@ android {
 
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.androidTest?.sources?.assets?.addStaticSourceDirectory("$projectDir/schemas")
     }
 }
 
@@ -48,5 +58,6 @@ dependencies {
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
 }

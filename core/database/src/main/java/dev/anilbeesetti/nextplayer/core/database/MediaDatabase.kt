@@ -6,15 +6,23 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.anilbeesetti.nextplayer.core.database.dao.HiddenVideoDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
+import dev.anilbeesetti.nextplayer.core.database.dao.NetworkConnectionDao
+import dev.anilbeesetti.nextplayer.core.database.dao.PlaylistDao
 import dev.anilbeesetti.nextplayer.core.database.entities.HiddenVideoEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.NetworkConnectionEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
 
 @Database(
     entities = [
         MediumStateEntity::class,
         HiddenVideoEntity::class,
+        NetworkConnectionEntity::class,
+        PlaylistEntity::class,
+        PlaylistItemEntity::class,
     ],
-    version = 6,
+    version = 10,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -22,6 +30,10 @@ abstract class MediaDatabase : RoomDatabase() {
     abstract fun mediumStateDao(): MediumStateDao
 
     abstract fun hiddenVideoDao(): HiddenVideoDao
+
+    abstract fun networkConnectionDao(): NetworkConnectionDao
+
+    abstract fun playlistDao(): PlaylistDao
 
     companion object {
         const val DATABASE_NAME = "media_db"
@@ -206,6 +218,103 @@ abstract class MediaDatabase : RoomDatabase() {
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_hidden_video_vault_path` ON `hidden_video` (`vault_path`)
                     """,
                 )
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Column definitions (order, types, nullability) must match the schema Room
+                // generates from NetworkConnectionEntity exactly, or migration validation fails.
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `network_connection` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `protocol` TEXT NOT NULL,
+                        `host` TEXT NOT NULL,
+                        `port` INTEGER,
+                        `path` TEXT NOT NULL,
+                        `username` TEXT NOT NULL,
+                        `password` TEXT NOT NULL,
+                        `use_https` INTEGER NOT NULL,
+                        `created_at` INTEGER NOT NULL
+                    )
+                    """,
+                )
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `playlist` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `created_at` INTEGER NOT NULL
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `playlist_item` (
+                        `playlist_id` INTEGER NOT NULL,
+                        `uri` TEXT NOT NULL,
+                        `position` INTEGER NOT NULL,
+                        `last_played_at` INTEGER,
+                        PRIMARY KEY(`playlist_id`, `uri`),
+                        FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`)
+                            ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_playlist_item_playlist_id`
+                    ON `playlist_item` (`playlist_id`)
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS `index_playlist_item_playlist_id_position`
+                    ON `playlist_item` (`playlist_id`, `position`)
+                    """,
+                )
+            }
+        }
+
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `authentication` TEXT NOT NULL DEFAULT 'PASSWORD'",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_file_name` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `private_key_passphrase` TEXT NOT NULL DEFAULT ''",
+                )
+                db.execSQL(
+                    "ALTER TABLE `network_connection` " +
+                        "ADD COLUMN `host_key_fingerprint` TEXT NOT NULL DEFAULT ''",
+                )
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `playlist` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'LOCAL'")
+                db.execSQL("ALTER TABLE `playlist` ADD COLUMN `source` TEXT")
+                db.execSQL("ALTER TABLE `playlist` ADD COLUMN `last_refreshed_at` INTEGER")
+                db.execSQL("ALTER TABLE `playlist_item` ADD COLUMN `title` TEXT")
+                db.execSQL("ALTER TABLE `playlist_item` ADD COLUMN `tvg_logo` TEXT")
+                db.execSQL(
+                    "ALTER TABLE `playlist_item` ADD COLUMN `duration` INTEGER NOT NULL DEFAULT -1",
+                )
+                db.execSQL("ALTER TABLE `playlist_item` ADD COLUMN `group_title` TEXT")
             }
         }
     }

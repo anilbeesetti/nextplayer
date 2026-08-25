@@ -41,6 +41,7 @@ class VaultViewModel @Inject constructor(
     val events = eventsInternal.receiveAsFlow()
 
     private var hiddenVideosJob: Job? = null
+    private var hasVaultSortOverride = false
 
     init {
         viewModelScope.launch {
@@ -51,7 +52,17 @@ class VaultViewModel @Inject constructor(
         }
         viewModelScope.launch {
             preferencesRepository.applicationPreferences.collect { prefs ->
-                uiStateInternal.update { it.copy(preferences = prefs) }
+                val inheritedSort = Sort(by = prefs.sortBy, order = prefs.sortOrder)
+                val shouldRefresh = !hasVaultSortOverride &&
+                    uiStateInternal.value.stage == VaultStage.UNLOCKED &&
+                    uiStateInternal.value.sort != inheritedSort
+                uiStateInternal.update {
+                    it.copy(
+                        preferences = prefs,
+                        sort = if (hasVaultSortOverride) it.sort else inheritedSort,
+                    )
+                }
+                if (shouldRefresh) collectHiddenVideos()
             }
         }
     }
@@ -68,8 +79,16 @@ class VaultViewModel @Inject constructor(
             is VaultAction.DeleteSelected -> deleteVideos(action.selectionItems)
             is VaultAction.ShowMediaInfo -> showMediaInfo(action.video)
             VaultAction.DismissMediaInfo -> uiStateInternal.update { it.copy(mediaInfo = null) }
-            is VaultAction.UpdateSort -> uiStateInternal.update { it.copy(sort = action.sort) }
+            is VaultAction.UpdateSort -> updateSort(action.sort)
         }
+    }
+
+    private fun updateSort(sort: Sort) {
+        hasVaultSortOverride = true
+        val shouldRefresh = uiStateInternal.value.stage == VaultStage.UNLOCKED &&
+            uiStateInternal.value.sort != sort
+        uiStateInternal.update { it.copy(sort = sort) }
+        if (shouldRefresh) collectHiddenVideos()
     }
 
     private fun submitNewPin(pin: String) {
@@ -131,7 +150,7 @@ class VaultViewModel @Inject constructor(
 
     private fun playVideo(video: Video) {
         viewModelScope.launch {
-            eventsInternal.send(VaultEvent.PlayVideos(listOf(video.uriString.toUri())))
+            eventsInternal.send(VaultEvent.PlayVideo(video.uriString.toUri()))
         }
     }
 
@@ -213,6 +232,7 @@ sealed interface VaultAction {
 }
 
 sealed interface VaultEvent {
+    data class PlayVideo(val uri: Uri) : VaultEvent
     data class PlayVideos(val uris: List<Uri>) : VaultEvent
     data class VideosRelocated(val count: Int) : VaultEvent
 }

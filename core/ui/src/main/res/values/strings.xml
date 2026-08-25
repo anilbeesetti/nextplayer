@@ -353,6 +353,54 @@
     <string name="reset_vault_pin_confirmation">Resetting your PIN will permanently delete all videos currently in the vault, since they can no longer be unlocked. Continue?</string>
     <string name="reset_pin_and_delete_all">Reset PIN &amp; delete all</string>
 
+    <!-- Network -->
+    <string name="home">Home</string>
+    <string name="network">Network</string>
+    <string name="add_connection">Add connection</string>
+    <string name="edit_connection">Edit connection</string>
+    <string name="delete_connection">Delete connection</string>
+    <string name="delete_connection_confirmation">Remove \"%1$s\"?</string>
+    <string name="connection_name">Name</string>
+    <string name="protocol">Protocol</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="port_hint">Port (default %1$d)</string>
+    <string name="path_share">Path / Share name</string>
+    <string name="username">Username</string>
+    <string name="authentication">Authentication</string>
+    <string name="password">Password</string>
+    <string name="ssh_key">SSH key</string>
+    <string name="choose_private_key">Choose private key</string>
+    <string name="replace_private_key">Replace private key</string>
+    <string name="remove_private_key">Remove private key</string>
+    <string name="private_key_stored">Private key stored</string>
+    <string name="selected_private_key">Selected key: %1$s</string>
+    <string name="private_key_passphrase">Private key passphrase (optional)</string>
+    <string name="confirm_ssh_host_key">Confirm SSH host key</string>
+    <string name="confirm_ssh_host_key_description">Compare this fingerprint with your server before trusting it.</string>
+    <string name="ssh_host_key_algorithm">Algorithm: %1$s</string>
+    <string name="ssh_host_key_fingerprint">Fingerprint: %1$s</string>
+    <string name="ssh_host_key_trusted_fingerprint">Trusted fingerprint: %1$s</string>
+    <string name="ssh_host_key_presented_fingerprint">Presented fingerprint: %1$s</string>
+    <string name="trust">Trust</string>
+    <string name="reject">Reject</string>
+    <string name="private_key_missing">The private key is missing. Choose it again.</string>
+    <string name="private_key_malformed">The private key format isn\'t supported or the file is malformed.</string>
+    <string name="private_key_wrong_passphrase">The private key passphrase is incorrect or missing.</string>
+    <string name="authentication_rejected">Authentication was rejected. Check your credentials and try again.</string>
+    <string name="host_key_mismatch">The SSH host key doesn\'t match the trusted fingerprint.</string>
+    <string name="sftp_root_inaccessible">The SFTP root path is missing or inaccessible.</string>
+    <string name="use_https">Use HTTPS</string>
+    <string name="test_and_save">Test &amp; Save</string>
+    <string name="connecting">Connecting…</string>
+    <string name="connection_failed">Couldn\'t connect. Check the details and try again.</string>
+    <string name="no_connections_title">No connections yet</string>
+    <string name="no_connections_description">Add an SMB, FTP, SFTP or WebDAV connection to browse and play videos from your network.</string>
+    <string name="empty_folder">This folder is empty</string>
+    <string name="failed_to_load_folder">Couldn\'t load this location</string>
+    <string name="retry">Retry</string>
+    <string name="edit">Edit</string>
+
     <!-- Copy / Move -->
     <string name="copy">Copy</string>
     <string name="move">Move</string>
@@ -380,4 +428,66 @@
         <item quantity="other">Moved %1$d videos, but couldn\'t remove the originals</item>
     </plurals>
     <string name="cannot_move_to_same_folder">Can\'t move to the same folder</string>
+
+    <!-- Playlists -->
+    <string name="playlists">Playlists</string>
+    <string name="create_playlist">Create playlist</string>
+    <string name="choose_playlist_type">Create a playlist</string>
+    <string name="create_local_playlist">Create local playlist</string>
+    <string name="add_m3u_url_playlist">Add M3U playlist from URL</string>
+    <string name="add_m3u_file_playlist">Add M3U playlist from file</string>
+    <string name="playlist_url">M3U URL</string>
+    <string name="url_required">Enter an M3U URL.</string>
+    <string name="invalid_url">Enter a valid HTTP or HTTPS URL.</string>
+    <string name="m3u_url_playlist">M3U URL</string>
+    <string name="m3u_file_playlist">M3U File</string>
+    <string name="m3u_file_permission_failed">Couldn\'t keep access to this file. Choose it again or use another file.</string>
+    <string name="refresh_playlist">Refresh playlist</string>
+    <string name="refreshing_playlist">Refreshing playlist</string>
+    <string name="playlist_refresh_succeeded">Playlist refreshed.</string>
+    <string name="playlist_refresh_failed">Couldn\'t refresh playlist. The saved items are unchanged.</string>
+    <string name="last_refreshed">Last refreshed %1$s</string>
+    <string name="rename_playlist">Rename playlist</string>
+    <string name="playlist_name">Playlist name</string>
+    <string name="create">Create</string>
+    <string name="save">Save</string>
+    <string name="name_required">Enter a playlist name.</string>
+    <string name="saving_playlist">Saving playlist…</string>
+    <string name="no_playlists_title">No playlists yet</string>
+    <string name="no_playlists_description">Create a local playlist or add an M3U source to start watching.</string>
+    <string name="local_playlist">Local</string>
+    <string name="delete_playlist">Delete playlist</string>
+    <string name="delete_playlist_confirmation">Delete “%1$s” and its saved order?</string>
+    <string name="playlist_actions">Playlist actions</string>
+    <string name="play_all">Play all</string>
+    <string name="remove_video">Remove video</string>
+    <string name="remove_video_confirmation">Remove “%1$s” from this playlist?</string>
+    <string name="reorder_playlist">Reorder playlist</string>
+    <string name="finish_reordering">Finish reordering</string>
+    <string name="reorder_playlist_item">Reorder playlist item</string>
+    <string name="empty_playlist_title">This playlist is empty</string>
+    <string name="empty_playlist_description">Select videos in Home and choose Add to playlist.</string>
+    <string name="playlist_unavailable">This playlist is no longer available.</string>
+    <string name="search_playlist">Search playlist</string>
+    <string name="close_search">Close search</string>
+    <string name="no_matching_videos">No matching videos</string>
+    <string name="add_to_playlist">Add to playlist</string>
+    <string name="choose_playlist">Choose a playlist</string>
+    <string name="create_new_playlist">Create new playlist</string>
+    <string name="existing_playlists">Existing playlists</string>
+    <string name="no_playlists">No playlists yet.</string>
+    <string name="already_in_playlist">The selected videos are already in this playlist.</string>
+    <string name="playlist_delete_failed">Couldn\'t delete playlist. Try again.</string>
+    <string name="playlist_save_failed">Couldn\'t save playlist. Try again.</string>
+    <string name="playlist_update_failed">Couldn\'t update playlist. Try again.</string>
+    <string name="playlist_selection_empty">No local videos were found in this selection.</string>
+    <string name="playlist_selection_read_failed">Couldn\'t read the selected videos. Try again.</string>
+    <plurals name="added_videos_to_playlist">
+        <item quantity="one">Added %d video to playlist.</item>
+        <item quantity="other">Added %d videos to playlist.</item>
+    </plurals>
+    <plurals name="playlist_video_count">
+        <item quantity="one">%d video</item>
+        <item quantity="other">%d videos</item>
+    </plurals>
 </resources>
