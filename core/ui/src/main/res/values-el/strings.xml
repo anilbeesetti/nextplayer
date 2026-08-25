@@ -419,7 +419,7 @@
     <string name="name_required">Εισάγετε ένα όνομα λίστας.</string>
     <string name="saving_playlist">Αποθήκευση λίστας…</string>
     <string name="no_playlists_title">Καμία λίστα ακόμα</string>
-    <string name="no_playlists_description">Δημιουργήστε μια λίστα αναπαραγωγής και, στη συνέχεια, επιλέξτε τοπικά βίντεο από την αρχική σελίδα για να τα προσθέσετε.</string>
+    <string name="no_playlists_description">Δημιουργήστε μια τοπική λίστα αναπαραγωγής ή προσθέστε μια πηγή M3U για εκκίνηση αναπαραγωγής.</string>
     <string name="local_playlist">Τοπικά</string>
     <string name="delete_playlist">Διαγραφή λίστας</string>
     <string name="delete_playlist_confirmation">Διαγραφή της “%1$s” και της αποθηκευμένης σειράς του;</string>
@@ -455,4 +455,19 @@
         <item quantity="one">%d βίντεο</item>
         <item quantity="other">%d βίντεο</item>
     </plurals>
+    <string name="create_local_playlist">Δημιουργία τοπικής λίστας</string>
+    <string name="add_m3u_url_playlist">Προσθήκη λίστας M3U από διεύθυνση URL</string>
+    <string name="add_m3u_file_playlist">Προσθήκη λίστας M3U από αρχείο</string>
+    <string name="playlist_url">M3U URL</string>
+    <string name="url_required">Εισαγωγή M3U URL.</string>
+    <string name="invalid_url">Εισάγετε μια έγκυρη διεύθυνση URL HTTP ή HTTPS.</string>
+    <string name="m3u_url_playlist">M3U URL</string>
+    <string name="m3u_file_playlist">Αρχείο M3U</string>
+    <string name="m3u_file_permission_failed">Δεν ήταν δυνατή η διατήρηση της πρόσβασης σε αυτό το αρχείο. Επιλέξτε το ξανά ή χρησιμοποιήστε άλλο αρχείο.</string>
+    <string name="refresh_playlist">Ανανέωση λίστας</string>
+    <string name="refreshing_playlist">Ανανεώνεται η λίστα</string>
+    <string name="playlist_refresh_succeeded">Η λίστα ανανεώθηκε.</string>
+    <string name="playlist_refresh_failed">Δεν ήταν δυνατή η ανανέωση της λίστας αναπαραγωγής. Τα αποθηκευμένα στοιχεία δεν έχουν αλλάξει.</string>
+    <string name="last_refreshed">Τελευταία ανανέωση %1$s</string>
+    <string name="choose_playlist_type">Δημιουργία λίστας αναπαραγωγής</string>
 </resources>
