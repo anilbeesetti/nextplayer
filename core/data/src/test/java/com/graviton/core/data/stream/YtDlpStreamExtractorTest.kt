@@ -41,12 +41,7 @@ class YtDlpStreamExtractorTest {
               ]
             }
         """.trimIndent()
-        val runner = RecordingProcessRunner(
-            results = listOf(
-                ProcessResult(1, "", "temp fail"),
-                ProcessResult(0, json, ""),
-            ),
-        )
+        val runner = RecordingProcessRunner(json)
         val extractor = YtDlpStreamExtractor(runner) { listOf("yt-dlp") }
         val result = extractor.resolve("https://www.youtube.com/watch?v=abc")
         assertEquals("https://cdn.example.com/progressive.mp4", result.playableUrl)
@@ -81,17 +76,22 @@ class YtDlpStreamExtractorTest {
         assertFalse(StreamUrls.needsExtraction("https://files.example.com/a.webm"))
     }
 
-    private class RecordingProcessRunner(
-        private val results: List<ProcessResult> = emptyList(),
+private class RecordingProcessRunner(
+        private val json: String = "",
     ) : ProcessRunner {
         val commands = mutableListOf<List<String>>()
-        private var index = 0
         override fun run(command: List<String>, timeoutMs: Long): ProcessResult {
             commands += command
             if (command.lastOrNull() == "--version") {
                 return ProcessResult(0, "2024.01.01", "")
             }
-            return results.getOrElse(index++) { ProcessResult(1, "", "no fixture") }
+            if (command.contains("--dump-json")) {
+                return ProcessResult(0, json, "")
+            }
+            if (command.contains("-g")) {
+                return ProcessResult(0, "https://cdn.example.com/progressive.mp4", "")
+            }
+            return ProcessResult(0, "", "")
         }
     }
 }

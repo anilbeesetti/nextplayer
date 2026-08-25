@@ -20,6 +20,12 @@ import com.graviton.core.data.repository.PlaylistRepository
 import com.graviton.core.data.repository.SearchHistoryRepository
 import com.graviton.core.data.repository.VaultPinRepository
 import com.graviton.core.data.repository.VaultRepository
+import com.graviton.core.data.stream.AppYtDlpBinaryLocator
+import com.graviton.core.data.stream.ProcessRunner
+import com.graviton.core.data.stream.StreamExtractor
+import com.graviton.core.data.stream.SystemProcessRunner
+import com.graviton.core.data.stream.YtDlpBinaryLocator
+import com.graviton.core.data.stream.YtDlpStreamExtractor
 import javax.inject.Singleton
 
 @Module

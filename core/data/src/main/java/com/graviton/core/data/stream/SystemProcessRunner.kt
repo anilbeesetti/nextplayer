@@ -23,6 +23,6 @@ class SystemProcessRunner @Inject constructor() : ProcessRunner {
         }
         val stdout = process.inputStream.bufferedReader().use { it.readText() }
         val stderr = process.errorStream.bufferedReader().use { it.readText() }
-        return ProcessResult(exitCode = process.exitCode, stdout = stdout, stderr = stderr)
+        return ProcessResult(exitCode = process.exitValue(), stdout = stdout, stderr = stderr)
     }
 }

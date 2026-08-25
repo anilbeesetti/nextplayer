@@ -12,14 +12,14 @@ class VideoPlaybackStartTest {
         val first = video("one", lastPlayedAt = Date(100))
         val second = video("two", lastPlayedAt = Date(300))
         val third = video("three", lastPlayedAt = Date(200))
-        assertEquals("two", listOf(first, second, third).playbackStart()?.uriString)
+        assertEquals("content://media/two", listOf(first, second, third).playbackStart()?.uriString)
     }
 
     @Test
     fun playbackStart_fallsBackToFirstPlayableItem() {
         val first = video("one")
         val second = video("two")
-        assertEquals("one", listOf(first, second).playbackStart()?.uriString)
+        assertEquals("content://media/one", listOf(first, second).playbackStart()?.uriString)
     }
 
     @Test
