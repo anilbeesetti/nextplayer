@@ -455,4 +455,5 @@
     <string name="existing_playlists">Olemasolevad esitusloendid</string>
     <string name="no_playlists">Ühtegi esitusloendit veel pole.</string>
     <string name="already_in_playlist">Valitud videod juba on esitusloendis.</string>
+    <string name="choose_playlist_type">Koosta esitusloend</string>
 </resources>
