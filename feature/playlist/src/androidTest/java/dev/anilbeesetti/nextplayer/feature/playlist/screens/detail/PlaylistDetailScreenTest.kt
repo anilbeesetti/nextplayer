@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.ui.base.ActionState
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -39,10 +40,7 @@ class PlaylistDetailScreenTest {
         composeRule.onNodeWithContentDescription("Play").performClick()
 
         assertEquals(
-            PlaylistDetailUiAction.OnPlayVideos(
-                uris = listOf("content://two", "content://one").map(Uri::parse),
-                startUri = Uri.parse("content://two"),
-            ),
+            PlaylistDetailUiAction.OnPlay(Uri.parse("content://two")),
             actions.single(),
         )
     }
@@ -59,10 +57,7 @@ class PlaylistDetailScreenTest {
         composeRule.onNodeWithContentDescription("Play").performClick()
 
         assertEquals(
-            PlaylistDetailUiAction.OnPlayVideos(
-                uris = listOf("content://one", "content://two").map(Uri::parse),
-                startUri = Uri.parse("content://two"),
-            ),
+            PlaylistDetailUiAction.OnPlay(Uri.parse("content://two")),
             actions.single(),
         )
     }
@@ -135,10 +130,7 @@ class PlaylistDetailScreenTest {
         composeRule.onNodeWithText("Two").performClick()
 
         assertEquals(
-            PlaylistDetailUiAction.OnPlayVideos(
-                uris = listOf("content://one", "content://two").map(Uri::parse),
-                startUri = Uri.parse("content://two"),
-            ),
+            PlaylistDetailUiAction.OnPlay(Uri.parse("content://two")),
             actions.single(),
         )
     }
@@ -228,10 +220,7 @@ class PlaylistDetailScreenTest {
 
         composeRule.onNodeWithText("One").performClick()
         assertEquals(
-            PlaylistDetailUiAction.OnPlayVideos(
-                uris = listOf("content://one", "content://two").map(Uri::parse),
-                startUri = Uri.parse("content://one"),
-            ),
+            PlaylistDetailUiAction.OnPlay(Uri.parse("content://one")),
             actions.single(),
         )
     }
@@ -268,7 +257,10 @@ class PlaylistDetailScreenTest {
 private fun playlist(vararg items: PlaylistItem) = Playlist(
     id = 7,
     name = "Movies",
+    type = PlaylistType.LOCAL,
+    source = null,
     items = items.toList(),
+    lastRefreshedAt = null,
 )
 
 private fun item(
@@ -279,6 +271,11 @@ private fun item(
     lastPlayedAt: Long? = null,
 ) = PlaylistItem(
     position = position,
+    uri = uri,
+    title = null,
+    tvgLogo = null,
+    duration = -1,
+    groupTitle = null,
     lastPlayedAt = lastPlayedAt,
     video = Video(
         id = position.toLong(),

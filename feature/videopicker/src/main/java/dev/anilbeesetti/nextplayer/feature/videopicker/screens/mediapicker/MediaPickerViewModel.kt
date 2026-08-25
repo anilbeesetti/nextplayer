@@ -36,6 +36,7 @@ import dev.anilbeesetti.nextplayer.core.model.ApplicationPreferences
 import dev.anilbeesetti.nextplayer.core.model.Folder
 import dev.anilbeesetti.nextplayer.core.model.MediaViewMode
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
@@ -183,7 +184,11 @@ class MediaPickerViewModel @AssistedInject constructor(
     private fun collectPlaylists() {
         viewModelScope.launch {
             playlistRepository.observePlaylists().collect { playlists ->
-                uiStateInternal.update { it.copy(playlists = playlists) }
+                uiStateInternal.update {
+                    it.copy(playlists = playlists.filter { playlist ->
+                        playlist.type == PlaylistType.LOCAL
+                    })
+                }
             }
         }
     }

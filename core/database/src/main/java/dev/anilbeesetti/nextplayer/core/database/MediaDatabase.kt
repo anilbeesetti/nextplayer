@@ -22,7 +22,7 @@ import dev.anilbeesetti.nextplayer.core.database.entities.PlaylistItemEntity
         PlaylistEntity::class,
         PlaylistItemEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -301,6 +301,20 @@ abstract class MediaDatabase : RoomDatabase() {
                     "ALTER TABLE `network_connection` " +
                         "ADD COLUMN `host_key_fingerprint` TEXT NOT NULL DEFAULT ''",
                 )
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `playlist` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'LOCAL'")
+                db.execSQL("ALTER TABLE `playlist` ADD COLUMN `source` TEXT")
+                db.execSQL("ALTER TABLE `playlist` ADD COLUMN `last_refreshed_at` INTEGER")
+                db.execSQL("ALTER TABLE `playlist_item` ADD COLUMN `title` TEXT")
+                db.execSQL("ALTER TABLE `playlist_item` ADD COLUMN `tvg_logo` TEXT")
+                db.execSQL(
+                    "ALTER TABLE `playlist_item` ADD COLUMN `duration` INTEGER NOT NULL DEFAULT -1",
+                )
+                db.execSQL("ALTER TABLE `playlist_item` ADD COLUMN `group_title` TEXT")
             }
         }
     }

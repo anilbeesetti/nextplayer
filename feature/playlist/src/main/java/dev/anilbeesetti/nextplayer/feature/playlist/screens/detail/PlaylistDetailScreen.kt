@@ -36,6 +36,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -73,6 +74,7 @@ import coil3.request.crossfade
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.Playlist
 import dev.anilbeesetti.nextplayer.core.model.PlaylistItem
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
@@ -85,6 +87,8 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun PlaylistDetailScreenRoute(
@@ -101,16 +105,18 @@ fun PlaylistDetailScreenRoute(
 @Composable
 internal fun PlaylistDetailScreen(
     uiState: PlaylistDetailUiState,
+    isTv: Boolean = LocalContext.current.isTelevision,
     onAction: (PlaylistDetailUiAction) -> Unit = {},
 ) {
-    val isTv = LocalContext.current.isTelevision
     val playlist = (uiState.playlistDataState as? DataState.Success)?.value
-    val videoUris = playlist?.items.orEmpty().map { it.video.uriString.toUri() }
-    val playbackStartUri = playlist?.lastPlayedVideo
-        ?.uriString
+    val videoUris = playlist?.items.orEmpty().map { it.uri.toUri() }
+    val playbackStartUri = playlist?.lastPlayedItem
+        ?.uri
         ?.toUri()
         ?: videoUris.firstOrNull()
-    val isReordering = uiState.isReordering && !isTv
+    val isReordering = uiState.isReordering &&
+        playlist?.type == PlaylistType.LOCAL &&
+        !isTv
     val searchFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val exitSearch: () -> Unit = {
@@ -207,6 +213,28 @@ internal fun PlaylistDetailScreen(
                                 )
                             }
                         } else {
+                            if (playlist?.type != null && playlist.type != PlaylistType.LOCAL) {
+                                if (uiState.isRefreshing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(12.dp)
+                                            .size(24.dp),
+                                        strokeWidth = 2.dp,
+                                    )
+                                } else {
+                                    IconButton(
+                                        onClick = { onAction(PlaylistDetailUiAction.Refresh) },
+                                        modifier = Modifier.tvFocusRing(),
+                                    ) {
+                                        Icon(
+                                            imageVector = NextIcons.Update,
+                                            contentDescription = stringResource(
+                                                R.string.refresh_playlist,
+                                            ),
+                                        )
+                                    }
+                                }
+                            }
                             IconButton(
                                 onClick = {
                                     onAction(PlaylistDetailUiAction.OnSearchClick)
@@ -219,7 +247,7 @@ internal fun PlaylistDetailScreen(
                                     contentDescription = stringResource(R.string.search),
                                 )
                             }
-                            if (!isTv) {
+                            if (!isTv && playlist?.type == PlaylistType.LOCAL) {
                                 IconButton(
                                     onClick = {
                                         onAction(PlaylistDetailUiAction.OnReorderClick)
@@ -244,10 +272,7 @@ internal fun PlaylistDetailScreen(
                 FloatingActionButton(
                     onClick = {
                         onAction(
-                            PlaylistDetailUiAction.OnPlayVideos(
-                                uris = videoUris,
-                                startUri = playbackStartUri,
-                            ),
+                            PlaylistDetailUiAction.OnPlay(playbackStartUri),
                         )
                     },
                     modifier = Modifier.tvFocusRing(shape = MaterialTheme.shapes.large),
@@ -281,19 +306,32 @@ internal fun PlaylistDetailScreen(
                 if (playlist == null) {
                     PlaylistUnavailable(containerModifier)
                 } else {
-                    PlaylistDetailContent(
-                        playlist = playlist,
-                        isTv = isTv,
-                        isReordering = isReordering,
-                        searchQuery = uiState.searchQuery,
-                        showPlayFab = !uiState.isSearching &&
-                            !isReordering &&
-                            playbackStartUri != null,
-                        actionsEnabled = !uiState.updateActionState.isRunning,
-                        scaffoldPadding = padding,
-                        onAction = onAction,
-                        modifier = containerModifier,
-                    )
+                    val content: @Composable (Modifier) -> Unit = { modifier ->
+                        PlaylistDetailContent(
+                            playlist = playlist,
+                            isTv = isTv,
+                            isReordering = isReordering,
+                            searchQuery = uiState.searchQuery,
+                            showPlayFab = !uiState.isSearching &&
+                                !isReordering &&
+                                playbackStartUri != null,
+                            actionsEnabled = !uiState.updateActionState.isRunning,
+                            scaffoldPadding = padding,
+                            onAction = onAction,
+                            modifier = modifier,
+                        )
+                    }
+                    if (playlist.type == PlaylistType.LOCAL) {
+                        content(containerModifier)
+                    } else {
+                        PullToRefreshBox(
+                            isRefreshing = uiState.isRefreshing,
+                            onRefresh = { onAction(PlaylistDetailUiAction.Refresh) },
+                            modifier = containerModifier,
+                        ) {
+                            content(Modifier.fillMaxSize())
+                        }
+                    }
                 }
             }
         }
@@ -303,7 +341,7 @@ internal fun PlaylistDetailScreen(
         RemoveVideoDialog(
             item = item,
             onConfirm = {
-                onAction(PlaylistDetailUiAction.RemoveVideo(item.video.uriString))
+                onAction(PlaylistDetailUiAction.RemoveVideo(item.uri))
             },
             onDismissRequest = {
                 onAction(PlaylistDetailUiAction.DismissRemoveDialog)
@@ -334,8 +372,8 @@ private fun PlaylistDetailContent(
             displayedItems
         } else {
             displayedItems.filter { item ->
-                item.video.displayName.contains(query, ignoreCase = true) ||
-                    item.video.parentPath.contains(query, ignoreCase = true)
+                item.displayTitle.contains(query, ignoreCase = true) ||
+                    item.supportingText.contains(query, ignoreCase = true)
             }
         }
     }
@@ -351,103 +389,116 @@ private fun PlaylistDetailContent(
         hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
     }
 
-    Box(modifier = modifier) {
-        if (displayedItems.isEmpty()) {
-            PlaylistEmptyState(Modifier.fillMaxSize())
-        } else if (visibleItems.isEmpty()) {
-            PlaylistSearchEmptyState(Modifier.fillMaxSize())
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .tvListFocus(rememberTvListFocusRequester()),
-                state = listState,
-                contentPadding = PaddingValues(
-                    start = 8.dp,
-                    top = 8.dp,
-                    end = 8.dp,
-                    bottom = scaffoldPadding.calculateBottomPadding() +
-                        if (showPlayFab) 96.dp else 16.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                itemsIndexed(
-                    items = visibleItems,
-                    key = { _, item -> item.video.uriString },
-                ) { index, item ->
-                    val onPlay = {
-                        val uris = displayedItems.map { it.video.uriString.toUri() }
-                        onAction(
-                            PlaylistDetailUiAction.OnPlayVideos(
-                                uris = uris,
-                                startUri = item.video.uriString.toUri(),
-                            ),
-                        )
-                    }
-                    if (isReordering && !isTv) {
-                        ReorderableItem(
-                            state = reorderState,
-                            key = item.video.uriString,
-                        ) {
+    Column(modifier = modifier) {
+        if (playlist.type != PlaylistType.LOCAL) {
+            playlist.lastRefreshedAt?.let { refreshedAt ->
+                Text(
+                    text = stringResource(
+                        R.string.last_refreshed,
+                        DateFormat.getDateTimeInstance().format(Date(refreshedAt)),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+        }
+        Box(modifier = Modifier.weight(1f)) {
+            if (displayedItems.isEmpty()) {
+                PlaylistEmptyState(Modifier.fillMaxSize())
+            } else if (visibleItems.isEmpty()) {
+                PlaylistSearchEmptyState(Modifier.fillMaxSize())
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .tvListFocus(rememberTvListFocusRequester()),
+                    state = listState,
+                    contentPadding = PaddingValues(
+                        start = 8.dp,
+                        top = 8.dp,
+                        end = 8.dp,
+                        bottom = scaffoldPadding.calculateBottomPadding() +
+                            if (showPlayFab) 96.dp else 16.dp,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    itemsIndexed(
+                        items = visibleItems,
+                        key = { _, item -> item.uri },
+                    ) { index, item ->
+                        val onPlay = {
+                            onAction(PlaylistDetailUiAction.OnPlay(item.uri.toUri()))
+                        }
+                        if (isReordering && !isTv) {
+                            ReorderableItem(
+                                state = reorderState,
+                                key = item.uri,
+                            ) {
+                                PlaylistVideoRow(
+                                    item = item,
+                                    isFirstItem = index == 0,
+                                    isLastItem = index == visibleItems.lastIndex,
+                                    isTv = false,
+                                    isReordering = true,
+                                    isEditable = true,
+                                    actionsEnabled = actionsEnabled,
+                                    modifier = Modifier.draggableHandle(
+                                        enabled = actionsEnabled,
+                                        dragGestureDetector = DragGestureDetector.LongPress,
+                                        onDragStarted = {
+                                            isDragging = true
+                                            hapticFeedback.performHapticFeedback(
+                                                HapticFeedbackType.GestureThresholdActivate,
+                                            )
+                                        },
+                                        onDragStopped = {
+                                            isDragging = false
+                                            onAction(
+                                                PlaylistDetailUiAction.ReplaceOrder(
+                                                    displayedItems.map { it.uri },
+                                                ),
+                                            )
+                                            hapticFeedback.performHapticFeedback(
+                                                HapticFeedbackType.GestureEnd,
+                                            )
+                                        },
+                                    ),
+                                    reorderHandle = {
+                                        Box(
+                                            modifier = Modifier.size(48.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(
+                                                imageVector = NextIcons.DragHandle,
+                                                contentDescription = stringResource(
+                                                    R.string.reorder_playlist_item,
+                                                ),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    },
+                                    onClick = onPlay,
+                                    onRemove = {
+                                        onAction(PlaylistDetailUiAction.ShowRemoveDialogFor(item))
+                                    },
+                                )
+                            }
+                        } else {
                             PlaylistVideoRow(
                                 item = item,
                                 isFirstItem = index == 0,
                                 isLastItem = index == visibleItems.lastIndex,
-                                isTv = false,
-                                isReordering = true,
+                                isTv = isTv,
+                                isReordering = isReordering,
+                                isEditable = playlist.type == PlaylistType.LOCAL,
                                 actionsEnabled = actionsEnabled,
-                                modifier = Modifier.draggableHandle(
-                                    enabled = actionsEnabled,
-                                    dragGestureDetector = DragGestureDetector.LongPress,
-                                    onDragStarted = {
-                                        isDragging = true
-                                        hapticFeedback.performHapticFeedback(
-                                            HapticFeedbackType.GestureThresholdActivate,
-                                        )
-                                    },
-                                    onDragStopped = {
-                                        isDragging = false
-                                        onAction(
-                                            PlaylistDetailUiAction.ReplaceOrder(
-                                                displayedItems.map { it.video.uriString },
-                                            ),
-                                        )
-                                        hapticFeedback.performHapticFeedback(
-                                            HapticFeedbackType.GestureEnd,
-                                        )
-                                    },
-                                ),
-                                reorderHandle = {
-                                    Box(
-                                        modifier = Modifier.size(48.dp),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = NextIcons.DragHandle,
-                                            contentDescription = stringResource(R.string.reorder_playlist_item),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                },
                                 onClick = onPlay,
                                 onRemove = {
                                     onAction(PlaylistDetailUiAction.ShowRemoveDialogFor(item))
                                 },
                             )
                         }
-                    } else {
-                        PlaylistVideoRow(
-                            item = item,
-                            isFirstItem = index == 0,
-                            isLastItem = index == visibleItems.lastIndex,
-                            isTv = isTv,
-                            isReordering = isReordering,
-                            actionsEnabled = actionsEnabled,
-                            onClick = onPlay,
-                            onRemove = {
-                                onAction(PlaylistDetailUiAction.ShowRemoveDialogFor(item))
-                            },
-                        )
                     }
                 }
             }
@@ -469,7 +520,7 @@ private fun RemoveVideoDialog(
             Text(
                 stringResource(
                     R.string.remove_video_confirmation,
-                    item.video.displayName,
+                    item.displayTitle,
                 ),
             )
         },
@@ -500,6 +551,7 @@ private fun PlaylistVideoRow(
     isLastItem: Boolean,
     isTv: Boolean,
     isReordering: Boolean,
+    isEditable: Boolean,
     actionsEnabled: Boolean,
     onClick: () -> Unit,
     onRemove: () -> Unit,
@@ -546,11 +598,15 @@ private fun PlaylistVideoRow(
                     )
                     AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(item.video.uriString)
+                            .data(item.tvgLogo ?: item.video?.uriString ?: item.uri)
                             .crossfade(true)
                             .build(),
                         contentDescription = null,
-                        contentScale = ContentScale.Crop,
+                        contentScale = if (item.video != null) {
+                            ContentScale.Crop
+                        } else {
+                            ContentScale.Fit
+                        },
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -558,7 +614,7 @@ private fun PlaylistVideoRow(
         },
         content = {
             Text(
-                text = item.video.displayName,
+                text = item.displayTitle,
                 maxLines = 2,
                 style = MaterialTheme.typography.titleMedium,
                 overflow = TextOverflow.Ellipsis,
@@ -566,7 +622,7 @@ private fun PlaylistVideoRow(
         },
         supportingContent = {
             Text(
-                text = item.video.parentPath,
+                text = item.supportingText,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -578,7 +634,7 @@ private fun PlaylistVideoRow(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (!isReordering) {
+                if (!isReordering && isEditable) {
                     Box {
                         IconButton(
                             onClick = { menuExpanded = true },

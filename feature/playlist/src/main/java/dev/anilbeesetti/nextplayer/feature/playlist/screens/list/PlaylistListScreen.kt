@@ -1,6 +1,8 @@
 package dev.anilbeesetti.nextplayer.feature.playlist.screens.list
 
-import android.widget.Toast
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -49,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
+import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
@@ -64,6 +67,11 @@ fun PlaylistListScreenRoute(
     viewModel: PlaylistListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val openM3UFileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri?.let(viewModel::createM3UFile)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.synchronize()
@@ -72,6 +80,9 @@ fun PlaylistListScreenRoute(
     PlaylistListScreen(
         uiState = uiState,
         onAction = viewModel::onAction,
+        onPickM3UFile = {
+            openM3UFileLauncher.launch(M3U_MIME_TYPES)
+        },
     )
 }
 
@@ -79,6 +90,7 @@ fun PlaylistListScreenRoute(
 internal fun PlaylistListScreen(
     uiState: PlaylistListUiState,
     onAction: (PlaylistUiAction) -> Unit = {},
+    onPickM3UFile: () -> Unit = {},
 ) {
     val createFocusRequester = remember { FocusRequester() }
 
@@ -102,7 +114,7 @@ internal fun PlaylistListScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { onAction(PlaylistUiAction.ShowCreateDialog) },
+                onClick = { onAction(PlaylistUiAction.ShowCreationChooser) },
                 icon = {
                     Icon(
                         imageVector = NextIcons.Add,
@@ -172,14 +184,30 @@ internal fun PlaylistListScreen(
         }
     }
 
-    if (uiState.showCreateDialog) {
-        PlaylistNameDialog(
-            title = stringResource(R.string.create_playlist),
+    when (uiState.creationDialog) {
+        PlaylistCreationDialog.NONE -> Unit
+        PlaylistCreationDialog.CHOOSER -> CreationChooserDialog(
+            onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
+            onCreateLocal = { onAction(PlaylistUiAction.ChooseLocalPlaylist) },
+            onCreateUrl = { onAction(PlaylistUiAction.ChooseM3UUrl) },
+            onCreateFile = {
+                onAction(PlaylistUiAction.DismissCreation)
+                onPickM3UFile()
+            },
+        )
+        PlaylistCreationDialog.LOCAL_NAME -> PlaylistNameDialog(
+            title = stringResource(R.string.create_local_playlist),
             confirmLabel = stringResource(R.string.create),
             isSaving = uiState.saveActionState.isRunning,
             error = uiState.saveActionState.errorMessage,
-            onDismissRequest = { onAction(PlaylistUiAction.DismissCreateDialog) },
-            onConfirm = { onAction(PlaylistUiAction.Create(it)) },
+            onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
+            onConfirm = { onAction(PlaylistUiAction.CreateLocal(it)) },
+        )
+        PlaylistCreationDialog.M3U_URL -> M3UUrlDialog(
+            isSaving = uiState.saveActionState.isRunning,
+            error = uiState.saveActionState.errorMessage,
+            onDismissRequest = { onAction(PlaylistUiAction.DismissCreation) },
+            onConfirm = { onAction(PlaylistUiAction.CreateM3UUrl(it)) },
         )
     }
 
@@ -222,6 +250,118 @@ internal fun PlaylistListScreen(
             },
         )
     }
+}
+
+@Composable
+private fun CreationChooserDialog(
+    onDismissRequest: () -> Unit,
+    onCreateLocal: () -> Unit,
+    onCreateUrl: () -> Unit,
+    onCreateFile: () -> Unit,
+) {
+    NextDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(stringResource(R.string.choose_playlist_type)) },
+        content = {
+            Column {
+                CreationChoice(
+                    label = stringResource(R.string.create_local_playlist),
+                    icon = NextIcons.Add,
+                    onClick = onCreateLocal,
+                )
+                CreationChoice(
+                    label = stringResource(R.string.add_m3u_url_playlist),
+                    icon = NextIcons.Link,
+                    onClick = onCreateUrl,
+                )
+                CreationChoice(
+                    label = stringResource(R.string.add_m3u_file_playlist),
+                    icon = NextIcons.FileOpen,
+                    onClick = onCreateFile,
+                )
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismissRequest, modifier = Modifier.tvFocusRing()) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun CreationChoice(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        leadingIcon = { Icon(icon, contentDescription = null) },
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun M3UUrlDialog(
+    isSaving: Boolean,
+    error: String?,
+    onDismissRequest: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var url by rememberSaveable { mutableStateOf("") }
+    val trimmedUrl = url.trim()
+    val isValid = remember(trimmedUrl) { trimmedUrl.isHttpUrl() }
+
+    NextDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(stringResource(R.string.add_m3u_url_playlist)) },
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = url,
+                    onValueChange = { url = it },
+                    label = { Text(stringResource(R.string.playlist_url)) },
+                    enabled = !isSaving,
+                    singleLine = true,
+                    isError = error != null || (trimmedUrl.isNotEmpty() && !isValid),
+                    supportingText = {
+                        when {
+                            error != null -> Text(error)
+                            trimmedUrl.isEmpty() -> Text(stringResource(R.string.url_required))
+                            !isValid -> Text(stringResource(R.string.invalid_url))
+                        }
+                    },
+                )
+                if (isSaving) {
+                    Text(
+                        text = stringResource(R.string.saving_playlist),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (isValid) onConfirm(trimmedUrl) },
+                enabled = !isSaving && isValid,
+                modifier = Modifier.tvFocusRing(),
+            ) {
+                Text(stringResource(R.string.create))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismissRequest,
+                enabled = !isSaving,
+                modifier = Modifier.tvFocusRing(),
+            ) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
 }
 
 @Composable
@@ -325,7 +465,7 @@ private fun PlaylistRow(
         },
         supportingContent = {
             Text(
-                text = "${stringResource(R.string.local_playlist)} · $videoCount",
+                text = "${playlist.type.label()} · $videoCount",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -366,6 +506,32 @@ private fun PlaylistRow(
         },
     )
 }
+
+@Composable
+private fun PlaylistType.label(): String = stringResource(
+    when (this) {
+        PlaylistType.LOCAL -> R.string.local_playlist
+        PlaylistType.M3U_URL -> R.string.m3u_url_playlist
+        PlaylistType.M3U_FILE -> R.string.m3u_file_playlist
+    },
+)
+
+private fun String.isHttpUrl(): Boolean = runCatching {
+    val uri = Uri.parse(this)
+    (
+        uri.scheme.equals("http", ignoreCase = true) ||
+            uri.scheme.equals("https", ignoreCase = true)
+        ) && !uri.host.isNullOrBlank()
+}.getOrDefault(false)
+
+private val M3U_MIME_TYPES = arrayOf(
+    "application/vnd.apple.mpegurl",
+    "application/x-mpegURL",
+    "audio/mpegurl",
+    "audio/x-mpegurl",
+    "text/plain",
+    "application/octet-stream",
+)
 
 @Composable
 private fun PlaylistListEmptyState(modifier: Modifier = Modifier) {
