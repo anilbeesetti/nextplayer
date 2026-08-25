@@ -425,7 +425,7 @@
     <string name="name_required">Introduce un nombre para la lista de reproducción.</string>
     <string name="saving_playlist">Guardando lista de reproducción…</string>
     <string name="no_playlists_title">Aún no hay listas de reproducción</string>
-    <string name="no_playlists_description">Crea una lista de reproducción y luego selecciona vídeos locales desde Inicio para añadirlos.</string>
+    <string name="no_playlists_description">Crea una lista de reproducción local o añade una fuente M3U para empezar a ver contenido.</string>
     <string name="delete_playlist">Eliminar lista de reproducción</string>
     <string name="delete_playlist_confirmation">¿Eliminar \"%1$s\" y su orden guardado?</string>
     <string name="playlist_actions">Acciones de la lista de reproducción</string>
@@ -463,4 +463,19 @@
         <item quantity="many">%d vídeos</item>
         <item quantity="other">%d vídeos</item>
     </plurals>
+    <string name="choose_playlist_type">Crear una lista de reproducción</string>
+    <string name="create_local_playlist">Crear lista de reproducción local</string>
+    <string name="add_m3u_url_playlist">Añadir lista de reproducción M3U desde URL</string>
+    <string name="add_m3u_file_playlist">Añadir lista de reproducción M3U desde archivo</string>
+    <string name="playlist_url">URL M3U</string>
+    <string name="url_required">Introduce una URL M3U.</string>
+    <string name="invalid_url">Introduce una URL HTTP o HTTPS válida.</string>
+    <string name="m3u_url_playlist">URL M3U</string>
+    <string name="m3u_file_playlist">Archivo M3U</string>
+    <string name="m3u_file_permission_failed">No se pudo mantener el acceso a este archivo. Vuelve a seleccionarlo o usa otro archivo.</string>
+    <string name="refresh_playlist">Actualizar lista de reproducción</string>
+    <string name="refreshing_playlist">Actualizando lista de reproducción</string>
+    <string name="playlist_refresh_succeeded">Lista de reproducción actualizada.</string>
+    <string name="playlist_refresh_failed">No se pudo actualizar la lista de reproducción. Los elementos guardados no han cambiado.</string>
+    <string name="last_refreshed">Última actualización: %1$s</string>
 </resources>
