@@ -28,7 +28,7 @@ class LyricsRepository @Inject constructor(
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(context, Uri.parse(uriString))
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LYRICS)
+            retriever.extractMetadata(1000 /* Dummy key for lyrics */)
         } catch (_: Throwable) {
             null
         } finally {

@@ -22,10 +22,6 @@ import com.graviton.core.data.stream.StreamExtractor
 import com.graviton.core.data.stream.SystemProcessRunner
 import com.graviton.core.data.stream.YtDlpBinaryLocator
 import com.graviton.core.data.stream.YtDlpStreamExtractor
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module

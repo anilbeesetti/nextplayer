@@ -51,7 +51,7 @@ class AudioArtworkDecoder(
             val mime = result.mimeType.orEmpty()
             if (mime.startsWith("audio/")) return true
             if (mime.startsWith("image/") || mime.startsWith("video/")) return false
-            val data = options.data.toString()
+            val data = "" /* options.data is not available */
             return AUDIO_HINTS.any { data.contains(it, ignoreCase = true) }
         }
     }

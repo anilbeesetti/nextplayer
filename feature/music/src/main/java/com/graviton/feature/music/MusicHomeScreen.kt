@@ -480,14 +480,14 @@ private fun MusicLibraryContent(
                 val albums = state.allTracks.groupBy { it.displayAlbum }.toList().sortedBy { it.first.lowercase() }
                 if (albums.isEmpty()) item { EmptyMusicState(NextIcons.Image, "No albums found", "Album information will appear with your music.", null) }
                 else items(albums, key = { it.first }) { (album, tracks) ->
-                    CollectionRow(album, "${tracks.size} songs · ${tracks.first().displayArtist}", tracks.first().artworkUriString, tracks.first().uriString, NextIcons.Image) { onSelectAlbum(album) }
+                    CollectionRow(title = album, subtitle = "${tracks.size} songs · ${tracks.first().displayArtist}", artworkUri = tracks.first().artworkUriString, mediaUri = tracks.first().uriString, icon = NextIcons.Image, onClick = { onSelectAlbum(album) })
                 }
             }
             MusicSection.ARTISTS -> {
                 val artists = state.allTracks.groupBy { it.displayArtist }.toList().sortedBy { it.first.lowercase() }
                 if (artists.isEmpty()) item { EmptyMusicState(NextIcons.Audio, "No artists found", "Artist information will appear with your music.", null) }
                 else items(artists, key = { it.first }) { (artist, tracks) ->
-                    CollectionRow(artist, "${tracks.size} songs", tracks.first().artworkUriString, tracks.first().uriString, NextIcons.Audio) { onSelectArtist(artist) }
+                    CollectionRow(title = artist, subtitle = "${tracks.size} songs", artworkUri = tracks.first().artworkUriString, mediaUri = tracks.first().uriString, icon = NextIcons.Audio, onClick = { onSelectArtist(artist) })
                 }
             }
             MusicSection.FOLDERS -> {

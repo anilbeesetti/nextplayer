@@ -104,22 +104,6 @@ class AppearancePreferencesViewModel @Inject constructor(
         }
     }
 
-    private fun toggleShowBottomNavigation() {
-        viewModelScope.launch {
-            preferencesRepository.updateApplicationPreferences {
-                it.copy(showBottomNavigation = !it.showBottomNavigation)
-            }
-        }
-    }
-
-    private fun toggleShowBottomNavigation() {
-        viewModelScope.launch {
-            preferencesRepository.updateApplicationPreferences {
-                it.copy(showBottomNavigation = !it.showBottomNavigation)
-            }
-        }
-    }
-
     private fun toggleShowPlaylistsTab() {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
