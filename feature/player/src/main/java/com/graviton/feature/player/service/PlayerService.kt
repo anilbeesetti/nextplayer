@@ -6,12 +6,14 @@ import android.content.Intent
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.DISCONTINUITY_REASON_AUTO_TRANSITION
@@ -20,7 +22,6 @@ import androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
@@ -43,7 +44,6 @@ import com.graviton.core.common.extensions.subtitleCacheDir
 import com.graviton.core.data.repository.MediaRepository
 import com.graviton.core.data.repository.MusicRepository
 import com.graviton.core.data.repository.PreferencesRepository
-import com.graviton.core.model.DecoderMode
 import com.graviton.core.model.LoopMode
 import com.graviton.core.model.PlayerPreferences
 import com.graviton.core.model.Resume
@@ -51,6 +51,9 @@ import com.graviton.core.model.recordMusicPlay
 import com.graviton.core.ui.R as coreUiR
 import com.graviton.feature.player.PlayerActivity
 import com.graviton.feature.player.R
+import com.graviton.feature.player.decoder.DeviceDecoderCapabilities
+import com.graviton.feature.player.decoder.PlaybackDiagnostics
+import com.graviton.feature.player.decoder.toConfiguration
 import com.graviton.feature.player.extensions.addAdditionalSubtitleConfiguration
 import com.graviton.feature.player.extensions.audioTrackIndex
 import com.graviton.feature.player.extensions.copy
@@ -65,6 +68,7 @@ import com.graviton.feature.player.extensions.subtitleTrackIndex
 import com.graviton.feature.player.extensions.switchTrack
 import com.graviton.feature.player.extensions.uriToSubtitleConfiguration
 import com.graviton.feature.player.extensions.videoZoom
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegLibrary
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
@@ -112,6 +116,22 @@ class PlayerService : MediaSessionService() {
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var currentVolumeGain: Int = 0
+
+    private val deviceDecoderCapabilities = DeviceDecoderCapabilities()
+
+    /**
+     * Log-only decoder telemetry. Built lazily because it needs the decoder mode, which is read from
+     * preferences once the service starts.
+     */
+    private val playbackDiagnostics: PlaybackDiagnostics by lazy {
+        PlaybackDiagnostics(
+            capabilities = deviceDecoderCapabilities,
+            decoderMode = playerPreferences.decoderMode,
+            // Asked per MIME type rather than hardcoded: nextlib's FFmpeg build has no AV1 decoder,
+            // so AV1 genuinely has no software fallback while H.264/HEVC/VP8/VP9 do.
+            softwareDecoderAvailableFor = { mimeType -> FfmpegLibrary.supportsFormat(mimeType) },
+        )
+    }
 
     private val playbackStateListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -334,6 +354,26 @@ class PlayerService : MediaSessionService() {
                 loudnessEnhancer = null
             }
         }
+
+        /**
+         * Reaching this callback means every decoder already failed.
+         *
+         * Decoder-level retries are Media3's job: with decoder fallback enabled, MediaCodecRenderer
+         * works through the device's decoders for the format and only surfaces an error once they
+         * are all exhausted. Retrying the player again here would just loop on the same failure, so
+         * this logs the failure with enough context to tell which decoder mode and stream caused it.
+         */
+        override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
+            val mediaId = mediaSession?.player?.currentMediaItem?.mediaId
+            Log.e(
+                PlaybackDiagnostics.TAG,
+                "Playback failed for $mediaId " +
+                    "(code=${error.errorCode} ${error.errorCodeName}, " +
+                    "decoderMode=${playerPreferences.decoderMode.name})",
+                error,
+            )
+        }
     }
 
     private fun setEnhancerTargetGain(gain: Int) {
@@ -544,18 +584,13 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        // Decoder selection is fixed for the lifetime of the service: the renderers factory is read
+        // here once, so a decoder-mode change only takes effect the next time PlayerService is
+        // created. See DecoderModeConfiguration for what each mode maps to.
+        val decoderConfiguration = playerPreferences.decoderMode.toConfiguration()
         val renderersFactory = NextRenderersFactory(applicationContext)
-            .setEnableDecoderFallback(playerPreferences.decoderMode == DecoderMode.AUTO)
-            .setExtensionRendererMode(
-                when (playerPreferences.decoderMode) {
-                    DecoderMode.AUTO -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderMode.HARDWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                    DecoderMode.HARDWARE_PLUS -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    DecoderMode.SOFTWARE -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-                },
-            ).apply {
-
-            }
+            .setEnableDecoderFallback(decoderConfiguration.enableDecoderFallback)
+            .setExtensionRendererMode(decoderConfiguration.extensionRendererMode)
 
         val trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(
@@ -579,6 +614,7 @@ class PlayerService : MediaSessionService() {
             .build()
             .also {
                 it.addListener(playbackStateListener)
+                it.addAnalyticsListener(playbackDiagnostics)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
                 it.repeatMode = when (playerPreferences.loopMode) {
                     LoopMode.OFF -> Player.REPEAT_MODE_OFF
