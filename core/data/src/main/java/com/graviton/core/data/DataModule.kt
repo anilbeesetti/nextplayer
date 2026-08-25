@@ -1,5 +1,9 @@
 package com.graviton.core.data
 
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import com.graviton.core.data.repository.LocalMediaRepository
 import com.graviton.core.data.repository.LocalMusicRepository
 import com.graviton.core.data.repository.LocalNetworkConnectionRepository
