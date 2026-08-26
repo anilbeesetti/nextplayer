@@ -1,0 +1,7 @@
+--- core/ui/src/main/res/values/strings.xml
++++ core/ui/src/main/res/values/strings.xml
+@@ -493,2 +493,4 @@
+     <string name="decrease_speed">Decrease speed</string>
+     <string name="increase_speed">Increase speed</string>
++    <string name="decrease_value">Decrease value</string>
++    <string name="increase_value">Increase value</string>
