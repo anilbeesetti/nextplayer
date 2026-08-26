@@ -20,12 +20,12 @@ fun Format.toVideoStreamSpec(): VideoStreamSpec? {
     return VideoStreamSpec(
         codec = codec,
         mimeType = sampleMimeType ?: codec.mimeType,
-        profile = profile.takeUnless { it == Format.NO_VALUE },
-        level = level.takeUnless { it == Format.NO_VALUE },
-        width = width.takeUnless { it == Format.NO_VALUE },
-        height = height.takeUnless { it == Format.NO_VALUE },
-        frameRate = frameRate.takeUnless { it == Format.NO_VALUE || it <= 0f },
-        bitDepth = bitDepthFor(codec, profile),
+        profile = null, // this.profile.takeUnless { it == Format.NO_VALUE },
+        level = null, // this.level.takeUnless { it == Format.NO_VALUE },
+        width = this.width.takeUnless { it == Format.NO_VALUE },
+        height = this.height.takeUnless { it == Format.NO_VALUE },
+        frameRate = this.frameRate.takeUnless { it == Format.NO_VALUE.toFloat() || this.frameRate <= 0f },
+        bitDepth = BitDepth.UNKNOWN, // bitDepthFor(codec, this.profile.takeUnless { it == Format.NO_VALUE } ?: -1),
     )
 }
 
