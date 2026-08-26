@@ -447,4 +447,19 @@
     <string name="authentication_rejected">身份验证被拒绝。请检查您的凭据并重试。</string>
     <string name="host_key_mismatch">SSH 主机密钥和受信任的指纹不匹配</string>
     <string name="sftp_root_inaccessible">SFTP 根路径缺失或无法访问</string>
+    <string name="last_refreshed">上次刷新 %1$s</string>
+    <string name="playlist_refresh_failed">无法刷新播放列表。未更改已保存的项目。</string>
+    <string name="playlist_refresh_succeeded">已刷新播放列表</string>
+    <string name="refreshing_playlist">正在刷新播放列表…</string>
+    <string name="refresh_playlist">刷新播放列表</string>
+    <string name="m3u_file_permission_failed">无法保留访问此文件的权限。请重选此文件或另选一个文件。</string>
+    <string name="m3u_file_playlist">M3U 文件</string>
+    <string name="m3u_url_playlist">M3U 网址</string>
+    <string name="invalid_url">请输入有效的 HTTP 或 HTTPS 网址</string>
+    <string name="url_required">请输入 M3U 网址</string>
+    <string name="playlist_url">M3U 网址</string>
+    <string name="add_m3u_file_playlist">从文件添加 M3U 播放列表</string>
+    <string name="add_m3u_url_playlist">从网址添加 M3U 播放列表</string>
+    <string name="create_local_playlist">创建本地播放列表</string>
+    <string name="choose_playlist_type">创建播放列表</string>
 </resources>
