@@ -26,14 +26,18 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.CommandButton
 import androidx.media3.session.CommandButton.ICON_UNDEFINED
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.LibraryParams
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import coil3.ImageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import com.graviton.core.common.extensions.deleteFiles
@@ -51,6 +55,7 @@ import com.graviton.core.model.recordMusicPlay
 import com.graviton.core.ui.R as coreUiR
 import com.graviton.feature.player.PlayerActivity
 import com.graviton.feature.player.R
+import com.graviton.feature.player.audio.SessionEqualizer
 import com.graviton.feature.player.decoder.DeviceDecoderCapabilities
 import com.graviton.feature.player.decoder.PlaybackDiagnostics
 import com.graviton.feature.player.decoder.toConfiguration
@@ -81,6 +86,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -88,10 +94,10 @@ import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
-class PlayerService : MediaSessionService() {
+class PlayerService : MediaLibraryService() {
 
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private var mediaSession: MediaSession? = null
+    private var mediaSession: MediaLibrarySession? = null
     private var artworkLoadJob: Job? = null
     private var sleepTimerJob: Job? = null
     private var sleepTimerDeadlineMs: Long = 0L
@@ -122,6 +128,7 @@ class PlayerService : MediaSessionService() {
     private val knownDurations = mutableMapOf<String, Long>()
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
+    private var equalizer: SessionEqualizer? = null
     private var currentVolumeGain: Int = 0
 
     private val deviceDecoderCapabilities = DeviceDecoderCapabilities()
@@ -364,9 +371,19 @@ class PlayerService : MediaSessionService() {
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
             super.onAudioSessionIdChanged(audioSessionId)
             val musicPreferences = preferencesRepository.applicationPreferences.value
-            if (!playerPreferences.enableVolumeBoost && !musicPreferences.musicReplayGainEnabled) return
+            if (!playerPreferences.enableVolumeBoost &&
+                !musicPreferences.musicReplayGainEnabled &&
+                !musicPreferences.musicEqualizerEnabled
+            ) return
             if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) return
             try {
+                equalizer?.release()
+                equalizer = SessionEqualizer.create(audioSessionId)?.also { engine ->
+                    val configured = musicPreferences.musicEqualizerGainsDb
+                    val gains = if (configured.size == engine.bandCount) configured.toFloatArray() else FloatArray(engine.bandCount)
+                    engine.setGains(gains)
+                    engine.setEnabled(musicPreferences.musicEqualizerEnabled)
+                }
                 loudnessEnhancer?.release()
                 loudnessEnhancer = LoudnessEnhancer(audioSessionId)
                 val replayGain = if (musicPreferences.musicReplayGainEnabled) {
@@ -515,7 +532,7 @@ class PlayerService : MediaSessionService() {
         }
     }
 
-    private val mediaSessionCallback = object : MediaSession.Callback {
+    private val mediaSessionCallback = object : MediaLibrarySession.Callback {
         override fun onConnect(
             session: MediaSession,
             controller: MediaSession.ControllerInfo,
@@ -530,6 +547,71 @@ class PlayerService : MediaSessionService() {
                     .build(),
                 connectionResult.availablePlayerCommands,
             )
+        }
+
+        override fun onGetLibraryRoot(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            params: LibraryParams?,
+        ): ListenableFuture<LibraryResult<MediaItem>> = serviceScope.future {
+            LibraryResult.ofItem(libraryFolder(LIBRARY_ROOT, "Graviton Music"), params)
+        }
+
+        override fun onGetChildren(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            parentId: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?,
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = serviceScope.future(Dispatchers.IO) {
+            val children = when (parentId) {
+                LIBRARY_ROOT -> listOf(libraryFolder(LIBRARY_SONGS, "Songs"))
+                LIBRARY_SONGS -> musicRepository.observeTracks().first().map { track ->
+                    MediaItem.Builder()
+                        .setMediaId(track.uriString)
+                        .setUri(track.uriString)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle(track.displayTitle)
+                                .setArtist(track.displayArtist)
+                                .setAlbumTitle(track.displayAlbum)
+                                .setArtworkUri(track.artworkUriString?.toUri())
+                                .setIsBrowsable(false)
+                                .setIsPlayable(true)
+                                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                                .build(),
+                        )
+                        .build()
+                }
+                else -> emptyList()
+            }
+            val from = (page * pageSize).coerceAtMost(children.size)
+            val to = (from + pageSize).coerceAtMost(children.size)
+            LibraryResult.ofItemList(ImmutableList.copyOf(children.subList(from, to)), params)
+        }
+
+        override fun onGetItem(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            mediaId: String,
+        ): ListenableFuture<LibraryResult<MediaItem>> = serviceScope.future(Dispatchers.IO) {
+            val track = musicRepository.getTrack(mediaId)
+                ?: return@future LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
+            val item = MediaItem.Builder()
+                .setMediaId(track.uriString)
+                .setUri(track.uriString)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(track.displayTitle)
+                        .setArtist(track.displayArtist)
+                        .setAlbumTitle(track.displayAlbum)
+                        .setArtworkUri(track.artworkUriString?.toUri())
+                        .setIsPlayable(true)
+                        .build(),
+                )
+                .build()
+            LibraryResult.ofItem(item, null)
         }
 
         override fun onSetMediaItems(
@@ -728,7 +810,19 @@ class PlayerService : MediaSessionService() {
         }
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
+    private fun libraryFolder(id: String, title: String): MediaItem = MediaItem.Builder()
+        .setMediaId(id)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(title)
+                .setIsBrowsable(true)
+                .setIsPlayable(false)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                .build(),
+        )
+        .build()
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
 
 
     override fun onCreate() {
@@ -773,7 +867,7 @@ class PlayerService : MediaSessionService() {
             }
 
         try {
-            mediaSession = MediaSession.Builder(this, player).apply {
+            mediaSession = MediaLibrarySession.Builder(this, player, mediaSessionCallback).apply {
                 setSessionActivity(
                     PendingIntent.getActivity(
                         this@PlayerService,
@@ -782,7 +876,6 @@ class PlayerService : MediaSessionService() {
                         PendingIntent.FLAG_IMMUTABLE,
                     ),
                 )
-                setCallback(mediaSessionCallback)
                 setCustomLayout(
                     listOf(
                         CommandButton.Builder(ICON_UNDEFINED)
@@ -832,6 +925,8 @@ class PlayerService : MediaSessionService() {
         sleepTimerJob?.cancel()
         loudnessEnhancer?.release()
         loudnessEnhancer = null
+        equalizer?.release()
+        equalizer = null
         mediaSession?.run {
             player.clearMediaItems()
             player.stop()
@@ -971,6 +1066,11 @@ class PlayerService : MediaSessionService() {
                 .build(),
         )
         .build()
+
+    private companion object {
+        const val LIBRARY_ROOT = "music/root"
+        const val LIBRARY_SONGS = "music/songs"
+    }
 }
 
 @get:UnstableApi

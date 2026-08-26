@@ -120,6 +120,34 @@ private fun MusicPreferencesContent(
                 PreferenceSwitch(title = "Gapless playback", description = "Keep one player and pre-buffer the queue", icon = NextIcons.Audio, isChecked = preferences.musicGaplessPlayback, onClick = { onEvent(MusicPreferencesEvent.ToggleGapless) })
                 PreferenceSwitch(title = stringResource(R.string.remember_shuffle), description = stringResource(R.string.remember_shuffle_desc), icon = NextIcons.Shuffle, isChecked = preferences.musicRememberShuffle, onClick = { onEvent(MusicPreferencesEvent.ToggleRememberShuffle) }, isLastItem = true)
             }
+            ListSectionTitle("Audio processing")
+            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
+                PreferenceSwitch(
+                    title = "Equalizer",
+                    description = "15 bands on Android 9+, hardware bands on older devices",
+                    icon = NextIcons.Equalizer,
+                    isChecked = preferences.musicEqualizerEnabled,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleEqualizer) },
+                    isFirstItem = true,
+                )
+                if (preferences.musicEqualizerEnabled) {
+                    EqualizerFrequencies.forEachIndexed { index, frequency ->
+                        MusicValueSlider(
+                            title = formatFrequency(frequency),
+                            valueLabel = "${preferences.musicEqualizerGainsDb.getOrElse(index) { 0f }.let { "%.1f".format(it) }} dB",
+                            value = preferences.musicEqualizerGainsDb.getOrElse(index) { 0f },
+                            range = -15f..15f,
+                        ) { onEvent(MusicPreferencesEvent.SetEqualizerBand(index, it)) }
+                    }
+                }
+                ClickablePreferenceItem(
+                    title = "Reset equalizer",
+                    description = "Set all bands to 0 dB",
+                    icon = NextIcons.History,
+                    onClick = { onEvent(MusicPreferencesEvent.ResetEqualizer) },
+                    isLastItem = true,
+                )
+            }
             ListSectionTitle(stringResource(R.string.recently_played))
             ClickablePreferenceItem(title = stringResource(R.string.clear_music_history), description = stringResource(R.string.clear_music_history_desc), icon = NextIcons.History, onClick = { onEvent(MusicPreferencesEvent.ClearHistory) }, isFirstItem = true, isLastItem = true)
         }
@@ -151,6 +179,12 @@ private fun MusicValueSlider(title: String, valueLabel: String, value: Float, ra
         }
     }
 }
+
+private val EqualizerFrequencies = intArrayOf(
+    25, 40, 63, 100, 160, 250, 400, 630, 1_000, 1_600, 2_500, 4_000, 6_300, 10_000, 16_000,
+)
+
+private fun formatFrequency(value: Int): String = if (value >= 1_000) "${value / 1_000f} kHz" else "$value Hz"
 
 private fun NowPlayingStyle.displayName() = name.lowercase().replaceFirstChar(Char::uppercase)
 private fun MusicBackgroundStyle.displayName() = name.lowercase().replace('_', ' ').replaceFirstChar(Char::uppercase)

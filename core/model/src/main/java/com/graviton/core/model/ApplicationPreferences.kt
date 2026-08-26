@@ -53,6 +53,8 @@ data class ApplicationPreferences(
     val musicAudioOffload: Boolean = false,
     val musicReplayGainEnabled: Boolean = false,
     val musicReplayGainPreampDb: Float = 0f,
+    val musicEqualizerEnabled: Boolean = false,
+    val musicEqualizerGainsDb: List<Float> = List(15) { 0f },
     val musicLyricsProviderPriority: List<LyricsSourceKind> = listOf(
         LyricsSourceKind.EMBEDDED,
         LyricsSourceKind.SIDECAR_LRC,

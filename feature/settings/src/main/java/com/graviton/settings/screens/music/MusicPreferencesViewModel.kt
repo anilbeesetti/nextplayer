@@ -38,6 +38,8 @@ class MusicPreferencesViewModel @Inject constructor(
             MusicPreferencesEvent.ToggleMetadata -> update { it.copy(musicShowMetadata = !it.musicShowMetadata) }
             MusicPreferencesEvent.ToggleCodec -> update { it.copy(musicShowCodecInfo = !it.musicShowCodecInfo) }
             MusicPreferencesEvent.ToggleGapless -> update { it.copy(musicGaplessPlayback = !it.musicGaplessPlayback) }
+            MusicPreferencesEvent.ToggleEqualizer -> update { it.copy(musicEqualizerEnabled = !it.musicEqualizerEnabled) }
+            MusicPreferencesEvent.ResetEqualizer -> update { it.copy(musicEqualizerGainsDb = List(15) { 0f }) }
             MusicPreferencesEvent.ToggleLyricsButton -> update { it.copy(musicShowLyricsButton = !it.musicShowLyricsButton) }
             MusicPreferencesEvent.ToggleQueueButton -> update { it.copy(musicShowQueueButton = !it.musicShowQueueButton) }
             MusicPreferencesEvent.ToggleSleepButton -> update { it.copy(musicShowSleepTimerButton = !it.musicShowSleepTimerButton) }
@@ -48,6 +50,13 @@ class MusicPreferencesViewModel @Inject constructor(
             is MusicPreferencesEvent.SetArtworkRadius -> update { it.copy(musicArtworkCornerRadius = event.value.coerceIn(0f, 48f)) }
             is MusicPreferencesEvent.SetArtworkSize -> update { it.copy(musicArtworkSizePercent = event.value.coerceIn(70, 100)) }
             is MusicPreferencesEvent.SetBlur -> update { it.copy(musicBlurIntensity = event.value.coerceIn(0f, 48f)) }
+            is MusicPreferencesEvent.SetEqualizerBand -> update { preferences ->
+                val levels = preferences.musicEqualizerGainsDb.toMutableList().apply {
+                    while (size < 15) add(0f)
+                    this[event.index.coerceIn(0, 14)] = event.gainDb.coerceIn(-15f, 15f)
+                }
+                preferences.copy(musicEqualizerGainsDb = levels)
+            }
         }
     }
 
@@ -67,6 +76,8 @@ sealed interface MusicPreferencesEvent {
     data object ToggleMetadata : MusicPreferencesEvent
     data object ToggleCodec : MusicPreferencesEvent
     data object ToggleGapless : MusicPreferencesEvent
+    data object ToggleEqualizer : MusicPreferencesEvent
+    data object ResetEqualizer : MusicPreferencesEvent
     data object ToggleLyricsButton : MusicPreferencesEvent
     data object ToggleQueueButton : MusicPreferencesEvent
     data object ToggleSleepButton : MusicPreferencesEvent
@@ -77,4 +88,5 @@ sealed interface MusicPreferencesEvent {
     data class SetArtworkRadius(val value: Float) : MusicPreferencesEvent
     data class SetArtworkSize(val value: Int) : MusicPreferencesEvent
     data class SetBlur(val value: Float) : MusicPreferencesEvent
+    data class SetEqualizerBand(val index: Int, val gainDb: Float) : MusicPreferencesEvent
 }
