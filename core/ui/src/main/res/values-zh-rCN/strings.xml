@@ -417,7 +417,7 @@
     <string name="add_to_playlist">添加到播放列表</string>
     <string name="existing_playlists">现有播放列表</string>
     <string name="no_playlists">尚无播放列表</string>
-    <string name="no_playlists_description">创建播放列表，然后从主页选择要添加的本地视频</string>
+    <string name="no_playlists_description">创建本地播放列表或添加 M3U 源来开始观看。</string>
     <string name="delete_playlist_confirmation">删除“%1$s”及其保存的顺序吗？</string>
     <string name="play_all">全部播放</string>
     <string name="remove_video_confirmation">从此播放列表移除“%1$s”吗？</string>
