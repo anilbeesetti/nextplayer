@@ -27,6 +27,40 @@ data class ApplicationPreferences(
     val musicShowLyrics: Boolean = true,
     val musicRememberShuffle: Boolean = true,
 
+    // Music player presentation. These remain in the existing application DataStore so upgrades
+    // retain all previous preferences and no parallel settings store is introduced.
+    val musicNowPlayingStyle: NowPlayingStyle = NowPlayingStyle.CLASSIC,
+    val musicArtworkCornerRadius: Float = 28f,
+    val musicArtworkSizePercent: Int = 92,
+    val musicBackgroundStyle: MusicBackgroundStyle = MusicBackgroundStyle.THEME,
+    val musicDynamicArtworkBackground: Boolean = true,
+    val musicBlurIntensity: Float = 24f,
+    val musicShowNextTrack: Boolean = true,
+    val musicShowMetadata: Boolean = true,
+    val musicShowCodecInfo: Boolean = false,
+    val musicControlLayout: MusicControlLayout = MusicControlLayout.BALANCED,
+    val musicGestureControls: Boolean = true,
+    val musicSeekGestureSensitivity: Float = 1f,
+    val musicShowLyricsButton: Boolean = true,
+    val musicShowQueueButton: Boolean = true,
+    val musicShowSleepTimerButton: Boolean = true,
+    val musicAnimationsEnabled: Boolean = true,
+    val musicGaplessPlayback: Boolean = true,
+    val musicAudioOffload: Boolean = false,
+    val musicReplayGainEnabled: Boolean = false,
+    val musicReplayGainPreampDb: Float = 0f,
+    val musicLyricsProviderPriority: List<LyricsSourceKind> = listOf(
+        LyricsSourceKind.EMBEDDED,
+        LyricsSourceKind.SIDECAR_LRC,
+        LyricsSourceKind.SIDECAR_TTML,
+        LyricsSourceKind.LRCLIB,
+    ),
+
+    // Restorable music queue. The service updates these compact values at safe transition points.
+    val musicQueueUris: List<String> = emptyList(),
+    val musicQueueIndex: Int = 0,
+    val musicQueuePositionMs: Long = 0L,
+
     // Fields
     val showDurationField: Boolean = true,
     val showFolderDurationField: Boolean = true,

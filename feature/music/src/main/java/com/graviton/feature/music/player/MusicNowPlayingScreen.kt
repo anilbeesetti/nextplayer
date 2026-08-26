@@ -4,6 +4,8 @@ import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.widget.Toast
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,12 +40,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +60,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import com.graviton.core.model.ApplicationPreferences
+import com.graviton.core.model.MusicBackgroundStyle
+import com.graviton.core.model.NowPlayingStyle
 import com.graviton.core.ui.designsystem.NextIcons
 import com.graviton.feature.music.artwork.MediaArtwork
 import com.graviton.feature.music.lyrics.LyricsDocument
@@ -64,6 +73,8 @@ import com.graviton.feature.player.service.getSkipSilenceEnabled
 import com.graviton.feature.player.service.setSkipSilenceEnabled
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun MusicNowPlayingRoute(
@@ -74,6 +85,7 @@ fun MusicNowPlayingRoute(
     val controller = connection.controller
     val snapshot = rememberMusicPlaybackSnapshot(controller)
     val lyrics by viewModel.lyrics.collectAsStateWithLifecycle()
+    val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val remainingSleep by viewModel.remainingSleepMs.collectAsStateWithLifecycle()
     LaunchedEffect(snapshot?.mediaId) {
         viewModel.loadLyrics(snapshot?.mediaId, snapshot?.title)
@@ -97,6 +109,7 @@ fun MusicNowPlayingRoute(
         durationMs = snapshot?.durationMs ?: 0L,
         lyrics = lyrics,
         remainingSleepMs = remainingSleep,
+        preferences = preferences,
         onClose = onClose,
         onSeek = { controller?.seekTo(it) },
         onTogglePlay = { if (controller?.isPlaying == true) controller.pause() else controller?.play() },
@@ -123,6 +136,7 @@ private fun MusicNowPlayingScreen(
     durationMs: Long,
     lyrics: LyricsDocument,
     remainingSleepMs: Long,
+    preferences: ApplicationPreferences,
     onClose: () -> Unit,
     onSeek: (Long) -> Unit,
     onTogglePlay: () -> Unit,
@@ -147,9 +161,29 @@ private fun MusicNowPlayingScreen(
     LaunchedEffect(remainingSleepMs) {
         if (remainingSleepMs in 1..400) onPauseFromTimer()
     }
+    val style = remember(preferences.musicNowPlayingStyle) { PlayerStyleTokens.forStyle(preferences.musicNowPlayingStyle) }
+    val useArtworkBackground = preferences.musicDynamicArtworkBackground &&
+        preferences.musicBackgroundStyle in setOf(MusicBackgroundStyle.ARTWORK, MusicBackgroundStyle.BLURRED_ARTWORK)
 
-    Column(
-        modifier = Modifier
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(if (preferences.musicBackgroundStyle == MusicBackgroundStyle.BLACK) Color.Black else MaterialTheme.colorScheme.background),
+    ) {
+        if (useArtworkBackground) {
+            MediaArtwork(
+                artworkUri = artworkUri,
+                mediaUri = mediaUri,
+                artworkData = artworkData,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(if (preferences.musicBackgroundStyle == MusicBackgroundStyle.BLURRED_ARTWORK) Modifier.blur(preferences.musicBlurIntensity.dp) else Modifier)
+                    .alpha(0.2f),
+                corner = 0.dp,
+            )
+        }
+        Column(
+            modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
@@ -178,19 +212,26 @@ private fun MusicNowPlayingScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .pointerInput(controller) {
-                    detectHorizontalDragGestures(
-                        onDragEnd = {
-                            when {
-                                dragAccum > 80f -> onPrevious()
-                                dragAccum < -80f -> onNext()
-                            }
-                            dragAccum = 0f
-                        },
-                        onHorizontalDrag = { _, amount -> dragAccum += amount },
-                    )
-                },
+                .weight(style.artworkWeight)
+                .then(
+                    if (preferences.musicGestureControls) {
+                        Modifier.pointerInput(controller, preferences.musicSeekGestureSensitivity) {
+                            detectHorizontalDragGestures(
+                                onDragEnd = {
+                                    val threshold = 80f / preferences.musicSeekGestureSensitivity.coerceIn(0.5f, 2f)
+                                    when {
+                                        dragAccum > threshold -> onPrevious()
+                                        dragAccum < -threshold -> onNext()
+                                    }
+                                    dragAccum = 0f
+                                },
+                                onHorizontalDrag = { _, amount -> dragAccum += amount },
+                            )
+                        }
+                    } else {
+                        Modifier
+                    },
+                ),
             contentAlignment = Alignment.Center,
         ) {
             MediaArtwork(
@@ -198,22 +239,34 @@ private fun MusicNowPlayingScreen(
                 mediaUri = mediaUri,
                 artworkData = artworkData,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth((preferences.musicArtworkSizePercent / 100f).coerceIn(0.7f, 1f) * style.artworkScale)
                     .aspectRatio(1f)
-                    .clip(RoundedCornerShape(28.dp)),
-                corner = 28.dp,
+                    .clip(RoundedCornerShape(preferences.musicArtworkCornerRadius.dp)),
+                corner = preferences.musicArtworkCornerRadius.dp,
             )
         }
 
-        Spacer(Modifier.height(20.dp))
-        Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(style.metadataSpacing))
         Text(
-            text = listOf(artist, album).filter { it.isNotBlank() }.joinToString(" • "),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+            title,
+            style = if (preferences.musicNowPlayingStyle == NowPlayingStyle.EXPRESSIVE) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
+        if (preferences.musicShowMetadata) {
+            Text(
+                text = listOf(artist, album).filter { it.isNotBlank() }.joinToString(" • "),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (preferences.musicShowNextTrack && controller != null && controller.hasNextMediaItem()) {
+            val nextTitle = controller.getMediaItemAt(controller.nextMediaItemIndex).mediaMetadata.title?.toString()
+            if (!nextTitle.isNullOrBlank()) Text("Next • $nextTitle", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        }
 
         Slider(
             value = sliderPosition.coerceIn(0f, durationMs.coerceAtLeast(1).toFloat()),
@@ -288,9 +341,9 @@ private fun MusicNowPlayingScreen(
                 .padding(bottom = 12.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            TextButton(onClick = { showQueue = true }) { Icon(NextIcons.QueueMusic, null); Spacer(Modifier.size(6.dp)); Text("Queue") }
-            TextButton(onClick = { showLyrics = true }) { Icon(NextIcons.Lyrics, null); Spacer(Modifier.size(6.dp)); Text("Lyrics") }
-            TextButton(onClick = { showSleep = true }) { Icon(NextIcons.Timer, null); Spacer(Modifier.size(6.dp)); Text(if (remainingSleepMs > 0) formatClock(remainingSleepMs) else "Sleep") }
+            if (preferences.musicShowQueueButton) TextButton(onClick = { showQueue = true }) { Icon(NextIcons.QueueMusic, null); Spacer(Modifier.size(6.dp)); Text("Queue") }
+            if (preferences.musicShowLyricsButton) TextButton(onClick = { showLyrics = true }) { Icon(NextIcons.Lyrics, null); Spacer(Modifier.size(6.dp)); Text("Lyrics") }
+            if (preferences.musicShowSleepTimerButton) TextButton(onClick = { showSleep = true }) { Icon(NextIcons.Timer, null); Spacer(Modifier.size(6.dp)); Text(if (remainingSleepMs > 0) formatClock(remainingSleepMs) else "Sleep") }
             TextButton(onClick = {
                 scope.launch {
                     val sessionId = runCatching { controller?.getAudioSessionId() }.getOrNull()
@@ -305,12 +358,13 @@ private fun MusicNowPlayingScreen(
             }) { Icon(NextIcons.Equalizer, null); Spacer(Modifier.size(6.dp)); Text("EQ") }
         }
     }
+    }
 
     if (showQueue && controller != null) {
         QueueSheet(controller = controller, onDismiss = { showQueue = false })
     }
     if (showLyrics) {
-        LyricsSheet(lyrics = lyrics, positionMs = positionMs, onDismiss = { showLyrics = false })
+        LyricsSheet(lyrics = lyrics, positionMs = positionMs, onSeek = onSeek, onDismiss = { showLyrics = false })
     }
     if (showSleep) {
         SleepDialog(
@@ -329,24 +383,42 @@ private fun MusicNowPlayingScreen(
 @Composable
 private fun QueueSheet(controller: MediaController, onDismiss: () -> Unit) {
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val items = remember(controller.mediaItemCount, controller.currentMediaItemIndex) {
-        (0 until controller.mediaItemCount).map { index ->
-            val item = controller.getMediaItemAt(index)
-            Triple(index, item.mediaMetadata.title?.toString().orEmpty(), item.mediaMetadata.artist?.toString().orEmpty())
+    val queue = remember(controller) {
+        (0 until controller.mediaItemCount).map { controller.getMediaItemAt(it) }.toMutableStateList()
+    }
+    val listState = rememberLazyListState()
+    val reorderState = rememberReorderableLazyListState(listState) { from, to ->
+        if (from.index in queue.indices && to.index in queue.indices) {
+            val moved = queue.removeAt(from.index)
+            queue.add(to.index, moved)
+            controller.moveMediaItem(from.index, to.index)
         }
     }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheet) {
-        Text("Queue", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
-        LazyColumn {
-            itemsIndexed(items) { _, (index, title, artist) ->
-                val active = index == controller.currentMediaItemIndex
-                TextButton(
-                    onClick = { controller.seekToDefaultPosition(index); controller.play() },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
-                        Text(title.ifBlank { "Item ${index + 1}" }, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
-                        if (artist.isNotBlank()) Text(artist, style = MaterialTheme.typography.bodySmall)
+        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("Queue", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            TextButton(onClick = { controller.clearMediaItems(); queue.clear(); onDismiss() }) { Text("Clear") }
+        }
+        LazyColumn(state = listState) {
+            itemsIndexed(queue, key = { _, item -> item.mediaId }) { index, item ->
+                ReorderableItem(reorderState, key = item.mediaId) {
+                    val active = item.mediaId == controller.currentMediaItem?.mediaId
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = {}, modifier = Modifier.draggableHandle()) {
+                            Icon(NextIcons.Reorder, contentDescription = "Drag to reorder")
+                        }
+                        TextButton(
+                            onClick = { controller.seekToDefaultPosition(index); controller.play() },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
+                                Text(item.mediaMetadata.title?.toString().orEmpty().ifBlank { "Item ${index + 1}" }, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
+                                item.mediaMetadata.artist?.toString()?.takeIf(String::isNotBlank)?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                            }
+                        }
+                        IconButton(onClick = { controller.removeMediaItem(index); queue.removeAt(index) }) {
+                            Icon(NextIcons.Delete, contentDescription = "Remove from queue")
+                        }
                     }
                 }
             }
@@ -356,7 +428,7 @@ private fun QueueSheet(controller: MediaController, onDismiss: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LyricsSheet(lyrics: LyricsDocument, positionMs: Long, onDismiss: () -> Unit) {
+private fun LyricsSheet(lyrics: LyricsDocument, positionMs: Long, onSeek: (Long) -> Unit, onDismiss: () -> Unit) {
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val active = lyrics.lineAt(positionMs)
     val listState = rememberLazyListState()
@@ -368,12 +440,24 @@ private fun LyricsSheet(lyrics: LyricsDocument, positionMs: Long, onDismiss: () 
         when {
             lyrics.isSynced -> LazyColumn(state = listState, modifier = Modifier.height(360.dp).padding(horizontal = 20.dp)) {
                 itemsIndexed(lyrics.lines) { index, line ->
-                    Text(
-                        text = line.text,
-                        fontWeight = if (index == active) FontWeight.Bold else FontWeight.Normal,
-                        color = if (index == active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                    )
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .pointerInput(line.timeMs) {
+                                detectTapGestures { onSeek(line.timeMs) }
+                            }
+                            .padding(vertical = 8.dp, horizontal = 6.dp),
+                    ) {
+                        Text(
+                            text = line.text,
+                            fontWeight = if (index == active) FontWeight.Bold else FontWeight.Normal,
+                            color = if (index == active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        line.translation?.let {
+                            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                 }
             }
             !lyrics.unsynced.isNullOrBlank() -> Text(lyrics.unsynced, modifier = Modifier.padding(20.dp))
@@ -434,6 +518,23 @@ private fun MusicSettingsSheet(controller: MediaController, onDismiss: () -> Uni
                 onValueChangeFinished = { controller.setPlaybackSpeed(speed) },
                 valueRange = 0.5f..2f,
             )
+        }
+    }
+}
+
+private data class PlayerStyleTokens(
+    val artworkScale: Float,
+    val artworkWeight: Float,
+    val metadataSpacing: androidx.compose.ui.unit.Dp,
+) {
+    companion object {
+        fun forStyle(style: NowPlayingStyle): PlayerStyleTokens = when (style) {
+            NowPlayingStyle.CLASSIC -> PlayerStyleTokens(1f, 1f, 20.dp)
+            NowPlayingStyle.EXPRESSIVE -> PlayerStyleTokens(0.96f, 1.08f, 24.dp)
+            NowPlayingStyle.BLUR -> PlayerStyleTokens(0.94f, 1f, 20.dp)
+            NowPlayingStyle.M3 -> PlayerStyleTokens(0.9f, 0.95f, 16.dp)
+            NowPlayingStyle.PLAIN -> PlayerStyleTokens(0.82f, 0.85f, 12.dp)
+            NowPlayingStyle.PEEK -> PlayerStyleTokens(0.74f, 0.68f, 10.dp)
         }
     }
 }

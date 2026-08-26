@@ -112,6 +112,7 @@ class PlayerService : MediaSessionService() {
     private val customCommands = CustomCommands.asSessionCommands()
 
     private var isMediaItemReady = false
+    private var currentQueueIsMusic = false
     private val knownDurations = mutableMapOf<String, Long>()
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
@@ -134,8 +135,14 @@ class PlayerService : MediaSessionService() {
     }
 
     private val playbackStateListener = object : Player.Listener {
+        override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+            super.onTimelineChanged(timeline, reason)
+            persistMusicQueue()
+        }
+
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
+            persistMusicQueue()
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             isMediaItemReady = false
             loadArtworkForCurrentMediaItem()
@@ -365,7 +372,8 @@ class PlayerService : MediaSessionService() {
          */
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
-            val mediaId = mediaSession?.player?.currentMediaItem?.mediaId
+            val failedPlayer = mediaSession?.player
+            val mediaId = failedPlayer?.currentMediaItem?.mediaId
             Log.e(
                 PlaybackDiagnostics.TAG,
                 "Playback failed for $mediaId " +
@@ -373,6 +381,42 @@ class PlayerService : MediaSessionService() {
                     "decoderMode=${playerPreferences.decoderMode.name})",
                 error,
             )
+            // A corrupt or deleted song must not strand a background queue. Decoder fallback has
+            // already been exhausted at this point, so advance once; never loop the failed item.
+            val failedItem = failedPlayer?.currentMediaItem
+            val looksLikeMusic = failedItem?.mediaMetadata?.artist != null || failedItem?.mediaMetadata?.albumTitle != null
+            if (looksLikeMusic && failedPlayer.hasNextMediaItem()) {
+                failedPlayer.seekToNextMediaItem()
+                failedPlayer.prepare()
+                failedPlayer.play()
+            }
+        }
+    }
+
+    private fun persistMusicQueue() {
+        val player = mediaSession?.player ?: return
+        val current = player.currentMediaItem
+        if (current == null) {
+            if (currentQueueIsMusic) {
+                currentQueueIsMusic = false
+                serviceScope.launch {
+                    preferencesRepository.updateApplicationPreferences {
+                        it.copy(musicQueueUris = emptyList(), musicQueueIndex = 0, musicQueuePositionMs = 0L)
+                    }
+                }
+            }
+            return
+        }
+        val isMusic = current.mediaMetadata.artist != null || current.mediaMetadata.albumTitle != null
+        if (!isMusic) return
+        currentQueueIsMusic = true
+        val uris = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.filter(String::isNotBlank)
+        val index = player.currentMediaItemIndex.coerceAtLeast(0)
+        val position = player.currentPosition.coerceAtLeast(0L)
+        serviceScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(musicQueueUris = uris, musicQueueIndex = index, musicQueuePositionMs = position)
+            }
         }
     }
 
@@ -647,6 +691,25 @@ class PlayerService : MediaSessionService() {
             }.build()
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+
+        val saved = preferencesRepository.applicationPreferences.value
+        if (saved.musicQueueUris.isNotEmpty() && player.mediaItemCount == 0) {
+            serviceScope.launch(Dispatchers.Default) {
+                val restored = updatedMediaItemsWithMetadata(
+                    saved.musicQueueUris.map { uri -> MediaItem.Builder().setMediaId(uri).setUri(uri).build() },
+                )
+                withContext(Dispatchers.Main) {
+                    if (player.mediaItemCount == 0 && restored.isNotEmpty()) {
+                        player.setMediaItems(
+                            restored,
+                            saved.musicQueueIndex.coerceIn(0, restored.lastIndex),
+                            saved.musicQueuePositionMs.coerceAtLeast(0L),
+                        )
+                        player.prepare()
+                    }
+                }
+            }
         }
     }
 
