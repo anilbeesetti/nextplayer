@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
@@ -51,8 +52,10 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
 
     implementation(libs.coil.compose)
+    implementation(libs.reorderable)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.guava)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.session)

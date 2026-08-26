@@ -5,6 +5,8 @@ const val MUSIC_HISTORY_LIMIT = 100
 fun ApplicationPreferences.recordMusicPlay(
     uri: String,
     folderPath: String? = null,
+    countPlay: Boolean = false,
+    playedAt: Long = System.currentTimeMillis(),
 ): ApplicationPreferences {
     if (uri.isBlank()) return this
     val recent = (listOf(uri) + musicRecentlyPlayedUris.filter { it != uri }).take(MUSIC_HISTORY_LIMIT)
@@ -16,6 +18,8 @@ fun ApplicationPreferences.recordMusicPlay(
     return copy(
         musicRecentlyPlayedUris = recent,
         musicFolderLastUri = folders,
+        musicPlayCounts = if (countPlay) musicPlayCounts + (uri to ((musicPlayCounts[uri] ?: 0) + 1)) else musicPlayCounts,
+        musicLastPlayedAt = if (countPlay) musicLastPlayedAt + (uri to playedAt) else musicLastPlayedAt,
     )
 }
 

@@ -10,6 +10,7 @@ import com.graviton.core.model.ControlButtonsPosition
 import com.graviton.core.model.PlayerPreferences
 import com.graviton.core.model.Resume
 import com.graviton.core.model.ScreenOrientation
+import com.graviton.core.model.VideoPlayerBackend
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +40,7 @@ class PlayerPreferencesViewModel @Inject constructor(
     fun onEvent(event: PlayerPreferencesUiEvent) {
         when (event) {
             is PlayerPreferencesUiEvent.ShowDialog -> showDialog(event.value)
+            is PlayerPreferencesUiEvent.UpdateVideoBackend -> updateVideoBackend(event.backend)
             is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(event.resume)
             PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
             PlayerPreferencesUiEvent.ToggleAutoPip -> toggleAutoPip()
@@ -56,6 +58,12 @@ class PlayerPreferencesViewModel @Inject constructor(
     private fun showDialog(value: PlayerPreferenceDialog?) {
         uiStateInternal.update {
             it.copy(showDialog = value)
+        }
+    }
+
+    private fun updateVideoBackend(backend: VideoPlayerBackend) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(videoPlayerBackend = backend) }
         }
     }
 
@@ -157,6 +165,7 @@ data class PlayerPreferencesUiState(
 )
 
 sealed interface PlayerPreferenceDialog {
+    data object VideoBackendDialog : PlayerPreferenceDialog
     data object ResumeDialog : PlayerPreferenceDialog
     data object PlayerScreenOrientationDialog : PlayerPreferenceDialog
     data object ControlButtonsDialog : PlayerPreferenceDialog
@@ -164,6 +173,7 @@ sealed interface PlayerPreferenceDialog {
 
 sealed interface PlayerPreferencesUiEvent {
     data class ShowDialog(val value: PlayerPreferenceDialog?) : PlayerPreferencesUiEvent
+    data class UpdateVideoBackend(val backend: VideoPlayerBackend) : PlayerPreferencesUiEvent
     data class UpdatePlaybackResume(val resume: Resume) : PlayerPreferencesUiEvent
     data object ToggleAutoplay : PlayerPreferencesUiEvent
     data object ToggleAutoPip : PlayerPreferencesUiEvent

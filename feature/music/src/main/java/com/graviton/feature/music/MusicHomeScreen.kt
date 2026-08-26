@@ -420,6 +420,23 @@ private fun MusicLibraryContent(
                         )
                     }
                 }
+                if (state.mostPlayed.isNotEmpty()) {
+                    item(key = "home-most-played") {
+                        Spacer(Modifier.height(12.dp))
+                        Text("Most played", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    }
+                    items(state.mostPlayed, key = { "most-${it.uriString}" }) { track ->
+                        TrackRow(
+                            track = track,
+                            active = playback?.mediaId == track.uriString,
+                            playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
+                            onClick = { onPlayTrack(track) },
+                            onPause = onPause,
+                            onPlayNext = { onPlayNext(track) },
+                            onEnqueue = { onEnqueue(track) },
+                        )
+                    }
+                }
                 item(key = "home-added") {
                     Spacer(Modifier.height(12.dp))
                     Text("Last added", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)

@@ -36,8 +36,10 @@ import com.graviton.core.common.extensions.getMediaContentUri
 import com.graviton.core.data.stream.StreamExtractor
 import com.graviton.core.model.ExtractedStream
 import com.graviton.core.model.StreamUrls
+import com.graviton.core.model.VideoPlayerBackend
 import com.graviton.core.ui.theme.GravitonTheme
 import com.graviton.core.common.service.registerForSuspendActivityResult
+import com.graviton.feature.player.backend.MpvPlayerActivity
 import com.graviton.feature.player.extensions.OpenDocumentAtInitialUri
 import com.graviton.feature.player.extensions.setExtras
 import com.graviton.feature.player.extensions.uriToSubtitleConfiguration
@@ -99,6 +101,18 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val selectedBackend = viewModel.uiState.value.playerPreferences?.videoPlayerBackend
+            ?: VideoPlayerBackend.GRAVITON
+        if (selectedBackend != VideoPlayerBackend.GRAVITON && intent.data != null) {
+            startActivity(
+                Intent(intent).apply {
+                    setClass(this@PlayerActivity, MpvPlayerActivity::class.java)
+                    putExtra(MpvPlayerActivity.EXTRA_BACKEND, selectedBackend.name)
+                },
+            )
+            finish()
+            return
+        }
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),

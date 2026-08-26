@@ -55,6 +55,8 @@ data class MusicUiState(
     val section: MusicSection = MusicSection.HOME,
     val recentlyPlayed: List<AudioTrack> = emptyList(),
     val recentlyAdded: List<AudioTrack> = emptyList(),
+    val mostPlayed: List<AudioTrack> = emptyList(),
+    val favorites: List<AudioTrack> = emptyList(),
     val query: String = "",
     val sort: MusicSort = MusicSort.TITLE,
     val ascending: Boolean = true,
@@ -111,6 +113,7 @@ class MusicViewModel @Inject constructor(
                     tracks.firstOrNull { it.uriString == uri }
                 }
                 stateInternal.update { it.copy(recentlyPlayed = recent) }
+                recomputeVisibleTracks()
             }
         }
     }
@@ -230,11 +233,21 @@ class MusicViewModel @Inject constructor(
         val recentPlayed = preferencesRepository.applicationPreferences.value.musicRecentlyPlayedUris.mapNotNull { uri ->
             current.allTracks.firstOrNull { it.uriString == uri }
         }
+        val preferences = preferencesRepository.applicationPreferences.value
+        val mostPlayed = current.allTracks
+            .filter { (preferences.musicPlayCounts[it.uriString] ?: 0) > 0 }
+            .sortedByDescending { preferences.musicPlayCounts[it.uriString] ?: 0 }
+            .take(12)
+        val favorites = preferences.musicFavorites.mapNotNull { uri ->
+            current.allTracks.firstOrNull { it.uriString == uri }
+        }
         stateInternal.update {
             it.copy(
                 tracks = if (current.ascending) sorted else sorted.asReversed(),
                 recentlyAdded = recentAdded,
                 recentlyPlayed = recentPlayed,
+                mostPlayed = mostPlayed,
+                favorites = favorites,
             )
         }
     }

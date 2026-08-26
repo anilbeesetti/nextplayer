@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlayerPreferences(
+    val videoPlayerBackend: VideoPlayerBackend = VideoPlayerBackend.GRAVITON,
     val resume: Resume = Resume.YES,
     val rememberPlayerBrightness: Boolean = false,
     val playerBrightness: Float = 0.5f,

@@ -43,6 +43,7 @@ smbj = "0.14.0"
 commonsNet = "3.13.0"
 sardineAndroid = "0.9"
 nanohttpd = "2.3.1"
+mpvRexLib = "v0.0.9"
 
 
 [libraries]
@@ -108,6 +109,7 @@ bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", v
 commons-net = { group = "commons-net", name = "commons-net", version.ref = "commonsNet" }
 sardine-android = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardineAndroid" }
 nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanohttpd" }
+mpv-rex-lib = { group = "com.github.sfsakhawat999", name = "mpvRex-libmpv", version.ref = "mpvRexLib" }
 
 [plugins]
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
