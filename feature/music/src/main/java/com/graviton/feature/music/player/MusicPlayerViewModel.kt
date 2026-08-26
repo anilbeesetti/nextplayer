@@ -9,8 +9,6 @@ import com.graviton.feature.music.lyrics.LyricsDocument
 import com.graviton.feature.music.lyrics.LyricsParser
 import com.graviton.feature.music.lyrics.LyricsRepository
 import javax.inject.Inject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -24,10 +22,6 @@ class MusicPlayerViewModel @Inject constructor(
     private val lyricsInternal = MutableStateFlow(LyricsParser.parse(null))
     val lyrics = lyricsInternal.asStateFlow()
     val preferences = preferencesRepository.applicationPreferences
-
-    private val remainingInternal = MutableStateFlow(0L)
-    val remainingSleepMs = remainingInternal.asStateFlow()
-    private var sleepJob: Job? = null
 
     fun loadLyrics(uriString: String?, title: String?) {
         viewModelScope.launch {
@@ -52,22 +46,4 @@ class MusicPlayerViewModel @Inject constructor(
         }
     }
 
-    fun startSleepTimer(minutes: Int) {
-        sleepJob?.cancel()
-        val total = minutes.coerceAtLeast(1) * 60_000L
-        remainingInternal.value = total
-        sleepJob = viewModelScope.launch {
-            var left = total
-            while (left > 0) {
-                delay(250)
-                left = (left - 250).coerceAtLeast(0)
-                remainingInternal.value = left
-            }
-        }
-    }
-
-    fun cancelSleepTimer() {
-        sleepJob?.cancel()
-        remainingInternal.value = 0L
-    }
 }

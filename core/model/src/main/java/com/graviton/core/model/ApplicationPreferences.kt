@@ -24,6 +24,10 @@ data class ApplicationPreferences(
     // Music library playback history (Booming-style resume / recently played)
     val musicRecentlyPlayedUris: List<String> = emptyList(),
     val musicFolderLastUri: Map<String, String> = emptyMap(),
+    val musicPlayCounts: Map<String, Int> = emptyMap(),
+    val musicLastPlayedAt: Map<String, Long> = emptyMap(),
+    val musicListeningTimeMs: Map<String, Long> = emptyMap(),
+    val musicFavorites: List<String> = emptyList(),
     val musicShowLyrics: Boolean = true,
     val musicRememberShuffle: Boolean = true,
 

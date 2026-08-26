@@ -736,6 +736,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".backend.MpvPlayerActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
         <service
             android:name=".service.PlayerService"
             android:exported="true"

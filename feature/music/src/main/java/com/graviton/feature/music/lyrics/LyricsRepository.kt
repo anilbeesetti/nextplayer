@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -60,6 +61,17 @@ class LyricsRepository @Inject constructor(
             return@withContext LyricsParser.parse(best.rawLyrics).copy(source = kind.name)
         }
         LyricsDocument(emptyList(), null)
+    }
+
+    suspend fun search(request: LyricsRequest): List<LyricsCandidate> = withContext(Dispatchers.IO) {
+        val remote = providers[LyricsSourceKind.LRCLIB] ?: return@withContext emptyList()
+        runCatching { remote.search(request) }.getOrDefault(emptyList())
+            .filter { isSafeMatch(request, it) || it.title.contains(request.title, ignoreCase = true) }
+    }
+
+    suspend fun select(request: LyricsRequest, candidate: LyricsCandidate): LyricsDocument = withContext(Dispatchers.IO) {
+        writeCache(request, candidate.rawLyrics)
+        LyricsParser.parse(candidate.rawLyrics).copy(source = candidate.provider.name)
     }
 
     suspend fun replace(request: LyricsRequest, raw: String): LyricsDocument = withContext(Dispatchers.IO) {
@@ -161,6 +173,41 @@ private class LrcLibLyricsProvider : LyricsProvider {
                     rawLyrics = raw,
                 ),
             )
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    override suspend fun search(request: LyricsRequest): List<LyricsCandidate> {
+        if (request.title.isBlank()) return emptyList()
+        val query = buildList {
+            add("track_name=${request.title.urlEncode()}")
+            if (request.artist.isNotBlank()) add("artist_name=${request.artist.urlEncode()}")
+        }.joinToString("&")
+        val connection = URL("https://lrclib.net/api/search?$query").openConnection() as HttpURLConnection
+        return try {
+            connection.connectTimeout = 5_000
+            connection.readTimeout = 7_000
+            connection.setRequestProperty("User-Agent", "Graviton/lyrics")
+            if (connection.responseCode !in 200..299) return emptyList()
+            val array = connection.inputStream.bufferedReader().use { json.parseToJsonElement(it.readText()).jsonArray }
+            array.mapNotNull { element ->
+                val value = element.jsonObject
+                val raw = value["syncedLyrics"]?.jsonPrimitive?.contentOrNull
+                    ?.takeIf(String::isNotBlank)
+                    ?: value["plainLyrics"]?.jsonPrimitive?.contentOrNull?.takeIf(String::isNotBlank)
+                    ?: return@mapNotNull null
+                LyricsCandidate(
+                    id = value["id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    provider = kind,
+                    title = value["trackName"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    artist = value["artistName"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    album = value["albumName"]?.jsonPrimitive?.contentOrNull,
+                    durationMs = value["duration"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull()?.times(1000)?.toLong(),
+                    rawLyrics = raw,
+                    confidence = 0.8f,
+                )
+            }
         } finally {
             connection.disconnect()
         }

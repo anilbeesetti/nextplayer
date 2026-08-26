@@ -93,6 +93,9 @@ class PlayerService : MediaSessionService() {
     private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var mediaSession: MediaSession? = null
     private var artworkLoadJob: Job? = null
+    private var sleepTimerJob: Job? = null
+    private var sleepTimerDeadlineMs: Long = 0L
+    private var sleepTimerOriginalVolume: Float = 1f
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
@@ -113,6 +116,9 @@ class PlayerService : MediaSessionService() {
 
     private var isMediaItemReady = false
     private var currentQueueIsMusic = false
+    private var lastCountedMusicId: String? = null
+    private var listeningStartedAtMs: Long = 0L
+    private var listeningMediaId: String? = null
     private val knownDurations = mutableMapOf<String, Long>()
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
@@ -142,6 +148,8 @@ class PlayerService : MediaSessionService() {
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
+            flushListeningTime()
+            if (mediaSession?.player?.isPlaying == true) beginListening(mediaItem?.mediaId)
             persistMusicQueue()
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) return
             isMediaItemReady = false
@@ -288,17 +296,24 @@ class PlayerService : MediaSessionService() {
                             lastPlayedTime = System.currentTimeMillis(),
                         )
                         val audio = musicRepository.getTrack(mediaId)
-                        if (audio != null) {
+                        if (audio != null && lastCountedMusicId != mediaId) {
+                            lastCountedMusicId = mediaId
                             preferencesRepository.updateApplicationPreferences { prefs ->
                                 prefs.recordMusicPlay(
                                     uri = mediaId,
                                     folderPath = audio.path.substringBeforeLast('/', ""),
+                                    countPlay = true,
                                 )
                             }
                         }
                     }
                 }
             }
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            super.onIsPlayingChanged(isPlaying)
+            if (isPlaying) beginListening(mediaSession?.player?.currentMediaItem?.mediaId) else flushListeningTime()
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -348,13 +363,19 @@ class PlayerService : MediaSessionService() {
 
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
             super.onAudioSessionIdChanged(audioSessionId)
-            if (!playerPreferences.enableVolumeBoost) return
+            val musicPreferences = preferencesRepository.applicationPreferences.value
+            if (!playerPreferences.enableVolumeBoost && !musicPreferences.musicReplayGainEnabled) return
             if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) return
             try {
                 loudnessEnhancer?.release()
                 loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-                if (currentVolumeGain > 0) {
-                    setEnhancerTargetGain(currentVolumeGain)
+                val replayGain = if (musicPreferences.musicReplayGainEnabled) {
+                    (musicPreferences.musicReplayGainPreampDb * 100f).toInt().coerceAtLeast(0)
+                } else {
+                    0
+                }
+                if (currentVolumeGain > 0 || replayGain > 0) {
+                    setEnhancerTargetGain(maxOf(currentVolumeGain, replayGain))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -393,6 +414,31 @@ class PlayerService : MediaSessionService() {
         }
     }
 
+    private fun beginListening(mediaId: String?) {
+        if (mediaId.isNullOrBlank() || listeningStartedAtMs != 0L) return
+        listeningMediaId = mediaId
+        listeningStartedAtMs = android.os.SystemClock.elapsedRealtime()
+    }
+
+    private fun flushListeningTime() {
+        val mediaId = listeningMediaId
+        val startedAt = listeningStartedAtMs
+        listeningMediaId = null
+        listeningStartedAtMs = 0L
+        if (mediaId == null || startedAt == 0L) return
+        val elapsed = (android.os.SystemClock.elapsedRealtime() - startedAt).coerceAtLeast(0L)
+        if (elapsed < 1_000L) return
+        serviceScope.launch {
+            if (musicRepository.getTrack(mediaId) == null) return@launch
+            preferencesRepository.updateApplicationPreferences { preferences ->
+                preferences.copy(
+                    musicListeningTimeMs = preferences.musicListeningTimeMs +
+                        (mediaId to ((preferences.musicListeningTimeMs[mediaId] ?: 0L) + elapsed)),
+                )
+            }
+        }
+    }
+
     private fun persistMusicQueue() {
         val player = mediaSession?.player ?: return
         val current = player.currentMediaItem
@@ -418,6 +464,43 @@ class PlayerService : MediaSessionService() {
                 it.copy(musicQueueUris = uris, musicQueueIndex = index, musicQueuePositionMs = position)
             }
         }
+    }
+
+    private fun startSleepTimer(durationMs: Long, fadeMs: Long, endOfTrack: Boolean) {
+        sleepTimerJob?.cancel()
+        val player = mediaSession?.player ?: return
+        val actualDuration = if (endOfTrack) {
+            (player.duration - player.currentPosition).takeIf { it > 0 } ?: return
+        } else {
+            durationMs.takeIf { it > 0 } ?: return
+        }
+        sleepTimerDeadlineMs = android.os.SystemClock.elapsedRealtime() + actualDuration
+        sleepTimerOriginalVolume = player.volume
+        sleepTimerJob = serviceScope.launch {
+            val fadeDuration = fadeMs.coerceIn(0L, actualDuration)
+            val waitBeforeFade = actualDuration - fadeDuration
+            if (waitBeforeFade > 0) kotlinx.coroutines.delay(waitBeforeFade)
+            val originalVolume = player.volume
+            if (fadeDuration > 0) {
+                val steps = 20
+                val stepDelay = (fadeDuration / steps).coerceAtLeast(25L)
+                repeat(steps) { step ->
+                    player.volume = originalVolume * (1f - (step + 1f) / steps)
+                    kotlinx.coroutines.delay(stepDelay)
+                }
+            }
+            player.pause()
+            player.volume = originalVolume
+            sleepTimerDeadlineMs = 0L
+            sleepTimerJob = null
+        }
+    }
+
+    private fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        sleepTimerDeadlineMs = 0L
+        mediaSession?.player?.volume = sleepTimerOriginalVolume
     }
 
     private fun setEnhancerTargetGain(gain: Int) {
@@ -619,6 +702,28 @@ class PlayerService : MediaSessionService() {
                         },
                     )
                 }
+
+                CustomCommands.START_SLEEP_TIMER -> {
+                    startSleepTimer(
+                        durationMs = args.getLong(CustomCommands.SLEEP_DURATION_MS_KEY),
+                        fadeMs = args.getLong(CustomCommands.SLEEP_FADE_MS_KEY),
+                        endOfTrack = args.getBoolean(CustomCommands.SLEEP_END_OF_TRACK_KEY),
+                    )
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.CANCEL_SLEEP_TIMER -> {
+                    cancelSleepTimer()
+                    return@future SessionResult(SessionResult.RESULT_SUCCESS)
+                }
+
+                CustomCommands.GET_SLEEP_TIMER -> {
+                    val remaining = (sleepTimerDeadlineMs - android.os.SystemClock.elapsedRealtime()).coerceAtLeast(0L)
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply { putLong(CustomCommands.SLEEP_REMAINING_MS_KEY, remaining) },
+                    )
+                }
             }
         }
     }
@@ -722,7 +827,9 @@ class PlayerService : MediaSessionService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        flushListeningTime()
         artworkLoadJob?.cancel()
+        sleepTimerJob?.cancel()
         loudnessEnhancer?.release()
         loudnessEnhancer = null
         mediaSession?.run {

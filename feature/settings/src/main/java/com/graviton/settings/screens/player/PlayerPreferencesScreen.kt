@@ -31,6 +31,7 @@ import com.graviton.core.model.ControlButtonsPosition
 import com.graviton.core.model.PlayerPreferences
 import com.graviton.core.model.Resume
 import com.graviton.core.model.ScreenOrientation
+import com.graviton.core.model.VideoPlayerBackend
 import com.graviton.core.ui.R
 import com.graviton.core.ui.components.ClickablePreferenceItem
 import com.graviton.core.ui.components.ListSectionTitle
@@ -90,6 +91,16 @@ private fun PlayerPreferencesContent(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
+            ListSectionTitle(text = "Video player")
+            ClickablePreferenceItem(
+                title = "Player backend",
+                description = uiState.preferences.videoPlayerBackend.displayName(),
+                icon = NextIcons.Player,
+                onClick = { onEvent(PlayerPreferencesUiEvent.ShowDialog(PlayerPreferenceDialog.VideoBackendDialog)) },
+                isFirstItem = true,
+                isLastItem = true,
+            )
+
             ListSectionTitle(text = stringResource(id = R.string.interface_name))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
@@ -209,6 +220,23 @@ private fun PlayerPreferencesContent(
 
         uiState.showDialog?.let { showDialog ->
             when (showDialog) {
+                PlayerPreferenceDialog.VideoBackendDialog -> {
+                    OptionsDialog(
+                        text = "Video player backend",
+                        onDismissClick = { onEvent(PlayerPreferencesUiEvent.ShowDialog(null)) },
+                    ) {
+                        items(VideoPlayerBackend.entries.toTypedArray()) { backend ->
+                            RadioTextButton(
+                                text = backend.displayName(),
+                                selected = backend == uiState.preferences.videoPlayerBackend,
+                                onClick = {
+                                    onEvent(PlayerPreferencesUiEvent.UpdateVideoBackend(backend))
+                                    onEvent(PlayerPreferencesUiEvent.ShowDialog(null))
+                                },
+                            )
+                        }
+                    }
+                }
                 PlayerPreferenceDialog.ResumeDialog -> {
                     OptionsDialog(
                         text = stringResource(id = R.string.resume),
@@ -265,6 +293,12 @@ private fun PlayerPreferencesContent(
             }
         }
     }
+}
+
+private fun VideoPlayerBackend.displayName(): String = when (this) {
+    VideoPlayerBackend.MPV_RX -> "MPV-RX"
+    VideoPlayerBackend.MPV_REX -> "MPV-REX"
+    VideoPlayerBackend.GRAVITON -> "Graviton Player"
 }
 
 @DayNightPreview

@@ -21,6 +21,9 @@ enum class CustomCommands(val customAction: String) {
     SET_LOUDNESS_GAIN(customAction = "SET_LOUDNESS_GAIN"),
     GET_LOUDNESS_GAIN(customAction = "GET_LOUDNESS_GAIN"),
     GET_AUDIO_SESSION_ID(customAction = "GET_AUDIO_SESSION_ID"),
+    START_SLEEP_TIMER(customAction = "START_SLEEP_TIMER"),
+    CANCEL_SLEEP_TIMER(customAction = "CANCEL_SLEEP_TIMER"),
+    GET_SLEEP_TIMER(customAction = "GET_SLEEP_TIMER"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
@@ -42,6 +45,10 @@ enum class CustomCommands(val customAction: String) {
         const val LOUDNESS_GAIN_KEY = "loudness_gain"
         const val IS_LOUDNESS_GAIN_SUPPORTED_KEY = "is_loudness_gain_supported"
         const val AUDIO_SESSION_ID_KEY = "audio_session_id"
+        const val SLEEP_DURATION_MS_KEY = "sleep_duration_ms"
+        const val SLEEP_FADE_MS_KEY = "sleep_fade_ms"
+        const val SLEEP_END_OF_TRACK_KEY = "sleep_end_of_track"
+        const val SLEEP_REMAINING_MS_KEY = "sleep_remaining_ms"
     }
 }
 
@@ -119,4 +126,26 @@ suspend fun MediaController.getIsLoudnessGainSupported(): Boolean {
 suspend fun MediaController.getAudioSessionId(): Int {
     val result = sendCustomCommand(CustomCommands.GET_AUDIO_SESSION_ID.sessionCommand, Bundle.EMPTY)
     return result.await().extras.getInt(CustomCommands.AUDIO_SESSION_ID_KEY, C.AUDIO_SESSION_ID_UNSET)
+}
+
+suspend fun MediaController.startSleepTimer(
+    durationMs: Long,
+    fadeMs: Long = 0L,
+    endOfTrack: Boolean = false,
+) {
+    val args = Bundle().apply {
+        putLong(CustomCommands.SLEEP_DURATION_MS_KEY, durationMs.coerceAtLeast(0L))
+        putLong(CustomCommands.SLEEP_FADE_MS_KEY, fadeMs.coerceAtLeast(0L))
+        putBoolean(CustomCommands.SLEEP_END_OF_TRACK_KEY, endOfTrack)
+    }
+    sendCustomCommand(CustomCommands.START_SLEEP_TIMER.sessionCommand, args).await()
+}
+
+suspend fun MediaController.cancelSleepTimer() {
+    sendCustomCommand(CustomCommands.CANCEL_SLEEP_TIMER.sessionCommand, Bundle.EMPTY).await()
+}
+
+suspend fun MediaController.getSleepTimerRemainingMs(): Long {
+    val result = sendCustomCommand(CustomCommands.GET_SLEEP_TIMER.sessionCommand, Bundle.EMPTY).await()
+    return result.extras.getLong(CustomCommands.SLEEP_REMAINING_MS_KEY, 0L)
 }

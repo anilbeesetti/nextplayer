@@ -26,4 +26,5 @@ data class LyricsCandidate(
 interface LyricsProvider {
     val kind: LyricsSourceKind
     suspend fun find(request: LyricsRequest): List<LyricsCandidate>
+    suspend fun search(request: LyricsRequest): List<LyricsCandidate> = find(request)
 }

@@ -88,6 +88,8 @@ class MusicPlaybackSnapshot(private val player: Player) {
         private set
     var durationMs: Long by mutableLongStateOf(0L)
         private set
+    var audioFormat: androidx.media3.common.Format? by mutableStateOf(null)
+        private set
 
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -120,6 +122,10 @@ class MusicPlaybackSnapshot(private val player: Player) {
         isPlaying = player.isPlaying
         positionMs = player.currentPosition.coerceAtLeast(0L)
         durationMs = player.duration.coerceAtLeast(0L)
+        audioFormat = player.currentTracks.groups
+            .firstOrNull { it.type == androidx.media3.common.C.TRACK_TYPE_AUDIO && it.isSelected }
+            ?.mediaTrackGroup
+            ?.getFormat(0)
     }
 
     fun release() {
