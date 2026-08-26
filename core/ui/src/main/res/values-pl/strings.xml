@@ -431,7 +431,7 @@
     <string name="name_required">Wpisz nazwę listy odtwarzania.</string>
     <string name="saving_playlist">Zapisywanie listy odtwarzania…</string>
     <string name="no_playlists_title">Brak list odtwarzania</string>
-    <string name="no_playlists_description">Utwórz listę odtwarzania, a następnie wybierz lokalne wideo z ekranu głównego, aby je dodać.</string>
+    <string name="no_playlists_description">Utwórz lokalną listę odtwarzania lub dodaj źródło M3U, aby rozpocząć obserwowanie.</string>
     <string name="local_playlist">Lokalna</string>
     <string name="delete_playlist">Usuń listę odtwarzania</string>
     <string name="delete_playlist_confirmation">Czy chcesz usunąć „%1$s” wraz z zachowaną kolejnością?</string>
@@ -471,4 +471,19 @@
         <item quantity="many">%d wideo</item>
         <item quantity="other">%d wideo</item>
     </plurals>
+    <string name="choose_playlist_type">Utwórz listę odtwarzania</string>
+    <string name="create_local_playlist">Utwórz lokalną listę odtwarzania</string>
+    <string name="add_m3u_url_playlist">Dodaj listę odtwarzania M3U z adresu URL</string>
+    <string name="add_m3u_file_playlist">Dodaj listę odtwarzania M3U z pliku</string>
+    <string name="playlist_url">M3U URL</string>
+    <string name="url_required">Wprowadź adres URL dla M3U.</string>
+    <string name="invalid_url">Wprowadź poprawny adres URL w formacie HTTP lub HTTPS.</string>
+    <string name="m3u_url_playlist">M3U URL</string>
+    <string name="m3u_file_playlist">Plik M3U</string>
+    <string name="m3u_file_permission_failed">Nie udało się zachować dostępu do tego pliku. Wybierz go ponownie lub użyj innego pliku.</string>
+    <string name="refresh_playlist">Odśwież listę odtwarzania</string>
+    <string name="refreshing_playlist">Odświeżanie listy odtwarzania</string>
+    <string name="playlist_refresh_succeeded">Lista odtwarzania została odświeżona.</string>
+    <string name="playlist_refresh_failed">Nie udało się odświeżyć listy odtwarzania. Zapisane pozycje pozostały bez zmian.</string>
+    <string name="last_refreshed">Ostatnio odświeżono %1$s</string>
 </resources>
