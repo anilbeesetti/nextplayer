@@ -10,6 +10,16 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+
+        // Official Maven repository used by mpvRex to publish the mpvRex-libmpv native AAR.
+        // The artifact is published as com.github.sfsakhawat999:mpvRex-libmpv:v0.0.9.
+        maven {
+            url = uri("https://sfsakhawat999.github.io/mpvRex-libmpv")
+            content {
+                includeGroup("com.github.sfsakhawat999")
+            }
+        }
+
         maven { url = uri("https://jitpack.io") }
     }
 }
