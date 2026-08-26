@@ -33,7 +33,7 @@ import androidx.media3.session.SessionResult
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.ListenableFuture
-import dagger.hilt.android.AndroidEntryPoint
+aimport dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getLocalSubtitles
@@ -65,6 +65,9 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
+import io.github.peerless2012.ass.media.kt.withAssMkvSupport
+import io.github.peerless2012.ass.media.kt.withAssSupport
+import io.github.peerless2012.ass.media.type.AssRenderType
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -440,7 +443,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY)
-                    mediaSession?.player?.setIsScrubbingModeEnabled(enabled)
+                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
@@ -544,7 +547,21 @@ class PlayerService : MediaSessionService() {
         }
 
         val player = ExoPlayer.Builder(applicationContext)
-            .setRenderersFactory(renderersFactory)
+            .setMediaSourceFactory(
+                androidx.media3.exoplayer.source.DefaultMediaSourceFactory(
+                    applicationContext,
+                    androidx.media3.exoplayer.DefaultRenderersFactory(applicationContext).let { _ ->
+                        androidx.media3.extractor.DefaultExtractorsFactory().withAssMkvSupport()
+                    },
+                ),
+            )
+            .setRenderersFactory(
+                renderersFactory.withAssSupport(
+                    io.github.peerless2012.ass.media.AssHandler(
+                        AssRenderType.CUES,
+                    ),
+                ),
+            )
             .setTrackSelector(trackSelector)
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -658,7 +675,6 @@ class PlayerService : MediaSessionService() {
                     )
                 }
 
-                // Use placeholder artwork initially - actual artwork will be loaded in background
                 val artworkUri = getDefaultArtworkUri()
 
                 val title = mediaItem.mediaMetadata.title ?: video?.nameWithExtension ?: getFilenameFromUri(uri)
@@ -720,6 +736,7 @@ class PlayerService : MediaSessionService() {
             )
         }
     }
+
     private suspend fun loadArtworkForMediaItem(mediaItem: MediaItem): Uri? = withContext(Dispatchers.IO) {
         val defaultArtwork = getDefaultArtworkUri()
         val uri = mediaItem.mediaMetadata.artworkUri
