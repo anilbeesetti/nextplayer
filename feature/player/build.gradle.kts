@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.media3.session)
     implementation(libs.github.anilbeesetti.nextlib.media3ext)
     implementation(libs.github.anilbeesetti.nextlib.mediainfo)
+    implementation(libs.ass.media)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.guava)
