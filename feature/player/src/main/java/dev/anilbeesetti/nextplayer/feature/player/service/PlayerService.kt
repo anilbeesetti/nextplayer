@@ -33,7 +33,7 @@ import androidx.media3.session.SessionResult
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.google.common.util.concurrent.ListenableFuture
-aimport dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import dev.anilbeesetti.nextplayer.core.common.extensions.deleteFiles
 import dev.anilbeesetti.nextplayer.core.common.extensions.getFilenameFromUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getLocalSubtitles
@@ -65,6 +65,7 @@ import dev.anilbeesetti.nextplayer.feature.player.extensions.videoZoom
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
+import io.github.peerless2012.ass.media.AssHandler
 import io.github.peerless2012.ass.media.kt.withAssMkvSupport
 import io.github.peerless2012.ass.media.kt.withAssSupport
 import io.github.peerless2012.ass.media.type.AssRenderType
@@ -280,10 +281,9 @@ class PlayerService : MediaSessionService() {
             super.onRenderedFirstFrame()
             val player = mediaSession?.player ?: return
             val currentMediaItem = player.currentMediaItem ?: return
-            // Update the media metadata duration so that it will be used later in position discontinuity handling
             player.replaceMediaItem(
                 player.currentMediaItemIndex,
-                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0))
+                currentMediaItem.copy(durationMs = player.duration.coerceAtLeast(0)),
             )
         }
 
@@ -415,6 +415,10 @@ class PlayerService : MediaSessionService() {
                         )
                         mediaRepository.addExternalSubtitleToMedium(
                             uri = currentMediaItem.mediaId,
+                            subtitleTrackIndex = textTracks.size,
+                        )
+                        mediaRepository.addExternalSubtitleToMedium(
+                            uri = currentMediaItem.mediaId,
                             subtitleUri = subtitleUri,
                         )
                         player.addAdditionalSubtitleConfiguration(newSubConfiguration)
@@ -443,7 +447,7 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_IS_SCRUBBING_MODE_ENABLED -> {
                     val enabled = args.getBoolean(CustomCommands.IS_SCRUBBING_MODE_ENABLED_KEY)
-                    mediaSession?.player?.playerSpecificSkipSilenceEnabled = enabled
+                    mediaSession?.player?.setIsScrubbingModeEnabled(enabled)
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }
 
@@ -528,7 +532,7 @@ class PlayerService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        val renderersFactory = NextRenderersFactory(applicationContext)
+        val baseRenderersFactory = NextRenderersFactory(applicationContext)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(
                 when (playerPreferences.decoderPriority) {
@@ -537,6 +541,16 @@ class PlayerService : MediaSessionService() {
                     DecoderPriority.PREFER_APP -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
                 },
             )
+        val assHandler = AssHandler(AssRenderType.CUES)
+        val renderersFactory = baseRenderersFactory.withAssSupport(assHandler)
+        val extractorsFactory = androidx.media3.extractor.DefaultExtractorsFactory()
+        val mediaSourceFactory = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(
+            applicationContext,
+            extractorsFactory.withAssMkvSupport(
+                io.github.peerless2012.ass.media.parser.AssSubtitleParserFactory(assHandler),
+                assHandler,
+            ),
+        )
 
         val trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(
@@ -547,21 +561,8 @@ class PlayerService : MediaSessionService() {
         }
 
         val player = ExoPlayer.Builder(applicationContext)
-            .setMediaSourceFactory(
-                androidx.media3.exoplayer.source.DefaultMediaSourceFactory(
-                    applicationContext,
-                    androidx.media3.exoplayer.DefaultRenderersFactory(applicationContext).let { _ ->
-                        androidx.media3.extractor.DefaultExtractorsFactory().withAssMkvSupport()
-                    },
-                ),
-            )
-            .setRenderersFactory(
-                renderersFactory.withAssSupport(
-                    io.github.peerless2012.ass.media.AssHandler(
-                        AssRenderType.CUES,
-                    ),
-                ),
-            )
+            .setMediaSourceFactory(mediaSourceFactory)
+            .setRenderersFactory(renderersFactory)
             .setTrackSelector(trackSelector)
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -573,6 +574,7 @@ class PlayerService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(playerPreferences.pauseOnHeadsetDisconnect)
             .build()
             .also {
+                assHandler.init(it)
                 it.addListener(playbackStateListener)
                 it.pauseAtEndOfMediaItems = !playerPreferences.autoplay
                 it.repeatMode = when (playerPreferences.loopMode) {
