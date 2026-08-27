@@ -1,86 +1,124 @@
 # Runtime decoder switching
 
-The player exposes three decoder modes:
+NextPlayer uses nextlib to change video and audio decoders without replacing the active
+`ExoPlayer`. NextPlayer owns the player controls, MediaSession commands, fallback policy, dialogs,
+and analytics logs. Nextlib only creates the renderers and switches which decoder category is
+eligible.
 
-| Mode | Video renderer | Audio renderer |
+## Decoder modes
+
+Video and audio use the same nextlib `DecoderMode`, but each track type has an independent selected
+mode.
+
+| Mode | Player label | Eligible decoder |
 | --- | --- | --- |
-| HW+ | `MediaCodecVideoRenderer`, using hardware and Android system software codecs | `MediaCodecAudioRenderer` |
-| HW | `MediaCodecVideoRenderer`, using hardware-accelerated codecs | `MediaCodecAudioRenderer` |
-| SW | `FfmpegVideoRenderer` | `FfmpegAudioRenderer` |
+| `null` | Automatic, internal only | Hardware MediaCodec, then system software MediaCodec, then bundled FFmpeg |
+| `HARDWARE` | HW | MediaCodec decoders reported as hardware accelerated |
+| `SOFTWARE` | SW+ | MediaCodec decoders reported as software-only |
+| `APP_SOFTWARE` | SW | The FFmpeg renderer bundled with nextlib |
 
-Video and audio follow the selected mode. The **HW+ audio on SW video** setting changes only SW
-mode: FFmpeg audio stays first, while `MediaCodecAudioRenderer` is kept second as a fallback when
-FFmpeg does not support the audio format.
+Both tracks start in automatic mode for every new media item. The decoder selector exposes only the
+three explicit modes. While a track remains automatic, the controls show the decoder category that
+Media3 actually initialized. Choosing a row changes that track from automatic selection to an
+explicit mode. Modes are session state and are not stored in preferences.
 
-## Request flow
+## Player setup
 
-1. `ControlsTopView` displays the current mode and opens `DecoderSelectorView`.
-2. `DecoderState` sends `SET_DECODER_MODE` through the activity's `MediaController`.
-3. `PlayerService` validates the command and delegates it to `DecoderSwitcher`.
-4. `DecoderSwitcher` updates renderer capabilities and `DefaultTrackSelector` parameters.
-5. Media3 remaps video and audio tracks to the enabled system or FFmpeg renderers.
-6. `DecoderState` updates the UI after the service reports success.
+`PlayerService` creates all three objects and attaches them after building the player:
 
-The decoder mode is not written to DataStore. The audio fallback setting is read when the player
-service is created.
+```kotlin
+val decoderManager = DecoderManager()
+val renderersFactory = NextRenderersFactory(applicationContext).apply {
+    setDecoderManager(decoderManager)
+}
+val trackSelector = DefaultTrackSelector(applicationContext)
 
-## Decoder recovery
+val player = ExoPlayer.Builder(applicationContext)
+    .setRenderersFactory(renderersFactory)
+    .setTrackSelector(trackSelector)
+    .build()
 
-Each new media item starts in HW+ mode. `DecoderRecoveryManager` distinguishes the initial automatic
-selection from a mode explicitly selected in the player controls:
+decoderManager.attach(player, trackSelector)
+```
 
-1. If the default HW+ decoder reports an error or no video renderer supports the track, the service
-   silently retries with SW.
-2. If an explicitly selected HW+, HW, or SW mode fails, the player shows that the selected mode is
-   unsupported and waits for confirmation.
-3. Pressing **OK** retries with SW after an HW+/HW failure, or HW+ after an SW failure.
-4. If the fallback also fails, recovery stops and the existing player error dialog is shown.
+The manager must be set on the factory before the player is built. `PlayerService.onDestroy`
+detaches the manager before releasing the player.
 
-Decoder-error retries call `prepare()` after changing renderer capabilities. Unsupported tracks are
-remapped directly through the track selector. Both paths retain the playlist, playback position,
-and `playWhenReady` value on the existing `ExoPlayer`; no player instance is recreated. The recovery
-state is exposed through media-session commands so the UI can suppress the generic error during a
-silent retry and show the unsupported-mode dialog only for explicit selections.
-`decoderAnalyticsListener` clears recovery when a video decoder initializes and logs the actual
-video/audio decoders used by each mode.
+## Selection flow
 
-## Why both capabilities and disabled renderers change
+The decoder overlay uses a segmented Video/Audio control and shows one decoder group at a time. Each
+group contains HW, SW+, and SW options. Selecting a row keeps the overlay open and changes only the
+visible track type:
 
-Media3 maps each track group to a renderer before applying renderer-disabled flags. Disabling a
-renderer alone can therefore leave a video track mapped to a renderer that cannot be selected.
-`ModeAwareRenderer` makes inactive renderers report the format as unsupported, while the track
-selector flags provide a second explicit guard. Updating the track selector parameters triggers a
-fresh mapping pass without creating another `ExoPlayer`.
+1. `DecoderState` sends `SET_VIDEO_DECODER_MODE` or `SET_AUDIO_DECODER_MODE`.
+2. `PlayerService` records that selection for app-owned recovery.
+3. `PlayerService` calls `DecoderManager.selectVideoDecoder` or `selectAudioDecoder`.
+4. nextlib updates renderer capabilities, codec filtering, and track selection.
+5. nextlib's analytics listener updates `DecoderManager.videoMode` or `audioMode` with the decoder
+   category that was initialized.
+6. NextPlayer's `decoderAnalyticsListener` logs the requested mode, active mode, and decoder name.
+7. `DecoderState` reads `GET_DECODER_STATE` and displays the active category in each decoder group.
 
-FFmpeg extension renderers are ordered before system renderers. In SW mode, when both audio
-renderers are enabled, `FfmpegAudioRenderer` is therefore selected first and
-`MediaCodecAudioRenderer` remains available for unsupported formats. In HW and HW+ modes, FFmpeg
-audio is disabled and system audio is selected directly.
+Switching keeps the player instance, playlist, position, and `playWhenReady`. A change between
+MediaCodec categories (automatic, `HARDWARE`, and `SOFTWARE`) may stop and prepare the same player
+so an already-created codec is released. Moving between MediaCodec and `APP_SOFTWARE` normally
+remaps the track to a different renderer.
 
-`ModeAwareRenderer` extends Media3's `ForwardingRenderer`. This is important because every renderer
-lifecycle and timing method, including Java interface default methods, must reach the actual
-MediaCodec or FFmpeg renderer.
+There is no special SW-audio fallback preference. Video and audio remain independent, so selecting
+SW video does not change an audio track that is still using automatic selection.
 
-## HW+ to HW
+## Recovery ownership
 
-HW+ may already be using an Android system software codec through `MediaCodec`. Moving to HW must
-release that codec and query the filtered hardware-only list again. The switcher calls `stop()` and
-`prepare()` on the same `ExoPlayer`; Media3 retains the playlist and playback position. Other mode
-changes only require track reselection.
+nextlib does not listen for playback errors and has no fallback policy. `DecoderRecoveryManager` in
+NextPlayer tracks video and audio attempts independently.
 
-During this reset, `PlayerService` suppresses its normal idle-state parameter reset so preferred
-tracks and renderer flags are preserved.
+The policy for the affected track type is:
+
+| Failed selection | Result |
+| --- | --- |
+| Automatic (`null`) | Silently try `APP_SOFTWARE` |
+| Explicit `HARDWARE` | Show the unsupported dialog, then try `SOFTWARE` after OK; silently try `APP_SOFTWARE` if that fails |
+| Explicit `SOFTWARE` | Show the unsupported dialog, then try `APP_SOFTWARE` after OK |
+| Explicit `APP_SOFTWARE` | Show the unsupported dialog, then return to automatic mode after OK |
+| Final fallback mode | Show the existing player error dialog |
+
+A video failure does not consume the audio fallback attempt, and an audio failure does not consume
+the video attempt.
+
+`PlayerService` starts recovery for decoder-related `PlaybackException` values and for a present
+video or audio track that none of the active renderers supports. Audio-only media therefore cannot
+start video recovery, and video-only media cannot start audio recovery. Duplicate reports for the
+same track and mode attempt are ignored.
+
+After an actual player error, NextPlayer selects the fallback and calls `prepare()` because the
+player is already idle with an error. For an unsupported track mapping, selecting the fallback is
+enough for nextlib to invalidate track selection. Both paths keep the existing `ExoPlayer`.
+
+The first decoder initialization for the recovering track clears the user-facing recovery state.
+Non-decoder errors bypass decoder recovery and use the normal player error dialog.
+
+## Media changes and analytics
+
+Recovery uses the playlist index, media ID, and local URI as the media identity. A genuine new item
+resets both requested modes to automatic; metadata replacement for the same item does not erase an
+explicit selection. Clearing the playlist also allows the same URI to start with fresh decoder
+state when it is opened again.
+
+nextlib maps initialized decoder names to HW, SW+, or SW and exposes the active categories through
+`DecoderManager`. NextPlayer's `decoderAnalyticsListener` records requested and active modes,
+decoder names, track support, first-frame rendering, and player errors.
 
 ## Verification
 
-Run the focused checks with:
+Run focused automated checks:
 
 ```shell
 ./gradlew :feature:player:ktlintCheck :feature:player:testDebugUnitTest :app:assembleDebug
 ```
 
-On-device verification should confirm that both video and audio follow the selected mode, playback
-position advances, and only one `ExoPlayer` instance is initialized per session. In SW mode, also
-verify an audio format unsupported by FFmpeg uses the system audio renderer only when HW+ audio
-fallback is enabled. Decoder recovery branches are covered by `DecoderRecoveryManagerTest`; a device
-with unsupported media should additionally confirm the dialog and fallback behavior end to end.
+On a device or emulator, verify that automatic mode is not selectable, automatic tracks show the
+initialized decoder category, video/audio selections remain independent, playback position is
+unchanged, one player instance remains active, fallback dialogs work, and decoder names appear in
+logcat.
+Emulator-only FFmpeg visual corruption is not a release blocker when decoder selection, playback
+state, recovery, and crash logs are otherwise correct.

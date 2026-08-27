@@ -8,17 +8,19 @@ import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.extensions.noRippleClickable
-import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
 import dev.anilbeesetti.nextplayer.feature.player.state.SubtitleOptionsEvent
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 
 @Composable
 fun BoxScope.OverlayShowView(
     player: Player,
     overlayView: OverlayView?,
-    decoderMode: DecoderMode,
+    videoDecoderMode: DecoderMode?,
+    audioDecoderMode: DecoderMode?,
     videoContentScale: VideoContentScale,
     onDismiss: () -> Unit = {},
-    onDecoderModeSelected: (DecoderMode) -> Unit = {},
+    onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
+    onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
     onSelectSubtitleClick: () -> Unit = {},
     onSubtitleOptionEvent: (SubtitleOptionsEvent) -> Unit = {},
     onVideoContentScaleChanged: (VideoContentScale) -> Unit = {},
@@ -43,9 +45,10 @@ fun BoxScope.OverlayShowView(
 
     DecoderSelectorView(
         show = overlayView == OverlayView.DECODER_SELECTOR,
-        decoderMode = decoderMode,
-        onDecoderModeSelected = onDecoderModeSelected,
-        onDismiss = onDismiss,
+        videoMode = videoDecoderMode,
+        audioMode = audioDecoderMode,
+        onVideoModeSelected = onVideoDecoderModeSelected,
+        onAudioModeSelected = onAudioDecoderModeSelected,
     )
 
     SubtitleSelectorView(

@@ -10,38 +10,58 @@ import androidx.compose.runtime.setValue
 import androidx.media3.common.Player
 import androidx.media3.common.listen
 import androidx.media3.session.MediaController
-import dev.anilbeesetti.nextplayer.feature.player.model.DecoderMode
-import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
-import dev.anilbeesetti.nextplayer.feature.player.service.getDecoderMode
-import dev.anilbeesetti.nextplayer.feature.player.service.setDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryState
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderRecoveryStatus
+import dev.anilbeesetti.nextplayer.feature.player.service.getDecoderState
+import dev.anilbeesetti.nextplayer.feature.player.service.setAudioDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.service.setVideoDecoderMode
+import dev.anilbeesetti.nextplayer.feature.player.service.tryDecoderFallback
+import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun rememberDecoderState(
-    controller: MediaController,
-    initialMode: DecoderMode,
-): DecoderState {
+fun rememberDecoderState(controller: MediaController): DecoderState {
     val scope = rememberCoroutineScope()
-    val state = remember(controller) { DecoderState(controller, initialMode, scope) }
+    val state = remember(controller) { DecoderState(controller, scope) }
     LaunchedEffect(controller) { state.observe() }
     return state
 }
 
-/** Keeps Compose state synchronized with the decoder mode owned by [PlayerService]. */
+/** Mirrors the decoder modes and app-owned recovery state exposed by PlayerService. */
 class DecoderState(
     private val controller: MediaController,
-    initialMode: DecoderMode,
     private val scope: CoroutineScope,
 ) {
-    var mode: DecoderMode by mutableStateOf(initialMode)
+    var videoMode: DecoderMode? by mutableStateOf(null)
         private set
 
-    fun switchTo(newMode: DecoderMode) {
+    var audioMode: DecoderMode? by mutableStateOf(null)
+        private set
+
+    var recoveryState: DecoderRecoveryState by mutableStateOf(DecoderRecoveryState())
+        private set
+
+    fun switchVideoTo(mode: DecoderMode) {
         scope.launch {
-            if (controller.setDecoderMode(newMode)) {
-                mode = newMode
-            }
+            if (runCatching { controller.setVideoDecoderMode(mode) }.getOrDefault(false)) sync()
+        }
+    }
+
+    fun switchAudioTo(mode: DecoderMode) {
+        scope.launch {
+            if (runCatching { controller.setAudioDecoderMode(mode) }.getOrDefault(false)) sync()
+        }
+    }
+
+    fun tryFallback() {
+        recoveryState = recoveryState.copy(
+            status = DecoderRecoveryStatus.RECOVERING,
+            unsupportedMode = null,
+        )
+        scope.launch {
+            runCatching { controller.tryDecoderFallback() }
+            sync()
         }
     }
 
@@ -51,7 +71,9 @@ class DecoderState(
             if (
                 events.contains(Player.EVENT_PLAYER_ERROR) ||
                 events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) ||
-                events.contains(Player.EVENT_TRACKS_CHANGED)
+                events.contains(Player.EVENT_TRACKS_CHANGED) ||
+                events.contains(Player.EVENT_IS_PLAYING_CHANGED) ||
+                events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)
             ) {
                 scope.launch { sync() }
             }
@@ -59,6 +81,9 @@ class DecoderState(
     }
 
     private suspend fun sync() {
-        mode = controller.getDecoderMode() ?: mode
+        val state = runCatching { controller.getDecoderState() }.getOrNull() ?: return
+        videoMode = state.videoMode
+        audioMode = state.audioMode
+        recoveryState = state.recoveryState
     }
 }
