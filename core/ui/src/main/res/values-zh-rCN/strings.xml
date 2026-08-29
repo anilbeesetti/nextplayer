@@ -417,7 +417,7 @@
     <string name="add_to_playlist">添加到播放列表</string>
     <string name="existing_playlists">现有播放列表</string>
     <string name="no_playlists">尚无播放列表</string>
-    <string name="no_playlists_description">创建本地播放列表或添加 M3U 源来开始观看。</string>
+    <string name="no_playlists_description">创建本地播放列表或添加 M3U 源以开始观看</string>
     <string name="delete_playlist_confirmation">删除“%1$s”及其保存的顺序吗？</string>
     <string name="play_all">全部播放</string>
     <string name="remove_video_confirmation">从此播放列表移除“%1$s”吗？</string>
@@ -447,7 +447,7 @@
     <string name="authentication_rejected">身份验证被拒绝。请检查您的凭据并重试。</string>
     <string name="host_key_mismatch">SSH 主机密钥和受信任的指纹不匹配</string>
     <string name="sftp_root_inaccessible">SFTP 根路径缺失或无法访问</string>
-    <string name="last_refreshed">上次刷新 %1$s</string>
+    <string name="last_refreshed">上次刷新：%1$s</string>
     <string name="playlist_refresh_failed">无法刷新播放列表。未更改已保存的项目。</string>
     <string name="playlist_refresh_succeeded">已刷新播放列表</string>
     <string name="refreshing_playlist">正在刷新播放列表…</string>
