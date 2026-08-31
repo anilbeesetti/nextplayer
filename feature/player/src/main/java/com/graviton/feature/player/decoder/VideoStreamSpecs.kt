@@ -17,15 +17,21 @@ import com.graviton.core.model.decoder.VideoStreamSpec
  */
 fun Format.toVideoStreamSpec(): VideoStreamSpec? {
     val codec = VideoCodec.fromMimeType(sampleMimeType) ?: return null
+    val fmtProfile = Format.NO_VALUE
+    val fmtLevel = Format.NO_VALUE
+    val fmtWidth = this.width
+    val fmtHeight = this.height
+    val fmtFrameRate = this.frameRate
+
     return VideoStreamSpec(
         codec = codec,
         mimeType = sampleMimeType ?: codec.mimeType,
-        profile = profile.takeUnless { it == Format.NO_VALUE },
-        level = level.takeUnless { it == Format.NO_VALUE },
-        width = width.takeUnless { it == Format.NO_VALUE },
-        height = height.takeUnless { it == Format.NO_VALUE },
-        frameRate = frameRate.takeUnless { it == Format.NO_VALUE || it <= 0f },
-        bitDepth = bitDepthFor(codec, profile),
+        profile = if (fmtProfile == Format.NO_VALUE) null else fmtProfile,
+        level = if (fmtLevel == Format.NO_VALUE) null else fmtLevel,
+        width = if (fmtWidth == Format.NO_VALUE) null else fmtWidth,
+        height = if (fmtHeight == Format.NO_VALUE) null else fmtHeight,
+        frameRate = if (fmtFrameRate == Format.NO_VALUE.toFloat() || fmtFrameRate <= 0f) null else fmtFrameRate,
+        bitDepth = if (fmtProfile == Format.NO_VALUE) BitDepth.UNKNOWN else bitDepthFor(codec, fmtProfile),
     )
 }
 

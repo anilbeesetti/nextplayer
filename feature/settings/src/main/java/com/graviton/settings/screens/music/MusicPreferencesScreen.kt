@@ -76,7 +76,7 @@ private fun MusicPreferencesContent(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).tvListFocus(listFocusRequester)
                 .padding(innerPadding).padding(horizontal = 16.dp),
         ) {
-            ListSectionTitle("Now Playing")
+            ListSectionTitle(text = "Now Playing")
             Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
                 ClickablePreferenceItem(
                     title = "Now Playing style",
@@ -106,7 +106,7 @@ private fun MusicPreferencesContent(
                 PreferenceSwitch(title = "Player animations", description = "Animated artwork and state transitions", icon = NextIcons.Play, isChecked = preferences.musicAnimationsEnabled, onClick = { onEvent(MusicPreferencesEvent.ToggleAnimations) }, isLastItem = true)
             }
 
-            ListSectionTitle("Controls and gestures")
+            ListSectionTitle(text = "Controls and gestures")
             Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
                 PreferenceSwitch(title = "Artwork gestures", description = "Swipe for previous or next", icon = NextIcons.SwipeHorizontal, isChecked = preferences.musicGestureControls, onClick = { onEvent(MusicPreferencesEvent.ToggleGestures) }, isFirstItem = true)
                 PreferenceSwitch(title = "Lyrics button", icon = NextIcons.Lyrics, isChecked = preferences.musicShowLyricsButton, onClick = { onEvent(MusicPreferencesEvent.ToggleLyricsButton) })
@@ -114,13 +114,13 @@ private fun MusicPreferencesContent(
                 PreferenceSwitch(title = "Sleep timer button", icon = NextIcons.Timer, isChecked = preferences.musicShowSleepTimerButton, onClick = { onEvent(MusicPreferencesEvent.ToggleSleepButton) }, isLastItem = true)
             }
 
-            ListSectionTitle(stringResource(R.string.playback))
+            ListSectionTitle(text = stringResource(R.string.playback))
             Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
                 PreferenceSwitch(title = stringResource(R.string.show_lyrics), description = stringResource(R.string.show_lyrics_desc), icon = NextIcons.Lyrics, isChecked = preferences.musicShowLyrics, onClick = { onEvent(MusicPreferencesEvent.ToggleShowLyrics) }, isFirstItem = true)
                 PreferenceSwitch(title = "Gapless playback", description = "Keep one player and pre-buffer the queue", icon = NextIcons.Audio, isChecked = preferences.musicGaplessPlayback, onClick = { onEvent(MusicPreferencesEvent.ToggleGapless) })
                 PreferenceSwitch(title = stringResource(R.string.remember_shuffle), description = stringResource(R.string.remember_shuffle_desc), icon = NextIcons.Shuffle, isChecked = preferences.musicRememberShuffle, onClick = { onEvent(MusicPreferencesEvent.ToggleRememberShuffle) }, isLastItem = true)
             }
-            ListSectionTitle("Audio processing")
+            ListSectionTitle(text = "Audio processing")
             Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
                 PreferenceSwitch(
                     title = "Equalizer",
@@ -144,27 +144,28 @@ private fun MusicPreferencesContent(
                     title = "Reset equalizer",
                     description = "Set all bands to 0 dB",
                     icon = NextIcons.History,
+                    modifier = Modifier,
                     onClick = { onEvent(MusicPreferencesEvent.ResetEqualizer) },
                     isLastItem = true,
                 )
             }
-            ListSectionTitle(stringResource(R.string.recently_played))
-            ClickablePreferenceItem(title = stringResource(R.string.clear_music_history), description = stringResource(R.string.clear_music_history_desc), icon = NextIcons.History, onClick = { onEvent(MusicPreferencesEvent.ClearHistory) }, isFirstItem = true, isLastItem = true)
+            ListSectionTitle(text = stringResource(R.string.recently_played))
+            ClickablePreferenceItem(title = stringResource(R.string.clear_music_history), description = stringResource(R.string.clear_music_history_desc), icon = NextIcons.History, modifier = Modifier, onClick = { onEvent(MusicPreferencesEvent.ClearHistory) }, isFirstItem = true, isLastItem = true)
         }
     }
 
-    if (styleDialog) OptionsDialog("Now Playing style", { styleDialog = false }) {
+    if (styleDialog) OptionsDialog(text = "Now Playing style", onDismissClick = { styleDialog = false }) {
         items(NowPlayingStyle.entries) { style ->
-            RadioTextButton(style.displayName(), style == preferences.musicNowPlayingStyle) {
+            RadioTextButton(text = style.displayName(), selected = style == preferences.musicNowPlayingStyle, onClick = {
                 onEvent(MusicPreferencesEvent.SetStyle(style)); styleDialog = false
-            }
+            })
         }
     }
-    if (backgroundDialog) OptionsDialog("Player background", { backgroundDialog = false }) {
+    if (backgroundDialog) OptionsDialog(text = "Player background", onDismissClick = { backgroundDialog = false }) {
         items(MusicBackgroundStyle.entries) { style ->
-            RadioTextButton(style.displayName(), style == preferences.musicBackgroundStyle) {
+            RadioTextButton(text = style.displayName(), selected = style == preferences.musicBackgroundStyle, onClick = {
                 onEvent(MusicPreferencesEvent.SetBackground(style)); backgroundDialog = false
-            }
+            })
         }
     }
 }
