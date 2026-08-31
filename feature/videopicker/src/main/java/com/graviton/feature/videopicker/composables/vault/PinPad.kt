@@ -32,6 +32,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.graviton.core.common.extensions.isTelevision
 import com.graviton.core.ui.components.requestFocusUntilLanded
@@ -197,7 +198,7 @@ private fun PinKeyIcon(
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.Backspace,
-            contentDescription = null,
+            contentDescription = stringResource(com.graviton.core.ui.R.string.delete),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
