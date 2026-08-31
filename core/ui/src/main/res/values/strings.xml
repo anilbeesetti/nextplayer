@@ -231,6 +231,7 @@
     <string name="grid">Grid</string>
     <string name="info">Info</string>
     <string name="play">Play</string>
+    <string name="pause">Pause</string>
     <string name="recently_played">Recently played</string>
     <string name="delete_one_video">Delete 1 video?</string>
     <string name="delete_videos">Delete %1$d videos?</string>
