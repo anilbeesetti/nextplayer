@@ -321,6 +321,14 @@ class PlayerService : MediaLibraryService() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             if (isPlaying) beginListening(mediaSession?.player?.currentMediaItem?.mediaId) else flushListeningTime()
+            mediaSession?.run {
+                serviceScope.launch {
+                    mediaRepository.updateMediumPosition(
+                        uri = player.currentMediaItem?.mediaId ?: return@launch,
+                        position = player.currentPosition,
+                    )
+                }
+            }
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -337,18 +345,6 @@ class PlayerService : MediaLibraryService() {
                     player.stop()
                 }
                 stopSelf()
-            }
-        }
-
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            super.onIsPlayingChanged(isPlaying)
-            mediaSession?.run {
-                serviceScope.launch {
-                    mediaRepository.updateMediumPosition(
-                        uri = player.currentMediaItem?.mediaId ?: return@launch,
-                        position = player.currentPosition,
-                    )
-                }
             }
         }
 

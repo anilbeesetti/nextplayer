@@ -85,7 +85,7 @@ private class RecordingProcessRunner(
             if (command.lastOrNull() == "--version") {
                 return ProcessResult(0, "2024.01.01", "")
             }
-            if (command.contains("--dump-json")) {
+            if (command.contains("--dump-json") || command.contains("-J")) {
                 return ProcessResult(0, json, "")
             }
             if (command.contains("-g")) {

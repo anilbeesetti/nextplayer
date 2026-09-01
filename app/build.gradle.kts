@@ -79,6 +79,15 @@ android {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
+        jniLibs {
+            pickFirsts.add("lib/**/libavcodec.so")
+            pickFirsts.add("lib/**/libavfilter.so")
+            pickFirsts.add("lib/**/libavformat.so")
+            pickFirsts.add("lib/**/libavutil.so")
+            pickFirsts.add("lib/**/libswresample.so")
+            pickFirsts.add("lib/**/libswscale.so")
+            pickFirsts.add("lib/**/libc++_shared.so")
+        }
     }
 
     dependenciesInfo {
