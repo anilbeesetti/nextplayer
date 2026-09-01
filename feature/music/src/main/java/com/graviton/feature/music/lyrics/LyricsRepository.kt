@@ -94,7 +94,7 @@ class LyricsRepository @Inject constructor(
 
     private fun cacheFile(request: LyricsRequest): File {
         val key = "${request.mediaUri}|${request.title}|${request.artist}|${request.durationMs}"
-        val digest = MessageDigest.getInstance("SHA-256").digest(key.toByteArray()).joinToString("") { "%02x".format(it) }
+        val digest = messageDigest.get()!!.apply { reset() }.digest(key.toByteArray()).toHexString()
         return File(cacheDir, "$digest.txt")
     }
 
@@ -103,6 +103,24 @@ class LyricsRepository @Inject constructor(
     }
     private fun writeCache(request: LyricsRequest, raw: String) {
         if (raw.isNotBlank()) runCatching { cacheFile(request).writeText(raw) }
+    }
+
+    companion object {
+        private val messageDigest = object : ThreadLocal<MessageDigest>() {
+            override fun initialValue(): MessageDigest = MessageDigest.getInstance("SHA-256")
+        }
+
+        private val HEX_CHARS = "0123456789abcdef".toCharArray()
+
+        private fun ByteArray.toHexString(): String {
+            val hexChars = CharArray(this.size * 2)
+            for (j in this.indices) {
+                val v = this[j].toInt() and 0xFF
+                hexChars[j * 2] = HEX_CHARS[v ushr 4]
+                hexChars[j * 2 + 1] = HEX_CHARS[v and 0x0F]
+            }
+            return String(hexChars)
+        }
     }
 }
 
