@@ -134,6 +134,8 @@ private fun DelayInput(
     NumberChooserInput(
         title = stringResource(R.string.delay),
         value = valueString,
+        incrementContentDescription = stringResource(R.string.increase_value),
+        decrementContentDescription = stringResource(R.string.decrease_value),
         suffix = { Text(text = "sec") },
         onValueChange = { newValue ->
             if (newValue.isBlank()) {
@@ -185,6 +187,8 @@ private fun SpeedInput(
     NumberChooserInput(
         title = stringResource(R.string.speed),
         value = valueString,
+        incrementContentDescription = stringResource(R.string.increase_speed),
+        decrementContentDescription = stringResource(R.string.decrease_speed),
         suffix = { Text(text = "x") },
         onValueChange = { newValue ->
             if (newValue.isBlank()) {
@@ -222,6 +226,8 @@ private fun NumberChooserInput(
     modifier: Modifier = Modifier,
     title: String,
     value: String,
+    incrementContentDescription: String? = null,
+    decrementContentDescription: String? = null,
     onValueChange: (String) -> Unit,
     onIncrement: () -> Unit = {},
     onDecrement: () -> Unit = {},
@@ -238,7 +244,7 @@ private fun NumberChooserInput(
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_remove),
-                contentDescription = null,
+                contentDescription = decrementContentDescription,
             )
         }
         OutlinedTextField(
@@ -258,7 +264,7 @@ private fun NumberChooserInput(
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_add),
-                contentDescription = null,
+                contentDescription = incrementContentDescription,
             )
         }
     }
