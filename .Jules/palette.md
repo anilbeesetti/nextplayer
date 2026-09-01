@@ -9,3 +9,7 @@
 ## 2024-05-22 - Accessibility improvement in Vault PinPad
 **Learning:** Found that the backspace icon-only button used in the video vault's PIN pad had `contentDescription = null`. This obscured the erase functionality for TalkBack users navigating the vault pad.
 **Action:** Always provide localized `contentDescription` for custom numpads or PIN entry controls (e.g., using `stringResource(com.graviton.core.ui.R.string.delete)`).
+
+## 2024-05-23 - Accessibility improvement in video player UI
+**Learning:** Found multiple instances where video player UI elements (e.g., `PlaylistView`, `SpeedOverlayView`, `DoubleTapIndicator`, `MediaPlayerScreen`) had `contentDescription = null` for their icons, violating accessibility guidelines for screen readers (TalkBack). Also noted that shared generic strings should be placed in `core/ui/`.
+**Action:** Replaced `contentDescription = null` with explicit descriptions using `stringResource`. Strings added to `core/ui/src/main/res/values/strings.xml` to ensure accessibility across feature modules. Always verify that actionable or informative icons have proper content descriptions.

@@ -586,7 +586,7 @@ fun BoxScope.DpadSeekIndicator(
             ) {
                 Icon(
                     painter = painterResource(coreUiR.drawable.ic_fast),
-                    contentDescription = null,
+                    contentDescription = if (offsetMs >= 0) stringResource(coreUiR.string.forward_seek_description) else stringResource(coreUiR.string.rewind_seek_description),
                     tint = Color.White,
                     modifier = Modifier
                         .size(28.dp)

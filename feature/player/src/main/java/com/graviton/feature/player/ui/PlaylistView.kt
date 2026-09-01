@@ -223,7 +223,7 @@ private fun ThumbnailView(
         // Fallback icon
         Icon(
             imageVector = NextIcons.Video,
-            contentDescription = null,
+            contentDescription = stringResource(com.graviton.core.ui.R.string.playlist_item_description),
             tint = MaterialTheme.colorScheme.surfaceColorAtElevation(100.dp),
             modifier = Modifier
                 .align(Alignment.Center)
@@ -236,7 +236,7 @@ private fun ThumbnailView(
                 .data(mediaItem.mediaId)
                 .crossfade(true)
                 .build(),
-            contentDescription = null,
+            contentDescription = stringResource(com.graviton.core.ui.R.string.video_thumbnail_description),
             alignment = Alignment.Center,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
@@ -272,7 +272,7 @@ private fun EmptyPlaylistView() {
     ) {
         Icon(
             imageVector = NextIcons.Video,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.no_videos_in_queue),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             modifier = Modifier.fillMaxSize(0.3f),
         )
