@@ -23,8 +23,8 @@ fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
         false -> painterResource(coreUiR.drawable.ic_pause)
     }
     val contentDescription = when (state.showPlay) {
-        true -> stringResource(coreUiR.string.play_pause)
-        false -> stringResource(coreUiR.string.play_pause)
+        true -> stringResource(coreUiR.string.play)
+        false -> stringResource(coreUiR.string.pause)
     }
 
     PlayerButton(

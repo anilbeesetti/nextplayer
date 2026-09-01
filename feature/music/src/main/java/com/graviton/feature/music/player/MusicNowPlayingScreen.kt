@@ -93,7 +93,7 @@ fun MusicNowPlayingRoute(
     val lyrics by viewModel.lyrics.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var remainingSleep by remember { mutableLongStateOf(0L) }
+    var remainingSleep by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
     LaunchedEffect(controller) {
         while (controller != null) {
             remainingSleep = runCatching { controller.getSleepTimerRemainingMs() }.getOrDefault(0L)

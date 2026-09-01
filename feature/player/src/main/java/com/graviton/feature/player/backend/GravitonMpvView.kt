@@ -26,8 +26,8 @@ class GravitonMpvView(context: Context, attrs: AttributeSet) : BaseMPVView(conte
     override fun postInitOptions() = Unit
 
     override fun observeProperties() {
-        MPVLib.observeProperty("pause", MPVLib.MPV_FORMAT_FLAG)
-        MPVLib.observeProperty("time-pos", MPVLib.MPV_FORMAT_DOUBLE)
-        MPVLib.observeProperty("duration", MPVLib.MPV_FORMAT_DOUBLE)
+        MPVLib.observeProperty("pause", 3)
+        MPVLib.observeProperty("time-pos", 5)
+        MPVLib.observeProperty("duration", 5)
     }
 }
