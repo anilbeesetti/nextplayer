@@ -495,4 +495,13 @@
     <string name="increase_speed">Increase speed</string>
     <string name="decrease_value">Decrease value</string>
     <string name="increase_value">Increase value</string>
+
+    <string name="audio_artwork_description">Audio artwork</string>
+    <string name="playlist_item_description">Playlist item</string>
+    <string name="video_thumbnail_description">Video thumbnail</string>
+    <string name="forward_seek_description">Forward seek indicator</string>
+    <string name="rewind_seek_description">Rewind seek indicator</string>
+    <string name="current_speed_description">Current playback speed</string>
+    <string name="value_slider_icon_description">Value slider icon</string>
+
 </resources>

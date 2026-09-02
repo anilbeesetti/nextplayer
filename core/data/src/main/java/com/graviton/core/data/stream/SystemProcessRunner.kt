@@ -1,5 +1,6 @@
 package com.graviton.core.data.stream
 
+import android.os.Build
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -12,9 +13,30 @@ class SystemProcessRunner @Inject constructor() : ProcessRunner {
             .redirectErrorStream(false)
             .directory(File("."))
             .start()
-        val finished = process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
+
+        val finished = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
+        } else {
+            var isFinished = false
+            val startTime = System.currentTimeMillis()
+            while (System.currentTimeMillis() - startTime < timeoutMs) {
+                try {
+                    process.exitValue()
+                    isFinished = true
+                    break
+                } catch (e: IllegalThreadStateException) {
+                    Thread.sleep(50)
+                }
+            }
+            isFinished
+        }
+
         if (!finished) {
-            process.destroyForcibly()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                process.destroyForcibly()
+            } else {
+                process.destroy()
+            }
             return ProcessResult(
                 exitCode = -1,
                 stdout = "",

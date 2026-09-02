@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
+import com.graviton.core.ui.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -76,7 +78,7 @@ fun PlayerContentFrame(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(player.mediaMetadata.artworkUri)
                     .build(),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.audio_artwork_description),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize(0.72f),
             )

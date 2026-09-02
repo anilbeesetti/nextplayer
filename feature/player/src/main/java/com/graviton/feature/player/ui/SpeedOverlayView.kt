@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
@@ -96,7 +97,7 @@ fun BoxScope.SpeedOverlayView(
             ) {
                 Icon(
                     imageVector = Icons.Default.FastForward,
-                    contentDescription = null,
+                    contentDescription = stringResource(com.graviton.core.ui.R.string.current_speed_description),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
