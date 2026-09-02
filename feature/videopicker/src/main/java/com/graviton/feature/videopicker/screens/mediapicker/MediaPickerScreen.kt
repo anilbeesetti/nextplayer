@@ -434,7 +434,7 @@ internal fun MediaPickerScreen(
                         }
                         Icon(
                             imageVector = icon,
-                            contentDescription = null,
+                            contentDescription = stringResource(id = R.string.menu),
                             modifier = Modifier.animateIcon(checkedProgress = { checkedProgress }),
                         )
                     }
