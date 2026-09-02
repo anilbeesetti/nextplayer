@@ -9,3 +9,7 @@
 ## 2024-05-22 - Accessibility improvement in Vault PinPad
 **Learning:** Found that the backspace icon-only button used in the video vault's PIN pad had `contentDescription = null`. This obscured the erase functionality for TalkBack users navigating the vault pad.
 **Action:** Always provide localized `contentDescription` for custom numpads or PIN entry controls (e.g., using `stringResource(com.graviton.core.ui.R.string.delete)`).
+
+## 2024-05-23 - Accessibility improvement in ToggleFloatingActionButton
+**Learning:** Found that the expandable floating action button (`ToggleFloatingActionButton`) in `MediaPickerScreen` lacked a `contentDescription`. The icon-only button inside it had `contentDescription = null`, which makes the FAB invisible/unintelligible for screen readers like TalkBack, preventing users from realizing they can expand it to see options like "Play all" or "Open network stream".
+**Action:** Ensure that standalone FABs and toggle buttons always have a meaningful `contentDescription` (e.g., using `stringResource(R.string.menu)`). When auditing Compose code, be mindful of `Icon(contentDescription = null)` instances inside interactive components lacking a textual label.
