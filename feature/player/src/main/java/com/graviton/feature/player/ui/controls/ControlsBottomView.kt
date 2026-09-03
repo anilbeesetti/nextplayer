@@ -38,8 +38,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -61,7 +59,6 @@ import com.graviton.core.common.extensions.isTelevision
 import com.graviton.core.model.VideoContentScale
 import com.graviton.core.ui.R
 import com.graviton.core.ui.extensions.copy
-import com.graviton.feature.player.LocalUseMaterialYouControls
 import com.graviton.feature.player.buttons.LoopButton
 import com.graviton.feature.player.buttons.PlayerButton
 import com.graviton.feature.player.buttons.ShuffleButton
@@ -141,7 +138,7 @@ fun ControlsBottomView(
             Spacer(modifier = Modifier.weight(1f))
             if (!isTv) {
                 PlayerButton(
-                    modifier = modifier.size(30.dp),
+                    modifier = Modifier.size(30.dp),
                     onClick = onRotateClick,
                 ) {
                     Icon(
@@ -344,57 +341,5 @@ private fun DrawScope.drawRoundedRect(
             addRoundRect(track)
         },
         color = color,
-    )
-}
-
-@kotlin.OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SimpleSlider(
-    modifier: Modifier = Modifier,
-    value: Float,
-    valueRange: ClosedFloatingPointRange<Float>,
-    onValueChange: (Float) -> Unit,
-    onValueChangeFinished: () -> Unit,
-    isFocused: Boolean = false,
-) {
-    val thumbSize by animateDpAsState(if (isFocused) 22.dp else 16.dp, label = "thumbSize")
-    Slider(
-        value = value,
-        valueRange = valueRange,
-        onValueChange = onValueChange,
-        onValueChangeFinished = onValueChangeFinished,
-        modifier = modifier.height(24.dp),
-        thumb = {
-            Box(
-                modifier = Modifier.size(thumbSize)
-                    .shadow(4.dp, CircleShape)
-                    .background(Color.White)
-                    .then(
-                        if (isFocused) {
-                            Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        } else {
-                            Modifier
-                        },
-                    ),
-            )
-        },
-        track = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .clip(MaterialTheme.shapes.extraSmall)
-                    .background(Color.White.copy(0.5f))
-            ) {
-                if (valueRange.endInclusive > 0f) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(value / valueRange.endInclusive)
-                            .height(4.dp)
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
-                }
-            }
-        }
     )
 }

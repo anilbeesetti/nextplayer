@@ -60,8 +60,8 @@ class VideoZoomAndContentScaleState(
     private val coroutineScope: CoroutineScope,
 ) {
     companion object Companion {
-        private const val MIN_ZOOM = 0.25f
-        private const val MAX_ZOOM = 4f
+        const val MIN_ZOOM = 0.25f
+        const val MAX_ZOOM = 4f
         private const val CONTENT_SCALE_INDICATOR_DURATION_MS = 1000L
     }
 
@@ -124,6 +124,23 @@ class VideoZoomAndContentScaleState(
                 y = (offset.y + zoom * panChange.y).coerceIn(-maxY, maxY),
             )
         }
+    }
+
+    /**
+     * Sets the zoom directly, for the Display settings slider.
+     *
+     * Panning is left untouched: the offset is already clamped by [onZoomPanGesture] and resetting
+     * it here would fight the user's framing while they drag the slider.
+     */
+    fun setZoom(newZoom: Float) {
+        zoom = newZoom.coerceIn(MIN_ZOOM, MAX_ZOOM)
+    }
+
+    /** Returns to unzoomed, uncropped playback. */
+    fun resetZoomAndPan() {
+        zoom = 1f
+        offset = Offset.Zero
+        updateVideoScaleMetadataAndSendEvent()
     }
 
     fun onZoomPanGestureEnd() {

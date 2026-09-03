@@ -1,14 +1,13 @@
 package com.graviton.feature.music
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,31 +16,30 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -53,24 +51,37 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.graviton.feature.music.artwork.MediaArtwork
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.graviton.core.model.AudioTrack
 import com.graviton.core.model.MusicPlaylist
+import com.graviton.core.ui.R
 import com.graviton.core.ui.designsystem.NextIcons
+import com.graviton.feature.music.artwork.MediaArtwork
+import com.graviton.feature.music.components.AddToPlaylistDialog
+import com.graviton.feature.music.components.MusicEmptyState
+import com.graviton.feature.music.components.MusicSectionHeader
+import com.graviton.feature.music.components.MusicTile
+import com.graviton.feature.music.components.QuickAccessChip
+import com.graviton.feature.music.components.TrackActions
+import com.graviton.feature.music.components.TrackInformationDialog
+import com.graviton.feature.music.components.TrackListItem
+import com.graviton.feature.music.components.formatTrackDuration
+import com.graviton.feature.music.components.musicItemAppearance
 import com.graviton.feature.player.PlayerActivity
-import kotlinx.coroutines.delay
+import java.util.Calendar
 
 private val musicPermission: String
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -85,142 +96,140 @@ fun MusicHomeScreen(
     viewModel: MusicViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val preferences by viewModel.applicationPreferences.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val permissionState = rememberPermissionState(musicPermission)
     val connection = rememberMusicSession()
     val controller = connection.controller
     val playback = rememberMusicPlaybackSnapshot(controller)
+
     var searchOpen by remember { mutableStateOf(false) }
     var sortDialogOpen by remember { mutableStateOf(false) }
     var streamDialogOpen by remember { mutableStateOf(false) }
-    var streamUrl by remember { mutableStateOf("") }
+    var playlistTarget by remember { mutableStateOf<AudioTrack?>(null) }
+    var infoTarget by remember { mutableStateOf<AudioTrack?>(null) }
 
     LaunchedEffect(permissionState.status.isGranted) {
         if (permissionState.status.isGranted) viewModel.refresh()
     }
-    LaunchedEffect(playback) {
-        while (playback != null) {
-            playback.refresh()
-            delay(500)
+
+    BackHandler(enabled = uiState.filter !is MusicFilter.None || searchOpen) {
+        if (searchOpen) {
+            searchOpen = false
+            viewModel.setQuery("")
+        } else {
+            viewModel.clearFilter()
         }
     }
 
-    val selectedTab = MusicSection.entries.indexOf(uiState.section).coerceAtLeast(0)
-    BackHandler(enabled = uiState.filter !is MusicFilter.None) {
-        viewModel.clearFilter()
+    val animationsEnabled = preferences.musicAnimationsEnabled
+
+    fun playTrack(track: AudioTrack, queue: List<AudioTrack>) {
+        viewModel.recordPlay(track)
+        val index = queue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+        controller?.playTracks(queue, index)
     }
+
+    fun actionsFor(track: AudioTrack, queue: List<AudioTrack>) = TrackActions(
+        onPlay = {
+            if (playback?.mediaId == track.uriString) {
+                if (controller?.isPlaying == true) controller.pause() else controller?.play()
+            } else {
+                playTrack(track, queue)
+            }
+        },
+        onPlayNext = { controller?.playNext(track) },
+        onEnqueue = { controller?.enqueue(track) },
+        onAddToPlaylist = { playlistTarget = track },
+        onToggleFavorite = { viewModel.toggleFavorite(track) },
+        onShare = { context.shareTrack(track) },
+        onInformation = { infoTarget = track },
+    )
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    if (searchOpen) {
-                        OutlinedTextField(
-                            value = uiState.query,
-                            onValueChange = viewModel::setQuery,
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Search songs") },
-                            singleLine = true,
-                            shape = CircleShape,
-                        )
-                    } else {
-                        Column {
-                            Text("Music", fontWeight = FontWeight.Bold)
-                            (uiState.filter as? MusicFilter.Playlist)?.let {
-                                Text(
-                                    text = it.name,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                    }
+            MusicTopBar(
+                state = uiState,
+                searchOpen = searchOpen,
+                onQueryChange = viewModel::setQuery,
+                onOpenSearch = {
+                    searchOpen = true
+                    viewModel.selectSection(MusicSection.TRACKS)
                 },
-                navigationIcon = {
-                    if (searchOpen) {
-                        IconButton(onClick = { searchOpen = false; viewModel.setQuery("") }) {
-                            Icon(NextIcons.Close, contentDescription = "Close search")
-                        }
-                    }
+                onCloseSearch = {
+                    searchOpen = false
+                    viewModel.setQuery("")
                 },
-                actions = {
-                    if (!searchOpen) {
-                        IconButton(onClick = { searchOpen = true; viewModel.selectSection(MusicSection.TRACKS) }) {
-                            Icon(NextIcons.Search, contentDescription = "Search songs")
-                        }
-                        IconButton(onClick = { streamDialogOpen = true }) {
-                            Icon(NextIcons.Link, contentDescription = "Stream URL")
-                        }
-                    }
-                    IconButton(onClick = { sortDialogOpen = true }) {
-                        Icon(NextIcons.Reorder, contentDescription = "Sort music")
-                    }
-                },
+                onStreamClick = { streamDialogOpen = true },
+                onSortClick = { sortDialogOpen = true },
             )
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            ScrollableTabRow(
-                selectedTabIndex = selectedTab,
-                edgePadding = 16.dp,
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                divider = {},
-            ) {
-                MusicSection.entries.forEachIndexed { index, section ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { viewModel.selectSection(section) },
-                        text = { Text(section.label) },
-                    )
-                }
-            }
+            MusicSectionChips(
+                selected = uiState.section,
+                onSelect = viewModel::selectSection,
+            )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                    .background(MaterialTheme.colorScheme.background),
-            ) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 when {
-                    !permissionState.status.isGranted -> MusicPermissionContent(permissionState::launchPermissionRequest)
+                    !permissionState.status.isGranted -> MusicEmptyState(
+                        icon = NextIcons.Audio,
+                        title = stringResource(R.string.music_permission_title),
+                        description = stringResource(R.string.music_permission_description),
+                        action = {
+                            FilledTonalButton(onClick = permissionState::launchPermissionRequest) {
+                                Text(stringResource(R.string.allow_access))
+                            }
+                        },
+                    )
+
                     uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                    uiState.error != null -> MusicErrorContent(uiState.error, viewModel::refresh)
+
+                    uiState.error != null -> MusicEmptyState(
+                        icon = NextIcons.Priority,
+                        title = stringResource(R.string.music_error_title),
+                        description = uiState.error?.message
+                            ?: stringResource(R.string.music_error_description),
+                        action = {
+                            OutlinedButton(onClick = viewModel::refresh) {
+                                Text(stringResource(R.string.try_again))
+                            }
+                        },
+                    )
+
                     else -> MusicLibraryContent(
                         state = uiState,
                         playback = playback,
-                        onShuffle = {
-                            controller?.playTracks(uiState.tracks.shuffled())
-                        },
-                        onPlayTrack = { track ->
-                            viewModel.recordPlay(track)
-                            val queue = if (uiState.tracks.isNotEmpty()) uiState.tracks else uiState.allTracks
-                            val index = queue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
-                            controller?.playTracks(queue, index)
+                        animationsEnabled = animationsEnabled,
+                        actionsFor = ::actionsFor,
+                        onShuffle = { controller?.playTracks(uiState.tracks.shuffled()) },
+                        onPlayTrack = ::playTrack,
+                        onResume = {
+                            uiState.resumeTrack?.let { track ->
+                                playTrack(track, uiState.allTracks)
+                                controller?.seekTo(uiState.resumePositionMs)
+                            }
                         },
                         onPlayFolder = { path ->
-                            val tracks = uiState.allTracks.filter { it.path.substringBeforeLast('/', "") == path }
+                            val tracks = uiState.allTracks.filter {
+                                it.path.substringBeforeLast('/', "") == path
+                            }
                             val index = viewModel.folderStartIndex(path, tracks)
                             tracks.getOrNull(index)?.let(viewModel::recordPlay)
                             controller?.playTracks(tracks, index)
                         },
-                        onPause = { if (controller?.isPlaying == true) controller.pause() else controller?.play() },
-                        onPlayNext = { controller?.playNext(it) },
-                        onEnqueue = { controller?.enqueue(it) },
-                        onOpenFullPlayer = {
-                            val current = uiState.allTracks.firstOrNull { it.uriString == playback?.mediaId }
-                            if (current != null) context.openMusicPlayer(current, uiState.allTracks)
-                        },
+                        onSelectSection = viewModel::selectSection,
                         onSelectPlaylist = viewModel::selectPlaylist,
                         onSelectAlbum = viewModel::selectAlbum,
                         onSelectArtist = viewModel::selectArtist,
                         onSelectFolder = viewModel::selectFolder,
+                        onShowFavorites = viewModel::showFavorites,
                         onClearFilter = viewModel::clearFilter,
                     )
                 }
@@ -239,252 +248,215 @@ fun MusicHomeScreen(
     }
 
     if (streamDialogOpen) {
-        AlertDialog(
-            onDismissRequest = { streamDialogOpen = false },
-            title = { Text("Stream URL") },
-            text = {
-                OutlinedTextField(
-                    value = streamUrl,
-                    onValueChange = { streamUrl = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("https://...") },
-                    singleLine = true,
+        StreamUrlDialog(
+            onPlay = { url ->
+                streamDialogOpen = false
+                context.startActivity(
+                    Intent(context, PlayerActivity::class.java).apply {
+                        action = Intent.ACTION_VIEW
+                        data = url.toUri()
+                    },
                 )
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val url = streamUrl.trim()
-                        streamDialogOpen = false
-                        if (url.isNotBlank()) {
-                            context.startActivity(
-                                Intent(context, PlayerActivity::class.java).apply {
-                                    action = Intent.ACTION_VIEW
-                                    data = Uri.parse(url)
-                                },
-                            )
-                        }
-                    },
-                    enabled = streamUrl.isNotBlank(),
-                ) { Text("Play") }
-            },
-            dismissButton = {
-                TextButton(onClick = { streamDialogOpen = false }) { Text("Cancel") }
-            },
+            onDismiss = { streamDialogOpen = false },
         )
+    }
+
+    playlistTarget?.let { track ->
+        val addedMessage = stringResource(R.string.music_playlist_added)
+        val failedMessage = stringResource(R.string.music_playlist_add_failed)
+        val report: (Boolean) -> Unit = { success ->
+            Toast.makeText(
+                context,
+                if (success) addedMessage else failedMessage,
+                Toast.LENGTH_SHORT,
+            ).show()
+            playlistTarget = null
+        }
+        AddToPlaylistDialog(
+            playlists = uiState.playlists,
+            onSelect = { playlist -> viewModel.addTrackToPlaylist(playlist.id, track, report) },
+            onCreate = { name -> viewModel.createPlaylistWithTrack(name, track, report) },
+            onDismiss = { playlistTarget = null },
+        )
+    }
+
+    infoTarget?.let { track ->
+        TrackInformationDialog(track = track, onDismiss = { infoTarget = null })
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MusicPermissionContent(request: () -> Unit) {
-    EmptyMusicState(
-        icon = NextIcons.Audio,
-        title = "Music permission needed",
-        body = "Allow Graviton to read audio on this device to build your library.",
-        action = { FilledTonalButton(onClick = request) { Text("Allow access") } },
+private fun MusicTopBar(
+    state: MusicUiState,
+    searchOpen: Boolean,
+    onQueryChange: (String) -> Unit,
+    onOpenSearch: () -> Unit,
+    onCloseSearch: () -> Unit,
+    onStreamClick: () -> Unit,
+    onSortClick: () -> Unit,
+) {
+    TopAppBar(
+        title = {
+            if (searchOpen) {
+                OutlinedTextField(
+                    value = state.query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.search_music)) },
+                    singleLine = true,
+                    shape = CircleShape,
+                )
+            } else {
+                Column {
+                    Text(text = greetingText(), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.music_library),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        },
+        navigationIcon = {
+            if (searchOpen) {
+                IconButton(onClick = onCloseSearch) {
+                    Icon(NextIcons.Close, contentDescription = stringResource(R.string.close_search))
+                }
+            }
+        },
+        actions = {
+            if (!searchOpen) {
+                IconButton(onClick = onOpenSearch) {
+                    Icon(NextIcons.Search, contentDescription = stringResource(R.string.search_music))
+                }
+                IconButton(onClick = onStreamClick) {
+                    Icon(NextIcons.Link, contentDescription = stringResource(R.string.stream_url))
+                }
+            }
+            IconButton(onClick = onSortClick) {
+                Icon(NextIcons.Sort, contentDescription = stringResource(R.string.sort_music))
+            }
+        },
     )
 }
 
+/**
+ * Library sections as M3 filter chips.
+ *
+ * Chips replace the previous tab row so the app-level [androidx.compose.material3.NavigationBar]
+ * stays the only tab-like affordance on screen.
+ */
 @Composable
-private fun MusicErrorContent(error: Throwable?, retry: () -> Unit) {
-    EmptyMusicState(
-        icon = NextIcons.Priority,
-        title = "Music could not be loaded",
-        body = error?.message ?: "MediaStore did not return the music library.",
-        action = { OutlinedButton(onClick = retry) { Text("Try again") } },
-    )
+private fun MusicSectionChips(
+    selected: MusicSection,
+    onSelect: (MusicSection) -> Unit,
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(MusicSection.entries, key = { it.name }) { section ->
+            FilterChip(
+                selected = section == selected,
+                onClick = { onSelect(section) },
+                label = { Text(stringResource(section.labelRes)) },
+            )
+        }
+    }
 }
 
 @Composable
 private fun MusicLibraryContent(
     state: MusicUiState,
     playback: MusicPlaybackSnapshot?,
+    animationsEnabled: Boolean,
+    actionsFor: (AudioTrack, List<AudioTrack>) -> TrackActions,
     onShuffle: () -> Unit,
-    onPlayTrack: (AudioTrack) -> Unit,
-    onPause: () -> Unit,
-    onPlayNext: (AudioTrack) -> Unit,
-    onEnqueue: (AudioTrack) -> Unit,
-    onOpenFullPlayer: () -> Unit,
+    onPlayTrack: (AudioTrack, List<AudioTrack>) -> Unit,
+    onResume: () -> Unit,
+    onPlayFolder: (String) -> Unit,
+    onSelectSection: (MusicSection) -> Unit,
     onSelectPlaylist: (MusicPlaylist) -> Unit,
     onSelectAlbum: (String) -> Unit,
     onSelectArtist: (String) -> Unit,
     onSelectFolder: (String) -> Unit,
-    onPlayFolder: (String) -> Unit,
+    onShowFavorites: () -> Unit,
     onClearFilter: () -> Unit,
 ) {
-    val displayTracks = state.tracks
-    val hasTracks = state.allTracks.isNotEmpty()
-    val filterLabel = when (val filter = state.filter) {
-        MusicFilter.None -> null
-        is MusicFilter.Album -> "Album · ${filter.name}"
-        is MusicFilter.Artist -> "Artist · ${filter.name}"
-        is MusicFilter.Folder -> "Folder · ${filter.path.substringAfterLast('/')}"
-        is MusicFilter.Playlist -> "Playlist · ${filter.name}"
-    }
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 112.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        // The bottom inset leaves room for the mini bar sitting above the navigation bar.
+        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 132.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        item(key = "heading") {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = when (state.section) {
-                            MusicSection.HOME -> "Library"
-                            MusicSection.TRACKS -> filterLabel ?: "All songs"
-                            else -> state.section.label
+        state.activeFilterLabel()?.let { label ->
+            item(key = "filter") {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AssistChip(
+                        onClick = onClearFilter,
+                        label = { Text(label) },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = NextIcons.Close,
+                                contentDescription = stringResource(R.string.clear_filter),
+                                modifier = Modifier.size(16.dp),
+                            )
                         },
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = if (state.section == MusicSection.TRACKS) {
-                            "${displayTracks.size} songs"
-                        } else {
-                            sectionCount(state)
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if ((state.section == MusicSection.TRACKS || state.section == MusicSection.HOME) &&
-                    displayTracks.isNotEmpty()
-                ) {
-                    FilledTonalButton(onClick = onShuffle) {
-                        Icon(NextIcons.Shuffle, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text("Shuffle all")
-                    }
-                }
             }
-            filterLabel?.let {
-                Spacer(Modifier.height(10.dp))
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.clickable(onClick = onClearFilter),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(it, style = MaterialTheme.typography.labelLarge)
-                        Spacer(Modifier.width(6.dp))
-                        Icon(NextIcons.Close, contentDescription = "Clear filter", Modifier.size(16.dp))
-                    }
-                }
-            }
-            if (playback?.mediaId != null) {
-                Spacer(Modifier.height(10.dp))
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.clickable(onClick = onOpenFullPlayer),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(NextIcons.Audio, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Now playing", style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-            }
-            Spacer(Modifier.height(10.dp))
         }
 
         when (state.section) {
-            MusicSection.HOME -> {
-                item(key = "home-recent") {
-                    Text("Recently played", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                }
-                if (state.recentlyPlayed.isEmpty()) {
-                    item { Text("Play a song to build your history.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                } else {
-                    items(state.recentlyPlayed, key = { "recent-${it.uriString}" }) { track ->
-                        TrackRow(
-                            track = track,
-                            active = playback?.mediaId == track.uriString,
-                            playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
-                            onClick = { onPlayTrack(track) },
-                            onPause = onPause,
-                            onPlayNext = { onPlayNext(track) },
-                            onEnqueue = { onEnqueue(track) },
-                        )
-                    }
-                }
-                if (state.mostPlayed.isNotEmpty()) {
-                    item(key = "home-most-played") {
-                        Spacer(Modifier.height(12.dp))
-                        Text("Most played", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    items(state.mostPlayed, key = { "most-${it.uriString}" }) { track ->
-                        TrackRow(
-                            track = track,
-                            active = playback?.mediaId == track.uriString,
-                            playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
-                            onClick = { onPlayTrack(track) },
-                            onPause = onPause,
-                            onPlayNext = { onPlayNext(track) },
-                            onEnqueue = { onEnqueue(track) },
-                        )
-                    }
-                }
-                item(key = "home-added") {
-                    Spacer(Modifier.height(12.dp))
-                    Text("Last added", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                }
-                items(state.recentlyAdded, key = { "added-${it.uriString}" }) { track ->
-                    TrackRow(
-                        track = track,
-                        active = playback?.mediaId == track.uriString,
-                        playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
-                        onClick = { onPlayTrack(track) },
-                        onPause = onPause,
-                        onPlayNext = { onPlayNext(track) },
-                        onEnqueue = { onEnqueue(track) },
-                    )
-                }
-            }
-            MusicSection.TRACKS -> {
-                if (displayTracks.isEmpty()) {
-                    item(key = "empty-tracks") {
-                        EmptyMusicState(
-                            icon = NextIcons.Audio,
-                            title = if (hasTracks) "No matching songs" else "No songs found",
-                            body = if (hasTracks) "Try another search or clear the filter." else "Add music to this device and refresh the library.",
-                            action = null,
-                        )
-                    }
-                } else {
-                    itemsIndexed(displayTracks, key = { _, track -> track.uriString }) { _, track ->
-                        TrackRow(
-                            track = track,
-                            active = playback?.mediaId == track.uriString,
-                            playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
-                            onClick = { onPlayTrack(track) },
-                            onPause = onPause,
-                            onPlayNext = { onPlayNext(track) },
-                            onEnqueue = { onEnqueue(track) },
-                        )
-                    }
-                }
-            }
+            MusicSection.HOME -> homeDashboard(
+                state = state,
+                playback = playback,
+                animationsEnabled = animationsEnabled,
+                actionsFor = actionsFor,
+                onShuffle = onShuffle,
+                onPlayTrack = onPlayTrack,
+                onResume = onResume,
+                onSelectSection = onSelectSection,
+                onSelectAlbum = onSelectAlbum,
+                onSelectArtist = onSelectArtist,
+                onShowFavorites = onShowFavorites,
+            )
+
+            MusicSection.TRACKS -> trackList(
+                tracks = state.tracks,
+                state = state,
+                playback = playback,
+                animationsEnabled = animationsEnabled,
+                actionsFor = actionsFor,
+                onShuffle = onShuffle,
+            )
+
             MusicSection.PLAYLISTS -> {
                 if (state.playlists.isEmpty()) {
-                    item { EmptyMusicState(NextIcons.Playlist, "No playlists found", "Playlists created by other music apps appear here.", null) }
+                    item {
+                        MusicEmptyState(
+                            icon = NextIcons.Playlist,
+                            title = stringResource(R.string.no_music_playlists_title),
+                            description = stringResource(R.string.no_music_playlists_description),
+                        )
+                    }
                 } else {
-                    items(state.playlists, key = { it.id }) { playlist ->
-                        CollectionRow(
-                            title = playlist.name.ifBlank { "Untitled playlist" },
-                            subtitle = "${playlist.trackCount} songs",
+                    items(state.playlists, key = { "playlist-${it.id}" }) { playlist ->
+                        CollectionListItem(
+                            title = playlist.name.ifBlank { stringResource(R.string.untitled_playlist) },
+                            subtitle = pluralStringResource(
+                                R.plurals.song_count,
+                                playlist.trackCount,
+                                playlist.trackCount,
+                            ),
                             artworkUri = null,
                             mediaUri = null,
                             icon = NextIcons.Playlist,
@@ -493,107 +465,299 @@ private fun MusicLibraryContent(
                     }
                 }
             }
+
             MusicSection.ALBUMS -> {
-                val albums = state.allTracks.groupBy { it.displayAlbum }.toList().sortedBy { it.first.lowercase() }
-                if (albums.isEmpty()) item { EmptyMusicState(NextIcons.Image, "No albums found", "Album information will appear with your music.", null) }
-                else items(albums, key = { it.first }) { (album, tracks) ->
-                    CollectionRow(title = album, subtitle = "${tracks.size} songs · ${tracks.first().displayArtist}", artworkUri = tracks.first().artworkUriString, mediaUri = tracks.first().uriString, icon = NextIcons.Image, onClick = { onSelectAlbum(album) })
-                }
-            }
-            MusicSection.ARTISTS -> {
-                val artists = state.allTracks.groupBy { it.displayArtist }.toList().sortedBy { it.first.lowercase() }
-                if (artists.isEmpty()) item { EmptyMusicState(NextIcons.Audio, "No artists found", "Artist information will appear with your music.", null) }
-                else items(artists, key = { it.first }) { (artist, tracks) ->
-                    CollectionRow(title = artist, subtitle = "${tracks.size} songs", artworkUri = tracks.first().artworkUriString, mediaUri = tracks.first().uriString, icon = NextIcons.Audio, onClick = { onSelectArtist(artist) })
-                }
-            }
-            MusicSection.FOLDERS -> {
-                val folders = state.allTracks.groupBy { it.path.substringBeforeLast('/', "") }.toList().sortedBy { it.first.lowercase() }
-                if (folders.isEmpty()) item { EmptyMusicState(NextIcons.Folder, "No folders found", "Music folders will appear here.", null) }
-                else items(folders, key = { it.first }) { (folder, tracks) ->
-                    CollectionRow(
-                        title = folder.substringAfterLast('/').ifBlank { "Music" },
-                        subtitle = "${tracks.size} songs",
-                        artworkUri = tracks.first().artworkUriString,
-                        mediaUri = tracks.first().uriString,
-                        icon = NextIcons.Folder,
-                        onClick = { onSelectFolder(folder) },
-                        onPlay = { onPlayFolder(folder) },
-                    )
-                }
-            }
-        }
-
-        item(key = "mini-player-spacer") { Spacer(Modifier.height(8.dp)) }
-    }
-}
-
-private fun sectionCount(state: MusicUiState): String = when (state.section) {
-    MusicSection.HOME -> "${state.allTracks.size} songs"
-    MusicSection.PLAYLISTS -> "${state.playlists.size} playlists"
-    MusicSection.ALBUMS -> "${state.allTracks.map { it.displayAlbum }.distinct().size} albums"
-    MusicSection.ARTISTS -> "${state.allTracks.map { it.displayArtist }.distinct().size} artists"
-    MusicSection.FOLDERS -> "${state.allTracks.map { it.path.substringBeforeLast('/', "") }.distinct().size} folders"
-    MusicSection.TRACKS -> "${state.tracks.size} songs"
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun TrackRow(
-    track: AudioTrack,
-    active: Boolean,
-    playing: Boolean,
-    onClick: () -> Unit,
-    onPause: () -> Unit,
-    onPlayNext: () -> Unit,
-    onEnqueue: () -> Unit,
-) {
-    var menuOpen by remember { mutableStateOf(false) }
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = { menuOpen = true }),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MediaArtwork(track.artworkUriString, track.uriString, Modifier.size(56.dp))
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(track.displayTitle, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
-                Text(
-                    text = "${track.displayArtist} · ${track.displayAlbum}",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Text(formatDuration(track.duration), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Box {
-                IconButton(onClick = { menuOpen = true }) {
-                    Icon(NextIcons.MoreVert, contentDescription = "More options")
-                }
-                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    if (active) {
-                        DropdownMenuItem(
-                            text = { Text(if (playing) "Pause" else "Resume") },
-                            onClick = { menuOpen = false; onPause() },
-                            leadingIcon = { Icon(if (playing) NextIcons.Pause else NextIcons.Play, null) },
+                val albums = state.albums
+                if (albums.isEmpty()) {
+                    item {
+                        MusicEmptyState(
+                            icon = NextIcons.Album,
+                            title = stringResource(R.string.no_albums_title),
+                            description = stringResource(R.string.no_albums_description),
                         )
                     }
-                    DropdownMenuItem(
-                        text = { Text("Play next") },
-                        onClick = { menuOpen = false; onPlayNext() },
-                        leadingIcon = { Icon(NextIcons.PlaylistAdd, null) },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Add to queue") },
-                        onClick = { menuOpen = false; onEnqueue() },
-                        leadingIcon = { Icon(NextIcons.QueueMusic, null) },
+                } else {
+                    items(albums, key = { "album-${it.name}" }) { album ->
+                        CollectionListItem(
+                            title = album.name,
+                            subtitle = pluralStringResource(
+                                R.plurals.song_count,
+                                album.trackCount,
+                                album.trackCount,
+                            ),
+                            artworkUri = album.artworkUri,
+                            mediaUri = album.mediaUri,
+                            icon = NextIcons.Album,
+                            onClick = { onSelectAlbum(album.name) },
+                        )
+                    }
+                }
+            }
+
+            MusicSection.ARTISTS -> {
+                val artists = state.artists
+                if (artists.isEmpty()) {
+                    item {
+                        MusicEmptyState(
+                            icon = NextIcons.Artist,
+                            title = stringResource(R.string.no_artists_title),
+                            description = stringResource(R.string.no_artists_description),
+                        )
+                    }
+                } else {
+                    items(artists, key = { "artist-${it.name}" }) { artist ->
+                        CollectionListItem(
+                            title = artist.name,
+                            subtitle = pluralStringResource(
+                                R.plurals.song_count,
+                                artist.trackCount,
+                                artist.trackCount,
+                            ),
+                            artworkUri = artist.artworkUri,
+                            mediaUri = artist.mediaUri,
+                            icon = NextIcons.Artist,
+                            onClick = { onSelectArtist(artist.name) },
+                        )
+                    }
+                }
+            }
+
+            MusicSection.FOLDERS -> {
+                val folders = state.folders
+                if (folders.isEmpty()) {
+                    item {
+                        MusicEmptyState(
+                            icon = NextIcons.Folder,
+                            title = stringResource(R.string.no_folders_title),
+                            description = stringResource(R.string.no_folders_description),
+                        )
+                    }
+                } else {
+                    items(folders, key = { "folder-${it.name}" }) { folder ->
+                        CollectionListItem(
+                            title = folder.name.substringAfterLast('/').ifBlank { folder.name },
+                            subtitle = pluralStringResource(
+                                R.plurals.song_count,
+                                folder.trackCount,
+                                folder.trackCount,
+                            ),
+                            artworkUri = folder.artworkUri,
+                            mediaUri = folder.mediaUri,
+                            icon = NextIcons.Folder,
+                            onClick = { onSelectFolder(folder.name) },
+                            onPlay = { onPlayFolder(folder.name) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The Home dashboard.
+ *
+ * Every section is backed by data the app already records — the resume point comes from the saved
+ * queue, "Most played" from the persisted play counts — so nothing here is placeholder content.
+ */
+private fun LazyListScope.homeDashboard(
+    state: MusicUiState,
+    playback: MusicPlaybackSnapshot?,
+    animationsEnabled: Boolean,
+    actionsFor: (AudioTrack, List<AudioTrack>) -> TrackActions,
+    onShuffle: () -> Unit,
+    onPlayTrack: (AudioTrack, List<AudioTrack>) -> Unit,
+    onResume: () -> Unit,
+    onSelectSection: (MusicSection) -> Unit,
+    onSelectAlbum: (String) -> Unit,
+    onSelectArtist: (String) -> Unit,
+    onShowFavorites: () -> Unit,
+) {
+    if (state.allTracks.isEmpty()) {
+        item {
+            MusicEmptyState(
+                icon = NextIcons.Audio,
+                title = stringResource(R.string.no_music_title),
+                description = stringResource(R.string.no_music_description),
+            )
+        }
+        return
+    }
+
+    item(key = "quick-access") {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            MusicSectionHeader(title = stringResource(R.string.music_quick_access))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                QuickAccessChip(
+                    icon = NextIcons.Favorite,
+                    label = stringResource(R.string.favorites),
+                    onClick = onShowFavorites,
+                )
+                QuickAccessChip(
+                    icon = NextIcons.Playlist,
+                    label = stringResource(R.string.playlists),
+                    onClick = { onSelectSection(MusicSection.PLAYLISTS) },
+                )
+                QuickAccessChip(
+                    icon = NextIcons.Shuffle,
+                    label = stringResource(R.string.shuffle_all),
+                    onClick = onShuffle,
+                )
+            }
+        }
+    }
+
+    state.resumeTrack?.let { track ->
+        item(key = "resume") {
+            Column {
+                MusicSectionHeader(title = stringResource(R.string.continue_listening))
+                ListItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
+                    headlineContent = {
+                        Text(track.displayTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "${track.displayArtist} • ${formatTrackDuration(state.resumePositionMs)}",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    trailingContent = {
+                        FilledTonalButton(onClick = onResume) {
+                            Text(stringResource(R.string.resume_playback))
+                        }
+                    },
+                )
+            }
+        }
+    }
+
+    if (state.favorites.isNotEmpty()) {
+        carouselSection(
+            key = "favorites",
+            titleRes = R.string.favorites,
+            tracks = state.favorites,
+            onShowAll = onShowFavorites,
+            onPlayTrack = { onPlayTrack(it, state.favorites) },
+        )
+    }
+
+    if (state.recentlyPlayed.isNotEmpty()) {
+        carouselSection(
+            key = "recent",
+            titleRes = R.string.recently_played,
+            tracks = state.recentlyPlayed,
+            onShowAll = null,
+            onPlayTrack = { onPlayTrack(it, state.recentlyPlayed) },
+        )
+    }
+
+    if (state.recentlyAdded.isNotEmpty()) {
+        carouselSection(
+            key = "added",
+            titleRes = R.string.recently_added,
+            tracks = state.recentlyAdded,
+            onShowAll = null,
+            onPlayTrack = { onPlayTrack(it, state.recentlyAdded) },
+        )
+    }
+
+    if (state.mostPlayed.isNotEmpty()) {
+        item(key = "most-played-header") {
+            MusicSectionHeader(title = stringResource(R.string.most_played))
+        }
+        itemsIndexed(
+            items = state.mostPlayed,
+            key = { _, track -> "most-${track.uriString}" },
+        ) { index, track ->
+            TrackListItem(
+                track = track,
+                active = playback?.mediaId == track.uriString,
+                playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
+                isFavorite = track.uriString in state.favoriteUris,
+                actions = actionsFor(track, state.mostPlayed),
+                modifier = Modifier.musicItemAppearance(animationsEnabled, index),
+            )
+        }
+    }
+
+    if (state.albums.isNotEmpty()) {
+        item(key = "albums-row") {
+            Column {
+                MusicSectionHeader(
+                    title = stringResource(R.string.albums),
+                    onShowAll = { onSelectSection(MusicSection.ALBUMS) },
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(state.albums.take(HOME_ROW_LIMIT), key = { it.name }) { album ->
+                        MusicTile(
+                            title = album.name,
+                            subtitle = pluralStringResource(
+                                R.plurals.song_count,
+                                album.trackCount,
+                                album.trackCount,
+                            ),
+                            artworkUri = album.artworkUri,
+                            mediaUri = album.mediaUri,
+                            fallback = NextIcons.Album,
+                            onClick = { onSelectAlbum(album.name) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (state.artists.isNotEmpty()) {
+        item(key = "artists-row") {
+            Column {
+                MusicSectionHeader(
+                    title = stringResource(R.string.artists),
+                    onShowAll = { onSelectSection(MusicSection.ARTISTS) },
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(state.artists.take(HOME_ROW_LIMIT), key = { it.name }) { artist ->
+                        MusicTile(
+                            title = artist.name,
+                            subtitle = pluralStringResource(
+                                R.plurals.song_count,
+                                artist.trackCount,
+                                artist.trackCount,
+                            ),
+                            artworkUri = artist.artworkUri,
+                            mediaUri = artist.mediaUri,
+                            fallback = NextIcons.Artist,
+                            onClick = { onSelectArtist(artist.name) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun LazyListScope.carouselSection(
+    key: String,
+    @StringRes titleRes: Int,
+    tracks: List<AudioTrack>,
+    onShowAll: (() -> Unit)?,
+    onPlayTrack: (AudioTrack) -> Unit,
+) {
+    item(key = "$key-row") {
+        Column {
+            MusicSectionHeader(title = stringResource(titleRes), onShowAll = onShowAll)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                items(tracks.take(HOME_ROW_LIMIT), key = { "$key-${it.uriString}" }) { track ->
+                    MusicTile(
+                        title = track.displayTitle,
+                        subtitle = track.displayArtist,
+                        artworkUri = track.artworkUriString,
+                        mediaUri = track.uriString,
+                        onClick = { onPlayTrack(track) },
                     )
                 }
             }
@@ -601,57 +765,96 @@ private fun TrackRow(
     }
 }
 
+private fun LazyListScope.trackList(
+    tracks: List<AudioTrack>,
+    state: MusicUiState,
+    playback: MusicPlaybackSnapshot?,
+    animationsEnabled: Boolean,
+    actionsFor: (AudioTrack, List<AudioTrack>) -> TrackActions,
+    onShuffle: () -> Unit,
+) {
+    if (tracks.isEmpty()) {
+        item {
+            MusicEmptyState(
+                icon = NextIcons.Audio,
+                title = stringResource(R.string.no_music_title),
+                description = stringResource(R.string.no_music_description),
+            )
+        }
+        return
+    }
+
+    item(key = "tracks-header") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = pluralStringResource(R.plurals.song_count, tracks.size, tracks.size),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+            )
+            FilledTonalButton(onClick = onShuffle) {
+                Icon(NextIcons.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.shuffle_all))
+            }
+        }
+    }
+
+    itemsIndexed(tracks, key = { _, track -> "track-${track.uriString}" }) { index, track ->
+        TrackListItem(
+            track = track,
+            active = playback?.mediaId == track.uriString,
+            playing = playback?.let { it.mediaId == track.uriString && it.isPlaying } == true,
+            isFavorite = track.uriString in state.favoriteUris,
+            actions = actionsFor(track, tracks),
+            modifier = Modifier.musicItemAppearance(animationsEnabled, index),
+        )
+    }
+}
+
 @Composable
-private fun CollectionRow(
+private fun CollectionListItem(
     title: String,
     subtitle: String,
     artworkUri: String?,
     mediaUri: String?,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit,
     onPlay: (() -> Unit)? = null,
 ) {
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-    ) {
-        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            MediaArtwork(artworkUri, mediaUri, Modifier.size(58.dp), fallback = icon)
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (onPlay != null) {
-                IconButton(onClick = onPlay) {
-                    Icon(NextIcons.Play, contentDescription = "Play folder")
+    ListItem(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        leadingContent = {
+            MediaArtwork(
+                artworkUri = artworkUri,
+                mediaUri = mediaUri,
+                modifier = Modifier.size(52.dp),
+                fallback = icon,
+            )
+        },
+        headlineContent = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        supportingContent = { Text(subtitle) },
+        trailingContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (onPlay != null) {
+                    IconButton(onClick = onPlay) {
+                        Icon(NextIcons.Play, contentDescription = stringResource(R.string.play_folder))
+                    }
                 }
+                Icon(
+                    imageVector = NextIcons.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
             }
-            Icon(NextIcons.ArrowBack, contentDescription = null, modifier = Modifier.size(20.dp).rotate(180f))
-        }
-    }
-}
-
-@Composable
-private fun EmptyMusicState(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    body: String,
-    action: (@Composable () -> Unit)?,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 72.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
-            Icon(icon, contentDescription = null, modifier = Modifier.padding(18.dp).size(32.dp), tint = MaterialTheme.colorScheme.primary)
-        }
-        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        action?.invoke()
-    }
+        },
+    )
 }
 
 @Composable
@@ -664,30 +867,84 @@ private fun MusicSortDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Sort music") },
+        icon = { Icon(NextIcons.Sort, contentDescription = null) },
+        title = { Text(stringResource(R.string.sort_music)) },
         text = {
             Column {
                 MusicSort.entries.forEach { sort ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { onSelected(sort) }.padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(sort.label, Modifier.weight(1f))
-                        if (sort == selected) Text(if (ascending) "A–Z" else "Z–A", color = MaterialTheme.colorScheme.primary)
-                    }
+                    ListItem(
+                        modifier = Modifier.clickable { onSelected(sort) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = { Text(stringResource(sort.labelRes)) },
+                        trailingContent = if (sort == selected) {
+                            { Icon(NextIcons.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    )
                 }
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                TextButton(onClick = onToggleDirection) { Text(if (ascending) "Descending" else "Ascending") }
+                TextButton(onClick = onToggleDirection) {
+                    Text(
+                        stringResource(
+                            if (ascending) R.string.sort_descending else R.string.sort_ascending,
+                        ),
+                    )
+                }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) } },
     )
 }
 
-private fun formatDuration(durationMs: Long): String {
-    val totalSeconds = (durationMs / 1000L).coerceAtLeast(0L)
-    val seconds = totalSeconds % 60
-    val minutes = (totalSeconds / 60) % 60
-    val hours = totalSeconds / 3600
-    return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds) else "%d:%02d".format(minutes, seconds)
+@Composable
+private fun StreamUrlDialog(onPlay: (String) -> Unit, onDismiss: () -> Unit) {
+    var url by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(NextIcons.Link, contentDescription = null) },
+        title = { Text(stringResource(R.string.stream_url)) },
+        text = {
+            OutlinedTextField(
+                value = url,
+                onValueChange = { url = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.example_url)) },
+                singleLine = true,
+            )
+        },
+        confirmButton = {
+            TextButton(enabled = url.isNotBlank(), onClick = { onPlay(url.trim()) }) {
+                Text(stringResource(R.string.play))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
+    )
 }
+
+/** Shares the song's own content URI through the system chooser. */
+private fun Context.shareTrack(track: AudioTrack) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "audio/*"
+        putExtra(Intent.EXTRA_STREAM, track.uriString.toUri())
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    runCatching { startActivity(Intent.createChooser(intent, null)) }
+}
+
+@Composable
+private fun greetingText(): String {
+    val hour = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
+    return stringResource(
+        when (hour) {
+            in 5..11 -> R.string.good_morning
+            in 12..17 -> R.string.good_afternoon
+            else -> R.string.good_evening
+        },
+    )
+}
+
+/** How many entries each Home carousel shows before "Show all". */
+private const val HOME_ROW_LIMIT = 12

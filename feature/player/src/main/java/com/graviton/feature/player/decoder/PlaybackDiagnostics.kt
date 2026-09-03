@@ -40,6 +40,17 @@ class PlaybackDiagnostics(
     private var decoderInitialisations = 0
     private var droppedFrames = 0
 
+    /**
+     * The latest decoder facts, readable by the UI.
+     *
+     * These are the same values the log lines below report; exposing them lets the Video
+     * information sheet show what actually decoded the stream instead of guessing. Nothing here
+     * influences playback.
+     */
+    @Volatile
+    var snapshot: PlaybackDiagnosticsSnapshot = PlaybackDiagnosticsSnapshot()
+        private set
+
     override fun onVideoInputFormatChanged(
         eventTime: AnalyticsListener.EventTime,
         format: Format,
@@ -47,6 +58,7 @@ class PlaybackDiagnostics(
     ) {
         decoderInitialisations = 0
         droppedFrames = 0
+        snapshot = snapshot.copy(droppedFrames = 0, decoderInitialisations = 0)
 
         val spec = format.toVideoStreamSpec()
         currentSpec = spec
@@ -83,7 +95,23 @@ class PlaybackDiagnostics(
         }
         val fallback = if (decoderInitialisations > 1) " [fallback attempt #$decoderInitialisations]" else ""
 
+        snapshot = snapshot.copy(
+            videoDecoderName = decoderName,
+            isVideoDecoderHardware = hardware,
+            videoDecoderInitMs = initializationDurationMs,
+            decoderInitialisations = decoderInitialisations,
+        )
+
         log("decoder=$decoderName kind=$kind initMs=$initializationDurationMs$fallback")
+    }
+
+    override fun onAudioDecoderInitialized(
+        eventTime: AnalyticsListener.EventTime,
+        decoderName: String,
+        initializedTimestampMs: Long,
+        initializationDurationMs: Long,
+    ) {
+        snapshot = snapshot.copy(audioDecoderName = decoderName)
     }
 
     override fun onVideoDecoderReleased(
@@ -99,6 +127,7 @@ class PlaybackDiagnostics(
         elapsedMs: Long,
     ) {
         droppedFrames += droppedFrameCount
+        snapshot = snapshot.copy(droppedFrames = droppedFrames)
         log("droppedFrames=+$droppedFrameCount in ${elapsedMs}ms (total=$droppedFrames)")
     }
 
@@ -131,5 +160,25 @@ class PlaybackDiagnostics(
 
     companion object {
         const val TAG = "GravitonDecoder"
+    }
+}
+
+/**
+ * An immutable read of what the renderers are currently doing.
+ *
+ * Null / [UNKNOWN_INT] members mean "not reported yet", which the UI surfaces as "Unknown" rather
+ * than inventing a value.
+ */
+data class PlaybackDiagnosticsSnapshot(
+    val videoDecoderName: String? = null,
+    /** True for a platform hardware decoder, false for a platform software one, null for an app decoder. */
+    val isVideoDecoderHardware: Boolean? = null,
+    val videoDecoderInitMs: Long = UNKNOWN_LONG,
+    val audioDecoderName: String? = null,
+    val droppedFrames: Int = 0,
+    val decoderInitialisations: Int = 0,
+) {
+    companion object {
+        const val UNKNOWN_LONG = -1L
     }
 }

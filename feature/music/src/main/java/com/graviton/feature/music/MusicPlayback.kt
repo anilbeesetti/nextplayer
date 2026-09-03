@@ -6,11 +6,13 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.media3.common.MediaItem
@@ -20,9 +22,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.graviton.feature.player.service.PlayerService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
 
 /**
  * A connection to the existing Graviton MediaSession. This class never creates an ExoPlayer; the
@@ -128,11 +130,24 @@ class MusicPlaybackSnapshot(private val player: Player) {
             ?.getFormat(0)
     }
 
+    /** Refreshes only the position — the one value the player does not raise events for. */
+    fun refreshPosition() {
+        positionMs = player.currentPosition.coerceAtLeast(0L)
+        durationMs = player.duration.coerceAtLeast(0L)
+    }
+
     fun release() {
         player.removeListener(listener)
     }
 }
 
+/**
+ * Observes the session and keeps a Compose-friendly snapshot of it.
+ *
+ * Everything except the playback position is event-driven. The position is the only value that
+ * changes without an event, so it is the only thing polled — and only while playback is actually
+ * running, so an idle or paused screen costs nothing.
+ */
 @Composable
 fun rememberMusicPlaybackSnapshot(controller: MediaController?): MusicPlaybackSnapshot? {
     if (controller == null) return null
@@ -140,8 +155,16 @@ fun rememberMusicPlaybackSnapshot(controller: MediaController?): MusicPlaybackSn
     DisposableEffect(snapshot) {
         onDispose { snapshot.release() }
     }
+    LaunchedEffect(snapshot, snapshot.isPlaying) {
+        while (snapshot.isPlaying) {
+            snapshot.refreshPosition()
+            delay(POSITION_TICK_MS)
+        }
+    }
     return snapshot
 }
+
+private const val POSITION_TICK_MS = 500L
 
 fun MediaController.playTracks(tracks: List<com.graviton.core.model.AudioTrack>, startIndex: Int = 0) {
     if (tracks.isEmpty()) return

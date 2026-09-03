@@ -34,3 +34,21 @@ fun startIndexForFolderPlayback(
     val index = lastPlayedUri?.let { trackUris.indexOf(it) } ?: -1
     return if (index >= 0) index else 0
 }
+
+/**
+ * Adds or removes [uri] from the favourites list.
+ *
+ * Favourites are stored as URI strings so they survive a MediaStore rescan changing row ids.
+ */
+fun ApplicationPreferences.toggleMusicFavorite(uri: String): ApplicationPreferences {
+    if (uri.isBlank()) return this
+    return copy(
+        musicFavorites = if (uri in musicFavorites) {
+            musicFavorites - uri
+        } else {
+            musicFavorites + uri
+        },
+    )
+}
+
+fun ApplicationPreferences.isMusicFavorite(uri: String): Boolean = uri in musicFavorites
