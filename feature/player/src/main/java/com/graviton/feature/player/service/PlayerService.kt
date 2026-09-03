@@ -830,6 +830,21 @@ class PlayerService : MediaLibraryService() {
         val renderersFactory = NextRenderersFactory(applicationContext)
             .setEnableDecoderFallback(decoderConfiguration.enableDecoderFallback)
             .setExtensionRendererMode(decoderConfiguration.extensionRendererMode)
+            .setMediaCodecSelector(
+                object : androidx.media3.exoplayer.mediacodec.MediaCodecSelector {
+                    override fun getDecoderInfos(
+                        mimeType: String,
+                        requiresSecureDecoder: Boolean,
+                        requiresTunnelingDecoder: Boolean
+                    ): MutableList<androidx.media3.exoplayer.mediacodec.MediaCodecInfo> {
+                        val defaultInfos = androidx.media3.exoplayer.mediacodec.MediaCodecSelector.DEFAULT.getDecoderInfos(mimeType, requiresSecureDecoder, requiresTunnelingDecoder)
+                        if (playerPreferences.decoderMode == com.graviton.core.model.DecoderMode.HARDWARE || playerPreferences.decoderMode == com.graviton.core.model.DecoderMode.HARDWARE_PLUS) {
+                            return defaultInfos.filter { it.hardwareAccelerated }.toMutableList()
+                        }
+                        return defaultInfos
+                    }
+                }
+            )
 
         val trackSelector = DefaultTrackSelector(applicationContext).apply {
             setParameters(

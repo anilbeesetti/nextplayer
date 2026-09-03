@@ -1,6 +1,8 @@
 package com.graviton.feature.player.decoder
 
 import android.media.MediaCodecInfo
+import android.annotation.SuppressLint
+import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
 import androidx.media3.common.Format
 import com.graviton.core.model.decoder.BitDepth
 import com.graviton.core.model.decoder.VideoCodec
@@ -15,10 +17,12 @@ import com.graviton.core.model.decoder.VideoStreamSpec
  * a profile comparison to mean anything; if a profile ever looks wrong in the diagnostics log, this
  * mapping is the first place to look.
  */
+@SuppressLint("UnsafeOptInUsageError")
 fun Format.toVideoStreamSpec(): VideoStreamSpec? {
     val codec = VideoCodec.fromMimeType(sampleMimeType) ?: return null
-    val fmtProfile = Format.NO_VALUE
-    val fmtLevel = Format.NO_VALUE
+    val profileLevel = MediaCodecUtil.getCodecProfileAndLevel(this)
+    val fmtProfile = profileLevel?.first ?: Format.NO_VALUE
+    val fmtLevel = profileLevel?.second ?: Format.NO_VALUE
     val fmtWidth = this.width
     val fmtHeight = this.height
     val fmtFrameRate = this.frameRate

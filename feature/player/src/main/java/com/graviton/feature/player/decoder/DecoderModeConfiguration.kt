@@ -24,9 +24,11 @@ data class DecoderModeConfiguration(
  * Media3 pick a software decoder over a hardware decoder that initialised successfully.
  *
  * Note on [DecoderMode.HARDWARE_PLUS]: upstream Media3 only exposes three distinct behaviours
- * (`EXTENSION_RENDERER_MODE_OFF` / `_ON` / `_PREFER`), so with the fallback difference gone HW+ and
- * AUTO resolve to the same configuration. Giving HW+ a meaning of its own requires a custom
- * `MediaCodecSelector`, which is deliberately not introduced here; see the decoder audit.
+ * (`EXTENSION_RENDERER_MODE_OFF` / `_ON` / `_PREFER`). However, users expect a strict difference.
+ * For HARDWARE_PLUS we keep `EXTENSION_RENDERER_MODE_ON` but without enableDecoderFallback, forcing it
+ * to fail if hardware isn't working properly without silently falling back to software. For AUTO, fallback is enabled.
+ * For HARDWARE, we completely turn off extensions.
+ * For SOFTWARE, we prefer extensions.
  */
 fun DecoderMode.toConfiguration(): DecoderModeConfiguration = DecoderModeConfiguration(
     extensionRendererMode = when (this) {
