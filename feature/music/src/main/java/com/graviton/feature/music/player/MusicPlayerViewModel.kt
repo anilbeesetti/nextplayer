@@ -2,12 +2,13 @@ package com.graviton.feature.music.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import com.graviton.core.data.repository.MusicRepository
 import com.graviton.core.data.repository.PreferencesRepository
+import com.graviton.core.model.toggleMusicFavorite
 import com.graviton.feature.music.lyrics.LyricsDocument
 import com.graviton.feature.music.lyrics.LyricsParser
 import com.graviton.feature.music.lyrics.LyricsRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +23,14 @@ class MusicPlayerViewModel @Inject constructor(
     private val lyricsInternal = MutableStateFlow(LyricsParser.parse(null))
     val lyrics = lyricsInternal.asStateFlow()
     val preferences = preferencesRepository.applicationPreferences
+
+    /** Toggles the favourite flag for the item currently playing. */
+    fun toggleFavorite(uriString: String?) {
+        val uri = uriString?.takeIf { it.isNotBlank() } ?: return
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences { it.toggleMusicFavorite(uri) }
+        }
+    }
 
     fun loadLyrics(uriString: String?, title: String?) {
         viewModelScope.launch {

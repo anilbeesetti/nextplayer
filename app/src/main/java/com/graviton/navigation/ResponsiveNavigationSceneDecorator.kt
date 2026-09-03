@@ -1,6 +1,7 @@
 package com.graviton.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.only
@@ -12,10 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneDecoratorStrategy
 import androidx.window.core.layout.WindowSizeClass
+import com.graviton.feature.music.NowPlayingMiniBar
 
 /**
  * Wraps a [Scene] so that top-level destinations are shown alongside the app's navigation UI: a
@@ -63,12 +66,9 @@ class ResponsiveNavigationScene<T : Any>(
         } else if (!showNavigation()) {
             Box {
                 scene.content()
-                com.graviton.feature.music.NowPlayingMiniBar(
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
-                )
+                NowPlayingMiniBar(modifier = Modifier.align(Alignment.BottomCenter))
             }
         } else {
-
             val navLayoutType = when {
                 windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> {
                     NavigationSuiteType.NavigationRail
@@ -77,18 +77,19 @@ class ResponsiveNavigationScene<T : Any>(
                 else -> NavigationSuiteType.NavigationBar
             }
 
-
             NavigationSuiteScaffoldLayout(
                 layoutType = navLayoutType,
                 navigationSuite = {
                     when (navLayoutType) {
-                        NavigationSuiteType.NavigationBar -> {
+                        // On phones the mini bar is stacked directly on top of the bar so the two
+                        // read as one bottom surface, and the bar's own insets keep both clear of
+                        // the system navigation.
+                        NavigationSuiteType.NavigationBar -> Column {
+                            NowPlayingMiniBar()
                             navBarContent()
                         }
 
-                        NavigationSuiteType.NavigationRail -> {
-                            navRailContent()
-                        }
+                        NavigationSuiteType.NavigationRail -> navRailContent()
                     }
                 },
             ) {
@@ -99,14 +100,16 @@ class ResponsiveNavigationScene<T : Any>(
                                 NavigationSuiteType.NavigationBar -> WindowInsetsSides.Bottom
                                 NavigationSuiteType.NavigationRail -> WindowInsetsSides.Start
                                 else -> WindowInsetsSides.Bottom
-                            }
-                        )
-                    )
+                            },
+                        ),
+                    ),
                 ) {
                     scene.content()
-                    com.graviton.feature.music.NowPlayingMiniBar(
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
-                    )
+                    // With a rail there is no bottom bar to attach to, so the mini bar anchors to
+                    // the bottom of the content pane instead.
+                    if (navLayoutType == NavigationSuiteType.NavigationRail) {
+                        NowPlayingMiniBar(modifier = Modifier.align(Alignment.BottomCenter))
+                    }
                 }
             }
         }

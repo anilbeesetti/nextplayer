@@ -42,15 +42,12 @@ data class ApplicationPreferences(
     val musicShowNextTrack: Boolean = true,
     val musicShowMetadata: Boolean = true,
     val musicShowCodecInfo: Boolean = false,
-    val musicControlLayout: MusicControlLayout = MusicControlLayout.BALANCED,
     val musicGestureControls: Boolean = true,
     val musicSeekGestureSensitivity: Float = 1f,
     val musicShowLyricsButton: Boolean = true,
     val musicShowQueueButton: Boolean = true,
     val musicShowSleepTimerButton: Boolean = true,
     val musicAnimationsEnabled: Boolean = true,
-    val musicGaplessPlayback: Boolean = true,
-    val musicAudioOffload: Boolean = false,
     val musicReplayGainEnabled: Boolean = false,
     val musicReplayGainPreampDb: Float = 0f,
     val musicEqualizerEnabled: Boolean = false,
@@ -76,6 +73,11 @@ data class ApplicationPreferences(
     val showSizeField: Boolean = false,
     val showThumbnailField: Boolean = true,
     val showPlayedProgress: Boolean = true,
+
+    // Video player tools. Bookmarks are keyed by media id so they follow the file, and the
+    // tutorial flag is a plain boolean so the onboarding sheet can be dismissed permanently.
+    val videoBookmarks: Map<String, List<VideoBookmark>> = emptyMap(),
+    val playerTutorialShown: Boolean = false,
 
     // Thumbnail generation
     val thumbnailGenerationStrategy: ThumbnailGenerationStrategy = ThumbnailGenerationStrategy.FRAME_AT_PERCENTAGE,

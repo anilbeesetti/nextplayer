@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.media3.common.C
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
+import com.graviton.feature.player.decoder.PlaybackDiagnosticsSnapshot
 import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {
@@ -24,6 +25,7 @@ enum class CustomCommands(val customAction: String) {
     START_SLEEP_TIMER(customAction = "START_SLEEP_TIMER"),
     CANCEL_SLEEP_TIMER(customAction = "CANCEL_SLEEP_TIMER"),
     GET_SLEEP_TIMER(customAction = "GET_SLEEP_TIMER"),
+    GET_PLAYBACK_DIAGNOSTICS(customAction = "GET_PLAYBACK_DIAGNOSTICS"),
     ;
 
     val sessionCommand = SessionCommand(customAction, Bundle.EMPTY)
@@ -49,6 +51,12 @@ enum class CustomCommands(val customAction: String) {
         const val SLEEP_FADE_MS_KEY = "sleep_fade_ms"
         const val SLEEP_END_OF_TRACK_KEY = "sleep_end_of_track"
         const val SLEEP_REMAINING_MS_KEY = "sleep_remaining_ms"
+        const val VIDEO_DECODER_NAME_KEY = "video_decoder_name"
+        const val VIDEO_DECODER_IS_HARDWARE_KEY = "video_decoder_is_hardware"
+        const val VIDEO_DECODER_INIT_MS_KEY = "video_decoder_init_ms"
+        const val AUDIO_DECODER_NAME_KEY = "audio_decoder_name"
+        const val DROPPED_FRAMES_KEY = "dropped_frames"
+        const val DECODER_INITIALISATIONS_KEY = "decoder_initialisations"
     }
 }
 
@@ -148,4 +156,32 @@ suspend fun MediaController.cancelSleepTimer() {
 suspend fun MediaController.getSleepTimerRemainingMs(): Long {
     val result = sendCustomCommand(CustomCommands.GET_SLEEP_TIMER.sessionCommand, Bundle.EMPTY).await()
     return result.extras.getLong(CustomCommands.SLEEP_REMAINING_MS_KEY, 0L)
+}
+
+/**
+ * Reads the decoder facts the service's [com.graviton.feature.player.decoder.PlaybackDiagnostics]
+ * has observed, for the Video information sheet.
+ *
+ * A missing key means the renderer has not reported that value yet, which the UI shows as
+ * "Unknown".
+ */
+suspend fun MediaController.getPlaybackDiagnostics(): PlaybackDiagnosticsSnapshot {
+    val extras = sendCustomCommand(CustomCommands.GET_PLAYBACK_DIAGNOSTICS.sessionCommand, Bundle.EMPTY)
+        .await()
+        .extras
+    return PlaybackDiagnosticsSnapshot(
+        videoDecoderName = extras.getString(CustomCommands.VIDEO_DECODER_NAME_KEY),
+        isVideoDecoderHardware = if (extras.containsKey(CustomCommands.VIDEO_DECODER_IS_HARDWARE_KEY)) {
+            extras.getBoolean(CustomCommands.VIDEO_DECODER_IS_HARDWARE_KEY)
+        } else {
+            null
+        },
+        videoDecoderInitMs = extras.getLong(
+            CustomCommands.VIDEO_DECODER_INIT_MS_KEY,
+            PlaybackDiagnosticsSnapshot.UNKNOWN_LONG,
+        ),
+        audioDecoderName = extras.getString(CustomCommands.AUDIO_DECODER_NAME_KEY),
+        droppedFrames = extras.getInt(CustomCommands.DROPPED_FRAMES_KEY, 0),
+        decoderInitialisations = extras.getInt(CustomCommands.DECODER_INITIALISATIONS_KEY, 0),
+    )
 }

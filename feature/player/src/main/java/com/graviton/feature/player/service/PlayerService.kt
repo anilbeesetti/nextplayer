@@ -39,7 +39,6 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.ListenableFuture
-import dagger.hilt.android.AndroidEntryPoint
 import com.graviton.core.common.extensions.deleteFiles
 import com.graviton.core.common.extensions.getFilenameFromUri
 import com.graviton.core.common.extensions.getLocalSubtitles
@@ -73,6 +72,7 @@ import com.graviton.feature.player.extensions.subtitleTrackIndex
 import com.graviton.feature.player.extensions.switchTrack
 import com.graviton.feature.player.extensions.uriToSubtitleConfiguration
 import com.graviton.feature.player.extensions.videoZoom
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegLibrary
 import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory
 import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
@@ -800,6 +800,27 @@ class PlayerService : MediaLibraryService() {
                     return@future SessionResult(
                         SessionResult.RESULT_SUCCESS,
                         Bundle().apply { putLong(CustomCommands.SLEEP_REMAINING_MS_KEY, remaining) },
+                    )
+                }
+
+                CustomCommands.GET_PLAYBACK_DIAGNOSTICS -> {
+                    val diagnostics = playbackDiagnostics.snapshot
+                    return@future SessionResult(
+                        SessionResult.RESULT_SUCCESS,
+                        Bundle().apply {
+                            diagnostics.videoDecoderName?.let {
+                                putString(CustomCommands.VIDEO_DECODER_NAME_KEY, it)
+                            }
+                            diagnostics.isVideoDecoderHardware?.let {
+                                putBoolean(CustomCommands.VIDEO_DECODER_IS_HARDWARE_KEY, it)
+                            }
+                            putLong(CustomCommands.VIDEO_DECODER_INIT_MS_KEY, diagnostics.videoDecoderInitMs)
+                            diagnostics.audioDecoderName?.let {
+                                putString(CustomCommands.AUDIO_DECODER_NAME_KEY, it)
+                            }
+                            putInt(CustomCommands.DROPPED_FRAMES_KEY, diagnostics.droppedFrames)
+                            putInt(CustomCommands.DECODER_INITIALISATIONS_KEY, diagnostics.decoderInitialisations)
+                        },
                     )
                 }
             }

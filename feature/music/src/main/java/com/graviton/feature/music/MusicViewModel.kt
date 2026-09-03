@@ -1,8 +1,10 @@
 package com.graviton.feature.music
 
+import androidx.annotation.StringRes
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import com.graviton.core.data.repository.MusicRepository
 import com.graviton.core.data.repository.PreferencesRepository
 import com.graviton.core.model.AudioTrack
@@ -10,6 +12,10 @@ import com.graviton.core.model.MusicPlaylist
 import com.graviton.core.model.lastMusicUriForFolder
 import com.graviton.core.model.recordMusicPlay
 import com.graviton.core.model.startIndexForFolderPlayback
+import com.graviton.core.model.toggleMusicFavorite
+import com.graviton.core.ui.R
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,24 +23,23 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /** Sections shown in the music library. The names also describe the actual MediaStore query used. */
-enum class MusicSection(val label: String) {
-    HOME("Home"),
-    TRACKS("Tracks"),
-    PLAYLISTS("Playlists"),
-    ALBUMS("Albums"),
-    ARTISTS("Artists"),
-    FOLDERS("Folders"),
+enum class MusicSection(@StringRes val labelRes: Int) {
+    HOME(R.string.home),
+    TRACKS(R.string.tracks),
+    PLAYLISTS(R.string.playlists),
+    ALBUMS(R.string.albums),
+    ARTISTS(R.string.artists),
+    FOLDERS(R.string.folders),
 }
 
-enum class MusicSort(val label: String) {
-    TITLE("Title"),
-    ARTIST("Artist"),
-    ALBUM("Album"),
-    DATE_ADDED("Recently added"),
-    DURATION("Duration"),
+enum class MusicSort(@StringRes val labelRes: Int) {
+    TITLE(R.string.title),
+    ARTIST(R.string.artist),
+    ALBUM(R.string.album),
+    DATE_ADDED(R.string.recently_added),
+    DURATION(R.string.duration),
 }
 
 sealed interface MusicFilter {
@@ -43,7 +48,22 @@ sealed interface MusicFilter {
     data class Artist(val name: String) : MusicFilter
     data class Folder(val path: String) : MusicFilter
     data class Playlist(val id: Long, val name: String, val trackIds: Set<Long> = emptySet()) : MusicFilter
+    data object Favorites : MusicFilter
 }
+
+/**
+ * A grouping of tracks (album, artist or folder) precomputed in the ViewModel.
+ *
+ * Grouping is done once per library change rather than inside the composable, so scrolling never
+ * re-runs the grouping pass.
+ */
+@androidx.compose.runtime.Immutable
+data class MusicCollection(
+    val name: String,
+    val trackCount: Int,
+    val artworkUri: String?,
+    val mediaUri: String?,
+)
 
 @androidx.compose.runtime.Stable
 data class MusicUiState(
@@ -57,12 +77,37 @@ data class MusicUiState(
     val recentlyAdded: List<AudioTrack> = emptyList(),
     val mostPlayed: List<AudioTrack> = emptyList(),
     val favorites: List<AudioTrack> = emptyList(),
+    /** URIs of favourited tracks, for O(1) lookup while rendering rows. */
+    val favoriteUris: Set<String> = emptySet(),
+    /**
+     * The saved queue position, if playback was interrupted part-way through a track. This is the
+     * real resume point persisted by the player service, not a re-listing of the play history.
+     */
+    val resumeTrack: AudioTrack? = null,
+    val resumePositionMs: Long = 0L,
     val query: String = "",
     val sort: MusicSort = MusicSort.TITLE,
     val ascending: Boolean = true,
     val filter: MusicFilter = MusicFilter.None,
     val isFilterLoading: Boolean = false,
-)
+    val albums: List<MusicCollection> = emptyList(),
+    val artists: List<MusicCollection> = emptyList(),
+    val folders: List<MusicCollection> = emptyList(),
+) {
+    /** A human label for the active filter, or `null` when the whole library is shown. */
+    @Composable
+    fun activeFilterLabel(): String? = when (val current = filter) {
+        MusicFilter.None -> null
+        MusicFilter.Favorites -> stringResource(R.string.favorites)
+        is MusicFilter.Album -> "${stringResource(R.string.album)} • ${current.name}"
+        is MusicFilter.Artist -> "${stringResource(R.string.artist)} • ${current.name}"
+        is MusicFilter.Folder -> "${stringResource(R.string.folder)} • ${current.path.substringAfterLast('/')}"
+        is MusicFilter.Playlist -> "${stringResource(R.string.playlist)} • ${current.name}"
+    }
+}
+
+/** Below this, a saved position is treated as "not started" rather than something to resume. */
+private const val RESUME_THRESHOLD_MS = 5_000L
 
 @HiltViewModel
 class MusicViewModel @Inject constructor(
@@ -71,6 +116,9 @@ class MusicViewModel @Inject constructor(
 ) : ViewModel() {
     private val stateInternal = MutableStateFlow(MusicUiState())
     val uiState = stateInternal.asStateFlow()
+
+    /** The shared app preferences, reused rather than duplicated into this screen's state. */
+    val applicationPreferences = preferencesRepository.applicationPreferences
 
     private val sourceTracks = MutableStateFlow<List<AudioTrack>>(emptyList())
     private val sourcePlaylists = MutableStateFlow<List<MusicPlaylist>>(emptyList())
@@ -144,6 +192,12 @@ class MusicViewModel @Inject constructor(
         recomputeVisibleTracks()
     }
 
+    /** Switches to the Tracks list filtered to favourites. */
+    fun showFavorites() {
+        stateInternal.update { it.copy(section = MusicSection.TRACKS, filter = MusicFilter.Favorites) }
+        recomputeVisibleTracks()
+    }
+
     fun clearFilter() {
         stateInternal.update { it.copy(filter = MusicFilter.None) }
         recomputeVisibleTracks()
@@ -169,11 +223,49 @@ class MusicViewModel @Inject constructor(
         return startIndexForFolderPlayback(tracks.map { it.uriString }, last)
     }
 
+    /**
+     * Appends [track] to the MediaStore playlist [playlistId].
+     *
+     * [onResult] receives `false` when the platform refuses the write, so the UI can say so instead
+     * of silently doing nothing.
+     */
+    fun addTrackToPlaylist(playlistId: Long, track: AudioTrack, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val added = runCatching { musicRepository.addTracksToPlaylist(playlistId, listOf(track.id)) }
+                .getOrDefault(false)
+            onResult(added)
+        }
+    }
+
+    /** Creates a playlist and immediately puts [track] in it. */
+    fun createPlaylistWithTrack(name: String, track: AudioTrack, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val id = runCatching { musicRepository.createPlaylist(name) }.getOrNull()
+            val added = id != null &&
+                runCatching { musicRepository.addTracksToPlaylist(id, listOf(track.id)) }.getOrDefault(false)
+            onResult(added)
+        }
+    }
+
+    /** Toggles the favourite flag for [track] and persists it. */
+    fun toggleFavorite(track: AudioTrack) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences { it.toggleMusicFavorite(track.uriString) }
+            recomputeVisibleTracks()
+        }
+    }
+
     fun recordPlay(track: AudioTrack) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
-                it.recordMusicPlay(track.uriString, track.path.substringBeforeLast('/', ""))
+                // countPlay is what feeds musicPlayCounts, which the "Most played" section reads.
+                it.recordMusicPlay(
+                    uri = track.uriString,
+                    folderPath = track.path.substringBeforeLast('/', ""),
+                    countPlay = true,
+                )
             }
+            recomputeVisibleTracks()
         }
     }
 
@@ -202,6 +294,8 @@ class MusicViewModel @Inject constructor(
             .filter { track ->
                 when (val filter = current.filter) {
                     MusicFilter.None -> true
+                    MusicFilter.Favorites -> track.uriString in preferencesRepository
+                        .applicationPreferences.value.musicFavorites
                     is MusicFilter.Album -> track.displayAlbum == filter.name
                     is MusicFilter.Artist -> track.displayArtist == filter.name
                     is MusicFilter.Folder -> track.path.substringBeforeLast('/', "") == filter.path
@@ -241,6 +335,22 @@ class MusicViewModel @Inject constructor(
         val favorites = preferences.musicFavorites.mapNotNull { uri ->
             current.allTracks.firstOrNull { it.uriString == uri }
         }
+        val albums = current.allTracks
+            .groupBy { it.displayAlbum }
+            .map { (name, tracks) -> tracks.toCollection(name) }
+            .sortedBy { it.name.lowercase() }
+        val artists = current.allTracks
+            .groupBy { it.displayArtist }
+            .map { (name, tracks) -> tracks.toCollection(name) }
+            .sortedBy { it.name.lowercase() }
+        val folders = current.allTracks
+            .groupBy { it.path.substringBeforeLast('/', "") }
+            .map { (name, tracks) -> tracks.toCollection(name) }
+            .sortedBy { it.name.lowercase() }
+        val resumeUri = preferences.musicQueueUris.getOrNull(preferences.musicQueueIndex)
+        val resumeTrack = resumeUri
+            ?.takeIf { preferences.musicQueuePositionMs > RESUME_THRESHOLD_MS }
+            ?.let { uri -> current.allTracks.firstOrNull { it.uriString == uri } }
         stateInternal.update {
             it.copy(
                 tracks = if (current.ascending) sorted else sorted.asReversed(),
@@ -248,7 +358,20 @@ class MusicViewModel @Inject constructor(
                 recentlyPlayed = recentPlayed,
                 mostPlayed = mostPlayed,
                 favorites = favorites,
+                favoriteUris = preferences.musicFavorites.toSet(),
+                resumeTrack = resumeTrack,
+                resumePositionMs = if (resumeTrack != null) preferences.musicQueuePositionMs else 0L,
+                albums = albums,
+                artists = artists,
+                folders = folders,
             )
         }
     }
 }
+
+private fun List<AudioTrack>.toCollection(name: String) = MusicCollection(
+    name = name,
+    trackCount = size,
+    artworkUri = firstOrNull { it.artworkUriString != null }?.artworkUriString,
+    mediaUri = firstOrNull()?.uriString,
+)

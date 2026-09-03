@@ -37,7 +37,10 @@ class MusicPreferencesViewModel @Inject constructor(
             MusicPreferencesEvent.ToggleGestures -> update { it.copy(musicGestureControls = !it.musicGestureControls) }
             MusicPreferencesEvent.ToggleMetadata -> update { it.copy(musicShowMetadata = !it.musicShowMetadata) }
             MusicPreferencesEvent.ToggleCodec -> update { it.copy(musicShowCodecInfo = !it.musicShowCodecInfo) }
-            MusicPreferencesEvent.ToggleGapless -> update { it.copy(musicGaplessPlayback = !it.musicGaplessPlayback) }
+            MusicPreferencesEvent.ToggleNextTrack -> update { it.copy(musicShowNextTrack = !it.musicShowNextTrack) }
+            MusicPreferencesEvent.ToggleReplayGain -> update { it.copy(musicReplayGainEnabled = !it.musicReplayGainEnabled) }
+            is MusicPreferencesEvent.SetReplayGainPreamp -> update { it.copy(musicReplayGainPreampDb = event.value.coerceIn(-15f, 15f)) }
+            is MusicPreferencesEvent.SetSeekSensitivity -> update { it.copy(musicSeekGestureSensitivity = event.value.coerceIn(0.5f, 2f)) }
             MusicPreferencesEvent.ToggleEqualizer -> update { it.copy(musicEqualizerEnabled = !it.musicEqualizerEnabled) }
             MusicPreferencesEvent.ResetEqualizer -> update { it.copy(musicEqualizerGainsDb = List(15) { 0f }) }
             MusicPreferencesEvent.ToggleLyricsButton -> update { it.copy(musicShowLyricsButton = !it.musicShowLyricsButton) }
@@ -75,7 +78,8 @@ sealed interface MusicPreferencesEvent {
     data object ToggleGestures : MusicPreferencesEvent
     data object ToggleMetadata : MusicPreferencesEvent
     data object ToggleCodec : MusicPreferencesEvent
-    data object ToggleGapless : MusicPreferencesEvent
+    data object ToggleNextTrack : MusicPreferencesEvent
+    data object ToggleReplayGain : MusicPreferencesEvent
     data object ToggleEqualizer : MusicPreferencesEvent
     data object ResetEqualizer : MusicPreferencesEvent
     data object ToggleLyricsButton : MusicPreferencesEvent
@@ -88,5 +92,7 @@ sealed interface MusicPreferencesEvent {
     data class SetArtworkRadius(val value: Float) : MusicPreferencesEvent
     data class SetArtworkSize(val value: Int) : MusicPreferencesEvent
     data class SetBlur(val value: Float) : MusicPreferencesEvent
+    data class SetReplayGainPreamp(val value: Float) : MusicPreferencesEvent
+    data class SetSeekSensitivity(val value: Float) : MusicPreferencesEvent
     data class SetEqualizerBand(val index: Int, val gainDb: Float) : MusicPreferencesEvent
 }

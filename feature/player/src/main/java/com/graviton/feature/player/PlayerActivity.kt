@@ -2,6 +2,7 @@ package com.graviton.feature.player
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -17,7 +18,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,15 +33,14 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
-import dagger.hilt.android.AndroidEntryPoint
 import com.graviton.core.common.extensions.getInitialDirectoryUri
 import com.graviton.core.common.extensions.getMediaContentUri
+import com.graviton.core.common.service.registerForSuspendActivityResult
 import com.graviton.core.data.stream.StreamExtractor
 import com.graviton.core.model.ExtractedStream
 import com.graviton.core.model.StreamUrls
 import com.graviton.core.model.VideoPlayerBackend
 import com.graviton.core.ui.theme.GravitonTheme
-import com.graviton.core.common.service.registerForSuspendActivityResult
 import com.graviton.feature.player.backend.MpvPlayerActivity
 import com.graviton.feature.player.extensions.OpenDocumentAtInitialUri
 import com.graviton.feature.player.extensions.setExtras
@@ -46,7 +48,9 @@ import com.graviton.feature.player.extensions.uriToSubtitleConfiguration
 import com.graviton.feature.player.service.PlayerService
 import com.graviton.feature.player.service.addSubtitleTrack
 import com.graviton.feature.player.service.stopPlayerSession
+import com.graviton.feature.player.ui.NetworkStreamDialog
 import com.graviton.feature.player.utils.PlayerApi
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -126,13 +130,28 @@ class PlayerActivity : ComponentActivity() {
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             val player = renderedController
+            var showNetworkStreamDialog by rememberSaveable { mutableStateOf(false) }
 
             CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
                 GravitonTheme(darkTheme = true) {
+                    if (showNetworkStreamDialog) {
+                        NetworkStreamDialog(
+                            onPlay = { url ->
+                                showNetworkStreamDialog = false
+                                playNetworkStream(url)
+                            },
+                            onDismiss = { showNetworkStreamDialog = false },
+                        )
+                    }
+
                     MediaPlayerScreen(
                         player = player,
                         viewModel = viewModel,
+                        uiState = uiState,
                         playerPreferences = uiState.playerPreferences ?: return@GravitonTheme,
+                        onNetworkStreamClick = { showNetworkStreamDialog = true },
+                        onShareClick = ::shareCurrentMedia,
+                        onSettingsClick = ::openAppSettings,
                         onSelectSubtitleClick = {
                             lifecycleScope.launch {
                                 val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri
@@ -284,7 +303,7 @@ class PlayerActivity : ComponentActivity() {
                     MediaMetadata.Builder().apply {
                         setTitle(extracted.title ?: playerApi.title)
                         extracted.uploader?.let(::setArtist)
-                        extracted.thumbnailUrl?.let { setArtworkUri(android.net.Uri.parse(it)) }
+                        extracted.thumbnailUrl?.let { setArtworkUri(it.toUri()) }
                         if (index == mediaItemIndexToPlay) {
                             setExtras(positionMs = playerApi.position?.toLong())
                         }
@@ -391,6 +410,62 @@ class PlayerActivity : ComponentActivity() {
     private fun finishAndStopPlayerSession() {
         finish()
         mediaController?.stopPlayerSession()
+    }
+
+    /**
+     * Plays [url] in the session that is already running.
+     *
+     * Reusing the existing controller means the service, the surface and the notification are all
+     * untouched: only the media item changes.
+     */
+    private fun playNetworkStream(url: String) {
+        val controller = mediaController ?: return
+        val uri = url.toUri()
+        controller.setMediaItem(
+            MediaItem.Builder()
+                .setUri(uri)
+                .setMediaId(url)
+                .build(),
+        )
+        controller.playWhenReady = true
+        controller.prepare()
+        intent.data = uri
+    }
+
+    /** Shares the file currently playing through the system chooser. */
+    private fun shareCurrentMedia() {
+        val uri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: return
+        val shareIntent = when (uri.scheme) {
+            ContentResolver.SCHEME_CONTENT, ContentResolver.SCHEME_FILE -> Intent(Intent.ACTION_SEND).apply {
+                type = "video/*"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            // Remote streams have no file to attach, so the URL itself is the shareable payload.
+            else -> Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, uri.toString())
+            }
+        }
+        runCatching { startActivity(Intent.createChooser(shareIntent, null)) }
+    }
+
+    /**
+     * Opens the app's own settings.
+     *
+     * The launcher Activity is resolved from the package manager rather than referenced directly,
+     * because `:feature:player` must not depend on `:app`.
+     */
+    private fun openAppSettings() {
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName) ?: return
+        launchIntent.putExtra(EXTRA_OPEN_SETTINGS, true)
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        runCatching { startActivity(launchIntent) }
+    }
+
+    companion object {
+        /** Set on the launcher intent so the main Activity opens Settings on arrival. */
+        const val EXTRA_OPEN_SETTINGS = "com.graviton.extra.OPEN_SETTINGS"
     }
 
     override fun onWindowAttributesChanged(params: WindowManager.LayoutParams?) {

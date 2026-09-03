@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.graviton.core.common.extensions.isTelevision
@@ -78,37 +79,40 @@ import com.graviton.feature.player.buttons.NextButton
 import com.graviton.feature.player.buttons.PlayPauseButton
 import com.graviton.feature.player.buttons.PlayerButton
 import com.graviton.feature.player.buttons.PreviousButton
+import com.graviton.feature.player.extensions.formatted
+import com.graviton.feature.player.extensions.nameRes
 import com.graviton.feature.player.state.ControlsVisibilityState
 import com.graviton.feature.player.state.VerticalGesture
 import com.graviton.feature.player.state.rememberBrightnessState
 import com.graviton.feature.player.state.rememberControlsVisibilityState
+import com.graviton.feature.player.state.rememberCutSegmentState
 import com.graviton.feature.player.state.rememberErrorState
 import com.graviton.feature.player.state.rememberMediaPresentationState
 import com.graviton.feature.player.state.rememberMetadataState
-import com.graviton.feature.player.state.rememberPlaybackParametersState
 import com.graviton.feature.player.state.rememberPictureInPictureState
+import com.graviton.feature.player.state.rememberPlaybackDiagnosticsState
 import com.graviton.feature.player.state.rememberRotationState
 import com.graviton.feature.player.state.rememberSeekGestureState
+import com.graviton.feature.player.state.rememberSubtitleOptionsState
 import com.graviton.feature.player.state.rememberTapGestureState
+import com.graviton.feature.player.state.rememberTracksState
 import com.graviton.feature.player.state.rememberVideoZoomAndContentScaleState
 import com.graviton.feature.player.state.rememberVolumeAndBrightnessGestureState
 import com.graviton.feature.player.state.rememberVolumeState
-import com.graviton.feature.player.extensions.formatted
-import com.graviton.feature.player.extensions.nameRes
 import com.graviton.feature.player.state.seekAmountFormatted
 import com.graviton.feature.player.state.seekToPositionFormated
 import com.graviton.feature.player.ui.DoubleTapIndicator
-import com.graviton.feature.player.ui.SpeedOverlayView
 import com.graviton.feature.player.ui.OverlayShowView
 import com.graviton.feature.player.ui.OverlayView
+import com.graviton.feature.player.ui.SpeedOverlayView
 import com.graviton.feature.player.ui.SubtitleConfiguration
 import com.graviton.feature.player.ui.VerticalProgressView
 import com.graviton.feature.player.ui.controls.ControlsBottomView
 import com.graviton.feature.player.ui.controls.ControlsTopView
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> { null }
 
@@ -117,11 +121,15 @@ val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> 
 fun MediaPlayerScreen(
     player: Player?,
     viewModel: PlayerViewModel,
+    uiState: PlayerUiState,
     playerPreferences: PlayerPreferences,
     modifier: Modifier = Modifier,
     onSelectSubtitleClick: () -> Unit,
     onBackClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
+    onNetworkStreamClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
     val volumeState = rememberVolumeState(
         player = player,
@@ -171,6 +179,9 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
+    val subtitleTracksState = rememberTracksState(player, C.TRACK_TYPE_TEXT)
+    val subtitleOptionsState = rememberSubtitleOptionsState(player, viewModel::onSubtitleOptionEvent)
+    val cutSegmentState = rememberCutSegmentState(player)
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -197,6 +208,32 @@ fun MediaPlayerScreen(
     }
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
+
+    val currentMediaId = metadataState.mediaId
+    // Chapter sidecars and container info are read once per item, when the item changes.
+    LaunchedEffect(currentMediaId) {
+        currentMediaId?.let(viewModel::loadMediaDetails)
+    }
+
+    // The gesture onboarding is offered once, and only when gestures actually exist to explain.
+    LaunchedEffect(uiState.isTutorialShown) {
+        if (!uiState.isTutorialShown && overlayView == null) {
+            overlayView = OverlayView.TUTORIAL
+        }
+    }
+
+    val diagnostics = rememberPlaybackDiagnosticsState(
+        player = player,
+        enabled = overlayView == OverlayView.VIDEO_INFORMATION,
+    )
+    val bookmarks = currentMediaId?.let { uiState.bookmarks[it] }.orEmpty()
+
+    // Opening a sheet always hides the controls first, so the sheet is never stacked on top of a
+    // control bar that is about to auto-hide underneath it.
+    val openOverlay: (OverlayView) -> Unit = { target ->
+        controlsVisibilityState.hideControls()
+        overlayView = target
+    }
 
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
@@ -349,26 +386,11 @@ fun MediaPlayerScreen(
                                 ControlsTopView(
                                     title = metadataState.title ?: "",
                                     currentDecoderMode = playerPreferences.decoderMode,
-                                    onAudioClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.AUDIO_SELECTOR
-                                    },
-                                    onSubtitleClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.SUBTITLE_SELECTOR
-                                    },
-                                    onPlaybackSpeedClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.PLAYBACK_SPEED
-                                    },
-                                    onPlaylistClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.PLAYLIST
-                                    },
-                                    onDecoderClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.DECODER_SELECTOR
-                                    },
+                                    onAudioClick = { openOverlay(OverlayView.AUDIO_SELECTOR) },
+                                    onSubtitleClick = { openOverlay(OverlayView.SUBTITLE_SELECTOR) },
+                                    onPlaybackSpeedClick = { openOverlay(OverlayView.PLAYBACK_SPEED) },
+                                    onDecoderClick = { openOverlay(OverlayView.DECODER_SELECTOR) },
+                                    onMoreClick = { openOverlay(OverlayView.MORE_OPTIONS) },
                                     onBackClick = onBackClick,
                                 )
                             }
@@ -420,10 +442,7 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.showControls()
                                         videoZoomAndContentScaleState.switchToNextVideoContentScale()
                                     },
-                                    onVideoContentScaleLongClick = {
-                                        controlsVisibilityState.hideControls()
-                                        overlayView = OverlayView.VIDEO_CONTENT_SCALE
-                                    },
+                                    onVideoContentScaleLongClick = { openOverlay(OverlayView.VIDEO_CONTENT_SCALE) },
                                     onPictureInPictureClick = {
                                         if (!pictureInPictureState.hasPipPermission) {
                                             Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
@@ -475,15 +494,67 @@ fun MediaPlayerScreen(
 
 
             OverlayShowView(
-                currentDecoderMode = playerPreferences.decoderMode,
-                onDecoderModeSelected = viewModel::updateDecoderMode,
                 player = player,
                 overlayView = overlayView,
-                videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+                playerPreferences = playerPreferences,
+                videoZoomAndContentScaleState = videoZoomAndContentScaleState,
+                subtitleTracksState = subtitleTracksState,
+                subtitleOptionsState = subtitleOptionsState,
+                cutSegmentState = cutSegmentState,
+                mediaPresentationState = mediaPresentationState,
+                diagnostics = diagnostics,
+                bookmarks = bookmarks,
+                chapters = uiState.chapters,
+                mediaInfo = uiState.mediaInfo,
+                isLoadingDetails = uiState.isLoadingDetails,
+                isPipSupported = pictureInPictureState.isPipSupported,
+                aspectRatioLabel = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()),
+                longPressSpeedLabel = "%.1f\u00D7".format(playerPreferences.longPressControlsSpeed),
+                bookmarkCountLabel = bookmarks.size.takeIf { it > 0 }?.toString().orEmpty(),
+                chapterCountLabel = uiState.chapters.size.takeIf { it > 0 }?.toString().orEmpty(),
+                cutSegmentLabel = if (cutSegmentState.hasSegment) {
+                    stringResource(coreUiR.string.on)
+                } else {
+                    ""
+                },
                 onDismiss = { overlayView = null },
+                onOverlayViewChange = { overlayView = it },
                 onSelectSubtitleClick = onSelectSubtitleClick,
                 onSubtitleOptionEvent = viewModel::onSubtitleOptionEvent,
-                onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
+                onVideoContentScaleChanged = videoZoomAndContentScaleState::onVideoContentScaleChanged,
+                onDecoderModeSelected = viewModel::updateDecoderMode,
+                onScreenOrientationChanged = viewModel::updateScreenOrientation,
+                onPanGestureChanged = viewModel::updatePanGesture,
+                onAutoPipChanged = viewModel::updateAutoPip,
+                onControllerAutoHideTimeoutChanged = viewModel::updateControllerAutoHideTimeout,
+                onGesturesClick = {
+                    overlayView = null
+                    onSettingsClick()
+                },
+                onNetworkStreamClick = {
+                    overlayView = null
+                    onNetworkStreamClick()
+                },
+                onShareClick = {
+                    overlayView = null
+                    onShareClick()
+                },
+                onSettingsClick = {
+                    overlayView = null
+                    onSettingsClick()
+                },
+                onAddBookmark = { label ->
+                    currentMediaId?.let { mediaId ->
+                        viewModel.addBookmark(mediaId, player.currentPosition, label)
+                    }
+                },
+                onDeleteBookmark = { bookmark ->
+                    currentMediaId?.let { mediaId -> viewModel.deleteBookmark(mediaId, bookmark) }
+                },
+                onTutorialDontShowAgain = {
+                    viewModel.setTutorialShown(true)
+                    overlayView = null
+                },
             )
 
             SpeedOverlayView(

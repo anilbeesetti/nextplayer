@@ -25,6 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +51,12 @@ fun MusicPreferencesScreen(onNavigateUp: () -> Unit, viewModel: MusicPreferences
     MusicPreferencesContent(uiState, viewModel::onEvent, onNavigateUp)
 }
 
+/**
+ * Music settings, grouped as PLAYBACK / APPEARANCE / CONTROLS / FEATURES / AUDIO.
+ *
+ * Every switch here writes a preference that is actually read somewhere: nothing is exposed that
+ * the player or library would ignore.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MusicPreferencesContent(
@@ -59,12 +68,16 @@ private fun MusicPreferencesContent(
     var styleDialog by remember { mutableStateOf(false) }
     var backgroundDialog by remember { mutableStateOf(false) }
     val preferences = uiState.preferences
+
     Scaffold(
         topBar = {
             NextTopAppBar(
                 title = stringResource(R.string.music_settings),
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = onNavigateUp, modifier = Modifier.tvFocusDown(listFocusRequester)) {
+                    FilledTonalIconButton(
+                        onClick = onNavigateUp,
+                        modifier = Modifier.tvFocusDown(listFocusRequester),
+                    ) {
                         Icon(NextIcons.ArrowBack, stringResource(R.string.navigate_up))
                     }
                 },
@@ -73,110 +86,285 @@ private fun MusicPreferencesContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).tvListFocus(listFocusRequester)
-                .padding(innerPadding).padding(horizontal = 16.dp),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .tvListFocus(listFocusRequester)
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
         ) {
-            ListSectionTitle(text = "Now Playing")
+            ListSectionTitle(text = stringResource(R.string.playback))
+            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
+                PreferenceSwitch(
+                    title = stringResource(R.string.remember_shuffle),
+                    description = stringResource(R.string.remember_shuffle_desc),
+                    icon = NextIcons.Shuffle,
+                    isChecked = preferences.musicRememberShuffle,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleRememberShuffle) },
+                    isFirstItem = true,
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.clear_music_history),
+                    description = stringResource(R.string.clear_music_history_desc),
+                    icon = NextIcons.History,
+                    onClick = { onEvent(MusicPreferencesEvent.ClearHistory) },
+                    isLastItem = true,
+                )
+            }
+
+            ListSectionTitle(text = stringResource(R.string.music_section_appearance))
             Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
                 ClickablePreferenceItem(
-                    title = "Now Playing style",
+                    title = stringResource(R.string.now_playing_style),
                     description = preferences.musicNowPlayingStyle.displayName(),
                     icon = NextIcons.Audio,
                     onClick = { styleDialog = true },
                     isFirstItem = true,
                 )
                 ClickablePreferenceItem(
-                    title = "Background",
+                    title = stringResource(R.string.background_style),
                     description = preferences.musicBackgroundStyle.displayName(),
                     icon = NextIcons.Image,
                     onClick = { backgroundDialog = true },
                 )
-                MusicValueSlider("Artwork corners", "${preferences.musicArtworkCornerRadius.toInt()} dp", preferences.musicArtworkCornerRadius, 0f..48f) {
-                    onEvent(MusicPreferencesEvent.SetArtworkRadius(it))
-                }
-                MusicValueSlider("Artwork size", "${preferences.musicArtworkSizePercent}%", preferences.musicArtworkSizePercent.toFloat(), 70f..100f) {
-                    onEvent(MusicPreferencesEvent.SetArtworkSize(it.toInt()))
-                }
-                MusicValueSlider("Blur intensity", "${preferences.musicBlurIntensity.toInt()} dp", preferences.musicBlurIntensity, 0f..48f) {
-                    onEvent(MusicPreferencesEvent.SetBlur(it))
-                }
-                PreferenceSwitch(title = "Dynamic artwork background", description = "Derive player visuals from artwork", icon = NextIcons.Image, isChecked = preferences.musicDynamicArtworkBackground, onClick = { onEvent(MusicPreferencesEvent.ToggleDynamicBackground) })
-                PreferenceSwitch(title = "Show metadata", description = "Artist and album", icon = NextIcons.Info, isChecked = preferences.musicShowMetadata, onClick = { onEvent(MusicPreferencesEvent.ToggleMetadata) })
-                PreferenceSwitch(title = "Show codec information", description = "Only when a real format is available", icon = NextIcons.Info, isChecked = preferences.musicShowCodecInfo, onClick = { onEvent(MusicPreferencesEvent.ToggleCodec) })
-                PreferenceSwitch(title = "Player animations", description = "Animated artwork and state transitions", icon = NextIcons.Play, isChecked = preferences.musicAnimationsEnabled, onClick = { onEvent(MusicPreferencesEvent.ToggleAnimations) }, isLastItem = true)
-            }
-
-            ListSectionTitle(text = "Controls and gestures")
-            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
-                PreferenceSwitch(title = "Artwork gestures", description = "Swipe for previous or next", icon = NextIcons.SwipeHorizontal, isChecked = preferences.musicGestureControls, onClick = { onEvent(MusicPreferencesEvent.ToggleGestures) }, isFirstItem = true)
-                PreferenceSwitch(title = "Lyrics button", icon = NextIcons.Lyrics, isChecked = preferences.musicShowLyricsButton, onClick = { onEvent(MusicPreferencesEvent.ToggleLyricsButton) })
-                PreferenceSwitch(title = "Queue button", icon = NextIcons.QueueMusic, isChecked = preferences.musicShowQueueButton, onClick = { onEvent(MusicPreferencesEvent.ToggleQueueButton) })
-                PreferenceSwitch(title = "Sleep timer button", icon = NextIcons.Timer, isChecked = preferences.musicShowSleepTimerButton, onClick = { onEvent(MusicPreferencesEvent.ToggleSleepButton) }, isLastItem = true)
-            }
-
-            ListSectionTitle(text = stringResource(R.string.playback))
-            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
-                PreferenceSwitch(title = stringResource(R.string.show_lyrics), description = stringResource(R.string.show_lyrics_desc), icon = NextIcons.Lyrics, isChecked = preferences.musicShowLyrics, onClick = { onEvent(MusicPreferencesEvent.ToggleShowLyrics) }, isFirstItem = true)
-                PreferenceSwitch(title = "Gapless playback", description = "Keep one player and pre-buffer the queue", icon = NextIcons.Audio, isChecked = preferences.musicGaplessPlayback, onClick = { onEvent(MusicPreferencesEvent.ToggleGapless) })
-                PreferenceSwitch(title = stringResource(R.string.remember_shuffle), description = stringResource(R.string.remember_shuffle_desc), icon = NextIcons.Shuffle, isChecked = preferences.musicRememberShuffle, onClick = { onEvent(MusicPreferencesEvent.ToggleRememberShuffle) }, isLastItem = true)
-            }
-            ListSectionTitle(text = "Audio processing")
-            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
+                MusicValueSlider(
+                    title = stringResource(R.string.artwork_corners),
+                    valueLabel = stringResource(
+                        R.string.value_dp,
+                        preferences.musicArtworkCornerRadius.toInt(),
+                    ),
+                    value = preferences.musicArtworkCornerRadius,
+                    range = 0f..48f,
+                ) { onEvent(MusicPreferencesEvent.SetArtworkRadius(it)) }
+                MusicValueSlider(
+                    title = stringResource(R.string.artwork_size),
+                    valueLabel = stringResource(R.string.value_percent, preferences.musicArtworkSizePercent),
+                    value = preferences.musicArtworkSizePercent.toFloat(),
+                    range = 70f..100f,
+                ) { onEvent(MusicPreferencesEvent.SetArtworkSize(it.toInt())) }
                 PreferenceSwitch(
-                    title = "Equalizer",
-                    description = "15 bands on Android 9+, hardware bands on older devices",
-                    icon = NextIcons.Equalizer,
-                    isChecked = preferences.musicEqualizerEnabled,
-                    onClick = { onEvent(MusicPreferencesEvent.ToggleEqualizer) },
-                    isFirstItem = true,
+                    title = stringResource(R.string.dynamic_artwork_background),
+                    description = stringResource(R.string.dynamic_artwork_background_desc),
+                    icon = NextIcons.Image,
+                    isChecked = preferences.musicDynamicArtworkBackground,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleDynamicBackground) },
                 )
-                if (preferences.musicEqualizerEnabled) {
-                    EqualizerFrequencies.forEachIndexed { index, frequency ->
-                        MusicValueSlider(
-                            title = formatFrequency(frequency),
-                            valueLabel = "${preferences.musicEqualizerGainsDb.getOrElse(index) { 0f }.let { "%.1f".format(it) }} dB",
-                            value = preferences.musicEqualizerGainsDb.getOrElse(index) { 0f },
-                            range = -15f..15f,
-                        ) { onEvent(MusicPreferencesEvent.SetEqualizerBand(index, it)) }
-                    }
+                // The blur slider only affects the blurred-artwork background, so it is hidden
+                // rather than shown as a control that does nothing.
+                if (preferences.musicBackgroundStyle == MusicBackgroundStyle.BLURRED_ARTWORK) {
+                    MusicValueSlider(
+                        title = stringResource(R.string.blur_intensity),
+                        valueLabel = stringResource(
+                            R.string.value_dp,
+                            preferences.musicBlurIntensity.toInt(),
+                        ),
+                        value = preferences.musicBlurIntensity,
+                        range = 0f..48f,
+                    ) { onEvent(MusicPreferencesEvent.SetBlur(it)) }
                 }
-                ClickablePreferenceItem(
-                    title = "Reset equalizer",
-                    description = "Set all bands to 0 dB",
-                    icon = NextIcons.History,
-                    modifier = Modifier,
-                    onClick = { onEvent(MusicPreferencesEvent.ResetEqualizer) },
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_metadata),
+                    description = stringResource(R.string.show_metadata_desc),
+                    icon = NextIcons.Info,
+                    isChecked = preferences.musicShowMetadata,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleMetadata) },
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_next_track),
+                    description = stringResource(R.string.show_next_track_desc),
+                    icon = NextIcons.PlayNext,
+                    isChecked = preferences.musicShowNextTrack,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleNextTrack) },
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_codec_info),
+                    description = stringResource(R.string.show_codec_info_desc),
+                    icon = NextIcons.Info,
+                    isChecked = preferences.musicShowCodecInfo,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleCodec) },
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.music_animations),
+                    description = stringResource(R.string.music_animations_desc),
+                    icon = NextIcons.Play,
+                    isChecked = preferences.musicAnimationsEnabled,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleAnimations) },
                     isLastItem = true,
                 )
             }
-            ListSectionTitle(text = stringResource(R.string.recently_played))
-            ClickablePreferenceItem(title = stringResource(R.string.clear_music_history), description = stringResource(R.string.clear_music_history_desc), icon = NextIcons.History, modifier = Modifier, onClick = { onEvent(MusicPreferencesEvent.ClearHistory) }, isFirstItem = true, isLastItem = true)
+
+            ListSectionTitle(text = stringResource(R.string.music_section_controls))
+            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
+                PreferenceSwitch(
+                    title = stringResource(R.string.artwork_gestures),
+                    description = stringResource(R.string.artwork_gestures_desc),
+                    icon = NextIcons.SwipeHorizontal,
+                    isChecked = preferences.musicGestureControls,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleGestures) },
+                    isFirstItem = true,
+                )
+                if (preferences.musicGestureControls) {
+                    MusicValueSlider(
+                        title = stringResource(R.string.seek_sensitivity),
+                        valueLabel = "%.1f×".format(preferences.musicSeekGestureSensitivity),
+                        value = preferences.musicSeekGestureSensitivity,
+                        range = 0.5f..2f,
+                    ) { onEvent(MusicPreferencesEvent.SetSeekSensitivity(it)) }
+                }
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_lyrics_button),
+                    icon = NextIcons.Lyrics,
+                    isChecked = preferences.musicShowLyricsButton,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleLyricsButton) },
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_queue_button),
+                    icon = NextIcons.QueueMusic,
+                    isChecked = preferences.musicShowQueueButton,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleQueueButton) },
+                )
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_sleep_timer_button),
+                    icon = NextIcons.Timer,
+                    isChecked = preferences.musicShowSleepTimerButton,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleSleepButton) },
+                    isLastItem = true,
+                )
+            }
+
+            ListSectionTitle(text = stringResource(R.string.music_section_features))
+            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
+                PreferenceSwitch(
+                    title = stringResource(R.string.show_lyrics),
+                    description = stringResource(R.string.show_lyrics_desc),
+                    icon = NextIcons.Lyrics,
+                    isChecked = preferences.musicShowLyrics,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleShowLyrics) },
+                    isFirstItem = true,
+                    isLastItem = true,
+                )
+            }
+
+            ListSectionTitle(text = stringResource(R.string.music_section_audio))
+            Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
+                PreferenceSwitch(
+                    title = stringResource(R.string.replay_gain),
+                    description = stringResource(R.string.replay_gain_desc),
+                    icon = NextIcons.Audio,
+                    isChecked = preferences.musicReplayGainEnabled,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleReplayGain) },
+                    isFirstItem = true,
+                )
+                if (preferences.musicReplayGainEnabled) {
+                    MusicValueSlider(
+                        title = stringResource(R.string.replay_gain_preamp),
+                        valueLabel = stringResource(
+                            R.string.value_db,
+                            "%.1f".format(preferences.musicReplayGainPreampDb),
+                        ),
+                        value = preferences.musicReplayGainPreampDb,
+                        range = -15f..15f,
+                    ) { onEvent(MusicPreferencesEvent.SetReplayGainPreamp(it)) }
+                }
+                PreferenceSwitch(
+                    title = stringResource(R.string.equalizer),
+                    description = stringResource(R.string.equalizer_bands_desc),
+                    icon = NextIcons.Equalizer,
+                    isChecked = preferences.musicEqualizerEnabled,
+                    onClick = { onEvent(MusicPreferencesEvent.ToggleEqualizer) },
+                    isLastItem = !preferences.musicEqualizerEnabled,
+                )
+                if (preferences.musicEqualizerEnabled) {
+                    EqualizerFrequencies.forEachIndexed { index, frequency ->
+                        val gain = preferences.musicEqualizerGainsDb.getOrElse(index) { 0f }
+                        MusicValueSlider(
+                            title = formatFrequency(frequency),
+                            valueLabel = stringResource(R.string.value_db, "%.1f".format(gain)),
+                            value = gain,
+                            range = -15f..15f,
+                        ) { onEvent(MusicPreferencesEvent.SetEqualizerBand(index, it)) }
+                    }
+                    ClickablePreferenceItem(
+                        title = stringResource(R.string.reset_equalizer),
+                        description = stringResource(R.string.reset_equalizer_desc),
+                        icon = NextIcons.History,
+                        onClick = { onEvent(MusicPreferencesEvent.ResetEqualizer) },
+                        isLastItem = true,
+                    )
+                }
+            }
         }
     }
 
-    if (styleDialog) OptionsDialog(text = "Now Playing style", onDismissClick = { styleDialog = false }) {
-        items(NowPlayingStyle.entries) { style ->
-            RadioTextButton(text = style.displayName(), selected = style == preferences.musicNowPlayingStyle, onClick = {
-                onEvent(MusicPreferencesEvent.SetStyle(style)); styleDialog = false
-            })
+    if (styleDialog) {
+        OptionsDialog(
+            text = stringResource(R.string.now_playing_style),
+            onDismissClick = { styleDialog = false },
+        ) {
+            items(NowPlayingStyle.entries) { style ->
+                RadioTextButton(
+                    text = style.displayName(),
+                    selected = style == preferences.musicNowPlayingStyle,
+                    onClick = {
+                        onEvent(MusicPreferencesEvent.SetStyle(style))
+                        styleDialog = false
+                    },
+                )
+            }
         }
     }
-    if (backgroundDialog) OptionsDialog(text = "Player background", onDismissClick = { backgroundDialog = false }) {
-        items(MusicBackgroundStyle.entries) { style ->
-            RadioTextButton(text = style.displayName(), selected = style == preferences.musicBackgroundStyle, onClick = {
-                onEvent(MusicPreferencesEvent.SetBackground(style)); backgroundDialog = false
-            })
+    if (backgroundDialog) {
+        OptionsDialog(
+            text = stringResource(R.string.background_style),
+            onDismissClick = { backgroundDialog = false },
+        ) {
+            items(MusicBackgroundStyle.entries) { style ->
+                RadioTextButton(
+                    text = style.displayName(),
+                    selected = style == preferences.musicBackgroundStyle,
+                    onClick = {
+                        onEvent(MusicPreferencesEvent.SetBackground(style))
+                        backgroundDialog = false
+                    },
+                )
+            }
         }
     }
 }
 
+/**
+ * Title, current value and slider as a single preference row.
+ *
+ * The value label duplicates what the slider announces, so it is hidden from TalkBack to avoid
+ * reading the same number twice.
+ */
 @Composable
-private fun MusicValueSlider(title: String, valueLabel: String, value: Float, range: ClosedFloatingPointRange<Float>, onValue: (Float) -> Unit) {
+private fun MusicValueSlider(
+    title: String,
+    valueLabel: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    onValue: (Float) -> Unit,
+) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        ) {
             Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(valueLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Slider(value, onValue, valueRange = range)
+            Text(
+                text = valueLabel,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clearAndSetSemantics { },
+            )
+            Slider(
+                value = value,
+                onValueChange = onValue,
+                valueRange = range,
+                modifier = Modifier.semantics { contentDescription = title },
+            )
         }
     }
 }
@@ -185,7 +373,14 @@ private val EqualizerFrequencies = intArrayOf(
     25, 40, 63, 100, 160, 250, 400, 630, 1_000, 1_600, 2_500, 4_000, 6_300, 10_000, 16_000,
 )
 
-private fun formatFrequency(value: Int): String = if (value >= 1_000) "${value / 1_000f} kHz" else "$value Hz"
+@Composable
+private fun formatFrequency(value: Int): String = if (value >= 1_000) {
+    stringResource(R.string.frequency_khz, "%.1f".format(value / 1_000f))
+} else {
+    stringResource(R.string.frequency_hz, value)
+}
 
 private fun NowPlayingStyle.displayName() = name.lowercase().replaceFirstChar(Char::uppercase)
-private fun MusicBackgroundStyle.displayName() = name.lowercase().replace('_', ' ').replaceFirstChar(Char::uppercase)
+
+private fun MusicBackgroundStyle.displayName() =
+    name.lowercase().replace('_', ' ').replaceFirstChar(Char::uppercase)

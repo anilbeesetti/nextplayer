@@ -1,27 +1,29 @@
 package com.graviton.core.data.repository
 
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.database.ContentObserver
 import android.net.Uri
 import android.provider.MediaStore
-import dagger.hilt.android.qualifiers.ApplicationContext
+import androidx.core.net.toUri
 import com.graviton.core.common.di.ApplicationScope
 import com.graviton.core.model.AudioTrack
 import com.graviton.core.model.MusicPlaylist
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 /**
  * Queries audio through MediaStore and observes the collection for rescans/imports. Query work is
@@ -73,7 +75,7 @@ class LocalMusicRepository @Inject constructor(
 
     override suspend fun getPlaylistTrackIds(playlistId: Long): List<Long> = withContext(Dispatchers.IO) {
         val result = mutableListOf<Long>()
-        val membersUri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId)
+        val membersUri = MediaStore.Audio.Playlists.Members.getContentUri(EXTERNAL_VOLUME, playlistId)
         context.contentResolver.query(
             membersUri,
             arrayOf(MediaStore.Audio.Playlists.Members.AUDIO_ID, MediaStore.Audio.Playlists.Members.PLAY_ORDER),
@@ -87,6 +89,43 @@ class LocalMusicRepository @Inject constructor(
             }
         }
         result
+    }
+
+    override suspend fun addTracksToPlaylist(playlistId: Long, trackIds: List<Long>): Boolean =
+        withContext(Dispatchers.IO) {
+            if (trackIds.isEmpty()) return@withContext true
+            val membersUri = MediaStore.Audio.Playlists.Members.getContentUri(EXTERNAL_VOLUME, playlistId)
+            // PLAY_ORDER is 1-based and must continue after the existing members.
+            val existing = context.contentResolver.query(
+                membersUri,
+                arrayOf(MediaStore.Audio.Playlists.Members.AUDIO_ID),
+                null,
+                null,
+                null,
+            )?.use { it.count } ?: 0
+            val values = trackIds.mapIndexed { offset, trackId ->
+                ContentValues().apply {
+                    put(MediaStore.Audio.Playlists.Members.AUDIO_ID, trackId)
+                    put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, existing + offset + 1)
+                }
+            }.toTypedArray()
+            val inserted = runCatching { context.contentResolver.bulkInsert(membersUri, values) }
+                .getOrDefault(0)
+            if (inserted > 0) manualRefresh.tryEmit(Unit)
+            inserted > 0
+        }
+
+    override suspend fun createPlaylist(name: String): Long? = withContext(Dispatchers.IO) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return@withContext null
+        val values = ContentValues().apply {
+            put(MediaStore.Audio.Playlists.NAME, trimmed)
+            put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis() / 1000)
+        }
+        val uri = runCatching { context.contentResolver.insert(PLAYLIST_URI, values) }.getOrNull()
+        val id = uri?.lastPathSegment?.toLongOrNull()
+        if (id != null) manualRefresh.tryEmit(Unit)
+        id
     }
 
     private fun queryTracks(): List<AudioTrack> {
@@ -165,7 +204,7 @@ class LocalMusicRepository @Inject constructor(
                     if (idColumn < 0 || nameColumn < 0) return@use
                     while (cursor.moveToNext()) {
                         val playlistId = cursor.getLong(idColumn)
-                        val membersUri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId)
+                        val membersUri = MediaStore.Audio.Playlists.Members.getContentUri(EXTERNAL_VOLUME, playlistId)
                         val count = context.contentResolver.query(
                             membersUri,
                             arrayOf(MediaStore.Audio.Playlists.Members.AUDIO_ID),
@@ -188,7 +227,7 @@ class LocalMusicRepository @Inject constructor(
         return playlists
     }
 
-    private fun albumArtworkUri(albumId: Long): Uri = Uri.parse("content://media/external/audio/albumart/$albumId")
+    private fun albumArtworkUri(albumId: Long): Uri = "content://media/external/audio/albumart/$albumId".toUri()
 
     private fun android.database.Cursor.index(column: String): Int = getColumnIndex(column)
 
@@ -199,6 +238,7 @@ class LocalMusicRepository @Inject constructor(
         column.takeIf { it >= 0 }?.let { getLong(it) } ?: default
 
     private companion object {
+        const val EXTERNAL_VOLUME = "external"
         val AUDIO_URI: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val PLAYLIST_URI: Uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI
     }

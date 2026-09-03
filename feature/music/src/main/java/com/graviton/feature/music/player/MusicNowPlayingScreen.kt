@@ -3,9 +3,15 @@ package com.graviton.feature.music.player
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,9 +35,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -39,25 +47,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,13 +79,14 @@ import androidx.media3.session.MediaController
 import com.graviton.core.model.ApplicationPreferences
 import com.graviton.core.model.MusicBackgroundStyle
 import com.graviton.core.model.NowPlayingStyle
+import com.graviton.core.ui.R
 import com.graviton.core.ui.designsystem.NextIcons
 import com.graviton.feature.music.artwork.MediaArtwork
 import com.graviton.feature.music.lyrics.LyricsDocument
 import com.graviton.feature.music.rememberMusicPlaybackSnapshot
 import com.graviton.feature.music.rememberMusicSession
-import com.graviton.feature.player.service.getAudioSessionId
 import com.graviton.feature.player.service.cancelSleepTimer
+import com.graviton.feature.player.service.getAudioSessionId
 import com.graviton.feature.player.service.getSkipSilenceEnabled
 import com.graviton.feature.player.service.getSleepTimerRemainingMs
 import com.graviton.feature.player.service.setSkipSilenceEnabled
@@ -93,25 +107,25 @@ fun MusicNowPlayingRoute(
     val lyrics by viewModel.lyrics.collectAsStateWithLifecycle()
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var remainingSleep by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
-    LaunchedEffect(controller) {
+    var remainingSleep by remember { mutableLongStateOf(0L) }
+    // Bumped whenever the timer is armed or cancelled, so the countdown below restarts on demand
+    // instead of polling the service forever.
+    var sleepTimerTick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(controller, sleepTimerTick) {
         while (controller != null) {
             remainingSleep = runCatching { controller.getSleepTimerRemainingMs() }.getOrDefault(0L)
+            if (remainingSleep <= 0L) break
             delay(1_000)
         }
     }
     LaunchedEffect(snapshot?.mediaId) {
         viewModel.loadLyrics(snapshot?.mediaId, snapshot?.title)
     }
-    LaunchedEffect(snapshot) {
-        while (snapshot != null) {
-            snapshot.refresh()
-            delay(400)
-        }
-    }
     MusicNowPlayingScreen(
         controller = controller,
-        title = snapshot?.title.orEmpty().ifBlank { "Not playing" },
+        isFavorite = snapshot?.mediaId?.let { it in preferences.musicFavorites } == true,
+        onToggleFavorite = { viewModel.toggleFavorite(snapshot?.mediaId) },
+        title = snapshot?.title.orEmpty(),
         artist = snapshot?.artist.orEmpty(),
         album = snapshot?.album.orEmpty(),
         artworkUri = snapshot?.artworkUri?.toString(),
@@ -130,9 +144,17 @@ fun MusicNowPlayingRoute(
         onNext = { controller?.seekToNextMediaItem() },
         onPrevious = { controller?.seekToPreviousMediaItem() },
         onSleep = { minutes ->
-            scope.launch { controller?.startSleepTimer(minutes * 60_000L, fadeMs = 10_000L) }
+            scope.launch {
+                controller?.startSleepTimer(minutes * 60_000L, fadeMs = 10_000L)
+                sleepTimerTick++
+            }
         },
-        onCancelSleep = { scope.launch { controller?.cancelSleepTimer() } },
+        onCancelSleep = {
+            scope.launch {
+                controller?.cancelSleepTimer()
+                remainingSleep = 0L
+            }
+        },
     )
 }
 
@@ -140,6 +162,8 @@ fun MusicNowPlayingRoute(
 @Composable
 private fun MusicNowPlayingScreen(
     controller: MediaController?,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
     title: String,
     artist: String,
     album: String,
@@ -163,6 +187,7 @@ private fun MusicNowPlayingScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val equalizerMissing = stringResource(R.string.no_equalizer_installed)
     var showQueue by remember { mutableStateOf(false) }
     var showLyrics by remember { mutableStateOf(false) }
     var showSleep by remember { mutableStateOf(false) }
@@ -207,17 +232,30 @@ private fun MusicNowPlayingScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onClose) {
-                Icon(NextIcons.ArrowBack, contentDescription = "Close player")
+                Icon(NextIcons.ArrowBack, contentDescription = stringResource(R.string.close_player))
             }
             Text(
-                text = "Now playing",
+                text = stringResource(R.string.now_playing),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
             )
+            IconButton(onClick = onToggleFavorite) {
+                Icon(
+                    imageVector = if (isFavorite) NextIcons.Favorite else NextIcons.FavoriteOutline,
+                    contentDescription = stringResource(
+                        if (isFavorite) R.string.remove_from_favorites else R.string.add_to_favorites,
+                    ),
+                    tint = if (isFavorite) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        LocalContentColor.current
+                    },
+                )
+            }
             IconButton(onClick = { showSettings = true }) {
-                Icon(NextIcons.Settings, contentDescription = "Music settings")
+                Icon(NextIcons.MoreVert, contentDescription = stringResource(R.string.more_options))
             }
         }
 
@@ -261,7 +299,7 @@ private fun MusicNowPlayingScreen(
 
         Spacer(Modifier.height(style.metadataSpacing))
         Text(
-            title,
+            text = title.ifBlank { stringResource(R.string.not_playing) },
             style = if (preferences.musicNowPlayingStyle == NowPlayingStyle.EXPRESSIVE) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             maxLines = 2,
@@ -278,7 +316,15 @@ private fun MusicNowPlayingScreen(
         }
         if (preferences.musicShowNextTrack && controller != null && controller.hasNextMediaItem()) {
             val nextTitle = controller.getMediaItemAt(controller.nextMediaItemIndex).mediaMetadata.title?.toString()
-            if (!nextTitle.isNullOrBlank()) Text("Next • $nextTitle", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            if (!nextTitle.isNullOrBlank()) {
+                Text(
+                    text = stringResource(R.string.next_up, nextTitle),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         if (preferences.musicShowCodecInfo) {
             audioFormat?.technicalSummary()?.let {
@@ -300,8 +346,21 @@ private fun MusicNowPlayingScreen(
             modifier = Modifier.fillMaxWidth(),
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatClock(positionMs), style = MaterialTheme.typography.labelMedium)
-            Text(formatClock(durationMs), style = MaterialTheme.typography.labelMedium)
+            Text(
+                text = formatClock(positionMs),
+                style = MaterialTheme.typography.labelMedium,
+                fontFamily = FontFamily.Monospace,
+            )
+            // Remaining time is more useful than total duration while listening, and the total is
+            // still recoverable from the two values.
+            Text(
+                text = stringResource(
+                    R.string.remaining_time,
+                    formatClock((durationMs - positionMs).coerceAtLeast(0L)),
+                ),
+                style = MaterialTheme.typography.labelMedium,
+                fontFamily = FontFamily.Monospace,
+            )
         }
 
         Row(
@@ -315,8 +374,14 @@ private fun MusicNowPlayingScreen(
                 controller?.shuffleModeEnabled = !(controller?.shuffleModeEnabled ?: false)
             }) {
                 Icon(
-                    NextIcons.Shuffle,
-                    contentDescription = "Shuffle",
+                    imageVector = NextIcons.Shuffle,
+                    contentDescription = stringResource(
+                        if (controller?.shuffleModeEnabled == true) {
+                            R.string.shuffle_on
+                        } else {
+                            R.string.shuffle_off
+                        },
+                    ),
                     tint = if (controller?.shuffleModeEnabled == true) {
                         MaterialTheme.colorScheme.primary
                     } else {
@@ -324,15 +389,40 @@ private fun MusicNowPlayingScreen(
                     },
                 )
             }
-            IconButton(onClick = onPrevious) { Icon(NextIcons.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(36.dp)) }
-            FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp), shape = CircleShape) {
+            IconButton(onClick = onPrevious) {
                 Icon(
-                    imageVector = if (isPlaying) NextIcons.Pause else NextIcons.Play,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    imageVector = NextIcons.SkipPrevious,
+                    contentDescription = stringResource(R.string.previous),
                     modifier = Modifier.size(36.dp),
                 )
             }
-            IconButton(onClick = onNext) { Icon(NextIcons.SkipNext, contentDescription = "Next", modifier = Modifier.size(36.dp)) }
+            FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp), shape = CircleShape) {
+                // A short cross-fade between the two glyphs reads as a morph without needing an
+                // animated vector or a continuously running animation.
+                AnimatedContent(
+                    targetState = isPlaying,
+                    transitionSpec = {
+                        (fadeIn(tween(120)) + scaleIn(tween(120), initialScale = 0.85f))
+                            .togetherWith(fadeOut(tween(90)))
+                    },
+                    label = "playPauseMorph",
+                ) { playing ->
+                    Icon(
+                        imageVector = if (playing) NextIcons.Pause else NextIcons.Play,
+                        contentDescription = stringResource(
+                            if (playing) R.string.pause else R.string.play,
+                        ),
+                        modifier = Modifier.size(36.dp),
+                    )
+                }
+            }
+            IconButton(onClick = onNext) {
+                Icon(
+                    imageVector = NextIcons.SkipNext,
+                    contentDescription = stringResource(R.string.next),
+                    modifier = Modifier.size(36.dp),
+                )
+            }
             IconButton(onClick = {
                 val next = when (controller?.repeatMode) {
                     Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
@@ -342,8 +432,20 @@ private fun MusicNowPlayingScreen(
                 controller?.repeatMode = next
             }) {
                 Icon(
-                    imageVector = if (controller?.repeatMode == Player.REPEAT_MODE_ONE) NextIcons.RepeatOne else NextIcons.Repeat,
-                    contentDescription = "Repeat",
+                    imageVector = if (controller?.repeatMode == Player.REPEAT_MODE_ONE) {
+                        NextIcons.RepeatOne
+                    } else {
+                        NextIcons.Repeat
+                    },
+                    // The icon changes for REPEAT_ONE and the description names the mode, so the
+                    // state is never carried by tint alone.
+                    contentDescription = stringResource(
+                        when (controller?.repeatMode) {
+                            Player.REPEAT_MODE_ALL -> R.string.repeat_all
+                            Player.REPEAT_MODE_ONE -> R.string.repeat_one
+                            else -> R.string.repeat_off
+                        },
+                    ),
                     tint = if ((controller?.repeatMode ?: Player.REPEAT_MODE_OFF) != Player.REPEAT_MODE_OFF) {
                         MaterialTheme.colorScheme.primary
                     } else {
@@ -359,22 +461,53 @@ private fun MusicNowPlayingScreen(
                 .padding(bottom = 12.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            if (preferences.musicShowQueueButton) TextButton(onClick = { showQueue = true }) { Icon(NextIcons.QueueMusic, null); Spacer(Modifier.size(6.dp)); Text("Queue") }
-            if (preferences.musicShowLyricsButton) TextButton(onClick = { showLyrics = true }) { Icon(NextIcons.Lyrics, null); Spacer(Modifier.size(6.dp)); Text("Lyrics") }
-            if (preferences.musicShowSleepTimerButton) TextButton(onClick = { showSleep = true }) { Icon(NextIcons.Timer, null); Spacer(Modifier.size(6.dp)); Text(if (remainingSleepMs > 0) formatClock(remainingSleepMs) else "Sleep") }
-            TextButton(onClick = { showAudioInfo = true }) { Icon(NextIcons.Info, null); Spacer(Modifier.size(6.dp)); Text("Info") }
-            TextButton(onClick = {
-                scope.launch {
-                    val sessionId = runCatching { controller?.getAudioSessionId() }.getOrNull()
-                    val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                        putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                        sessionId?.takeIf { it > 0 }?.let { putExtra(AudioEffect.EXTRA_AUDIO_SESSION, it) }
+            if (preferences.musicShowQueueButton) {
+                NowPlayingAction(
+                    icon = NextIcons.QueueMusic,
+                    label = stringResource(R.string.queue),
+                    onClick = { showQueue = true },
+                )
+            }
+            if (preferences.musicShowLyricsButton) {
+                NowPlayingAction(
+                    icon = NextIcons.Lyrics,
+                    label = stringResource(R.string.lyrics),
+                    onClick = { showLyrics = true },
+                )
+            }
+            if (preferences.musicShowSleepTimerButton) {
+                NowPlayingAction(
+                    icon = NextIcons.Timer,
+                    label = if (remainingSleepMs > 0) {
+                        formatClock(remainingSleepMs)
+                    } else {
+                        stringResource(R.string.sleep_timer)
+                    },
+                    onClick = { showSleep = true },
+                )
+            }
+            NowPlayingAction(
+                icon = NextIcons.Equalizer,
+                label = stringResource(R.string.equalizer),
+                onClick = {
+                    scope.launch {
+                        val sessionId = runCatching { controller?.getAudioSessionId() }.getOrNull()
+                        val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                            putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                            sessionId?.takeIf { it > 0 }
+                                ?.let { putExtra(AudioEffect.EXTRA_AUDIO_SESSION, it) }
+                        }
+                        runCatching { context.startActivity(intent) }.onFailure {
+                            Toast.makeText(context, equalizerMissing, Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    runCatching { context.startActivity(intent) }.onFailure {
-                        Toast.makeText(context, "No equalizer is installed", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }) { Icon(NextIcons.Equalizer, null); Spacer(Modifier.size(6.dp)); Text("EQ") }
+                },
+            )
+            NowPlayingAction(
+                icon = NextIcons.Info,
+                label = stringResource(R.string.audio_information),
+                onClick = { showAudioInfo = true },
+            )
         }
     }
     }
@@ -401,6 +534,25 @@ private fun MusicNowPlayingScreen(
     }
 }
 
+/**
+ * One entry in the Now Playing bottom action row.
+ *
+ * The label already names the action, so the icon is decorative and TalkBack announces the button
+ * exactly once.
+ */
+@Composable
+private fun NowPlayingAction(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    TextButton(onClick = onClick) {
+        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.size(6.dp))
+        Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QueueSheet(controller: MediaController, onDismiss: () -> Unit) {
@@ -418,8 +570,8 @@ private fun QueueSheet(controller: MediaController, onDismiss: () -> Unit) {
     }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheet) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Queue", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-            TextButton(onClick = { controller.clearMediaItems(); queue.clear(); onDismiss() }) { Text("Clear") }
+            Text(stringResource(R.string.queue), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            TextButton(onClick = { controller.clearMediaItems(); queue.clear(); onDismiss() }) { Text(stringResource(R.string.clear_queue)) }
         }
         LazyColumn(state = listState) {
             itemsIndexed(queue, key = { _, item -> item.mediaId }) { index, item ->
@@ -427,19 +579,23 @@ private fun QueueSheet(controller: MediaController, onDismiss: () -> Unit) {
                     val active = item.mediaId == controller.currentMediaItem?.mediaId
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = {}, modifier = Modifier.draggableHandle()) {
-                            Icon(NextIcons.Reorder, contentDescription = "Drag to reorder")
+                            Icon(NextIcons.Reorder, contentDescription = stringResource(R.string.drag_to_reorder))
                         }
                         TextButton(
                             onClick = { controller.seekToDefaultPosition(index); controller.play() },
                             modifier = Modifier.weight(1f),
                         ) {
                             Column(Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
-                                Text(item.mediaMetadata.title?.toString().orEmpty().ifBlank { "Item ${index + 1}" }, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
+                                Text(
+                                    text = item.mediaMetadata.title?.toString().orEmpty()
+                                        .ifBlank { stringResource(R.string.queue_item, index + 1) },
+                                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                                )
                                 item.mediaMetadata.artist?.toString()?.takeIf(String::isNotBlank)?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                             }
                         }
                         IconButton(onClick = { controller.removeMediaItem(index); queue.removeAt(index) }) {
-                            Icon(NextIcons.Delete, contentDescription = "Remove from queue")
+                            Icon(NextIcons.Delete, contentDescription = stringResource(R.string.remove_from_queue))
                         }
                     }
                 }
@@ -462,7 +618,7 @@ private fun LyricsSheet(lyrics: LyricsDocument, positionMs: Long, onSeek: (Long)
         sheetState = sheet,
         modifier = Modifier.fillMaxSize(),
     ) {
-        Text("Lyrics", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+        Text(stringResource(R.string.lyrics), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
         when {
             lyrics.isSynced -> LazyColumn(state = listState, modifier = Modifier.weight(1f).padding(horizontal = 20.dp)) {
                 itemsIndexed(lyrics.lines) { index, line ->
@@ -483,7 +639,7 @@ private fun LyricsSheet(lyrics: LyricsDocument, positionMs: Long, onSeek: (Long)
                 }
             }
             !lyrics.unsynced.isNullOrBlank() -> Text(lyrics.unsynced, modifier = Modifier.padding(20.dp))
-            else -> Text("No lyrics found for this track.", modifier = Modifier.padding(20.dp))
+            else -> Text(stringResource(R.string.no_lyrics_found), modifier = Modifier.padding(20.dp))
         }
         Spacer(Modifier.height(24.dp))
     }
@@ -528,19 +684,19 @@ private fun SleepDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Sleep timer") },
+        title = { Text(stringResource(R.string.sleep_timer)) },
         text = {
             Column {
-                if (remainingMs > 0) Text("Remaining ${formatClock(remainingMs)}")
+                if (remainingMs > 0) Text(stringResource(R.string.sleep_remaining, formatClock(remainingMs)))
                 listOf(5, 15, 30, 45, 60).forEach { minutes ->
                     TextButton(onClick = { onMinutes(minutes) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("$minutes minutes")
+                        Text(stringResource(R.string.sleep_minutes, minutes))
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onCancel) { Text("Cancel timer") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Close") } },
+        confirmButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel_timer)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
     )
 }
 
@@ -553,13 +709,14 @@ private fun AudioInformationSheet(
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Audio information", style = MaterialTheme.typography.titleLarge)
-            AudioInfoRow("Codec", format?.codecs ?: format?.sampleMimeType)
-            AudioInfoRow("Bitrate", format?.bitrate?.takeIf { it > 0 }?.let { "${it / 1000} kbps" })
-            AudioInfoRow("Sample rate", format?.sampleRate?.takeIf { it > 0 }?.let { "${it / 1000f} kHz" })
-            AudioInfoRow("Channels", format?.channelCount?.takeIf { it > 0 }?.toString())
-            AudioInfoRow("Duration", formatClock(durationMs).takeIf { durationMs > 0 })
-            AudioInfoRow("Decoder", "Media3 / ${format?.sampleMimeType ?: "unknown"}")
+            Text(stringResource(R.string.audio_information), style = MaterialTheme.typography.titleLarge)
+            AudioInfoRow(stringResource(R.string.codec), format?.codecs ?: format?.sampleMimeType)
+            AudioInfoRow(stringResource(R.string.bitrate), format?.bitrate?.takeIf { it > 0 }?.let { "${it / 1000} kbps" })
+            AudioInfoRow(stringResource(R.string.sample_rate), format?.sampleRate?.takeIf { it > 0 }?.let { "${it / 1000f} kHz" })
+            AudioInfoRow(stringResource(R.string.channels), format?.channelCount?.takeIf { it > 0 }?.toString())
+            AudioInfoRow(stringResource(R.string.duration), formatClock(durationMs).takeIf { durationMs > 0 })
+            // Only report the container/codec the session actually exposes; no decoder is invented.
+            AudioInfoRow(stringResource(R.string.mime_type), format?.sampleMimeType)
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -594,14 +751,18 @@ private fun MusicSettingsSheet(controller: MediaController, onDismiss: () -> Uni
     }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheet) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Playback", style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = {
-                skipSilence = !skipSilence
-                scope.launch { controller.setSkipSilenceEnabled(skipSilence) }
-            }) {
-                Text(if (skipSilence) "Skip silence on" else "Skip silence off")
+            Text(stringResource(R.string.music_section_playback), style = MaterialTheme.typography.titleLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.skip_silence), modifier = Modifier.weight(1f))
+                Switch(
+                    checked = skipSilence,
+                    onCheckedChange = { enabled ->
+                        skipSilence = enabled
+                        scope.launch { controller.setSkipSilenceEnabled(enabled) }
+                    },
+                )
             }
-            Text("Speed ${"%.2f".format(speed)}×")
+            Text(stringResource(R.string.playback_speed_value, "%.2f".format(speed)))
             Slider(
                 value = speed,
                 onValueChange = { speed = it },

@@ -34,12 +34,12 @@ import androidx.navigation3.ui.NavDisplay
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import dagger.hilt.android.AndroidEntryPoint
 import com.graviton.core.common.service.system.SystemService
 import com.graviton.core.media.network.proxy.NetworkStreamingProxy
 import com.graviton.core.media.services.MediaOperationsService
 import com.graviton.core.model.ThemeConfig
 import com.graviton.core.ui.theme.GravitonTheme
+import com.graviton.feature.player.PlayerActivity
 import com.graviton.navigation.NextNavigationBar
 import com.graviton.navigation.NextNavigationRail
 import com.graviton.navigation.TopLevelDestination
@@ -50,8 +50,10 @@ import com.graviton.navigation.playlistNavGraph
 import com.graviton.navigation.rememberResponsiveNavigationSceneDecoratorStrategy
 import com.graviton.navigation.rememberTopLevelNavState
 import com.graviton.navigation.settingsNavGraph
-import kotlinx.coroutines.launch
+import com.graviton.settings.navigation.navigateToSettings
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -138,6 +140,15 @@ class MainActivity : ComponentActivity() {
                         navBar = { NextNavigationBar(navState, preferences) },
                         navRail = { NextNavigationRail(navState, preferences) },
                     )
+
+                    // The video player opens app settings by relaunching this Activity with a
+                    // flag, because :feature:player must not depend on :app for navigation.
+                    LaunchedEffect(Unit) {
+                        if (intent.getBooleanExtra(PlayerActivity.EXTRA_OPEN_SETTINGS, false)) {
+                            intent.removeExtra(PlayerActivity.EXTRA_OPEN_SETTINGS)
+                            navState.currentStack.navigateToSettings()
+                        }
+                    }
 
                     val mediaStack = navState.backStacks.getValue(TopLevelDestination.MEDIA.route)
                     val playlistStack = navState.backStacks.getValue(TopLevelDestination.PLAYLISTS.route)

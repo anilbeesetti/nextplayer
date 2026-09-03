@@ -22,13 +22,6 @@ enum class MusicBackgroundStyle {
 }
 
 @Serializable
-enum class MusicControlLayout {
-    BALANCED,
-    COMPACT,
-    LARGE_PLAY_BUTTON,
-}
-
-@Serializable
 enum class LyricsSourceKind {
     EMBEDDED,
     SIDECAR_LRC,
