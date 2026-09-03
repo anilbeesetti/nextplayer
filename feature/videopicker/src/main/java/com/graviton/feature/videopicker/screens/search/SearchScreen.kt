@@ -134,7 +134,7 @@ internal fun SearchScreen(
                                 IconButton(onClick = { onEvent(SearchUiEvent.OnQueryChange("")) }) {
                                     Icon(
                                         imageVector = NextIcons.Close,
-                                        contentDescription = stringResource(R.string.clear_history),
+                                        contentDescription = stringResource(R.string.clear_search),
                                     )
                                 }
                             } else if (uiState.isSearching) {
