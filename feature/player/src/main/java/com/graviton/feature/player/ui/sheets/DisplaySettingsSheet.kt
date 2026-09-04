@@ -110,7 +110,7 @@ fun BoxScope.DisplaySettingsSheet(
                 )
                 Slider(
                     value = videoZoomAndContentScaleState.zoom,
-                    onValueChange = videoZoomAndContentScaleState::setZoom,
+                    onValueChange = videoZoomAndContentScaleState::updateZoom,
                     onValueChangeFinished = videoZoomAndContentScaleState::onZoomPanGestureEnd,
                     valueRange = VideoZoomAndContentScaleState.MIN_ZOOM..VideoZoomAndContentScaleState.MAX_ZOOM,
                     modifier = Modifier
