@@ -132,7 +132,7 @@ class VideoZoomAndContentScaleState(
      * Panning is left untouched: the offset is already clamped by [onZoomPanGesture] and resetting
      * it here would fight the user's framing while they drag the slider.
      */
-    fun setZoom(newZoom: Float) {
+    fun updateZoom(newZoom: Float) {
         zoom = newZoom.coerceIn(MIN_ZOOM, MAX_ZOOM)
     }
 

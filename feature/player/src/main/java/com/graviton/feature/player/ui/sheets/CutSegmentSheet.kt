@@ -87,7 +87,7 @@ fun BoxScope.CutSegmentSheet(
                 title = stringResource(R.string.cut_loop),
                 checked = cutSegmentState.loopEnabled,
                 enabled = cutSegmentState.hasSegment,
-                onCheckedChange = cutSegmentState::setLoopEnabled,
+                onCheckedChange = cutSegmentState::updateLoopEnabled,
             )
 
             Row(

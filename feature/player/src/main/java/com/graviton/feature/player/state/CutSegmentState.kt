@@ -59,7 +59,7 @@ class CutSegmentState(private val player: Player) {
         endMs = position
     }
 
-    fun setLoopEnabled(enabled: Boolean) {
+    fun updateLoopEnabled(enabled: Boolean) {
         loopEnabled = enabled
     }
 
