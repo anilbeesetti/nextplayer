@@ -443,7 +443,7 @@
     <string name="name_required">أدخل اسم قائمة التشغيل.</string>
     <string name="saving_playlist">جارٍ حفظ قائمة التشغيل…</string>
     <string name="no_playlists_title">لا توجد قوائم تشغيل بعد</string>
-    <string name="no_playlists_description">أنشئ قائمة تشغيل، ثم اختر فيديوهات محلية من الشاشة الرئيسية لإضافتها.</string>
+    <string name="no_playlists_description">أنشئ قائمة تشغيل محلية أو أضف مصدر M3U لتبدأ المشاهدة.</string>
     <string name="local_playlist">محلي</string>
     <string name="delete_playlist">حذف قائمة التشغيل</string>
     <string name="delete_playlist_confirmation">حذف \"%1$s\" وترتيبها المحفوظ؟</string>
@@ -487,4 +487,19 @@
         <item quantity="many">%d فيديو</item>
         <item quantity="other">%d فيديو</item>
     </plurals>
+    <string name="choose_playlist_type">أنشئ قائمة تشغيل</string>
+    <string name="create_local_playlist">إنشاء قائمة تشغيل محلية</string>
+    <string name="add_m3u_url_playlist">إضافة قائمة تشغيل M3U من رابط</string>
+    <string name="add_m3u_file_playlist">إضافة قائمة تشغيل M3U من ملف</string>
+    <string name="playlist_url">رابط M3U</string>
+    <string name="url_required">أدخل رابط M3U.</string>
+    <string name="invalid_url">أدخل رابطاً صالحاً من نوع HTTP أو HTTPS.</string>
+    <string name="m3u_url_playlist">رابط M3U</string>
+    <string name="m3u_file_playlist">ملف M3U</string>
+    <string name="m3u_file_permission_failed">تعذّر الاحتفاظ بالوصول إلى هذا الملف. اختره مجدداً أو استخدم ملفاً آخر.</string>
+    <string name="refresh_playlist">تحديث قائمة التشغيل</string>
+    <string name="refreshing_playlist">جارٍ تحديث قائمة التشغيل</string>
+    <string name="playlist_refresh_succeeded">تم تحديث قائمة التشغيل.</string>
+    <string name="playlist_refresh_failed">تعذّر تحديث قائمة التشغيل. العناصر المحفوظة لم تتغير.</string>
+    <string name="last_refreshed">آخر تحديث %1$s</string>
 </resources>

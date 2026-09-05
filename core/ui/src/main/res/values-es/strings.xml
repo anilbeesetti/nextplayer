@@ -107,7 +107,7 @@
     <string name="enter_a_network_url">Introduce una URL de la red:</string>
     <string name="network_stream">Flujo de la red</string>
     <string name="decoder">Descodificador</string>
-    <string name="decoder_desc">Prioridad del decodificador, opciones del decodificador de reproducción</string>
+    <string name="decoder_desc">Opciones de decodificador por hardware y software</string>
     <string name="video_software_decoders">Descodificadores de vídeo por software</string>
     <string name="prefer_device_decoders">Preferir los descodificadores de los dispositivos</string>
     <string name="prefer_app_decoders">Prefiero los descodificadores de las aplicaciones</string>
@@ -425,7 +425,7 @@
     <string name="name_required">Introduce un nombre para la lista de reproducción.</string>
     <string name="saving_playlist">Guardando lista de reproducción…</string>
     <string name="no_playlists_title">Aún no hay listas de reproducción</string>
-    <string name="no_playlists_description">Crea una lista de reproducción y luego selecciona vídeos locales desde Inicio para añadirlos.</string>
+    <string name="no_playlists_description">Crea una lista de reproducción local o añade una fuente M3U para empezar a ver contenido.</string>
     <string name="delete_playlist">Eliminar lista de reproducción</string>
     <string name="delete_playlist_confirmation">¿Eliminar \"%1$s\" y su orden guardado?</string>
     <string name="playlist_actions">Acciones de la lista de reproducción</string>
@@ -463,4 +463,32 @@
         <item quantity="many">%d vídeos</item>
         <item quantity="other">%d vídeos</item>
     </plurals>
+    <string name="choose_playlist_type">Crear una lista de reproducción</string>
+    <string name="create_local_playlist">Crear lista de reproducción local</string>
+    <string name="add_m3u_url_playlist">Añadir lista de reproducción M3U desde URL</string>
+    <string name="add_m3u_file_playlist">Añadir lista de reproducción M3U desde archivo</string>
+    <string name="playlist_url">URL M3U</string>
+    <string name="url_required">Introduce una URL M3U.</string>
+    <string name="invalid_url">Introduce una URL HTTP o HTTPS válida.</string>
+    <string name="m3u_url_playlist">URL M3U</string>
+    <string name="m3u_file_playlist">Archivo M3U</string>
+    <string name="m3u_file_permission_failed">No se pudo mantener el acceso a este archivo. Vuelve a seleccionarlo o usa otro archivo.</string>
+    <string name="refresh_playlist">Actualizar lista de reproducción</string>
+    <string name="refreshing_playlist">Actualizando lista de reproducción</string>
+    <string name="playlist_refresh_succeeded">Lista de reproducción actualizada.</string>
+    <string name="playlist_refresh_failed">No se pudo actualizar la lista de reproducción. Los elementos guardados no han cambiado.</string>
+    <string name="last_refreshed">Última actualización: %1$s</string>
+    <string name="select_decoders">Seleccionar decodificadores</string>
+    <string name="video_decoder">Decodificador de vídeo</string>
+    <string name="audio_decoder">Decodificador de audio</string>
+    <string name="decoder_mode_hardware">HW</string>
+    <string name="decoder_mode_system_software">SW+</string>
+    <string name="decoder_mode_app_software">SW</string>
+    <string name="decoder_hardware_description">Solo decodificadores MediaCodec por hardware</string>
+    <string name="decoder_system_software_description">Solo decodificadores MediaCodec por software de Android</string>
+    <string name="decoder_app_software_description">Decodificador de software FFmpeg integrado</string>
+    <string name="video_decoder_mode_not_supported">El decodificador de vídeo %1$s no es compatible</string>
+    <string name="audio_decoder_mode_not_supported">El decodificador de audio %1$s no es compatible</string>
+    <string name="no_supported_decoder">No hay ningún decodificador compatible disponible para este contenido.</string>
+    <string name="decoder_mode_auto">Automático</string>
 </resources>
