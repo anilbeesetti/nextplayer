@@ -55,9 +55,6 @@ data class PlayerPreferences(
     val subtitleFont: Font = Font.DEFAULT,
     val subtitleTextBold: Boolean = true,
     val applyEmbeddedStyles: Boolean = true,
-
-    // Decoder Preferences
-    val decoderPriority: DecoderPriority = DecoderPriority.PREFER_DEVICE,
 ) {
 
     companion object {
