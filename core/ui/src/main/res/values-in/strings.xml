@@ -123,7 +123,7 @@
     <string name="subtitle_background">Latar belakang subtitle</string>
     <string name="subtitle_background_desc">Aktifkan latar belakang untuk teks subtitle</string>
     <string name="decoder">Dekoder</string>
-    <string name="decoder_desc">Prioritas dekoder, opsi dekoder pemutaran</string>
+    <string name="decoder_desc">Pilihan dekoder perangkat keras dan perangkat lunak</string>
     <string name="video_software_decoders">Dekoder video perangkat lunak</string>
     <string name="video_software_decoders_desc">Gunakan dekoder video perangkat lunak aplikasi (eksperimental)</string>
     <string name="decoder_priority">Prioritas dekoder</string>
@@ -413,7 +413,7 @@
     <string name="name_required">Masukkan nama daftar putar.</string>
     <string name="saving_playlist">Menyimpan daftar putar…</string>
     <string name="no_playlists_title">Belum ada daftar putar</string>
-    <string name="no_playlists_description">Buat daftar putar, lalu pilih video lokal dari Beranda untuk menambahkannya.</string>
+    <string name="no_playlists_description">Buat daftar putar lokal atau tambahkan sumber M3U untuk mulai menonton.</string>
     <string name="local_playlist">Lokal</string>
     <string name="delete_playlist">Hapus daftar putar</string>
     <string name="delete_playlist_confirmation">Hapus \"%1$s\" dan urutannya yang tersimpan?</string>
@@ -447,4 +447,32 @@
     <plurals name="playlist_video_count">
         <item quantity="other">%d video</item>
     </plurals>
+    <string name="select_decoders">Pilih dekoder</string>
+    <string name="video_decoder">Dekoder Video</string>
+    <string name="audio_decoder">Dekoder audio</string>
+    <string name="decoder_mode_hardware">Perangkat Keras</string>
+    <string name="decoder_mode_system_software">Perangkat Lunak+</string>
+    <string name="decoder_mode_app_software">Perangkat lunak</string>
+    <string name="decoder_hardware_description">Hanya dekoder MediaCodec perangkat keras</string>
+    <string name="decoder_system_software_description">Hanya dekoder MediaCodec perangkat lunak Android saja</string>
+    <string name="decoder_app_software_description">Dekoder perangkat lunak FFmpeg yang disertakan</string>
+    <string name="video_decoder_mode_not_supported">%1$s dekoder video tidak didukung</string>
+    <string name="audio_decoder_mode_not_supported">%1$s dekoder audio tidak didukung</string>
+    <string name="no_supported_decoder">Tidak ada dekoder yang didukung untuk media ini.</string>
+    <string name="choose_playlist_type">Buat daftar putar</string>
+    <string name="create_local_playlist">Buat daftar putar lokal</string>
+    <string name="add_m3u_url_playlist">Tambahkan daftar putar M3U dari URL</string>
+    <string name="add_m3u_file_playlist">Tambahkan daftar putar M3U dari berkas</string>
+    <string name="playlist_url">URL M3U</string>
+    <string name="url_required">Masukkan URL M3U.</string>
+    <string name="invalid_url">Masukkan URL HTTP atau HTTPS yang valid.</string>
+    <string name="m3u_url_playlist">URL M3U</string>
+    <string name="m3u_file_playlist">Berkas M3U</string>
+    <string name="m3u_file_permission_failed">­Tidak dapat mengakses berkas ini. Pilih lagi atau gunakan berkas lain.</string>
+    <string name="refresh_playlist">Segarkan daftar putar</string>
+    <string name="refreshing_playlist">Menyegarkan daftar putar</string>
+    <string name="playlist_refresh_succeeded">Daftar putar disegarkan.</string>
+    <string name="playlist_refresh_failed">Tidak dapat memperbarui daftar putar. Item yang tersimpan tidak berubah.</string>
+    <string name="last_refreshed">Terakhir diperbarui %1$s</string>
+    <string name="decoder_mode_auto">Otomatis</string>
 </resources>
