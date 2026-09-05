@@ -470,4 +470,10 @@
     <string name="playlist_refresh_failed">Δεν ήταν δυνατή η ανανέωση της λίστας αναπαραγωγής. Τα αποθηκευμένα στοιχεία δεν έχουν αλλάξει.</string>
     <string name="last_refreshed">Τελευταία ανανέωση %1$s</string>
     <string name="choose_playlist_type">Δημιουργία λίστας αναπαραγωγής</string>
+    <string name="select_decoders">Επιλέξτε αποκωδικοποιητές</string>
+    <string name="video_decoder">Αποκωδικοποιητής βίντεο</string>
+    <string name="audio_decoder">Αποκωδικοποιητής ήχου</string>
+    <string name="decoder_mode_hardware">HW</string>
+    <string name="decoder_mode_system_software">SW+</string>
+    <string name="decoder_mode_app_software">SW</string>
 </resources>
