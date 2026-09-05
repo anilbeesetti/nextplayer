@@ -107,7 +107,7 @@
     <string name="enter_a_network_url">Introduce una URL de la red:</string>
     <string name="network_stream">Flujo de la red</string>
     <string name="decoder">Descodificador</string>
-    <string name="decoder_desc">Prioridad del decodificador, opciones del decodificador de reproducción</string>
+    <string name="decoder_desc">Opciones de decodificador por hardware y software</string>
     <string name="video_software_decoders">Descodificadores de vídeo por software</string>
     <string name="prefer_device_decoders">Preferir los descodificadores de los dispositivos</string>
     <string name="prefer_app_decoders">Prefiero los descodificadores de las aplicaciones</string>
@@ -478,4 +478,17 @@
     <string name="playlist_refresh_succeeded">Lista de reproducción actualizada.</string>
     <string name="playlist_refresh_failed">No se pudo actualizar la lista de reproducción. Los elementos guardados no han cambiado.</string>
     <string name="last_refreshed">Última actualización: %1$s</string>
+    <string name="select_decoders">Seleccionar decodificadores</string>
+    <string name="video_decoder">Decodificador de vídeo</string>
+    <string name="audio_decoder">Decodificador de audio</string>
+    <string name="decoder_mode_hardware">HW</string>
+    <string name="decoder_mode_system_software">SW+</string>
+    <string name="decoder_mode_app_software">SW</string>
+    <string name="decoder_hardware_description">Solo decodificadores MediaCodec por hardware</string>
+    <string name="decoder_system_software_description">Solo decodificadores MediaCodec por software de Android</string>
+    <string name="decoder_app_software_description">Decodificador de software FFmpeg integrado</string>
+    <string name="video_decoder_mode_not_supported">El decodificador de vídeo %1$s no es compatible</string>
+    <string name="audio_decoder_mode_not_supported">El decodificador de audio %1$s no es compatible</string>
+    <string name="no_supported_decoder">No hay ningún decodificador compatible disponible para este contenido.</string>
+    <string name="decoder_mode_auto">Automático</string>
 </resources>
