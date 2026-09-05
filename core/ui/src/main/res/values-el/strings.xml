@@ -121,7 +121,7 @@
     <string name="play_url">Εισαγωγή url βίντεο</string>
     <string name="decoder">Αποκωδικοποιητής</string>
     <string name="video_software_decoders">Λογισμικού</string>
-    <string name="decoder_desc">Προτεραιότητα, επιλογές αναπαραγωγής</string>
+    <string name="decoder_desc">Επιλογές αποκωδικοποιητή υλικού και λογισμικού</string>
     <string name="video_software_decoders_desc">Χρήση αποκωδικοποιητών εφαρμογής (πειραματικό)</string>
     <string name="prefer_device_decoders">Προτίμηση αποκωδικοποιητών συσκευής</string>
     <string name="prefer_app_decoders">Προτίμηση αποκωδικοποιητών εφαρμογής</string>
@@ -476,4 +476,11 @@
     <string name="decoder_mode_hardware">HW</string>
     <string name="decoder_mode_system_software">SW+</string>
     <string name="decoder_mode_app_software">SW</string>
+    <string name="decoder_hardware_description">Μόνο αποκωδικοποιητές υλικού MediaCodec</string>
+    <string name="decoder_system_software_description">Μόνο αποκωδικοποιητές λογισμικού Android MediaCodec</string>
+    <string name="decoder_app_software_description">Συνοδευτικός αποκωδικοποιητής λογισμικού FFmpeg</string>
+    <string name="video_decoder_mode_not_supported">Ο αποκωδικοποιητής βίντεο %1$s δεν υποστηρίζεται</string>
+    <string name="audio_decoder_mode_not_supported">Ο αποκωδικοποιητής ήχου %1$s δεν υποστηρίζεται</string>
+    <string name="no_supported_decoder">Δεν υπάρχει διαθέσιμος υποστηριζόμενος αποκωδικοποιητής για αυτό το μέσο.</string>
+    <string name="decoder_mode_auto">Αυτόματο</string>
 </resources>
