@@ -464,9 +464,7 @@ class PlayerService : MediaSessionService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo,
         ): MediaSession.ConnectionResult {
-            val connectionResult = MediaSession.ConnectionResult
-                .AcceptedResultBuilder(session, controller)
-                .build()
+            val connectionResult = super.onConnect(session, controller)
             return MediaSession.ConnectionResult.accept(
                 connectionResult.availableSessionCommands
                     .buildUpon()
