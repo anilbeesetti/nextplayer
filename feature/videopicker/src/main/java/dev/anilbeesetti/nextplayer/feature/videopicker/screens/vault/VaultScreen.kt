@@ -39,6 +39,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -393,6 +394,8 @@ private fun VaultGalleryScreen(
     val isTv = remember { context.isTelevision }
     val firstActionFocusRequester = remember { FocusRequester() }
     val firstItemRequester = remember { FocusRequester() }
+    val lastItemFocusRequester = remember { FocusRequester() }
+    val fabFocusRequester = remember { FocusRequester() }
     val restoreRequester = remember { FocusRequester() }
     var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
     val selectionManager = rememberSelectionManager()
@@ -402,6 +405,7 @@ private fun VaultGalleryScreen(
 
     val selectedCount = selectionManager.selectionItems.size
     val totalCount = uiState.hiddenVideos.size
+    val isDeleteFabVisible = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty()
 
     var hasRequestedInitialFocus by remember { mutableStateOf(false) }
     if (isTv) {
@@ -502,6 +506,9 @@ private fun VaultGalleryScreen(
             VaultSelectionActionsSheet(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
                 firstActionFocusRequester = firstActionFocusRequester,
+                lastItemFocusRequester = lastItemFocusRequester,
+                fabFocusRequester = fabFocusRequester,
+                isDeleteFabVisible = isDeleteFabVisible,
                 onPlayAction = {
                     onAction(VaultAction.PlaySelected(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
@@ -516,6 +523,32 @@ private fun VaultGalleryScreen(
                 onUnhideAction = { showUnhideConfirmation = true },
                 onDeleteAction = { showDeleteConfirmation = true },
             )
+        },
+        floatingActionButton = {
+            if (isDeleteFabVisible) {
+                FloatingActionButton(
+                    onClick = { showDeleteConfirmation = true },
+                    modifier = Modifier
+                        .tvFocusRing(
+                            isTv = isTv,
+                            shape = RoundedCornerShape(16.dp),
+                        )
+                        .thenIf(isTv) {
+                            focusRequester(fabFocusRequester)
+                                .focusProperties {
+                                    up = lastItemFocusRequester
+                                    down = firstActionFocusRequester
+                                }
+                        },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ) {
+                    Icon(
+                        imageVector = NextIcons.Delete,
+                        contentDescription = stringResource(R.string.delete),
+                    )
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { padding ->
@@ -566,12 +599,22 @@ private fun VaultGalleryScreen(
                                 modifier = Modifier
                                     .padding(2.dp)
                                     .thenIf(isTv && index == 0) { focusRequester(firstItemRequester) }
-                                    // Down from the last item reaches the selection action bar.
+                                    .thenIf(isTv && index == uiState.hiddenVideos.lastIndex) {
+                                        focusRequester(lastItemFocusRequester)
+                                    }
+                                    // Down from the last item reaches the delete FAB when visible,
+                                    // else the selection action bar.
                                     .thenIf(
                                         isTv && selectionManager.isInSelectionMode &&
                                             index == uiState.hiddenVideos.lastIndex,
                                     ) {
-                                        focusProperties { down = firstActionFocusRequester }
+                                        focusProperties {
+                                            down = if (isDeleteFabVisible) {
+                                                fabFocusRequester
+                                            } else {
+                                                firstActionFocusRequester
+                                            }
+                                        }
                                     }
                                     .restorableFocusItem(
                                         isTv = isTv,
@@ -786,6 +829,9 @@ private fun VaultSelectionActionsSheet(
     modifier: Modifier = Modifier,
     show: Boolean,
     firstActionFocusRequester: FocusRequester,
+    lastItemFocusRequester: FocusRequester,
+    fabFocusRequester: FocusRequester,
+    isDeleteFabVisible: Boolean,
     onPlayAction: () -> Unit,
     onInfoAction: () -> Unit,
     showInfoAction: Boolean,
@@ -794,6 +840,12 @@ private fun VaultSelectionActionsSheet(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
+    val actionsUpTarget = if (isDeleteFabVisible) fabFocusRequester else lastItemFocusRequester
+    val actionUpModifier = if (isTv) {
+        Modifier.focusProperties { up = actionsUpTarget }
+    } else {
+        Modifier
+    }
 
     AnimatedVisibility(
         modifier = modifier.padding(
@@ -828,7 +880,7 @@ private fun VaultSelectionActionsSheet(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 VaultSelectionAction(
-                    modifier = Modifier.focusRequester(firstActionFocusRequester),
+                    modifier = Modifier.focusRequester(firstActionFocusRequester).then(actionUpModifier),
                     isTv = isTv,
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
@@ -836,6 +888,7 @@ private fun VaultSelectionActionsSheet(
                 )
                 if (showInfoAction) {
                     VaultSelectionAction(
+                        modifier = actionUpModifier,
                         isTv = isTv,
                         imageVector = NextIcons.Info,
                         title = stringResource(R.string.info),
@@ -843,12 +896,14 @@ private fun VaultSelectionActionsSheet(
                     )
                 }
                 VaultSelectionAction(
+                    modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.Lock,
                     title = stringResource(R.string.unhide),
                     onClick = onUnhideAction,
                 )
                 VaultSelectionAction(
+                    modifier = actionUpModifier,
                     isTv = isTv,
                     imageVector = NextIcons.Delete,
                     title = stringResource(R.string.delete),

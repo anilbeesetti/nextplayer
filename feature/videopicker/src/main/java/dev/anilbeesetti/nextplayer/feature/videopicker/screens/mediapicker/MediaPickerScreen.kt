@@ -41,6 +41,7 @@ import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
@@ -199,6 +200,15 @@ internal fun MediaPickerScreen(
 
     val selectedItemsSize = selectionManager.selectionItems.size
     val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
+    val isDeleteFabVisible = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty()
+    val onDeleteSelected: () -> Unit = {
+        if (MediaOperationsService.willSystemAsksForDeleteConfirmation()) {
+            onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems))
+            selectionManager.exitSelectionMode()
+        } else {
+            showDeleteVideosConfirmation = true
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -322,6 +332,8 @@ internal fun MediaPickerScreen(
                 show = selectionManager.isInSelectionMode && selectionManager.selectionItems.isNotEmpty(),
                 firstActionFocusRequester = firstActionFocusRequester,
                 lastItemFocusRequester = lastItemFocusRequester,
+                fabFocusRequester = fabFocusRequester,
+                isDeleteFabVisible = isDeleteFabVisible,
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
                 showHideAction = selectionManager.selectionItems.isNotEmpty(),
@@ -360,18 +372,35 @@ internal fun MediaPickerScreen(
                     onAction(MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
                 },
-                onDeleteAction = {
-                    if (MediaOperationsService.willSystemAsksForDeleteConfirmation()) {
-                        onAction(MediaPickerAction.DeleteSelectedItems(selectionManager.selectionItems))
-                        selectionManager.exitSelectionMode()
-                    } else {
-                        showDeleteVideosConfirmation = true
-                    }
-                },
+                onDeleteAction = onDeleteSelected,
             )
         },
         floatingActionButton = {
-            if (selectionManager.isInSelectionMode) return@Scaffold
+            if (isDeleteFabVisible) {
+                FloatingActionButton(
+                    onClick = onDeleteSelected,
+                    modifier = Modifier
+                        .tvFocusRing(
+                            isTv = isTv,
+                            shape = RoundedCornerShape(16.dp),
+                        )
+                        .thenIf(isTv && hasMedia) {
+                            focusRequester(fabFocusRequester)
+                                .focusProperties {
+                                    up = lastItemFocusRequester
+                                    down = firstActionFocusRequester
+                                }
+                        },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ) {
+                    Icon(
+                        imageVector = NextIcons.Delete,
+                        contentDescription = stringResource(id = R.string.delete),
+                    )
+                }
+            } else {
+                if (selectionManager.isInSelectionMode) return@Scaffold
 
             FloatingActionButtonMenu(
                 expanded = isFabExpanded,
@@ -464,6 +493,7 @@ internal fun MediaPickerScreen(
                     )
                 }
             }
+            }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { scaffoldPadding ->
@@ -519,10 +549,11 @@ internal fun MediaPickerScreen(
                             lastItemFocusRequester = if (isTv) lastItemFocusRequester else null,
                             restoredFocusKey = restoredFocusKey,
                             onItemFocused = { restoredFocusKey = it },
-                            // Down from the last item goes to the FAB normally, or to the selection
-                            // action bar while selecting (the FAB is hidden then).
+                            // Down from the last item goes to the FAB normally, to the delete FAB
+                            // when selecting, else to the selection action bar.
                             lastItemDownFocusRequester = when {
                                 !isTv -> null
+                                isDeleteFabVisible -> fabFocusRequester
                                 selectionManager.isInSelectionMode -> firstActionFocusRequester
                                 else -> fabFocusRequester
                             },
@@ -1212,6 +1243,8 @@ private fun SelectionActionsSheet(
     show: Boolean,
     firstActionFocusRequester: FocusRequester,
     lastItemFocusRequester: FocusRequester,
+    fabFocusRequester: FocusRequester,
+    isDeleteFabVisible: Boolean,
     showRenameAction: Boolean,
     showInfoAction: Boolean,
     showHideAction: Boolean,
@@ -1227,9 +1260,9 @@ private fun SelectionActionsSheet(
 ) {
     val context = LocalContext.current
     val isTv = remember { context.isTelevision }
-    // Pressing up from any action lands on the last list item.
+    // Pressing up from any action lands on the delete FAB when visible, else on the last list item.
     val actionUpModifier = if (isTv) {
-        Modifier.focusProperties { up = lastItemFocusRequester }
+        Modifier.focusProperties { up = if (isDeleteFabVisible) fabFocusRequester else lastItemFocusRequester }
     } else {
         Modifier
     }
