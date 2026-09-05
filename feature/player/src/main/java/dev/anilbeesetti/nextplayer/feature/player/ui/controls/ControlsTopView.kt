@@ -41,7 +41,7 @@ fun ControlsTopView(
     onBackClick: () -> Unit,
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(WindowInsets.displayCutout).asPaddingValues()
-    val videoDecoderLabel = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes)
+    val videoDecoderLabel = stringResource(videoDecoderMode?.labelRes ?: R.string.select_decoders)
     // Add top spacing only when the system bars don't already provide it (e.g. on TV / landscape).
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
     Row(

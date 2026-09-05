@@ -493,4 +493,5 @@
         <item quantity="one">%d video</item>
         <item quantity="other">%d videos</item>
     </plurals>
+    <string name="decoder_mode_auto">Auto</string>
 </resources>

@@ -40,6 +40,8 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
 import dev.anilbeesetti.nextplayer.feature.player.extensions.uriToSubtitleConfiguration
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
+import dev.anilbeesetti.nextplayer.feature.player.service.decoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.service.PlayerService
 import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
@@ -84,6 +86,7 @@ class PlayerActivity : ComponentActivity() {
      */
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
+    private var decoderServiceState by mutableStateOf(DecoderServiceState())
     private lateinit var playerApi: PlayerApi
     private var playbackRequestJob: Job? = null
 
@@ -109,6 +112,7 @@ class PlayerActivity : ComponentActivity() {
                 maybeInitControllerFuture()
                 lifecycleScope.launch {
                     player = controllerFuture?.await()
+                    decoderServiceState = player?.sessionExtras?.decoderServiceState() ?: DecoderServiceState()
                 }
 
                 onStopOrDispose {
@@ -120,6 +124,7 @@ class PlayerActivity : ComponentActivity() {
                 NextPlayerTheme(darkTheme = true) {
                     MediaPlayerScreen(
                         player = player,
+                        decoderServiceState = decoderServiceState,
                         viewModel = viewModel,
                         playerPreferences = uiState.playerPreferences ?: return@NextPlayerTheme,
                         onSelectSubtitleClick = {
@@ -200,7 +205,13 @@ class PlayerActivity : ComponentActivity() {
     private fun maybeInitControllerFuture() {
         if (controllerFuture == null) {
             val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
-            controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
+            controllerFuture = MediaController.Builder(applicationContext, sessionToken)
+                .setListener(object : MediaController.Listener {
+                    override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
+                        decoderServiceState = extras.decoderServiceState()
+                    }
+                })
+                .buildAsync()
         }
     }
 

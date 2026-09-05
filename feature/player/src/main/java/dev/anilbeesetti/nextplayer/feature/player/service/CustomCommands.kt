@@ -27,7 +27,6 @@ enum class CustomCommands(val customAction: String) {
     GET_LOUDNESS_GAIN(customAction = "GET_LOUDNESS_GAIN"),
     SET_VIDEO_DECODER_MODE(customAction = "SET_VIDEO_DECODER_MODE"),
     SET_AUDIO_DECODER_MODE(customAction = "SET_AUDIO_DECODER_MODE"),
-    GET_DECODER_STATE(customAction = "GET_DECODER_STATE"),
     TRY_DECODER_FALLBACK(customAction = "TRY_DECODER_FALLBACK"),
     ;
 
@@ -144,16 +143,13 @@ suspend fun MediaController.setAudioDecoderMode(mode: DecoderMode): Boolean {
     return result.resultCode == SessionResult.RESULT_SUCCESS
 }
 
-suspend fun MediaController.getDecoderState(): DecoderServiceState? {
-    val result = sendCustomCommand(CustomCommands.GET_DECODER_STATE.sessionCommand, Bundle.EMPTY).await()
-    if (result.resultCode != SessionResult.RESULT_SUCCESS) return null
-
-    val videoMode = result.extras.decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
-    val audioMode = result.extras.decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
-    val status = result.extras.getString(CustomCommands.DECODER_RECOVERY_STATUS_KEY)
+internal fun Bundle.decoderServiceState(): DecoderServiceState {
+    val videoMode = decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
+    val audioMode = decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
+    val status = getString(CustomCommands.DECODER_RECOVERY_STATUS_KEY)
         ?.let { value -> DecoderRecoveryStatus.entries.find { it.name == value } }
         ?: DecoderRecoveryStatus.NONE
-    val trackType = result.extras.getString(CustomCommands.DECODER_RECOVERY_TRACK_TYPE_KEY)
+    val trackType = getString(CustomCommands.DECODER_RECOVERY_TRACK_TYPE_KEY)
         ?.let { value -> DecoderTrackType.entries.find { it.name == value } }
     return DecoderServiceState(
         videoMode = videoMode,
@@ -161,7 +157,7 @@ suspend fun MediaController.getDecoderState(): DecoderServiceState? {
         recoveryState = DecoderRecoveryState(
             status = status,
             trackType = trackType,
-            unsupportedMode = result.extras.decoderMode(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY),
+            unsupportedMode = decoderMode(CustomCommands.UNSUPPORTED_DECODER_MODE_KEY),
         ),
     )
 }
@@ -171,7 +167,7 @@ suspend fun MediaController.tryDecoderFallback(): Boolean {
     return result.resultCode == SessionResult.RESULT_SUCCESS
 }
 
-private fun Bundle.decoderMode(key: String): DecoderMode? {
+internal fun Bundle.decoderMode(key: String): DecoderMode? {
     val value = getString(key) ?: return null
     return DecoderMode.entries.find { it.name == value }
 }

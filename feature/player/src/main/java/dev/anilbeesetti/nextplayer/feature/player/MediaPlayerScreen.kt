@@ -86,6 +86,7 @@ import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.VerticalGesture
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberBrightnessState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberControlsVisibilityState
+import dev.anilbeesetti.nextplayer.feature.player.model.DecoderServiceState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberDecoderState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberErrorState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberMediaPresentationState
@@ -118,6 +119,7 @@ val LocalControlsVisibilityState = compositionLocalOf<ControlsVisibilityState?> 
 @OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerScreen(
+    decoderServiceState: DecoderServiceState,
     player: MediaController?,
     viewModel: PlayerViewModel,
     playerPreferences: PlayerPreferences,
@@ -174,7 +176,7 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
-    val decoderState = rememberDecoderState(controller = player)
+    val decoderState = rememberDecoderState(controller = player, state = decoderServiceState)
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
