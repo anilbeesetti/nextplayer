@@ -124,7 +124,7 @@
     <string name="prefer_app_decoders">Надавати перевагу декодерам застосунку</string>
     <string name="device_decoders_only">Лише системні декодери</string>
     <string name="decoder">Декодер</string>
-    <string name="decoder_desc">Пріоритет декодера, вибір декодера для відтворення</string>
+    <string name="decoder_desc">Параметри апаратного та програмного декодера</string>
     <string name="decoder_priority">Пріоритет декодера</string>
     <string name="prefer_device_decoders">Надавати перевагу системним декодерам</string>
     <string name="embedded_styles">Вбудовані стилі</string>
@@ -486,4 +486,26 @@
     <string name="playlist_refresh_succeeded">Добірку оновлено.</string>
     <string name="playlist_refresh_failed">Не вдалося оновити добірку. Збережені елементи залишилися без змін.</string>
     <string name="last_refreshed">Востаннє оновлено: %1$s</string>
+    <string name="select_decoders">Вибрати декодери</string>
+    <string name="video_decoder">Відеодекодер</string>
+    <string name="audio_decoder">Аудіодекодер</string>
+    <string name="decoder_mode_hardware">Апаратний</string>
+    <string name="decoder_mode_system_software">Програмний+</string>
+    <string name="decoder_mode_app_software">Програмний</string>
+    <string name="decoder_hardware_description">Тільки апаратні декодери MediaCodec</string>
+    <string name="decoder_system_software_description">Тільки програмні декодери MediaCodec для Android</string>
+    <string name="decoder_app_software_description">Вбудований програмний декодер FFmpeg</string>
+    <string name="video_decoder_mode_not_supported">Відеодекодер %1$s не підтримується</string>
+    <string name="audio_decoder_mode_not_supported">Аудіодекодер %1$s не підтримується</string>
+    <string name="no_supported_decoder">Для цього медіафайлу немає доступного декодера.</string>
+    <string name="unlock_with_biometrics">Розблокувати за допомогою біометрії</string>
+    <string name="use_vault_pin">Використовувати PIN-код від сховища</string>
+    <string name="vault_biometric_setup_title">Використати біометрію для розблокування?</string>
+    <string name="vault_biometric_setup_description">Розблокуйте своє сховище за допомогою відбитка пальця або обличчя. Підтвердьте біометричним скануванням, щоб увімкнути цю функцію. Ви все ще зможете використовувати свій PIN-код і вимкнути це в налаштуваннях сховища.</string>
+    <string name="enable_biometric_unlock">Увімкнути біометричне розблокування</string>
+    <string name="not_now">Не зараз</string>
+    <string name="vault_settings">Налаштування сховища</string>
+    <string name="vault_biometric_description">Використовуйте відбиток пальця або обличчя для розблокування. Ваш PIN-код від сховища залишається доступним.</string>
+    <string name="vault_biometric_unavailable">Налаштуйте підтримуваний відбиток пальця або обличчя в параметрах пристрою, щоб увімкнути біометричне розблокування.</string>
+    <string name="decoder_mode_auto">Авто</string>
 </resources>
