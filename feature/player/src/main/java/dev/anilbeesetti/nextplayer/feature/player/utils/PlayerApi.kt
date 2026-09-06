@@ -11,10 +11,27 @@ class PlayerApi(val activity: PlayerActivity) {
 
     private val extras = activity.intent.extras
     val isApiAccess: Boolean get() = extras != null
-    val hasPosition: Boolean get() = extras?.containsKey(API_POSITION) == true
+    val hasPosition: Boolean get() = position != null
     val hasTitle: Boolean get() = extras?.containsKey(API_TITLE) == true
-    val shouldReturnResult: Boolean get() = extras?.containsKey(API_RETURN_RESULT) == true
-    val position: Int? get() = if (hasPosition) extras?.getInt(API_POSITION) else null
+    val shouldReturnResult: Boolean
+        get() = activity.callingActivity != null || activity.callingPackage != null || extras?.containsKey(API_RETURN_RESULT) == true
+    val position: Long?
+        get() {
+            if (extras == null) return null
+            val raw = extras.get(API_POSITION)
+                ?: extras.get(API_EXTRA_POSITION)
+                ?: extras.get(API_POSITION_EXTRA)
+                ?: extras.get(API_START)
+                ?: return null
+            val num = when (raw) {
+                is Number -> raw.toLong()
+                is String -> raw.toLongOrNull()
+                else -> null
+            } ?: return null
+
+            val key = extras.keySet().firstOrNull { extras.get(it) == raw }
+            return if (key == API_START && num in 1..86400) num * 1000L else num
+        }
     val title: String? get() = if (hasTitle) extras?.getString(API_TITLE) else null
 
     fun getSubs(): List<Subtitle> {
@@ -47,12 +64,29 @@ class PlayerApi(val activity: PlayerActivity) {
 
     fun getResult(isPlaybackFinished: Boolean, duration: Long, position: Long): Intent {
         return Intent(API_RESULT_INTENT).apply {
-            if (isPlaybackFinished) {
-                putExtra(API_END_BY, API_END_BY_COMPLETION)
+            data = activity.intent.data
+            val endBy = if (isPlaybackFinished) API_END_BY_COMPLETION else API_END_BY_USER
+            putExtra(API_END_BY, endBy)
+            putExtra(API_RETURN_RESULT, true)
+
+            val targetDuration = if (duration != C.TIME_UNSET) duration else -1L
+            if (targetDuration >= 0) {
+                putExtra(API_DURATION, targetDuration.toInt())
+                putExtra(API_EXTRA_DURATION, targetDuration)
+            }
+
+            val targetPosition = if (isPlaybackFinished && targetDuration >= 0) {
+                targetDuration
+            } else if (position != C.TIME_UNSET) {
+                position
             } else {
-                putExtra(API_END_BY, API_END_BY_USER)
-                if (duration != C.TIME_UNSET) putExtra(API_DURATION, duration.toInt())
-                if (position != C.TIME_UNSET) putExtra(API_POSITION, position.toInt())
+                -1L
+            }
+
+            if (targetPosition >= 0) {
+                putExtra(API_POSITION, targetPosition.toInt())
+                putExtra(API_POSITION_EXTRA, targetPosition.toInt())
+                putExtra(API_EXTRA_POSITION, targetPosition)
             }
         }
     }
@@ -60,7 +94,11 @@ class PlayerApi(val activity: PlayerActivity) {
     companion object {
         const val API_TITLE = "title"
         const val API_POSITION = "position"
+        const val API_POSITION_EXTRA = "position_extra"
+        const val API_EXTRA_POSITION = "extra_position"
+        const val API_START = "start"
         const val API_DURATION = "duration"
+        const val API_EXTRA_DURATION = "extra_duration"
         const val API_RETURN_RESULT = "return_result"
         const val API_END_BY = "end_by"
         const val API_SUBS = "subs"
