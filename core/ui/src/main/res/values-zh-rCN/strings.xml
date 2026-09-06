@@ -471,8 +471,17 @@
     <string name="decoder_hardware_description">仅硬件 MediaCodec 解码器</string>
     <string name="decoder_mode_app_software">软解</string>
     <string name="decoder_mode_system_software">软解+</string>
-    <string name="decoder_mode_hardware">硬解+</string>
+    <string name="decoder_mode_hardware">硬解</string>
     <string name="audio_decoder">音频解码器</string>
     <string name="video_decoder">视频解码器</string>
     <string name="select_decoders">选择解码器</string>
+    <string name="unlock_with_biometrics">使用生物识别解锁</string>
+    <string name="vault_biometric_unavailable">请在设备设置中添加受支持的指纹或面容以启用生物识别解锁</string>
+    <string name="vault_biometric_description">使用指纹或面容解锁。您的保险箱 PIN 码仍然可用。</string>
+    <string name="vault_settings">保险箱设置</string>
+    <string name="not_now">以后再说</string>
+    <string name="enable_biometric_unlock">启用生物识别解锁</string>
+    <string name="vault_biometric_setup_description">使用指纹或面容解锁保险箱。使用生物识别扫描确认可启用此项。您仍可使用 PIN 码并在保险箱设置中关闭此项。</string>
+    <string name="vault_biometric_setup_title">使用生物识别解锁吗？</string>
+    <string name="use_vault_pin">使用保险箱 PIN</string>
 </resources>
