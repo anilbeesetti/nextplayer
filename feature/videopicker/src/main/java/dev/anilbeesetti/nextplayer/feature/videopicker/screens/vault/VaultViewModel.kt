@@ -72,6 +72,9 @@ class VaultViewModel @Inject constructor(
             is VaultAction.SubmitNewPin -> submitNewPin(action.pin)
             is VaultAction.SubmitPinConfirmation -> submitPinConfirmation(action.pin)
             is VaultAction.SubmitUnlockPin -> submitUnlockPin(action.pin)
+            VaultAction.BiometricAuthenticated -> {
+                if (uiStateInternal.value.stage == VaultStage.LOCKED) unlockVault()
+            }
             VaultAction.DismissHowToFindInfo -> dismissHowToFindInfo()
             is VaultAction.PlayVideo -> playVideo(action.video)
             is VaultAction.PlaySelected -> playSelected(action.selectionItems)
@@ -125,8 +128,7 @@ class VaultViewModel @Inject constructor(
         viewModelScope.launch {
             val isValid = vaultPinRepository.verifyPin(pin)
             if (isValid) {
-                uiStateInternal.update { it.copy(stage = VaultStage.UNLOCKED, pinErrorCount = 0) }
-                collectHiddenVideos()
+                unlockVault()
             } else {
                 uiStateInternal.update { it.copy(pinErrorCount = it.pinErrorCount + 1) }
             }
@@ -134,7 +136,11 @@ class VaultViewModel @Inject constructor(
     }
 
     private fun dismissHowToFindInfo() {
-        uiStateInternal.update { it.copy(stage = VaultStage.UNLOCKED) }
+        unlockVault()
+    }
+
+    private fun unlockVault() {
+        uiStateInternal.update { it.copy(stage = VaultStage.UNLOCKED, pinErrorCount = 0) }
         collectHiddenVideos()
     }
 
@@ -196,6 +202,7 @@ class VaultViewModel @Inject constructor(
 }
 
 enum class VaultStage {
+    LOADING,
     LOCKED,
     SET_PIN,
     CONFIRM_PIN,
@@ -205,7 +212,7 @@ enum class VaultStage {
 
 @Stable
 data class VaultUiState(
-    val stage: VaultStage = VaultStage.LOCKED,
+    val stage: VaultStage = VaultStage.LOADING,
     val pendingPin: String? = null,
     val pinErrorCount: Int = 0,
     val setPinGeneration: Int = 0,
@@ -221,6 +228,7 @@ sealed interface VaultAction {
     data class SubmitNewPin(val pin: String) : VaultAction
     data class SubmitPinConfirmation(val pin: String) : VaultAction
     data class SubmitUnlockPin(val pin: String) : VaultAction
+    data object BiometricAuthenticated : VaultAction
     data object DismissHowToFindInfo : VaultAction
     data class PlayVideo(val video: Video) : VaultAction
     data class PlaySelected(val selectionItems: Set<SelectionItem>) : VaultAction

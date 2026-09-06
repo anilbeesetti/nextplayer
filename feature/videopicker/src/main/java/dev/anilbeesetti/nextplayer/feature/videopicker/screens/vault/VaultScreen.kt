@@ -85,11 +85,13 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.CenterCircularProgressBar
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.SelectionAction
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultBiometricButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
@@ -139,12 +141,15 @@ internal fun VaultScreen(
     onNavigateUp: () -> Unit,
 ) {
     when (uiState.stage) {
+        VaultStage.LOADING -> CenterCircularProgressBar()
+
         VaultStage.LOCKED -> VaultPinScreen(
             title = stringResource(R.string.enter_vault_pin),
             description = stringResource(R.string.enter_vault_pin_description),
             pinErrorCount = uiState.pinErrorCount,
             errorMessage = stringResource(R.string.incorrect_pin),
             onSubmit = { onAction(VaultAction.SubmitUnlockPin(it)) },
+            onBiometricAuthenticated = { onAction(VaultAction.BiometricAuthenticated) },
             onNavigateUp = onNavigateUp,
         )
 
@@ -192,6 +197,7 @@ private fun VaultPinScreen(
     onSubmit: (String) -> Unit,
     onNavigateUp: () -> Unit,
     errorMessage: String = "",
+    onBiometricAuthenticated: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -209,6 +215,17 @@ private fun VaultPinScreen(
                     }
                 },
             )
+        },
+        bottomBar = {
+            onBiometricAuthenticated?.let { onAuthenticated ->
+                VaultBiometricButton(
+                    onAuthenticated = onAuthenticated,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) { padding ->
