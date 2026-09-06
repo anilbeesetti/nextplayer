@@ -483,4 +483,13 @@
     <string name="audio_decoder_mode_not_supported">Ο αποκωδικοποιητής ήχου %1$s δεν υποστηρίζεται</string>
     <string name="no_supported_decoder">Δεν υπάρχει διαθέσιμος υποστηριζόμενος αποκωδικοποιητής για αυτό το μέσο.</string>
     <string name="decoder_mode_auto">Αυτόματο</string>
+    <string name="unlock_with_biometrics">Βιομετρικό ξεκλείδωμα</string>
+    <string name="use_vault_pin">Χρήση PIN κρύπτης</string>
+    <string name="vault_biometric_setup_title">Χρήση βιομετρικών για ξεκλείδωμα;</string>
+    <string name="vault_biometric_setup_description">Ξεκλειδώστε την κρύπτη σας με το δακτυλικό σας αποτύπωμα ή το πρόσωπο σας. Επιβεβαιώστε με βιομετρική σάρωση για να το ενεργοποιήσετε. Μπορείτε ακόμα να χρησιμοποιήσετε το PIN σας και να το απενεργοποιήσετε στις ρυθμίσεις της κρύπτης.</string>
+    <string name="enable_biometric_unlock">Ενεργοποίηση βιομετρικού ξεκλειδώματος</string>
+    <string name="not_now">Όχι τώρα</string>
+    <string name="vault_settings">Ρυθμίσεις κρύπτης</string>
+    <string name="vault_biometric_description">Χρησιμοποιήστε το δακτυλικό σας αποτύπωμα ή το πρόσωπο σας για ξεκλείδωμα. Ο κωδικός PIN της κρύπτης σας παραμένει διαθέσιμος.</string>
+    <string name="vault_biometric_unavailable">Ρυθμίστε ένα υποστηριζόμενο δακτυλικό αποτύπωμα ή πρόσωπο στις ρυθμίσεις της συσκευής σας για να ενεργοποιήσετε το βιομετρικό ξεκλείδωμα.</string>
 </resources>
