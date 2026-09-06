@@ -136,7 +136,7 @@
     <string name="permission_info">Next Player 應用程式需要 \"%1$s\" 權限以存取或播放媒體。沒有它，媒體存取與播放功能將無法工作。要完整地使用此應用程式，請授予權限。</string>
     <string name="settings">設定</string>
     <string name="z_a">Z-A</string>
-    <string name="decoder_desc">解碼器優先等級 、播放解碼器選項</string>
+    <string name="decoder_desc">硬體與軟體解碼器選項</string>
     <string name="video_orientation">影片方向</string>
     <string name="best_fit">最適合</string>
     <string name="about_name">關於</string>
@@ -462,4 +462,26 @@
     <string name="playlist_refresh_succeeded">播放清單更新完成。</string>
     <string name="playlist_refresh_failed">無法更新播放清單，未變更已儲存項目。</string>
     <string name="last_refreshed">最後更新 %1$s</string>
+    <string name="select_decoders">選取解碼器</string>
+    <string name="video_decoder">影片解碼器</string>
+    <string name="audio_decoder">音訊解碼器</string>
+    <string name="decoder_mode_hardware">硬體</string>
+    <string name="decoder_mode_system_software">軟體（進階）</string>
+    <string name="decoder_mode_app_software">軟體</string>
+    <string name="decoder_hardware_description">僅限 MediaCodec 硬體解碼</string>
+    <string name="decoder_system_software_description">僅限 Android MediaCodec 軟體解碼</string>
+    <string name="decoder_app_software_description">附屬 FFmpeg 軟體解碼</string>
+    <string name="video_decoder_mode_not_supported">不支援 %1$s 影片解碼器</string>
+    <string name="audio_decoder_mode_not_supported">不支援 %1$s 音訊解碼器</string>
+    <string name="no_supported_decoder">沒有支援這個媒體的解碼器。</string>
+    <string name="unlock_with_biometrics">使用生物辨識解鎖</string>
+    <string name="use_vault_pin">使用保險箱密碼</string>
+    <string name="vault_biometric_setup_title">要使用生物辨識解鎖嗎？</string>
+    <string name="vault_biometric_setup_description">透過指紋或臉部辨識解鎖您的保險箱。\n啟用前請透過生物辨識掃描進行確認。\n您仍可使用 PIN 碼解鎖，或在保險箱設定中停用。</string>
+    <string name="enable_biometric_unlock">啟用生物辨識解鎖</string>
+    <string name="not_now">現在不要</string>
+    <string name="vault_settings">保險箱設定</string>
+    <string name="vault_biometric_description">使用指紋或臉部辨識解鎖，您的保險箱密碼不受影響。</string>
+    <string name="vault_biometric_unavailable">請在系統設定中完成指紋或臉部掃描以啟用生物辨識解鎖。</string>
+    <string name="decoder_mode_auto">自動</string>
 </resources>
