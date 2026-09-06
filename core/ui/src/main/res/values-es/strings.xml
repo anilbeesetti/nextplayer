@@ -491,4 +491,13 @@
     <string name="audio_decoder_mode_not_supported">El decodificador de audio %1$s no es compatible</string>
     <string name="no_supported_decoder">No hay ningún decodificador compatible disponible para este contenido.</string>
     <string name="decoder_mode_auto">Automático</string>
+    <string name="unlock_with_biometrics">Desbloquear con datos biométricos</string>
+    <string name="use_vault_pin">Usar PIN de la bóveda</string>
+    <string name="vault_biometric_setup_title">¿Usar datos biométricos para desbloquear?</string>
+    <string name="vault_biometric_setup_description">Desbloquea tu bóveda con tu huella o tu rostro. Confirma con un escaneo biométrico para activarlo. Puedes seguir usando tu PIN y desactivar esta opción en los ajustes de la bóveda.</string>
+    <string name="enable_biometric_unlock">Activar desbloqueo biométrico</string>
+    <string name="not_now">Ahora no</string>
+    <string name="vault_settings">Ajustes de la bóveda</string>
+    <string name="vault_biometric_description">Usa tu huella o tu rostro para desbloquear. Tu PIN de la bóveda seguirá disponible.</string>
+    <string name="vault_biometric_unavailable">Configura una huella o un rostro compatibles en los ajustes de tu dispositivo para activar el desbloqueo biométrico.</string>
 </resources>
