@@ -77,3 +77,7 @@ profile. Tested SwiftShader and host GPU rendering. No app crash was recorded.
 colors with host GPU rendering. MediaCodec output was correct. The native rendering source is
 unchanged from nextlib main; these checks do not establish whether physical devices are affected.
 Decoder selection and recovery passed, but FFmpeg visual playback did not.
+
+**Follow-up 2026-09-06:** The FFmpeg surface-color regression is fixed in nextlib `483ed3c`.
+See [FFmpeg performance and rendering verification](FFMPEG_PERFORMANCE.md) for the
+before/after measurements, color assertions and repeated Next Player playback checks.
