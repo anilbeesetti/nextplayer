@@ -1,0 +1,2 @@
+/private/tmp/nextlib-review/ffvideo-before-test.cpp:70: void CheckColorsAndRange(): assertion "dest->data[0][source->width / 2] == (white ? 235 : 16)" failed
+Aborted 

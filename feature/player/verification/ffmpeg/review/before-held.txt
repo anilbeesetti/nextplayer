@@ -1,0 +1,44 @@
+INSTRUMENTATION_STATUS: class=io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest:
+INSTRUMENTATION_STATUS: test=decodeAndRender
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Decoder release reclaims renderer-held frames expected:<0> but was:<-5476241259284270192>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:647)
+	at io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest.decodeAndRender(FfmpegPlaybackBenchmarkTest.java:222)
+
+INSTRUMENTATION_STATUS: stream=
+Error in decodeAndRender(io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest):
+java.lang.AssertionError: Decoder release reclaims renderer-held frames expected:<0> but was:<-5476241259284270192>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:647)
+	at io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest.decodeAndRender(FfmpegPlaybackBenchmarkTest.java:222)
+
+INSTRUMENTATION_STATUS: test=decodeAndRender
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 1.23
+There was 1 failure:
+1) decodeAndRender(io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest)
+java.lang.AssertionError: Decoder release reclaims renderer-held frames expected:<0> but was:<-5476241259284270192>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:647)
+	at io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest.decodeAndRender(FfmpegPlaybackBenchmarkTest.java:222)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

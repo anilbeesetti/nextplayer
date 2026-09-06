@@ -115,6 +115,7 @@ public class FfmpegPlaybackBenchmarkTest {
                     @Override public void onInputBufferAvailable() { available.release(); }
                     @Override public void onOutputBufferAvailable() { available.release(); }
                 }, Runnable::run);
+                VideoDecoderOutputBuffer heldOutput = null;
                 int sent = 0;
                 int frames = 0;
                 long renderNs = 0;
@@ -126,6 +127,8 @@ public class FfmpegPlaybackBenchmarkTest {
                         DecoderInputBuffer input;
                         while (sent < samples.size() && (input = decoder.dequeueInputBuffer()) != null) {
                             input.ensureSpaceForWrite(samples.get(sent).length);
+                            assertTrue("FFmpeg input padding", input.data.capacity() >=
+                                    samples.get(sent).length + FfmpegLibrary.getInputBufferPaddingSize());
                             input.data.put(samples.get(sent));
                             input.timeUs = timestamps.get(sent);
                             input.format = format;
@@ -145,10 +148,25 @@ public class FfmpegPlaybackBenchmarkTest {
                                 } else if (yuv) {
                                     assertNotNull(output.yuvPlanes);
                                     assertTrue(output.yuvPlanes[0].remaining() >= format.width * format.height);
+                                    if (args.containsKey("colorspace")) {
+                                        assertEquals("Output colorspace", Integer.parseInt(args.getString("colorspace")),
+                                                output.colorspace);
+                                    }
+                                    if (Boolean.parseBoolean(args.getString("range", "false"))) {
+                                        // Fixture has full-range black and white halves; Media3 requires limited YUV.
+                                        ByteBuffer luma = output.yuvPlanes[0];
+                                        int row = (output.height / 2) * output.yuvStrides[0];
+                                        assertEquals("Limited black", 16, luma.get(row + output.width / 4) & 255);
+                                        assertEquals("Limited white", 235, luma.get(row + output.width * 3 / 4) & 255);
+                                    }
                                 }
                                 frames++;
                             } finally {
-                                output.release();
+                                if (heldOutput == null && Boolean.parseBoolean(args.getString("hold", "false"))) {
+                                    heldOutput = output;
+                                } else {
+                                    output.release();
+                                }
                             }
                         }
                         if (!received && !available.tryAcquire(2, TimeUnit.SECONDS)) break;
@@ -200,6 +218,10 @@ public class FfmpegPlaybackBenchmarkTest {
                     }
                 } finally {
                     decoder.release();
+                    if (heldOutput != null) {
+                        assertEquals("Decoder release reclaims renderer-held frames", 0, heldOutput.decoderPrivate);
+                        heldOutput.release();
+                    }
                 }
             }
         }

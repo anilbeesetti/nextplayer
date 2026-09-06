@@ -1,0 +1,22 @@
+{
+  "review-perf-baseline-decode": {
+    "runs": 5,
+    "fps": 879.1886159340537,
+    "cpuMsPerFrame": 2.88
+  },
+  "review-perf-baseline-render": {
+    "runs": 5,
+    "fps": 60.03135234627075,
+    "cpuMsPerFrame": 6.256666666666667
+  },
+  "review-perf-review-fixed-decode": {
+    "runs": 5,
+    "fps": 1027.2611569657188,
+    "cpuMsPerFrame": 2.73
+  },
+  "review-perf-review-fixed-render": {
+    "runs": 5,
+    "fps": 60.03340205661036,
+    "cpuMsPerFrame": 6.376666666666667
+  }
+}

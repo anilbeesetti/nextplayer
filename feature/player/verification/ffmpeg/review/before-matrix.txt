@@ -1,0 +1,41 @@
+INSTRUMENTATION_STATUS: class=io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest:
+INSTRUMENTATION_STATUS: test=decodeAndRender
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Incorrect color in bar 2: -15674438
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest.decodeAndRender(FfmpegPlaybackBenchmarkTest.java:212)
+
+INSTRUMENTATION_STATUS: stream=
+Error in decodeAndRender(io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest):
+java.lang.AssertionError: Incorrect color in bar 2: -15674438
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest.decodeAndRender(FfmpegPlaybackBenchmarkTest.java:212)
+
+INSTRUMENTATION_STATUS: test=decodeAndRender
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 2.493
+There was 1 failure:
+1) decodeAndRender(io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest)
+java.lang.AssertionError: Incorrect color in bar 2: -15674438
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest.decodeAndRender(FfmpegPlaybackBenchmarkTest.java:212)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

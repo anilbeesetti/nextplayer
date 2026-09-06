@@ -1,0 +1,2 @@
+PASS: unknown/BT.709/BT.601 matrices and full/limited range cache transitions
+PASS: five invalid buffer cases publish no image; same Surface renders after each error

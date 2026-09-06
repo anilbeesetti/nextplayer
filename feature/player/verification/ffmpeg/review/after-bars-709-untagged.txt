@@ -1,0 +1,23 @@
+INSTRUMENTATION_STATUS: class=io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest:
+INSTRUMENTATION_STATUS: test=decodeAndRender
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegPlaybackBenchmarkTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=decodeAndRender
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 2.952
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1

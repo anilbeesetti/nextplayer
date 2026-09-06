@@ -2,7 +2,7 @@
 
 Measured 2026-09-06 using Next Player's debug APK with the local nextlib composite build.
 Baseline: Next Player `5b5747c7`, nextlib `40a9f16` (including its existing decoder switching).
-Fixed nextlib commit: `483ed3c`. The fix retains reference-counted FFmpeg frames in Media3's `decoderPrivate` field until
+Initial nextlib performance revision: `483ed3c`; review corrections are recorded below. The fix retains reference-counted FFmpeg frames in Media3's `decoderPrivate` field until
 output is rendered, dropped, flushed or released. Surface rendering converts the original
 frame directly into an RGBA native window. The standalone YUV-buffer path converts to
 Media3's planar 8-bit 4:2:0 contract, including 10-bit and 4:4:4 inputs.
@@ -32,7 +32,7 @@ metadata determine conversion, so queued frames do not use a newer decoder forma
 - Native heap snapshots in the raw data include retained FFmpeg frames and exclude some
   Java-managed buffers. They are not comparable total-memory or leak measurements.
 
-## Results
+## Initial results (`483ed3c`)
 
 | Workload / metric | Before | After | Change |
 | --- | ---: | ---: | ---: |
@@ -82,6 +82,97 @@ Reviewable evidence is committed in [`verification/ffmpeg`](verification/ffmpeg/
 The raw runs include excluded warm-ups (`run = 0`). Additional test logs and both APKs
 remain in the local, Git-ignored `build/nextlib-performance/` directory.
 
+## Review corrections and repeat measurements
+
+The six review observations were confirmed against FFmpeg 6.0, Media3 1.11.0 and Android's
+Surface implementation. The corrections are in nextlib `06d62f0`, with a surface-disconnect retry follow-up in `a884d8d`:
+
+- Preserve Media3 `COLORSPACE_UNKNOWN` for unspecified matrices and use its BT.709 fallback
+  for RGBA conversion. Explicit BT.601 and BT.2020 metadata retain their corresponding matrix.
+- Configure range before `sws_init_context`, so full-range planar YUV takes the range conversion
+  path. Recreate the cached scaler when size, format, matrix or range changes.
+- Disconnect invalid locked buffers before unlocking, preventing the unwritten image from
+  being queued. Release the window so it can be reacquired. This also handles failed scaling.
+  Android has no public unlock-without-post operation; its
+  [Surface implementation](https://android.googlesource.com/platform/frameworks/native/+/refs/heads/main/libs/gui/Surface.cpp)
+  clears slots on disconnect, then rejects posting the removed slot while still unlocking it.
+- Retain the complete set of allocated output buffers. After joining the decode thread, free
+  every native frame, including outputs held by the renderer, and clear their native pointers.
+  A late output release is safe. `flush()` alone cannot reclaim renderer-held outputs.
+- Use the existing `FfmpegLibrary.getInputBufferPaddingSize()` JNI getter instead of duplicating 64.
+
+The pre-review APK fails both the renderer-held-frame and untagged BT.709 pixel regressions.
+The native range check also fails with the pre-review scaler. See the
+[before/after regression logs](verification/ffmpeg/review/).
+
+The corrected APK passes ten instrumentation invocations on the same disposable ARM64
+API 37 / Android 37.1 emulator with the host GPU: held-frame cleanup (including late release),
+five color-bar fixtures, unknown/BT.601 YUV metadata, full-to-limited YUV values, and actual
+Next Player decoder switching/pause/seek/resume. The native check uses the bundled FFmpeg to
+verify matrix/range cache transitions and injects null bits, wrong format, undersized width,
+undersized height and invalid stride into real locked Android buffers. All five error cases
+publish zero images, and each same Surface successfully renders a subsequent frame.
+
+Final verification of `a884d8d`: `assembleDebug`, `:app:assembleDebugAndroidTest`, `test`,
+`ktlintCheck`, nextlib `:media3ext:test`, and `python3 ffmpeg/test_setup.py` pass. The native
+regressions and actual Next Player switching flow were rerun successfully. The final packaged
+ARM64 JNI library matches the local build, SHA-256
+`d19bc3e18421adbeef22f5e80416432a282d5b806307dbe25c82db717c048c79`.
+All five packaged FFmpeg libraries remain byte-identical to the original baseline. The final
+APK was installed and launched on the connected CPH2689 Android 16 phone for manual testing;
+no phone performance results are claimed.
+
+The original SMPTE fixtures were generated with BT.601 coefficients without tagging the
+matrix. The reproduction command now tags them explicitly. A separate HD fixture converts
+the bars to BT.709 and strips the matrix metadata; the expected RGB tolerance stays 12/255.
+This makes the fallback test distinct from the explicit-matrix tests.
+
+A fresh H.264 comparison uses five measured runs per revision plus one excluded warm-up,
+600 frames for uncapped decode and 300 for rendering. Baseline is still `40a9f16`; corrected
+revision is `06d62f0`. Other settings match the original method. These results are a separate
+batch, not pooled with the original ten-run comparison:
+
+| H.264 1080p60 metric | Baseline | Review fix | Change |
+| --- | ---: | ---: | ---: |
+| Uncapped decode | 879.19 fps | 1,027.26 fps | +16.8% |
+| Decode CPU/frame | 2.880 ms | 2.730 ms | −5.2% |
+| Decode + render CPU/frame | 6.257 ms | 6.377 ms | +1.9% |
+| Surface throughput | 60.031 fps | 60.033 fps | Essentially unchanged |
+
+Decode headroom remains improved. This batch does not establish a rendering CPU saving;
+the small difference reverses the initial measurement. HEVC/VP9 were not remeasured for the
+review corrections. [Raw repeat runs](verification/ffmpeg/review/runs.jsonl) and
+[medians](verification/ffmpeg/review/summary.json) include warm-up exclusion explicitly.
+
+Run the native regression check from nextlib on a disposable ARM64 API 26+ target:
+
+```sh
+ANDROID_NDK_HOME=/path/to/ndk ANDROID_SERIAL=SERIAL \
+  media3ext/src/test/cpp/run_ffvideo_test.sh
+```
+
+Additional fixture commands:
+
+```sh
+# BT.709 values with deliberately absent matrix metadata.
+ffmpeg -f lavfi -i smptebars=size=1280x720:rate=30 -t 4 \
+  -vf scale=in_color_matrix=bt601:out_color_matrix=bt709 \
+  -c:v libx264 -preset veryfast -crf 16 -pix_fmt yuv420p -g 30 -bf 0 \
+  -colorspace unknown -x264-params colormatrix=undef bars-709-untagged.mp4
+# Full-range black/white halves; output Y must become 16/235.
+ffmpeg -f lavfi \
+  -i "nullsrc=s=1280x720:r=30,geq=lum='if(lt(X,W/2),0,255)':cb=128:cr=128" \
+  -t 4 -c:v libx264 -preset veryfast -qp 0 -pix_fmt yuv420p \
+  -colorspace bt709 -color_range pc -g 30 -bf 0 range-full.mp4
+```
+
+Use the instrumentation command below with `render=false, hold=true` for release cleanup;
+`render=false, yuv=true, colorspace=0` for the untagged clip; and
+`render=false, yuv=true, range=true, colorspace=2` for the black/white clip. Pass these
+as separate `-e` arguments. With `bars=true`, all seven RGB patches must pass unchanged.
+The native test additionally covers full-range `YUV420P` without the deprecated `YUVJ420P`
+pixel format, which is the case that exposed the unscaled-copy bug.
+
 ## Reproduce
 
 Use the opt-in existing composite build; no published dependency version is changed:
@@ -99,7 +190,7 @@ Generate a deterministic H.264 workload and the color regression fixtures (host 
 ffmpeg -f lavfi -i testsrc2=size=1920x1080:rate=60 -t 12 \
   -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -g 60 -bf 2 h264-1080p60.mp4
 ffmpeg -f lavfi -i smptebars=size=1280x720:rate=30 -t 4 \
-  -c:v libx264 -preset veryfast -crf 16 -pix_fmt yuv420p -g 30 -bf 0 bars-420.mp4
+  -c:v libx264 -preset veryfast -crf 16 -pix_fmt yuv420p -colorspace smpte170m -g 30 -bf 0 bars-420.mp4
 ffmpeg -f lavfi -i testsrc2=size=1280x720:rate=60 -t 12 \
   -c:v libx265 -preset ultrafast -crf 24 -pix_fmt yuv420p10le \
   -x265-params log-level=error:pools=4:keyint=60 hevc-720p60-10bit.mp4
