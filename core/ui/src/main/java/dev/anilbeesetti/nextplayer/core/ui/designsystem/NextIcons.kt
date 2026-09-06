@@ -20,6 +20,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ClosedCaption
+import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.DarkMode
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Deselect
 import androidx.compose.material.icons.rounded.DeveloperBoard
+import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.DragHandle
@@ -35,6 +37,7 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.FilterFrames
+import androidx.compose.material.icons.rounded.Fingerprint
 import androidx.compose.material.icons.rounded.FlipToBack
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOff
@@ -46,18 +49,15 @@ import androidx.compose.material.icons.rounded.HeadsetOff
 import androidx.compose.material.icons.rounded.HideSource
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lan
-import androidx.compose.material.icons.rounded.Cloud
-import androidx.compose.material.icons.rounded.Dns
-import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.LocalMovies
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.MiscellaneousServices
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PanToolAlt
@@ -76,6 +76,7 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SmartButton
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Subtitles
@@ -176,6 +177,7 @@ object NextIcons {
     val Image = Icons.Rounded.Image
     val Frame = Icons.Rounded.FilterFrames
     val Lock = Icons.Rounded.Lock
+    val Fingerprint = Icons.Rounded.Fingerprint
     val DragHandle = Icons.Rounded.DragHandle
     val Reorder = Icons.Rounded.SwapVert
 }

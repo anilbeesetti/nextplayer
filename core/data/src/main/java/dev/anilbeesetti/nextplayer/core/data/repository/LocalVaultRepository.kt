@@ -55,24 +55,23 @@ class LocalVaultRepository @Inject constructor(
     override fun observeHiddenVideos(): Flow<List<Video>> {
         return combine(hiddenVideoDao.getAll(), pendingVaultPaths) { entities, pendingPaths ->
             entities
-                .filterNot { it.vaultPath in pendingPaths }
-                .filter { File(it.vaultPath).exists() }
+                .filter { it.vaultPath !in pendingPaths && File(it.vaultPath).exists() }
                 .map { it.toVideo() }
         }
     }
 
-    override suspend fun hideVideos(videos: List<Video>) = vaultMutationMutex.withLock {
-        hideVideosLocked(videos)
-    }
-
-    private suspend fun hideVideosLocked(videos: List<Video>) {
+    override suspend fun hideVideos(videos: List<Video>): Unit = vaultMutationMutex.withLock {
         val reservations = reserveVideos(videos)
-        if (reservations.isEmpty()) return
+        if (reservations.isEmpty()) return@withLock
 
         try {
-            val moveOutcome = moveReservedVideos(reservations)
-            reconcileReservations(reservations, moveOutcome)
-            moveOutcome.rethrowCancellation()
+            val moveResult = try {
+                Result.success(mediaOperationsService.moveMedia(reservations.associate { it.sourceUri to it.destination }))
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+            reconcileReservations(reservations, moveResult)
+            moveResult.exceptionOrNull()?.let { if (it is CancellationException) throw it }
         } finally {
             revealReservations(reservations.map { it.destination.absolutePath })
         }
@@ -82,36 +81,23 @@ class LocalVaultRepository @Inject constructor(
         val attemptedVaultPaths = mutableListOf<String>()
         return try {
             videos.mapNotNull { video ->
-                reserveVideo(video, attemptedVaultPaths)
+                val destination = createVaultDestination(video.nameWithExtension)
+                attemptedVaultPaths += destination.absolutePath
+                pendingVaultPaths.update { it + destination.absolutePath }
+                val rowId = try {
+                    hiddenVideoDao.insert(video.toHiddenVideoEntity(destination))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    cleanUpReservations(listOf(destination.absolutePath))
+                    return@mapNotNull null
+                }
+                HideReservation(rowId, video.uriString.toUri(), destination)
             }
         } catch (e: Exception) {
             cleanUpReservations(attemptedVaultPaths)
             throw e
         }
-    }
-
-    private suspend fun reserveVideo(
-        video: Video,
-        attemptedVaultPaths: MutableList<String>,
-    ): HideReservation? {
-        val destination = createVaultDestination(video.nameWithExtension)
-        attemptedVaultPaths += destination.absolutePath
-        val sourceUri = video.uriString.toUri()
-        val entity = video.toHiddenVideoEntity(destination)
-        pendingVaultPaths.update { it + destination.absolutePath }
-        val rowId = try {
-            hiddenVideoDao.insert(entity)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            cleanUpReservations(listOf(destination.absolutePath))
-            return null
-        }
-        return HideReservation(
-            rowId = rowId,
-            sourceUri = sourceUri,
-            destination = destination,
-        )
     }
 
     private fun Video.toHiddenVideoEntity(destination: File): HiddenVideoEntity {
@@ -133,28 +119,6 @@ class LocalVaultRepository @Inject constructor(
         val destination: File,
     )
 
-    private sealed interface MoveOutcome {
-        data class Completed(val movedFiles: Map<Uri, File?>) : MoveOutcome
-        data object Failed : MoveOutcome
-        data class Cancelled(val exception: CancellationException) : MoveOutcome
-    }
-
-    private suspend fun moveReservedVideos(
-        reservations: List<HideReservation>,
-    ): MoveOutcome {
-        return try {
-            MoveOutcome.Completed(
-                mediaOperationsService.moveMedia(
-                    reservations.associate { it.sourceUri to it.destination },
-                ),
-            )
-        } catch (e: CancellationException) {
-            MoveOutcome.Cancelled(e)
-        } catch (e: Exception) {
-            MoveOutcome.Failed
-        }
-    }
-
     private fun createVaultDestination(displayName: String): File {
         val extension = File(displayName).extension.takeIf { it.isNotBlank() }
         val suffix = extension?.let { ".$it" }.orEmpty()
@@ -164,10 +128,14 @@ class LocalVaultRepository @Inject constructor(
 
     private suspend fun reconcileReservations(
         reservations: List<HideReservation>,
-        moveOutcome: MoveOutcome,
+        moveResult: Result<Map<Uri, File?>>,
     ) {
+        val movedFiles = moveResult.getOrNull()
         val failedRowIds = reservations.mapNotNull { reservation ->
-            reservation.rowId.takeUnless { moveOutcome.wasCommitted(reservation) }
+            // If moving threw, the destination is the only evidence that a move committed.
+            val committed = reservation.destination.exists() &&
+                (movedFiles == null || movedFiles[reservation.sourceUri] == reservation.destination)
+            reservation.rowId.takeUnless { committed }
         }
         if (failedRowIds.isEmpty()) return
         withContext(NonCancellable) {
@@ -176,30 +144,12 @@ class LocalVaultRepository @Inject constructor(
         }
     }
 
-    private fun MoveOutcome.wasCommitted(reservation: HideReservation): Boolean {
-        return when (this) {
-            is MoveOutcome.Completed -> {
-                movedFiles[reservation.sourceUri] == reservation.destination &&
-                    reservation.destination.exists()
-            }
-            MoveOutcome.Failed, is MoveOutcome.Cancelled -> reservation.destination.exists()
-        }
-    }
-
-    private fun MoveOutcome.rethrowCancellation() {
-        if (this is MoveOutcome.Cancelled) throw exception
-    }
-
-    private suspend fun deleteReservationsByVaultPath(vaultPaths: List<String>) {
+    private suspend fun cleanUpReservations(vaultPaths: List<String>) {
         if (vaultPaths.isEmpty()) return
         withContext(NonCancellable) {
             runCatching { hiddenVideoDao.deleteByVaultPaths(vaultPaths) }
                 .onFailure { logCleanupFailure("delete reservations by vault path", it) }
         }
-    }
-
-    private suspend fun cleanUpReservations(vaultPaths: List<String>) {
-        deleteReservationsByVaultPath(vaultPaths)
         revealReservations(vaultPaths)
     }
 

@@ -39,9 +39,10 @@ import dev.anilbeesetti.nextplayer.core.model.PlaylistSummary
 import dev.anilbeesetti.nextplayer.core.model.PlaylistType
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.findClosestFolder
-import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.base.DataState
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
+import java.io.File
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,7 +50,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 
 @HiltViewModel(assistedFactory = MediaPickerViewModel.Factory::class)
 class MediaPickerViewModel @AssistedInject constructor(
@@ -66,7 +66,7 @@ class MediaPickerViewModel @AssistedInject constructor(
     private val systemService: SystemService,
     @ApplicationContext private val context: Context,
     @Assisted private val input: Input,
-    @Assisted private val output: Output,
+    @Assisted internal var output: Output,
 ) : ViewModel() {
 
     data class Input(
@@ -134,6 +134,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             MediaPickerAction.CancelTransfer -> cancelTransfer()
             is MediaPickerAction.RequestHideSelectedItems -> requestHideSelectedItems(action.selectionItems)
             is MediaPickerAction.SetVaultPinAndHide -> setVaultPinAndHide(action.pin)
+            is MediaPickerAction.CompleteBiometricSetup -> completeBiometricSetup(action.enabled)
             MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
             MediaPickerAction.DismissHideFlow -> uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
             is MediaPickerAction.ShowAddToPlaylist -> showAddToPlaylist(action.selectionItems)
@@ -164,7 +165,7 @@ class MediaPickerViewModel @AssistedInject constructor(
                     currentState.copy(
                         mediaDataState = DataState.Success(media),
                         recentlyPlayedVideo = recentlyPlayed,
-                        recentlyPlayedFolder = recentlyPlayed?.let { media?.folders?.findClosestFolder(it.path) }
+                        recentlyPlayedFolder = recentlyPlayed?.let { media?.folders?.findClosestFolder(it.path) },
                     )
                 }
             }
@@ -185,9 +186,11 @@ class MediaPickerViewModel @AssistedInject constructor(
         viewModelScope.launch {
             playlistRepository.observePlaylists().collect { playlists ->
                 uiStateInternal.update {
-                    it.copy(playlists = playlists.filter { playlist ->
-                        playlist.type == PlaylistType.LOCAL
-                    })
+                    it.copy(
+                        playlists = playlists.filter { playlist ->
+                            playlist.type == PlaylistType.LOCAL
+                        },
+                    )
                 }
             }
         }
@@ -456,6 +459,14 @@ class MediaPickerViewModel @AssistedInject constructor(
             vaultPinRepository.setPin(pin)
             hideVideoItems(pending)
             vaultPinRepository.setHideConfirmationShown()
+            uiStateInternal.update { it.copy(hideFlow = HideFlowState.BiometricSetup) }
+        }
+    }
+
+    private fun completeBiometricSetup(enabled: Boolean) {
+        if (uiStateInternal.value.hideFlow != HideFlowState.BiometricSetup) return
+        viewModelScope.launch {
+            vaultPinRepository.setBiometricEnabled(enabled)
             uiStateInternal.update { it.copy(hideFlow = HideFlowState.HowToFindInfo) }
         }
     }
@@ -530,6 +541,7 @@ sealed interface HideFlowState {
     data object Idle : HideFlowState
     data class ConfirmHide(val items: List<Video>) : HideFlowState
     data class SetupPin(val items: List<Video>) : HideFlowState
+    data object BiometricSetup : HideFlowState
     data object HowToFindInfo : HideFlowState
 
     data object Processing : HideFlowState
@@ -556,6 +568,7 @@ sealed interface MediaPickerAction {
     data object DismissMediaInfo : MediaPickerAction
     data class RequestHideSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class SetVaultPinAndHide(val pin: String) : MediaPickerAction
+    data class CompleteBiometricSetup(val enabled: Boolean) : MediaPickerAction
     data object ConfirmHidePendingItems : MediaPickerAction
     data object DismissHideFlow : MediaPickerAction
     data class ShowAddToPlaylist(val selectionItems: Set<SelectionItem>) : MediaPickerAction

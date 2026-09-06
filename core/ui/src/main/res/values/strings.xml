@@ -342,6 +342,15 @@
     <string name="how_to_find_hidden_videos_description">Hidden videos are kept safe in your Vault. To open it again, press and hold the \"NextPlayer\" title at the top of the home screen and enter your PIN.</string>
     <string name="got_it">Got it</string>
     <string name="open_vault">Open vault</string>
+    <string name="unlock_with_biometrics">Unlock with biometrics</string>
+    <string name="use_vault_pin">Use vault PIN</string>
+    <string name="vault_biometric_setup_title">Use biometrics to unlock?</string>
+    <string name="vault_biometric_setup_description">Unlock your vault with your fingerprint or face. Confirm with a biometric scan to enable it. You can still use your PIN and turn this off in Vault settings.</string>
+    <string name="enable_biometric_unlock">Enable biometric unlock</string>
+    <string name="not_now">Not now</string>
+    <string name="vault_settings">Vault settings</string>
+    <string name="vault_biometric_description">Use your fingerprint or face to unlock. Your vault PIN remains available.</string>
+    <string name="vault_biometric_unavailable">Set up a supported fingerprint or face in your device settings to enable biometric unlock.</string>
     <string name="vault_empty_title">No hidden videos</string>
     <string name="vault_empty_description">Videos you hide will show up here. Long press a video and tap Hide to add it to the vault.</string>
     <string name="unhide_one_video_confirmation">Unhide this video? It will be moved back to its original location.</string>

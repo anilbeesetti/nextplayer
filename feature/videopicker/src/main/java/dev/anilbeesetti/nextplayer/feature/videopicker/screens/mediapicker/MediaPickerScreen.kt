@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,7 +68,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
@@ -124,9 +122,11 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaView
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.NoVideosFound
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.QuickSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.RenameDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.SelectionAction
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultBiometricSetupDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
@@ -480,65 +480,67 @@ internal fun MediaPickerScreen(
                     launchPermissionRequest = { permissionState.launchPermissionRequest() },
                 ) {}
             }
-        } else when (uiState.mediaDataState) {
-            is DataState.Error -> {
-            }
-
-            is DataState.Loading -> {
-                CenterCircularProgressBar(modifier = Modifier.padding(scaffoldPadding))
-            }
-
-            is DataState.Success -> {
-                val containerModifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = scaffoldPadding.calculateTopPadding())
-                    .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current) + 2.dp)
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(MaterialTheme.colorScheme.background)
-
-                val successContent: @Composable () -> Unit = {
-                    val updatedScaffoldPadding = scaffoldPadding.copy(
-                        top = 0.dp,
-                        start = 0.dp,
-                        bottom = scaffoldPadding.calculateBottomPadding(),
-                    )
-                    val mediaHolder = uiState.mediaDataState.value
-                    if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
-                        NoVideosFound(contentPadding = updatedScaffoldPadding)
-                    } else {
-                        MediaView(
-                            recentlyPlayedVideo = uiState.recentlyPlayedVideo,
-                            recentlyPlayedFolder = uiState.recentlyPlayedFolder,
-                            mediaHolder = mediaHolder,
-                            preferences = uiState.preferences,
-                            onFolderClick = { onAction(MediaPickerAction.OnFolderClick(it)) },
-                            onVideoClick = { onAction(MediaPickerAction.OnPlayVideo(it)) },
-                            selectionManager = selectionManager,
-                            lazyGridState = lazyGridState,
-                            firstItemFocusRequester = if (isTv) firstItemFocusRequester else null,
-                            lastItemFocusRequester = if (isTv) lastItemFocusRequester else null,
-                            restoredFocusKey = restoredFocusKey,
-                            onItemFocused = { restoredFocusKey = it },
-                            // Down from the last item goes to the FAB normally, or to the selection
-                            // action bar while selecting (the FAB is hidden then).
-                            lastItemDownFocusRequester = when {
-                                !isTv -> null
-                                selectionManager.isInSelectionMode -> firstActionFocusRequester
-                                else -> fabFocusRequester
-                            },
-                            contentPadding = updatedScaffoldPadding,
-                        )
-                    }
+        } else {
+            when (uiState.mediaDataState) {
+                is DataState.Error -> {
                 }
 
-                if (isTv) {
-                    Box(modifier = containerModifier) { successContent() }
-                } else {
-                    PullToRefreshBox(
-                        modifier = containerModifier,
-                        isRefreshing = uiState.refreshing,
-                        onRefresh = { onAction(MediaPickerAction.Refresh) },
-                    ) { successContent() }
+                is DataState.Loading -> {
+                    CenterCircularProgressBar(modifier = Modifier.padding(scaffoldPadding))
+                }
+
+                is DataState.Success -> {
+                    val containerModifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = scaffoldPadding.calculateTopPadding())
+                        .padding(start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current) + 2.dp)
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                        .background(MaterialTheme.colorScheme.background)
+
+                    val successContent: @Composable () -> Unit = {
+                        val updatedScaffoldPadding = scaffoldPadding.copy(
+                            top = 0.dp,
+                            start = 0.dp,
+                            bottom = scaffoldPadding.calculateBottomPadding(),
+                        )
+                        val mediaHolder = uiState.mediaDataState.value
+                        if (mediaHolder == null || mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty()) {
+                            NoVideosFound(contentPadding = updatedScaffoldPadding)
+                        } else {
+                            MediaView(
+                                recentlyPlayedVideo = uiState.recentlyPlayedVideo,
+                                recentlyPlayedFolder = uiState.recentlyPlayedFolder,
+                                mediaHolder = mediaHolder,
+                                preferences = uiState.preferences,
+                                onFolderClick = { onAction(MediaPickerAction.OnFolderClick(it)) },
+                                onVideoClick = { onAction(MediaPickerAction.OnPlayVideo(it)) },
+                                selectionManager = selectionManager,
+                                lazyGridState = lazyGridState,
+                                firstItemFocusRequester = if (isTv) firstItemFocusRequester else null,
+                                lastItemFocusRequester = if (isTv) lastItemFocusRequester else null,
+                                restoredFocusKey = restoredFocusKey,
+                                onItemFocused = { restoredFocusKey = it },
+                                // Down from the last item goes to the FAB normally, or to the selection
+                                // action bar while selecting (the FAB is hidden then).
+                                lastItemDownFocusRequester = when {
+                                    !isTv -> null
+                                    selectionManager.isInSelectionMode -> firstActionFocusRequester
+                                    else -> fabFocusRequester
+                                },
+                                contentPadding = updatedScaffoldPadding,
+                            )
+                        }
+                    }
+
+                    if (isTv) {
+                        Box(modifier = containerModifier) { successContent() }
+                    } else {
+                        PullToRefreshBox(
+                            modifier = containerModifier,
+                            isRefreshing = uiState.refreshing,
+                            onRefresh = { onAction(MediaPickerAction.Refresh) },
+                        ) { successContent() }
+                    }
                 }
             }
         }
@@ -614,6 +616,7 @@ internal fun MediaPickerScreen(
         hideFlow = uiState.hideFlow,
         onConfirmHide = { onAction(MediaPickerAction.ConfirmHidePendingItems) },
         onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(it)) },
+        onBiometricSetupComplete = { onAction(MediaPickerAction.CompleteBiometricSetup(it)) },
         onDismiss = { onAction(MediaPickerAction.DismissHideFlow) },
     )
 
@@ -800,6 +803,7 @@ private fun HideFlowDialogs(
     hideFlow: HideFlowState,
     onConfirmHide: () -> Unit,
     onSetPinAndHide: (String) -> Unit,
+    onBiometricSetupComplete: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     when (hideFlow) {
@@ -838,6 +842,8 @@ private fun HideFlowDialogs(
                 onPinConfirmed = onSetPinAndHide,
             )
         }
+
+        HideFlowState.BiometricSetup -> VaultBiometricSetupDialog(onComplete = onBiometricSetupComplete)
 
         HideFlowState.HowToFindInfo -> {
             NextDialog(
@@ -1337,47 +1343,6 @@ private fun SelectionActionsSheet(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun SelectionAction(
-    imageVector: ImageVector,
-    title: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    isTv: Boolean = false,
-) {
-    Column(
-        modifier = modifier
-            .defaultMinSize(
-                minWidth = 75.dp,
-                minHeight = 64.dp,
-            )
-            .tvFocusRing(isTv, shape = RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(
-                horizontal = 16.dp,
-                vertical = 8.dp,
-            ),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = title,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-        Text(
-            text = title,
-            modifier = Modifier,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
     }
 }
 

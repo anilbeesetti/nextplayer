@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.videopicker.navigation
 
 import android.net.Uri
+import androidx.compose.runtime.SideEffect
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
@@ -28,25 +29,25 @@ fun EntryProviderScope<NavKey>.mediaPickerEntry(
     onVaultClick: () -> Unit,
 ) {
     entry<MediaPickerRoute> { key ->
-        MediaPickerRoute(
-            viewModel = hiltViewModel<MediaPickerViewModel, MediaPickerViewModel.Factory>(
-                creationCallback = { factory ->
-                    factory.create(
-                        input = MediaPickerViewModel.Input(
-                            folderId = key.folderId,
-                        ),
-                        output = MediaPickerViewModel.Output(
-                            navigateUp = onNavigateUp,
-                            playVideo = onPlayVideo,
-                            playVideos = onPlayVideos,
-                            openFolder = onFolderClick,
-                            openSettings = onSettingsClick,
-                            openSearch = onSearchClick,
-                            openVault = onVaultClick,
-                        ),
-                    )
-                },
-            ),
+        val output = MediaPickerViewModel.Output(
+            navigateUp = onNavigateUp,
+            playVideo = onPlayVideo,
+            playVideos = onPlayVideos,
+            openFolder = onFolderClick,
+            openSettings = onSettingsClick,
+            openSearch = onSearchClick,
+            openVault = onVaultClick,
         )
+        val viewModel = hiltViewModel<MediaPickerViewModel, MediaPickerViewModel.Factory>(
+            creationCallback = { factory ->
+                factory.create(
+                    input = MediaPickerViewModel.Input(folderId = key.folderId),
+                    output = output,
+                )
+            },
+        )
+        // The ViewModel survives recreation; the activity's navigation stack does not.
+        SideEffect { viewModel.output = output }
+        MediaPickerRoute(viewModel = viewModel)
     }
 }
