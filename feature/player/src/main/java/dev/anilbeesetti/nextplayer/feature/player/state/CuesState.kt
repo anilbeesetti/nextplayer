@@ -10,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.listen
 import androidx.media3.common.text.Cue
 import androidx.media3.common.util.UnstableApi
+import dev.anilbeesetti.nextplayer.feature.player.extensions.stackUnpositionedCues
 
 @UnstableApi
 @Composable
@@ -26,10 +27,10 @@ class CuesState(
         private set
 
     suspend fun observe() {
-        cues = player.currentCues.cues
+        cues = player.currentCues.cues.stackUnpositionedCues()
         player.listen { events ->
             if (events.contains(Player.EVENT_CUES)) {
-                cues = player.currentCues.cues
+                cues = player.currentCues.cues.stackUnpositionedCues()
             }
         }
     }
