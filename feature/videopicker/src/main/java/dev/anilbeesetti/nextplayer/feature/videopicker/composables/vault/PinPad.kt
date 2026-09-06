@@ -40,7 +40,7 @@ import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 
 /**
- * Row of dots indicating how many PIN digits have been entered so far, out of [length].
+ * Row of dots indicating how many PIN digits have been entered so far, out of [VAULT_PIN_LENGTH].
  * Shakes briefly when [error] becomes true (e.g. wrong PIN, mismatched confirmation).
  */
 @Composable
@@ -48,7 +48,6 @@ fun PinDotsIndicator(
     filledCount: Int,
     error: Boolean,
     modifier: Modifier = Modifier,
-    length: Int = VAULT_PIN_LENGTH,
 ) {
     val offsetX = remember { Animatable(0f) }
 
@@ -64,7 +63,7 @@ fun PinDotsIndicator(
         modifier = modifier.offset(x = offsetX.value.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        repeat(length) { index ->
+        repeat(VAULT_PIN_LENGTH) { index ->
             val filled = index < filledCount
             Spacer(
                 modifier = Modifier

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -59,7 +57,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -89,10 +86,11 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.MediaInfoDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.SelectionAction
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
-import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
@@ -216,7 +214,6 @@ private fun VaultPinScreen(
     ) { padding ->
         PinEntryContent(
             modifier = Modifier.padding(padding),
-            icon = NextIcons.Lock,
             title = title,
             description = description,
             pinErrorCount = pinErrorCount,
@@ -229,7 +226,6 @@ private fun VaultPinScreen(
 @Composable
 private fun PinEntryContent(
     modifier: Modifier = Modifier,
-    icon: ImageVector,
     title: String,
     description: String,
     pinErrorCount: Int,
@@ -268,7 +264,6 @@ private fun PinEntryContent(
         ) {
             PinEntryHeader(
                 modifier = Modifier.weight(1f),
-                icon = icon,
                 title = title,
                 description = description,
                 filledCount = pin.length,
@@ -292,7 +287,6 @@ private fun PinEntryContent(
         ) {
             Spacer(modifier = Modifier.size(16.dp))
             PinEntryHeader(
-                icon = icon,
                 title = title,
                 description = description,
                 filledCount = pin.length,
@@ -312,7 +306,6 @@ private fun PinEntryContent(
 
 @Composable
 private fun PinEntryHeader(
-    icon: ImageVector,
     title: String,
     description: String,
     filledCount: Int,
@@ -332,7 +325,7 @@ private fun PinEntryHeader(
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                imageVector = icon,
+                imageVector = NextIcons.Lock,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp),
@@ -532,7 +525,7 @@ private fun VaultGalleryScreen(
                 uiState.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize().padding(updatedPadding),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
                     }
@@ -827,7 +820,7 @@ private fun VaultSelectionActionsSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                VaultSelectionAction(
+                SelectionAction(
                     modifier = Modifier.focusRequester(firstActionFocusRequester),
                     isTv = isTv,
                     imageVector = NextIcons.Play,
@@ -835,20 +828,20 @@ private fun VaultSelectionActionsSheet(
                     onClick = onPlayAction,
                 )
                 if (showInfoAction) {
-                    VaultSelectionAction(
+                    SelectionAction(
                         isTv = isTv,
                         imageVector = NextIcons.Info,
                         title = stringResource(R.string.info),
                         onClick = onInfoAction,
                     )
                 }
-                VaultSelectionAction(
+                SelectionAction(
                     isTv = isTv,
                     imageVector = NextIcons.Lock,
                     title = stringResource(R.string.unhide),
                     onClick = onUnhideAction,
                 )
-                VaultSelectionAction(
+                SelectionAction(
                     isTv = isTv,
                     imageVector = NextIcons.Delete,
                     title = stringResource(R.string.delete),
@@ -856,47 +849,6 @@ private fun VaultSelectionActionsSheet(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun VaultSelectionAction(
-    imageVector: ImageVector,
-    title: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    isTv: Boolean = false,
-) {
-    Column(
-        modifier = modifier
-            .defaultMinSize(
-                minWidth = 75.dp,
-                minHeight = 64.dp,
-            )
-            .tvFocusRing(isTv, shape = RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(
-                horizontal = 16.dp,
-                vertical = 8.dp,
-            ),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = title,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-        Text(
-            text = title,
-            modifier = Modifier,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
     }
 }
 
