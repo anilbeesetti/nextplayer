@@ -134,6 +134,7 @@ class MediaPickerViewModel @AssistedInject constructor(
             MediaPickerAction.CancelTransfer -> cancelTransfer()
             is MediaPickerAction.RequestHideSelectedItems -> requestHideSelectedItems(action.selectionItems)
             is MediaPickerAction.SetVaultPinAndHide -> setVaultPinAndHide(action.pin)
+            is MediaPickerAction.CompleteBiometricSetup -> completeBiometricSetup(action.enabled)
             MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
             MediaPickerAction.DismissHideFlow -> uiStateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
             is MediaPickerAction.ShowAddToPlaylist -> showAddToPlaylist(action.selectionItems)
@@ -458,6 +459,14 @@ class MediaPickerViewModel @AssistedInject constructor(
             vaultPinRepository.setPin(pin)
             hideVideoItems(pending)
             vaultPinRepository.setHideConfirmationShown()
+            uiStateInternal.update { it.copy(hideFlow = HideFlowState.BiometricSetup) }
+        }
+    }
+
+    private fun completeBiometricSetup(enabled: Boolean) {
+        if (uiStateInternal.value.hideFlow != HideFlowState.BiometricSetup) return
+        viewModelScope.launch {
+            vaultPinRepository.setBiometricEnabled(enabled)
             uiStateInternal.update { it.copy(hideFlow = HideFlowState.HowToFindInfo) }
         }
     }
@@ -532,6 +541,7 @@ sealed interface HideFlowState {
     data object Idle : HideFlowState
     data class ConfirmHide(val items: List<Video>) : HideFlowState
     data class SetupPin(val items: List<Video>) : HideFlowState
+    data object BiometricSetup : HideFlowState
     data object HowToFindInfo : HideFlowState
 
     data object Processing : HideFlowState
@@ -558,6 +568,7 @@ sealed interface MediaPickerAction {
     data object DismissMediaInfo : MediaPickerAction
     data class RequestHideSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class SetVaultPinAndHide(val pin: String) : MediaPickerAction
+    data class CompleteBiometricSetup(val enabled: Boolean) : MediaPickerAction
     data object ConfirmHidePendingItems : MediaPickerAction
     data object DismissHideFlow : MediaPickerAction
     data class ShowAddToPlaylist(val selectionItems: Set<SelectionItem>) : MediaPickerAction

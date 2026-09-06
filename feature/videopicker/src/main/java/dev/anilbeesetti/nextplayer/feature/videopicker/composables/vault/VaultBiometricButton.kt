@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 
@@ -31,37 +32,82 @@ internal fun VaultBiometricButton(
     onAuthenticated: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val activity = LocalActivity.current as? FragmentActivity ?: return
-    val available = remember(activity) {
-        BiometricManager.from(activity).canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
-    }
-    if (!available) return
+    if (!rememberVaultBiometricAvailable()) return
 
-    val currentOnAuthenticated by rememberUpdatedState(onAuthenticated)
+    var showPrompt by rememberSaveable { mutableStateOf(true) }
+    if (showPrompt) {
+        VaultBiometricPrompt(
+            title = stringResource(R.string.open_vault),
+            negativeButtonText = stringResource(R.string.use_vault_pin),
+            onResult = { authenticated ->
+                showPrompt = false
+                if (authenticated) onAuthenticated()
+            },
+        )
+    }
+
+    TextButton(
+        modifier = modifier,
+        onClick = { showPrompt = true },
+    ) {
+        Icon(imageVector = NextIcons.Fingerprint, contentDescription = null)
+        Spacer(Modifier.size(8.dp))
+        Text(text = stringResource(R.string.unlock_with_biometrics))
+    }
+}
+
+@Composable
+internal fun rememberVaultBiometricAvailable(): Boolean {
+    val activity = LocalActivity.current as? FragmentActivity ?: return false
+    val manager = remember(activity) { BiometricManager.from(activity) }
+    var available by remember(manager) {
+        mutableStateOf(manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS)
+    }
+    LifecycleResumeEffect(manager) {
+        available = manager.canAuthenticate(BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+        onPauseOrDispose { }
+    }
+    return available
+}
+
+@Composable
+internal fun VaultBiometricPrompt(
+    title: String,
+    negativeButtonText: String,
+    onResult: (Boolean) -> Unit,
+) {
+    val activity = LocalActivity.current as? FragmentActivity ?: return
+
+    val currentOnResult by rememberUpdatedState(onResult)
     var active by remember(activity) { mutableStateOf(false) }
     val prompt = remember(activity) {
         BiometricPrompt(
             activity,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    if (active) currentOnAuthenticated()
+                    if (!active) return
+                    active = false
+                    currentOnResult(true)
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    if (active && errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
+                    if (!active) return
+                    active = false
+                    if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
                         errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_CANCELED
                     ) {
                         Toast.makeText(activity, errString, Toast.LENGTH_SHORT).show()
                     }
+                    currentOnResult(false)
                 }
             },
         )
     }
-    val promptInfo = remember(activity) {
+    val promptInfo = remember(title, negativeButtonText) {
         BiometricPrompt.PromptInfo.Builder()
-            .setTitle(activity.getString(R.string.open_vault))
+            .setTitle(title)
             .setAllowedAuthenticators(BIOMETRIC_STRONG)
-            .setNegativeButtonText(activity.getString(R.string.use_vault_pin))
+            .setNegativeButtonText(negativeButtonText)
             .build()
     }
 
@@ -80,14 +126,5 @@ internal fun VaultBiometricButton(
             prompted = true
             prompt.authenticate(promptInfo)
         }
-    }
-
-    TextButton(
-        modifier = modifier,
-        onClick = { prompt.authenticate(promptInfo) },
-    ) {
-        Icon(imageVector = NextIcons.Fingerprint, contentDescription = null)
-        Spacer(Modifier.size(8.dp))
-        Text(text = stringResource(R.string.unlock_with_biometrics))
     }
 }

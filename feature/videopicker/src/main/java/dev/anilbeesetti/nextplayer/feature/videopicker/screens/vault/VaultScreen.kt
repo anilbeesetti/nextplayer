@@ -92,7 +92,9 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.VideoItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultBiometricButton
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultBiometricSetupDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultSettingsDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.rememberSelectionManager
 
@@ -149,7 +151,11 @@ internal fun VaultScreen(
             pinErrorCount = uiState.pinErrorCount,
             errorMessage = stringResource(R.string.incorrect_pin),
             onSubmit = { onAction(VaultAction.SubmitUnlockPin(it)) },
-            onBiometricAuthenticated = { onAction(VaultAction.BiometricAuthenticated) },
+            onBiometricAuthenticated = if (uiState.biometricEnabled) {
+                { onAction(VaultAction.BiometricAuthenticated) }
+            } else {
+                null
+            },
             onNavigateUp = onNavigateUp,
         )
 
@@ -168,6 +174,10 @@ internal fun VaultScreen(
             errorMessage = stringResource(R.string.pins_do_not_match),
             onSubmit = { onAction(VaultAction.SubmitPinConfirmation(it)) },
             onNavigateUp = onNavigateUp,
+        )
+
+        VaultStage.BIOMETRIC_SETUP -> VaultBiometricSetupDialog(
+            onComplete = { onAction(VaultAction.CompleteBiometricSetup(it)) },
         )
 
         VaultStage.HOW_TO_FIND_INFO -> {
@@ -407,6 +417,7 @@ private fun VaultGalleryScreen(
     var restoredFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
     val selectionManager = rememberSelectionManager()
     var showSortMenu by rememberSaveable { mutableStateOf(false) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     var showUnhideConfirmation by rememberSaveable { mutableStateOf(false) }
 
@@ -502,6 +513,15 @@ private fun VaultGalleryScreen(
                             Icon(
                                 imageVector = NextIcons.Sensitivity,
                                 contentDescription = stringResource(R.string.sort_by),
+                            )
+                        }
+                        IconButton(
+                            onClick = { showSettings = true },
+                            modifier = Modifier.tvFocusRing(),
+                        ) {
+                            Icon(
+                                imageVector = NextIcons.Settings,
+                                contentDescription = stringResource(R.string.vault_settings),
                             )
                         }
                     }
@@ -610,6 +630,14 @@ private fun VaultGalleryScreen(
                 }
             }
         }
+    }
+
+    if (showSettings) {
+        VaultSettingsDialog(
+            biometricEnabled = uiState.biometricEnabled,
+            onBiometricEnabledChange = { onAction(VaultAction.SetBiometricEnabled(it)) },
+            onDismiss = { showSettings = false },
+        )
     }
 
     if (showSortMenu) {

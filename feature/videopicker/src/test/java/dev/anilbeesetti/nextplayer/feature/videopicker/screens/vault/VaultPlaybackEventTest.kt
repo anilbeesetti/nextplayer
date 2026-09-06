@@ -75,6 +75,8 @@ class VaultPlaybackEventTest {
     private data object FakeVaultPinRepository : VaultPinRepository {
         override suspend fun hasPinSet(): Boolean = false
         override suspend fun setPin(pin: String) = Unit
+        override suspend fun isBiometricEnabled(): Boolean = false
+        override suspend fun setBiometricEnabled(enabled: Boolean) = Unit
         override suspend fun verifyPin(pin: String): Boolean = false
         override suspend fun hasShownHideConfirmation(): Boolean = false
         override suspend fun setHideConfirmationShown() = Unit

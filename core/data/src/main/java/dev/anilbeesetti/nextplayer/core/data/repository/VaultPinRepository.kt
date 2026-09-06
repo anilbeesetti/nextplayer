@@ -1,7 +1,7 @@
 package dev.anilbeesetti.nextplayer.core.data.repository
 
 /**
- * Manages the 4-digit PIN that protects the vault.
+ * Manages the vault PIN and biometric unlock preference.
  */
 interface VaultPinRepository {
 
@@ -19,6 +19,11 @@ interface VaultPinRepository {
      * Returns `true` if [pin] matches the currently stored vault PIN.
      */
     suspend fun verifyPin(pin: String): Boolean
+
+    /** Whether the user has enabled biometric unlock after confirming with a biometric scan. */
+    suspend fun isBiometricEnabled(): Boolean
+
+    suspend fun setBiometricEnabled(enabled: Boolean)
 
     /**
      * Whether the one-time "hide this video?" confirmation dialog has already been shown to

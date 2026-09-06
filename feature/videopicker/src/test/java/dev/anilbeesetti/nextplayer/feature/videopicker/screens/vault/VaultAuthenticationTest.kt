@@ -22,6 +22,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,6 +34,7 @@ import org.robolectric.RobolectricTestRunner
 class VaultAuthenticationTest {
     private val dispatcher = StandardTestDispatcher()
     private val vaultRepository = FakeVaultRepository()
+    private var biometricEnabled = false
 
     @Before
     fun setUp() {
@@ -73,6 +76,7 @@ class VaultAuthenticationTest {
 
     @Test
     fun `successful biometrics unlock once and clear earlier PIN errors`() = runTest(dispatcher.scheduler) {
+        biometricEnabled = true
         val viewModel = createViewModel()
         advanceUntilIdle()
         viewModel.onAction(VaultAction.SubmitUnlockPin("0000"))
@@ -93,6 +97,7 @@ class VaultAuthenticationTest {
 
     @Test
     fun `PIN fallback still unlocks the vault`() = runTest(dispatcher.scheduler) {
+        biometricEnabled = true
         val viewModel = createViewModel()
         advanceUntilIdle()
 
@@ -103,11 +108,107 @@ class VaultAuthenticationTest {
         assertEquals(listOf(Video.sample), viewModel.uiState.value.hiddenVideos)
     }
 
+    @Test
+    fun `biometrics cannot unlock without opting in`() = runTest(dispatcher.scheduler) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(VaultAction.BiometricAuthenticated)
+        advanceUntilIdle()
+
+        assertEquals(VaultStage.LOCKED, viewModel.uiState.value.stage)
+        assertEquals(0, vaultRepository.observations)
+    }
+
+    @Test
+    fun `confirming a new PIN offers biometrics without enabling it`() = runTest(dispatcher.scheduler) {
+        val viewModel = createViewModel(CompletableDeferred(false))
+        advanceUntilIdle()
+        viewModel.onAction(VaultAction.SubmitNewPin("1234"))
+        viewModel.onAction(VaultAction.SubmitPinConfirmation("1234"))
+        advanceUntilIdle()
+
+        assertEquals(VaultStage.BIOMETRIC_SETUP, viewModel.uiState.value.stage)
+        assertFalse(biometricEnabled)
+        viewModel.onAction(VaultAction.BiometricAuthenticated)
+        assertEquals(VaultStage.BIOMETRIC_SETUP, viewModel.uiState.value.stage)
+        assertEquals(0, vaultRepository.observations)
+
+        viewModel.onAction(VaultAction.CompleteBiometricSetup(true))
+        advanceUntilIdle()
+
+        assertTrue(biometricEnabled)
+        assertTrue(viewModel.uiState.value.biometricEnabled)
+        assertEquals(VaultStage.HOW_TO_FIND_INFO, viewModel.uiState.value.stage)
+        val reopened = createViewModel()
+        advanceUntilIdle()
+        assertTrue(reopened.uiState.value.biometricEnabled)
+    }
+
+    @Test
+    fun `skipping biometric setup keeps the next unlock PIN only`() = runTest(dispatcher.scheduler) {
+        val viewModel = createViewModel(CompletableDeferred(false))
+        advanceUntilIdle()
+        viewModel.onAction(VaultAction.SubmitNewPin("1234"))
+        viewModel.onAction(VaultAction.SubmitPinConfirmation("1234"))
+        advanceUntilIdle()
+        viewModel.onAction(VaultAction.CompleteBiometricSetup(false))
+        advanceUntilIdle()
+
+        assertFalse(biometricEnabled)
+        assertEquals(VaultStage.HOW_TO_FIND_INFO, viewModel.uiState.value.stage)
+        val reopened = createViewModel()
+        advanceUntilIdle()
+        reopened.onAction(VaultAction.BiometricAuthenticated)
+        assertEquals(VaultStage.LOCKED, reopened.uiState.value.stage)
+    }
+
+    @Test
+    fun `biometric settings cannot be changed from the locked screen`() = runTest(dispatcher.scheduler) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(VaultAction.SetBiometricEnabled(true))
+        viewModel.onAction(VaultAction.CompleteBiometricSetup(true))
+        advanceUntilIdle()
+
+        assertFalse(biometricEnabled)
+        assertEquals(VaultStage.LOCKED, viewModel.uiState.value.stage)
+    }
+
+    @Test
+    fun `biometrics can be enabled in the unlocked vault and disabled for later visits`() = runTest(dispatcher.scheduler) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onAction(VaultAction.SubmitUnlockPin("1234"))
+        advanceUntilIdle()
+        viewModel.onAction(VaultAction.SetBiometricEnabled(true))
+        advanceUntilIdle()
+        assertTrue(biometricEnabled)
+
+        viewModel.onAction(VaultAction.SetBiometricEnabled(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.biometricEnabled)
+        assertFalse(biometricEnabled)
+
+        val reopened = createViewModel()
+        advanceUntilIdle()
+        reopened.onAction(VaultAction.BiometricAuthenticated)
+        assertEquals(VaultStage.LOCKED, reopened.uiState.value.stage)
+        reopened.onAction(VaultAction.SubmitUnlockPin("1234"))
+        advanceUntilIdle()
+        assertEquals(VaultStage.UNLOCKED, reopened.uiState.value.stage)
+    }
+
     private fun createViewModel(hasPin: CompletableDeferred<Boolean> = CompletableDeferred(true)) = VaultViewModel(
         vaultRepository = vaultRepository,
         vaultPinRepository = object : VaultPinRepository {
             override suspend fun hasPinSet(): Boolean = hasPin.await()
             override suspend fun setPin(pin: String) = Unit
+            override suspend fun isBiometricEnabled(): Boolean = biometricEnabled
+            override suspend fun setBiometricEnabled(enabled: Boolean) {
+                biometricEnabled = enabled
+            }
             override suspend fun verifyPin(pin: String): Boolean = pin == "1234"
             override suspend fun hasShownHideConfirmation(): Boolean = false
             override suspend fun setHideConfirmationShown() = Unit

@@ -126,6 +126,7 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.composables.SelectionActi
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.TextIconToggleButton
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinDotsIndicator
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.PinKeypad
+import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultBiometricSetupDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.composables.vault.VaultProgressDialog
 import dev.anilbeesetti.nextplayer.feature.videopicker.screens.vault.VAULT_PIN_LENGTH
 import dev.anilbeesetti.nextplayer.feature.videopicker.state.SelectionItem
@@ -615,6 +616,7 @@ internal fun MediaPickerScreen(
         hideFlow = uiState.hideFlow,
         onConfirmHide = { onAction(MediaPickerAction.ConfirmHidePendingItems) },
         onSetPinAndHide = { onAction(MediaPickerAction.SetVaultPinAndHide(it)) },
+        onBiometricSetupComplete = { onAction(MediaPickerAction.CompleteBiometricSetup(it)) },
         onDismiss = { onAction(MediaPickerAction.DismissHideFlow) },
     )
 
@@ -801,6 +803,7 @@ private fun HideFlowDialogs(
     hideFlow: HideFlowState,
     onConfirmHide: () -> Unit,
     onSetPinAndHide: (String) -> Unit,
+    onBiometricSetupComplete: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     when (hideFlow) {
@@ -839,6 +842,8 @@ private fun HideFlowDialogs(
                 onPinConfirmed = onSetPinAndHide,
             )
         }
+
+        HideFlowState.BiometricSetup -> VaultBiometricSetupDialog(onComplete = onBiometricSetupComplete)
 
         HideFlowState.HowToFindInfo -> {
             NextDialog(
